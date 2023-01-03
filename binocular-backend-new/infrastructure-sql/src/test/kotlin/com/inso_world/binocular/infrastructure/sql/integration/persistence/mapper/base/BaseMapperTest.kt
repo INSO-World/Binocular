@@ -102,7 +102,7 @@ internal object MapperTestData {
         Branch(
             id = branchEntity.id?.toString(),
             name = branchEntity.name,
-            repositoryId = branchEntity.repository?.id.toString(),
+            repository = repositoryModel(),
         )
 
     val commitDomainA =

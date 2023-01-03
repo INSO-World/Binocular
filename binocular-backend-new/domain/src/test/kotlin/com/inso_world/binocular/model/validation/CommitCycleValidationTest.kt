@@ -36,7 +36,15 @@ class CommitCycleValidationTest {
                 sha = "a".repeat(40),
                 commitDateTime = LocalDateTime.now(),
                 message = "Initial commit",
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(
+                    Branch(
+                        name = "b", commits = mutableSetOf(
+                            Commit(
+                                sha = "a".repeat(40)
+                            )
+                        )
+                    )
+                ),
             )
         val violations = validator.validate(commit)
         assertAll(
@@ -58,7 +66,11 @@ class CommitCycleValidationTest {
                 commitDateTime = LocalDateTime.now(),
                 message = "Child commit",
                 parents = mutableSetOf(parent),
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(
+                            Commit(
+                                sha = "a".repeat(40)
+                            )
+                        ))),
             )
         val violations = validator.validate(commit)
         assertAll(
@@ -86,7 +98,11 @@ class CommitCycleValidationTest {
                 commitDateTime = LocalDateTime.now(),
                 message = "Merge commit",
                 parents = mutableSetOf(parent1, parent2),
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(
+                            Commit(
+                                sha = "a".repeat(40)
+                            )
+                        ))),
             )
         val violations = validator.validate(commit)
         assertAll(
@@ -101,7 +117,11 @@ class CommitCycleValidationTest {
                 sha = "a".repeat(40),
                 commitDateTime = LocalDateTime.now(),
                 message = "Cyclic commit",
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(
+                            Commit(
+                                sha = "a".repeat(40)
+                            )
+                        ))),
             )
         // Direct cycle: commit is its own parent
         commit.parents = mutableSetOf(commit)
@@ -138,9 +158,9 @@ class CommitCycleValidationTest {
                 message = "C",
                 branches = mutableSetOf(branch),
             )
-        branch.commitShas.add(commitA.sha)
-        branch.commitShas.add(commitB.sha)
-        branch.commitShas.add(commitC.sha)
+        branch.commits.add(commitA)
+        branch.commits.add(commitB)
+        branch.commits.add(commitC)
         // A -> B -> C -> A
         commitA.parents = mutableSetOf(commitB)
         commitB.parents = mutableSetOf(commitC)
@@ -151,7 +171,13 @@ class CommitCycleValidationTest {
                 assertThat(violations).hasSize(1)
                 violations.toList()[0]
             }
-        assertThat(violation.message).contains("${"a".repeat(40)} -> ${"b".repeat(40)} -> ${"c".repeat(40)} -> ${"a".repeat(40)}")
+        assertThat(violation.message).contains(
+            "${"a".repeat(40)} -> ${"b".repeat(40)} -> ${"c".repeat(40)} -> ${
+                "a".repeat(
+                    40
+                )
+            }"
+        )
     }
 
     @Test
@@ -199,10 +225,10 @@ class CommitCycleValidationTest {
         commitB.parents = mutableSetOf(commitC)
         commitC.parents = mutableSetOf(commitD)
         commitD.parents = mutableSetOf(commitB)
-        branch.commitShas.add(commitA.sha)
-        branch.commitShas.add(commitB.sha)
-        branch.commitShas.add(commitC.sha)
-        branch.commitShas.add(commitD.sha)
+        branch.commits.add(commitA)
+        branch.commits.add(commitB)
+        branch.commits.add(commitC)
+        branch.commits.add(commitD)
         val violation =
             run {
                 val violations = validator.validate(repository)
@@ -238,7 +264,17 @@ class CommitCycleValidationTest {
                 commitDateTime = LocalDateTime.now(),
                 message = "Merge commit",
                 parents = mutableSetOf(parent1, parent2),
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("b".repeat(40), "c".repeat(40), "a".repeat(40)))),
+                branches = mutableSetOf(
+                    Branch(
+                        name = "b",
+                        commits =
+                            mutableSetOf(
+                                Commit(sha="b".repeat(40)),
+                                Commit(sha="c".repeat(40)),
+                                Commit(sha="a".repeat(40))
+                            )
+                    )
+                ),
             )
         val violations = validator.validate(commit)
         assertAll(
@@ -270,9 +306,9 @@ class CommitCycleValidationTest {
                 message = "C",
                 branches = mutableSetOf(branch),
             )
-        branch.commitShas.add(commitA.sha)
-        branch.commitShas.add(commitB.sha)
-        branch.commitShas.add(commitC.sha)
+        branch.commits.add(commitA)
+        branch.commits.add(commitB)
+        branch.commits.add(commitC)
         // A -> B, A -> C, B -> C, C -> A (cycle through both parents)
         commitA.parents = mutableSetOf(commitB, commitC)
         commitB.parents = mutableSetOf(commitC)

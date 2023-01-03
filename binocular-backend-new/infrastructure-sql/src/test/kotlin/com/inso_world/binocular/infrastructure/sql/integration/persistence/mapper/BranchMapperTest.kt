@@ -12,7 +12,6 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import io.mockk.every
 import io.mockk.mockk
 import jakarta.persistence.EntityManager
 import jakarta.validation.Validation
@@ -77,10 +76,10 @@ internal class BranchMapperTest : BaseMapperTest() {
         val branch =
             Branch(
                 name = "testBranch",
-                repositoryId = this.repositoryEntity.id?.toString(),
+                repository = this.repositoryEntity.toDomain(null),
             )
 
-        val entity = this.branchMapper.toEntity(branch, this.repositoryEntity)
+        val entity = this.branchMapper.toEntity(branch).also { b -> this.repositoryEntity.addBranch(b) }
 
         assertThat(entity.repository).isNotNull()
         assertAll(
@@ -103,8 +102,8 @@ internal class BranchMapperTest : BaseMapperTest() {
         val branch =
             Branch(
                 name = "testBranch",
-                repositoryId = this.repositoryEntity.id?.toString(),
-                commitShas = mutableSetOf(commit.sha),
+                repository = this.repositoryEntity.toDomain(null),
+                commits = mutableSetOf(commit),
             )
         // needed as branchMapper.toEntity requires the commit to be part of the repository already
         val commitEntity =
@@ -123,10 +122,9 @@ internal class BranchMapperTest : BaseMapperTest() {
 
         val entity =
             assertDoesNotThrow {
-                this.branchMapper.toEntity(
-                    branch,
-                    this.repositoryEntity,
-                )
+                this.branchMapper.toEntity(branch).also { b ->
+                    this.repositoryEntity.addBranch(b)
+                }
             }
 
         assertAll(
@@ -167,46 +165,56 @@ internal class BranchMapperTest : BaseMapperTest() {
 
         @Test
         fun `branchMapper toDomain, minimal valid example`() {
-            val cmt =
+            val commitEntity =
                 CommitEntity(
                     sha = "d".repeat(40),
                     branches = mutableSetOf(),
                 )
-            val branch =
+            val branchEntity =
                 BranchEntity(
                     id = 1,
                     name = "testBranch",
                     repository = repositoryEntity,
                     commits =
-                        mutableSetOf(cmt),
+                        mutableSetOf(commitEntity),
                 )
-            cmt.branches.add(branch)
+            commitEntity.addBranch(branchEntity)
+            repositoryEntity.addBranch(branchEntity)
+            repositoryEntity.addCommit(commitEntity)
 
-            every { entityManagerMock.find(BranchEntity::class.java, branch.id) } returns branch
+//            every { entityManagerMock.find(BranchEntity::class.java, branchEntity.id) } returns branchEntity
 
-            val entity = branchMapper.toDomain(branch, repositoryModel)
+            val domain = branchMapper.toDomain(branchEntity)
+                .also {
+                    repositoryModel.addBranch(it)
+                    it.commits.forEach { c ->
+                        repositoryModel.addCommit(c)
+                    }
+                }
 
             assertAll(
-                { assertThat(entity.id).isEqualTo(branch.id.toString()) },
-                { assertThat(entity.repositoryId).isEqualTo(repositoryModel.id) },
-                { assertThat(entity.repositoryId).isEqualTo(repositoryEntity.id.toString()) },
-                { assertThat(entity.repositoryId).isEqualTo(branch.repository?.id?.toString()) },
-                { assertThat(entity.commitShas).containsExactlyInAnyOrderElementsOf(listOf("d".repeat(40))) },
+                { assertThat(domain.id).isEqualTo(branchEntity.id.toString()) },
+                { assertThat(domain.repository?.id).isNotNull() },
+                { assertThat(domain.repository?.id).isEqualTo(repositoryModel.id) },
+                { assertThat(domain.repository?.id).isEqualTo(repositoryEntity.id.toString()) },
+                { assertThat(domain.repository?.id).isEqualTo(branchEntity.repository?.id?.toString()) },
+                { assertThat(domain.commits.map { it.sha }).containsExactlyInAnyOrderElementsOf(listOf("d".repeat(40))) },
                 {
-                    assertThat(entity)
+                    assertThat(domain)
                         .usingRecursiveComparison()
                         .ignoringCollectionOrder()
-                        .ignoringFields(
-                            "id",
-                            "commits",
-                            "latestCommit",
-                            "active",
-                            "repositoryId",
-                            "tracksFileRenames",
-                            "files",
-                            "branch",
-                            "commitShas",
-                        ).isEqualTo(branch)
+                        .ignoringFieldsMatchingRegexes(
+                            ".*logger",
+                            ".*id",
+                            ".*commits",
+                            ".*project",
+                            ".*latestCommit",
+                            ".*active",
+                            ".*tracksFileRenames",
+                            ".*files",
+                            ".*branch",
+                        )
+                        .isEqualTo(branchEntity)
                 },
             )
         }

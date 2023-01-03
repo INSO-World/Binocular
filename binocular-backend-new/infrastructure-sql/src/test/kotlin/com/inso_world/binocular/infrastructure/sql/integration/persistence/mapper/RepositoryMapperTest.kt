@@ -252,15 +252,15 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                 ),
             )
 
-        domain.commits.addAll(commitList)
+        commitList.forEach { domain.addCommit(it) }
         val branch =
             Branch(
                 name = "test",
-                commitShas = commitList.map { it.sha }.toMutableSet(),
-                repositoryId = domain.id,
+                commits = commitList.toMutableSet(),
+                repository = domain,
             )
-        commitList.forEach { it.branches.add(branch) }
-        domain.branches.add(branch)
+        commitList.forEach { it.addBranch(branch) }
+        domain.addBranch(branch)
 
         // Map to entity
         val entity = repositoryMapper.toEntity(domain, projectEntity)
@@ -322,18 +322,21 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             )
         commitList.forEach {
             // wire up author, committer
-            it.author?.authoredCommits?.add(it)
-            it.committer?.committedCommits?.add(it)
+            it.author?.addAuthoredCommit(it)
+            it.committer?.addCommittedCommit(it)
             it.repositoryId = domain.id
-            domain.branches.addAll(it.branches)
+            it.branches.forEach { b -> domain.addBranch(b) }
             it.parents.forEach { parent ->
                 parent.repositoryId = domain.id
-                parent.branches.addAll(it.branches)
-                parent.children.add(it)
+                it.branches.forEach { b ->
+                    parent.addBranch(b)
+                    domain.addBranch(b)
+                }
+                parent.addChild(it)
             }
         }
 
-        domain.commits.addAll(commitList)
+        commitList.forEach { domain.addCommit(it) }
 
         assertThat(domain.branches).hasSize(1)
 
@@ -348,7 +351,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                 assertThat(entity.commits.map { it.repository?.id }).containsOnly(domain.id?.toLong())
             },
         )
-        (domain.commits + domain.commits.flatMap { it.parents }).forEach { domainCmt ->
+        (domain.commits + domain.commits.flatMap { it.parents } + domain.commits.flatMap { it.children }).forEach { domainCmt ->
             val entityCmt =
                 entity.commits.find { it.sha == domainCmt.sha } ?: throw IllegalStateException("must find commit here")
             assertThat(entityCmt)
@@ -363,8 +366,8 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                     ".*commitShas"
                 )
                 .isEqualTo(domainCmt)
-            assertThat(entityCmt.branches.flatMap { it.commits.map { c -> c.sha } })
-                .containsAll(domainCmt.branches.flatMap { it.commitShas })
+            assertThat(entityCmt.branches.flatMap { b -> b.commits.map { c -> c.sha } })
+                .containsAll(domainCmt.branches.flatMap { b -> b.commits.map { c-> c.sha } })
         }
     }
 
@@ -393,13 +396,13 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         val branch =
             Branch(
                 name = "test",
-                commitShas = mutableSetOf(commit.sha),
-                repositoryId = domain.id,
+                commits = mutableSetOf(commit),
+                repository = domain,
             )
-        commit.branches.add(branch)
-        domain.branches.add(branch)
+        commit.addBranch(branch)
+        domain.addBranch(branch)
 
-        domain.commits.add(commit)
+        domain.addCommit(commit)
 
         // Map to entity
         val entity = repositoryMapper.toEntity(domain, projectEntity)
