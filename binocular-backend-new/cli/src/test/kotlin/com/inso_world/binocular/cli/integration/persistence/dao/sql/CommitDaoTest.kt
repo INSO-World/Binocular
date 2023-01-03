@@ -10,7 +10,6 @@ import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.integration.utils.traverseGraph
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.cli.service.addCommit
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.FIXTURES_PATH
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.OCTO_PROJECT_NAME
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.OCTO_REPO

@@ -35,7 +35,7 @@ internal class RepositoryDaoTest(
         }
 
         @Test
-        fun non_saved_should_return_no_repositories() {
+        fun `non saved, should return no repositories`() {
             val repos = repositoryPort.findAll()
             assertThat(repos).isEmpty()
         }

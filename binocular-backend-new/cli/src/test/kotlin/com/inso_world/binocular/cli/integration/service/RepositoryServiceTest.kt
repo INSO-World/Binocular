@@ -7,7 +7,6 @@ import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -315,6 +314,9 @@ internal class RepositoryServiceTest(
 
             // Ensure parent objects are the correct instances from the transformed map
             transformedCommit.parents.forEach { parentCommit ->
+                assertThat(transformedCommitMap[parentCommit.sha])
+                    .usingRecursiveComparison()
+                    .isEqualTo(parentCommit)
                 assertThat(transformedCommitMap[parentCommit.sha]).isSameAs(parentCommit)
             }
         }
