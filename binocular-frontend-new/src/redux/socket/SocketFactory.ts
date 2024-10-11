@@ -9,8 +9,8 @@ export interface SocketInterface {
 class SocketConnection implements SocketInterface {
   public socket: Socket;
   // The constructor will initialize the Socket Connection
-  constructor() {
-    this.socket = io({ path: '/wsapi' });
+  constructor(url: string) {
+    this.socket = io(url, { path: '/wsapi' });
   }
 }
 
@@ -19,9 +19,9 @@ let socketConnection: SocketConnection | undefined;
 // The SocketFactory is responsible for creating and returning a single instance of the SocketConnection class
 // Implementing the singleton pattern
 class SocketFactory {
-  public static create(): SocketConnection {
+  public static create(url: string): SocketConnection {
     if (!socketConnection) {
-      socketConnection = new SocketConnection();
+      socketConnection = new SocketConnection(url);
     }
     return socketConnection;
   }
