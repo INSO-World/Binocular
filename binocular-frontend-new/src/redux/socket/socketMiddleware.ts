@@ -11,7 +11,7 @@ enum SocketEvent {
 const socketMiddleware: Middleware = (store) => {
   let socket: SocketInterface;
 
-  return () => () => {
+  return (next) => (action) => {
     // Middleware logic for the `initSocket` action
     if (!socket && typeof window !== 'undefined') {
       // Client-side-only code
@@ -23,6 +23,7 @@ const socketMiddleware: Middleware = (store) => {
         store.dispatch(setProgress(progress));
       });
     }
+    next(action);
   };
 };
 
