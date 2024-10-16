@@ -69,7 +69,7 @@ class GitHubCIIndexer {
         `create build ${JSON.stringify({
           id: pipeline.id,
           number: pipeline.run_number,
-          sha: pipeline.head_commit.sha,
+          sha: pipeline.head_sha,
           status: convertState(pipeline.conclusion),
           updatedAt: moment(pipeline.updated_at).toISOString(),
           startedAt: moment(pipeline.run_started_at).toISOString(),
@@ -90,21 +90,21 @@ class GitHubCIIndexer {
       }
 
       return Build.persist({
-        id: pipeline.id,
+        id: String(pipeline.id),
         sha: pipeline.head_sha,
-        ref: pipeline.head_commit.id,
+        ref: String(pipeline.head_commit.id),
         status: convertState(pipeline.conclusion),
         tag: pipeline.display_title,
         user: username,
         userFullName: userFullName !== null ? userFullName : username,
-        createdAt: moment(pipeline.created_at || (jobs.length > 0 ? jobs[0].created_at : pipeline.started_at)).toISOString(),
+        createdAt: moment(pipeline.created_at || (jobs.length > 0 ? jobs[0].created_at : pipeline.run_started_at)).toISOString(),
         updatedAt: moment(pipeline.updated_at).toISOString(),
         startedAt: moment(pipeline.run_started_at).toISOString(),
         finishedAt: moment(lastFinishedAt).toISOString(),
-        committedAt: moment(pipeline.head_commit.committed_at).toISOString(),
+        committedAt: moment(pipeline.head_commit.timestamp).toISOString(),
         duration: moment(lastFinishedAt).unix() - moment(lastStartedAt).unix(),
         jobs: jobs.map((job: GithubJob) => ({
-          id: job.id,
+          id: String(job.id),
           name: username,
           status: job.conclusion,
           stage: job.conclusion,

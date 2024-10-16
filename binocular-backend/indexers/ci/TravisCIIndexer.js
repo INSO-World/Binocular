@@ -12,6 +12,9 @@ import debug from 'debug';
 
 const log = debug('importer:travis-ci-indexer');
 
+/**
+ * @deprecated
+ */
 class TravisCIIndexer {
   constructor(repository, progressReporter) {
     this.repo = repository;

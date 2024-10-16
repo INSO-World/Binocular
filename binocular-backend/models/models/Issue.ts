@@ -77,7 +77,7 @@ class Issue extends Model<IssueDataType> {
       .then((cursor) => cursor.all())
       .then((authors) => {
         return authors.map((issuesPerAuthor) =>
-          User.findOneBy('gitlabID', issuesPerAuthor.author.id)
+          User.findOneBy('gitlabID', issuesPerAuthor.author?.id) // TODO create an new class of unassigned issues
             .then(function (user) {
               if (!user) {
                 log('No existing user found for gitlabId %o', issuesPerAuthor.author.id);
