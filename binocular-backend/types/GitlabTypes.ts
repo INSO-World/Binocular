@@ -32,5 +32,18 @@ export interface GitlabProject {
 }
 
 export interface GitlabJob {
+  edges: GitlabNode[];
+}
 
+export interface GitlabNode {
+  id: string;
+  name: string;
+  createdAt: string;
+  finishedAt: string;
+  status: string;
+  stage: GitlabStage;
+}
+
+export interface GitlabStage {
+  name: string;
 }
