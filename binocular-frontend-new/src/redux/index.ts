@@ -28,7 +28,9 @@ export const store = configureStore({
     notifications: NotificationsReducer,
     tabs: TabsReducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat([logger, socketMiddleware]),
+  middleware: (getDefaultMiddleware) => {
+    return getDefaultMiddleware().concat([socketMiddleware('ws://localhost:48763'), logger]);
+  },
 });
 
 export type RootState = ReturnType<typeof store.getState>;

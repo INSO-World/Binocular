@@ -1,4 +1,4 @@
-//Origin: https://shav.dev/blog/socket-io-and-redux-middleware
+//Modified version from: https://shav.dev/blog/socket-io-and-redux-middleware
 
 import { io, Socket } from 'socket.io-client';
 
