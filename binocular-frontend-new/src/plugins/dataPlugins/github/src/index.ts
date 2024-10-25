@@ -13,6 +13,7 @@ class Github implements DataPlugin {
     apiKey: true,
     endpoint: false,
     file: false,
+    progressUpdate: false,
   };
   public commits;
   public users;
@@ -35,8 +36,7 @@ class Github implements DataPlugin {
     }
   }
 
-  public async clearRemains() {
-  }
+  public async clearRemains() {}
 }
 
 export default Github;
