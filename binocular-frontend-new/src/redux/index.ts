@@ -29,7 +29,7 @@ export const store = configureStore({
     tabs: TabsReducer,
   },
   middleware: (getDefaultMiddleware) => {
-    return getDefaultMiddleware().concat([socketMiddleware('ws://localhost:48763'), logger]);
+    return getDefaultMiddleware().concat([socketMiddleware(''), logger]);
   },
 });
 

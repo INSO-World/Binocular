@@ -12,5 +12,11 @@ export interface DatabaseSettingsDataPluginType {
     apiKey?: string;
     endpoint?: string;
     fileName?: string;
+    progressUpdate?: ProgressUpdateConfig;
   };
+}
+
+export interface ProgressUpdateConfig {
+  useAutomaticUpdate: boolean;
+  endpoint?: string;
 }

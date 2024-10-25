@@ -7,3 +7,8 @@ export interface DataPluginFile {
   webUrl: string;
   maxLength: number;
 }
+
+export interface FileConfig {
+  name: string | undefined;
+  file: File | undefined;
+}

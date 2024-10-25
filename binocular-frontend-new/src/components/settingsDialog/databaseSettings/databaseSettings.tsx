@@ -39,24 +39,37 @@ function DatabaseSettings() {
                     {settingsDatabaseDataPlugin.name} #{settingsDatabaseDataPlugin.id}
                     {settingsDatabaseDataPlugin.isDefault && <div className="badge badge-accent">Default</div>}
                   </h2>
-                  <div>
-                    <span className={'font-bold'}>API Key:</span>
-                    <span>
-                      {settingsDatabaseDataPlugin.parameters.apiKey ? settingsDatabaseDataPlugin.parameters.apiKey : 'Not necessary'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className={'font-bold'}>Endpoint:</span>
-                    <span>
-                      {settingsDatabaseDataPlugin.parameters.endpoint ? settingsDatabaseDataPlugin.parameters.endpoint : 'Not necessary'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className={'font-bold'}>Database:</span>
-                    <span>
-                      {settingsDatabaseDataPlugin.parameters.fileName ? settingsDatabaseDataPlugin.parameters.fileName : 'Not necessary'}
-                    </span>
-                  </div>
+                  {settingsDatabaseDataPlugin.parameters.apiKey && (
+                    <div>
+                      <span className={'font-bold'}>API Key:</span>
+                      <span>{settingsDatabaseDataPlugin.parameters.apiKey}</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.endpoint && (
+                    <div>
+                      <span className={'font-bold'}>Endpoint:</span>
+                      <span>{settingsDatabaseDataPlugin.parameters.endpoint}</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.fileName && (
+                    <div>
+                      <span className={'font-bold'}>Database:</span>
+                      <span>{settingsDatabaseDataPlugin.parameters.fileName}</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.progressUpdate && (
+                    <div>
+                      <span className={'font-bold'}>Progress Update:</span>
+                      <span className="badge badge-success ml-1">Configured</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.progressUpdate &&
+                    settingsDatabaseDataPlugin.parameters.progressUpdate.endpoint && (
+                      <div>
+                        <span className={'font-bold'}>Use Progress Update Endpoint:</span>
+                        <span>{settingsDatabaseDataPlugin.parameters.progressUpdate.endpoint}</span>
+                      </div>
+                    )}
                   <button
                     className={'btn btn-outline'}
                     onClick={() => {

@@ -13,6 +13,7 @@ class MockData implements DataPlugin {
     apiKey: false,
     endpoint: false,
     file: false,
+    progressUpdate: false,
   };
   public commits;
   public users;
@@ -28,8 +29,7 @@ class MockData implements DataPlugin {
 
   public async init() {}
 
-  public async clearRemains() {
-  }
+  public async clearRemains() {}
 }
 
 export default MockData;
