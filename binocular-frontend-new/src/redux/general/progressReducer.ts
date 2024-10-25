@@ -6,7 +6,39 @@ export interface ProgressInitialState {
 }
 
 const initialState: ProgressInitialState = {
-  progress: null,
+  progress: {
+    type: '',
+    report: {
+      commits: {
+        processed: 0,
+        total: 0,
+      },
+      issues: {
+        processed: 0,
+        total: 0,
+      },
+      builds: {
+        processed: 0,
+        total: 0,
+      },
+      files: {
+        processed: 0,
+        total: 0,
+      },
+      modules: {
+        processed: 0,
+        total: 0,
+      },
+      milestones: {
+        processed: 0,
+        total: 0,
+      },
+      mergeRequests: {
+        processed: 0,
+        total: 0,
+      },
+    },
+  },
 };
 
 export const progressSlice = createSlice({

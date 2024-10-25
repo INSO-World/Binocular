@@ -178,10 +178,12 @@ all features will be available in the offline build)
 For more information check `binocular -h`
 
 ### New Frontend (:warning: Experimental)
-To try the experimental new frontend navigate to the folder
-`binocular-frontend-new` and run the following command in that specific folder.
+To try the experimental new frontend, install and run it with the following commands.
 ``` shell
-npm run dev
+npm run install:frontend-new
+```
+``` shell
+npm run dev:frontend-new
 ```
 This new frontend is a complete rework from the current implementation
 and is currently in its development and test phase.

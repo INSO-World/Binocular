@@ -11,7 +11,6 @@ import ExportReducer from './export/exportReducer.ts';
 import TabsReducer from './general/tabsReducer.ts';
 import { createLogger } from 'redux-logger';
 import FilesReducer from './data/filesReducer.ts';
-import socketMiddleware from './socket/socketMiddleware.ts';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -29,7 +28,7 @@ export const store = configureStore({
     tabs: TabsReducer,
   },
   middleware: (getDefaultMiddleware) => {
-    return getDefaultMiddleware().concat([socketMiddleware(''), logger]);
+    return getDefaultMiddleware().concat([logger]);
   },
 });
 
