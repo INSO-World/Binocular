@@ -66,3 +66,15 @@ export interface GithubMilestone {
   closedAt: string;
   dueOn: string;
 }
+
+export interface GithubArtifact {
+  id: number;
+  node_id: string;
+  name: string;
+  size_in_bytes: number;
+  url: string;
+  archive_download_url: string;
+  expired: boolean;
+  created_at: string;
+  expires_at: string;
+}

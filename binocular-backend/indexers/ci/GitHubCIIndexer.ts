@@ -8,10 +8,9 @@ import moment from 'moment';
 import GitHub from '../../core/provider/github';
 import debug from 'debug';
 import ProgressReporter from '../../utils/progress-reporter.ts';
-import { GithubJob } from '../../types/GithubTypes.ts';
+import { GithubArtifact, GithubJob } from '../../types/GithubTypes.ts';
 import Config from '../../utils/config';
 import Repository from '../../core/provider/git';
-
 const log = debug('importer:github-ci-indexer');
 
 const GITHUB_ORIGIN_REGEX = /(?:git@github.com:|https:\/\/github.com\/)([^/]+)\/(.*?)(?=\.git|$)/;
@@ -63,8 +62,9 @@ class GitHubCIIndexer {
     }
     await this.controller.loadAssignableUsers(this.owner, this.repo);
 
-    this.indexer = new CIIndexer(this.reporter, this.controller, repoName, async (pipeline, jobs) => {
+    this.indexer = new CIIndexer(this.reporter, this.controller, repoName, async (pipeline, jobs, artifacts) => {
       jobs = jobs || [];
+      artifacts = artifacts || [];
       log(
         `create build ${JSON.stringify({
           id: pipeline.id,
@@ -113,6 +113,12 @@ class GitHubCIIndexer {
           webUrl: job.html_url,
         })),
         webUrl: pipeline.html_url,
+        artifacts: artifacts.map((artifact: GithubArtifact) => ({
+          id: artifact.id,
+          name: artifact.name,
+          downloadUrl: artifact.archive_download_url,
+          expiresAt: artifact.expires_at,
+        })),
       });
     });
   }

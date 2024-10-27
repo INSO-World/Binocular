@@ -1,4 +1,5 @@
 import Job from '../supportingTypes/Job.ts';
+import Artifact from '../supportingTypes/Artifact.ts';
 
 export default interface BuildDto {
   id: string;
@@ -16,4 +17,5 @@ export default interface BuildDto {
   sha: string;
   ref: string;
   jobs: Job[];
+  artifacts: Artifact[];
 }

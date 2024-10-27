@@ -58,15 +58,18 @@ class CIIndexer {
                         return this.buildMapper(
                           pipeline,
                           pipeline.jobs.edges.map((edge) => edge.node),
+                          [],
                         );
                       } else {
-                        return this.buildMapper(pipeline, jobs);
+                        // Await the artifacts before passing them to buildMapper
+                        return this.controller
+                          .getPipelineArtifacts(projectId, pipeline.id)
+                          .then((artifacts) => this.buildMapper(pipeline, jobs, artifacts));
                       }
                     })
                     .then(() => {
                       persistCount++;
                     });
-                  return this.buildMapper(pipeline, []);
                 } else {
                   log(`Skipping build #${pipeline.id} [${persistCount + omitCount}]`);
                   omitCount++;

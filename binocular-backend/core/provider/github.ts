@@ -4,7 +4,7 @@ import debug from 'debug';
 import { Octokit } from '@octokit/rest';
 import { Octokit as OctokitCore } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
-import { GithubJob, GithubUser } from '../../types/GithubTypes';
+import { GithubArtifact, GithubJob, GithubUser } from '../../types/GithubTypes';
 
 const log = debug('github');
 
@@ -83,6 +83,19 @@ class GitHub {
       })
       .then((jobs: { data: { jobs: GithubJob[] } }) => {
         return jobs.data.jobs;
+      });
+  }
+
+  getPipelineArtifacts(projectId: string, pipelineId: string) {
+    log('getPipelineArtifacts(%o, %o)', projectId, pipelineId);
+    return this.github.rest.actions
+      .listWorkflowRunArtifacts({
+        owner: projectId.split('/')[0],
+        repo: projectId.split('/')[1],
+        run_id: pipelineId,
+      })
+      .then((artifacts: { data: { artifacts: GithubArtifact } }) => {
+        return artifacts.data.artifacts;
       });
   }
 

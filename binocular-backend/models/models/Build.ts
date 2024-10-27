@@ -5,6 +5,7 @@ import Model from '../Model.ts';
 import { aql } from 'arangojs';
 import Job from '../../types/supportingTypes/Job';
 import BuildDto from '../../types/dtos/BuildDto';
+import Artifact from '../../types/supportingTypes/Artifact.ts';
 
 export interface BuildDataType {
   id: string;
@@ -20,6 +21,7 @@ export interface BuildDataType {
   duration: number;
   sha: string;
   jobs: Job[];
+  artifacts: Artifact[];
 }
 
 class Build extends Model<BuildDataType> {
