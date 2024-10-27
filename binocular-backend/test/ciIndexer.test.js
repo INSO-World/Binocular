@@ -23,6 +23,8 @@ const indexerOptions = {
   clean: true,
   its: true,
   ci: true,
+  jobs: true,
+  updateJobs: true,
   export: true,
   server: false,
 };
@@ -56,6 +58,7 @@ describe('ci', function () {
     const gitLabSetup = async () => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
+      ctx.ciUrlProvider = { provider: 'gitlab' };
 
       //Remap Remote functions to local ones because remote repository doesn't exist anymore.
       remapRemoteFunctions(repo);
@@ -111,6 +114,7 @@ describe('ci', function () {
     const gitHubSetup = async () => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
+      ctx.ciUrlProvider = { provider: 'github' };
       //Remap Remote functions to local ones because remote repository doesn't exist anymore.
       remapRemoteFunctions(repo);
       repo.getOriginUrl = async function () {

@@ -90,7 +90,7 @@ class GitHubCIIndexer {
       }
 
       return Build.persist({
-        id: String(pipeline.id),
+        id: pipeline.id,
         sha: pipeline.head_sha,
         ref: String(pipeline.head_commit.id),
         status: convertState(pipeline.conclusion),
