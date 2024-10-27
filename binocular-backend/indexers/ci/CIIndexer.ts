@@ -50,6 +50,8 @@ class CIIndexer {
               if (
                 !this.stopping &&
                 (!existingBuild ||
+                  (existingBuild && existingBuild.data.jobs.length === 0) ||
+                  // TODO write test for this case
                   (pipeline.updated_at && new Date(existingBuild?.data.updatedAt).getTime() < new Date(pipeline.updated_at).getTime()))
               ) {
                 if (ctx.ciUrlProvider.provider === 'github') {

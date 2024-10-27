@@ -109,6 +109,7 @@ cli.parse(
         its: true,
         ci: true,
         jobs: false,
+        updateJobs: false,
         export: true,
         server: false,
       };
