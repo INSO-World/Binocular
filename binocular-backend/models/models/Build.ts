@@ -37,7 +37,7 @@ class Build extends Model<BuildDataType> {
     }
     // if jobs should be loaded and the force update flag is set, we update existing builds with the new data
     if (ctx.argv.jobs && ctx.argv.updateJobs) {
-      this.ensureByExampleForceUpdate({ id: buildData.id }, buildData);
+      return this.ensureByExampleForceUpdate({ id: buildData.id }, buildData);
     }
 
     return this.ensureByExample({ id: buildData.id }, buildData, {});

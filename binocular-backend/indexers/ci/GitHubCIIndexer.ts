@@ -8,7 +8,7 @@ import moment from 'moment';
 import GitHub from '../../core/provider/github';
 import debug from 'debug';
 import ProgressReporter from '../../utils/progress-reporter.ts';
-import { GithubJob } from '../../types/GithubTypes.ts';
+import { GithubJob, GithubRun } from '../../types/GithubTypes.ts';
 import Config from '../../utils/config';
 import Repository from '../../core/provider/git';
 
@@ -64,7 +64,9 @@ class GitHubCIIndexer {
     await this.controller.loadAssignableUsers(this.owner, this.repo);
 
     this.indexer = new CIIndexer(this.reporter, this.controller, repoName, async (pipeline, jobs) => {
-      jobs = jobs || [];
+      jobs = (jobs as GithubJob[]) || [];
+      pipeline = pipeline as GithubRun;
+
       log(
         `create build ${JSON.stringify({
           id: pipeline.id,

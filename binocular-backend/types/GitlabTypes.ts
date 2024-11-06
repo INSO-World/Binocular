@@ -7,7 +7,7 @@ interface GitlabUser {
 }
 
 export interface GitlabPipeline {
-  id: string;
+  id: number;
   iid: number;
   project: GitlabProject;
   path: string;
@@ -18,7 +18,7 @@ export interface GitlabPipeline {
   updatedAt: string;
   beforeSha: string;
   user: GitlabUser;
-  jobs: GitlabJob[];
+  jobs: GitlabJob;
   startedAt: string;
   finishedAt: string;
   duration: number;
@@ -32,7 +32,11 @@ export interface GitlabProject {
 }
 
 export interface GitlabJob {
-  edges: GitlabNode[];
+  edges: GitlabEdge[];
+}
+
+export interface GitlabEdge {
+  node: GitlabNode;
 }
 
 export interface GitlabNode {
