@@ -6,8 +6,8 @@ export default class GitHubCIIndexerMock {
     this.github = new OctokitMock();
   }
 
-  setupGithub() {
-    this.controller = new GitHubMock();
+  setupGithub(config) {
+    this.controller = new GitHubMock(config.testSetup.pipelineVersion);
   }
 
   setupUrlProvider() {

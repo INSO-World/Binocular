@@ -6,7 +6,7 @@ import debug from 'debug';
 const log = debug('idx:ci:indexer');
 
 /**
- @deprecated TODO delete
+ @deprecated since November 2024
  */
 class CIIndexer_old {
   constructor(progressReporter, controller, projectId, createBuildArtifactHandler) {

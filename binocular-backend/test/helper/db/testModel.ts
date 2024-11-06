@@ -3,7 +3,7 @@ import Model from '../../../models/Model';
 import _ from 'lodash';
 
 export interface TestModelDataType {
-  id: string;
+  id: number;
   someText: string;
   someOtherText: string;
 }
@@ -19,7 +19,7 @@ class TestModel extends Model<TestModelDataType> {
   persist(_buildData) {
     const buildData = _.clone(_buildData);
     if (_buildData.id) {
-      buildData.id = _buildData.id.toString();
+      buildData.id = _buildData.id;
     }
 
     return this.ensureByExample({ id: buildData.id }, buildData);
