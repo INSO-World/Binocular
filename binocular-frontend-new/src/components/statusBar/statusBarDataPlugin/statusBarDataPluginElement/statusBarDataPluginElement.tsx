@@ -4,7 +4,10 @@ import { DataPlugin } from '../../../../plugins/interfaces/dataPlugin.ts';
 import { useDispatch, useSelector } from 'react-redux';
 import { Store } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
-
+import { SocketConnectionStatusType } from '../../../../types/general/socketConnectionType.ts';
+import ConnectedToApi from '../../../../assets/connected_to_api_blue.svg';
+import ConnectedToApiFailed from '../../../../assets/connected_to_api_failed_red.svg';
+import Idle from '../../../../assets/idle_blue.svg';
 function StatusBarDataPlugin(props: {
   dataPluginConfig: DatabaseSettingsDataPluginType;
   dataPlugin: DataPlugin | undefined;
@@ -16,6 +19,7 @@ function StatusBarDataPlugin(props: {
   const dispatch: AppDispatch = useAppDispatch();
 
   const progress = useSelector((state: RootState) => state.progress);
+  const socketConnection = useSelector((state: RootState) => state.socketConnection);
 
   //Trigger Refresh when dataConnection changes
   useEffect(() => {
@@ -28,10 +32,43 @@ function StatusBarDataPlugin(props: {
     <>
       <div className={statusBarDataPluginElementStyles.dataPluginElement}>
         <div className={statusBarDataPluginElementStyles.dataPluginLabel} style={{ background: props.dataPluginConfig.color }}>
-          {props.dataPluginConfig.name} #{props.dataPluginConfig.id}
+          <span>
+            {props.dataPluginConfig.name} #{props.dataPluginConfig.id}
+          </span>
+          {socketConnection.status === SocketConnectionStatusType.Idle && <img className={'inline h-4 ml-2'} src={Idle} alt={'idle'} />}
+          {socketConnection.status === SocketConnectionStatusType.Connected && (
+            <img className={'inline h-4 ml-2'} src={ConnectedToApi} alt={'idle'} />
+          )}
+          {socketConnection.status === SocketConnectionStatusType.Disconnected && (
+            <img className={'inline h-4 ml-2'} src={ConnectedToApiFailed} alt={'idle'} />
+          )}
         </div>
         {props.dataPluginConfig.parameters.progressUpdate?.useAutomaticUpdate ? (
           <div className={'p-1'}>
+            <div>
+              <div>Connection Status: </div>
+              <div>
+                {socketConnection.status === SocketConnectionStatusType.Idle && (
+                  <span className={statusBarDataPluginElementStyles.connectionStatus}>
+                    <img className={'inline h-4 mr-2'} src={Idle} alt={'idle'} />
+                    Idle
+                  </span>
+                )}
+                {socketConnection.status === SocketConnectionStatusType.Connected && (
+                  <span className={statusBarDataPluginElementStyles.connectionStatus}>
+                    <img className={'inline h-4 mr-2'} src={ConnectedToApi} alt={'idle'} />
+                    Connected
+                  </span>
+                )}
+                {socketConnection.status === SocketConnectionStatusType.Disconnected && (
+                  <span className={statusBarDataPluginElementStyles.connectionStatus}>
+                    <img className={'inline h-4 mr-2'} src={ConnectedToApiFailed} alt={'idle'} />
+                    Disconnected
+                  </span>
+                )}
+              </div>
+            </div>
+            <hr className={'mb-3 mt-3'} />
             <div>
               <div>
                 Commits: {progress.report.commits.processed}/{progress.report.commits.total}
