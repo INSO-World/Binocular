@@ -23,3 +23,8 @@
   padding: 0 1rem;
   height: calc($statusBarHeight * 0.8);
 }
+
+.connectionStatus{
+  display: flex;
+  align-items: center;
+}

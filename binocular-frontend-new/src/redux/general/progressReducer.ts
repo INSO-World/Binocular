@@ -1,11 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ProgressType } from '../../types/general/progressType.ts';
+import { SocketConnectionStatusType, SocketConnectionType } from '../../types/general/socketConnectionType.ts';
 
 export interface ProgressInitialState {
+  socketConnection: SocketConnectionType;
   progress: ProgressType | null;
 }
 
 const initialState: ProgressInitialState = {
+  socketConnection: {
+    status: SocketConnectionStatusType.Idle,
+  },
   progress: {
     type: '',
     report: {
@@ -48,8 +53,11 @@ export const progressSlice = createSlice({
     setProgress: (state, action: PayloadAction<ProgressType>) => {
       state.progress = action.payload;
     },
+    setConnectionStatus: (state, action: PayloadAction<SocketConnectionType>) => {
+      state.socketConnection = action.payload;
+    },
   },
 });
 
-export const { setProgress } = progressSlice.actions;
+export const { setProgress, setConnectionStatus } = progressSlice.actions;
 export default progressSlice.reducer;
