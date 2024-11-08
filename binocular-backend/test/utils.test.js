@@ -58,15 +58,15 @@ describe('utils', function () {
       expect(dbExport['tests']).to.not.equal(undefined);
       expect(dbExport['tests'].length).to.equal(3);
 
-      expect(dbExport['tests'][0].id).to.equal(t1.id.toString());
+      expect(dbExport['tests'][0].id).to.equal(t1.id);
       expect(dbExport['tests'][0].someText).to.equal(t1.someText);
       expect(dbExport['tests'][0].someOtherText).to.equal(t1.someOtherText);
 
-      expect(dbExport['tests'][1].id).to.equal(t2.id.toString());
+      expect(dbExport['tests'][1].id).to.equal(t2.id);
       expect(dbExport['tests'][1].someText).to.equal(t2.someText);
       expect(dbExport['tests'][1].someOtherText).to.equal(t2.someOtherText);
 
-      expect(dbExport['tests'][2].id).to.equal(t3.id.toString());
+      expect(dbExport['tests'][2].id).to.equal(t3.id);
       expect(dbExport['tests'][2].someText).to.equal(t3.someText);
       expect(dbExport['tests'][2].someOtherText).to.equal(t3.someOtherText);
     });
