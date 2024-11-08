@@ -4,12 +4,12 @@ import { expect } from 'chai';
 import conf from '../utils/config.js';
 
 import Db from '../core/db/db';
-import TestModel from './helper/db/testModel';
+import TestModel, { TestModelDataType } from './helper/db/testModel';
 import path from 'path';
 import ctx from '../utils/context.ts';
-import { expectExamples, getAllEntriesInCollection } from './helper/utils';
+import { expectExamples, getAllEntriesInCollection } from './helper/utils.ts';
 import _ from 'lodash';
-import TestConnection from './helper/db/testConnection';
+import TestConnection, { TestConnectionDataType } from './helper/db/testConnection';
 import TestConnToModelConnection from './helper/db/testConnToModelConnection';
 const indexerOptions = {
   backend: true,
@@ -34,16 +34,22 @@ describe('db', function () {
     id: '1',
     someText: 'someText1',
     someOtherText: 'someOtherText1',
+    _id: undefined,
+    _key: undefined,
   };
   const t2 = {
     id: '2',
     someText: 'someText2',
     someOtherText: 'someOtherText2',
+    _id: undefined,
+    _key: undefined,
   };
   const t3 = {
     id: '3',
     someText: 'someText3',
     someOtherText: 'someOtherText3',
+    _id: undefined,
+    _key: undefined,
   };
 
   const getAllInCollection = async (collection) => getAllEntriesInCollection(db, collection);
@@ -59,14 +65,14 @@ describe('db', function () {
 
     it('ensure a database', async function () {
       const ensuredDB = await db.ensureDatabase('test', ctx);
-      expect(ensuredDB._name).to.equal('test');
+      expect(ensuredDB.name).to.equal('test');
     });
 
     it('ensure a collection', async function () {
       await db.ensureDatabase('test', ctx);
       await db.truncate();
       const ensuredCollection = await TestModel.ensureCollection();
-      expect(ensuredCollection.name).to.equal('tests');
+      expect(ensuredCollection!.name).to.equal('tests');
     });
 
     it('truncate db', async function () {
@@ -107,7 +113,7 @@ describe('db', function () {
       await TestModel.persist(t1);
 
       // should retrieve t1 entry
-      const example = (await TestModel.firstExample({ someText: 'someText1' })).data;
+      const example = (await TestModel.firstExample({ someText: 'someText1' } as TestModelDataType & { _id: string; _key: string }))!.data;
       expect(example.id).to.equal(t1.id);
     });
 
@@ -115,7 +121,10 @@ describe('db', function () {
       await testModelDbSetup();
 
       // should return null
-      const nonexistentExample = await TestModel.firstExample({ someText: 'doesNotExist' });
+      const nonexistentExample = await TestModel.firstExample({ someText: 'doesNotExist' } as TestModelDataType & {
+        _id: string;
+        _key: string;
+      });
       expect(nonexistentExample).to.equal(null);
     });
 
@@ -126,7 +135,7 @@ describe('db', function () {
       const t1Entry = (await getAllInCollection('tests'))[0];
 
       // find persisted t1
-      const findT1Result = (await TestModel.findOneById(t1Entry._id)).data;
+      const findT1Result = (await TestModel.findOneById(t1Entry._id))!.data;
       expect(_.isEqual(t1Entry, findT1Result)).to.equal(true, 'findOneById returns object not equal to db entry');
     });
 
@@ -192,7 +201,7 @@ describe('db', function () {
       const t1Entry = (await getAllInCollection('tests'))[0];
 
       // find persisted t1 using its `someText` attribute
-      const findT1Result = (await TestModel.findOneBy('someText', t1.someText)).data;
+      const findT1Result = (await TestModel.findOneBy('someText', t1.someText))!.data;
       expect(_.isEqual(t1Entry, findT1Result)).to.equal(true, 'findOneById returns object not equal to db entry');
     });
 
@@ -258,7 +267,7 @@ describe('db', function () {
       const t1Entry = (await getAllInCollection('tests'))[0];
 
       // find persisted t1 using it as example
-      const findT1Result = (await TestModel.findOneByExample(t1)).data;
+      const findT1Result = (await TestModel.findOneByExample(t1))!.data;
       expect(_.isEqual(t1Entry, findT1Result)).to.equal(true, 'findOneById returns object not equal to db entry');
     });
 
@@ -279,16 +288,16 @@ describe('db', function () {
     it('parse: should return entry object with same _id and _key as data object', async function () {
       await testModelDbSetup();
 
-      const testKey = 'keykeykey';
-      const testId = 'ididid';
-      const testdata = _.cloneDeep(t1);
+      const testKey: string = 'keykeykey';
+      const testId: string = 'ididid';
+      const testdata: TestModelDataType & { _id: string | undefined; _key: string | undefined } = _.cloneDeep(t1);
       testdata._key = testKey;
       testdata._id = testId;
 
       const entry = TestModel.parse(testdata);
-      expect(entry._key).to.equal(testKey);
-      expect(entry._id).to.equal(testId);
-      expect(_.isEqual(entry.data, testdata)).to.equal(true);
+      expect(entry!._key).to.equal(testKey);
+      expect(entry!._id).to.equal(testId);
+      expect(_.isEqual(entry!.data, testdata)).to.equal(true);
     });
 
     it('findAll: return correct number of entries', async function () {
@@ -309,7 +318,7 @@ describe('db', function () {
       await testModelDbSetup();
 
       // create should not check if there already is an entry with that _id and create a second one anyway
-      const test1 = _.cloneDeep(t1);
+      const test1: TestModelDataType & { _id: string | undefined; _key: string | undefined } = _.cloneDeep(t1);
       test1._id = t1.id;
       await TestModel.create(test1, { isNew: true });
       await TestModel.create(test1, { isNew: true });
@@ -336,14 +345,14 @@ describe('db', function () {
       await testModelDbSetup();
       const testKey = 'keykeykey';
       const testId = 'ididid';
-      const testdata = _.cloneDeep(t1);
+      const testdata: TestModelDataType & { _id: string | undefined; _key: string | undefined } = _.cloneDeep(t1);
       testdata._key = testKey;
       testdata._id = testId;
 
-      await TestModel.ensure(TestModel.parse(testdata));
+      await TestModel.ensure(TestModel.parse(testdata)!);
       expect((await TestModel.findAll()).length).to.equal(1);
 
-      await TestModel.ensure(TestModel.parse(testdata));
+      await TestModel.ensure(TestModel.parse(testdata)!);
       expect((await TestModel.findAll()).length).to.equal(1);
     });
 
@@ -351,18 +360,18 @@ describe('db', function () {
       await testModelDbSetup();
       const testKey = 'keykeykey';
       const testId = 'ididid';
-      const testdata = _.cloneDeep(t1);
+      const testdata: TestModelDataType & { _id: string | undefined; _key: string | undefined } = _.cloneDeep(t1);
       testdata._key = testKey;
       testdata._id = testId;
 
-      await TestModel.save(TestModel.parse(testdata));
+      await TestModel.save(TestModel.parse(testdata)!);
       expect((await TestModel.findAll()).length).to.equal(1);
     });
 
     it('save: update object', async function () {
       await testModelDbSetup();
       const testdata = _.cloneDeep(t1);
-      const t1Stored = await TestModel.save(TestModel.parse(testdata));
+      const t1Stored = await TestModel.save(TestModel.parse(testdata)!);
 
       // mutate object
       t1Stored.data.someText = 'newText';
@@ -371,7 +380,7 @@ describe('db', function () {
 
       const allEntries = await TestModel.findAll();
       expect(allEntries.length).to.equal(1);
-      expect(allEntries[0].data.someText).to.equal('newText');
+      expect(allEntries[0]!.data.someText).to.equal('newText');
     });
 
     // TODO tests for cursor
@@ -405,9 +414,9 @@ describe('db', function () {
       await db.ensureDatabase('test', ctx);
       await db.truncate();
       const ensuredCollection = await TestConnection.ensureCollection();
-      expect(ensuredCollection.name).to.equal('tests-tests');
+      expect(ensuredCollection!.name).to.equal('tests-tests');
       const ensuresConnToModelConnection = await TestConnToModelConnection.ensureCollection();
-      expect(ensuresConnToModelConnection.name).to.equal('tests-tests-tests');
+      expect(ensuresConnToModelConnection!.name).to.equal('tests-tests-tests');
     });
 
     it('connect: stores data correctly', async function () {
@@ -535,7 +544,7 @@ describe('db', function () {
       const testEntries = await testConnectionDbSetup();
       // store t1 -> t2 connection
       await TestConnection.store({ connectionData: 'data' }, { from: testEntries.t1, to: testEntries.t2 });
-      let allConnections = await getAllInCollection('tests-tests');
+      const allConnections = await getAllInCollection('tests-tests');
       expect(allConnections.length).to.equal(1);
       expectExamples({ _from: testEntries.t1._id, _to: testEntries.t2._id, connectionData: 'data' }, allConnections, 1);
     });
@@ -557,9 +566,13 @@ describe('db', function () {
 
     it('parse: parses data correctly', async function () {
       const testEntries = await testConnectionDbSetup();
-      const parsed = TestConnection.parse({ _from: testEntries.t1._id, _to: testEntries.t2._id, connectionData: 'different data' });
-      expect(parsed._from).to.equal(testEntries.t1._id);
-      expect(parsed._to).to.equal(testEntries.t2._id);
+      const parsed = TestConnection.parse({
+        _from: testEntries.t1._id,
+        _to: testEntries.t2._id,
+        connectionData: 'different data',
+      } as TestConnectionDataType & { _id: string; _key: string; _from: string; _to: string });
+      expect(parsed!._from).to.equal(testEntries.t1._id);
+      expect(parsed!._to).to.equal(testEntries.t2._id);
     });
 
     it('findAll: return correct number of entries', async function () {

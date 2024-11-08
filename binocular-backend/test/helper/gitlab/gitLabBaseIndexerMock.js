@@ -1,6 +1,6 @@
 'use strict';
 
-import GitLabMock from './gitLabMock.js';
+import GitLabMock from './gitLabMock.ts';
 
 class GitLabBaseIndexerMock {
   constructor(repo, reporter) {

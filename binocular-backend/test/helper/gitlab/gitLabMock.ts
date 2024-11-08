@@ -12,6 +12,12 @@ import {
 import _ from 'lodash';
 
 class GitLabMock {
+  baseUrl: string = 'https://gitlab.com/Test/Test-Project/';
+  privateToken: string = '';
+  requestTimeout: any;
+  count: number = 0;
+  stopping: boolean = false;
+  graphQL: any;
   testPaginator = (data) => {
     return new Paginator(
       () => {
@@ -26,6 +32,7 @@ class GitLabMock {
         this.count = resp.length;
         return this.count;
       },
+      undefined,
     );
   };
 
@@ -85,6 +92,9 @@ class GitLabMock {
   stop() {
     this.stopping = true;
   }
+
+  async request(): Promise<any> {}
+  paginatedRequest() {}
 }
 
 export default GitLabMock;

@@ -1,6 +1,6 @@
-// test data for gitlab mock API (./gitLabMock.js)
+// test data for gitlab mock API (./gitLabMock.ts)
 // if you need the mock API to return different data, add (and export) it here
-// and use the remapGitlabApiCall() or remapUnpaginatedGitlabApiCall() function from ../utils.js in your tests
+// and use the remapGitlabApiCall() or remapUnpaginatedGitlabApiCall() function from ../utils.ts in your tests
 
 export const testProject = { id: 1, path_with_namespace: 'Test/Test-Project' };
 

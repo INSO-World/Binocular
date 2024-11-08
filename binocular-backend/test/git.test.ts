@@ -2,8 +2,9 @@
 
 import { expect } from 'chai';
 
-import fake from './helper/git/repositoryFake.js';
+import fake from './helper/git/repositoryFake.ts';
 import helpers from './helper/git/helpers.js';
+import Repository from '../core/provider/git';
 
 describe('git', function () {
   const alice = { name: 'Alice Alisson', email: 'alice@gmail.com' };
@@ -24,13 +25,12 @@ describe('git', function () {
     it('should get the commits of a repository', function () {
       return fake
         .repository()
-        .then((repo) => {
+        .then((repo: Repository) => {
           this.repo = repo;
-
           return Promise.all([
-            fake.file(repo, 'README.md', fake.lorem(5).paragraphs()),
-            fake.file(repo, 'some-file.txt', fake.lorem(3).paragraphs()),
-            fake.file(repo, 'another-file.txt', fake.lorem(10).paragraphs()),
+            fake.file(repo, 'README.md', fake.lorem(5).paragraphs),
+            fake.file(repo, 'some-file.txt', fake.lorem(3).paragraphs),
+            fake.file(repo, 'another-file.txt', fake.lorem(10).paragraphs),
           ]);
         })
         .then(() => {

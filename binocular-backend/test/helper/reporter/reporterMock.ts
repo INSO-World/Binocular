@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import * as inflection from 'inflection';
 
-function ReporterMock(categories) {
+function ReporterMock(io: any, categories: string[]) {
   this.categories = {};
 
   _.each(categories, (categories) => {
