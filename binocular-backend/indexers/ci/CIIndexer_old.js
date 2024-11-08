@@ -5,7 +5,10 @@ import debug from 'debug';
 
 const log = debug('idx:ci:indexer');
 
-class CIIndexer {
+/**
+ @deprecated since November 2024
+ */
+class CIIndexer_old {
   constructor(progressReporter, controller, projectId, createBuildArtifactHandler) {
     this.reporter = progressReporter;
     this.controller = controller;
@@ -39,9 +42,7 @@ class CIIndexer {
           this.reporter.setBuildCount(pipelines.length);
           return pipelines.map((pipeline) => {
             pipeline.id = pipeline.id.toString();
-            // TODO i think this won't work. `findOneById` checks if there is a build in the db with `_id === pipeline.id`,
-            //  but we want to find a build with `id === pipeline.id`
-            return Build.findOneById(pipeline.id)
+            return Build.findOneBy('id', pipeline.id)
               .then((existingBuild) => {
                 if (
                   !this.stopping &&
@@ -97,4 +98,4 @@ class CIIndexer {
   }
 }
 
-export default CIIndexer;
+export default CIIndexer_old;
