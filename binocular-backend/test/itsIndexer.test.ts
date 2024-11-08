@@ -2,7 +2,7 @@
 
 import { expect } from 'chai';
 import fake from './helper/git/repositoryFake.js';
-import ReporterMock from './helper/reporter/reporterMock';
+import ReporterMock from './helper/reporter/reporterMock.ts';
 import conf from '../utils/config.js';
 
 import Db from '../core/db/db';
@@ -34,7 +34,7 @@ import IssueNoteConnection from '../models/connections/IssueNoteConnection';
 import MergeRequestNoteConnection from '../models/connections/MergeRequestNoteConnection';
 import Note from '../models/models/Note';
 import NoteAccountConnection from '../models/connections/NoteAccountConnection';
-import { expectExamples, getAllRelevantCollections, remapGitHubApiCall, remapGitlabApiCall } from './helper/utils';
+import { expectExamples, getAllRelevantCollections, remapGitHubApiCall, remapGitlabApiCall } from './helper/utils.ts';
 
 const indexerOptions = {
   backend: true,
@@ -54,7 +54,7 @@ const config = conf.get();
 
 describe('its', function () {
   const db = new Db(config.arango);
-  const reporter = new ReporterMock(['issues', 'mergeRequests', 'milestones']);
+  const reporter = new ReporterMock(undefined, ['issues', 'mergeRequests', 'milestones']);
 
   config.token = '1234567890';
   beforeEach(() => {
@@ -97,12 +97,14 @@ describe('its', function () {
   const getAllCollections = async () =>
     getAllRelevantCollections(
       db,
-      relevantCollections.map((c) => c.collection.name),
+      relevantCollections.map((c) => c.collection?.name),
     );
 
   // checks if the specified collection and all connections from/to this collection are empty
-  const expectEmptyCollectionAndConnections = (collections, collectionName) => {
-    const relevantCollectionNames = relevantCollections.map((c) => c.collection.name).filter((cn) => cn.includes(collectionName));
+  const expectEmptyCollectionAndConnections = (collections, collectionName: string) => {
+    const relevantCollectionNames: string[] = relevantCollections
+      .map((c) => c.collection!.name)
+      .filter((cn) => cn.includes(collectionName));
     for (const name of relevantCollectionNames) {
       expect(collections[name].length).to.equal(0);
     }
@@ -124,7 +126,7 @@ describe('its', function () {
     // basic setup for gitlab. Returns the gitlab indexer.
     // Sets up the default gitlab mock implementation.
     const gitlabSetup = async () => {
-      const repo = await fake.repository();
+      const repo = await fake.repository('test');
       ctx.targetPath = repo.path;
 
       //Remap Remote functions to local ones because remote repository doesn't exist anymore.

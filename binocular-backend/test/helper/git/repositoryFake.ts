@@ -13,6 +13,7 @@ import firstNames from 'faker/lib/locales/en/name/first_name.js';
 import lastNames from 'faker/lib/locales/en/name/last_name.js';
 import emailProviders from 'faker/lib/locales/en/internet/free_email.js';
 import * as loremIpsum from 'lorem-ipsum';
+import { LoremUnit } from 'lorem-ipsum/types/src/constants/units';
 
 import helpers from './helpers.js';
 import Repository from '../../../core/provider/git.js';
@@ -31,18 +32,18 @@ const mt = rand.MersenneTwister19937.seed(4); // chosen by fair dice roll, guara
 const random = new rand.Random(mt);
 
 const repositoryFake = {
-  integer: function (...args) {
-    return random.integer(...args);
+  integer: function (min: number, max: number) {
+    return random.integer(min, max);
   },
 
   boolean: function (chanceOfTrue = 0.5) {
     return random.integer(0, 1000) / 1000 < chanceOfTrue;
   },
 
-  repository: function (name) {
+  repository: function (name?: string) {
     return temp
       .mkdir(null)
-      .then((dirPath) => {
+      .then((dirPath: string) => {
         if (name) {
           dirPath = path.join(dirPath, name);
         }
@@ -68,15 +69,15 @@ const repositoryFake = {
   },
 
   signature: function () {
-    return repositoryFake.signatureFor(repositoryFake.name());
+    return repositoryFake.signatureFor(repositoryFake.name(), undefined, undefined);
   },
 
-  file: async function (dirPath, filePath, contents) {
+  file: async function (dirPath: string | Repository, filePath: string, contents: string): Promise<any> {
     if (dirPath instanceof Repository) {
       dirPath = dirPath.getRoot();
     }
 
-    const fullPath = path.join(dirPath, filePath);
+    const fullPath: string = path.join(dirPath, filePath);
 
     return fs.writeFileSync(fullPath, contents);
   },
@@ -119,12 +120,12 @@ const repositoryFake = {
   },
 
   lorem: function (count) {
-    const units = ['paragraphs', 'sentences', 'words'];
+    const units: LoremUnit[] = ['paragraphs', 'sentences', 'words'];
 
-    const ret = {};
+    const ret: { paragraphs: string; sentences: string; words: string } = { paragraphs: '', sentences: '', words: '' };
 
-    _.each(units, function (unit) {
-      ret[unit] = () => loremIpsum.loremIpsum({ count, units: unit });
+    _.each(units, function (unit: LoremUnit) {
+      ret[unit] = loremIpsum.loremIpsum({ count: count, units: unit });
     });
 
     return ret;
@@ -147,6 +148,86 @@ const repositoryFake = {
 
   shuffle: function (array) {
     return random.shuffle(array);
+  },
+
+  // repository function, so object signature matches what is expected
+  path: String,
+  currPath: String,
+
+  getLatestCommitForBranchRemote(): Promise<any> {
+    return Promise.resolve();
+  },
+  getLatestCommitForBranch(): Promise<any> {
+    return Promise.resolve();
+  },
+  getFilePathsForBranchRemote(): Promise<any> {
+    return Promise.resolve();
+  },
+  getFilePathsForBranch(): Promise<any> {
+    return Promise.resolve();
+  },
+  getPreviousFilenames(): Promise<any> {
+    return Promise.resolve();
+  },
+  getPreviousFilenamesRemote(): Promise<any> {
+    return Promise.resolve();
+  },
+  getOwnershipForFile(): Promise<any> {
+    return Promise.resolve();
+  },
+  getAllBranchesRemote(): Promise<any> {
+    return Promise.resolve();
+  },
+  getAllBranches(): Promise<any> {
+    return Promise.resolve();
+  },
+  getRoot(): string {
+    return '';
+  },
+  getPath(): string {
+    return '';
+  },
+  getName(): string {
+    return '';
+  },
+  pathFromRoot(): string {
+    return '';
+  },
+  getHeadPath(): string {
+    return '';
+  },
+  getCurrentBranch(): Promise<any> {
+    return Promise.resolve();
+  },
+  getOriginUrl(): Promise<any> {
+    return Promise.resolve();
+  },
+  createCommit(): Promise<any> {
+    return Promise.resolve();
+  },
+  removeFromStagingArea(): Promise<any> {
+    return Promise.resolve();
+  },
+  createBranch(): Promise<any> {
+    return Promise.resolve();
+  },
+  checkout(): Promise<any> {
+    return Promise.resolve();
+  },
+  listAllCommits(): Promise<any> {
+    return Promise.resolve();
+  },
+  listAllCommitsRemote(): Promise<any> {
+    return Promise.resolve();
+  },
+  getCommitChanges(): Promise<any> {
+    return Promise.resolve();
+  },
+  fromPath(): Promise<any> {
+    return Promise.resolve();
+  },
+  fromRepo(): Promise<any> {
+    return Promise.resolve();
   },
 };
 

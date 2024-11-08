@@ -1,6 +1,6 @@
 'use strict';
 
-import fake from './repositoryFake.js';
+import fake from './repositoryFake.ts';
 
 const helpers = {
   stage: function (repo, filePath) {

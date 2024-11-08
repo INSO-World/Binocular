@@ -2,7 +2,7 @@
 
 import { expect } from 'chai';
 
-import ReporterMock from './helper/reporter/reporterMock.js';
+import ReporterMock from './helper/reporter/reporterMock.ts';
 
 import Db from '../core/db/db';
 import conf from '../utils/config.js';
@@ -15,7 +15,7 @@ import Build from '../models/models/Build';
 import repositoryFake from './helper/git/repositoryFake.js';
 import GitLabMock from './helper/gitlab/gitLabMock.js';
 import path from 'path';
-import { getAllEntriesInCollection, remapGitHubApiCall, remapUnpaginatedGitlabApiCall } from './helper/utils';
+import { getAllEntriesInCollection, remapGitHubApiCall, remapUnpaginatedGitlabApiCall } from './helper/utils.ts';
 const indexerOptions = {
   backend: true,
   frontend: false,
@@ -33,7 +33,7 @@ conf.loadConfig(ctx);
 describe('ci', function () {
   const config = conf.get();
   const db = new Db(config.arango);
-  const reporter = new ReporterMock(['build']);
+  const reporter = new ReporterMock(undefined, ['build']);
 
   config.token = '1234567890';
 
@@ -165,10 +165,10 @@ describe('ci', function () {
 
   describe('#configureGitHubIncorrectly', function () {
     it('should configure GitHubCIIndexer incorrectly and throw error', async function () {
-      const gitHubCIIndexer = new GitHubCIIndexer();
+      const gitHubCIIndexer = new GitHubCIIndexer(repositoryFake, new ReporterMock(undefined, []));
       try {
-        await gitHubCIIndexer.configure();
-      } catch (e) {
+        await gitHubCIIndexer.configure(undefined);
+      } catch (e: any) {
         expect(e.name).to.equal('ConfigurationError');
         expect(e.message).to.equal('GitHub/Octokit cannot be configured!');
       }

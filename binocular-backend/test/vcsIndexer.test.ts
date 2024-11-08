@@ -3,7 +3,7 @@
 import { expect } from 'chai';
 import _ from 'lodash';
 
-import fake from './helper/git/repositoryFake.js';
+import fake from './helper/git/repositoryFake.ts';
 import helpers from './helper/git/helpers.js';
 import GatewayMock from './helper/gateway/gatewayMock';
 
@@ -29,8 +29,11 @@ import ctx from '../utils/context';
 import GitHubUrlProvider from '../url-providers/GitHubUrlProvider';
 import VcsIndexer from '../indexers/vcs';
 import path from 'path';
-import { checkOwnedLines, expectExamples, getAllEntriesInCollection, getAllRelevantCollections } from './helper/utils';
+import { checkOwnedLines, expectExamples, getAllEntriesInCollection, getAllRelevantCollections } from './helper/utils.ts';
 import { alice, bob, file1, file1Change1, file1Change2, file2 } from './helper/git/gitTestData';
+import GitIndexer from '../indexers/vcs/GitIndexer';
+import Model from '../models/Model.ts';
+import Connection from '../models/Connection.ts';
 const indexerOptions = {
   backend: true,
   frontend: false,
@@ -50,7 +53,7 @@ const config = conf.get();
 describe('vcs', function () {
   const db = new Db(config.arango);
   const gateway = new GatewayMock();
-  const reporter = new ReporterMock(['commits', 'files', 'modules']);
+  const reporter = new ReporterMock(undefined, ['commits', 'files', 'modules']);
 
   const relevantCollections = [
     Commit,
@@ -73,10 +76,10 @@ describe('vcs', function () {
 
   const getAllInCollection = async (collection) => getAllEntriesInCollection(db, collection);
 
-  const getAllCollections = async () =>
+  const getAllCollections = async (): Promise<any> =>
     getAllRelevantCollections(
       db,
-      relevantCollections.map((c) => c.collection.name),
+      relevantCollections.map((c) => c.collection!.name),
     );
 
   // setup functions
@@ -111,8 +114,8 @@ describe('vcs', function () {
     );
   };
 
-  const setupIndexer = (repo) => {
-    const gitIndexer = VcsIndexer(repo, setupUrlProvider(repo), reporter, true, conf, ctx);
+  const setupIndexer = async (repo) => {
+    const gitIndexer: GitIndexer = await VcsIndexer(repo, setupUrlProvider(repo), reporter, true, conf, ctx);
     gitIndexer.setGateway(gateway);
     gitIndexer.resetCounter();
     return gitIndexer;
@@ -161,7 +164,7 @@ describe('vcs', function () {
       await helpers.commit(repo, ['test.js'], bob, 'Commit3');
 
       // step 3: start indexing
-      const gitIndexer = setupIndexer(repo);
+      const gitIndexer = await setupIndexer(repo);
       await gitIndexer.index();
 
       // step 4: check database
@@ -212,7 +215,7 @@ describe('vcs', function () {
       await ownershipCommits(repo);
 
       // step 3: start indexing
-      const gitIndexer = setupIndexer(repo);
+      const gitIndexer = await setupIndexer(repo);
       await gitIndexer.index();
 
       // step 4: check database
@@ -309,7 +312,7 @@ describe('vcs', function () {
       await helpers.renameCommit(repo, ['test.js'], ['testOne.js'], bob, 'Commit2');
 
       // start indexer
-      const gitIndexer = setupIndexer(repo);
+      const gitIndexer = await setupIndexer(repo);
       await gitIndexer.index();
 
       // get all file renames from the db
@@ -330,7 +333,7 @@ describe('vcs', function () {
       await ownershipCommits(repo);
 
       // start indexing
-      const gitIndexer = setupIndexer(repo);
+      const gitIndexer = await setupIndexer(repo);
       await gitIndexer.index();
 
       // get relevant entries from database
@@ -340,8 +343,7 @@ describe('vcs', function () {
       await gitIndexer.index();
 
       const collectionsNew = await getAllCollections();
-
-      Object.entries(collections).forEach(([key, value]) => {
+      (Object.entries(collections) as [string, Model<any>[] | Connection<any, any, any>[]][]).forEach(([key, value]) => {
         const newVal = collectionsNew[key];
         // check if all pairs of collections contain the same number of entries
         expect(value.length).to.equal(

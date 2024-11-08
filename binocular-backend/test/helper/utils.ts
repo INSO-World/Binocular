@@ -20,7 +20,7 @@ export const getAllRelevantCollections = async (db, relevantCollections) => {
 const findInCollection = (example, collectionArray) => {
   let res = collectionArray;
   Object.entries(example).forEach(([key, value]) => {
-    res = res.filter((conn) => conn[key] && conn[key] === value);
+    if (value) res = res.filter((conn) => conn[key] && conn[key] === value);
   });
   return res;
 };

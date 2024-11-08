@@ -180,5 +180,5 @@ function createArrayBasedPaginator(arraySize) {
   const getItems = (page) => page;
   const getCount = () => data.length;
 
-  return new Paginator(getPage, getItems, getCount);
+  return new Paginator(getPage, getItems, getCount, {});
 }
