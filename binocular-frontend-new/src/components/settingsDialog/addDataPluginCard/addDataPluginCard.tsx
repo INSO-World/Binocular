@@ -1,4 +1,4 @@
-import { addDataPlugin } from '../../../redux/settings/settingsReducer.ts';
+import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.ts';
 import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { createRef, useState } from 'react';
 import { AppDispatch, useAppDispatch } from '../../../redux';

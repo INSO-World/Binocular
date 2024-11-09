@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
 import { useEffect, useState } from 'react';
 import editAuthorDialogStyles from './editAuthorDialog.module.scss';
-import { editAuthor, resetAuthor, saveAuthor, setParentAuthor } from '../../../../redux/data/authorsReducer.ts';
+import { editAuthor, resetAuthor, saveAuthor, setParentAuthor } from '../../../../redux/reducer/data/authorsReducer.ts';
 import { AuthorType } from '../../../../types/data/authorType.ts';
 
 function EditAuthorDialog() {

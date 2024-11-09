@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import Config from '../../config.ts';
+import Config from '../../../config.ts';
 
 export interface FilesInitialState {
   dataPluginId: number | undefined;

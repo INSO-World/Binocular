@@ -1,12 +1,12 @@
 import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
-import { clearSettingsStorage, importSettingsStorage, setGeneralSettings } from '../../../redux/settings/settingsReducer.ts';
+import { clearSettingsStorage, importSettingsStorage, setGeneralSettings } from '../../../redux/reducer/settings/settingsReducer.ts';
 import { SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
-import { clearAuthorsStorage, importAuthorsStorage } from '../../../redux/data/authorsReducer.ts';
-import { clearDashboardStorage, importDashboardStorage } from '../../../redux/general/dashboardReducer.ts';
-import { clearParametersStorage, importParametersStorage } from '../../../redux/parameters/parametersReducer.ts';
-import { clearSprintStorage, importSprintStorage } from '../../../redux/data/sprintsReducer.ts';
-import { clearTabsStorage, importTabsStorage } from '../../../redux/general/tabsReducer.ts';
+import { clearAuthorsStorage, importAuthorsStorage } from '../../../redux/reducer/data/authorsReducer.ts';
+import { clearDashboardStorage, importDashboardStorage } from '../../../redux/reducer/general/dashboardReducer.ts';
+import { clearParametersStorage, importParametersStorage } from '../../../redux/reducer/parameters/parametersReducer.ts';
+import { clearSprintStorage, importSprintStorage } from '../../../redux/reducer/data/sprintsReducer.ts';
+import { clearTabsStorage, importTabsStorage } from '../../../redux/reducer/general/tabsReducer.ts';
 import Config from '../../../config.ts';
 import { useState } from 'react';
 

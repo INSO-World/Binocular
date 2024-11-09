@@ -4,10 +4,13 @@ import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { configureStore } from '@reduxjs/toolkit';
 import { createLogger } from 'redux-logger';
-import ProgressReducer from '../../../redux/general/progressReducer.ts';
-import socketMiddleware from '../../../redux/socket/socketMiddleware.ts';
+import ProgressReducer from '../../../redux/reducer/general/progressReducer.ts';
+import socketMiddleware from '../../../redux/middelware/socket/socketMiddleware.ts';
 import StatusBarDataPluginElement from './statusBarDataPluginElement/statusBarDataPluginElement.tsx';
 import { Provider } from 'react-redux';
+import refreshMiddleware from '../../../redux/middelware/refresh/refreshMiddleware.ts';
+
+import { store as globalStore } from '../../../redux';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -37,12 +40,17 @@ function StatusBarDataPlugin(props: { dataPlugin: DatabaseSettingsDataPluginType
     if (progressUpdateConfig.useAutomaticUpdate) {
       store = configureStore({
         reducer: ProgressReducer,
-        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketMiddleware(progressUpdateConfig.endpoint || ''), logger),
+        middleware: (getDefaultMiddleware) =>
+          getDefaultMiddleware().concat(
+            socketMiddleware(progressUpdateConfig.endpoint || ''),
+            refreshMiddleware(globalStore, props.dataPlugin),
+            logger,
+          ),
       });
     } else {
       store = configureStore({
         reducer: ProgressReducer,
-        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
+        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(refreshMiddleware(globalStore, props.dataPlugin), logger),
       });
     }
   } else {

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TabType } from '../../types/general/tabType.ts';
-import Config from '../../config.ts';
+import { TabType } from '../../../types/general/tabType.ts';
+import Config from '../../../config.ts';
 
 export interface TabsInitialState {
   tabList: TabType[];

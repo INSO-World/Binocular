@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../redux';
 import notificationControllerStyles from './notificationController.module.scss';
 import { AlertType } from '../../types/general/alertType.ts';
-import { removeNotification } from '../../redux/general/notificationsReducer.ts';
+import { removeNotification } from '../../redux/reducer/general/notificationsReducer.ts';
 
 function NotificationController() {
   const dispatch: AppDispatch = useAppDispatch();

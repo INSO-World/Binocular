@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
 import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { useEffect } from 'react';
-import { removeDataPlugin, setDataPluginAsDefault } from '../../../redux/settings/settingsReducer.ts';
+import { removeDataPlugin, setDataPluginAsDefault } from '../../../redux/reducer/settings/settingsReducer.ts';
 import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import AddDataPluginCard from '../addDataPluginCard/addDataPluginCard.tsx';
