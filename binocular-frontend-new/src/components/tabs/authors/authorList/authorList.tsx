@@ -10,7 +10,7 @@ import {
   setDragging,
   setParentAuthor,
   switchAuthorSelection,
-} from '../../../../redux/data/authorsReducer.ts';
+} from '../../../../redux/reducer/data/authorsReducer.ts';
 import { useEffect } from 'react';
 import distinctColors from 'distinct-colors';
 import { showContextMenu } from '../../../contextMenu/contextMenuHelper.ts';

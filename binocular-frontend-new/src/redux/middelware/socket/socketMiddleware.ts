@@ -2,10 +2,10 @@
 
 import { Middleware } from 'redux';
 import SocketFactory, { SocketInterface } from './SocketFactory.ts';
-import { setConnectionStatus, setProgress } from '../general/progressReducer.ts';
-import { ProgressType } from '../../types/general/progressType.ts';
+import { setConnectionStatus, setProgress } from '../../reducer/general/progressReducer.ts';
+import { ProgressType } from '../../../types/general/progressType.ts';
 import _ from 'lodash';
-import { SocketConnectionStatusType } from '../../types/general/socketConnectionType.ts';
+import { SocketConnectionStatusType } from '../../../types/general/socketConnectionType.ts';
 
 const RETRY_INTERVAL = 10000;
 
@@ -26,9 +26,10 @@ const socketMiddleware = (socketURL: string): Middleware => {
 
     const throttledDispatch = _.throttle(
       (v) => {
-        // comment this out to throttle
+        if (!connected) {
+          store.dispatch(setConnectionStatus({ status: SocketConnectionStatusType.Connected }));
+        }
         store.dispatch(v);
-        console.log(v);
       },
       5000,
       { leading: true, trailing: false },
@@ -53,7 +54,6 @@ const socketMiddleware = (socketURL: string): Middleware => {
            * because there are to many progress updates from the backend
            * which would cause huge performance issues in the frontend
            */
-
           throttledDispatch(setProgress(progress));
         });
 

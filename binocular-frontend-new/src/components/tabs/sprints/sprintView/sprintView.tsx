@@ -5,7 +5,7 @@ import { SprintType } from '../../../../types/data/sprintType.ts';
 import { showContextMenu } from '../../../contextMenu/contextMenuHelper.ts';
 import editIcon from '../../../../assets/edit_gray.svg';
 import deleteIcon from '../../../../assets/delete_red.svg';
-import { deleteSprint, sprintToEdit } from '../../../../redux/data/sprintsReducer.ts';
+import { deleteSprint, sprintToEdit } from '../../../../redux/reducer/data/sprintsReducer.ts';
 
 function SprintView(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
