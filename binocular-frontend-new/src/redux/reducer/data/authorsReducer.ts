@@ -38,6 +38,7 @@ export const authorsSlice = createSlice({
           }
         });
         action.payload.authors.forEach((author) => {
+          console.log(author.user);
           if (!authorList.find((a: AuthorType) => a.user.id === author.user.id)) {
             author.id = authorList.length + 1;
             authorList.push(author);

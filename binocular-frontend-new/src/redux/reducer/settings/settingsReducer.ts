@@ -36,6 +36,7 @@ export const settingsSlice = createSlice({
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
+      console.log(state);
       const colors = distinctColors({ count: 100 });
       if (state.database.dataPlugins.length === 0) {
         action.payload.isDefault = true;

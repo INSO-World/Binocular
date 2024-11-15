@@ -6,9 +6,11 @@ const refreshMiddleware = (globalStore: Store, dataPlugin: DatabaseSettingsDataP
   return () => {
     return (next) => (action) => {
       if ((action as Action).type == 'progress/setProgress') {
+        next(action);
         globalStore.dispatch({ type: 'REFRESH_PLUGIN', payload: { pluginId: dataPlugin.id } });
+      } else {
+        next(action);
       }
-      next(action);
     };
   };
 };

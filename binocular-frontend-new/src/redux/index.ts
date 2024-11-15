@@ -11,6 +11,8 @@ import ExportReducer from './reducer/export/exportReducer.ts';
 import TabsReducer from './reducer/general/tabsReducer.ts';
 import { createLogger } from 'redux-logger';
 import FilesReducer from './reducer/data/filesReducer.ts';
+import ActionsReducer from './reducer/general/actionsReducer.ts';
+import actionsMiddleware from './middelware/actions/actionsMiddleware.ts';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -26,10 +28,9 @@ export const store = configureStore({
     sprints: SprintsReducer,
     notifications: NotificationsReducer,
     tabs: TabsReducer,
+    actions: ActionsReducer,
   },
-  middleware: (getDefaultMiddleware) => {
-    return getDefaultMiddleware().concat([logger]);
-  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(actionsMiddleware(), logger),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
