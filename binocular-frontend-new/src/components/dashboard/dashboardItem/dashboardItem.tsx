@@ -13,13 +13,15 @@ import { parametersInitialState } from '../../../redux/reducer/parameters/parame
 import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
 import { ExportType, setExportName, setExportSVGData, setExportType } from '../../../redux/reducer/export/exportReducer.ts';
 import ReduxSubAppStoreWrapper from '../reduxSubAppStoreWrapper/reduxSubAppStoreWrapper.tsx';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, Store } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import { createLogger } from 'redux-logger';
 import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import _ from 'lodash';
 import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
+
+import { store as globalStore } from '../../../redux';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -87,7 +89,7 @@ function DashboardItem(props: {
   /**
    * Create Redux Store from Reducer for individual Item and run saga
    */
-  let store;
+  let store: Store | undefined;
   if (dataPlugin) {
     const sagaMiddleware = createSagaMiddleware();
     store = configureStore({
@@ -98,6 +100,17 @@ function DashboardItem(props: {
   } else {
     store = undefined;
   }
+
+  globalStore.subscribe(() => {
+    if (store !== undefined && selectedDataPlugin) {
+      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
+        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
+          console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
+          store.dispatch({ type: 'REFRESH' });
+        }
+      }
+    }
+  });
 
   return (
     <>
