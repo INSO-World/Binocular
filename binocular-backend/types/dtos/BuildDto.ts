@@ -1,7 +1,7 @@
 import Job from '../supportingTypes/Job.ts';
 
 export default interface BuildDto {
-  id: string;
+  id: number;
   user: string;
   userFullName: string;
   committedAt: string;

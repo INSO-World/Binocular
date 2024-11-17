@@ -41,6 +41,8 @@ const indexerOptions = {
   clean: true,
   its: true,
   ci: true,
+  jobs: true,
+  updateJobs: true,
   export: true,
   server: false,
 };

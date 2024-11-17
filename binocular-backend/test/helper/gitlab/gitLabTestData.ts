@@ -97,7 +97,7 @@ export const testNotes = [
 
 export const testPipelines = [
   {
-    id: '0',
+    id: 0,
     status: 'SUCCESS',
     user: { name: 'Tester1' },
 
@@ -110,7 +110,7 @@ export const testPipelines = [
     },
   },
   {
-    id: '1',
+    id: 1,
     status: 'SUCCESS',
     user: { name: 'Tester1' },
     jobs: {
@@ -122,7 +122,7 @@ export const testPipelines = [
     },
   },
   {
-    id: '2',
+    id: 2,
     status: 'SUCCESS',
     user: { name: 'Tester1' },
 

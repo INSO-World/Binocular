@@ -4,16 +4,35 @@
 
 export const assignableUsers = [];
 
-export const pipelines = [
-  { id: '0', conclusion: 'success', head_commit: { sha: '' } },
-  { id: '1', conclusion: 'success', head_commit: { sha: '' } },
-  { id: '2', conclusion: 'success', head_commit: { sha: '' } },
+export const pipelinesVersion0 = [
+  { id: 0, conclusion: 'success', head_commit: { sha: '' }, updated_at: '1970-01-01T07:00:00.000Z' },
+  { id: 1, conclusion: 'success', head_commit: { sha: '' }, updated_at: '1970-01-01T07:00:00.000Z' },
+  { id: 2, conclusion: 'success', head_commit: { sha: '' }, updated_at: '1970-01-01T07:00:00.000Z' },
 ];
 
-export const pipelineJobs = [
+export const pipelinesVersion1 = [
+  { id: 0, conclusion: 'success', head_commit: { sha: '' }, updated_at: '1970-02-01T07:00:00.000Z' },
+  { id: 1, conclusion: 'success', head_commit: { sha: '' }, updated_at: '1970-01-01T07:00:00.000Z' },
+  { id: 2, conclusion: 'success', head_commit: { sha: '' }, updated_at: '1970-01-01T07:00:00.000Z' },
+];
+
+export const singlePipeline = { id: 3, conclusion: 'success', head_commit: { sha: '' }, updated_at: '1970-01-01T07:00:00.000Z' };
+
+export const pipelineJobsVersion0 = [
   { id: '0', conclusion: 'success', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
   { id: '1', conclusion: 'success', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
   { id: '2', conclusion: 'failure', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
+];
+
+export const pipelineJobsVersion1 = [
+  { id: '0', conclusion: 'success', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
+  { id: '1', conclusion: 'success', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
+  { id: '2', conclusion: 'failure', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
+  { id: '3', conclusion: 'failure', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
+];
+
+export const singlePipelineJob = [
+  { id: '4', conclusion: 'success', created_at: '1970-01-01T07:00:00.000Z', completed_at: '1970-01-01T07:00:00.000Z' },
 ];
 
 export const issuesWithEvents = [

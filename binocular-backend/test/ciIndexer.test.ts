@@ -24,6 +24,8 @@ const indexerOptions = {
   clean: true,
   its: true,
   ci: true,
+  jobs: true,
+  updateJobs: true,
   export: true,
   server: false,
 };
@@ -37,6 +39,7 @@ describe('ci', function () {
   const reporter = new ReporterMock(undefined, ['build']);
 
   config.token = '1234567890';
+  config.testSetup = {};
 
   const setupDb = async () => {
     await db.ensureDatabase('test', ctx);
@@ -57,6 +60,7 @@ describe('ci', function () {
     const gitLabSetup = async () => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
+      ctx.ciUrlProvider = { provider: 'gitlab' };
 
       //Remap Remote functions to local ones because remote repository doesn't exist anymore.
       remapRemoteFunctions(repo);
@@ -109,9 +113,10 @@ describe('ci', function () {
   });
 
   describe('#indexGitHub', function () {
-    const gitHubSetup = async () => {
+    const gitHubSetup = async (pipelineVersion) => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
+      ctx.ciUrlProvider = { provider: 'github' };
       //Remap Remote functions to local ones because remote repository doesn't exist anymore.
       remapRemoteFunctions(repo);
       repo.getOriginUrl = async function () {
@@ -119,6 +124,7 @@ describe('ci', function () {
       };
       await setupDb();
       const gitHubCIIndexer = new GitHubCIIndexer(repo, reporter);
+      config.testSetup.pipelineVersion = pipelineVersion || 0;
       await gitHubCIIndexer.configure(config);
       return gitHubCIIndexer;
     };
@@ -129,13 +135,15 @@ describe('ci', function () {
       const dbBuildsCollectionData = (await getAllInCollection('builds')) as unknown as BuildDataType[];
 
       expect(dbBuildsCollectionData.length).to.equal(3);
-      expect(dbBuildsCollectionData[0].jobs.length).to.equal(3);
-      expect(dbBuildsCollectionData[0].jobs[0].id).to.equal('0');
-      expect(dbBuildsCollectionData[0].jobs[0].status).to.equal('success');
-      expect(dbBuildsCollectionData[0].jobs[1].id).to.equal('1');
-      expect(dbBuildsCollectionData[0].jobs[1].status).to.equal('success');
-      expect(dbBuildsCollectionData[0].jobs[2].id).to.equal('2');
-      expect(dbBuildsCollectionData[0].jobs[2].status).to.equal('failure');
+
+      const build = dbBuildsCollectionData.find((item) => item.id === 0);
+      expect(build.jobs.length).to.equal(3);
+      expect(build.jobs[0].id).to.equal('0');
+      expect(build.jobs[0].status).to.equal('success');
+      expect(build.jobs[1].id).to.equal('1');
+      expect(build.jobs[1].status).to.equal('success');
+      expect(build.jobs[2].id).to.equal('2');
+      expect(build.jobs[2].status).to.equal('failure');
 
       expect(dbBuildsCollectionData[0].status).to.equal('success');
     });
@@ -161,6 +169,43 @@ describe('ci', function () {
       const builds = await getAllInCollection('builds');
 
       expect(builds.length).to.equal(0);
+    });
+
+    it('should be able to update existing pipelines in db with outdated jobs', async function () {
+      let gitHubCIIndexer = await gitHubSetup();
+      await gitHubCIIndexer.index();
+      const builds = await getAllInCollection('builds');
+      const build = builds.find((item) => item.id === 0);
+      expect(build.jobs.length).to.equal(3);
+
+      gitHubCIIndexer = await gitHubSetup(1);
+      await gitHubCIIndexer.index();
+      const buildsUpdated = await getAllInCollection('builds');
+      const updatedPipeline = buildsUpdated.find((item) => item.id === 0);
+      expect(updatedPipeline.jobs.length).to.equal(4);
+    });
+
+    it('should be able to update existing pipelines in db with no jobs', async function () {
+      let gitHubCIIndexer = await gitHubSetup();
+      await gitHubCIIndexer.index();
+      const builds = await getAllInCollection('builds');
+      const build = builds.find((item) => item.id === 1);
+      expect(build.jobs.length).to.equal(0);
+
+      gitHubCIIndexer = await gitHubSetup(1);
+      await gitHubCIIndexer.index();
+      const buildsUpdated = await getAllInCollection('builds');
+      const updatedPipeline = buildsUpdated.find((item) => item.id === 1);
+      expect(updatedPipeline.jobs.length).to.equal(4);
+    });
+
+    it('should be able to index 201 pipelines using batches', async function () {
+      this.timeout(4000); // set test timeout to 4 seconds, because the timeout for batch updating is 1s per batch
+      const gitHubCIIndexer = await gitHubSetup(2);
+      await gitHubCIIndexer.index();
+      const builds = await getAllInCollection('builds');
+
+      expect(builds.length).to.equal(201);
     });
   });
 
