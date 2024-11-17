@@ -113,7 +113,7 @@ describe('ci', function () {
   });
 
   describe('#indexGitHub', function () {
-    const gitHubSetup = async (pipelineVersion) => {
+    const gitHubSetup = async (pipelineVersion?: number) => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
       ctx.ciUrlProvider = { provider: 'github' };
@@ -136,7 +136,7 @@ describe('ci', function () {
 
       expect(dbBuildsCollectionData.length).to.equal(3);
 
-      const build = dbBuildsCollectionData.find((item) => item.id === 0);
+      const build = dbBuildsCollectionData.find((item) => item.id === 0) as BuildDataType;
       expect(build.jobs.length).to.equal(3);
       expect(build.jobs[0].id).to.equal('0');
       expect(build.jobs[0].status).to.equal('success');
@@ -174,29 +174,29 @@ describe('ci', function () {
     it('should be able to update existing pipelines in db with outdated jobs', async function () {
       let gitHubCIIndexer = await gitHubSetup();
       await gitHubCIIndexer.index();
-      const builds = await getAllInCollection('builds');
+      const builds = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const build = builds.find((item) => item.id === 0);
-      expect(build.jobs.length).to.equal(3);
+      expect(build!.jobs.length).to.equal(3);
 
       gitHubCIIndexer = await gitHubSetup(1);
       await gitHubCIIndexer.index();
-      const buildsUpdated = await getAllInCollection('builds');
+      const buildsUpdated = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const updatedPipeline = buildsUpdated.find((item) => item.id === 0);
-      expect(updatedPipeline.jobs.length).to.equal(4);
+      expect(updatedPipeline!.jobs.length).to.equal(4);
     });
 
     it('should be able to update existing pipelines in db with no jobs', async function () {
       let gitHubCIIndexer = await gitHubSetup();
       await gitHubCIIndexer.index();
-      const builds = await getAllInCollection('builds');
+      const builds = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const build = builds.find((item) => item.id === 1);
-      expect(build.jobs.length).to.equal(0);
+      expect(build!.jobs.length).to.equal(0);
 
       gitHubCIIndexer = await gitHubSetup(1);
       await gitHubCIIndexer.index();
-      const buildsUpdated = await getAllInCollection('builds');
+      const buildsUpdated = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const updatedPipeline = buildsUpdated.find((item) => item.id === 1);
-      expect(updatedPipeline.jobs.length).to.equal(4);
+      expect(updatedPipeline!.jobs.length).to.equal(4);
     });
 
     it('should be able to index 201 pipelines using batches', async function () {

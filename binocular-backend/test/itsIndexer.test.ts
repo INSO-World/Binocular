@@ -370,7 +370,7 @@ describe('its', function () {
       await setupDb(db);
 
       const gitHubITSIndexer = new GitHubITSIndexer(repo, reporter);
-      gitHubITSIndexer.controller = new GitHubMock();
+      gitHubITSIndexer.controller = new GitHubMock(0);
       return gitHubITSIndexer;
     };
 

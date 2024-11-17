@@ -32,21 +32,21 @@ describe('db', function () {
   const db = new Db(config.arango);
 
   const t1 = {
-    id: '1',
+    id: 1,
     someText: 'someText1',
     someOtherText: 'someOtherText1',
     _id: undefined,
     _key: undefined,
   };
   const t2 = {
-    id: '2',
+    id: 2,
     someText: 'someText2',
     someOtherText: 'someOtherText2',
     _id: undefined,
     _key: undefined,
   };
   const t3 = {
-    id: '3',
+    id: 3,
     someText: 'someText3',
     someOtherText: 'someOtherText3',
     _id: undefined,
@@ -320,7 +320,7 @@ describe('db', function () {
 
       // create should not check if there already is an entry with that _id and create a second one anyway
       const test1: TestModelDataType & { _id: string | undefined; _key: string | undefined } = _.cloneDeep(t1);
-      test1._id = t1.id;
+      test1._id = String(t1.id);
       await TestModel.create(test1, { isNew: true });
       await TestModel.create(test1, { isNew: true });
       expect((await TestModel.findAll()).length).to.equal(2);
