@@ -1,4 +1,4 @@
-// test data for github mock API (./gitHubMock.js)
+// test data for github mock API (./gitHubMock.ts)
 // if you need the mock API to return different data, add (and export) it here
 // and use the remapGitHubApiCall() function from ../utils.ts in your tests
 

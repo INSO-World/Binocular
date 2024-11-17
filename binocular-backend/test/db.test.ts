@@ -11,6 +11,7 @@ import { expectExamples, getAllEntriesInCollection } from './helper/utils.ts';
 import _ from 'lodash';
 import TestConnection, { TestConnectionDataType } from './helper/db/testConnection';
 import TestConnToModelConnection from './helper/db/testConnToModelConnection';
+import { Entry } from '../models/Connection.ts';
 const indexerOptions = {
   backend: true,
   frontend: false,
@@ -135,7 +136,7 @@ describe('db', function () {
       const t1Entry = (await getAllInCollection('tests'))[0];
 
       // find persisted t1
-      const findT1Result = (await TestModel.findOneById(t1Entry._id))!.data;
+      const findT1Result = (await TestModel.findOneById(t1Entry._id!))!.data;
       expect(_.isEqual(t1Entry, findT1Result)).to.equal(true, 'findOneById returns object not equal to db entry');
     });
 
@@ -457,7 +458,10 @@ describe('db', function () {
       const connectionEntries = await getAllInCollection('tests-tests');
 
       // now connect the t1->t2 connection to t3, so we have (t1-t2)->t3
-      await TestConnToModelConnection.connect({ connectionData: 'data' }, { from: connectionEntries[0], to: modelEntries[2] });
+      await TestConnToModelConnection.connect(
+        { connectionData: 'data' },
+        { from: connectionEntries[0] as Entry<TestConnectionDataType>, to: modelEntries[2] as Entry<TestConnectionDataType> },
+      );
       const allComplexConnections = await getAllInCollection('tests-tests-tests');
       expect(allComplexConnections.length).to.equal(1);
       expectExamples({ _from: connectionEntries[0]._id, _to: modelEntries[2]._id }, allComplexConnections, 1);

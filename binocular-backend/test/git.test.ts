@@ -1,7 +1,6 @@
 'use strict';
 
 import { expect } from 'chai';
-
 import fake from './helper/git/repositoryFake.ts';
 import helpers from './helper/git/helpers.js';
 import Repository from '../core/provider/git';
@@ -37,10 +36,10 @@ describe('git', function () {
           return helpers.commit(this.repo, ['README.md'], alice, 'Initial');
         })
         .then(() => {
-          return helpers.commit(this.repo, ['some-file.txt'], bob);
+          return helpers.commit(this.repo, ['some-file.txt'], bob, undefined);
         })
         .then(() => {
-          return helpers.commit(this.repo, ['another-file.txt'], alice);
+          return helpers.commit(this.repo, ['another-file.txt'], alice, undefined);
         })
         .then(() => {
           return this.repo.listAllCommits();

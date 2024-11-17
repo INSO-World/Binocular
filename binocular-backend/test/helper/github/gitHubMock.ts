@@ -3,6 +3,8 @@
 import { issuesWithEvents, pipelineJobs, pipelines, pullRequestsWithEvents, users } from './gitHubTestData';
 
 class GitHubMock {
+  private pipelineId: number;
+
   constructor() {
     this.pipelineId = 0;
   }

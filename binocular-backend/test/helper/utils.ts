@@ -1,12 +1,26 @@
 // get all entries of a collection of a database
 import { expect } from 'chai';
+import Model from '../../models/Model.ts';
+import Connection from '../../models/Connection.ts';
+import Db from '../../core/db/db.ts';
 
-export const getAllEntriesInCollection = async (db, collection) => {
-  return (await db.query('FOR i IN @@collection RETURN i', { '@collection': collection })).all();
+export interface dbType {
+  _id?: string | undefined;
+  _key?: string | undefined;
+  _from?: any;
+  _to?: any;
+  data?: any;
+}
+
+export const getAllEntriesInCollection = async (
+  db: Db,
+  collection: string,
+): Promise<(Model<any> & dbType)[] | (Connection<any, any, any> & dbType)[]> => {
+  return (await db.query('FOR i IN @@collection RETURN i', { '@collection': collection }))!.all();
 };
 
 // takes array of collection names and returns an object with the collection names as keys and the respective entries as values
-export const getAllRelevantCollections = async (db, relevantCollections) => {
+export const getAllRelevantCollections = async (db: Db, relevantCollections: string[]): Promise<any> => {
   const res = {};
   await Promise.all(
     relevantCollections.map(async (collectionName) => {
