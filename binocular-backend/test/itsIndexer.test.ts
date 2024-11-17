@@ -9,13 +9,13 @@ import Db from '../core/db/db';
 
 import ctx from '../utils/context';
 
-import GitLabBaseIndexerMock from './helper/gitlab/gitLabBaseIndexerMock';
+import GitLabBaseIndexerMock from './helper/gitlab/gitLabBaseIndexerMock.ts';
 
 import GitLabITSIndexer from './helper/gitlab/gitLabITSIndexerRewire.js';
 
 import BaseGitLabIndexer from '../indexers/BaseGitLabIndexer.js';
 
-import GitHubMock from './helper/github/gitHubMock';
+import GitHubMock from './helper/github/gitHubMock.ts';
 import GitHubITSIndexer from '../indexers/its/GitHubITSIndexer';
 
 import Issue from '../models/models/Issue';
@@ -35,6 +35,8 @@ import MergeRequestNoteConnection from '../models/connections/MergeRequestNoteCo
 import Note from '../models/models/Note';
 import NoteAccountConnection from '../models/connections/NoteAccountConnection';
 import { expectExamples, getAllRelevantCollections, remapGitHubApiCall, remapGitlabApiCall } from './helper/utils.ts';
+import Model from '../models/Model.ts';
+import Connection from '../models/Connection.ts';
 
 const indexerOptions = {
   backend: true,
@@ -97,7 +99,7 @@ describe('its', function () {
   const getAllCollections = async () =>
     getAllRelevantCollections(
       db,
-      relevantCollections.map((c) => c.collection?.name),
+      relevantCollections.map((c) => c.collection!.name),
     );
 
   // checks if the specified collection and all connections from/to this collection are empty
@@ -273,7 +275,7 @@ describe('its', function () {
       // get all entries from all relevant collections
       const updatedCollections = await getAllCollections();
 
-      Object.entries(collections).map(([collectionName, collectionArray]) => {
+      (Object.entries(collections) as [string, Model<any>[] | Connection<any, any, any>[]][]).map(([collectionName, collectionArray]) => {
         // check if updated collection has the same size
         expect(collectionArray.length).to.equal(updatedCollections[collectionName].length);
       });
@@ -442,7 +444,7 @@ describe('its', function () {
       // again get all entries
       const updatedCollections = await getAllCollections();
 
-      Object.entries(collections).map(([collectionName, collectionArray]) => {
+      (Object.entries(collections) as [string, Model<any>[] | Connection<any, any, any>[]][]).map(([collectionName, collectionArray]) => {
         // check if updated collection has the same size
         expect(collectionArray.length).to.equal(updatedCollections[collectionName].length);
       });

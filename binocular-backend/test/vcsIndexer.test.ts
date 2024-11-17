@@ -30,7 +30,7 @@ import GitHubUrlProvider from '../url-providers/GitHubUrlProvider';
 import VcsIndexer from '../indexers/vcs';
 import path from 'path';
 import { checkOwnedLines, expectExamples, getAllEntriesInCollection, getAllRelevantCollections } from './helper/utils.ts';
-import { alice, bob, file1, file1Change1, file1Change2, file2 } from './helper/git/gitTestData';
+import { alice, bob, file1, file1Change1, file1Change2, file2 } from './helper/git/gitTestData.ts';
 import GitIndexer from '../indexers/vcs/GitIndexer';
 import Model from '../models/Model.ts';
 import Connection from '../models/Connection.ts';

@@ -11,11 +11,12 @@ import ctx from '../utils/context.ts';
 import GitLabCIIndexer from './helper/gitlab/gitLabCIIndexerRewire.js';
 import GitHubCIIndexer from './helper/github/gitHubCIIndexerRewire.js';
 
-import Build from '../models/models/Build';
+import Build, { BuildDataType } from '../models/models/Build';
 import repositoryFake from './helper/git/repositoryFake.js';
 import GitLabMock from './helper/gitlab/gitLabMock.js';
 import path from 'path';
 import { getAllEntriesInCollection, remapGitHubApiCall, remapUnpaginatedGitlabApiCall } from './helper/utils.ts';
+
 const indexerOptions = {
   backend: true,
   frontend: false,
@@ -50,7 +51,7 @@ describe('ci', function () {
     repo.getFilePathsForBranchRemote = repo.getFilePathsForBranch;
   };
 
-  const getAllInCollection = async (collection) => getAllEntriesInCollection(db, collection);
+  const getAllInCollection = async (collection: string) => getAllEntriesInCollection(db, collection);
 
   describe('#indexGitLab', function () {
     const gitLabSetup = async () => {
@@ -73,7 +74,7 @@ describe('ci', function () {
     it('should index all GitLab pipelines and create all necessary db collections and connections', async function () {
       const gitLabCIIndexer = await gitLabSetup();
       await gitLabCIIndexer.index();
-      const dbBuildsCollectionData = await getAllInCollection('builds');
+      const dbBuildsCollectionData = (await getAllInCollection('builds')) as unknown as BuildDataType[];
 
       expect(dbBuildsCollectionData.length).to.equal(3);
       expect(dbBuildsCollectionData[0].jobs.length).to.equal(3);
@@ -125,7 +126,7 @@ describe('ci', function () {
     it('should index all GitHub workflows and create all necessary db collections and connections', async function () {
       const gitHubCIIndexer = await gitHubSetup();
       await gitHubCIIndexer.index();
-      const dbBuildsCollectionData = await getAllInCollection('builds');
+      const dbBuildsCollectionData = (await getAllInCollection('builds')) as unknown as BuildDataType[];
 
       expect(dbBuildsCollectionData.length).to.equal(3);
       expect(dbBuildsCollectionData[0].jobs.length).to.equal(3);

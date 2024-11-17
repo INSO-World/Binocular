@@ -8,7 +8,7 @@ import {
   testNotes,
   testPipelines,
   testProject,
-} from './gitLabTestData';
+} from './gitLabTestData.ts';
 import _ from 'lodash';
 
 class GitLabMock {
