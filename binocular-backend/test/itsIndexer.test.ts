@@ -4,17 +4,12 @@ import { expect } from 'chai';
 import fake from './helper/git/repositoryFake.js';
 import ReporterMock from './helper/reporter/reporterMock.ts';
 import conf from '../utils/config.js';
-
 import Db from '../core/db/db';
-
 import ctx from '../utils/context';
 
 import GitLabBaseIndexerMock from './helper/gitlab/gitLabBaseIndexerMock.ts';
-
 import GitLabITSIndexer from './helper/gitlab/gitLabITSIndexerRewire.js';
-
 import BaseGitLabIndexer from '../indexers/BaseGitLabIndexer.js';
-
 import GitHubMock from './helper/github/gitHubMock.ts';
 import GitHubITSIndexer from '../indexers/its/GitHubITSIndexer';
 
@@ -23,7 +18,6 @@ import MergeRequest from '../models/models/MergeRequest';
 import User from '../models/models/User';
 import IssueUserConnection from '../models/connections/IssueUserConnection';
 import sinon from 'sinon';
-import path from 'path';
 import Milestone from '../models/models/Milestone';
 import IssueMilestoneConnection from '../models/connections/IssueMilestoneConnection';
 import MergeRequestMilestoneConnection from '../models/connections/MergeRequestMilestoneConnection';
@@ -37,24 +31,10 @@ import NoteAccountConnection from '../models/connections/NoteAccountConnection';
 import { expectExamples, getAllRelevantCollections, remapGitHubApiCall, remapGitlabApiCall } from './helper/utils.ts';
 import Model from '../models/Model.ts';
 import Connection from '../models/Connection.ts';
-
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
-const config = conf.get();
+import './base.test.ts';
 
 describe('its', function () {
+  const config = conf.get();
   const db = new Db(config.arango);
   const reporter = new ReporterMock(undefined, ['issues', 'mergeRequests', 'milestones']);
 

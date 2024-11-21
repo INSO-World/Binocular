@@ -5,31 +5,16 @@ import conf from '../utils/config.js';
 
 import Db from '../core/db/db';
 import TestModel, { TestModelDataType } from './helper/db/testModel';
-import path from 'path';
 import ctx from '../utils/context.ts';
 import { expectExamples, getAllEntriesInCollection } from './helper/utils.ts';
 import _ from 'lodash';
 import TestConnection, { TestConnectionDataType } from './helper/db/testConnection';
 import TestConnToModelConnection from './helper/db/testConnToModelConnection';
 import { Entry } from '../models/Connection.ts';
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
-const config = conf.get();
+import './base.test.ts';
 
 describe('db', function () {
-  const db = new Db(config.arango);
+  const db = new Db(conf.get().arango);
 
   const t1 = {
     id: 1,
