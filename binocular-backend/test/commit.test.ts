@@ -17,26 +17,10 @@ import User from '../models/models/User';
 import conf from '../utils/config.js';
 import ctx from '../utils/context';
 import GitHubUrlProvider from '../url-providers/GitHubUrlProvider';
-import path from 'path';
-
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
-const config = conf.get();
+import './base.test.ts';
 
 describe('commit', function () {
-  const db = new Db(config.arango);
+  const db = new Db(conf.get().arango);
   const gateway = new GatewayMock();
   const bob = { name: 'Bob Barker', email: 'bob@gmail.com' };
 

@@ -1,38 +1,18 @@
 'use strict';
 
 import { expect } from 'chai';
-
 import ReporterMock from './helper/reporter/reporterMock.ts';
-
 import Db from '../core/db/db';
 import conf from '../utils/config.js';
-
 import ctx from '../utils/context.ts';
 import GitLabCIIndexer from './helper/gitlab/gitLabCIIndexerRewire.js';
 import GitHubCIIndexer from './helper/github/gitHubCIIndexerRewire.js';
-
 import Build, { BuildDataType } from '../models/models/Build';
 import repositoryFake from './helper/git/repositoryFake.js';
 import GitLabMock from './helper/gitlab/gitLabMock.js';
-import path from 'path';
 import { getAllEntriesInCollection, remapGitHubApiCall, remapUnpaginatedGitlabApiCall } from './helper/utils.ts';
+import './base.test.ts';
 
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  jobs: true,
-  updateJobs: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
 describe('ci', function () {
   const config = conf.get();
   const db = new Db(config.arango);

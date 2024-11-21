@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import fake from './helper/git/repositoryFake.ts';
 import helpers from './helper/git/helpers.js';
 import Repository from '../core/provider/git';
+import './base.test.ts';
 
 describe('git', function () {
   const alice = { name: 'Alice Alisson', email: 'alice@gmail.com' };
