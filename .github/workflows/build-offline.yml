@@ -12,7 +12,7 @@ on:
     inputs:
       databaseImage: 
         description: "Base image to build database from"
-        default: "ghcr.io/inso-tuwien/binocular-database"
+        default: "ghcr.io/${{github.repository_owner}}/binocular-database"
       databaseTag:
         description: "Base tag to build database from"
         default: "latest"
@@ -20,8 +20,9 @@ on:
 env:
   REGISTRY: ghcr.io
   ARANGO_VERSION: 3.11.3
-  IMAGE_NAMESPACE: "ghcr.io/inso-tuwien"
-  # IMAGE_BASE_NAME: ghcr.io/inso-tuwien/binocular-arangodb_3.11.3
+  IMAGE_NAMESPACE: "ghcr.io/${{github.repository_owner}}"
+  BINOCULAR_DATABASE: "ghcr.io/${{github.repository_owner}}/binocular-database"
+  # IMAGE_BASE_NAME: ghcr.io/[owner]/binocular-arangodb_3.11.3
 
 jobs:
 
@@ -32,8 +33,8 @@ jobs:
 
       arangodb:
         # image: arangodb:3.11
-        # image: ghcr.io/inso-tuwien/binocular-database:arangodb_3.11.3-no_volumes
-        image: ${{ github.event.inputs.databaseImage || 'ghcr.io/inso-tuwien/binocular-database' }}:${{ github.event.inputs.databaseTag || 'latest' }}"
+        # image: ghcr.io/[owner]/binocular-database:arangodb_3.11.3-no_volumes
+        image: ${{ github.event.inputs.databaseImage || env.BINOCULAR_DATABASE }}:${{ github.event.inputs.databaseTag || 'latest' }}
         options: --name "arangodb_svc"
         ports:  
           - 8529:8529
