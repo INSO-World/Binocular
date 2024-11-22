@@ -20,26 +20,12 @@ env:
   REGISTRY: ghcr.io
   ARANGO_VERSION: 3.11.3
   IMAGE_NAMESPACE: "ghcr.io/${{github.repository_owner}}"
- # BINOCULAR_DATABASE: "ghcr.io/${{github.repository_owner}}/binocular-database"
-  # IMAGE_BASE_NAME: ghcr.io/[owner]/binocular-arangodb_3.11.3
 
 jobs:
 
   build:
 
     runs-on: ubuntu-latest
- #   services:
-
-  #    arangodb:
-        # image: arangodb:3.11
-        # image: ghcr.io/[owner]/binocular-database:arangodb_3.11.3-no_volumes
-   #     image: ${{ github.event.inputs.databaseImage || 'ghcr.io/'+github.repository_owner+'/binocular-database' }}:${{ github.event.inputs.databaseTag || 'latest' }}
-    #    options: --name "arangodb_svc"
-     #   ports:
-      #    - 8529:8529
-       # env:
-        #  ARANGO_ROOT_PASSWORD: openSesame
-
     steps:
 
       - name: Checkout Repository
@@ -66,7 +52,7 @@ jobs:
       - name: Start ArangoDB service container
         run: |
           echo "Starting service with image: ${ARANGO_IMAGE,,}"
-          docker run -d -p 8529:8529 ${ARANGO_IMAGE,,}
+          docker run -d -p 8529:8529 --name arangodb_svc ${ARANGO_IMAGE,,}
 
       - name: Debug echo env variables
         run: |
@@ -112,10 +98,7 @@ jobs:
         run: npm i tsx -g
 
       - name: Run binocular
-        run: |
-          echo "Starting service with image: ${ARANGO_IMAGE,,}"
-          docker run -d --name my-service ${ARANGO_IMAGE,,} -p 8529:8529
-          DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --no-frontend --export .
+        run: DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --no-frontend --export .
 
       - name: Build
         env:
