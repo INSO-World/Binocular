@@ -12,6 +12,7 @@ on:
     inputs:
       databaseImage: 
         description: "Base image to build database from"
+        default: "dbImage"
       databaseTag:
         description: "Base tag to build database from"
         default: "latest"
@@ -57,7 +58,7 @@ jobs:
         id: set_image
         run: |
           # Determine which image to use based on the branch
-          if [ ${{github.event.inputs.databaseImage != ''}} ]; then
+          if [ ${{github.event.inputs.databaseImage != 'dbImage'}} ]; then
             echo "ARANGO_IMAGE=${{github.event.inputs.databaseImage}}:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
           else
             echo "ARANGO_IMAGE=ghcr.io/${{github.repository_owner}}/binocular-database:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
