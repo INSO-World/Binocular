@@ -5,14 +5,13 @@ on:
     branches:
       - "main"
       - "develop"
-#      - "feature/225" #For testing
+      - "feature/266" #For testing
   schedule:
     - cron: '30 3 * * 1' # At 03:30 on Monday, https://crontab.guru/#30_3_*_*_1
   workflow_dispatch:
     inputs:
       databaseImage: 
         description: "Base image to build database from"
-        default: "ghcr.io/${{github.repository_owner}}/binocular-database"
       databaseTag:
         description: "Base tag to build database from"
         default: "latest"
@@ -21,7 +20,7 @@ env:
   REGISTRY: ghcr.io
   ARANGO_VERSION: 3.11.3
   IMAGE_NAMESPACE: "ghcr.io/${{github.repository_owner}}"
-  BINOCULAR_DATABASE: "ghcr.io/${{github.repository_owner}}/binocular-database"
+ # BINOCULAR_DATABASE: "ghcr.io/${{github.repository_owner}}/binocular-database"
   # IMAGE_BASE_NAME: ghcr.io/[owner]/binocular-arangodb_3.11.3
 
 jobs:
@@ -29,17 +28,17 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    services:
+ #   services:
 
-      arangodb:
+  #    arangodb:
         # image: arangodb:3.11
         # image: ghcr.io/[owner]/binocular-database:arangodb_3.11.3-no_volumes
-        image: ${{ github.event.inputs.databaseImage || env.BINOCULAR_DATABASE }}:${{ github.event.inputs.databaseTag || 'latest' }}
-        options: --name "arangodb_svc"
-        ports:  
-          - 8529:8529
-        env: 
-          ARANGO_ROOT_PASSWORD: openSesame
+   #     image: ${{ github.event.inputs.databaseImage || 'ghcr.io/'+github.repository_owner+'/binocular-database' }}:${{ github.event.inputs.databaseTag || 'latest' }}
+    #    options: --name "arangodb_svc"
+     #   ports:
+      #    - 8529:8529
+       # env:
+        #  ARANGO_ROOT_PASSWORD: openSesame
 
     steps:
 
@@ -53,6 +52,21 @@ jobs:
         uses: ./.github/actions/docker-env/
         with:
           image_name: binocular-database
+
+      - name: Set Arango image based on branch
+        id: set_image
+        run: |
+          # Determine which image to use based on the branch
+          if [[ ${{github.event.inputs.databaseImage}}]]; then
+            echo "ARANGO_IMAGE=${{github.event.inputs.databaseImage}}:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
+          else
+            echo "ARANGO_IMAGE=ghcr.io/${{github.repository_owner}}/binocular-database:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
+          fi
+
+      - name: Start ArangoDB service container
+        run: |
+          echo "Starting service with image: ${{ env.ARANGO_IMAGE }}"
+          docker run -d --name my-service ${{ env.ARANGO_IMAGE }}
 
       - name: Debug echo env variables
         run: |
