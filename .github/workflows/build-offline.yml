@@ -63,6 +63,11 @@ jobs:
             echo "ARANGO_IMAGE=ghcr.io/${{github.repository_owner}}/binocular-database:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
           fi
 
+      - name: Start ArangoDB service container
+        run: |
+          echo "Starting service with image: ${ARANGO_IMAGE,,}"
+          docker run -d -p 8529:8529 --name my-service ${ARANGO_IMAGE,,}
+
       - name: Debug echo env variables
         run: |
           echo "########## Docker Tags ##########"
