@@ -4,8 +4,8 @@
   "description": "Time-based visualizations of combined software engineering data",
   "main": "binocular.ts",
   "scripts": {
-    "test": "mocha --config=.mocharc.json --exit --reporter spec test",
-    "coverage": "nyc mocha --config=.mocharc.json --exit test",
+    "test": "mocha --config=.mocharc.json --exit --reporter spec 'test/*test.ts'",
+    "coverage": "nyc mocha --config=.mocharc.json --exit 'test/*test.ts'",
     "check": "eslint .",
     "dev": "tsx watch binocular.ts run ../ --no-frontend",
     "dev:no-indexing": "tsx watch binocular.ts run ../ --no-frontend --no-vcs --no-ci --no-its",

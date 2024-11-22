@@ -7,26 +7,11 @@ import Db from '../core/db/db';
 import TestModel from './helper/db/testModel';
 
 import * as utils from '../utils/utils';
-import path from 'path';
 import ctx from '../utils/context.ts';
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
-const config = conf.get();
+import './base.test.ts';
 
 describe('utils', function () {
-  const db = new Db(config.arango);
+  const db = new Db(conf.get().arango);
 
   const t1 = {
     id: 1,

@@ -41,7 +41,8 @@ class GitHubCIIndexer {
     const currentBranch = await this.repo.getCurrentBranch();
     let originUrl = await this.repo.getOriginUrl();
     if (originUrl.includes('@')) {
-      originUrl = 'https://github.com/' + originUrl.split('@github.com/')[1];
+      // '@github.com/' for HTTPS '@github.com:' for SSH
+      originUrl = 'https://github.com/' + originUrl.split('@github.com')[1].substring(1);
     }
     let repoName = originUrl.substring('https://github.com'.length + 1);
     if (repoName.endsWith('.git')) {

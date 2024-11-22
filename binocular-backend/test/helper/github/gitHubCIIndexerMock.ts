@@ -1,7 +1,10 @@
-import OctokitMock from './octokitMock.js';
-import GitHubMock from './gitHubMock.js';
+import OctokitMock from './octokitMock.ts';
+import GitHubMock from './gitHubMock.ts';
 
 export default class GitHubCIIndexerMock {
+  private github: any;
+  private controller: any;
+  private urlProvider: any;
   setupOctokit() {
     this.github = new OctokitMock();
   }
@@ -10,7 +13,7 @@ export default class GitHubCIIndexerMock {
     this.controller = new GitHubMock(config.testSetup.pipelineVersion);
   }
 
-  setupUrlProvider() {
+  setupUrlProvider(): any {
     this.urlProvider = {};
   }
 }

@@ -1,5 +1,5 @@
 import GitLabCIIndexer from '../../../indexers/ci/GitLabCIIndexer.js';
-import GitLabBaseIndexerMock from './gitLabBaseIndexerMock.js';
+import GitLabBaseIndexerMock from './gitLabBaseIndexerMock.ts';
 
 GitLabCIIndexer.prototype.constructor = GitLabBaseIndexerMock.prototype.constructor;
 GitLabCIIndexer.prototype.setupGitlab = GitLabBaseIndexerMock.prototype.setupGitlab;
