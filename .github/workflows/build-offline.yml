@@ -65,8 +65,8 @@ jobs:
 
       - name: Start ArangoDB service container
         run: |
-          echo "Starting service with image: ${{ env.ARANGO_IMAGE }}"
-          docker run -d --name my-service ${{ env.ARANGO_IMAGE }}
+          echo "Starting service with image: ${ARANGO_IMAGE,,}"
+          docker run -d --name my-service ${ARANGO_IMAGE,,}
 
       - name: Debug echo env variables
         run: |
