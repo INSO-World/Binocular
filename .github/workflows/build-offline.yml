@@ -63,11 +63,6 @@ jobs:
             echo "ARANGO_IMAGE=ghcr.io/${{github.repository_owner}}/binocular-database:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
           fi
 
-      - name: Start ArangoDB service container
-        run: |
-          echo "Starting service with image: ${ARANGO_IMAGE,,}"
-          docker run -d --name my-service ${ARANGO_IMAGE,,} -p 8529:8529
-
       - name: Debug echo env variables
         run: |
           echo "########## Docker Tags ##########"
@@ -112,7 +107,10 @@ jobs:
         run: npm i tsx -g
 
       - name: Run binocular
-        run: DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --no-frontend --export .
+        run: |
+          echo "Starting service with image: ${ARANGO_IMAGE,,}"
+          docker run -d --name my-service ${ARANGO_IMAGE,,} -p 8529:8529
+          DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --no-frontend --export .
 
       - name: Build
         env:
