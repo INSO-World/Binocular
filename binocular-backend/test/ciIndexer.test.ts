@@ -1,41 +1,22 @@
 'use strict';
 
 import { expect } from 'chai';
-
-import ReporterMock from './helper/reporter/reporterMock.js';
-
+import ReporterMock from './helper/reporter/reporterMock.ts';
 import Db from '../core/db/db';
 import conf from '../utils/config.js';
-
 import ctx from '../utils/context.ts';
 import GitLabCIIndexer from './helper/gitlab/gitLabCIIndexerRewire.js';
 import GitHubCIIndexer from './helper/github/gitHubCIIndexerRewire.js';
-
-import Build from '../models/models/Build';
+import Build, { BuildDataType } from '../models/models/Build';
 import repositoryFake from './helper/git/repositoryFake.js';
 import GitLabMock from './helper/gitlab/gitLabMock.js';
-import path from 'path';
-import { getAllEntriesInCollection, remapGitHubApiCall, remapUnpaginatedGitlabApiCall } from './helper/utils';
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  jobs: true,
-  updateJobs: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
+import { getAllEntriesInCollection, remapGitHubApiCall, remapUnpaginatedGitlabApiCall } from './helper/utils.ts';
+import './base.test.ts';
+
 describe('ci', function () {
   const config = conf.get();
   const db = new Db(config.arango);
-  const reporter = new ReporterMock(['build']);
+  const reporter = new ReporterMock(undefined, ['build']);
 
   config.token = '1234567890';
   config.testSetup = {};
@@ -53,7 +34,7 @@ describe('ci', function () {
     repo.getFilePathsForBranchRemote = repo.getFilePathsForBranch;
   };
 
-  const getAllInCollection = async (collection) => getAllEntriesInCollection(db, collection);
+  const getAllInCollection = async (collection: string) => getAllEntriesInCollection(db, collection);
 
   describe('#indexGitLab', function () {
     const gitLabSetup = async () => {
@@ -77,7 +58,7 @@ describe('ci', function () {
     it('should index all GitLab pipelines and create all necessary db collections and connections', async function () {
       const gitLabCIIndexer = await gitLabSetup();
       await gitLabCIIndexer.index();
-      const dbBuildsCollectionData = await getAllInCollection('builds');
+      const dbBuildsCollectionData = (await getAllInCollection('builds')) as unknown as BuildDataType[];
 
       expect(dbBuildsCollectionData.length).to.equal(3);
       expect(dbBuildsCollectionData[0].jobs.length).to.equal(3);
@@ -112,7 +93,7 @@ describe('ci', function () {
   });
 
   describe('#indexGitHub', function () {
-    const gitHubSetup = async (pipelineVersion) => {
+    const gitHubSetup = async (pipelineVersion?: number) => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
       ctx.ciUrlProvider = { provider: 'github' };
@@ -131,11 +112,11 @@ describe('ci', function () {
     it('should index all GitHub workflows and create all necessary db collections and connections', async function () {
       const gitHubCIIndexer = await gitHubSetup();
       await gitHubCIIndexer.index();
-      const dbBuildsCollectionData = await getAllInCollection('builds');
+      const dbBuildsCollectionData = (await getAllInCollection('builds')) as unknown as BuildDataType[];
 
       expect(dbBuildsCollectionData.length).to.equal(3);
 
-      const build = dbBuildsCollectionData.find((item) => item.id === 0);
+      const build = dbBuildsCollectionData.find((item) => item.id === 0) as BuildDataType;
       expect(build.jobs.length).to.equal(3);
       expect(build.jobs[0].id).to.equal('0');
       expect(build.jobs[0].status).to.equal('success');
@@ -173,29 +154,29 @@ describe('ci', function () {
     it('should be able to update existing pipelines in db with outdated jobs', async function () {
       let gitHubCIIndexer = await gitHubSetup();
       await gitHubCIIndexer.index();
-      const builds = await getAllInCollection('builds');
+      const builds = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const build = builds.find((item) => item.id === 0);
-      expect(build.jobs.length).to.equal(3);
+      expect(build!.jobs.length).to.equal(3);
 
       gitHubCIIndexer = await gitHubSetup(1);
       await gitHubCIIndexer.index();
-      const buildsUpdated = await getAllInCollection('builds');
+      const buildsUpdated = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const updatedPipeline = buildsUpdated.find((item) => item.id === 0);
-      expect(updatedPipeline.jobs.length).to.equal(4);
+      expect(updatedPipeline!.jobs.length).to.equal(4);
     });
 
     it('should be able to update existing pipelines in db with no jobs', async function () {
       let gitHubCIIndexer = await gitHubSetup();
       await gitHubCIIndexer.index();
-      const builds = await getAllInCollection('builds');
+      const builds = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const build = builds.find((item) => item.id === 1);
-      expect(build.jobs.length).to.equal(0);
+      expect(build!.jobs.length).to.equal(0);
 
       gitHubCIIndexer = await gitHubSetup(1);
       await gitHubCIIndexer.index();
-      const buildsUpdated = await getAllInCollection('builds');
+      const buildsUpdated = (await getAllInCollection('builds')) as unknown as BuildDataType[];
       const updatedPipeline = buildsUpdated.find((item) => item.id === 1);
-      expect(updatedPipeline.jobs.length).to.equal(4);
+      expect(updatedPipeline!.jobs.length).to.equal(4);
     });
 
     it('should be able to index 201 pipelines using batches', async function () {
@@ -210,10 +191,10 @@ describe('ci', function () {
 
   describe('#configureGitHubIncorrectly', function () {
     it('should configure GitHubCIIndexer incorrectly and throw error', async function () {
-      const gitHubCIIndexer = new GitHubCIIndexer();
+      const gitHubCIIndexer = new GitHubCIIndexer(repositoryFake, new ReporterMock(undefined, []));
       try {
-        await gitHubCIIndexer.configure();
-      } catch (e) {
+        await gitHubCIIndexer.configure(undefined);
+      } catch (e: any) {
         expect(e.name).to.equal('ConfigurationError');
         expect(e.message).to.equal('GitHub/Octokit cannot be configured!');
       }

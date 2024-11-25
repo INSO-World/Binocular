@@ -13,7 +13,9 @@ import {
 } from './gitHubTestData';
 
 class GitHubMock {
-  pipelineVersion;
+  private pipelineId: number;
+  private pipelineVersion: number;
+
   constructor(pipelineVersion) {
     this.pipelineId = 0;
     this.pipelineVersion = pipelineVersion;
