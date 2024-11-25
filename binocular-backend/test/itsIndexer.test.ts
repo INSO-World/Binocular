@@ -2,20 +2,15 @@
 
 import { expect } from 'chai';
 import fake from './helper/git/repositoryFake.js';
-import ReporterMock from './helper/reporter/reporterMock';
+import ReporterMock from './helper/reporter/reporterMock.ts';
 import conf from '../utils/config.js';
-
 import Db from '../core/db/db';
-
 import ctx from '../utils/context';
 
-import GitLabBaseIndexerMock from './helper/gitlab/gitLabBaseIndexerMock';
-
+import GitLabBaseIndexerMock from './helper/gitlab/gitLabBaseIndexerMock.ts';
 import GitLabITSIndexer from './helper/gitlab/gitLabITSIndexerRewire.js';
-
 import BaseGitLabIndexer from '../indexers/BaseGitLabIndexer.js';
-
-import GitHubMock from './helper/github/gitHubMock';
+import GitHubMock from './helper/github/gitHubMock.ts';
 import GitHubITSIndexer from '../indexers/its/GitHubITSIndexer';
 
 import Issue from '../models/models/Issue';
@@ -23,7 +18,6 @@ import MergeRequest from '../models/models/MergeRequest';
 import User from '../models/models/User';
 import IssueUserConnection from '../models/connections/IssueUserConnection';
 import sinon from 'sinon';
-import path from 'path';
 import Milestone from '../models/models/Milestone';
 import IssueMilestoneConnection from '../models/connections/IssueMilestoneConnection';
 import MergeRequestMilestoneConnection from '../models/connections/MergeRequestMilestoneConnection';
@@ -34,27 +28,15 @@ import IssueNoteConnection from '../models/connections/IssueNoteConnection';
 import MergeRequestNoteConnection from '../models/connections/MergeRequestNoteConnection';
 import Note from '../models/models/Note';
 import NoteAccountConnection from '../models/connections/NoteAccountConnection';
-import { expectExamples, getAllRelevantCollections, remapGitHubApiCall, remapGitlabApiCall } from './helper/utils';
-
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
-const config = conf.get();
+import { expectExamples, getAllRelevantCollections, remapGitHubApiCall, remapGitlabApiCall } from './helper/utils.ts';
+import Model from '../models/Model.ts';
+import Connection from '../models/Connection.ts';
+import './base.test.ts';
 
 describe('its', function () {
+  const config = conf.get();
   const db = new Db(config.arango);
-  const reporter = new ReporterMock(['issues', 'mergeRequests', 'milestones']);
+  const reporter = new ReporterMock(undefined, ['issues', 'mergeRequests', 'milestones']);
 
   config.token = '1234567890';
   beforeEach(() => {
@@ -97,12 +79,14 @@ describe('its', function () {
   const getAllCollections = async () =>
     getAllRelevantCollections(
       db,
-      relevantCollections.map((c) => c.collection.name),
+      relevantCollections.map((c) => c.collection!.name),
     );
 
   // checks if the specified collection and all connections from/to this collection are empty
-  const expectEmptyCollectionAndConnections = (collections, collectionName) => {
-    const relevantCollectionNames = relevantCollections.map((c) => c.collection.name).filter((cn) => cn.includes(collectionName));
+  const expectEmptyCollectionAndConnections = (collections, collectionName: string) => {
+    const relevantCollectionNames: string[] = relevantCollections
+      .map((c) => c.collection!.name)
+      .filter((cn) => cn.includes(collectionName));
     for (const name of relevantCollectionNames) {
       expect(collections[name].length).to.equal(0);
     }
@@ -124,7 +108,7 @@ describe('its', function () {
     // basic setup for gitlab. Returns the gitlab indexer.
     // Sets up the default gitlab mock implementation.
     const gitlabSetup = async () => {
-      const repo = await fake.repository();
+      const repo = await fake.repository('test');
       ctx.targetPath = repo.path;
 
       //Remap Remote functions to local ones because remote repository doesn't exist anymore.
@@ -271,7 +255,7 @@ describe('its', function () {
       // get all entries from all relevant collections
       const updatedCollections = await getAllCollections();
 
-      Object.entries(collections).map(([collectionName, collectionArray]) => {
+      (Object.entries(collections) as [string, Model<any>[] | Connection<any, any, any>[]][]).map(([collectionName, collectionArray]) => {
         // check if updated collection has the same size
         expect(collectionArray.length).to.equal(updatedCollections[collectionName].length);
       });
@@ -366,7 +350,7 @@ describe('its', function () {
       await setupDb(db);
 
       const gitHubITSIndexer = new GitHubITSIndexer(repo, reporter);
-      gitHubITSIndexer.controller = new GitHubMock();
+      gitHubITSIndexer.controller = new GitHubMock(0);
       return gitHubITSIndexer;
     };
 
@@ -440,7 +424,7 @@ describe('its', function () {
       // again get all entries
       const updatedCollections = await getAllCollections();
 
-      Object.entries(collections).map(([collectionName, collectionArray]) => {
+      (Object.entries(collections) as [string, Model<any>[] | Connection<any, any, any>[]][]).map(([collectionName, collectionArray]) => {
         // check if updated collection has the same size
         expect(collectionArray.length).to.equal(updatedCollections[collectionName].length);
       });

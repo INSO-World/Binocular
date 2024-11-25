@@ -125,7 +125,8 @@ GitHubITSIndexer.prototype.index = async function () {
 
   return Promise.resolve(this.repo.getOriginUrl()).then(async (url) => {
     if (url.includes('@')) {
-      url = 'https://github.com/' + url.split('@github.com/')[1];
+      // '@github.com/' for HTTPS '@github.com:' for SSH
+      url = 'https://github.com/' + url.split('@github.com')[1].substring(1);
     }
     const match = url.match(GITHUB_ORIGIN_REGEX);
     if (!match) {
