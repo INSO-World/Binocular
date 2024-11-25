@@ -131,7 +131,7 @@ function generateDataLines(
     svgElement
       .append('path')
       .datum(data)
-      .attr('class', `chartArea${i}`)
+      .attr('class', `positiveChartArea${i}`)
       .attr('fill', palette[status].main)
       .attr('fill-opacity', 0.3)
       .attr('stroke', palette[status].main)
@@ -164,7 +164,7 @@ function generateDataLines(
     svgElement
       .append('path')
       .datum(data)
-      .attr('class', `chartArea${i}`)
+      .attr('class', `negativeChartArea${i}`)
       .attr('fill', palette[status].main)
       .attr('fill-opacity', 0.3)
       .attr('stroke', palette[status].main)
@@ -210,7 +210,7 @@ function updateDataLines(
       .y0((_d, j) => yScale(stackedPositiveData[i][j][1]));
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    svgElement.select(`.chartArea${i}`).transition().duration(1000).attr('d', areaBuilderPositive);
+    svgElement.select(`.positiveChartArea${i}`).transition().duration(1000).attr('d', areaBuilderPositive);
     const areaBuilderNegative = d3
       .area<BuildChartData>()
       .curve(visualizationStyle === 'curved' ? d3.curveMonotoneX : visualizationStyle === 'stepped' ? d3.curveStep : d3.curveLinear)
@@ -219,7 +219,7 @@ function updateDataLines(
       .y0((_d, j) => yScale(stackedNegativeData[i][j][1]));
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    svgElement.select(`.chartArea${i}`).transition().duration(1000).attr('d', areaBuilderNegative);
+    svgElement.select(`.negativeChartArea${i}`).transition().duration(1000).attr('d', areaBuilderNegative);
   });
 }
 

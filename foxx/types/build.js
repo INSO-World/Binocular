@@ -21,6 +21,7 @@ const BuildStatus = new gql.GraphQLEnumType({
     created: {},
     started: {},
     queued: {},
+    startup_failure: {},
   },
 });
 

@@ -1,6 +1,7 @@
 import moment from 'moment/moment';
 import { BuildChartData, Palette } from '../chart/chart.tsx';
 import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
+import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 
@@ -74,12 +75,10 @@ export function convertBuildDataToChartData(
 
     //---- STEP 2: CONSTRUCT CHART DATA FROM AGGREGATED BUILDS ----
 
-    // TODO add chroma
-
-    palette['failed'] = { main: '#FF0000', secondary: '#FF7373' };
-    palette['success'] = { main: '#00FF00', secondary: '#73FF73' };
-    palette['cancelled'] = { main: '#FFA500', secondary: '#FFD580' };
-    palette['others'] = { main: '#555555', secondary: '#777777' };
+    palette['failed'] = { main: chroma('#ff0000').hex(), secondary: chroma('#FF737399').hex() };
+    palette['success'] = { main: chroma('#00FF00').hex(), secondary: chroma('#73FF7399').hex() };
+    palette['cancelled'] = { main: chroma('#FFA500').hex(), secondary: chroma('#FFD58099').hex() };
+    palette['others'] = { main: chroma('#555555').hex(), secondary: chroma('#77777799').hex() };
 
     data.forEach((build) => {
       //build has structure {date, statsByStatus: {}} (see next line)}
