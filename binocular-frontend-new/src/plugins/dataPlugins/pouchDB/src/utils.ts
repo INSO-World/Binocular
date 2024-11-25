@@ -139,6 +139,11 @@ export function findID(database: PouchDB.Database, id: string) {
 
 // ###################### SPECIFIC SEARCHES ######################
 
+export async function findAllBuilds(database: PouchDB.Database) {
+  // no connections are created, not needed for CIBuilds
+  return await findAll(database, 'builds');
+}
+
 export async function findAllCommits(database: PouchDB.Database, relations: PouchDB.Database) {
   const commits = await findAll(database, 'commits');
   const allCommits = sortByAttributeString(commits.docs, '_id');

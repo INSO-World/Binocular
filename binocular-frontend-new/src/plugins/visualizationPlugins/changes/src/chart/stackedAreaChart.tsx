@@ -131,7 +131,7 @@ function generateDataLines(
     svgElement
       .append('path')
       .datum(data)
-      .attr('class', `chartArea${i}`)
+      .attr('class', `positiveChartArea${i}`)
       .attr('fill', palette[author].main)
       .attr('fill-opacity', 0.3)
       .attr('stroke', palette[author].main)
@@ -140,14 +140,16 @@ function generateDataLines(
       .on('mouseover', () => {
         return d3.select(tooltipRef.current).style('visibility', 'visible');
       })
-      .on('mousemove', (e: MouseEvent) => {
+      .on('mousemove', (e: MouseEvent, d: CommitChartData[]) => {
+        const [x] = d3.pointer(e);
+        const closestIndex = getClosestIndex(x, d, xScale);
         return d3
           .select(tooltipRef.current)
           .style('top', 20 + e.pageY + 'px')
           .style('left', e.pageX + 'px')
           .style('background', palette[author].secondary)
           .style('border-color', palette[author].secondary)
-          .text(author);
+          .text(`${author}: ${d[closestIndex][author]}`);
       })
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');
@@ -162,7 +164,7 @@ function generateDataLines(
     svgElement
       .append('path')
       .datum(data)
-      .attr('class', `chartArea${i}`)
+      .attr('class', `negativeChartArea${i}`)
       .attr('fill', palette[author].main)
       .attr('fill-opacity', 0.3)
       .attr('stroke', palette[author].main)
@@ -171,14 +173,16 @@ function generateDataLines(
       .on('mouseover', () => {
         return d3.select(tooltipRef.current).style('visibility', 'visible');
       })
-      .on('mousemove', (e: MouseEvent) => {
+      .on('mousemove', (e: MouseEvent, d: CommitChartData[]) => {
+        const [x] = d3.pointer(e);
+        const closestIndex = getClosestIndex(x, d, xScale);
         return d3
           .select(tooltipRef.current)
           .style('top', 20 + e.pageY + 'px')
           .style('left', e.pageX + 'px')
           .style('background', palette[author].secondary)
           .style('border-color', palette[author].secondary)
-          .text(author);
+          .text(`${author}: ${d[closestIndex][author]}`);
       })
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');
@@ -206,7 +210,7 @@ function updateDataLines(
       .y0((_d, j) => yScale(stackedPositiveData[i][j][1]));
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    svgElement.select(`.chartArea${i}`).transition().duration(1000).attr('d', areaBuilderPositive);
+    svgElement.select(`.positiveChartArea${i}`).transition().duration(1000).attr('d', areaBuilderPositive);
     const areaBuilderNegative = d3
       .area<CommitChartData>()
       .curve(visualizationStyle === 'curved' ? d3.curveMonotoneX : visualizationStyle === 'stepped' ? d3.curveStep : d3.curveLinear)
@@ -215,7 +219,7 @@ function updateDataLines(
       .y0((_d, j) => yScale(stackedNegativeData[i][j][1]));
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    svgElement.select(`.chartArea${i}`).transition().duration(1000).attr('d', areaBuilderNegative);
+    svgElement.select(`.negativeChartArea${i}`).transition().duration(1000).attr('d', areaBuilderNegative);
   });
 }
 
@@ -361,4 +365,21 @@ function updateSprintAreas(
       .attr('x', xScale(new Date(sprint.startDate)) + 2)
       .attr('height', 10);
   });
+}
+
+function getClosestIndex(x: number, data: CommitChartData[], xScale: ScaleTime<number, number, never>) {
+  const targetTimestamp = Math.round(xScale.invert(x).getTime());
+  const timestamps = data.map((d) => new Date(d.date).getTime());
+
+  let closestIndex = 0;
+  let minDiff = Math.abs(timestamps[0] - targetTimestamp);
+
+  for (let i = 1; i < timestamps.length; i++) {
+    const diff = Math.abs(timestamps[i] - targetTimestamp);
+    if (diff < minDiff) {
+      closestIndex = i;
+      minDiff = diff;
+    }
+  }
+  return closestIndex;
 }
