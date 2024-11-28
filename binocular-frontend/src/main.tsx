@@ -33,6 +33,7 @@ import ciBuilds from './visualizations/VisualizationComponents/ciBuilds';
 import issues from './visualizations/VisualizationComponents/issues';
 import issueBreakdown from './visualizations/VisualizationComponents/issueBreakdown';
 import changes from './visualizations/VisualizationComponents/changes';
+import bugfix from './visualizations/VisualizationComponents/bugfix';
 import sprints from './visualizations/VisualizationComponents/sprints';
 import timeSpent from './visualizations/VisualizationComponents/timeSpent';
 import codeOwnership from './visualizations/code-ownership';
@@ -53,6 +54,7 @@ const visualizationModules = [
   issueBreakdown,
   changes,
   dataExport,
+  bugfix,
 ];
 
 Database.checkBackendConnection().then((connection) => {
