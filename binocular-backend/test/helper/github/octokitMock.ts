@@ -1,6 +1,8 @@
 'use strict';
 
 class OctokitMock {
+  private users: any;
+
   constructor() {
     this.users = {
       getByUsername: (user) => {

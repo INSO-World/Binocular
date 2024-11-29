@@ -20,6 +20,8 @@ function parse(
       clean: boolean;
       its: boolean;
       ci: boolean;
+      jobs: boolean;
+      updateJobs: boolean;
       export: boolean;
       server: boolean;
     },
@@ -61,6 +63,8 @@ function parse(
     .addOption(new Option('--no-vcs', 'disable Version Control System indexing').default(true))
     .addOption(new Option('--no-its', 'disable Issue Tracking System indexing').default(true))
     .addOption(new Option('--no-ci', 'disable Continuous Integration indexing').default(true))
+    .addOption(new Option('--no-jobs', 'disable details about github jobs ').default(true))
+    .addOption(new Option('--update-jobs', 'update details about github jobs').default(false))
     .addOption(new Option('--gql-port <port>', 'port where the graphql service is hosted').default(48763))
     .addOption(new Option('--export', 'export the db to the default folder of binocular').default(false))
     .addOption(new Option('--no-server', 'disable the backed webserver (when used binocular quits after indexing)').default(true))

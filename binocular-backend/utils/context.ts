@@ -39,6 +39,8 @@ function setOptions(options: {
   vcs: boolean;
   its: boolean;
   ci: boolean;
+  jobs: boolean;
+  updateJobs: boolean;
   export: boolean;
   server: boolean;
 }) {

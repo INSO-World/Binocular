@@ -485,7 +485,12 @@ async function createOwnershipConnections(repo, context) {
   const commitFileConnectionsGrouped = Object.entries(_.groupBy(commitFileConnections, (cfc) => cfc._from));
 
   for (const [commitId, cfcGroup] of commitFileConnectionsGrouped) {
-    const commitObject = commitObjects.filter((c) => c._id === commitId)[0].data;
+    const tmpObject = commitObjects.filter((c) => c._id === commitId)[0];
+    if (tmpObject === undefined) {
+      // TODO check this error
+      continue;
+    }
+    const commitObject = tmpObject.data;
     const sha = commitObject.sha;
 
     await Promise.all(

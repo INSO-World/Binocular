@@ -163,7 +163,7 @@ export default class Connection<ConnectionDataType, FromDataType, ToDataType> {
     return Promise.resolve(this.collection.save(data));
   }
 
-  parse(data: ConnectionDataType & { _id: string; _key: string; _from: string; _to: string }): Entry<ConnectionDataType> | null {
+  parse(data: (ConnectionDataType & { _id: string; _key: string; _from: string; _to: string }) | null): Entry<ConnectionDataType> | null {
     if (data === null) {
       return null;
     }

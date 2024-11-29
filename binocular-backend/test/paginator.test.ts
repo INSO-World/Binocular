@@ -4,10 +4,9 @@ import _ from 'lodash';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
-
 chai.use(sinonChai);
-
 import Paginator from '../utils/paginator';
+import './base.test.ts';
 
 const expect = chai.expect;
 
@@ -180,5 +179,5 @@ function createArrayBasedPaginator(arraySize) {
   const getItems = (page) => page;
   const getCount = () => data.length;
 
-  return new Paginator(getPage, getItems, getCount);
+  return new Paginator(getPage, getItems, getCount, {});
 }
