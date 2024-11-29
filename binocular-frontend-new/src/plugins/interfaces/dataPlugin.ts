@@ -1,6 +1,7 @@
 import { DataPluginGeneral } from './dataPluginInterfaces/dataPluginGeneral.ts';
 import { DataPluginCommits } from './dataPluginInterfaces/dataPluginCommits.ts';
 import { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
+import { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
 import { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
 import { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
 
@@ -9,6 +10,7 @@ export interface DataPlugin {
   description: string;
   general: DataPluginGeneral;
   commits: DataPluginCommits;
+  builds: DataPluginBuilds;
   users: DataPluginUsers;
   files: DataPluginFiles;
   capabilities: string[];

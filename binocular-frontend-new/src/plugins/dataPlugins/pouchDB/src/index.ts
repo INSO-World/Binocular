@@ -5,6 +5,7 @@ import General from './general.ts';
 import Files from './collections/files.ts';
 import { Database } from './database.ts';
 import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import Builds from './collections/builds.ts';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
@@ -18,6 +19,7 @@ class PouchDb implements DataPlugin {
     progressUpdate: false,
   };
   public commits;
+  public builds;
   public users;
   public general;
   public files;
@@ -26,6 +28,7 @@ class PouchDb implements DataPlugin {
 
   constructor() {
     this.commits = new Commits(undefined);
+    this.builds = new Builds(undefined);
     this.users = new Users(undefined);
     this.general = new General();
     this.files = new Files();
@@ -36,6 +39,7 @@ class PouchDb implements DataPlugin {
     if (file !== undefined) {
       await this.database.init(file);
       this.commits = new Commits(this.database);
+      this.builds = new Builds(this.database);
       this.users = new Users(this.database);
       this.general = new General();
       this.files = new Files();
