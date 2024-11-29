@@ -46,6 +46,7 @@ function DashboardItem(props: {
   const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(false);
+  const [doAutomaticUpdate, setDoAutomaticUpdate] = useState(false);
   const parametersGeneralGlobal = useSelector((state: RootState) => state.parameters.parametersGeneral);
   const [parametersGeneralLocal, setParametersGeneralLocal] = useState(parametersInitialState.parametersGeneral);
   const parametersDateRangeGlobal = useSelector((state: RootState) => state.parameters.parametersDateRange);
@@ -67,6 +68,9 @@ function DashboardItem(props: {
 
   useEffect(() => {
     if (selectedDataPlugin && selectedDataPlugin.id !== undefined) {
+      if (selectedDataPlugin.parameters.progressUpdate?.useAutomaticUpdate) {
+        setDoAutomaticUpdate(selectedDataPlugin.parameters.progressUpdate.useAutomaticUpdate);
+      }
       DataPluginStorage.getDataPlugin(selectedDataPlugin)
         .then((newDataPlugin) => {
           if (newDataPlugin) {
@@ -102,7 +106,7 @@ function DashboardItem(props: {
   }
 
   globalStore.subscribe(() => {
-    if (store !== undefined && selectedDataPlugin) {
+    if (store !== undefined && selectedDataPlugin && doAutomaticUpdate) {
       if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
         if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
           console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
@@ -296,6 +300,8 @@ function DashboardItem(props: {
                 onClickDelete={() => props.deleteItem(props.item)}
                 ignoreGlobalParameters={ignoreGlobalParameters}
                 setIgnoreGlobalParameters={setIgnoreGlobalParameters}
+                doAutomaticUpdate={doAutomaticUpdate}
+                setDoAutomaticUpdate={setDoAutomaticUpdate}
                 parametersGeneral={parametersGeneralLocal}
                 setParametersGeneral={setParametersGeneralLocal}
                 parametersDateRange={parametersDateRangeLocal}
