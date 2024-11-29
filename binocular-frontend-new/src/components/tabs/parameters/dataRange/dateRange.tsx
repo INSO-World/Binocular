@@ -171,6 +171,7 @@ function today() {
 function subtractMonth(currentDateTime: string) {
   const date = new Date(currentDateTime);
   date.setMonth(date.getMonth() - 1);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   let dateSting = date.toISOString().split('.')[0];
   dateSting = dateSting.substring(0, dateSting.length - 3);
   return dateSting;
@@ -179,6 +180,7 @@ function subtractMonth(currentDateTime: string) {
 function addMonth(currentDateTime: string) {
   const date = new Date(currentDateTime);
   date.setMonth(date.getMonth() + 1);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   let dateSting = date.toISOString().split('.')[0];
   dateSting = dateSting.substring(0, dateSting.length - 3);
   return dateSting;
@@ -187,6 +189,7 @@ function addMonth(currentDateTime: string) {
 function subtractYear(currentDateTime: string) {
   const date = new Date(currentDateTime);
   date.setFullYear(date.getFullYear() - 1);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   let dateSting = date.toISOString().split('.')[0];
   dateSting = dateSting.substring(0, dateSting.length - 3);
   return dateSting;
@@ -195,6 +198,7 @@ function subtractYear(currentDateTime: string) {
 function addYear(currentDateTime: string) {
   const date = new Date(currentDateTime);
   date.setFullYear(date.getFullYear() + 1);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   let dateSting = date.toISOString().split('.')[0];
   dateSting = dateSting.substring(0, dateSting.length - 3);
   return dateSting;
