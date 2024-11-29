@@ -14,6 +14,7 @@ class MockData implements DataPlugin {
     apiKey: false,
     endpoint: false,
     file: false,
+    progressUpdate: false,
   };
   public commits;
   public builds;

@@ -1,4 +1,4 @@
-import { addDataPlugin } from '../../../redux/settings/settingsReducer.ts';
+import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.ts';
 import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { createRef, useState } from 'react';
 import { AppDispatch, useAppDispatch } from '../../../redux';
@@ -14,9 +14,14 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
   const dispatch: AppDispatch = useAppDispatch();
 
   const apiKeyRef = createRef<HTMLInputElement>();
+
   const endpointRef = createRef<HTMLInputElement>();
+
   const fileRef = createRef<HTMLInputElement>();
   const fileNameRef = createRef<HTMLInputElement>();
+
+  const progressUpdateUseRef = createRef<HTMLInputElement>();
+  const progressUpdateEndpointRef = createRef<HTMLInputElement>();
 
   const [fileName, setFileName] = useState<string | undefined>(undefined);
 
@@ -47,7 +52,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
         {props.dataPlugin.requirements.endpoint && (
           <label className="form-control w-full max-w-xs">
             <div className="label">
-              <span className="font-bold">Endpoint URL:</span>
+              <span className="font-bold">Endpoint URL (leave empty for default):</span>
             </div>
             <input type="text" placeholder="Endpoint URL" className="input input-bordered w-full max-w-xs" ref={endpointRef} />
           </label>
@@ -92,7 +97,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                       const file: File = fileInput.files[0];
                       setState(State.uploading);
                       props.dataPlugin
-                        .init(undefined, undefined, { name: fileNameInput.value.replace(' ', '_'), file: file })
+                        .init(undefined, undefined, { name: fileNameInput.value.replace(' ', '_'), file: file }, undefined)
                         .then(() => {
                           setFileName(fileNameInput.value.replace(' ', '_'));
                           setState(State.configured);
@@ -110,6 +115,29 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
               }}>
               Upload
             </button>
+          </>
+        )}
+        {props.dataPlugin.requirements.progressUpdate && (
+          <>
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="font-bold">Use Progress Update:</span>
+              </div>
+              <input type="checkbox" className="toggle" ref={progressUpdateUseRef} />
+            </label>
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="font-bold">
+                  Progress Update Endpoint URL (only necessary if progress update is used, leave empty for default):
+                </span>
+              </div>
+              <input
+                type="text"
+                placeholder="Progress Update Endpoint URL"
+                className="input input-bordered w-full max-w-xs"
+                ref={progressUpdateEndpointRef}
+              />
+            </label>
           </>
         )}
         {props.dataPlugin.requirements.file && state === State.uploading && (
@@ -154,6 +182,12 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                     apiKey: apiKeyRef.current?.value,
                     endpoint: endpointRef.current?.value,
                     fileName: fileName,
+                    progressUpdate: progressUpdateUseRef.current
+                      ? {
+                          endpoint: progressUpdateEndpointRef.current?.value,
+                          useAutomaticUpdate: progressUpdateUseRef.current.checked,
+                        }
+                      : undefined,
                   },
                 }),
               );

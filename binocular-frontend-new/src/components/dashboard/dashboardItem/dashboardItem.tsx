@@ -3,23 +3,25 @@ import { DragResizeMode } from '../resizeMode.ts';
 import { visualizationPlugins } from '../../../plugins/pluginRegistry.ts';
 import { useEffect, useRef, useState } from 'react';
 import DashboardItemPopout from '../dashboardItemPopout/dashboardItemPopout.tsx';
-import { increasePopupCount, updateDashboardItem } from '../../../redux/general/dashboardReducer.ts';
+import { increasePopupCount, updateDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
 import openInNewGray from '../../../assets/open_in_new_white.svg';
 import openInNewBlack from '../../../assets/open_in_new_black.svg';
 import { useSelector } from 'react-redux';
 import DashboardItemSettings from '../dashboardItemSettings/dashboardItemSettings.tsx';
-import { parametersInitialState } from '../../../redux/parameters/parametersReducer.ts';
+import { parametersInitialState } from '../../../redux/reducer/parameters/parametersReducer.ts';
 import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
-import { ExportType, setExportName, setExportSVGData, setExportType } from '../../../redux/export/exportReducer.ts';
+import { ExportType, setExportName, setExportSVGData, setExportType } from '../../../redux/reducer/export/exportReducer.ts';
 import ReduxSubAppStoreWrapper from '../reduxSubAppStoreWrapper/reduxSubAppStoreWrapper.tsx';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, Store } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import { createLogger } from 'redux-logger';
 import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import _ from 'lodash';
 import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
+
+import { store as globalStore } from '../../../redux';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -44,6 +46,7 @@ function DashboardItem(props: {
   const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(false);
+  const [doAutomaticUpdate, setDoAutomaticUpdate] = useState(false);
   const parametersGeneralGlobal = useSelector((state: RootState) => state.parameters.parametersGeneral);
   const [parametersGeneralLocal, setParametersGeneralLocal] = useState(parametersInitialState.parametersGeneral);
   const parametersDateRangeGlobal = useSelector((state: RootState) => state.parameters.parametersDateRange);
@@ -65,11 +68,16 @@ function DashboardItem(props: {
 
   useEffect(() => {
     if (selectedDataPlugin && selectedDataPlugin.id !== undefined) {
-      DataPluginStorage.getDataPlugin(selectedDataPlugin).then((newDataPlugin) => {
-        if (newDataPlugin) {
-          setDataPlugin(newDataPlugin);
-        }
-      }).catch(e=>console.log(e));
+      if (selectedDataPlugin.parameters.progressUpdate?.useAutomaticUpdate) {
+        setDoAutomaticUpdate(selectedDataPlugin.parameters.progressUpdate.useAutomaticUpdate);
+      }
+      DataPluginStorage.getDataPlugin(selectedDataPlugin)
+        .then((newDataPlugin) => {
+          if (newDataPlugin) {
+            setDataPlugin(newDataPlugin);
+          }
+        })
+        .catch((e) => console.log(e));
     }
   }, [selectedDataPlugin]);
 
@@ -85,7 +93,7 @@ function DashboardItem(props: {
   /**
    * Create Redux Store from Reducer for individual Item and run saga
    */
-  let store;
+  let store: Store | undefined;
   if (dataPlugin) {
     const sagaMiddleware = createSagaMiddleware();
     store = configureStore({
@@ -96,6 +104,17 @@ function DashboardItem(props: {
   } else {
     store = undefined;
   }
+
+  globalStore.subscribe(() => {
+    if (store !== undefined && selectedDataPlugin && doAutomaticUpdate) {
+      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
+        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
+          console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
+          store.dispatch({ type: 'REFRESH' });
+        }
+      }
+    }
+  });
 
   return (
     <>
@@ -279,8 +298,11 @@ function DashboardItem(props: {
                   <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
                 }
                 onClickDelete={() => props.deleteItem(props.item)}
+                onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}
                 ignoreGlobalParameters={ignoreGlobalParameters}
                 setIgnoreGlobalParameters={setIgnoreGlobalParameters}
+                doAutomaticUpdate={doAutomaticUpdate}
+                setDoAutomaticUpdate={setDoAutomaticUpdate}
                 parametersGeneral={parametersGeneralLocal}
                 setParametersGeneral={setParametersGeneralLocal}
                 parametersDateRange={parametersDateRangeLocal}

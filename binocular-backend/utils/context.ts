@@ -12,7 +12,7 @@ const log = debug('context');
 
 const app = express();
 const httpServer = http.createServer(app);
-const io = new Server(httpServer, { path: '/wsapi' });
+const io = new Server(httpServer, { path: '/wsapi', cors: { origin: ['http://localhost:8080'], methods: ['GET', 'POST'] } });
 
 const sockets: Socket[] = [];
 
