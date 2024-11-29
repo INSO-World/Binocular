@@ -3,6 +3,7 @@ import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import Users from './users.ts';
 import General from './general.ts';
 import Files from './files.ts';
+import Issues from './issues.ts';
 
 class Github implements DataPlugin {
   public name = 'Github';
@@ -16,6 +17,7 @@ class Github implements DataPlugin {
   };
   public commits;
   public users;
+  public issues = Issues;
   public general;
   public files = Files;
 
@@ -35,8 +37,7 @@ class Github implements DataPlugin {
     }
   }
 
-  public async clearRemains() {
-  }
+  public async clearRemains() {}
 }
 
 export default Github;
