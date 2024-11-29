@@ -220,6 +220,36 @@ function preprocessCommit(
   return _.assign(commit, { user: { gitSignature: author, id: commitUserRelation.to } });
 }
 
+export async function findAllBuilds(database: PouchDB.Database, relations: PouchDB.Database) {
+  const builds = await findAll(database, 'builds');
+  const commitBuildConnections = sortByAttributeString((await findCommitBuildConnections(relations)).docs, 'to');
+  const commitUserConnections = sortByAttributeString((await findCommitUserConnections(relations)).docs, 'from');
+  const userObjects = (await findAll(database, 'users')).docs;
+  const users: JSONObject = {};
+  userObjects.map((s) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    users[s._id] = s.gitSignature;
+  });
+  builds.docs = await Promise.all(builds.docs.map((b) => preprocessBuild(b, commitBuildConnections, commitUserConnections, users)));
+  return builds;
+}
+
+function preprocessBuild(build: JSONObject, commitBuildConnections: JSONObject[], commitUserConnections: JSONObject[], users: JSONObject) {
+  const commitBuildRelation = binarySearch(commitBuildConnections, build._id, 'to');
+  if (commitBuildRelation === null) {
+    return _.assign(build, { manualRun: true });
+  }
+  const commitUserRelation = binarySearch(commitUserConnections, commitBuildRelation.from, 'from');
+  if (commitUserRelation === null) {
+    return _.assign(build, { manualRun: true });
+  }
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  const author = users[commitUserRelation.to];
+  return _.assign(build, { user: { gitSignature: author, id: commitUserRelation.to } });
+}
+
 export function findIssue(database: PouchDB.Database, iid: number) {
   return database.find({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

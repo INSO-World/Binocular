@@ -4,6 +4,7 @@ import General from './general.ts';
 import Files from './files.ts';
 import Users from './users.ts';
 import Issues from './issues.ts';
+import Builds from './builds.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -16,6 +17,7 @@ class BinocularBackend implements DataPlugin {
     file: false,
   };
   public commits;
+  public builds;
   public users;
   public issues;
   public general;
@@ -23,6 +25,7 @@ class BinocularBackend implements DataPlugin {
 
   constructor() {
     this.commits = new Commits('/graphQl');
+    this.builds = new Builds('/graphQl');
     this.users = new Users('/graphQl');
     this.issues = new Issues('/graphQl');
     this.general = new General(/*'/graphQl'*/);
@@ -35,14 +38,14 @@ class BinocularBackend implements DataPlugin {
       endpoint = '/graphQl';
     }
     this.commits = new Commits(endpoint);
+    this.builds = new Builds(endpoint);
     this.users = new Users(endpoint);
     this.issues = new Issues(endpoint);
     this.general = new General(/*endpoint*/);
     this.files = new Files(endpoint);
   }
 
-  public async clearRemains() {
-  }
+  public async clearRemains() {}
 }
 
 export default BinocularBackend;
