@@ -13,6 +13,7 @@ function DashboardItemSettings(props: {
   item: DashboardItemType;
   settingsComponent: ReactElement;
   onClickDelete: () => void;
+  onClickRefresh: () => void;
   ignoreGlobalParameters: boolean;
   setIgnoreGlobalParameters: (ignoreGlobalParameters: boolean) => void;
   doAutomaticUpdate: boolean;
@@ -27,6 +28,10 @@ function DashboardItemSettings(props: {
       <h2>{props.item.pluginName + ' (#' + props.item.id + ')'}</h2>
       <hr className={'text-base-300 m-1'} />
       <DataPluginQuickSelect selected={props.selectedDataPlugin} onChange={props.onSelectDataPlugin}></DataPluginQuickSelect>
+      <hr className={'text-base-300 m-1'} />
+      <button className={'btn btn-accent btn-xs w-full'} onClick={props.onClickRefresh}>
+        Refresh
+      </button>
       <hr className={'text-base-300 m-1'} />
       <div>
         <label className="label cursor-pointer">

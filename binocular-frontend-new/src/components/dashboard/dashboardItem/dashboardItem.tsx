@@ -298,6 +298,7 @@ function DashboardItem(props: {
                   <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
                 }
                 onClickDelete={() => props.deleteItem(props.item)}
+                onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}
                 ignoreGlobalParameters={ignoreGlobalParameters}
                 setIgnoreGlobalParameters={setIgnoreGlobalParameters}
                 doAutomaticUpdate={doAutomaticUpdate}
