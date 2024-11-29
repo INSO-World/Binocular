@@ -1,3 +1,5 @@
+import { DataPluginUser } from './dataPluginUsers.ts';
+
 export interface DataPluginBuilds {
   getAll: (from: string, to: string) => Promise<DataPluginBuild[]>;
 }
@@ -8,15 +10,15 @@ export interface DataPluginBuild {
   createdAt: string;
   duration: string;
   finishedAt: string;
-  jobs: Job[];
+  jobs: DataPluginJob[];
   startedAt: string;
   status: string;
   updatedAt: string;
-  user: string;
+  user: DataPluginUser;
   userFullName: string;
 }
 
-interface Job {
+export interface DataPluginJob {
   id: string;
   name: string;
   status: string;

@@ -14,7 +14,7 @@ export default class Builds implements DataPluginBuilds {
     const first = new Date(from).getTime();
     const last = new Date(to).getTime();
     if (this.database && this.database.documentStore && this.database.edgeStore) {
-      return findAllBuilds(this.database.documentStore).then((res: { docs: unknown[] }) => {
+      return findAllBuilds(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
         res.docs = (res.docs as DataPluginBuild[])
           .filter((c) => new Date(c.createdAt).getTime() >= first && new Date(c.createdAt).getTime() <= last)
           .sort((a, b) => {

@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
 import { Store } from '@reduxjs/toolkit';
 import { DataState, setDateRange } from '../reducer';
+import { AuthorType } from '../../../../../types/data/authorType.ts';
 
 export interface BuildChartData {
   date: number;
@@ -22,6 +23,7 @@ export interface Palette {
 function Chart(props: {
   settings: SettingsType;
   dataConnection: DataPlugin;
+  authorList: AuthorType[];
   sprintList: SprintType[];
   parameters: ParametersType;
   chartContainerRef: RefObject<HTMLDivElement>;
@@ -78,11 +80,16 @@ function Chart(props: {
 
   // Effect on data change
   useEffect(() => {
-    const { chartData, scale, palette } = convertBuildDataToChartData(builds, props.parameters);
+    const { chartData, scale, palette } = convertBuildDataToChartData(
+      builds,
+      props.authorList,
+      props.parameters,
+      props.settings.splitBuildsPerAuthor,
+    );
     setChartData(chartData);
     setChartScale(scale);
     setChartPalette(palette);
-  }, [builds, props.parameters]);
+  }, [builds, props.authorList, props.parameters, props.settings.splitBuildsPerAuthor]);
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
