@@ -52,7 +52,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
         {props.dataPlugin.requirements.endpoint && (
           <label className="form-control w-full max-w-xs">
             <div className="label">
-              <span className="font-bold">Endpoint URL:</span>
+              <span className="font-bold">Endpoint URL (leave empty for default):</span>
             </div>
             <input type="text" placeholder="Endpoint URL" className="input input-bordered w-full max-w-xs" ref={endpointRef} />
           </label>
@@ -127,7 +127,9 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
             </label>
             <label className="form-control w-full max-w-xs">
               <div className="label">
-                <span className="font-bold">Progress Update Endpoint URL (only necessary if progress update is used):</span>
+                <span className="font-bold">
+                  Progress Update Endpoint URL (only necessary if progress update is used, leave empty for default):
+                </span>
               </div>
               <input
                 type="text"

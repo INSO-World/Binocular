@@ -3,7 +3,7 @@ import { AuthorType } from '../../../types/data/authorType.ts';
 import Config from '../../../config.ts';
 
 export interface AuthorsInitialState {
-  authorLists: { [signature: string]: AuthorType[] };
+  authorLists: { [id: number]: AuthorType[] };
   dragging: boolean;
   authorToEdit: AuthorType | undefined;
   dataPluginId: number | undefined;
@@ -38,7 +38,6 @@ export const authorsSlice = createSlice({
           }
         });
         action.payload.authors.forEach((author) => {
-          console.log(author.user);
           if (!authorList.find((a: AuthorType) => a.user.id === author.user.id)) {
             author.id = authorList.length + 1;
             authorList.push(author);
@@ -102,7 +101,7 @@ export const authorsSlice = createSlice({
       });
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
-    setAuthorsDataPluginId: (state, action: PayloadAction<number>) => {
+    setAuthorsDataPluginId: (state, action: PayloadAction<number | undefined>) => {
       state.dataPluginId = action.payload;
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },

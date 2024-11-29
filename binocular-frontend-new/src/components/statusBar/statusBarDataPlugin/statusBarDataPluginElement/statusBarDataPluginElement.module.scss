@@ -10,6 +10,7 @@
   overflow: hidden;
   @apply bg-base-100;
   transition: max-height ease-in-out .5s;
+  max-width: 20rem;
 }
 
 .dataPluginElement:hover{
