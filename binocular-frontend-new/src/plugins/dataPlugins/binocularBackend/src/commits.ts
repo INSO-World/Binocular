@@ -15,8 +15,8 @@ export default class Commits implements DataPluginCommits {
     const getCommitsPage = (to?: string) => async (page: number, perPage: number) => {
       const resp = await this.graphQl.client.query({
         query: gql`
-          query ($page: Int, $perPage: Int, $until: Timestamp) {
-            commits(page: $page, perPage: $perPage, until: $until) {
+          query ($page: Int, $perPage: Int) {
+            commits(page: $page, perPage: $perPage) {
               count
               page
               perPage

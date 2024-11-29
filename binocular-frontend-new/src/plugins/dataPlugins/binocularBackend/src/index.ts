@@ -3,6 +3,7 @@ import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import General from './general.ts';
 import Files from './files.ts';
 import Users from './users.ts';
+import Builds from './builds.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -15,12 +16,14 @@ class BinocularBackend implements DataPlugin {
     file: false,
   };
   public commits;
+  public builds;
   public users;
   public general;
   public files;
 
   constructor() {
     this.commits = new Commits('/graphQl');
+    this.builds = new Builds('/graphQl');
     this.users = new Users('/graphQl');
     this.general = new General(/*'/graphQl'*/);
     this.files = new Files('/graphQl');
@@ -32,13 +35,13 @@ class BinocularBackend implements DataPlugin {
       endpoint = '/graphQl';
     }
     this.commits = new Commits(endpoint);
+    this.builds = new Builds(endpoint);
     this.users = new Users(endpoint);
     this.general = new General(/*endpoint*/);
     this.files = new Files(endpoint);
   }
 
-  public async clearRemains() {
-  }
+  public async clearRemains() {}
 }
 
 export default BinocularBackend;
