@@ -3,11 +3,12 @@ import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import General from './general.ts';
 import Files from './files.ts';
 import Users from './users.ts';
+import Issues from './issues.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
   public description = 'Connection to the Binocular GraphQL Backend.';
-  public capabilities = ['authors', 'commits', 'files'];
+  public capabilities = ['authors', 'commits', 'files', 'issues'];
   public experimental = false;
   public requirements = {
     apiKey: false,
@@ -16,12 +17,14 @@ class BinocularBackend implements DataPlugin {
   };
   public commits;
   public users;
+  public issues;
   public general;
   public files;
 
   constructor() {
     this.commits = new Commits('/graphQl');
     this.users = new Users('/graphQl');
+    this.issues = new Issues('/graphQl');
     this.general = new General(/*'/graphQl'*/);
     this.files = new Files('/graphQl');
   }
@@ -33,6 +36,7 @@ class BinocularBackend implements DataPlugin {
     }
     this.commits = new Commits(endpoint);
     this.users = new Users(endpoint);
+    this.issues = new Issues(endpoint);
     this.general = new General(/*endpoint*/);
     this.files = new Files(endpoint);
   }
