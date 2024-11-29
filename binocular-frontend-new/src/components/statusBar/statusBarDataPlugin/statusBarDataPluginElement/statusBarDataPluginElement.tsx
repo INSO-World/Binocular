@@ -134,7 +134,7 @@ function StatusBarDataPlugin(props: {
             </div>
           </div>
         ) : (
-          <div>No Data avaliable</div>
+          <div>{props.dataPlugin?.description}</div>
         )}
       </div>
     </>
