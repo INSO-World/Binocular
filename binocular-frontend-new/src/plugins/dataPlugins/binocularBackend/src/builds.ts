@@ -1,6 +1,7 @@
 import { GraphQL, traversePages } from './utils';
 import { gql } from '@apollo/client';
-import { DataPluginBuild, DataPluginBuilds } from '../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import { DataPluginBuild, DataPluginBuilds, DataPluginJob } from '../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import { DataPluginUser } from '../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 export default class Builds implements DataPluginBuilds {
   private graphQl;
@@ -38,8 +39,12 @@ export default class Builds implements DataPluginBuilds {
                 startedAt
                 status
                 updatedAt
-                user
-                userFullName
+                commit {
+                  user {
+                    id
+                    gitSignature
+                  }
+                }
               }
             }
           }
@@ -49,10 +54,44 @@ export default class Builds implements DataPluginBuilds {
       return resp.data.builds;
     };
 
-    await traversePages(getBuildPage(new Date(from).getTime(), new Date(to).getTime()), (build: DataPluginBuild) => {
-      builds.push(build);
+    await traversePages(getBuildPage(new Date(from).getTime(), new Date(to).getTime()), (build: Build) => {
+      builds.push(convertToDataPluginBuild(build));
     });
     const allBuilds = builds.sort((a, b) => new Date(b.createdAt).getMilliseconds() - new Date(a.createdAt).getMilliseconds());
     return allBuilds.filter((c) => new Date(c.createdAt) >= new Date(from) && new Date(c.createdAt) <= new Date(to));
   }
+}
+
+function convertToDataPluginBuild(build: Build): DataPluginBuild {
+  return {
+    id: build.id,
+    committedAt: build.committedAt,
+    createdAt: build.createdAt,
+    duration: build.duration,
+    finishedAt: build.finishedAt,
+    jobs: build.jobs,
+    startedAt: build.startedAt,
+    status: build.status,
+    updatedAt: build.updatedAt,
+    user: build?.commit?.user,
+    userFullName: build.userFullName,
+  };
+}
+
+interface Build {
+  id: number;
+  committedAt: string;
+  createdAt: string;
+  duration: string;
+  finishedAt: string;
+  jobs: DataPluginJob[];
+  startedAt: string;
+  status: string;
+  updatedAt: string;
+  commit: Commit;
+  userFullName: string;
+}
+
+interface Commit {
+  user: DataPluginUser;
 }

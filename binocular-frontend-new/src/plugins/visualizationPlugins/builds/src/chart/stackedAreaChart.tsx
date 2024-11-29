@@ -5,10 +5,7 @@ import { BuildChartData, Palette } from './chart.tsx';
 import { SprintType } from '../../../../../types/data/sprintType.ts';
 import { SettingsType } from '../settings/settings.tsx';
 import { PositiveNegativeSide, splitPositiveNegativeData } from '../utilities/dataConverter.ts';
-
-/**
- * Example from https://www.react-graph-gallery.com/area-plot
- */
+import { round } from 'lodash';
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
@@ -149,7 +146,7 @@ function generateDataLines(
           .style('left', e.pageX + 'px')
           .style('background', palette[status].secondary)
           .style('border-color', palette[status].secondary)
-          .text(`${status}: ${d[closestIndex][status]}`);
+          .text(`${status}: ${round(d[closestIndex][status])}`);
       })
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');
@@ -182,7 +179,7 @@ function generateDataLines(
           .style('left', e.pageX + 'px')
           .style('background', palette[status].secondary)
           .style('border-color', palette[status].secondary)
-          .text(`${status}: ${-d[closestIndex][status]}`);
+          .text(`${status}: ${round(-d[closestIndex][status])}`);
       })
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');

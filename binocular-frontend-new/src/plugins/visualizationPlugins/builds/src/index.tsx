@@ -12,7 +12,7 @@ const Builds: VisualizationPlugin<SettingsType> = {
   chartComponent: Chart,
   settingsComponent: Settings,
   helpComponent: Help,
-  defaultSettings: { splitAdditionsDeletions: false, visualizationStyle: 'curved' },
+  defaultSettings: { splitBuildsPerAuthor: false, visualizationStyle: 'curved' },
   export: {
     getSVGData: getSVGData,
   },

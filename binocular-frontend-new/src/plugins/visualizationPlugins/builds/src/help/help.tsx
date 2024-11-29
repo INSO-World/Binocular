@@ -11,6 +11,10 @@ function Help() {
       <div>
         <ul className={'list-disc ml-5'}>
           <li>
+            <span className={'font-bold'}>Split Authors per Build:</span> Change the mode of visualization to either show all builds grouped
+            by status or split the builds by authors. Negative builds are all builds, which are not successful.
+          </li>
+          <li>
             <span className={'font-bold'}>Visualization Style:</span> Change the style of how the lines are calculated into either curved
             (default), stepped or linear.
           </li>
