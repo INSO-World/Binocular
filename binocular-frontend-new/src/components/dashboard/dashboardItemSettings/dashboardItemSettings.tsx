@@ -13,8 +13,11 @@ function DashboardItemSettings(props: {
   item: DashboardItemType;
   settingsComponent: ReactElement;
   onClickDelete: () => void;
+  onClickRefresh: () => void;
   ignoreGlobalParameters: boolean;
   setIgnoreGlobalParameters: (ignoreGlobalParameters: boolean) => void;
+  doAutomaticUpdate: boolean;
+  setDoAutomaticUpdate: (doAutomaticUpdate: boolean) => void;
   parametersGeneral: ParametersGeneralType;
   setParametersGeneral: (parametersGeneral: ParametersGeneralType) => void;
   parametersDateRange: ParametersDateRangeType;
@@ -25,6 +28,10 @@ function DashboardItemSettings(props: {
       <h2>{props.item.pluginName + ' (#' + props.item.id + ')'}</h2>
       <hr className={'text-base-300 m-1'} />
       <DataPluginQuickSelect selected={props.selectedDataPlugin} onChange={props.onSelectDataPlugin}></DataPluginQuickSelect>
+      <hr className={'text-base-300 m-1'} />
+      <button className={'btn btn-accent btn-xs w-full'} onClick={props.onClickRefresh}>
+        Refresh
+      </button>
       <hr className={'text-base-300 m-1'} />
       <div>
         <label className="label cursor-pointer">
@@ -37,6 +44,19 @@ function DashboardItemSettings(props: {
           />
         </label>
       </div>
+      {props.selectedDataPlugin?.parameters.progressUpdate?.useAutomaticUpdate && (
+        <div>
+          <label className="label cursor-pointer">
+            <span className="label-text">Automatic Update:</span>
+            <input
+              type="checkbox"
+              className="toggle toggle-accent toggle-sm"
+              defaultChecked={props.doAutomaticUpdate}
+              onChange={(e) => props.setDoAutomaticUpdate(e.target.checked)}
+            />
+          </label>
+        </div>
+      )}
       <hr className={'text-base-300 m-1'} />
       <div className={!props.ignoreGlobalParameters ? ' text-base-300' : ''}>
         <div className={'font-bold'}>Date Range:</div>

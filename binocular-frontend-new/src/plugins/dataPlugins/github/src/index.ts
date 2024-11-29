@@ -14,6 +14,7 @@ class Github implements DataPlugin {
     apiKey: true,
     endpoint: false,
     file: false,
+    progressUpdate: false,
   };
   public commits;
   public builds;
