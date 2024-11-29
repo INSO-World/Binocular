@@ -5,7 +5,7 @@ import _ from 'lodash';
 import Build from '../../models/models/Build';
 
 import BaseGitLabIndexer from '../BaseGitLabIndexer.js';
-import CIIndexer from './CIIndexer.js';
+import CIIndexer from './CIIndexer.ts';
 
 class GitLabCIIndexer extends BaseGitLabIndexer {
   constructor(repository, progressReporter) {

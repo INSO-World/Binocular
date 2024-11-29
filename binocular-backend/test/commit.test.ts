@@ -2,9 +2,9 @@
 
 import { expect } from 'chai';
 
-import fake from './helper/git/repositoryFake.js';
+import fake from './helper/git/repositoryFake.ts';
 import helpers from './helper/git/helpers.js';
-import GatewayMock from './helper/gateway/gatewayMock';
+import GatewayMock from './helper/gateway/gatewayMock.ts';
 
 import Db from '../core/db/db';
 import Commit from '../models/models/Commit';
@@ -17,26 +17,10 @@ import User from '../models/models/User';
 import conf from '../utils/config.js';
 import ctx from '../utils/context';
 import GitHubUrlProvider from '../url-providers/GitHubUrlProvider';
-import path from 'path';
-
-const indexerOptions = {
-  backend: true,
-  frontend: false,
-  open: false,
-  clean: true,
-  its: true,
-  ci: true,
-  export: true,
-  server: false,
-};
-const targetPath = path.resolve('.');
-ctx.setOptions(indexerOptions);
-ctx.setTargetPath(targetPath);
-conf.loadConfig(ctx);
-const config = conf.get();
+import './base.test.ts';
 
 describe('commit', function () {
-  const db = new Db(config.arango);
+  const db = new Db(conf.get().arango);
   const gateway = new GatewayMock();
   const bob = { name: 'Bob Barker', email: 'bob@gmail.com' };
 
@@ -51,7 +35,10 @@ describe('commit', function () {
       ctx.targetPath = repo.path;
 
       const urlProvider = new GitHubUrlProvider(repo);
-      urlProvider.configure({ url: 'https://test.com', project: 'testProject' });
+      urlProvider.configure({
+        url: 'https://test.com',
+        project: 'testProject',
+      });
 
       //setup DB
       await db.ensureDatabase('test', ctx);
@@ -75,7 +62,9 @@ describe('commit', function () {
         await Commit.persist(repo, commit, urlProvider);
       }
 
-      const dbCommitsCollectionData = await (await db.query('FOR i IN @@collection RETURN i', { '@collection': 'commits' })).all();
+      const dbCommitsCollectionData = await (await db.query('FOR i IN @@collection RETURN i', {
+        '@collection': 'commits',
+      }))!.all();
 
       expect(dbCommitsCollectionData.length).to.equal(3);
       expect(dbCommitsCollectionData[0].message).to.equal('Commit1\n');
@@ -90,7 +79,10 @@ describe('commit', function () {
       ctx.targetPath = repo.path;
 
       const urlProvider = new GitHubUrlProvider(repo);
-      urlProvider.configure({ url: 'https://test.com', project: 'testProject' });
+      urlProvider.configure({
+        url: 'https://test.com',
+        project: 'testProject',
+      });
 
       //setup DB
       await db.ensureDatabase('test', ctx);
@@ -114,9 +106,15 @@ describe('commit', function () {
         const commitDAO = await Commit.persist(repo, commit, urlProvider);
         await Promise.all(await Commit.processTree(commitDAO, repo, commit, currentBranch, urlProvider, gateway, ctx));
       }
-      const dbCommitsCollectionData = await (await db.query('FOR i IN @@collection RETURN i', { '@collection': 'commits' })).all();
-      const dbFilesCollectionData = await (await db.query('FOR i IN @@collection RETURN i', { '@collection': 'files' })).all();
-      const dbHunksCollectionData = await (await db.query('FOR i IN @@collection RETURN i', { '@collection': 'commits-files' })).all();
+      const dbCommitsCollectionData = await (await db.query('FOR i IN @@collection RETURN i', {
+        '@collection': 'commits',
+      }))!.all();
+      const dbFilesCollectionData = await (await db.query('FOR i IN @@collection RETURN i', {
+        '@collection': 'files',
+      }))!.all();
+      const dbHunksCollectionData: any[] = await (await db.query('FOR i IN @@collection RETURN i', {
+        '@collection': 'commits-files',
+      }))!.all();
 
       expect(dbCommitsCollectionData.length).to.equal(3);
       expect(dbCommitsCollectionData[0].stats.additions).to.equal(3);

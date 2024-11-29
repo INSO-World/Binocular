@@ -8,7 +8,7 @@ import moment from 'moment';
 import GitHub from '../../core/provider/github';
 import debug from 'debug';
 import ProgressReporter from '../../utils/progress-reporter.ts';
-import { GithubJob } from '../../types/GithubTypes.ts';
+import { GithubJob, GithubRun } from '../../types/GithubTypes.ts';
 import Config from '../../utils/config';
 import Repository from '../../core/provider/git';
 
@@ -41,7 +41,8 @@ class GitHubCIIndexer {
     const currentBranch = await this.repo.getCurrentBranch();
     let originUrl = await this.repo.getOriginUrl();
     if (originUrl.includes('@')) {
-      originUrl = 'https://github.com/' + originUrl.split('@github.com/')[1];
+      // '@github.com/' for HTTPS '@github.com:' for SSH
+      originUrl = 'https://github.com/' + originUrl.split('@github.com')[1].substring(1);
     }
     let repoName = originUrl.substring('https://github.com'.length + 1);
     if (repoName.endsWith('.git')) {
@@ -64,12 +65,14 @@ class GitHubCIIndexer {
     await this.controller.loadAssignableUsers(this.owner, this.repo);
 
     this.indexer = new CIIndexer(this.reporter, this.controller, repoName, async (pipeline, jobs) => {
-      jobs = jobs || [];
+      jobs = (jobs as GithubJob[]) || [];
+      pipeline = pipeline as GithubRun;
+
       log(
         `create build ${JSON.stringify({
           id: pipeline.id,
           number: pipeline.run_number,
-          sha: pipeline.head_commit.sha,
+          sha: pipeline.head_sha,
           status: convertState(pipeline.conclusion),
           updatedAt: moment(pipeline.updated_at).toISOString(),
           startedAt: moment(pipeline.run_started_at).toISOString(),
@@ -92,19 +95,19 @@ class GitHubCIIndexer {
       return Build.persist({
         id: pipeline.id,
         sha: pipeline.head_sha,
-        ref: pipeline.head_commit.id,
+        ref: String(pipeline.head_commit.id),
         status: convertState(pipeline.conclusion),
         tag: pipeline.display_title,
         user: username,
         userFullName: userFullName !== null ? userFullName : username,
-        createdAt: moment(pipeline.created_at || (jobs.length > 0 ? jobs[0].created_at : pipeline.started_at)).toISOString(),
+        createdAt: moment(pipeline.created_at || (jobs.length > 0 ? jobs[0].created_at : pipeline.run_started_at)).toISOString(),
         updatedAt: moment(pipeline.updated_at).toISOString(),
         startedAt: moment(pipeline.run_started_at).toISOString(),
         finishedAt: moment(lastFinishedAt).toISOString(),
-        committedAt: moment(pipeline.head_commit.committed_at).toISOString(),
+        committedAt: moment(pipeline.head_commit.timestamp).toISOString(),
         duration: moment(lastFinishedAt).unix() - moment(lastStartedAt).unix(),
         jobs: jobs.map((job: GithubJob) => ({
-          id: job.id,
+          id: String(job.id),
           name: username,
           status: job.conclusion,
           stage: job.conclusion,
