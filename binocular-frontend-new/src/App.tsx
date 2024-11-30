@@ -36,6 +36,10 @@ import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerBu
 import { useState } from 'react';
 
 function App() {
+  // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
+  console.log('BUILD WITH POUCHDB');
+  // #v-endif
+
   const dispatch: AppDispatch = useAppDispatch();
   const parametersGeneral = useSelector((state: RootState) => state.parameters.parametersGeneral);
   const parametersDateRange = useSelector((state: RootState) => state.parameters.parametersDateRange);
