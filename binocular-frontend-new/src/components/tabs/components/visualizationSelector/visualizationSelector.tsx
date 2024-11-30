@@ -1,6 +1,6 @@
 import { visualizationPlugins } from '../../../../plugins/pluginRegistry.ts';
 import visualizationSelectorStyles from './visualizationSelector.module.scss';
-import { addDashboardItem, placeDashboardItem } from '../../../../redux/general/dashboardReducer.ts';
+import { addDashboardItem, placeDashboardItem } from '../../../../redux/reducer/general/dashboardReducer.ts';
 import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
 import { useSelector } from 'react-redux';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';

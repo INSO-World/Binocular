@@ -1,16 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { useDispatch } from 'react-redux';
 
-import DashboardReducer from './general/dashboardReducer.ts';
-import AuthorsReducer from './data/authorsReducer.ts';
-import SettingsReducer from './settings/settingsReducer.ts';
-import ParametersReducer from './parameters/parametersReducer.ts';
-import SprintsReducer from './data/sprintsReducer.ts';
-import NotificationsReducer from './general/notificationsReducer.ts';
-import ExportReducer from './export/exportReducer.ts';
-import TabsReducer from './general/tabsReducer.ts';
+import DashboardReducer from './reducer/general/dashboardReducer.ts';
+import AuthorsReducer from './reducer/data/authorsReducer.ts';
+import SettingsReducer from './reducer/settings/settingsReducer.ts';
+import ParametersReducer from './reducer/parameters/parametersReducer.ts';
+import SprintsReducer from './reducer/data/sprintsReducer.ts';
+import NotificationsReducer from './reducer/general/notificationsReducer.ts';
+import ExportReducer from './reducer/export/exportReducer.ts';
+import TabsReducer from './reducer/general/tabsReducer.ts';
 import { createLogger } from 'redux-logger';
-import FilesReducer from './data/filesReducer.ts';
+import FilesReducer from './reducer/data/filesReducer.ts';
+import ActionsReducer from './reducer/general/actionsReducer.ts';
+import actionsMiddleware from './middelware/actions/actionsMiddleware.ts';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -26,8 +28,9 @@ export const store = configureStore({
     sprints: SprintsReducer,
     notifications: NotificationsReducer,
     tabs: TabsReducer,
+    actions: ActionsReducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(actionsMiddleware(), logger),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

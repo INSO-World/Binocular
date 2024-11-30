@@ -4,6 +4,8 @@ import General from './general.ts';
 import Files from './files.ts';
 import Users from './users.ts';
 import Issues from './issues.ts';
+import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './builds.ts';
 
 class BinocularBackend implements DataPlugin {
@@ -15,6 +17,7 @@ class BinocularBackend implements DataPlugin {
     apiKey: false,
     endpoint: true,
     file: false,
+    progressUpdate: true,
   };
   public commits;
   public builds;
@@ -28,11 +31,17 @@ class BinocularBackend implements DataPlugin {
     this.builds = new Builds('/graphQl');
     this.users = new Users('/graphQl');
     this.issues = new Issues('/graphQl');
-    this.general = new General(/*'/graphQl'*/);
+    this.general = new General('/graphQl', undefined);
     this.files = new Files('/graphQl');
   }
 
-  public async init(apiKey: string | undefined, endpoint: string | undefined) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async init(
+    apiKey: string | undefined,
+    endpoint: string | undefined,
+    _file: FileConfig | undefined,
+    progressUpdateConfig: ProgressUpdateConfig | undefined,
+  ) {
     console.log(`Init Binocular Backend with ApiKey: ${apiKey} and Endpoint ${endpoint}`);
     if (endpoint === undefined || endpoint.length === 0) {
       endpoint = '/graphQl';
@@ -41,7 +50,7 @@ class BinocularBackend implements DataPlugin {
     this.builds = new Builds(endpoint);
     this.users = new Users(endpoint);
     this.issues = new Issues(endpoint);
-    this.general = new General(/*endpoint*/);
+    this.general = new General(endpoint, progressUpdateConfig);
     this.files = new Files(endpoint);
   }
 

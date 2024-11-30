@@ -19,4 +19,8 @@ export default class General implements DataPluginGeneral {
       resolve('Mocked Repository');
     });
   }
+
+  public getProgressUpdateConfig() {
+    return { useAutomaticUpdate: false };
+  }
 }
