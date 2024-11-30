@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import Config from '../../config.ts';
-import { GeneralSettingsType, SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
-import { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../types/settings/databaseSettingsType.ts';
+import Config from '../../../config.ts';
+import { GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
+import { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../../types/settings/databaseSettingsType.ts';
 import distinctColors from 'distinct-colors';
 
 export interface SettingsInitialState {
@@ -36,6 +36,7 @@ export const settingsSlice = createSlice({
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
+      console.log(state);
       const colors = distinctColors({ count: 100 });
       if (state.database.dataPlugins.length === 0) {
         action.payload.isDefault = true;

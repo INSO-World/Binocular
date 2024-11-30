@@ -25,4 +25,8 @@ export default class General implements DataPluginGeneral {
       resolve(`${this.owner}/${this.name}`);
     });
   }
+
+  public getProgressUpdateConfig() {
+    return { useAutomaticUpdate: false };
+  }
 }

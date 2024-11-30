@@ -3,7 +3,7 @@ import { ReactElement } from 'react';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
 import { useSelector } from 'react-redux';
 import PopoutController from './popoutController/popoutController.tsx';
-import { addNotification } from '../../../redux/general/notificationsReducer.ts';
+import { addNotification } from '../../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../../types/general/alertType.ts';
 
 function DashboardItemPopout(props: { children: ReactElement; name: string; onClosing: () => void }) {

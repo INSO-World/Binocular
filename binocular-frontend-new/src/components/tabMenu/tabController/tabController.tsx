@@ -8,7 +8,7 @@ import TabControllerButton from '../tabControllerButton/tabControllerButton.tsx'
 import { TabType } from '../../../types/general/tabType.ts';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
 import { useSelector } from 'react-redux';
-import { setTabList } from '../../../redux/general/tabsReducer.ts';
+import { setTabList } from '../../../redux/reducer/general/tabsReducer.ts';
 import _ from 'lodash';
 import TabControllerButtonThemeSwitch from '../tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx';
 

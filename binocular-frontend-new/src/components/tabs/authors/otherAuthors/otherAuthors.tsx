@@ -2,7 +2,7 @@ import otherAuthorsStyles from './otherAuthors.module.scss';
 import authorStyles from '../authors.module.scss';
 import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
-import { editAuthor, moveAuthorToOther, resetAuthor, setDragging } from '../../../../redux/data/authorsReducer.ts';
+import { editAuthor, moveAuthorToOther, resetAuthor, setDragging } from '../../../../redux/reducer/data/authorsReducer.ts';
 import { showContextMenu } from '../../../contextMenu/contextMenuHelper.ts';
 import removeFromOtherIcon from '../../../../assets/group_remove_gray.svg';
 import editIcon from '../../../../assets/edit_gray.svg';
