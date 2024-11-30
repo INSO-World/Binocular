@@ -10,7 +10,7 @@ import Issues from './collections/issues.ts';
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
   public description = 'PouchDB browser based database that is able to import a database exported by Binocular packed as a Zip File.';
-  public capabilities = ['authors', 'commits', 'files', 'issues'];
+  public capabilities = ['authors', 'commits', 'files', 'builds', 'issues'];
   public experimental = false;
   public requirements = {
     apiKey: false,

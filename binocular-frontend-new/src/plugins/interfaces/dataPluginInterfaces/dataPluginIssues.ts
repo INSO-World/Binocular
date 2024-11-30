@@ -3,15 +3,26 @@ export interface DataPluginIssues {
 }
 
 export interface DataPluginIssue {
-  id: string;
   iid: string;
   title: string;
-  description: string;
+  //description: string;
   state: string;
   webUrl: string;
   createdAt: string;
   closedAt: string | null;
-  author: { name: string };
-  assignee: { name: string | null } | null;
-  //notes: any;
+  author: DataPluginGitHubUser;
+  assignee: DataPluginGitHubUser | null;
+  assignees: DataPluginGitHubUser[];
+  //notes?: DataPluginNotes[];
+}
+
+export interface DataPluginGitHubUser {
+  login: string | null;
+  name: string | null;
+}
+
+export interface DataPluginNotes {
+  body: any;
+  createdAt: string;
+  author: DataPluginGitHubUser;
 }

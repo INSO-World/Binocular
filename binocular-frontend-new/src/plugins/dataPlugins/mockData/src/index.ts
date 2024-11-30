@@ -9,7 +9,7 @@ import Builds from './builds.ts';
 class MockData implements DataPlugin {
   public name = 'Mock Data';
   public description = 'Mocked Data for testing purposes.';
-  public capabilities = ['authors', 'commits', 'files', 'issues'];
+  public capabilities = ['authors', 'commits', 'files', 'builds', 'issues'];
   public experimental = false;
   public requirements = {
     apiKey: false,
