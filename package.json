@@ -9,7 +9,7 @@
     "dev": "npm run dev:backend & npm run dev:frontend",
     "dev:concurrently": "concurrently --kill-others -P 'npm run dev:frontend' 'npm run dev:backend' --",
     "dev:backend": "cd binocular-backend && npm run dev",
-    "dev:frontend": "cd binocular-frontend && npm run dev",
+    "dev:frontend": "cd binocular-frontend-new && npm run dev",
     "dev:frontend-debug": "cd binocular-frontend && npm run dev:debug",
     "check": "npm run check:backend && npm run check:frontend",
     "check:backend": "cd binocular-backend && npm run check",
