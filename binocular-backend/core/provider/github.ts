@@ -5,6 +5,7 @@ import { Octokit } from '@octokit/rest';
 import { Octokit as OctokitCore } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
 import { GithubArtifact, GithubJob, GithubUser } from '../../types/GithubTypes';
+import JSZip from 'jszip';
 
 const log = debug('github');
 
@@ -97,6 +98,48 @@ class GitHub {
       .then((artifacts: { data: { artifacts: GithubArtifact } }) => {
         return artifacts.data.artifacts;
       });
+  }
+
+  async downloadJacocoReport(artifact: GithubArtifact): Promise<ArrayBuffer | null> {
+    const response = await fetch(artifact.archive_download_url, {
+      headers: {
+        Authorization: `Bearer ${this.privateToken}`,
+        Accept: 'application/vnd.github+json',
+      },
+    });
+
+    if (!response.ok) {
+      log('Failed to download artifact: %o', response.statusText);
+      return null;
+    }
+
+    return response.arrayBuffer();
+  }
+
+  async extractJacocoXMLReportContent(buffer: ArrayBuffer): Promise<any> {
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(buffer);
+
+    // Find the Jacoco report XML file
+    let xmlReportContent: string | null = null;
+    await Promise.all(
+      Object.keys(zipContent.files).map(async (relativePath) => {
+        const file = zipContent.files[relativePath];
+
+        // Check if the file is an XML report file
+        if (relativePath.endsWith('.xml') && !file.dir) {
+          // Read file content as text
+          xmlReportContent = await file.async('text');
+        }
+      }),
+    );
+
+    if (!xmlReportContent) {
+      log('Jacoco XML report not found in ZIP archive');
+      return;
+    }
+
+    return xmlReportContent;
   }
 
   /**

@@ -11,6 +11,8 @@ import ProgressReporter from '../../utils/progress-reporter.ts';
 import { GithubArtifact, GithubJob } from '../../types/GithubTypes.ts';
 import Config from '../../utils/config';
 import Repository from '../../core/provider/git';
+import JacocoReport from '../../models/models/JacocoReport.ts';
+
 const log = debug('importer:github-ci-indexer');
 
 const GITHUB_ORIGIN_REGEX = /(?:git@github.com:|https:\/\/github.com\/)([^/]+)\/(.*?)(?=\.git|$)/;
@@ -113,12 +115,28 @@ class GitHubCIIndexer {
           webUrl: job.html_url,
         })),
         webUrl: pipeline.html_url,
-        artifacts: artifacts.map((artifact: GithubArtifact) => ({
-          id: artifact.id,
-          name: artifact.name,
-          downloadUrl: artifact.archive_download_url,
-          expiresAt: artifact.expires_at,
-        })),
+        artifacts: await Promise.all(
+          artifacts.map(async (artifact: GithubArtifact) => {
+            if (artifact.name === 'jacoco-report' && !artifact.expired) {
+              const jacocoReport = await this.controller?.downloadJacocoReport(artifact);
+              if (jacocoReport !== null && jacocoReport !== undefined) {
+                const xmlContent = await this.controller?.extractJacocoXMLReportContent(jacocoReport);
+                await JacocoReport.persist({
+                  id: artifact.id.toString(),
+                  xmlContent: xmlContent,
+                  buildId: pipeline.id.toString(),
+                });
+              }
+            }
+
+            return {
+              id: artifact.id,
+              name: artifact.name,
+              downloadUrl: artifact.archive_download_url,
+              expiresAt: artifact.expires_at,
+            };
+          }),
+        ),
       });
     });
   }
@@ -126,6 +144,7 @@ class GitHubCIIndexer {
   async setupUrlProvider(repo: Repository, reporter: typeof ProgressReporter) {
     this.urlProvider = await UrlProvider.getCiUrlProvider(repo, reporter);
   }
+
   setupGithub(config: typeof Config) {
     this.controller = new GitHub({
       baseUrl: 'https://api.github.com',

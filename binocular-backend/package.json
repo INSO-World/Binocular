@@ -40,6 +40,7 @@
     "express-http-proxy": "^1.6.3",
     "faker": "^5.5.3",
     "fast-myers-diff": "^3.0.1",
+    "fast-xml-parser": "^4.5.0",
     "figlet": "^1.6.0",
     "file-regex": "^3.1.0",
     "file-saver": "^2.0.5",
@@ -52,6 +53,7 @@
     "inquirer": "^8.2.4",
     "isomorphic-fetch": "^3.0.0",
     "isomorphic-git": "^1.22.0",
+    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "log-timestamp": "^0.3.0",
     "lorem-ipsum": "^2.0.4",
@@ -66,7 +68,8 @@
     "table": "^6.8.1",
     "temp": "^0.9.4",
     "url-join": "^4.0.1",
-    "util": "^0.12.4"
+    "util": "^0.12.4",
+    "xmldom": "^0.6.0"
   },
   "devDependencies": {
     "@types/archiver": "^5.3.3",

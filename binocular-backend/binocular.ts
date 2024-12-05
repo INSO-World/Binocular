@@ -81,6 +81,8 @@ import Note from './models/models/Note.ts';
 import IssueNoteConnection from './models/connections/IssueNoteConnection.ts';
 import NoteAccountConnection from './models/connections/NoteAccountConnection.ts';
 import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
+import JacocoReport from './models/models/JacocoReport.ts';
+import JacocoBuildConnection from './models/connections/JacocoBuildConnection.ts';
 
 cli.parse(
   (targetPath, options) => {
@@ -590,6 +592,7 @@ function runBackend() {
           MergeRequest.ensureCollection(),
           Milestone.ensureCollection(),
           Account.ensureCollection(),
+          JacocoReport.ensureCollection(),
           CommitFileConnection.ensureCollection(),
           CommitBuildConnection.ensureCollection(),
           CommitUserConnection.ensureCollection(),
