@@ -1,11 +1,10 @@
 import { StackedAreaChart } from './stackedAreaChart.tsx';
 import { useEffect, useState } from 'react';
-import { convertToChartData } from '../utilities/dataConverter.ts';
 import { throttle } from 'throttle-debounce';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, setDateRange } from '../reducer';
-import { dataName } from '../index.tsx';
 import { Properties } from '../interfaces/properties.ts';
+import { DefaultSettings } from '../settings/settings.tsx';
 
 export interface ChartData {
   date: number;
@@ -16,7 +15,7 @@ export interface Palette {
   [signature: string]: { main: string; secondary: string };
 }
 
-function Chart(props: Properties) {
+function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties<SettingsType, DataType>) {
   /*
    * Creating Dispatch and Root State for interaction with the reducer State
    */
@@ -28,7 +27,7 @@ function Chart(props: Properties) {
    * -----------------------------
    */
   //Redux Global State
-  const data = useSelector((state: RootState) => state[dataName]);
+  const data = useSelector((state: RootState) => state[props.dataName!]);
   const dataState = useSelector((state: RootState) => state.dataState);
   //React Component State
   const [chartWidth, setChartWidth] = useState(100);
@@ -68,7 +67,8 @@ function Chart(props: Properties) {
 
   // Effect on data change
   useEffect(() => {
-    const { chartData, scale, palette } = convertToChartData(data, props);
+    console.log(data);
+    const { chartData, scale, palette } = props.dataConverter(data, props);
     setChartData(chartData);
     setChartScale(scale);
     setChartPalette(palette);

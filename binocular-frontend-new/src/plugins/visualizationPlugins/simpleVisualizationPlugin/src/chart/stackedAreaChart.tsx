@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { ScaleLinear, ScaleTime, symbol, symbolTriangle } from 'd3';
 import { ChartData, Palette } from './chart.tsx';
 import { SprintType } from '../../../../../types/data/sprintType.ts';
-import { SettingsType } from '../settings/settings.tsx';
+import { DefaultSettings } from '../settings/settings.tsx';
 import { PositiveNegativeSide, splitPositiveNegativeData } from '../utilities/dataConverter.ts';
 import { round } from 'lodash';
 
@@ -16,7 +16,7 @@ type AreaChartProps = {
   scale: number[];
   palette: Palette;
   sprintList: SprintType[];
-  settings: SettingsType;
+  settings: DefaultSettings;
 };
 
 export const StackedAreaChart = ({ width, height, data, scale, palette, sprintList, settings }: AreaChartProps) => {

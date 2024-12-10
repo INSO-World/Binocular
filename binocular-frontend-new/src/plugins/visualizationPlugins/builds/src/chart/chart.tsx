@@ -2,7 +2,7 @@ import { StackedAreaChart } from './stackedAreaChart.tsx';
 import { RefObject, useEffect, useState } from 'react';
 import { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
 import { SettingsType } from '../settings/settings.tsx';
-import { convertBuildDataToChartData } from '../utilities/dataConverter.ts';
+import { convertToChartData } from '../utilities/dataConverter.ts';
 import { SprintType } from '../../../../../types/data/sprintType.ts';
 import { throttle } from 'throttle-debounce';
 import { useDispatch, useSelector } from 'react-redux';
@@ -80,7 +80,7 @@ function Chart(props: {
 
   // Effect on data change
   useEffect(() => {
-    const { chartData, scale, palette } = convertBuildDataToChartData(
+    const { chartData, scale, palette } = convertToChartData(
       builds,
       props.authorList,
       props.parameters,

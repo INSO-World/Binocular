@@ -5,12 +5,12 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
+import { Properties } from '../../../simpleVisualizationPlugin/src/interfaces/properties.ts';
+import { BuildSettings } from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
 
-export function convertBuildDataToChartData(
-  builds: DataPluginBuild[],
-  authorList: AuthorType[],
-  parameters: ParametersType,
-  splitBuildsPerAuthor: boolean,
+export function convertToChartData(
+  builds: DataPluginBuild[] | unknown[],
+  props: Properties<BuildSettings, DataPluginBuild>,
 ): {
   chartData: BuildChartData[];
   scale: number[];
@@ -21,7 +21,9 @@ export function convertBuildDataToChartData(
   }
 
   //Sort builds after their build time in case they arnt sorted
-  const sortedBuilds = _.clone(builds).sort((c1, c2) => new Date(c1.createdAt).getTime() - new Date(c2.createdAt).getTime());
+  const sortedBuilds = _.clone(builds as DataPluginBuild[]).sort(
+    (c1, c2) => new Date(c1.createdAt).getTime() - new Date(c2.createdAt).getTime(),
+  );
 
   const firstTimestamp = sortedBuilds[0].createdAt;
   const lastTimestamp = sortedBuilds[sortedBuilds.length - 1].createdAt;
@@ -32,10 +34,19 @@ export function convertBuildDataToChartData(
   let returnValue;
 
   if (sortedBuilds.length > 0) {
-    if (splitBuildsPerAuthor) {
-      returnValue = getDataByAuthors(parameters, firstTimestamp, lastTimestamp, sortedBuilds, scale, palette, chartData, authorList);
+    if (props.settings.splitBuildsPerAuthor) {
+      returnValue = getDataByAuthors(
+        props.parameters,
+        firstTimestamp,
+        lastTimestamp,
+        sortedBuilds,
+        scale,
+        palette,
+        chartData,
+        props.authorList,
+      );
     } else {
-      returnValue = getDataByStatus(parameters, firstTimestamp, lastTimestamp, sortedBuilds, scale, palette, chartData);
+      returnValue = getDataByStatus(props.parameters, firstTimestamp, lastTimestamp, sortedBuilds, scale, palette, chartData);
     }
   } else {
     return { chartData: [], palette: {}, scale: [] };
