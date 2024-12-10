@@ -28,7 +28,7 @@ export const buildsSlice = createSlice({
   name: 'builds',
   initialState,
   reducers: {
-    setData: (state, action: PayloadAction<DataPluginBuild[]>) => {
+    setBuilds: (state, action: PayloadAction<DataPluginBuild[]>) => {
       state.builds = action.payload;
     },
     setDateRange: (state, action: PayloadAction<DateRange>) => {

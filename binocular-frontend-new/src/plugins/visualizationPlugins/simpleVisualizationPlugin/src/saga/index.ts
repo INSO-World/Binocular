@@ -1,28 +1,25 @@
 import { put, takeEvery, fork, call, select } from 'redux-saga/effects';
 import { State, DataState, setData, setDataState, setDateRange } from '../reducer';
 import { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
-import { dataName } from '../index.tsx';
 
-export default function* (dataConnection: DataPlugin) {
-  yield fork(() => watchRefresh(dataConnection));
-  yield fork(() => watchDateRangeChange(dataConnection));
+export default function* <DataType>(dataConnection: DataPlugin) {
+  yield fork(() => watchRefresh<DataType>(dataConnection));
+  yield fork(() => watchDateRangeChange<DataType>(dataConnection));
 }
 
-function* watchRefresh(dataConnection: DataPlugin) {
-  yield takeEvery('REFRESH', () => fetchChangesData(dataConnection));
+function* watchRefresh<DataType>(dataConnection: DataPlugin) {
+  yield takeEvery('REFRESH', () => fetchChangesData<DataType>(dataConnection));
 }
 
-function* watchDateRangeChange(dataConnection: DataPlugin) {
-  yield takeEvery(setDateRange, () => fetchChangesData(dataConnection));
+function* watchDateRangeChange<DataType>(dataConnection: DataPlugin) {
+  yield takeEvery(setDateRange, () => fetchChangesData<DataType>(dataConnection));
 }
 
-function* fetchChangesData(dataConnection: DataPlugin) {
+function* fetchChangesData<DataType>(dataConnection: DataPlugin) {
   yield put(setDataState(DataState.FETCHING));
-  const state: State = yield select();
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any[] = yield call(() => dataConnection[dataName].getAll(state.dateRange.from, state.dateRange.to));
+  const state: State<DataType> = yield select();
+  // how do we get our wanted type here?
+  const data: DataType[] = yield call(() => dataConnection['commits'].getAll(state.dateRange.from, state.dateRange.to));
   yield put(setData(data));
   yield put(setDataState(DataState.COMPLETE));
 }

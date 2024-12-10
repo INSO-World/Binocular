@@ -1,7 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
-import { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
-import { dataName } from '../index.tsx';
 
 export enum DataState {
   EMPTY,
@@ -14,29 +11,26 @@ interface DateRange {
   to: string;
 }
 
-export interface State {
-  builds: DataPluginBuild[];
-  commits: DataPluginCommit[];
+export interface State<DataType> {
+  data: DataType[];
   dateRange: DateRange;
   dataState: DataState;
 }
 
-const initialState: State = {
-  builds: [],
-  commits: [],
+const initialState: State<unknown> = {
+  data: [],
   dateRange: { from: new Date().toISOString(), to: new Date().toISOString() },
   dataState: DataState.EMPTY,
 };
 
 export const dataSlice = createSlice({
-  name: dataName,
+  name: 'commits',
   initialState,
   reducers: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setData: (state, action: PayloadAction<any[]>) => {
+    setData: <DataType>(state: State<DataType>, action: PayloadAction<DataType[]>) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      state[dataName] = action.payload;
+      state['commits'] = action.payload;
     },
     setDateRange: (state, action: PayloadAction<DateRange>) => {
       state.dateRange = action.payload;

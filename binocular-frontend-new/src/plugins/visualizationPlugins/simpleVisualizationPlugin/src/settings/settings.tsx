@@ -1,10 +1,17 @@
-export interface SettingsType {
-  splitBuildsPerAuthor: boolean;
+export interface DefaultSettings {
   visualizationStyle: string;
   showSprints: boolean;
 }
 
-function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) {
+export interface BuildSettings extends DefaultSettings {
+  splitBuildsPerAuthor: boolean;
+}
+
+export interface ChangesSettings extends DefaultSettings {
+  splitAdditionsDeletions: boolean;
+}
+
+function Settings(props: { settings: BuildSettings; setSettings: (newSettings: BuildSettings) => void }) {
   return (
     <>
       <div>

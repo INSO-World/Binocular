@@ -1,66 +1,32 @@
-import { Store } from '@reduxjs/toolkit';
-import { RefObject } from 'react';
-import { AuthorType } from '../../../../types/data/authorType.ts';
-import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
-import { SprintType } from '../../../../types/data/sprintType.ts';
-import { ParametersType } from '../../../../types/parameters/parametersType.ts';
-import { Reducer } from '@reduxjs/toolkit';
+import { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
+import Chart from './chart/chart.tsx';
+import { getSVGData } from './utilities/utilities.ts';
+import { DefaultSettings } from './settings/settings.tsx';
+import Reducer from './reducer';
+import Saga from './saga';
 
-let dataName: string;
-
-export interface VisualizationPlugin<SettingsType> {
-  name: string;
-  chartComponent: (props: {
-    settings: SettingsType;
-    dataConnection: DataPlugin;
-    authorList: AuthorType[];
-    sprintList: SprintType[];
-    parameters: ParametersType;
-    chartContainerRef: RefObject<HTMLDivElement>;
-    store: Store;
-  }) => React.ReactNode;
-  settingsComponent: (props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) => React.ReactNode;
-  helpComponent: () => React.ReactNode;
-  defaultSettings: SettingsType;
-  export: {
-    getSVGData: (chartContainerRef: RefObject<HTMLDivElement>) => string;
-  };
-  capabilities: {
-    popoutOnly: boolean;
-    export: boolean;
-  };
-  images: {
-    thumbnail: string;
-  };
-  getSVGData: (chartContainerRef: RefObject<HTMLDivElement>) => string;
-  reducer: Reducer;
-  saga: (dataConnection: DataPlugin) => Generator;
-  thumbnail: string;
-}
-/*
-export function createVisualizationPlugin<SettingsType>(name: string, components: VisualizationPlugin<SettingsType>): VisualizationPlugin<SettingsType> {
-  dataName = name;
+export default function createVisualizationPlugin<SettingsType extends DefaultSettings, DataType>(
+  name: string,
+  components: VisualizationPlugin<SettingsType, DataType>,
+): VisualizationPlugin<SettingsType, DataType> {
   return {
-    name,
-    chartComponent: Chart,
+    name: name,
+    chartComponent: Chart<SettingsType, DataType>,
+    dataConverter: components.dataConverter,
     settingsComponent: components.settingsComponent,
     helpComponent: components.helpComponent,
     defaultSettings: components.defaultSettings,
     export: {
-      getSVGData: components.getSVGData,
+      getSVGData: getSVGData,
     },
     capabilities: {
       popoutOnly: false,
       export: true,
     },
     images: {
-      thumbnail: components.thumbnail,
+      thumbnail: components.images.thumbnail,
     },
     reducer: Reducer,
-    saga: components.saga,
-    getSVGData: components.getSVGData,
-    thumbnail: components.thumbnail,
+    saga: Saga,
   };
 }
-*/
-export { dataName };
