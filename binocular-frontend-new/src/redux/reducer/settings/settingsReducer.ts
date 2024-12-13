@@ -36,7 +36,6 @@ export const settingsSlice = createSlice({
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
-      console.log(state);
       const colors = distinctColors({ count: 100 });
       if (state.database.dataPlugins.length === 0) {
         action.payload.isDefault = true;
@@ -44,9 +43,29 @@ export const settingsSlice = createSlice({
         action.payload.isDefault = false;
       }
       state.database.currID++;
-      action.payload.color = colors[state.database.currID].hex() + '22';
-      action.payload.id = state.database.currID;
-      state.database.dataPlugins.push(action.payload);
+      if (action.payload.color === '#000') {
+        action.payload.color = colors[state.database.currID].hex() + '22';
+      }
+      if (action.payload.id === undefined) {
+        action.payload.id = state.database.currID;
+        state.database.dataPlugins.push(action.payload);
+        console.log(`Inserted dataPlugin ${action.payload.id}`);
+      } else {
+        let found = false;
+        state.database.dataPlugins = state.database.dataPlugins.map((dp: DatabaseSettingsDataPluginType) => {
+          if (dp.id === action.payload.id) {
+            found = true;
+            return action.payload;
+          }
+          return dp;
+        });
+        if (!found) {
+          state.database.dataPlugins.push(action.payload);
+          console.log(`Inserted dataPlugin ${action.payload.id}`);
+        } else {
+          console.log(`Updated dataPlugin ${action.payload.id}`);
+        }
+      }
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     removeDataPlugin: (state, action: PayloadAction<number>) => {

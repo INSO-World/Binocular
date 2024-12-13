@@ -33,7 +33,8 @@ import { DatabaseSettingsDataPluginType } from './types/settings/databaseSetting
 import { setAuthorsDataPluginId } from './redux/reducer/data/authorsReducer.ts';
 import { setFilesDataPluginId } from './redux/reducer/data/filesReducer.ts';
 import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import DatabaseLoaders from './utils/databaseLoaders.ts';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -57,6 +58,19 @@ function App() {
 
   const storedTheme = localStorage.getItem('theme');
   const [theme, setTheme] = useState(storedTheme || 'binocularLight');
+
+  useEffect(() => {
+    // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
+    DatabaseLoaders.loadJsonFilesToPouchDB(dispatch)
+      .then(() => {
+        console.log('PUCHDB LOADED');
+      })
+      .catch((error) => {
+        console.log('ERROR LOADING POUCHDB');
+        console.log(error);
+      });
+    // #v-endif
+  }, []);
 
   return (
     <>
