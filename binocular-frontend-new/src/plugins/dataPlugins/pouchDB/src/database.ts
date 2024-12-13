@@ -12,10 +12,7 @@ PouchDB.plugin(PouchDBAdapterMemory);
 PouchDB.adapter('worker', WorkerPouch);
 import JSZip from 'jszip';
 import { decompressJson } from '../../../../../../utils/json-utils.ts';
-
-interface JSONObject {
-  [key: string]: string | boolean | number;
-}
+import { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 class Database {
   public documentStore: PouchDB.Database | undefined;
@@ -23,7 +20,7 @@ class Database {
 
   constructor() {}
 
-  init(file: { name: string | undefined; file: File | undefined }) {
+  init(file: FileConfig) {
     if (file.name) {
       return this.initDB(file.name).then((newDatabaseInitialized: boolean) => {
         if (newDatabaseInitialized && file.file !== undefined) {
@@ -33,6 +30,7 @@ class Database {
             jszip
               .loadAsync(file.file)
               .then((zip) => {
+                const dbCollectionCount = Object.keys(zip.files).length;
                 zip.forEach((fileName: string) => {
                   zip
                     .file(fileName)
@@ -44,7 +42,7 @@ class Database {
                         this.importEdge(name, JSONContent)
                           .then(() => {
                             collectionsImported++;
-                            if (collectionsImported >= Object.keys(zip.files).length) {
+                            if (collectionsImported >= dbCollectionCount) {
                               resolve(true);
                             }
                           })
@@ -53,7 +51,7 @@ class Database {
                         this.importDocument(name, JSONContent)
                           .then(() => {
                             collectionsImported++;
-                            if (collectionsImported >= Object.keys(zip.files).length) {
+                            if (collectionsImported >= dbCollectionCount) {
                               resolve(true);
                             }
                           })
@@ -64,6 +62,41 @@ class Database {
                 });
               })
               .catch((e) => console.log(e));
+          });
+        } else if (newDatabaseInitialized && file.dbObjects !== undefined) {
+          return new Promise((resolve) => {
+            resolve(true);
+            let collectionsImported = 0;
+            if (file.dbObjects !== undefined) {
+              const dbCollectionCount = Object.keys(file.dbObjects).length;
+              Object.keys(file.dbObjects).forEach((name: string) => {
+                console.log(name);
+                resolve(true);
+                if (name.includes('-')) {
+                  if (file.dbObjects !== undefined) {
+                    this.importEdge(name, file.dbObjects[name])
+                      .then(() => {
+                        collectionsImported++;
+                        if (collectionsImported >= dbCollectionCount) {
+                          resolve(true);
+                        }
+                      })
+                      .catch((e) => console.log(e));
+                  }
+                } else {
+                  if (file.dbObjects !== undefined) {
+                    this.importDocument(name, file.dbObjects[name])
+                      .then(() => {
+                        collectionsImported++;
+                        if (collectionsImported >= dbCollectionCount) {
+                          resolve(true);
+                        }
+                      })
+                      .catch((e) => console.log(e));
+                  }
+                }
+              });
+            }
           });
         }
       });
@@ -81,15 +114,15 @@ class Database {
 
   private initDB(name: string) {
     // check if web workers are supported
-    return WorkerPouch.isSupportedBrowser().then((supported: boolean) => {
-      if (supported) {
-        // using web workers does not block the main thread, making the UI load faster.
-        // note: worker adapter does not support custom indices!
-        return this.assignDB(name, 'worker');
-      } else {
-        return this.assignDB(name, 'memory');
-      }
-    });
+    /*return WorkerPouch.isSupportedBrowser().then((supported: boolean) => {
+      if (supported) {*/
+    // using web workers does not block the main thread, making the UI load faster.
+    // note: worker adapter does not support custom indices!
+    return this.assignDB(name, 'worker');
+    //} else {
+    //  return this.assignDB(name, 'memory');
+    //}
+    //});
   }
 
   /*
