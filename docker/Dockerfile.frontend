@@ -46,6 +46,8 @@ RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
     npm run ${BUILD_CMD}
 RUN chown node:node $(npm root -g)
 RUN chown node:node $(npm root)
+COPY ./package.json ./package.json
+COPY ./binocular-frontend/package.json ./binocular-frontend/package.json
 
 # ENTRYPOINT ["/bin/sh"]
 # FROM nginx:1.25.3-alpine as ngx
