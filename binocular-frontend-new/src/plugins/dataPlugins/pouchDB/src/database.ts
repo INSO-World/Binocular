@@ -14,15 +14,15 @@ import JSZip from 'jszip';
 import { decompressJson } from '../../../../../../utils/json-utils.ts';
 import { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
-class Database {
+export default class Database {
   public documentStore: PouchDB.Database | undefined;
   public edgeStore: PouchDB.Database | undefined;
 
   constructor() {}
 
-  init(file: FileConfig) {
+  public initDB(file: FileConfig) {
     if (file.name) {
-      return this.initDB(file.name).then((newDatabaseInitialized: boolean) => {
+      return this.createDB(file.name).then((newDatabaseInitialized: boolean) => {
         if (newDatabaseInitialized && file.file !== undefined) {
           return new Promise((resolve) => {
             const jszip = new JSZip();
@@ -65,13 +65,10 @@ class Database {
           });
         } else if (newDatabaseInitialized && file.dbObjects !== undefined) {
           return new Promise((resolve) => {
-            resolve(true);
             let collectionsImported = 0;
             if (file.dbObjects !== undefined) {
               const dbCollectionCount = Object.keys(file.dbObjects).length;
               Object.keys(file.dbObjects).forEach((name: string) => {
-                console.log(name);
-                resolve(true);
                 if (name.includes('-')) {
                   if (file.dbObjects !== undefined) {
                     this.importEdge(name, file.dbObjects[name])
@@ -112,23 +109,21 @@ class Database {
     }
   }
 
-  private initDB(name: string) {
+  private async createDB(name: string) {
     // check if web workers are supported
-    /*return WorkerPouch.isSupportedBrowser().then((supported: boolean) => {
-      if (supported) {*/
-    // using web workers does not block the main thread, making the UI load faster.
-    // note: worker adapter does not support custom indices!
-    return this.assignDB(name, 'worker');
-    //} else {
-    //  return this.assignDB(name, 'memory');
-    //}
-    //});
+    if (window.Worker) {
+      // using web workers does not block the main thread, making the UI load faster.
+      // note: worker adapter does not support custom indices!
+      return this.createDBStore(name, 'worker');
+    } else {
+      return this.createDBStore(name, 'memory');
+    }
   }
 
   /*
   Return true when a new database was initialized and false when the database already existed
    */
-  async assignDB(name: string, adapter: string): Promise<boolean> {
+  async createDBStore(name: string, adapter: string): Promise<boolean> {
     this.documentStore = new PouchDB(`${name}_documents`, { adapter: adapter });
     this.edgeStore = new PouchDB(`${name}_edges`, { adapter: adapter });
     const documentStoreInfo = await this.documentStore.info();
@@ -188,5 +183,3 @@ class Database {
     });
   }
 }
-
-export { Database };
