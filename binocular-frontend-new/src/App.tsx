@@ -46,10 +46,16 @@ function App() {
   const parametersDateRange = useSelector((state: RootState) => state.parameters.parametersDateRange);
   const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
-  const authorsDataPlugin =
-    authorsDataPluginId !== undefined
-      ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === authorsDataPluginId)
-      : undefined;
+  const [authorsDataPlugin, setAuthorsDataPlugin] = useState();
+
+  useEffect(() => {
+    setAuthorsDataPlugin(
+      authorsDataPluginId !== undefined
+        ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === authorsDataPluginId)
+        : undefined,
+    );
+  }, [authorsDataPluginId, avaliableDataPlugins]);
+
   const filesDataPluginId = useSelector((state: RootState) => state.files.dataPluginId);
   const filesDataPlugin =
     filesDataPluginId !== undefined

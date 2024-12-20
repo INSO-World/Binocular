@@ -36,7 +36,7 @@ export default abstract class DataPluginStorage {
       await dataPlugin.init(
         dP.parameters.apiKey,
         dP.parameters.endpoint,
-        { name: dP.parameters.fileName, file: undefined },
+        { name: dP.parameters.fileName, file: undefined, dbObjects: undefined },
         dP.parameters.progressUpdate,
       );
     }

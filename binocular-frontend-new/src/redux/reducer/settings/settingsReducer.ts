@@ -37,11 +37,7 @@ export const settingsSlice = createSlice({
     },
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
       const colors = distinctColors({ count: 100 });
-      if (state.database.dataPlugins.length === 0) {
-        action.payload.isDefault = true;
-      } else {
-        action.payload.isDefault = false;
-      }
+      action.payload.isDefault = state.database.dataPlugins.length === 0;
       state.database.currID++;
       if (action.payload.color === '#000') {
         action.payload.color = colors[state.database.currID].hex() + '22';

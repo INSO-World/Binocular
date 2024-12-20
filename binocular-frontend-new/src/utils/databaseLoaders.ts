@@ -78,20 +78,23 @@ const dbObjects: { [key: string]: JSONObject[] } = {
 
 export default abstract class DatabaseLoaders {
   public static async loadJsonFilesToPouchDB(dispatch: AppDispatch): Promise<void> {
-    await PouchDB.init(undefined, undefined, { name: 'binocularDbExport', file: undefined, dbObjects: dbObjects });
-    dispatch(
-      addDataPlugin({
-        name: 'PouchDb',
-        color: '#b2c8fd',
-        id: 0,
-        parameters: {
-          apiKey: undefined,
-          endpoint: undefined,
-          fileName: 'binocularDbExport',
-          progressUpdate: undefined,
-        },
-      }),
-    );
+    return PouchDB.init(undefined, undefined, { name: 'binocularDbExport', file: undefined, dbObjects: dbObjects }).then(() => {
+      dispatch(
+        addDataPlugin({
+          name: 'PouchDb',
+          color: '#b2c8fd',
+          id: 0,
+          isDefault: true,
+          parameters: {
+            apiKey: undefined,
+            endpoint: undefined,
+            fileName: 'binocularDbExport',
+            progressUpdate: undefined,
+          },
+        }),
+      );
+      dispatch({ type: 'REFRESH_PLUGIN', payload: { pluginId: 0 } });
+    });
   }
 }
 // #v-endif
