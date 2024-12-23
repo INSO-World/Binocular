@@ -18,8 +18,6 @@ export function convertCommitDataToChangesChartData(
   if (!commits || commits.length === 0) {
     return { chartData: [], palette: {}, scale: [] };
   }
-  console.log('commits', commits);
-
   //Sort commits after their commit time in case they arnt sorted
   const sortedCommits = _.clone(commits).sort((c1, c2) => new Date(c1.date).getTime() - new Date(c2.date).getTime());
 

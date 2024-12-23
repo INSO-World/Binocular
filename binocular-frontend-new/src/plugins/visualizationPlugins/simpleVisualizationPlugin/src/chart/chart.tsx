@@ -2,7 +2,7 @@ import { StackedAreaChart } from './stackedAreaChart.tsx';
 import { useEffect, useState } from 'react';
 import { throttle } from 'throttle-debounce';
 import { useDispatch, useSelector } from 'react-redux';
-import { DataState, setDateRange } from '../reducer';
+import { DataState, getDataSlice } from '../reducer';
 import { Properties } from '../interfaces/properties.ts';
 import { DefaultSettings } from '../settings/settings.tsx';
 
@@ -67,7 +67,6 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
 
   // Effect on data change
   useEffect(() => {
-    console.log(data);
     const { chartData, scale, palette } = props.dataConverter(data, props);
     setChartData(chartData);
     setChartScale(scale);
@@ -76,7 +75,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
-    dispatch(setDateRange(props.parameters.parametersDateRange));
+    dispatch(getDataSlice(props.dataName!).actions.setDateRange(props.parameters.parametersDateRange));
   }, [props.parameters]);
 
   //Trigger Refresh when dataConnection changes
