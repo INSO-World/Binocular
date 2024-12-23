@@ -27,7 +27,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
    * -----------------------------
    */
   //Redux Global State
-  const data = useSelector((state: RootState) => state[props.dataName!]);
+  const data = useSelector((state: RootState) => state.data);
   const dataState = useSelector((state: RootState) => state.dataState);
   //React Component State
   const [chartWidth, setChartWidth] = useState(100);

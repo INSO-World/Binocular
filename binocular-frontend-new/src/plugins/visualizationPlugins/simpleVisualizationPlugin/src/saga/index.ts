@@ -19,7 +19,6 @@ function* fetchChangesData<DataType>(dataConnection: DataPlugin, name: string) {
   const { setData, setDataState } = getDataSlice(name).actions;
   yield put(setDataState(DataState.FETCHING));
   const state: State<DataType> = yield select();
-  // how do we get our wanted type here?
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   const data: DataType[] = yield call(() => dataConnection[name].getAll(state.dateRange.from, state.dateRange.to));
