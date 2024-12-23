@@ -8,8 +8,11 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { getBranches, getFilenamesForBranch } from './sagas/helper';
 import Filepicker from '../../../components/Filepicker';
+import { Palette } from '../../../types/authorTypes.ts';
 
 const mapStateToProps = (state: GlobalState) => {
+  const dashboardState = state.visualizations.changes.state;
+
   // Declarations mostly copied from code-ownership because of similarity in dashboard layout and functionality
 
   //global state from redux store
@@ -23,6 +26,11 @@ const mapStateToProps = (state: GlobalState) => {
   const branchOptions = bugfixState.config.branchOptions;
   const files = bugfixState.config.files;
   return {
+    committers: dashboardState.data.data.committers,
+    resolution: dashboardState.config.chartResolution,
+    palette: dashboardState.data.data.palette,
+    metric: dashboardState.config.displayMetric,
+    selectedAuthors: dashboardState.config.selectedAuthors,
     currentBranchName: currentBranchName,
     branchOptions: branchOptions,
     currentBranch: currentBranch,
@@ -58,6 +66,11 @@ const mapDispatchToProps = (dispatch: any) => {
 };
 
 interface Props {
+  committers: string[]; // From changes component
+  metric: string; // From changes component
+  palette: Palette; // From changes component
+  resolution: string; // From changes component
+  selectedAuthors: string[]; // From changes component
   currentBranchName: string | undefined;
   currentActiveFiles: any;
   branchOptions: any; // TODO: What types????
