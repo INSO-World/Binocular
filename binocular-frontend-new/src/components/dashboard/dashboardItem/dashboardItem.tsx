@@ -95,7 +95,7 @@ function DashboardItem(props: {
       reducer: plugin.reducer,
       middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger),
     });
-    sagaMiddleware.run(() => plugin.saga(dataPlugin));
+    sagaMiddleware.run(() => plugin.saga(dataPlugin, dataName));
   } else {
     store = undefined;
   }

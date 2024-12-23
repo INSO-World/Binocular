@@ -2,7 +2,7 @@ import { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts'
 import Chart from './chart/chart.tsx';
 import { getSVGData } from './utilities/utilities.ts';
 import { DefaultSettings } from './settings/settings.tsx';
-import Reducer from './reducer';
+import { getDataSlice } from './reducer';
 import Saga from './saga';
 
 export default function createVisualizationPlugin<SettingsType extends DefaultSettings, DataType>(
@@ -26,7 +26,7 @@ export default function createVisualizationPlugin<SettingsType extends DefaultSe
     images: {
       thumbnail: components.images.thumbnail,
     },
-    reducer: Reducer,
+    reducer: getDataSlice(name).reducer,
     saga: Saga,
   };
 }

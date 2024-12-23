@@ -1,14 +1,16 @@
 import moment from 'moment/moment';
-import { ChartData, Palette, Properties } from '../chart/chart.tsx';
+import { ChartData, Palette } from '../chart/chart.tsx';
 import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
 import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
+import { Properties } from '../interfaces/properties.ts';
+import { BuildSettings } from '../settings/settings.tsx';
 
-export function convertToChartData(
+export function convertToChartData<DataType>(
   builds: DataPluginBuild[],
-  props: Properties,
+  props: Properties<BuildSettings, DataType>,
 ): {
   chartData: ChartData[];
   scale: number[];

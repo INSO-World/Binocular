@@ -49,5 +49,5 @@ export interface VisualizationPlugin<SettingsType, DataType> {
     thumbnail: string;
   };
   reducer: Reducer;
-  saga: (dataConnection: DataPlugin) => Generator;
+  saga: (dataConnection: DataPlugin, name?: string) => Generator;
 }
