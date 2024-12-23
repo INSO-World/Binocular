@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, Draft, PayloadAction } from '@reduxjs/toolkit';
 
 export enum DataState {
   EMPTY,
@@ -23,6 +23,7 @@ const initialState: State<unknown> = {
   dataState: DataState.EMPTY,
 };
 
+//currently not used
 export const dataSlice = createSlice({
   name: 'commits',
   initialState,
@@ -41,6 +42,7 @@ export const dataSlice = createSlice({
   },
 });
 
+//TODO: this is not a good way to do this, but it works for now
 export function getDataSlice<DataType>(name: string) {
   const initialState: State<DataType> = {
     data: [],
@@ -52,10 +54,7 @@ export function getDataSlice<DataType>(name: string) {
     initialState,
     reducers: {
       setData: (state, action: PayloadAction<DataType[]>) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        state[name] = action.payload;
-        // TODO ^ state.data?
+        state.data = action.payload as Draft<DataType>[];
       },
       setDateRange: (state, action: PayloadAction<DateRange>) => {
         state.dateRange = action.payload;
@@ -67,5 +66,5 @@ export function getDataSlice<DataType>(name: string) {
   });
 }
 
-export const { setData, setDateRange, setDataState } = dataSlice.actions;
+//export const { setData, setDateRange, setDataState } = dataSlice.actions;
 export default dataSlice.reducer;
