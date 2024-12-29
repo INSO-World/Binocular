@@ -82,12 +82,12 @@ GitHubITSIndexer.prototype.index = async function () {
               webUrl: issue.url,
             };
 
-              toBePersisted.mentions = issue.timelineItems.nodes.map((event: ItsIssueEvent) => {
-                return {
-                  commit: event.commit ? event.commit.oid : null,
-                  createdAt: event.createdAt,
-                  closes: event.commit === undefined,
-                } as Mention;
+            toBePersisted.mentions = issue.timelineItems.nodes.map((event: ItsIssueEvent) => {
+              return {
+                commit: event.commit ? event.commit.oid : null,
+                createdAt: event.createdAt,
+                closes: event.commit === undefined,
+              } as Mention;
             });
 
             if (targetCollection === MergeRequest) {
