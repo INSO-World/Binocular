@@ -720,15 +720,9 @@ function runBackend() {
       }
       //some mergeRequests are not mentioned by any issues
       if (!mergeRequest.data.closingIssues) continue;
-      console.log("first continue mr")
       for (const closingIssue of mergeRequest.data.closingIssues) {
-        console.log(closingIssue)
         const issue = issues.filter((c: any) => c.data.id === closingIssue);
-        console.log("inner loop")
-        console.log(issue)
-        console.log(issue[0])
         if (issue && issue[0]) {
-          console.log("final if")
           await MergeRequestIssueConnection.connect({}, { from: mergeRequest, to: issue[0] });
         }
       }
