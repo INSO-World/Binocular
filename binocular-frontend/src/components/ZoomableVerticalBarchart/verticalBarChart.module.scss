@@ -23,11 +23,11 @@
 }
 
 .tooltip{
-  display: none;
+  opacity: 0;
   position      : absolute;
-  text-align    : center;
-  max-width     : 350px;
-  max-height    : 100px;
+  text-align    : left;
+  max-width     : 300px;
+  max-height    : 250px;
   padding       : 8px;
   border        : none;
   border-radius : 8px;
@@ -36,15 +36,7 @@
   color         : white;
   pointer-events: none;
 
-  hr{
-    margin: 0.2em auto;
-  }
-
-  div{
-    float: left;
-    width:10px;
-    height:10px;
-    margin-top:2px;
-    margin-right:5px;
-  }
+  overflow-y: auto; // Used for scrolling
+  word-wrap: break-word;
+  pointer-events: auto; // pointer event for using pointer/mouse
 }

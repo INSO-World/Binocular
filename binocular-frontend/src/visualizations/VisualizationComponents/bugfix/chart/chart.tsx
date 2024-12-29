@@ -80,7 +80,7 @@ const prepareTestData = (props: Props) => {
   if (!props.commits || props.commits.length === 0) {
     return [];
   }
-  console.log(props.commits);
+  console.log('commits', props.commits);
   // Prepares the data that is similiar in structure as the real data with only bugfixes
 
   // Step one: Prepare data used for bars
@@ -88,16 +88,17 @@ const prepareTestData = (props: Props) => {
   const temp: any = {};
   const commitsSorted = props.commits.sort((a, b) => new Date(a.date) - new Date(b.date));
   for (const commit of commitsSorted) {
-    // Count all commits in that day
+    // Count all commits in that day and add the commit data to the right date
     const date = new Date(commit.date); // converting the string into Date object
     if (`${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}` in temp) {
-      temp[`${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}`] += 1;
+      temp[`${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}`]['count'] += 1;
+      temp[`${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}`]['commits'].push(commit);
     } else {
-      temp[`${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}`] = 1;
+      temp[`${date.getFullYear()}-${date.getMonth() + 1}-${date.getUTCDate()}`] = { count: 1, commits: [commit] };
     }
   }
 
-  console.log(temp);
+  console.log('temp', temp);
 
   const out: any[] = [];
 
@@ -108,11 +109,12 @@ const prepareTestData = (props: Props) => {
       year: date.getFullYear(),
       month: date.getMonth(),
       day: date.getUTCDate(),
-      bugfixes_count: temp[k],
+      bugfixes_count: temp[k]['count'],
+      commits: temp[k]['commits'],
     });
   }
 
-  console.log(out);
+  console.log('Preprocessed commits', out);
 
   // TODO: Prepare tooltip test data
   return out;
