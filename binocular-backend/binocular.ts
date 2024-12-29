@@ -43,6 +43,8 @@ import Milestone from './models/models/Milestone.ts';
 import CommitUserConnection from './models/connections/CommitUserConnection.ts';
 import IssueUserConnection from './models/connections/IssueUserConnection.ts';
 import IssueCommitConnection from './models/connections/IssueCommitConnection.ts';
+import MergeRequestCommitConnection from './models/connections/MergeRequestCommitConnection.ts';
+import MergeRequestIssueConnection from './models/connections/MergeRequestIssueConnection.ts';
 import CommitCommitConnection from './models/connections/CommitCommitConnection.ts';
 import CommitModuleConnection from './models/connections/CommitModuleConnection.ts';
 import ModuleModuleConnection from './models/connections/ModuleModuleConnection.ts';
@@ -405,6 +407,8 @@ function runBackend() {
       // This is why we connect them here and then delete the temporary references in the collections themselves
       // (like the `mentions` field in issues).
       await connectIssuesAndCommits();
+      await connectMergeRequestsAndCommits();
+      await connectMergeRequestsAndIssues();
       await connectCommitsAndBuilds();
       const endTime = Moment.now();
       console.log('End Time: ' + Moment(endTime).format());
@@ -595,6 +599,8 @@ function runBackend() {
           CommitUserConnection.ensureCollection(),
           IssueUserConnection.ensureCollection(),
           IssueCommitConnection.ensureCollection(),
+          MergeRequestCommitConnection.ensureCollection(),
+          MergeRequestIssueConnection.ensureCollection(),
           IssueNoteConnection.ensureCollection(),
           MergeRequestNoteConnection.ensureCollection(),
           NoteAccountConnection.ensureCollection(),
@@ -682,8 +688,53 @@ function runBackend() {
       }
     }
     //remove the temporary `mentions` attribute since we have the connections now
-    await Issue.deleteMentionsAttribute();
+    // await Issue.deleteMentionsAttribute();
   }
+
+  async function connectMergeRequestsAndCommits() {
+    const issues = await MergeRequest.findAll();
+    const commits = await Commit.findAll();
+    for (const issue of issues) {
+      if (issue === null) {
+        continue;
+      }
+      //some issues are not mentioned by any commits
+      if (!issue.data.commits) continue;
+      for (const mention of issue.data.commits) {
+        const commit = commits.filter((c: any) => c.data.sha === mention);
+        if (commit && commit[0]) {
+          await MergeRequestCommitConnection.connect({ closes: false }, { from: issue, to: commit[0] });
+        }
+      }
+    }
+    //remove the temporary `mentions` attribute since we have the connections now
+    //await MergeRequest.deleteMentionsAttribute();
+  }
+
+  async function connectMergeRequestsAndIssues() {
+    const mergeRequests = await MergeRequest.findAll();
+    const issues = await Issue.findAll();
+    for (const mergeRequest of mergeRequests) {
+      if (mergeRequest === null) {
+        continue;
+      }
+      //some mergeRequests are not mentioned by any issues
+      if (!mergeRequest.data.closingIssues) continue;
+      console.log("first continue mr")
+      for (const closingIssue of mergeRequest.data.closingIssues) {
+        console.log(closingIssue)
+        const issue = issues.filter((c: any) => c.data.id === closingIssue);
+        console.log("inner loop")
+        console.log(issue)
+        console.log(issue[0])
+        if (issue && issue[0]) {
+          console.log("final if")
+          await MergeRequestIssueConnection.connect({}, { from: mergeRequest, to: issue[0] });
+        }
+      }
+    }
+  }
+
 
   async function connectCommitsAndBuilds() {
     const builds = await Build.findAll();

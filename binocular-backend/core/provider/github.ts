@@ -223,6 +223,18 @@ class GitHub {
                               login
                           }
                       }
+                      closingIssuesReferences (first: 50) {
+                        nodes {
+                          id
+                        }
+                      }
+                      commits (first: 50) {
+                        nodes{
+                          commit{
+                            oid
+                          }
+                        }
+                      }
                       timelineItems(first: 200, itemTypes: [CLOSED_EVENT, REFERENCED_EVENT]) {
                           totalCount
                           nodes {

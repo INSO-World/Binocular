@@ -13,4 +13,6 @@ export default interface MergeRequestDto {
   webUrl: string;
   projectId?: string;
   mentions: Mention[];
+  commits: string[];
+  closingIssues: string[];
 }
