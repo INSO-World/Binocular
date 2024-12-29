@@ -729,7 +729,6 @@ function runBackend() {
     }
   }
 
-
   async function connectCommitsAndBuilds() {
     const builds = await Build.findAll();
     const commits = await Commit.findAll();

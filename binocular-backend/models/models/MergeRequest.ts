@@ -52,6 +52,4 @@ class MergeRequest extends Model<MergeRequestDataType> {
   }
 }
 
-
-
 export default new MergeRequest();
