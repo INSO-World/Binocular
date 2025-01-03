@@ -7,6 +7,12 @@ import distinctColors from 'distinct-colors';
 export interface SettingsInitialState {
   general: GeneralSettingsType;
   database: DatabaseSettingsType;
+  localDatabaseLoadingState: LocalDatabaseLoadingState;
+}
+
+export enum LocalDatabaseLoadingState {
+  none,
+  loading,
 }
 
 const initialState: SettingsInitialState = {
@@ -17,6 +23,7 @@ const initialState: SettingsInitialState = {
     currID: 0,
     dataPlugins: [],
   },
+  localDatabaseLoadingState: LocalDatabaseLoadingState.none,
 };
 
 export const settingsSlice = createSlice({
@@ -36,13 +43,13 @@ export const settingsSlice = createSlice({
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
-      const colors = distinctColors({ count: 100 });
-      action.payload.isDefault = state.database.dataPlugins.length === 0;
-      state.database.currID++;
-      if (action.payload.color === '#000') {
-        action.payload.color = colors[state.database.currID].hex() + '22';
-      }
       if (action.payload.id === undefined) {
+        const colors = distinctColors({ count: 100 });
+        action.payload.isDefault = state.database.dataPlugins.length === 0;
+        state.database.currID++;
+        if (action.payload.color === '#000') {
+          action.payload.color = colors[state.database.currID].hex() + '22';
+        }
         action.payload.id = state.database.currID;
         state.database.dataPlugins.push(action.payload);
         console.log(`Inserted dataPlugin ${action.payload.id}`);
@@ -82,9 +89,19 @@ export const settingsSlice = createSlice({
       state = action.payload;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
+    setLocalDatabaseLoadingState: (state, action: PayloadAction<LocalDatabaseLoadingState>) => {
+      state.localDatabaseLoadingState = action.payload;
+    },
   },
 });
 
-export const { setGeneralSettings, addDataPlugin, removeDataPlugin, setDataPluginAsDefault, clearSettingsStorage, importSettingsStorage } =
-  settingsSlice.actions;
+export const {
+  setGeneralSettings,
+  addDataPlugin,
+  removeDataPlugin,
+  setDataPluginAsDefault,
+  clearSettingsStorage,
+  importSettingsStorage,
+  setLocalDatabaseLoadingState,
+} = settingsSlice.actions;
 export default settingsSlice.reducer;

@@ -32,9 +32,16 @@ function StatusBarDataPlugin(props: {
     <>
       <div className={statusBarDataPluginElementStyles.dataPluginElement}>
         <div className={statusBarDataPluginElementStyles.dataPluginLabel} style={{ background: props.dataPluginConfig.color }}>
-          <span>
-            {props.dataPluginConfig.name} #{props.dataPluginConfig.id}
-          </span>
+          {props.dataPluginConfig.id === 0 ? (
+            <span className={'flex items-center gap-3'}>
+              {props.dataPluginConfig.name}
+              <div className={statusBarDataPluginElementStyles.dataPluginLabelBadge}>pre-loaded</div>
+            </span>
+          ) : (
+            <span>
+              {props.dataPluginConfig.name} #{props.dataPluginConfig.id}
+            </span>
+          )}
           {socketConnection.status === SocketConnectionStatusType.Idle && <img className={'inline h-4 ml-2'} src={Idle} alt={'idle'} />}
           {socketConnection.status === SocketConnectionStatusType.Connected && (
             <img className={'inline h-4 ml-2'} src={ConnectedToApi} alt={'idle'} />

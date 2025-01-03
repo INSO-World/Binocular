@@ -7,24 +7,18 @@ import Dashboard from './components/dashboard/dashboard.tsx';
 import TabSection from './components/tabMenu/tabSection/tabSection.tsx';
 import DateRange from './components/tabs/parameters/dataRange/dateRange.tsx';
 import ParametersGeneral from './components/tabs/parameters/parametersGeneral/parametersGeneral.tsx';
-import InformationDialog from './components/informationDialog/informationDialog.tsx';
 import VisualizationSelector from './components/tabs/components/visualizationSelector/visualizationSelector.tsx';
 import AuthorList from './components/tabs/authors/authorList/authorList.tsx';
 import OtherAuthors from './components/tabs/authors/otherAuthors/otherAuthors.tsx';
 import TabControllerButton from './components/tabMenu/tabControllerButton/tabControllerButton.tsx';
 import SettingsGray from './assets/settings_gray.svg';
 import ExportGray from './assets/export_gray.svg';
-import ExportDialog from './components/exportDialog/exportDialog.tsx';
-import SettingsDialog from './components/settingsDialog/settingsDialog.tsx';
 import { AppDispatch, RootState, useAppDispatch } from './redux';
 import { useSelector } from 'react-redux';
 import { setParametersDateRange, setParametersGeneral } from './redux/reducer/parameters/parametersReducer.ts';
 import SprintView from './components/tabs/sprints/sprintView/sprintView.tsx';
 import AddSprint from './components/tabs/sprints/addSprint/addSprint.tsx';
-import NotificationController from './components/notificationController/notificationController.tsx';
 import { ExportType, setExportType } from './redux/reducer/export/exportReducer.ts';
-import ContextMenu from './components/contextMenu/contextMenu.tsx';
-import EditAuthorDialog from './components/tabs/authors/editAuthorDialog/editAuthorDialog.tsx';
 import FileList from './components/tabs/fileTree/fileList/fileList.tsx';
 import HelpGeneral from './components/tabs/help/helpGeneral/helpGeneral.tsx';
 import HelpComponents from './components/tabs/help/helpComponents/helpComponents.tsx';
@@ -35,6 +29,7 @@ import { setFilesDataPluginId } from './redux/reducer/data/filesReducer.ts';
 import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx';
 import { useEffect, useState } from 'react';
 import DatabaseLoaders from './utils/databaseLoaders.ts';
+import OverlayController from './components/overlayController/overlayController.tsx';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -178,12 +173,7 @@ function App() {
         <StatusBar></StatusBar>
       </div>
       <div data-theme={theme}>
-        <InformationDialog></InformationDialog>
-        <ExportDialog></ExportDialog>
-        <SettingsDialog></SettingsDialog>
-        <NotificationController></NotificationController>
-        <EditAuthorDialog></EditAuthorDialog>
-        <ContextMenu></ContextMenu>
+        <OverlayController></OverlayController>
       </div>
     </>
   );

@@ -9,7 +9,8 @@ import Builds from './collections/builds.ts';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
-  public description = 'PouchDB browser based database that is able to import a database exported by Binocular packed as a Zip File.';
+  public description =
+    'PouchDB browser based database that is able to import a database exported by Binocular packed as a Zip File. It is also possible to pre compile this database into Binocular through the frontend build process.';
   public capabilities = ['authors', 'commits', 'files'];
   public experimental = false;
   public requirements = {
