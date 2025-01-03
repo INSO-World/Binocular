@@ -1,5 +1,9 @@
 // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
-import { addDataPlugin } from '../redux/reducer/settings/settingsReducer.ts';
+import {
+  addDataPlugin,
+  LocalDatabaseLoadingState,
+  setLocalDatabaseLoadingState
+} from '../redux/reducer/settings/settingsReducer.ts';
 import { AppDispatch } from '../redux';
 import { PouchDB } from '../plugins/pluginRegistry.ts';
 
@@ -78,6 +82,7 @@ const dbObjects: { [key: string]: JSONObject[] } = {
 
 export default abstract class DatabaseLoaders {
   public static async loadJsonFilesToPouchDB(dispatch: AppDispatch): Promise<void> {
+    dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.loading));
     return PouchDB.init(undefined, undefined, { name: 'binocularDbExport', file: undefined, dbObjects: dbObjects }).then(() => {
       dispatch(
         addDataPlugin({
@@ -93,6 +98,7 @@ export default abstract class DatabaseLoaders {
           },
         }),
       );
+      dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.none));
       dispatch({ type: 'REFRESH_PLUGIN', payload: { pluginId: 0 } });
     });
   }

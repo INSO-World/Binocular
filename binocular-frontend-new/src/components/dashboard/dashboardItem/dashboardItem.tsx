@@ -59,6 +59,8 @@ function DashboardItem(props: {
   useEffect(() => {
     if (props.item.dataPluginId !== undefined) {
       setSelectedDataPlugin(avaliableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0]);
+    } else {
+      setSelectedDataPlugin(avaliableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0]);
     }
   }, [avaliableDataPlugins, props.item.dataPluginId]);
 
