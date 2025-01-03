@@ -12,7 +12,7 @@ import {
   setParentAuthor,
   switchAuthorSelection,
 } from '../../../../redux/reducer/data/authorsReducer.ts';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import distinctColors from 'distinct-colors';
 import { showContextMenu } from '../../../contextMenu/contextMenuHelper.ts';
 import addToOtherIcon from '../../../../assets/group_add_gray.svg';
@@ -31,7 +31,7 @@ function AuthorList(props: { orientation?: string }) {
   const dragging = useSelector((state: RootState) => state.authors.dragging);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
 
-  const authors: AuthorType[] = authorLists[authorsDataPluginId] || [];
+  const [authors, setAuthors] = useState<AuthorType[]>(authorLists[authorsDataPluginId] || []);
 
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
@@ -69,7 +69,8 @@ function AuthorList(props: { orientation?: string }) {
       dispatch(setAuthorsDataPluginId(undefined));
     }
     configuredDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
-      if (authorsDataPluginId === undefined && dP.isDefault && dP.id) {
+      console.log(dP);
+      if (authorsDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
         dispatch(setAuthorsDataPluginId(dP.id));
       }
       if (dP && dP.id !== undefined) {
@@ -78,22 +79,25 @@ function AuthorList(props: { orientation?: string }) {
     });
   }, [configuredDataPlugins]);
 
+  useEffect(() => {
+    setAuthors(authorLists[authorsDataPluginId] || []);
+  }, [authorLists, authorsDataPluginId]);
+
   globalStore.subscribe(() => {
     if (authorsDataPluginId) {
       if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
         if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === authorsDataPluginId) {
-          const dp = globalStore
+          const dP = globalStore
             .getState()
             .settings.database.dataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
-          if (dp) {
-            console.log(`REFRESH AUTHORS (${dp.name} #${dp.id})`);
-            refreshAuthors(dp);
+          if (dP) {
+            console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
+            refreshAuthors(dP);
           }
         }
       }
     }
   });
-
   return (
     <>
       <div

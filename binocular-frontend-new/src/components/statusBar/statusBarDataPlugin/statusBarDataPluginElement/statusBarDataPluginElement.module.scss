@@ -29,3 +29,10 @@
   display: flex;
   align-items: center;
 }
+
+.dataPluginLabelBadge{
+  @apply badge;
+  @apply badge-ghost;
+  height: .75rem;
+  font-size: .5rem;
+}

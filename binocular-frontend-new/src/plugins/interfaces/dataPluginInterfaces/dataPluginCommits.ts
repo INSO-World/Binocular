@@ -17,7 +17,7 @@ export interface DataPluginCommit {
   stats: DataPluginStats;
 }
 
-interface DataPluginStats {
+export interface DataPluginStats {
   additions: number;
   deletions: number;
 }
