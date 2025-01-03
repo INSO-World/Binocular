@@ -1,23 +1,26 @@
 import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../redux';
+import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect, useState } from 'react';
 import { FileListElementType } from '../../../../types/data/fileListType.ts';
 import { generateFileTree } from './fileListUtilities/fileTreeUtilities.ts';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
+import { setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
 
 function FileList(props: { orientation?: string }) {
+  const dispatch: AppDispatch = useAppDispatch();
   const currentDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   const [fileList, setFileList] = useState<FileListElementType[]>();
   const filesDataPluginId = useSelector((state: RootState) => state.files.dataPluginId);
 
-  useEffect(() => {
-    const selectedDataPlugin = currentDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)[0];
-    if (selectedDataPlugin && selectedDataPlugin.id !== undefined) {
-      DataPluginStorage.getDataPlugin(selectedDataPlugin)
+  function refreshFileTree() {
+    const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
+    if (dataPlugin && dataPlugin.id !== undefined) {
+      console.log(`REFRESH FILES (${dataPlugin.name} #${dataPlugin.id})`);
+      DataPluginStorage.getDataPlugin(dataPlugin)
         .then((dataPlugin) => {
           if (dataPlugin) {
             dataPlugin.files
@@ -27,8 +30,26 @@ function FileList(props: { orientation?: string }) {
           }
         })
         .catch((e) => console.log(e));
+    } else {
+      if (currentDataPlugins.length > 0) {
+        dispatch(setFilesDataPluginId(currentDataPlugins[0].id));
+      }
     }
+  }
+
+  useEffect(() => {
+    refreshFileTree();
   }, [currentDataPlugins, filesDataPluginId]);
+
+  globalStore.subscribe(() => {
+    if (filesDataPluginId) {
+      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
+        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === filesDataPluginId) {
+          refreshFileTree();
+        }
+      }
+    }
+  });
 
   return (
     <>
