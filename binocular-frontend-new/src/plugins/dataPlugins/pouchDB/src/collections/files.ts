@@ -1,28 +1,24 @@
 import { DataPluginFile, DataPluginFiles } from '../../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { findAll } from '../utils.ts';
+import Database from '../database.ts';
 
 export default class Files implements DataPluginFiles {
-  constructor() {}
+  private readonly database: Database | undefined;
+  constructor(database: Database | undefined) {
+    this.database = database;
+  }
 
   public async getAll() {
-    return new Promise<DataPluginFile[]>((resolve) => {
-      const files: DataPluginFile[] = [
-        {
-          path: 'index.js',
-          webUrl: 'https://github.com/INSO-TUWien/Binocular',
-          maxLength: 5,
-        },
-        {
-          path: 'src/app.js',
-          webUrl: 'https://github.com/INSO-TUWien/Binocular',
-          maxLength: 10,
-        },
-        {
-          path: 'src/app.css',
-          webUrl: 'https://github.com/INSO-TUWien/Binocular',
-          maxLength: 8,
-        },
-      ];
-      resolve(files);
-    });
+    console.log(`Getting Authors`);
+    if (this.database && this.database.documentStore) {
+      return findAll(this.database.documentStore, 'files').then((res: { docs: unknown[] }) => {
+        return res.docs as DataPluginFile[];
+      });
+    } else {
+      return new Promise<DataPluginFile[]>((resolve) => {
+        const files: DataPluginFile[] = [];
+        resolve(files);
+      });
+    }
   }
 }

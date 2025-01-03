@@ -1,6 +1,6 @@
 import { DataPluginCommit, DataPluginCommits } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { findAllCommits } from '../utils.js';
-import { Database } from '../database.ts';
+import Database from '../database.ts';
 
 export default class Commits implements DataPluginCommits {
   private readonly database: Database | undefined;

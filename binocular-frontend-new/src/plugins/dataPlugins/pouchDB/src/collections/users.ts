@@ -1,6 +1,6 @@
 import { DataPluginUser, DataPluginUsers } from '../../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 import { findAll } from '../utils';
-import { Database } from '../database';
+import Database from '../database';
 
 export default class Users implements DataPluginUsers {
   public database: Database | undefined;
