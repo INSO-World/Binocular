@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./
-          file: docker/Dockerfile.backend
+          file: docker/backend.Dockerfile
           push: true
           build-args: |
             NODE_VERSION=${{ steps.docker_setup.outputs.nvmrc_node_version }}
