@@ -123,9 +123,6 @@ export default class Commits implements DataPluginCommits {
           query ($file: String!, $page: Int, $perPage: Int) {
             file(path: $file) {
               commits(page: $page, perPage: $perPage) {
-                count
-                page
-                perPage
                 data {
                   commit {
                     sha
@@ -143,6 +140,19 @@ export default class Commits implements DataPluginCommits {
                     stats {
                       additions
                       deletions
+                    }
+                    files(path: $file, page: 1, perPage: 1000) {
+                      data {
+                        file {
+                          path
+                        }
+                        hunks {
+                          newStart
+                          newLines
+                          oldStart
+                          oldLines
+                        }
+                      }
                     }
                   }
                 }

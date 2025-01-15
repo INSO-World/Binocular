@@ -1,3 +1,4 @@
+import { DataPluginFileInCommit } from './dataPluginFiles.ts';
 import { DataPluginUser } from './dataPluginUsers.ts';
 
 export interface DataPluginCommits {
@@ -18,6 +19,11 @@ export interface DataPluginCommit {
   parents: string[];
   webUrl: string;
   stats: DataPluginStats;
+  files: DataPluginCommitFilesData;
+}
+
+export interface DataPluginCommitFilesData {
+  data: DataPluginFileInCommit[];
 }
 
 export interface DataPluginOwnership {
