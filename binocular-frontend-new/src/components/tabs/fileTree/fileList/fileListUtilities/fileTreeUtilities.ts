@@ -1,23 +1,23 @@
 import { FileListElementType, FileListElementTypeType } from '../../../../../types/data/fileListType.ts';
-import { FileType } from '../../../../../types/data/fileType.ts';
+import { DataPluginFile } from '../../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
-export function generateFileTree(files: FileType[]): FileListElementType[] {
+export function generateFileTree(files: DataPluginFile[]): FileListElementType[] {
   return convertData(files).content;
 }
 
-function convertData(files: FileType[]) {
+function convertData(files: DataPluginFile[]) {
   const convertedData = { content: [] };
   let id = 0;
   for (const file of files) {
-    if (file.file) {
-      const pathParts = file.file.path.split('/');
+    if (file) {
+      const pathParts = file.path.split('/');
       id = genPathObjectString(convertedData.content, pathParts, file, id);
     }
   }
   return convertedData;
 }
 
-function genPathObjectString(convertedData: FileListElementType[], pathParts: string[], file: FileType, id: number) {
+function genPathObjectString(convertedData: FileListElementType[], pathParts: string[], file: DataPluginFile, id: number) {
   const currElm = pathParts.shift();
   id++;
   if (currElm) {
@@ -26,7 +26,9 @@ function genPathObjectString(convertedData: FileListElementType[], pathParts: st
         name: currElm,
         id: id,
         type: FileListElementTypeType.File,
+        checked: true,
         element: file,
+        foldedOut: false,
       });
     } else {
       let elem = convertedData.find((d) => d.name === currElm);
@@ -36,7 +38,8 @@ function genPathObjectString(convertedData: FileListElementType[], pathParts: st
           id: id,
           type: FileListElementTypeType.Folder,
           children: [],
-          element: { checked: true },
+          checked: true,
+          foldedOut: false,
         };
         if (elem.children) {
           id = genPathObjectString(elem.children, pathParts, file, id);
@@ -50,8 +53,4 @@ function genPathObjectString(convertedData: FileListElementType[], pathParts: st
     }
   }
   return id;
-}
-
-export function updateFileListElementTypeChecked(fileListElement: FileListElementType, checked: boolean) {
-  return { ...fileListElement, element: { ...fileListElement.element, checked: checked } };
 }

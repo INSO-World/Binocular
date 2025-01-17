@@ -58,10 +58,11 @@ function updateFileListElementRecursive(
     fileList.children = fileList.children.map((f: FileListElementType) => {
       let elementChecked = checked;
       if (f.id === element.id) {
-        elementChecked = element.element.checked;
+        elementChecked = element.checked;
+        f.foldedOut = element.foldedOut;
       }
       if (elementChecked !== undefined) {
-        f.element.checked = elementChecked;
+        f.checked = elementChecked;
       }
       updateFileListElementRecursive(f, element, elementChecked);
       return f;
