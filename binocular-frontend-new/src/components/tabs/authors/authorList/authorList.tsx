@@ -1,17 +1,18 @@
 import authorListStyles from './authorList.module.scss';
 import authorStyles from '../authors.module.scss';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
+import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import {
   editAuthor,
   moveAuthorToOther,
   resetAuthor,
   setAuthorList,
+  setAuthorsDataPluginId,
   setDragging,
   setParentAuthor,
   switchAuthorSelection,
-} from '../../../../redux/data/authorsReducer.ts';
-import { useEffect } from 'react';
+} from '../../../../redux/reducer/data/authorsReducer.ts';
+import { useEffect, useState } from 'react';
 import distinctColors from 'distinct-colors';
 import { showContextMenu } from '../../../contextMenu/contextMenuHelper.ts';
 import addToOtherIcon from '../../../../assets/group_add_gray.svg';
@@ -26,46 +27,77 @@ import { DataPluginUser } from '../../../../plugins/interfaces/dataPluginInterfa
 function AuthorList(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
 
-  const authorLists = useSelector((state: RootState) => state.authors.authorLists);
+  const authorLists: { [id: number]: AuthorType[] } = useSelector((state: RootState) => state.authors.authorLists);
   const dragging = useSelector((state: RootState) => state.authors.dragging);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
 
-  const authors = authorLists[authorsDataPluginId] || [];
+  const [authors, setAuthors] = useState<AuthorType[]>(authorLists[authorsDataPluginId] || []);
 
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
+  function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
+    DataPluginStorage.getDataPlugin(dP)
+      .then((dataPlugin) => {
+        if (dataPlugin) {
+          dataPlugin.users
+            .getAll()
+            .then((users: DataPluginUser[]) => {
+              const colors = distinctColors({ count: users.length, lightMin: 50 });
+              dispatch(
+                setAuthorList({
+                  dataPluginId: dP.id !== undefined ? dP.id : -1,
+                  authors: users.map((user, i) => {
+                    return {
+                      user: user,
+                      id: 0, // real id gets set in reducer
+                      parent: -1,
+                      color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
+                      selected: true,
+                    };
+                  }),
+                }),
+              );
+            })
+            .catch(() => console.log('Error loading Users from selected data source!'));
+        }
+      })
+      .catch((e) => console.log(e));
+  }
+
   useEffect(() => {
+    if (configuredDataPlugins.length === 0) {
+      dispatch(setAuthorsDataPluginId(undefined));
+    }
     configuredDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
+      console.log(dP);
+      if (authorsDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
+        dispatch(setAuthorsDataPluginId(dP.id));
+      }
       if (dP && dP.id !== undefined) {
-        DataPluginStorage.getDataPlugin(dP)
-          .then((dataPlugin) => {
-            if (dataPlugin) {
-              dataPlugin.users
-                .getAll()
-                .then((users: DataPluginUser[]) => {
-                  const colors = distinctColors({ count: users.length, lightMin: 50 });
-                  dispatch(
-                    setAuthorList({
-                      dataPluginId: dP.id !== undefined ? dP.id : -1,
-                      authors: users.map((user, i) => {
-                        return {
-                          user: user,
-                          id: 0, // real id gets set in reducer
-                          parent: -1,
-                          color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
-                          selected: true,
-                        };
-                      }),
-                    }),
-                  );
-                })
-                .catch(() => console.log('Error loading Users from selected data source!'));
-            }
-          })
-          .catch((e) => console.log(e));
+        refreshAuthors(dP);
       }
     });
   }, [configuredDataPlugins]);
+
+  useEffect(() => {
+    setAuthors(authorLists[authorsDataPluginId] || []);
+  }, [authorLists, authorsDataPluginId]);
+
+  globalStore.subscribe(() => {
+    if (authorsDataPluginId) {
+      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
+        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === authorsDataPluginId) {
+          const dP = globalStore
+            .getState()
+            .settings.database.dataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
+          if (dP) {
+            console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
+            refreshAuthors(dP);
+          }
+        }
+      }
+    }
+  });
   return (
     <>
       <div

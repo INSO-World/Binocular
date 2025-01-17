@@ -9,6 +9,11 @@ class GraphQL {
     this.client = new ApolloClient({
       uri: endpoint,
       cache: new InMemoryCache(),
+      defaultOptions: {
+        query: {
+          fetchPolicy: 'no-cache',
+        },
+      },
     });
   }
 }

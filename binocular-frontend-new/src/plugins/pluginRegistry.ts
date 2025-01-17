@@ -22,3 +22,6 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [builds, ch
 
 //Order = priority used when nothing selected by the user.
 export const dataPlugins = [MockData, BinocularBackend, PouchDb, Github];
+
+// Separate Export for PouchDB Plugin to streamline Database loading
+export const PouchDB = new PouchDb();

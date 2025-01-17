@@ -3,13 +3,19 @@ import {
   DataPluginIndexer,
   DataPluginIndexerState,
 } from '../../../interfaces/dataPluginInterfaces/dataPluginGeneral.ts';
+import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 //import {GraphQL} from "./utils.ts";
 
 export default class General implements DataPluginGeneral {
   //private graphQl;
-
-  constructor(/*endpoint: string*/) {
+  private progressUpdateConfig: ProgressUpdateConfig;
+  constructor(_endpoint: string, progressUpdateConfig: ProgressUpdateConfig | undefined) {
     //this.graphQl = new GraphQL(endpoint);
+    if (progressUpdateConfig) {
+      this.progressUpdateConfig = progressUpdateConfig;
+    } else {
+      this.progressUpdateConfig = { useAutomaticUpdate: false };
+    }
   }
 
   public getIndexer(): DataPluginIndexer {
@@ -22,5 +28,12 @@ export default class General implements DataPluginGeneral {
     return new Promise<string>((resolve) => {
       resolve('[RepositoryName]');
     });
+  }
+
+  public getProgressUpdateConfig(): ProgressUpdateConfig {
+    if (this.progressUpdateConfig.endpoint) {
+      return this.progressUpdateConfig;
+    }
+    return { useAutomaticUpdate: this.progressUpdateConfig.useAutomaticUpdate, endpoint: '' };
   }
 }
