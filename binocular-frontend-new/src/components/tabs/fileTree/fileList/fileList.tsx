@@ -33,17 +33,9 @@ function FileList(props: { orientation?: string }) {
                     files: {
                       name: '/',
                       type: FileListElementTypeType.Folder,
-                      children: generateFileTree(
-                        files.map((file) => {
-                          return {
-                            file: file,
-                            checked: true,
-                          };
-                        }),
-                      ),
-                      element: {
-                        checked: true,
-                      },
+                      children: generateFileTree(files),
+                      checked: true,
+                      foldedOut: true,
                     },
                     fileCount: files.length,
                   }),
