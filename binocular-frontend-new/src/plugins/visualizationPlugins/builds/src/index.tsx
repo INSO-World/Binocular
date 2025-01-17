@@ -1,4 +1,3 @@
-import Chart from './chart/chart.tsx';
 import PreviewImage from '../assets/thumbnail.svg';
 import Settings, { SettingsType } from './settings/settings.tsx';
 import { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
@@ -11,7 +10,8 @@ import { DataPluginBuild } from '../../../interfaces/dataPluginInterfaces/dataPl
 
 const Builds: VisualizationPlugin<SettingsType, DataPluginBuild> = {
   name: 'Builds',
-  chartComponent: Chart,
+  // ts-expect-error
+  chartComponent: null,
   settingsComponent: Settings,
   dataConverter: convertToChartData,
   helpComponent: Help,
