@@ -1,21 +1,20 @@
 import fileListElementsStyles from './fileListElements.module.scss';
 import { FileListElementType } from '../../../../../types/data/fileListType.ts';
 import FileIcon from '../../../../../assets/file_gray.svg';
-import { useEffect, useState } from 'react';
+import { updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
+import { AppDispatch, useAppDispatch } from '../../../../../redux';
+import { updateFileListElementTypeChecked } from '../fileListUtilities/fileTreeUtilities.ts';
 
-function FileListFile(props: { file: FileListElementType; checked: boolean }) {
-  const [checked, setChecked] = useState(props.checked);
-  useEffect(() => {
-    setChecked(props.checked);
-  }, [props.checked]);
+function FileListFile(props: { file: FileListElementType }) {
+  const dispatch: AppDispatch = useAppDispatch();
   return (
     <>
       <div className={'flex items-center'}>
         <input
           type={'checkbox'}
           className={'checkbox checkbox-accent checkbox-xs'}
-          checked={checked}
-          onChange={(e) => setChecked(e.target.checked)}
+          checked={props.file.element.checked}
+          onChange={(e) => dispatch(updateFileListElement(updateFileListElementTypeChecked(props.file, e.target.checked)))}
         />
         <div className={fileListElementsStyles.element}>
           <img src={FileIcon} alt={`folder ${props.file.name}`} />

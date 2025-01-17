@@ -36,8 +36,8 @@ function AuthorList(props: { orientation?: string }) {
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
-    console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
     if (dP && dP.id !== undefined) {
+      console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
       DataPluginStorage.getDataPlugin(dP)
         .then((dataPlugin) => {
           if (dataPlugin) {

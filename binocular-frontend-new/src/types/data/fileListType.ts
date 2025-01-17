@@ -1,9 +1,10 @@
+import { FileType } from './fileType.ts';
+
 export interface FileListElementType {
   name: string;
-  path?: string;
+  id?: number;
   type: FileListElementTypeType;
-  webUrl?: string;
-  maxLength?: number;
+  element: FileType;
   children?: FileListElementType[];
 }
 
