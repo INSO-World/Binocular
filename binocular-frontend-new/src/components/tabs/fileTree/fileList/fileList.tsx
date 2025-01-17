@@ -62,7 +62,7 @@ function FileList(props: { orientation?: string }) {
         }>
         <div>
           {fileList ? (
-            <FileListFolder folder={fileList} name={'/'} foldedOut={true}></FileListFolder>
+            <FileListFolder folder={fileList} name={'/'} foldedOut={true} checked={true}></FileListFolder>
           ) : (
             <span className="loading loading-spinner loading-xs text-accent"></span>
           )}
