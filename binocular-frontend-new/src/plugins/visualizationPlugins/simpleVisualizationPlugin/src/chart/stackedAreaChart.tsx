@@ -4,7 +4,7 @@ import { ScaleLinear, ScaleTime, symbol, symbolTriangle } from 'd3';
 import { ChartData, Palette } from './chart.tsx';
 import { SprintType } from '../../../../../types/data/sprintType.ts';
 import { DefaultSettings } from '../settings/settings.tsx';
-import { PositiveNegativeSide, splitPositiveNegativeData } from '../utilities/dataConverter.ts';
+import { PositiveNegativeSide, splitPositiveNegativeData } from '../utilities/utilities.ts';
 import { round } from 'lodash';
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };

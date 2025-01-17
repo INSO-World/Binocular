@@ -1,5 +1,4 @@
 import moment from 'moment/moment';
-import { BuildChartData, Palette } from '../chart/chart.tsx';
 import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
 import chroma from 'chroma-js';
 import _ from 'lodash';
@@ -7,6 +6,15 @@ import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dat
 import { AuthorType } from '../../../../../types/data/authorType.ts';
 import { Properties } from '../../../simpleVisualizationPlugin/src/interfaces/properties.ts';
 import { BuildSettings } from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
+
+interface BuildChartData {
+  date: number;
+  [signature: string]: number;
+}
+
+interface Palette {
+  [signature: string]: { main: string; secondary: string };
+}
 
 export function convertToChartData(
   builds: DataPluginBuild[] | unknown[],
@@ -304,6 +312,7 @@ function getDataByAuthors(
   return { chartData: chartData, scale: scale, palette: palette };
 }
 
+// TODO move to global utilities class
 function getGranularity(resolution: string): { unit: string; interval: moment.Duration } {
   switch (resolution) {
     case 'years':
@@ -323,6 +332,7 @@ export enum PositiveNegativeSide {
   NEGATIVE,
 }
 
+// TODO move to global utilities class
 export function splitPositiveNegativeData(data: BuildChartData[], side: PositiveNegativeSide) {
   return data.map((d) => {
     const newD: BuildChartData = { date: d.date };

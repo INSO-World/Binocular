@@ -1,13 +1,21 @@
 import moment from 'moment/moment';
 import chroma from 'chroma-js';
-import { CommitChartData, Palette } from '../chart/chart.tsx';
 import _ from 'lodash';
 import { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
 import { Properties } from '../../../simpleVisualizationPlugin/src/interfaces/properties.ts';
 import { SettingsType } from '../settings/settings.tsx';
 
-export function convertCommitDataToChangesChartData(
+interface CommitChartData {
+  date: number;
+  [signature: string]: number;
+}
+
+interface Palette {
+  [signature: string]: { main: string; secondary: string };
+}
+
+export function convertToChartData(
   commits: DataPluginCommit[],
   props: Properties<SettingsType, DataPluginCommit>,
 ): {
@@ -91,6 +99,7 @@ export function convertCommitDataToChangesChartData(
       //commit has structure {date, statsByAuthor: {}} (see next line)}
       const obj: CommitChartData = { date: commit.date };
 
+      // TODO move to global utilities class
       if (props.settings.splitAdditionsDeletions) {
         for (const author of props.authorList) {
           commitPalette['(Additions) ' + (author.displayName || author.user.gitSignature)] = {
@@ -180,6 +189,7 @@ export function convertCommitDataToChangesChartData(
   return { chartData: commitChartData, scale: commitScale, palette: commitPalette };
 }
 
+// TODO move to global utilities class
 function getGranularity(resolution: string): { unit: string; interval: moment.Duration } {
   switch (resolution) {
     case 'years':
@@ -198,6 +208,7 @@ export enum PositiveNegativeSide {
   POSITIVE,
   NEGATIVE,
 }
+// TODO move to global utilities class
 export function splitPositiveNegativeData(data: CommitChartData[], side: PositiveNegativeSide) {
   return data.map((d) => {
     const newD: CommitChartData = { date: d.date };
