@@ -99,7 +99,6 @@ export function convertToChartData(
       //commit has structure {date, statsByAuthor: {}} (see next line)}
       const obj: CommitChartData = { date: commit.date };
 
-      // TODO move to global utilities class
       if (props.settings.splitAdditionsDeletions) {
         for (const author of props.authorList) {
           commitPalette['(Additions) ' + (author.displayName || author.user.gitSignature)] = {
@@ -189,7 +188,6 @@ export function convertToChartData(
   return { chartData: commitChartData, scale: commitScale, palette: commitPalette };
 }
 
-// TODO move to global utilities class
 function getGranularity(resolution: string): { unit: string; interval: moment.Duration } {
   switch (resolution) {
     case 'years':
@@ -202,27 +200,4 @@ function getGranularity(resolution: string): { unit: string; interval: moment.Du
     default:
       return { interval: moment.duration(1, 'day'), unit: 'day' };
   }
-}
-
-export enum PositiveNegativeSide {
-  POSITIVE,
-  NEGATIVE,
-}
-// TODO move to global utilities class
-export function splitPositiveNegativeData(data: CommitChartData[], side: PositiveNegativeSide) {
-  return data.map((d) => {
-    const newD: CommitChartData = { date: d.date };
-    Object.keys(d).forEach((k) => {
-      if (k !== 'date') {
-        if (d[k] >= 0 && side === PositiveNegativeSide.POSITIVE) {
-          newD[k] = d[k];
-        } else if (d[k] < 0 && side === PositiveNegativeSide.NEGATIVE) {
-          newD[k] = d[k];
-        } else {
-          newD[k] = 0;
-        }
-      }
-    });
-    return newD;
-  });
 }

@@ -59,7 +59,6 @@ export function convertToChartData(
   } else {
     return { chartData: [], palette: {}, scale: [] };
   }
-  // TODO split chartData into positive and negative Data for generalisation
   return returnValue;
 }
 
@@ -312,7 +311,6 @@ function getDataByAuthors(
   return { chartData: chartData, scale: scale, palette: palette };
 }
 
-// TODO move to global utilities class
 function getGranularity(resolution: string): { unit: string; interval: moment.Duration } {
   switch (resolution) {
     case 'years':
@@ -325,28 +323,4 @@ function getGranularity(resolution: string): { unit: string; interval: moment.Du
     default:
       return { interval: moment.duration(1, 'day'), unit: 'day' };
   }
-}
-
-export enum PositiveNegativeSide {
-  POSITIVE,
-  NEGATIVE,
-}
-
-// TODO move to global utilities class
-export function splitPositiveNegativeData(data: BuildChartData[], side: PositiveNegativeSide) {
-  return data.map((d) => {
-    const newD: BuildChartData = { date: d.date };
-    Object.keys(d).forEach((k) => {
-      if (k !== 'date') {
-        if (d[k] >= 0 && side === PositiveNegativeSide.POSITIVE) {
-          newD[k] = d[k];
-        } else if (d[k] < 0 && side === PositiveNegativeSide.NEGATIVE) {
-          newD[k] = d[k];
-        } else {
-          newD[k] = 0;
-        }
-      }
-    });
-    return newD;
-  });
 }
