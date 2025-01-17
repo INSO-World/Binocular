@@ -1,0 +1,38 @@
+@import "../../../../variables.scss";
+
+.dataPluginElement{
+  margin: 2px;
+  height: auto;
+  max-height: calc($statusBarHeight * 0.8);
+  border-radius: $border-radius-default;
+  border: $border-default;
+  @apply border-base-300;
+  overflow: hidden;
+  @apply bg-base-100;
+  transition: max-height ease-in-out .5s;
+  max-width: 20rem;
+}
+
+.dataPluginElement:hover{
+  max-height: 100vh;
+}
+
+.dataPluginLabel{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 1rem;
+  height: calc($statusBarHeight * 0.8);
+}
+
+.connectionStatus{
+  display: flex;
+  align-items: center;
+}
+
+.dataPluginLabelBadge{
+  @apply badge;
+  @apply badge-ghost;
+  height: .75rem;
+  font-size: .5rem;
+}

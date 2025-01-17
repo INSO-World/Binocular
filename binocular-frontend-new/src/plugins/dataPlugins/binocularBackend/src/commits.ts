@@ -12,11 +12,11 @@ export default class Commits implements DataPluginCommits {
   public async getAll(from: string, to: string) {
     console.log(`Getting Commits from ${from} to ${to}`);
     const commitList: DataPluginCommit[] = [];
-    const getCommitsPage = (to?: string) => async (page: number, perPage: number) => {
+    const getCommitsPage = (from?: string, to?: string) => async (page: number, perPage: number) => {
       const resp = await this.graphQl.client.query({
         query: gql`
-          query ($page: Int, $perPage: Int) {
-            commits(page: $page, perPage: $perPage) {
+          query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp) {
+            commits(page: $page, perPage: $perPage, since: $since, until: $until) {
               count
               page
               perPage
@@ -41,12 +41,12 @@ export default class Commits implements DataPluginCommits {
             }
           }
         `,
-        variables: { page, perPage, to },
+        variables: { page, perPage, from, to },
       });
       return resp.data.commits;
     };
 
-    await traversePages(getCommitsPage(to), (commit: DataPluginCommit) => {
+    await traversePages(getCommitsPage(from, to), (commit: DataPluginCommit) => {
       commitList.push(commit);
     });
     const allCommits = commitList.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());

@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthorType } from '../../types/data/authorType.ts';
-import Config from '../../config.ts';
+import { AuthorType } from '../../../types/data/authorType.ts';
+import Config from '../../../config.ts';
 
 export interface AuthorsInitialState {
-  authorLists: { [signature: string]: AuthorType[] };
+  authorLists: { [id: number]: AuthorType[] };
   dragging: boolean;
   authorToEdit: AuthorType | undefined;
   dataPluginId: number | undefined;
@@ -101,7 +101,7 @@ export const authorsSlice = createSlice({
       });
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
-    setAuthorsDataPluginId: (state, action: PayloadAction<number>) => {
+    setAuthorsDataPluginId: (state, action: PayloadAction<number | undefined>) => {
       state.dataPluginId = action.payload;
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },

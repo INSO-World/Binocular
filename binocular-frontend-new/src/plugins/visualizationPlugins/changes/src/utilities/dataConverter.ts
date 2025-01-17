@@ -68,7 +68,7 @@ export function convertToChartData(
         const deletions = sortedCommits[i].stats.deletions;
         const changes = additions + deletions;
         const commitAuthor = sortedCommits[i].user.id;
-        if (totalChangesPerAuthor[commitAuthor] === null) {
+        if (totalChangesPerAuthor[commitAuthor] === undefined) {
           totalChangesPerAuthor[commitAuthor] = 0;
         }
         totalChangesPerAuthor[commitAuthor] += changes;

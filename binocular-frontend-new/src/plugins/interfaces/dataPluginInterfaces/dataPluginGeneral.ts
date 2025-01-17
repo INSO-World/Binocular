@@ -1,7 +1,10 @@
+import { ProgressUpdateConfig } from '../../../types/settings/databaseSettingsType.ts';
+
 export interface DataPluginGeneral {
   getIndexer: () => DataPluginIndexer;
   getIndexerState: () => DataPluginIndexerState;
   getRepositoryName: () => Promise<string>;
+  getProgressUpdateConfig: () => ProgressUpdateConfig;
 }
 
 export interface DataPluginIndexer {

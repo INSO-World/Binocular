@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
 import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { useEffect } from 'react';
-import { removeDataPlugin, setDataPluginAsDefault } from '../../../redux/settings/settingsReducer.ts';
+import { removeDataPlugin, setDataPluginAsDefault } from '../../../redux/reducer/settings/settingsReducer.ts';
 import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import AddDataPluginCard from '../addDataPluginCard/addDataPluginCard.tsx';
@@ -37,26 +37,40 @@ function DatabaseSettings() {
                 <div className="card-body">
                   <h2 className="card-title">
                     {settingsDatabaseDataPlugin.name} #{settingsDatabaseDataPlugin.id}
+                    {settingsDatabaseDataPlugin.id === 0 && <div className="badge badge-outline">pre-loaded</div>}
                     {settingsDatabaseDataPlugin.isDefault && <div className="badge badge-accent">Default</div>}
                   </h2>
-                  <div>
-                    <span className={'font-bold'}>API Key:</span>
-                    <span>
-                      {settingsDatabaseDataPlugin.parameters.apiKey ? settingsDatabaseDataPlugin.parameters.apiKey : 'Not necessary'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className={'font-bold'}>Endpoint:</span>
-                    <span>
-                      {settingsDatabaseDataPlugin.parameters.endpoint ? settingsDatabaseDataPlugin.parameters.endpoint : 'Not necessary'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className={'font-bold'}>Database:</span>
-                    <span>
-                      {settingsDatabaseDataPlugin.parameters.fileName ? settingsDatabaseDataPlugin.parameters.fileName : 'Not necessary'}
-                    </span>
-                  </div>
+                  {settingsDatabaseDataPlugin.parameters.apiKey && (
+                    <div>
+                      <span className={'font-bold'}>API Key:</span>
+                      <span>{settingsDatabaseDataPlugin.parameters.apiKey}</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.endpoint && (
+                    <div>
+                      <span className={'font-bold'}>Endpoint:</span>
+                      <span>{settingsDatabaseDataPlugin.parameters.endpoint}</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.fileName && (
+                    <div>
+                      <span className={'font-bold'}>Database:</span>
+                      <span>{settingsDatabaseDataPlugin.parameters.fileName}</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.progressUpdate && (
+                    <div>
+                      <span className={'font-bold'}>Progress Update:</span>
+                      <span className="badge badge-success ml-1">Configured</span>
+                    </div>
+                  )}
+                  {settingsDatabaseDataPlugin.parameters.progressUpdate &&
+                    settingsDatabaseDataPlugin.parameters.progressUpdate.endpoint && (
+                      <div>
+                        <span className={'font-bold'}>Use Progress Update Endpoint:</span>
+                        <span>{settingsDatabaseDataPlugin.parameters.progressUpdate.endpoint}</span>
+                      </div>
+                    )}
                   <button
                     className={'btn btn-outline'}
                     onClick={() => {
@@ -66,33 +80,35 @@ function DatabaseSettings() {
                     }}>
                     Set Default
                   </button>
-                  <button
-                    className={'btn btn-error btn-outline'}
-                    onClick={() => {
-                      if (settingsDatabaseDataPlugin.id !== undefined) {
-                        if (settingsDatabaseDataPlugin.parameters.fileName) {
-                          DataPluginStorage.getDataPlugin(settingsDatabaseDataPlugin)
-                            .then((dataPlugin) => {
-                              if (dataPlugin) {
-                                dataPlugin
-                                  .clearRemains()
-                                  .then(() => {
-                                    console.log(`${settingsDatabaseDataPlugin.name} #${settingsDatabaseDataPlugin.id} cleared`);
-                                    if (settingsDatabaseDataPlugin.id !== undefined) {
-                                      dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
-                                    }
-                                  })
-                                  .catch((e) => console.log(e));
-                              }
-                            })
-                            .catch((e) => console.log(e));
-                        } else {
-                          dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                  {settingsDatabaseDataPlugin.id !== 0 && (
+                    <button
+                      className={'btn btn-error btn-outline'}
+                      onClick={() => {
+                        if (settingsDatabaseDataPlugin.id !== undefined) {
+                          if (settingsDatabaseDataPlugin.parameters.fileName) {
+                            DataPluginStorage.getDataPlugin(settingsDatabaseDataPlugin)
+                              .then((dataPlugin) => {
+                                if (dataPlugin) {
+                                  dataPlugin
+                                    .clearRemains()
+                                    .then(() => {
+                                      console.log(`${settingsDatabaseDataPlugin.name} #${settingsDatabaseDataPlugin.id} cleared`);
+                                      if (settingsDatabaseDataPlugin.id !== undefined) {
+                                        dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                                      }
+                                    })
+                                    .catch((e) => console.log(e));
+                                }
+                              })
+                              .catch((e) => console.log(e));
+                          } else {
+                            dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                          }
                         }
-                      }
-                    }}>
-                    Delete
-                  </button>
+                      }}>
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
