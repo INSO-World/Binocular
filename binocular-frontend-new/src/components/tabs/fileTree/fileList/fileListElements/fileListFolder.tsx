@@ -1,49 +1,56 @@
 import fileListElementsStyles from './fileListElements.module.scss';
 import { FileListElementType, FileListElementTypeType } from '../../../../../types/data/fileListType.ts';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import FolderIcon from '../../../../../assets/folder_gray.svg';
 import FolderOpenIcon from '../../../../../assets/folder_open_gray.svg';
 import FileListFile from './fileListFile.tsx';
+import { AppDispatch, useAppDispatch } from '../../../../../redux';
+import { updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
+import { updateFileListElementTypeChecked } from '../fileListUtilities/fileTreeUtilities.ts';
 
-function FileListFolder(props: { folder: FileListElementType[]; name: string; foldedOut: boolean; checked: boolean }) {
+function FileListFolder(props: { folder: FileListElementType; foldedOut: boolean }) {
+  const dispatch: AppDispatch = useAppDispatch();
   const [foldedOut, setFoldedOut] = useState(props.foldedOut);
-  const [checked, setChecked] = useState(props.checked);
-  useEffect(() => {
-    setChecked(props.checked);
-  }, [props.checked]);
+
   return (
     <>
       {foldedOut ? (
         <>
           <div className={'flex items-center'}>
-            <input
-              type={'checkbox'}
-              className={'checkbox checkbox-accent checkbox-xs'}
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
-            />
+            {props.folder.id !== undefined && (
+              <input
+                type={'checkbox'}
+                className={'checkbox checkbox-accent checkbox-xs'}
+                checked={props.folder.element.checked}
+                onChange={(e) => dispatch(updateFileListElement(updateFileListElementTypeChecked(props.folder, e.target.checked)))}
+              />
+            )}
             <div className={fileListElementsStyles.element} onClick={() => setFoldedOut(false)}>
-              <img src={FolderOpenIcon} alt={`folder open ${props.name}`} />
-              <span>{props.name}</span>
+              <img src={FolderOpenIcon} alt={`folder open ${props.folder.name}`} />
+              <span>{props.folder.name}</span>
             </div>
           </div>
           <div className={fileListElementsStyles.inset}>
-            {props.folder
-              .sort((e) => (e.type === FileListElementTypeType.Folder ? -1 : 1))
-              .map((element, i) => {
-                if (element.type === FileListElementTypeType.Folder && element.children) {
-                  return (
-                    <FileListFolder
-                      key={`fileListElement${i}`}
-                      folder={element.children}
-                      name={element.name}
-                      foldedOut={false}
-                      checked={checked}></FileListFolder>
-                  );
-                } else {
-                  return <FileListFile key={`fileListElement${i}`} file={element} checked={checked}></FileListFile>;
-                }
-              })}
+            {props.folder.children &&
+              props.folder.children
+                .slice()
+                .sort(function (e1, e2) {
+                  if (e1.name < e2.name) {
+                    return 1;
+                  }
+                  if (e1.name > e2.name) {
+                    return -1;
+                  }
+                  return 0;
+                })
+                .sort((e) => (e.type === FileListElementTypeType.Folder ? -1 : 1))
+                .map((element, i) => {
+                  if (element.type === FileListElementTypeType.Folder && element.children) {
+                    return <FileListFolder key={`fileListElement${i}`} folder={element} foldedOut={false}></FileListFolder>;
+                  } else {
+                    return <FileListFile key={`fileListElement${i}`} file={element}></FileListFile>;
+                  }
+                })}
           </div>
         </>
       ) : (
@@ -51,12 +58,12 @@ function FileListFolder(props: { folder: FileListElementType[]; name: string; fo
           <input
             type={'checkbox'}
             className={'checkbox checkbox-accent checkbox-xs'}
-            checked={checked}
-            onChange={(e) => setChecked(e.target.checked)}
+            checked={props.folder.element.checked}
+            onChange={(e) => dispatch(updateFileListElement(updateFileListElementTypeChecked(props.folder, e.target.checked)))}
           />
           <div onClick={() => setFoldedOut(true)} className={fileListElementsStyles.element}>
-            <img src={FolderIcon} alt={`folder ${props.name}`} />
-            <span>{props.name}</span>
+            <img src={FolderIcon} alt={`folder ${props.folder.name}`} />
+            <span>{props.folder.name}</span>
           </div>
         </div>
       )}

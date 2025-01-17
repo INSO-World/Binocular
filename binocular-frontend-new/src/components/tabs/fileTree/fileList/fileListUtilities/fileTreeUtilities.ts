@@ -1,38 +1,57 @@
 import { FileListElementType, FileListElementTypeType } from '../../../../../types/data/fileListType.ts';
-import { DataPluginFile } from '../../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { FileType } from '../../../../../types/data/fileType.ts';
 
-export function generateFileTree(files: DataPluginFile[]): FileListElementType[] {
+export function generateFileTree(files: FileType[]): FileListElementType[] {
   return convertData(files).content;
 }
 
-function convertData(files: DataPluginFile[]) {
+function convertData(files: FileType[]) {
   const convertedData = { content: [] };
+  let id = 0;
   for (const file of files) {
-    const pathParts = file.path.split('/');
-    genPathObjectString(convertedData.content, pathParts, file.webUrl, file.path);
+    if (file.file) {
+      const pathParts = file.file.path.split('/');
+      id = genPathObjectString(convertedData.content, pathParts, file, id);
+    }
   }
-
   return convertedData;
 }
 
-function genPathObjectString(convertedData: FileListElementType[], pathParts: string[], Url: string, Path: string) {
+function genPathObjectString(convertedData: FileListElementType[], pathParts: string[], file: FileType, id: number) {
   const currElm = pathParts.shift();
+  id++;
   if (currElm) {
     if (pathParts.length === 0) {
-      convertedData.push({ name: currElm, type: FileListElementTypeType.File, webUrl: Url, path: Path });
+      convertedData.push({
+        name: currElm,
+        id: id,
+        type: FileListElementTypeType.File,
+        element: file,
+      });
     } else {
       let elem = convertedData.find((d) => d.name === currElm);
       if (elem === undefined) {
-        elem = { name: currElm, type: FileListElementTypeType.Folder, children: [] };
+        elem = {
+          name: currElm,
+          id: id,
+          type: FileListElementTypeType.Folder,
+          children: [],
+          element: { checked: true },
+        };
         if (elem.children) {
-          genPathObjectString(elem.children, pathParts, Url, Path);
+          id = genPathObjectString(elem.children, pathParts, file, id);
           convertedData.push(elem);
         }
       } else {
         if (elem.children) {
-          genPathObjectString(elem.children, pathParts, Url, Path);
+          id = genPathObjectString(elem.children, pathParts, file, id);
         }
       }
     }
   }
+  return id;
+}
+
+export function updateFileListElementTypeChecked(fileListElement: FileListElementType, checked: boolean) {
+  return { ...fileListElement, element: { ...fileListElement.element, checked: checked } };
 }
