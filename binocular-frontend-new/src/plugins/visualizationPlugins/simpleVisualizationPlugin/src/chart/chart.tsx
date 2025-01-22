@@ -1,17 +1,12 @@
 import { StackedAreaChart } from './stackedAreaChart.tsx';
-import { RefObject, useEffect, useState } from 'react';
-import { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
-import { SettingsType } from '../settings/settings.tsx';
-import { AuthorType } from '../../../../../types/data/authorType.ts';
-import { convertCommitDataToChangesChartData } from '../utilities/dataConverter.ts';
-import { SprintType } from '../../../../../types/data/sprintType.ts';
+import { useEffect, useState } from 'react';
 import { throttle } from 'throttle-debounce';
 import { useDispatch, useSelector } from 'react-redux';
-import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
-import { Store } from '@reduxjs/toolkit';
-import { DataState, setDateRange } from '../reducer';
+import { DataState, getDataSlice } from '../reducer';
+import { Properties } from '../interfaces/properties.ts';
+import { DefaultSettings } from '../settings/settings.tsx';
 
-export interface CommitChartData {
+export interface ChartData {
   date: number;
   [signature: string]: number;
 }
@@ -20,15 +15,7 @@ export interface Palette {
   [signature: string]: { main: string; secondary: string };
 }
 
-function Chart(props: {
-  settings: SettingsType;
-  dataConnection: DataPlugin;
-  authorList: AuthorType[];
-  sprintList: SprintType[];
-  parameters: ParametersType;
-  chartContainerRef: RefObject<HTMLDivElement>;
-  store: Store;
-}) {
+function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties<SettingsType, DataType>) {
   /*
    * Creating Dispatch and Root State for interaction with the reducer State
    */
@@ -40,13 +27,13 @@ function Chart(props: {
    * -----------------------------
    */
   //Redux Global State
-  const commits = useSelector((state: RootState) => state.commits);
+  const data = useSelector((state: RootState) => state.data);
   const dataState = useSelector((state: RootState) => state.dataState);
   //React Component State
   const [chartWidth, setChartWidth] = useState(100);
   const [chartHeight, setChartHeight] = useState(100);
 
-  const [chartData, setChartData] = useState<CommitChartData[]>([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
   const [chartScale, setChartScale] = useState<number[]>([]);
   const [chartPalette, setChartPalette] = useState<Palette>({});
 
@@ -80,20 +67,15 @@ function Chart(props: {
 
   // Effect on data change
   useEffect(() => {
-    const { commitChartData, commitScale, commitPalette } = convertCommitDataToChangesChartData(
-      commits,
-      props.authorList,
-      props.settings.splitAdditionsDeletions,
-      props.parameters,
-    );
-    setChartData(commitChartData);
-    setChartScale(commitScale);
-    setChartPalette(commitPalette);
-  }, [commits, props.authorList, props.parameters, props.settings.splitAdditionsDeletions]);
+    const { chartData, scale, palette } = props.dataConverter(data, props);
+    setChartData(chartData);
+    setChartScale(scale);
+    setChartPalette(palette);
+  }, [data, props]);
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
-    dispatch(setDateRange(props.parameters.parametersDateRange));
+    dispatch(getDataSlice(props.dataName!).actions.setDateRange(props.parameters.parametersDateRange));
   }, [props.parameters]);
 
   //Trigger Refresh when dataConnection changes
