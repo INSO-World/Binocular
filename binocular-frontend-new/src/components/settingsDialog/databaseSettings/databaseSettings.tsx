@@ -37,6 +37,7 @@ function DatabaseSettings() {
                 <div className="card-body">
                   <h2 className="card-title">
                     {settingsDatabaseDataPlugin.name} #{settingsDatabaseDataPlugin.id}
+                    {settingsDatabaseDataPlugin.id === 0 && <div className="badge badge-outline">pre-loaded</div>}
                     {settingsDatabaseDataPlugin.isDefault && <div className="badge badge-accent">Default</div>}
                   </h2>
                   {settingsDatabaseDataPlugin.parameters.apiKey && (
@@ -79,33 +80,35 @@ function DatabaseSettings() {
                     }}>
                     Set Default
                   </button>
-                  <button
-                    className={'btn btn-error btn-outline'}
-                    onClick={() => {
-                      if (settingsDatabaseDataPlugin.id !== undefined) {
-                        if (settingsDatabaseDataPlugin.parameters.fileName) {
-                          DataPluginStorage.getDataPlugin(settingsDatabaseDataPlugin)
-                            .then((dataPlugin) => {
-                              if (dataPlugin) {
-                                dataPlugin
-                                  .clearRemains()
-                                  .then(() => {
-                                    console.log(`${settingsDatabaseDataPlugin.name} #${settingsDatabaseDataPlugin.id} cleared`);
-                                    if (settingsDatabaseDataPlugin.id !== undefined) {
-                                      dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
-                                    }
-                                  })
-                                  .catch((e) => console.log(e));
-                              }
-                            })
-                            .catch((e) => console.log(e));
-                        } else {
-                          dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                  {settingsDatabaseDataPlugin.id !== 0 && (
+                    <button
+                      className={'btn btn-error btn-outline'}
+                      onClick={() => {
+                        if (settingsDatabaseDataPlugin.id !== undefined) {
+                          if (settingsDatabaseDataPlugin.parameters.fileName) {
+                            DataPluginStorage.getDataPlugin(settingsDatabaseDataPlugin)
+                              .then((dataPlugin) => {
+                                if (dataPlugin) {
+                                  dataPlugin
+                                    .clearRemains()
+                                    .then(() => {
+                                      console.log(`${settingsDatabaseDataPlugin.name} #${settingsDatabaseDataPlugin.id} cleared`);
+                                      if (settingsDatabaseDataPlugin.id !== undefined) {
+                                        dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                                      }
+                                    })
+                                    .catch((e) => console.log(e));
+                                }
+                              })
+                              .catch((e) => console.log(e));
+                          } else {
+                            dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                          }
                         }
-                      }
-                    }}>
-                    Delete
-                  </button>
+                      }}>
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
