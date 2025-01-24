@@ -7,6 +7,8 @@ import moment from 'moment';
 import { Author, Committer, Palette } from '../../../../types/authorTypes';
 import { Commit } from '../../../../types/commitTypes';
 import ZoomableVerticalBarchart from '../../../../components/ZoomableVerticalBarchart';
+import CommitChangeDisplay from '../../../../components/CommitChangeDisplay';
+import { useState } from 'react';
 
 interface Props {
   id: number;
@@ -37,23 +39,41 @@ interface CommitChartData {
   [signature: string]: number;
 }
 
-// TODO: Some caching strategy??? and also fetch new things without the things in cache 
-
+// TODO: Some caching strategy??? and also fetch new things without the things in cache
+// @ts-ignore
 export default (props: Props) => {
-  // TODO: You must wait until commits are loaded in
+  const [stateCommit, setStateCommit] = useState({});
+  const changeCurrentCommit = (commitSha) => {
+    console.log('Clicked on sha', commitSha);
+    // Find the commit based on the commitSha
+    for (const c of props.commits) {
+      if (c['sha'] === commitSha) {
+        console.log('Found the clicked commit', c);
+        setStateCommit(c);
+        break;
+      }
+    }
+  };
+
   const testDataForChart = prepareTestData(props);
 
   const commitChart = (
     <div className={styles.chartLine}>
       <div className={styles.chart}>
         {testDataForChart !== undefined && testDataForChart.length > 0 ? (
-          <ZoomableVerticalBarchart content={testDataForChart} />
+          <ZoomableVerticalBarchart content={testDataForChart} changeCommit={changeCurrentCommit} />
         ) : (
           <div className={styles.errorMessage}>No data during this time period!</div>
         )}
       </div>
     </div>
   );
+  const commitViewer =
+    Object.keys(stateCommit).length !== 0 ? (
+      <CommitChangeDisplay commit={stateCommit} />
+    ) : (
+      <div className={styles.errorMessage}>No code view available, click on commit hash in tooltip!</div>
+    ); // TODO: Some warning when no content was chosen or maybe even no viewer
   const loadingHint = (
     <div className={styles.loadingHintContainer}>
       <h1 className={styles.loadingHint}>
@@ -65,16 +85,10 @@ export default (props: Props) => {
     <div className={styles.chartContainer}>
       {testDataForChart === null && loadingHint}
       {testDataForChart && commitChart}
+      {commitViewer}
     </div>
   );
 };
-
-// TODO: Fetch some testdata (e.g. all commit data)
-
-// TODO: Function that prepares the data for zoomable vertical barchart (dont forget for tooltip data (best sorted by day) ... then I can
-//  show in year bar view all bugfixes sorted by day (or at least some of them) and in day view all (really all, not just few))
-
-// TODO: Function that prepares the data for the sortable barchart with users as x axis
 
 const prepareTestData = (props: Props) => {
   if (!props.commits || props.commits.length === 0) {
@@ -116,6 +130,5 @@ const prepareTestData = (props: Props) => {
 
   console.log('Preprocessed commits', out);
 
-  // TODO: Prepare tooltip test data
   return out;
 };

@@ -3,9 +3,12 @@
 import * as d3 from 'd3';
 import * as React from 'react';
 import * as baseStyles from './verticalBarChart.module.scss';
+import { ReactDOM } from 'react';
+import ReactDOMServer from 'react-dom/server';
 
 interface Props {
   content: any[];
+  changeCommit: (commit: any) => void;
   // FROM,TO Date ????
 }
 
@@ -25,6 +28,7 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
   private aggregatedDataByYear: any[];
   private aggregatedDataByYearMonth: any[];
   private aggregatedDataByYearMonthDay: any[];
+  private changeCommit: (commit: any) => void;
   constructor(props: Props | Readonly<Props>, styles: any) {
     super(props);
     this.key_str = 'year';
@@ -36,6 +40,8 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
       content: props.content,
       componentMounted: false,
     };
+    console.log('changeCommit Prop', props.changeCommit);
+    this.changeCommit = props.changeCommit;
     window.addEventListener('resize', () => this.updateElement());
 
     const results = this.aggregateData();
@@ -66,7 +72,17 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
     return (
       <div className={this.styles.chartDiv}>
         <svg className={this.styles.chartSvg} ref={(svg) => (this.svgRef = svg)} />
-        <div className={this.styles.tooltip} ref={(div) => (this.tooltipRef = div)} id="tooltip" />
+        <div
+          className={this.styles.tooltip}
+          ref={(div) => (this.tooltipRef = div)}
+          onClick={(e) => {
+            e.preventDefault();
+            if (e.target['attributes']['data-sha'] !== undefined) {
+              this.changeCommit(e.target['attributes']['data-sha']['value']);
+            }
+          }}
+          id="tooltip"
+        />
       </div>
     );
   }
@@ -105,7 +121,7 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
       temp.setTime(temp.getTime() + 24 * 60 * 60 * 1000); // Add 24 hours
     }
 
-    // 1. Group data by year (using d3.group in D3 v6+)
+    // 1. Group data by year
     const groupedDataYear = d3.group(data, (d) => d.date.getFullYear());
 
     const aggregatedDataYear = Array.from(groupedDataYear, ([year, values]) => ({
@@ -146,7 +162,7 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
   }
 
   // TODO: Even for days and months with no datapoints there needs to be data (at least empty data)...
-  tooltipFunc(bars) {
+  tooltipFunc(bars, changeCommit) {
     // TODO: Use tooltipRef
     // Select tooltip
     const tooltip = d3.select('#tooltip');
@@ -169,12 +185,17 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
             new Date(c.date),
           ); // TODO: use more universal formatting based on locale or use month as word ?
           // eslint-disable-next-line max-len
-          htmlTooltip += `<table border="0"><tr><th style="color: white;">${dateFormatted}</th><th></th></tr><tr><th style="color: white;">${c.shortSha}</th><th style="color: white;">${c.messageHeader}</th></tr><tr><th></th><th></th></tr></table><br>`;
+          htmlTooltip += `<table border="0"><tr><th style="color: white;">${dateFormatted}</th><th></th></tr><tr><th style="color: white;"><a data-sha="${c.sha}">${c.shortSha}</a></th><th style="color: white;">${c.messageHeader}</th></tr><tr><th></th><th></th></tr></table><br>`;
         }
-        const yCoordinate = bar.y - 250 < 0 ? 0 : bar.y - 250;
+        const yCoordinate = bar.y - 250 < 0 ? 0 : bar.y - 250; // Prevent overflow of tooltip
+        console.log('xCoordinate', event.layerX + 300 + 512);
+        console.log('xCoordinate max', window.innerWidth);
+        // eslint-disable-next-line max-len
+        const xCoordinate = event.layerX + 300 + 512 > window.innerWidth ? event.layerX - 300 : event.layerX; // Prevent overflow of tooltip, 512 is width of the dashboard: TODO: Supply iwht of dasboard different way
+
         tooltip // TODO: add html the react way
           .html(htmlTooltip)
-          .style('left', event.layerX + 'px')
+          .style('left', xCoordinate + 'px')
           .style('top', yCoordinate + 'px');
       })
       .on('mousemove', function (event) {
@@ -205,6 +226,7 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
   }
 
   updateElement() {
+    d3.select(this.svgRef).selectAll('*').remove(); // Delete old graph
     const key_str = 'aggregatedBy';
     const value_str = 'total';
 
@@ -266,6 +288,7 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
       .call((g) => g.select('.domain').remove());
 
     const tooltipFunc = this.tooltipFunc;
+    const changeCommit = this.changeCommit;
     // mode: 'year', 'month' or 'day'
     function updateBarsAndAxes(data, mode) {
       if (mode === 'year') {
@@ -296,7 +319,7 @@ export default class ZoomableVerticalBarchart extends React.Component<Props, Sta
         .attr('height', (d) => y(0) - y(d[value_str]))
         .attr('width', x.bandwidth());
 
-      tooltipFunc(bars);
+      tooltipFunc(bars, changeCommit);
     }
 
     function zoom(svg) {
