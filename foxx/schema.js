@@ -22,6 +22,7 @@ const builds = db._collection('builds');
 const branches = db._collection('branches');
 const mergeRequests = db._collection('mergeRequests');
 const milestones = db._collection('milestones');
+const jacocoReports = db._collection('jacocoReports');
 
 const queryType = new gql.GraphQLObjectType({
   name: 'Query',
@@ -278,6 +279,20 @@ const queryType = new gql.GraphQLObjectType({
             RETURN milestone`;
         },
       }),
+      jacocoReports: paginated({
+        type: require('./types/jacocoReport.js'),
+        args: {
+          page: { type: gql.GraphQLInt },
+          perPage: { type: gql.GraphQLInt },
+          until: { type: Timestamp },
+        },
+        query: () => {
+          return aql`
+            FOR jacocoReport
+            IN ${jacocoReports}
+            RETURN jacocoReport`;
+        },
+      })
     };
   },
 });
