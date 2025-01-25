@@ -54,6 +54,7 @@ class CIIndexer {
                   All of this can be removed once GitHub supports GraphQl for Workflows.*/
                   return Promise.resolve(this.controller.getPipelineJobs(projectId, pipeline.id))
                     .then((jobs) => {
+                      // TODO check how artifacts are handled in gitlab
                       if (jobs === 'gitlab') {
                         return this.buildMapper(
                           pipeline,
@@ -61,7 +62,6 @@ class CIIndexer {
                           [],
                         );
                       } else {
-                        // Await the artifacts before passing them to buildMapper
                         return this.controller
                           .getPipelineArtifacts(projectId, pipeline.id)
                           .then((artifacts) => this.buildMapper(pipeline, jobs, artifacts));
