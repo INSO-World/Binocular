@@ -3,9 +3,11 @@ import _ from 'lodash';
 import JacocoReportDto from '../../types/dtos/JaCoCoReportDto.ts';
 
 export interface JacocoDataType {
-  id: string;
+  id: number;
+  node_id: string;
+  created_at: string;
+  updated_at: string;
   xmlContent: string;
-  buildId: string;
 }
 
 class JacocoReport extends Model<JacocoDataType> {
@@ -19,7 +21,7 @@ class JacocoReport extends Model<JacocoDataType> {
   persist(_jacocoReportData: JacocoReportDto) {
     const jacocoReportData = _.clone(_jacocoReportData);
     if (_jacocoReportData.id) {
-      jacocoReportData.id = _jacocoReportData.id.toString();
+      jacocoReportData.id = _jacocoReportData.id;
     }
 
     this.ensureByExample({ id: jacocoReportData.id }, jacocoReportData, {});

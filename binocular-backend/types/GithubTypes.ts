@@ -76,5 +76,6 @@ export interface GithubArtifact {
   archive_download_url: string;
   expired: boolean;
   created_at: string;
+  updated_at: string;
   expires_at: string;
 }
