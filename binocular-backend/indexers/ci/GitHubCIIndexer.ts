@@ -64,7 +64,7 @@ class GitHubCIIndexer {
     }
     await this.controller.loadAssignableUsers(this.owner, this.repo);
 
-    this.indexer = new CIIndexer(this.reporter, this.controller, repoName, async (pipeline, jobs, artifacts) => {
+    this.indexer = new CIIndexer(this.reporter, this.controller, repoName, async (pipeline, jobs, artifacts: GithubArtifact[]) => {
       jobs = jobs || [];
       artifacts = artifacts || [];
       log(
@@ -91,6 +91,9 @@ class GitHubCIIndexer {
         lastFinishedAt = jobs[jobs.length - 1].completed_at;
       }
 
+      //TODO move if jacoco reports have the same structure in travisCI and gitlabCI?
+      this.persistJacocoReports(artifacts);
+
       return Build.persist({
         id: pipeline.id,
         sha: pipeline.head_sha,
@@ -115,29 +118,37 @@ class GitHubCIIndexer {
           webUrl: job.html_url,
         })),
         webUrl: pipeline.html_url,
-        artifacts: await Promise.all(
-          artifacts.map(async (artifact: GithubArtifact) => {
-            if (artifact.name === 'jacoco-report' && !artifact.expired) {
-              const jacocoReport = await this.controller?.downloadJacocoReport(artifact);
-              if (jacocoReport !== null && jacocoReport !== undefined) {
-                const xmlContent = await this.controller?.extractJacocoXMLReportContent(jacocoReport);
-                await JacocoReport.persist({
-                  id: artifact.id.toString(),
-                  xmlContent: xmlContent,
-                  buildId: pipeline.id.toString(),
-                });
-              }
-            }
-
-            return {
-              id: artifact.id,
-              name: artifact.name,
-              downloadUrl: artifact.archive_download_url,
-              expiresAt: artifact.expires_at,
-            };
-          }),
-        ),
+        artifacts: artifacts.map((artifact: GithubArtifact) => ({
+          id: artifact.id,
+          node_id: artifact.node_id,
+          name: artifact.name,
+          size_in_bytes: artifact.size_in_bytes,
+          url: artifact.url,
+          archive_download_url: artifact.archive_download_url,
+          expired: artifact.expired,
+          created_at: artifact.created_at,
+          updated_at: artifact.updated_at,
+          expires_at: artifact.expires_at,
+        })),
       });
+    });
+  }
+
+  async persistJacocoReports(artifacts: GithubArtifact[]) {
+    artifacts.map(async (artifact: GithubArtifact) => {
+      if (artifact.name === 'jacoco-report' && !artifact.expired) {
+        const jacocoReport = await this.controller?.downloadJacocoReport(artifact);
+        if (jacocoReport !== null && jacocoReport !== undefined) {
+          const xmlContent = await this.controller?.extractJacocoXMLReportContent(jacocoReport);
+          JacocoReport.persist({
+            id: artifact.id,
+            node_id: artifact.node_id,
+            created_at: artifact.created_at,
+            updated_at: artifact.updated_at,
+            xmlContent: xmlContent,
+          });
+        }
+      }
     });
   }
 
