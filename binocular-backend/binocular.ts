@@ -82,7 +82,6 @@ import IssueNoteConnection from './models/connections/IssueNoteConnection.ts';
 import NoteAccountConnection from './models/connections/NoteAccountConnection.ts';
 import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
 import JacocoReport from './models/models/JacocoReport.ts';
-import JacocoBuildConnection from './models/connections/JacocoBuildConnection.ts';
 
 cli.parse(
   (targetPath, options) => {
