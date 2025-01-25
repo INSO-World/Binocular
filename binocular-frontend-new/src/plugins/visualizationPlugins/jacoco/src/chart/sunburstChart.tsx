@@ -1,14 +1,15 @@
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
-import { data as data, SunburstData } from './jacocoSunburstData.ts';
 import { HierarchyRectangularNode } from 'd3';
+import { SunburstData } from './chart.tsx';
 
 type SunburstChartProps = {
   width: number;
   height: number;
+  data: SunburstData;
 };
 
-export const SunburstChart = ({ width, height }: SunburstChartProps) => {
+export const SunburstChart = ({ width, height, data }: SunburstChartProps) => {
   const d3Container = useRef(null);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export const SunburstChart = ({ width, height }: SunburstChartProps) => {
       const svg = d3
         .select(d3Container.current)
         .attr('viewBox', [-height / 2, -width / 2, height, width])
-        .style('font', '30px sans-serif');
+        .style('font', '15px sans-serif');
       svg.selectAll('*').remove();
 
       // Append the arcs.
@@ -104,7 +105,6 @@ export const SunburstChart = ({ width, height }: SunburstChartProps) => {
             \nLINE: ${format(aggregatedCounters.LINE?.covered ?? 0)} covered, ${format(aggregatedCounters.LINE?.missed ?? 0)} missed
             \nCOMPLEXITY: ${format(aggregatedCounters.COMPLEXITY?.covered ?? 0)} covered, ${format(aggregatedCounters.COMPLEXITY?.missed ?? 0)} missed
             \nMETHOD: ${format(aggregatedCounters.METHOD?.covered ?? 0)} covered, ${format(aggregatedCounters.METHOD?.missed ?? 0)} missed
-            \nCLASS: ${format(aggregatedCounters.CLASS?.covered ?? 0)} covered, ${format(aggregatedCounters.CLASS?.missed ?? 0)} missed;
           `;
       });
 
@@ -148,7 +148,6 @@ function calculateAggregatedCounters(node: HierarchyRectangularNode<SunburstData
     LINE: { covered: 0, missed: 0 },
     COMPLEXITY: { covered: 0, missed: 0 },
     METHOD: { covered: 0, missed: 0 },
-    CLASS: { covered: 0, missed: 0 },
   };
 
   // Add current node's counters
