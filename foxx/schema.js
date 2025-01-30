@@ -282,14 +282,18 @@ const queryType = new gql.GraphQLObjectType({
       jacocoReports: paginated({
         type: require('./types/jacocoReport.js'),
         args: {
-          page: { type: gql.GraphQLInt },
-          perPage: { type: gql.GraphQLInt },
-          until: { type: Timestamp },
+          from: { type: Timestamp },
+          to: { type: Timestamp },
+          sort: { type: Sort },
         },
-        query: () => {
+        query: (root, args, limit) => {
           return aql`
             FOR jacocoReport
             IN ${jacocoReports}
+            ${args.from ? queryHelpers.addDateFilterAQL('jacocoReport.created_at', '>=', args.from) : aql``}
+            ${args.to ? queryHelpers.addDateFilterAQL('jacocoReport.created_at', '<=', args.to) : aql``}
+            SORT jacocoReport.created_at ${args.sort}
+            ${limit}
             RETURN jacocoReport`;
         },
       })
