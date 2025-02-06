@@ -83,6 +83,15 @@ class GitLab {
                       stage {
                         name
                       }
+                      artifacts {
+                        nodes {
+                          id
+                          name
+                          downloadPath
+                          fileType
+                          size
+                        }
+                      }
                     }
                   }
                 }
@@ -129,6 +138,23 @@ class GitLab {
   getMergeRequestNotes(projectId, issueId) {
     log('getMergeRequestNotes(%o, %o)', projectId, issueId);
     return this.paginatedRequest(`/projects/${projectId}/merge_requests/${issueId}/notes`);
+  }
+
+  downloadJacocoArtifact(projectId, jobId) {
+    log('Downloading jacoco artifact from project %s and job %s', projectId, jobId);
+    const options = _.defaults({
+      headers: {
+        'PRIVATE-TOKEN': this.privateToken,
+      },
+      resolveWithFullResponse: true,
+      timeout: this.requestTimeout || 3000,
+    });
+
+    return fetch(urlJoin(this.baseUrl, `/projects/${projectId}/jobs/${jobId}/artifacts/target/site/jacoco/jacoco.xml`), options).then(
+      (response) => {
+        return response.text();
+      },
+    );
   }
 
   isStopping() {

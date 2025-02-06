@@ -91,7 +91,7 @@ class GitHubCIIndexer {
         lastFinishedAt = jobs[jobs.length - 1].completed_at;
       }
 
-      //TODO move if jacoco reports have the same structure in travisCI and gitlabCI?
+      // Persist jacoco reports
       this.persistJacocoReports(artifacts);
 
       return Build.persist({
@@ -134,7 +134,7 @@ class GitHubCIIndexer {
     });
   }
 
-  async persistJacocoReports(artifacts: GithubArtifact[]) {
+  persistJacocoReports(artifacts: GithubArtifact[]) {
     artifacts.map(async (artifact: GithubArtifact) => {
       if (artifact.name === 'jacoco-report' && !artifact.expired) {
         const jacocoReport = await this.controller?.downloadJacocoReport(artifact);
@@ -142,9 +142,7 @@ class GitHubCIIndexer {
           const xmlContent = await this.controller?.extractJacocoXMLReportContent(jacocoReport);
           JacocoReport.persist({
             id: artifact.id,
-            node_id: artifact.node_id,
             created_at: artifact.created_at,
-            updated_at: artifact.updated_at,
             xmlContent: xmlContent,
           });
         }

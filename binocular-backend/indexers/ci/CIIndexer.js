@@ -54,13 +54,33 @@ class CIIndexer {
                   All of this can be removed once GitHub supports GraphQl for Workflows.*/
                   return Promise.resolve(this.controller.getPipelineJobs(projectId, pipeline.id))
                     .then((jobs) => {
-                      // TODO check how artifacts are handled in gitlab
                       if (jobs === 'gitlab') {
-                        return this.buildMapper(
-                          pipeline,
-                          pipeline.jobs.edges.map((edge) => edge.node),
-                          [],
-                        );
+                        const artifactPromises = pipeline.jobs.edges.flatMap((jobEdge) => {
+                          return jobEdge.node.artifacts.nodes.map((artifact) => {
+                            if (artifact.name === 'jacoco.zip') {
+                              const projectIdNumber = pipeline.project.id.slice(pipeline.project.id.lastIndexOf('/') + 1);
+                              const jobID = jobEdge.node.id.slice(jobEdge.node.id.lastIndexOf('/') + 1);
+
+                              return this.controller.downloadJacocoArtifact(projectIdNumber, jobID).then((xmlContent) => {
+                                return {
+                                  ...artifact,
+                                  created_at: jobEdge.node.finishedAt,
+                                  xmlContent: xmlContent,
+                                }; // Return a promise with xml content for jacoco artifacts
+                              });
+                            } else {
+                              return Promise.resolve(artifact); // Return a promise for other artifacts
+                            }
+                          });
+                        });
+
+                        return Promise.all(artifactPromises).then((pipelineArtifacts) => {
+                          return this.buildMapper(
+                            pipeline,
+                            pipeline.jobs.edges.map((edge) => edge.node),
+                            pipelineArtifacts,
+                          );
+                        });
                       } else {
                         return this.controller
                           .getPipelineArtifacts(projectId, pipeline.id)

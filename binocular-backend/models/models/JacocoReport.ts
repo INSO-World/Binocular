@@ -4,9 +4,7 @@ import JacocoReportDto from '../../types/dtos/JaCoCoReportDto.ts';
 
 export interface JacocoDataType {
   id: number;
-  node_id: string;
   created_at: string;
-  updated_at: string;
   xmlContent: string;
 }
 

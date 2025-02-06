@@ -6,6 +6,7 @@ import Build from '../../models/models/Build';
 
 import BaseGitLabIndexer from '../BaseGitLabIndexer.js';
 import CIIndexer from './CIIndexer.js';
+import JacocoReport from '../../models/models/JacocoReport';
 
 class GitLabCIIndexer extends BaseGitLabIndexer {
   constructor(repository, progressReporter) {
@@ -18,7 +19,7 @@ class GitLabCIIndexer extends BaseGitLabIndexer {
 
     const projectId = project.path_with_namespace.replaceAll('/', '%2F');
 
-    this.indexer = new CIIndexer(this.reporter, this.gitlab, projectId, (pipeline, jobs) => {
+    this.indexer = new CIIndexer(this.reporter, this.gitlab, projectId, (pipeline, jobs, artifacts) => {
       pipeline.jobs = jobs.map((job) => ({
         id: job.id.replace('gid://gitlab/Ci::Build/', ''),
         name: job.name,
@@ -32,8 +33,25 @@ class GitLabCIIndexer extends BaseGitLabIndexer {
       pipeline.webUrl = this.urlProvider.getPipelineUrl(pipeline.id);
       pipeline.status = pipeline.status.toLowerCase().replace('canceled', 'cancelled');
       pipeline.userFullName = pipeline.user.name;
+      pipeline.artifacts = artifacts;
+
+      // Persist jacoco reports
+      this.persistJacocoReports(artifacts);
+
       return Build.persist(_.mapKeys(pipeline, (v, k) => _.camelCase(k)));
     });
+  }
+
+  persistJacocoReports(artifacts) {
+    for (const artifact of artifacts) {
+      if (artifact.name === 'jacoco.zip') {
+        JacocoReport.persist({
+          id: artifact.id,
+          created_at: artifact.created_at,
+          xmlContent: artifact.xmlContent,
+        });
+      }
+    }
   }
 
   index() {
