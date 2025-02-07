@@ -30,6 +30,7 @@ import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerBu
 import { useEffect, useState } from 'react';
 import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
+import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -56,6 +57,7 @@ function App() {
     filesDataPluginId !== undefined
       ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)
       : undefined;
+  const [fileSearch, setFileSearch] = useState('');
 
   const storedTheme = localStorage.getItem('theme');
   const [theme, setTheme] = useState(storedTheme || 'binocularLight');
@@ -152,8 +154,11 @@ function App() {
                   }
                 }}></DataPluginQuickSelect>
             </TabSection>
+            <TabSection name={'File Search'}>
+              <FileSearch setFileSearch={setFileSearch}></FileSearch>
+            </TabSection>
             <TabSection name={'File Tree'}>
-              <FileList></FileList>
+              <FileList search={fileSearch}></FileList>
             </TabSection>
           </Tab>
           <Tab displayName={'Help'} alignment={'right'}>

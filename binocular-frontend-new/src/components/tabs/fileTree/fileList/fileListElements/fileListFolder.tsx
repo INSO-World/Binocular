@@ -5,6 +5,7 @@ import FolderOpenIcon from '../../../../../assets/folder_open_gray.svg';
 import FileListFile from './fileListFile.tsx';
 import { AppDispatch, useAppDispatch } from '../../../../../redux';
 import { updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
+import { formatName } from '../fileListUtilities/fileTreeUtilities.tsx';
 
 function FileListFolder(props: { folder: FileListElementType; foldedOut: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -26,7 +27,7 @@ function FileListFolder(props: { folder: FileListElementType; foldedOut: boolean
               className={fileListElementsStyles.element}
               onClick={() => dispatch(updateFileListElement({ ...props.folder, foldedOut: false }))}>
               <img src={FolderOpenIcon} alt={`folder open ${props.folder.name}`} />
-              <span>{props.folder.name}</span>
+              <span>{formatName(props.folder.searchTerm, props.folder.name)}</span>
             </div>
           </div>
           <div className={fileListElementsStyles.inset}>
@@ -64,7 +65,7 @@ function FileListFolder(props: { folder: FileListElementType; foldedOut: boolean
             onClick={() => dispatch(updateFileListElement({ ...props.folder, foldedOut: true }))}
             className={fileListElementsStyles.element}>
             <img src={FolderIcon} alt={`folder ${props.folder.name}`} />
-            <span>{props.folder.name}</span>
+            <span>{formatName(props.folder.searchTerm, props.folder.name)}</span>
           </div>
         </div>
       )}
