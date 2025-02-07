@@ -25,6 +25,7 @@ interface Props {
   otherCount: number;
   palette: Palette;
   selectedAuthors: string[];
+  graphSwitch: boolean;
 }
 const mapStateToProps = (state: GlobalState): Props => {
   const bugfixState = state.visualizations.bugfix.state;
@@ -47,6 +48,7 @@ const mapStateToProps = (state: GlobalState): Props => {
     excludeMergeCommits: universalSettings.excludeMergeCommits,
     excludedCommits: universalSettings.excludedCommits,
     excludeCommits: universalSettings.excludeCommits,
+    graphSwitch: bugfixState.config.graphSwitch,
   };
 };
 

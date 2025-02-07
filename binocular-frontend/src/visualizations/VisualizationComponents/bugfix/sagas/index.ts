@@ -23,6 +23,7 @@ export const setFiles = createAction('CO_SET_FILES', (f) => f);
 
 export const setAllBranches = createAction('CO_SET_ALL_BRANCHES', (s) => s); // From me
 export const setBranchOptions = createAction('CO_SET_BRANCH_OPTIONS', (o) => o); // From me
+export const setGraphStyle = createAction('SET_GRAPH_STYLE', (o) => o);
 
 // export default function* () {
 //   yield fork(watchRefreshRequests);
@@ -56,6 +57,7 @@ interface ChangesData {
   lastCommitTimestamp: number;
   firstSignificantTimestamp: number;
   lastSignificantTimestamp: number;
+  graphSwitch: boolean;
 }
 
 export default function* () {

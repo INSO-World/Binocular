@@ -9,6 +9,7 @@ import { Commit } from '../../../../types/commitTypes';
 import ZoomableVerticalBarchart from '../../../../components/ZoomableVerticalBarchart';
 import CommitChangeDisplay from '../../../../components/CommitChangeDisplay';
 import { useState } from 'react';
+import ZoomableVerticalBarchartCommiters from '../../../../components/ZoomableVerticalBarchartCommiters';
 
 interface Props {
   id: number;
@@ -31,6 +32,7 @@ interface Props {
   selectedAuthors: string[];
   size: string;
   universalSettings: boolean;
+  graphSwitch: boolean;
 }
 
 interface CommitChartData {
@@ -42,6 +44,7 @@ interface CommitChartData {
 // TODO: Some caching strategy??? and also fetch new things without the things in cache
 // @ts-ignore
 export default (props: Props) => {
+  console.log('Props in bugfix chart', props);
   const [stateCommit, setStateCommit] = useState({});
   const changeCurrentCommit = (commitSha) => {
     console.log('Clicked on sha', commitSha);
@@ -57,6 +60,8 @@ export default (props: Props) => {
 
   const testDataForChart = prepareTestData(props);
 
+  const commitersTestData = prepareTestDataCommiters(props);
+
   const commitChart = (
     <div className={styles.chartLine}>
       <div className={styles.chart}>
@@ -68,6 +73,19 @@ export default (props: Props) => {
       </div>
     </div>
   );
+
+  const commitChartPerAuthor = (
+    <div className={styles.chartLine}>
+      <div className={styles.chart}>
+        {testDataForChart !== undefined && testDataForChart.length > 0 ? (
+          <ZoomableVerticalBarchartCommiters content={commitersTestData} changeCommit={changeCurrentCommit} />
+        ) : (
+          <div className={styles.errorMessage}>No data during this time period!</div>
+        )}
+      </div>
+    </div>
+  );
+
   const commitViewer =
     Object.keys(stateCommit).length !== 0 ? (
       <CommitChangeDisplay commit={stateCommit} />
@@ -84,7 +102,7 @@ export default (props: Props) => {
   return (
     <div className={styles.chartContainer}>
       {testDataForChart === null && loadingHint}
-      {testDataForChart && commitChart}
+      {testDataForChart && (props.graphSwitch ? commitChart : commitChartPerAuthor)}
       {commitViewer}
     </div>
   );
@@ -129,6 +147,50 @@ const prepareTestData = (props: Props) => {
   }
 
   console.log('Preprocessed commits', out);
+
+  return out;
+};
+
+const prepareTestDataCommiters = (props: Props) => {
+  if (!props.commits || props.commits.length === 0) {
+    return [];
+  }
+  console.log('commits', props.commits);
+  // Prepares the data that is similiar in structure as the real data with only bugfixes
+
+  // Step one: Prepare data used for bars
+  // Structure [{ year: 2019, month: 11, day: 20, bugfixes_count: 5 }, ...] each year,month,day combo is unique and everything is sorted ...
+  const temp: any = {};
+  const commitsSorted = props.commits.sort((a, b) => new Date(a.date) - new Date(b.date));
+  for (const commit of commitsSorted) {
+    if (`${commit['signature'].substring(0, commit['signature'].indexOf('<'))}` in temp) {
+      temp[`${commit['signature'].substring(0, commit['signature'].indexOf('<'))}`]['count'] += 1;
+      temp[`${commit['signature'].substring(0, commit['signature'].indexOf('<'))}`]['commits'].push(commit);
+    } else {
+      temp[`${commit['signature'].substring(0, commit['signature'].indexOf('<'))}`] = { count: 1, commits: [commit] };
+    }
+  }
+  // Also use palette
+  for (const key of Object.keys(props.palette)) {
+    if (key !== 'others') {
+      temp[`${key.substring(0, key.indexOf('<'))}`]['color'] = props.palette[key];
+    }
+  }
+
+  console.log('temp', temp);
+
+  const out: any[] = [];
+
+  for (const k of Object.keys(temp)) {
+    out.push({
+      signature: k,
+      bugfixes_count: temp[k]['count'],
+      commits: temp[k]['commits'],
+      color: temp[k]['color'],
+    });
+  }
+
+  console.log('Preprocessed commits for authors', out);
 
   return out;
 };

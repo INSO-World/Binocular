@@ -98,7 +98,7 @@ export default class CommitChangeDisplay extends React.Component<Props, State> {
               <tr>
                 <td>
                   <strong>Commit summary: </strong>
-                  {this.state.commit.message}
+                  {this.state.commit.messageHeader}
                 </td>
                 <td>
                   <strong>Bug possibly introduced in: </strong>

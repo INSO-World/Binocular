@@ -1,7 +1,7 @@
 'use strict';
 
 import { connect } from 'react-redux';
-import { setActiveFiles, setAllBranches, setBranchOptions, setCurrentBranch, setFiles } from './sagas';
+import { setActiveFiles, setAllBranches, setBranchOptions, setCurrentBranch, setFiles, setGraphStyle } from './sagas';
 import styles from './styles.module.scss';
 import { GlobalState } from '../../../types/globalTypes'; // TODO: check if the file route is correct
 import * as React from 'react';
@@ -25,6 +25,8 @@ const mapStateToProps = (state: GlobalState) => {
   const allBranches = bugfixState.config.allBranches;
   const branchOptions = bugfixState.config.branchOptions;
   const files = bugfixState.config.files;
+
+  console.log('Palette', dashboardState.data.data.palette);
   return {
     committers: dashboardState.data.data.committers,
     resolution: dashboardState.config.chartResolution,
@@ -62,6 +64,9 @@ const mapDispatchToProps = (dispatch: any) => {
     setActiveFiles: (files) => {
       dispatch(setActiveFiles(files));
     },
+    setGraphStyle: (b) => {
+      dispatch(setGraphStyle(b));
+    },
   };
 };
 
@@ -83,6 +88,7 @@ interface Props {
   setFiles: any;
   setActiveFiles: any;
   onSetBranch: (branchName: string, allBranches: any) => void;
+  setGraphStyle: (graphStyleBool: any) => void;
 }
 
 const BugfixConfigComponent = (props: Props) => {
@@ -139,13 +145,27 @@ const BugfixConfigComponent = (props: Props) => {
 
   return (
     <div className={styles.configContainer}>
+      <div className="field">
+        <input
+          id="switchGraphBugfix"
+          type="checkbox"
+          name="switchGraphBugfix"
+          className={'switch is-rounded is-outlined is-info'}
+          defaultChecked={false}
+          onChange={(e) => props.setGraphStyle(e.target.checked)}
+        />
+        <label htmlFor="switchGraphBugfix" className={styles.switch}>
+          Switch Graph Style
+        </label>
+      </div>
       <form>
         {/* select branch, reused code from code-ownership */}
         <div className="field">
           <div className="control">
             <label className="label">Branch:</label>
             <div className="select">
-              <select value={props.currentBranchName} onChange={(e) => props.onSetBranch(e.target.value, props.allBranches)}>
+              <select value={props.currentBranchName}
+                      onChange={(e) => props.onSetBranch(e.target.value, props.allBranches)}>
                 {props.branchOptions}
               </select>
             </div>
@@ -158,7 +178,8 @@ const BugfixConfigComponent = (props: Props) => {
             <p>
               <b>Attention:</b> This branch does <b>not</b> track file renames!
             </p>
-            <p>If you want to track file renames for this branch, add it to the 'fileRenameBranches' array in '.binocularrc'</p>
+            <p>If you want to track file renames for this branch, add it to the 'fileRenameBranches' array in
+              '.binocularrc'</p>
           </>
         )}
 
