@@ -3,6 +3,7 @@ import { FileListElementType } from '../../../../../types/data/fileListType.ts';
 import FileIcon from '../../../../../assets/file_gray.svg';
 import { updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
 import { AppDispatch, useAppDispatch } from '../../../../../redux';
+import { formatName } from '../fileListUtilities/fileTreeUtilities.tsx';
 
 function FileListFile(props: { file: FileListElementType }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -17,7 +18,7 @@ function FileListFile(props: { file: FileListElementType }) {
         />
         <div className={fileListElementsStyles.element}>
           <img src={FileIcon} alt={`folder ${props.file.name}`} />
-          <span>{props.file.name}</span>
+          <span>{formatName(props.file.searchTerm, props.file.name)}</span>
         </div>
       </div>
     </>

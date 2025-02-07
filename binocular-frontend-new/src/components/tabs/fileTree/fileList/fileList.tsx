@@ -3,16 +3,15 @@ import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
 import { FileListElementTypeType } from '../../../../types/data/fileListType.ts';
-import { generateFileTree } from './fileListUtilities/fileTreeUtilities.ts';
+import { filterFileTree, generateFileTree } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
 import { setFileList, setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
 
-function FileList(props: { orientation?: string }) {
+function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();
   const currentDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
-
   const fileLists = useSelector((state: RootState) => state.files.fileLists);
   const fileCounts = useSelector((state: RootState) => state.files.fileCounts);
 
@@ -36,6 +35,7 @@ function FileList(props: { orientation?: string }) {
                       children: generateFileTree(files),
                       checked: true,
                       foldedOut: true,
+                      isRoot: true,
                     },
                     fileCount: files.length,
                   }),
@@ -80,7 +80,7 @@ function FileList(props: { orientation?: string }) {
         <div>{fileCounts[filesDataPluginId]} Files indexed</div>
         <div>
           {fileLists[filesDataPluginId] ? (
-            <FileListFolder folder={fileLists[filesDataPluginId]} foldedOut={true}></FileListFolder>
+            <FileListFolder folder={filterFileTree(fileLists[filesDataPluginId],props.search)} foldedOut={true}></FileListFolder>
           ) : (
             <span className="loading loading-spinner loading-xs text-accent"></span>
           )}

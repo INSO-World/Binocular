@@ -6,8 +6,10 @@ export interface FileListElementType {
   type: FileListElementTypeType;
   element?: DataPluginFile;
   children?: FileListElementType[];
+  searchTerm?: string;
   checked: boolean;
   foldedOut: boolean;
+  isRoot: boolean;
 }
 
 export enum FileListElementTypeType {
