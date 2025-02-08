@@ -26,6 +26,7 @@ interface Props {
   palette: Palette;
   selectedAuthors: string[];
   graphSwitch: boolean;
+  commitersFromGlobalSettings: any;
 }
 const mapStateToProps = (state: GlobalState): Props => {
   const bugfixState = state.visualizations.bugfix.state;
@@ -36,6 +37,7 @@ const mapStateToProps = (state: GlobalState): Props => {
     filteredCommits: bugfixState.data.data.filteredCommits,
     commits: bugfixState.data.data.commits,
     committers: bugfixState.data.data.committers,
+    commitersFromGlobalSettings: universalSettings.allAuthors,
     firstCommitTimestamp: bugfixState.data.data.firstCommitTimestamp,
     lastCommitTimestamp: bugfixState.data.data.lastCommitTimestamp,
     firstSignificantTimestamp: bugfixState.data.data.firstSignificantTimestamp,

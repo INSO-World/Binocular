@@ -33,6 +33,7 @@ interface Props {
   size: string;
   universalSettings: boolean;
   graphSwitch: boolean;
+  commitersFromGlobalSettings: any;
 }
 
 interface CommitChartData {
@@ -171,9 +172,10 @@ const prepareTestDataCommiters = (props: Props) => {
     }
   }
   // Also use palette
-  for (const key of Object.keys(props.palette)) {
-    if (key !== 'others') {
-      temp[`${key.substring(0, key.indexOf('<'))}`]['color'] = props.palette[key];
+  const paletteNew = props.commitersFromGlobalSettings !== undefined ? props.commitersFromGlobalSettings : props.palette;
+  for (const key of Object.keys(paletteNew)) {
+    if (key !== 'other' && key !== 'others') {
+      temp[`${key.substring(0, key.indexOf('<'))}`]['color'] = paletteNew[key];
     }
   }
 
