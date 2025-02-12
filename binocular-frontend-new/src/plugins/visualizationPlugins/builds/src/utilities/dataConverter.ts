@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
 import { Properties } from '../../../simpleVisualizationPlugin/src/interfaces/properties.ts';
-import { BuildSettings } from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
+import { SettingsType } from '../settings/settings.tsx';
 
 interface BuildChartData {
   date: number;
@@ -18,7 +18,7 @@ interface Palette {
 
 export function convertToChartData(
   builds: DataPluginBuild[] | unknown[],
-  props: Properties<BuildSettings, DataPluginBuild>,
+  props: Properties<SettingsType, DataPluginBuild>,
 ): {
   chartData: BuildChartData[];
   scale: number[];
