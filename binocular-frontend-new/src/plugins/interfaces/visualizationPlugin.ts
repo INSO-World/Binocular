@@ -5,8 +5,10 @@ import { SprintType } from '../../types/data/sprintType.ts';
 import { Reducer, Store } from '@reduxjs/toolkit';
 import { ParametersType } from '../../types/parameters/parametersType.ts';
 import { FileListElementType } from '../../types/data/fileListType.ts';
+import { Properties } from '../visualizationPlugins/simpleVisualizationPlugin/src/interfaces/properties.ts';
+import { ChartData, Palette } from '../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
 
-export interface VisualizationPlugin<SettingsType> {
+export interface VisualizationPlugin<SettingsType, DataType> {
   name: string;
   chartComponent: (props: {
     settings: SettingsType; // Interface for settings defines which settings are transported
@@ -15,6 +17,10 @@ export interface VisualizationPlugin<SettingsType> {
     // !!
     // Not every dataPlugin has all capabilities.
     // !!
+    dataConverter: (
+      data: DataType[],
+      props: Properties<SettingsType, DataType>,
+    ) => { chartData: ChartData[]; scale: number[]; palette: Palette };
     authorList: AuthorType[]; //list of Users set by Binocular
     fileList: FileListElementType[]; //list of Users set by Binocular
     sprintList: SprintType[]; //list of Sprints set by Binocular
@@ -23,9 +29,14 @@ export interface VisualizationPlugin<SettingsType> {
     store: Store; //Redux store is needed
     // for creating the redux dispatch within the chart component so that it can change the store.
     // The store gets dynamically created for each visualization item within the components/dashboard/dashboardItem component
+    dataName?: string | undefined;
   }) => ReactNode;
   settingsComponent: (props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) => ReactNode;
   helpComponent: () => ReactNode;
+  dataConverter: (
+    data: DataType[],
+    props: Properties<SettingsType, DataType>,
+  ) => { chartData: ChartData[]; scale: number[]; palette: Palette };
   defaultSettings: unknown;
   export: {
     getSVGData: (chartContainerRef: RefObject<HTMLDivElement>) => string; // method that extracts and returns a svg element as a string from a RefObject
@@ -40,5 +51,5 @@ export interface VisualizationPlugin<SettingsType> {
     thumbnail: string;
   };
   reducer: Reducer;
-  saga: (dataConnection: DataPlugin) => Generator;
+  saga: (dataConnection: DataPlugin, name?: string) => Generator;
 }

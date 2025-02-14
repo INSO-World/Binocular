@@ -97,6 +97,7 @@ function DashboardItem(props: {
     }
   }, [fileLists, props.item.dataPluginId]);
   const [settings, setSettings] = useState(plugin.defaultSettings);
+  const [dataName] = useState(plugin.name);
 
   /**
    * Create Redux Store from Reducer for individual Item and run saga
@@ -108,7 +109,7 @@ function DashboardItem(props: {
       reducer: plugin.reducer,
       middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger),
     });
-    sagaMiddleware.run(() => plugin.saga(dataPlugin));
+    sagaMiddleware.run(() => plugin.saga(dataPlugin, dataName));
   } else {
     store = undefined;
   }
@@ -165,8 +166,10 @@ function DashboardItem(props: {
                       parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
                     }}
                     dataConnection={dataPlugin}
+                    dataConverter={plugin.dataConverter}
                     chartContainerRef={chartContainerRef}
-                    store={store}></plugin.chartComponent>
+                    store={store}
+                    dataName={dataName}></plugin.chartComponent>
                 </ReduxSubAppStoreWrapper>
               </DashboardItemPopout>
             ) : (
@@ -203,8 +206,10 @@ function DashboardItem(props: {
                     parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
                   }}
                   dataConnection={dataPlugin}
+                  dataConverter={plugin.dataConverter}
                   chartContainerRef={chartContainerRef}
-                  store={store}></plugin.chartComponent>
+                  store={store}
+                  dataName={dataName}></plugin.chartComponent>
               </ReduxSubAppStoreWrapper>
             ) : (
               <div>No Data Plugin Selected</div>
