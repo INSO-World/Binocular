@@ -60,6 +60,10 @@ export default (props: Props) => {
       }
     }
   };
+  // TODO: Make the graph update without changing the graph
+  // TODO: Merge authors
+  // TODO: Branches and files
+  // TODO: Delete commits
 
   let preparedCommits: Commit[] = [];
   if (!props.commits || props.commits.length === 0) {
@@ -67,8 +71,23 @@ export default (props: Props) => {
   } else {
     // Sort commits
     preparedCommits = props.commits.sort((a, b) => new Date(a.date) - new Date(b.date));
+    let tempCommits: Commit[] = [];
+    // Filter out commits based on unselected authors
+    // TODO: Assert commiters and selected authors are arrays
+    const excludedAuthors = props.committers.filter((s) => !props.selectedAuthors.includes(s));
+    console.log('Excluded authors', excludedAuthors);
+    for (const commit of preparedCommits) {
+      if (!excludedAuthors.includes(commit.signature)) {
+        tempCommits.push(commit);
+      }
+    }
+    preparedCommits = tempCommits;
+    tempCommits = [];
+
+    // Filter out commits not in the selected branch
+
+
     // Filter based on rules in regexConfig
-    const tempCommits: Commit[] = [];
     const regexCommitMessage = new RegExp('\\b' + props.regexConfig.commitMessage + '\\b', 'i');
     const regexIssueTitle = new RegExp('\\b' + props.regexConfig.issueTitle + '\\b', 'i');
     const regexIssueLabel = new RegExp('\\b' + props.regexConfig.issueLabelName + '\\b', 'i');
