@@ -58,6 +58,10 @@ module.exports = new gql.GraphQLObjectType({
         type: gql.GraphQLString,
         description: 'Web URL of the issue',
       },
+      labels: {
+        type: new gql.GraphQLList(require('./label.js')),
+        description: 'Labels of the issue',
+      },
       createdAt: {
         type: Timestamp,
         description: 'Creation date of the issue',

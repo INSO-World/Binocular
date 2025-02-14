@@ -10,6 +10,7 @@ const commitsToFilesToStakeholders = db._collection('commits-files-stakeholders'
 const commitsToStakeholders = db._collection('commits-stakeholders');
 const CommitsToModules = db._collection('commits-modules');
 const commitsToBuilds = db._collection('commits-builds');
+const issuesToCommits = db._collection('issues-commits');
 const paginated = require('./paginated.js');
 const Timestamp = require('./Timestamp.js');
 
@@ -130,6 +131,19 @@ module.exports = new gql.GraphQLObjectType({
             }`
             )
             .toArray()[0];
+        },
+      },
+      issues: {
+        type: new gql.GraphQLList(require('./issue.js')),
+        description: 'All issue names, webUrls and labels of all unique issues mentioning the commit',
+        resolve: (commit) => {
+          let query = aql`
+                      FOR issue, edge IN
+                      INBOUND ${commit}  ${issuesToCommits}
+                      COLLECT title = issue.title, url = issue.url, labels = issue.labels`;
+
+          query = aql`${query} RETURN {title: title, webUrl: url, labels: labels}`;
+          return db._query(query);
         },
       },
       stakeholder: {
