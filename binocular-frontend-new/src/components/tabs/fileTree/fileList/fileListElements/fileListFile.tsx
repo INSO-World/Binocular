@@ -4,8 +4,9 @@ import FileIcon from '../../../../../assets/file_gray.svg';
 import { showFileTreeElementInfo, updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
 import { AppDispatch, useAppDispatch } from '../../../../../redux';
 import { formatName } from '../fileListUtilities/fileTreeUtilities.tsx';
-import { showContextMenu } from '../../../../contextMenu/contextMenuHelper.ts';
+import { ContextMenuOption, showContextMenu } from '../../../../contextMenu/contextMenuHelper.ts';
 import infoIcon from '../../../../../assets/info_gray.svg';
+import openInNewIcon from '../../../../../assets/open_in_new_gray.svg';
 
 function FileListFile(props: { file: FileTreeElementType; listOnly?: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -13,13 +14,24 @@ function FileListFile(props: { file: FileTreeElementType; listOnly?: boolean }) 
   function openFileContextMenu(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     e.stopPropagation();
-    showContextMenu(e.clientX, e.clientY, [
+
+    const contextMenuOptions: ContextMenuOption[] = [
       {
         label: 'info',
         icon: infoIcon,
         function: () => dispatch(showFileTreeElementInfo(props.file)),
       },
-    ]);
+    ];
+
+    if (props.file.element?.webUrl) {
+      contextMenuOptions.push({
+        label: 'open in browser',
+        icon: openInNewIcon,
+        function: () => window.open(props.file.element?.webUrl, '_blank'),
+      });
+    }
+
+    showContextMenu(e.clientX, e.clientY, contextMenuOptions);
   }
 
   return (
