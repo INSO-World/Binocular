@@ -6,6 +6,7 @@ import Users from './users.ts';
 import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './builds.ts';
+import TimeSpent from './timeSpent.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -21,6 +22,7 @@ class BinocularBackend implements DataPlugin {
   public commits;
   public builds;
   public users;
+  public timeSpent;
   public general;
   public files;
 
@@ -28,6 +30,7 @@ class BinocularBackend implements DataPlugin {
     this.commits = new Commits('/graphQl');
     this.builds = new Builds('/graphQl');
     this.users = new Users('/graphQl');
+    this.timeSpent = new TimeSpent('/graphql');
     this.general = new General('/graphQl', undefined);
     this.files = new Files('/graphQl');
   }
@@ -46,6 +49,7 @@ class BinocularBackend implements DataPlugin {
     this.commits = new Commits(endpoint);
     this.builds = new Builds(endpoint);
     this.users = new Users(endpoint);
+    this.timeSpent = new TimeSpent(endpoint);
     this.general = new General(endpoint, progressUpdateConfig);
     this.files = new Files(endpoint);
   }
