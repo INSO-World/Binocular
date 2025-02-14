@@ -24,6 +24,8 @@ export const setFiles = createAction('CO_SET_FILES', (f) => f);
 export const setAllBranches = createAction('CO_SET_ALL_BRANCHES', (s) => s); // From me
 export const setBranchOptions = createAction('CO_SET_BRANCH_OPTIONS', (o) => o); // From me
 export const setGraphStyle = createAction('SET_GRAPH_STYLE', (o) => o);
+export const setShowFilterMenu = createAction('SET_SHOW_FILTER_MENU', (o) => o);
+export const setRegexConfig = createAction('SET_REGEX_CONFIG', (o) => o);
 
 // export default function* () {
 //   yield fork(watchRefreshRequests);
@@ -58,6 +60,7 @@ interface ChangesData {
   firstSignificantTimestamp: number;
   lastSignificantTimestamp: number;
   graphSwitch: boolean;
+  showFilterMenu: boolean;
 }
 
 export default function* () {

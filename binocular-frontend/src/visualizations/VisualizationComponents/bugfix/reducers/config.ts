@@ -17,6 +17,8 @@ export default handleActions(
     SET_SELECTED_AUTHORS: (state, action: Action<any>) => _.assign({}, state, { selectedAuthors: [...action.payload] }),
     SET_DISPLAY_METRIC: (state, action: Action<any>) => _.assign({}, state, { displayMetric: action.payload }),
     SET_GRAPH_STYLE: (state, action: Action<any>) => _.assign({}, state, { graphSwitch: action.payload }),
+    SET_SHOW_FILTER_MENU: (state, action: Action<any>) => _.assign({}, state, { showFilterMenu: action.payload }),
+    SET_REGEX_CONFIG: (state, action: Action<any>) => _.assign({}, state, { regexConfig: action.payload }),
   },
   {
     //initial state (these are used for dahboard)
@@ -32,5 +34,11 @@ export default handleActions(
     availableAuthors: [], //All authors that should be displayed in CheckBoxLegend, Same format as above
     displayMetric: 'linesChanged', //display metric for Empty-Chart, can be 'linesChanged' or 'commits'
     graphSwitch: false,
+    showFilterMenu: false,
+    regexConfig: {
+      commitMessage: 'bugfix|fixing bug|bug fix',
+      issueTitle: 'bugfix|fixing bug|bug fix',
+      issueLabelName: 'bug',
+    },
   },
 );

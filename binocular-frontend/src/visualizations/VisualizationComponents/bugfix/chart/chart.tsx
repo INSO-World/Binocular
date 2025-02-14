@@ -34,6 +34,7 @@ interface Props {
   universalSettings: boolean;
   graphSwitch: boolean;
   commitersFromGlobalSettings: any;
+  regexConfig: any;
 }
 
 interface CommitChartData {
@@ -45,6 +46,7 @@ interface CommitChartData {
 // TODO: Some caching strategy??? and also fetch new things without the things in cache
 // @ts-ignore
 export default (props: Props) => {
+  console.log('Regex config in chart', props.regexConfig);
   console.log('Props in bugfix chart', props);
   const [stateCommit, setStateCommit] = useState({});
   const changeCurrentCommit = (commitSha) => {
@@ -59,9 +61,45 @@ export default (props: Props) => {
     }
   };
 
-  const testDataForChart = prepareTestData(props);
+  let preparedCommits: Commit[] = [];
+  if (!props.commits || props.commits.length === 0) {
+    preparedCommits = [];
+  } else {
+    // Sort commits
+    preparedCommits = props.commits.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Filter based on rules in regexConfig
+    const tempCommits: Commit[] = [];
+    const regexCommitMessage = new RegExp('\\b' + props.regexConfig.commitMessage + '\\b', 'i');
+    const regexIssueTitle = new RegExp('\\b' + props.regexConfig.issueTitle + '\\b', 'i');
+    const regexIssueLabel = new RegExp('\\b' + props.regexConfig.issueLabelName + '\\b', 'i');
+    for (const commit of preparedCommits) {
+      if (regexCommitMessage.test(commit.message)) {
+        tempCommits.push(commit);
+        continue;
+      }
+      if (commit.issues) {
+        for (const issue of commit.issues) {
+          if (regexIssueTitle.test(issue.title)) {
+            tempCommits.push(commit);
+            break;
+          }
+          if (issue.labels) {
+            for (const label of issue.labels) {
+              if (regexIssueLabel.test(label.name)) {
+                tempCommits.push(commit);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    console.log('Filtered commits', tempCommits);
+    preparedCommits = tempCommits;
+  }
 
-  const commitersTestData = prepareTestDataCommiters(props);
+  const testDataForChart = prepareTestData(preparedCommits);
+  const commitersTestData = prepareTestDataCommiters(preparedCommits, props);
 
   const commitChart = (
     <div className={styles.chartLine}>
@@ -109,17 +147,14 @@ export default (props: Props) => {
   );
 };
 
-const prepareTestData = (props: Props) => {
-  if (!props.commits || props.commits.length === 0) {
+const prepareTestData = (commitsSorted: Commit[]) => {
+  if (!commitsSorted || commitsSorted.length === 0) {
     return [];
   }
-  console.log('commits', props.commits);
-  // Prepares the data that is similiar in structure as the real data with only bugfixes
 
   // Step one: Prepare data used for bars
   // Structure [{ year: 2019, month: 11, day: 20, bugfixes_count: 5 }, ...] each year,month,day combo is unique and everything is sorted ...
   const temp: any = {};
-  const commitsSorted = props.commits.sort((a, b) => new Date(a.date) - new Date(b.date));
   for (const commit of commitsSorted) {
     // Count all commits in that day and add the commit data to the right date
     const date = new Date(commit.date); // converting the string into Date object
@@ -152,17 +187,14 @@ const prepareTestData = (props: Props) => {
   return out;
 };
 
-const prepareTestDataCommiters = (props: Props) => {
-  if (!props.commits || props.commits.length === 0) {
+const prepareTestDataCommiters = (commitsSorted: Commit[], props: Props) => {
+  if (!commitsSorted || commitsSorted.length === 0) {
     return [];
   }
-  console.log('commits', props.commits);
-  // Prepares the data that is similiar in structure as the real data with only bugfixes
 
   // Step one: Prepare data used for bars
   // Structure [{ year: 2019, month: 11, day: 20, bugfixes_count: 5 }, ...] each year,month,day combo is unique and everything is sorted ...
   const temp: any = {};
-  const commitsSorted = props.commits.sort((a, b) => new Date(a.date) - new Date(b.date));
   for (const commit of commitsSorted) {
     if (`${commit['signature'].substring(0, commit['signature'].indexOf('<'))}` in temp) {
       temp[`${commit['signature'].substring(0, commit['signature'].indexOf('<'))}`]['count'] += 1;
@@ -175,7 +207,10 @@ const prepareTestDataCommiters = (props: Props) => {
   const paletteNew = props.commitersFromGlobalSettings !== undefined ? props.commitersFromGlobalSettings : props.palette;
   for (const key of Object.keys(paletteNew)) {
     if (key !== 'other' && key !== 'others') {
-      temp[`${key.substring(0, key.indexOf('<'))}`]['color'] = paletteNew[key];
+      // Check if the author is even in the temp
+      if (key.substring(0, key.indexOf('<')) in temp) {
+        temp[`${key.substring(0, key.indexOf('<'))}`]['color'] = paletteNew[key];
+      }
     }
   }
 

@@ -1,3 +1,5 @@
+import { Issue } from './issuesType.ts';
+
 export interface Commit {
   sha: string;
   shortSha: string;
@@ -9,6 +11,7 @@ export interface Commit {
   parents: string[];
   webUrl: string;
   stats: Stats;
+  issues: Issue[];
 }
 
 interface Stats {

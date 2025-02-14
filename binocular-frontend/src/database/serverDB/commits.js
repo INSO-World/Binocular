@@ -34,6 +34,13 @@ export default class Commits {
                    additions
                    deletions
                  }
+                 issues {
+                    title
+                    webUrl
+                    labels {
+                      name
+                    }
+                }
                }
              }
           }`,

@@ -1,7 +1,16 @@
 'use strict';
 
 import { connect } from 'react-redux';
-import { setActiveFiles, setAllBranches, setBranchOptions, setCurrentBranch, setFiles, setGraphStyle } from './sagas';
+import {
+  setActiveFiles,
+  setAllBranches,
+  setBranchOptions,
+  setCurrentBranch,
+  setFiles,
+  setGraphStyle,
+  setRegexConfig,
+  setShowFilterMenu
+} from './sagas';
 import styles from './styles.module.scss';
 import { GlobalState } from '../../../types/globalTypes'; // TODO: check if the file route is correct
 import * as React from 'react';
@@ -9,6 +18,7 @@ import { useEffect, useState } from 'react';
 import { getBranches, getFilenamesForBranch } from './sagas/helper';
 import Filepicker from '../../../components/Filepicker';
 import { Palette } from '../../../types/authorTypes.ts';
+import FilterManager from './filterManager/filterManager.tsx';
 
 const mapStateToProps = (state: GlobalState) => {
   const dashboardState = state.visualizations.changes.state;
@@ -20,6 +30,7 @@ const mapStateToProps = (state: GlobalState) => {
   const currentBranch = bugfixState.config.currentBranch;
   const currentBranchName = (currentBranch && currentBranch.branch) || undefined;
   const currentActiveFiles = bugfixState.config.activeFiles;
+  const showFilterMenu = bugfixState.config.showFilterMenu;
 
   // State from sagas config
   const allBranches = bugfixState.config.allBranches;
@@ -39,6 +50,8 @@ const mapStateToProps = (state: GlobalState) => {
     allBranches: allBranches,
     currentActiveFiles: currentActiveFiles,
     files: files,
+    showFilterMenu: bugfixState.config.showFilterMenu,
+    regexConfig: bugfixState.config.regexConfig,
   };
 };
 
@@ -67,6 +80,12 @@ const mapDispatchToProps = (dispatch: any) => {
     setGraphStyle: (b) => {
       dispatch(setGraphStyle(b));
     },
+    setShowFilterMenu: (b) => {
+      dispatch(setShowFilterMenu(b));
+    },
+    setRegexConfig: (b) => {
+      dispatch(setRegexConfig(b));
+    },
   };
 };
 
@@ -89,6 +108,10 @@ interface Props {
   setActiveFiles: any;
   onSetBranch: (branchName: string, allBranches: any) => void;
   setGraphStyle: (graphStyleBool: any) => void;
+  setShowFilterMenu: (showFilterMenuBool: any) => void;
+  showFilterMenu: boolean;
+  setRegexConfig: (regexConfig: any) => void;
+  regexConfig: any;
 }
 
 const BugfixConfigComponent = (props: Props) => {
@@ -145,6 +168,17 @@ const BugfixConfigComponent = (props: Props) => {
 
   return (
     <div className={styles.configContainer}>
+      {props.showFilterMenu ? (
+        <FilterManager
+          close={() => {
+            props.setShowFilterMenu(false);
+          }}
+          saveConfig={props.setRegexConfig}
+          filters={props.regexConfig}
+        />
+      ) : (
+        ''
+      )}
       <div className="field">
         <input
           id="switchGraphBugfix"
@@ -158,11 +192,21 @@ const BugfixConfigComponent = (props: Props) => {
           Switch Graph Style
         </label>
       </div>
+      <>
+        <h2>Filters</h2>
+        <button
+          className={'button'}
+          onClick={() => {
+            props.setShowFilterMenu(true);
+          }}>
+          Manage Filters for Bugfixes
+        </button>
+      </>
       <form>
         {/* select branch, reused code from code-ownership */}
         <div className="field">
           <div className="control">
-            <label className="label">Branch:</label>
+            <label className="label">Branch (by default all bugfixes for all branches/files are shown):</label>
             <div className="select">
               <select value={props.currentBranchName}
                       onChange={(e) => props.onSetBranch(e.target.value, props.allBranches)}>
