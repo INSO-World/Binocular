@@ -1,4 +1,4 @@
-interface ContextMenuOption {
+export interface ContextMenuOption {
   label: string;
   icon: string | null;
   function: () => void;

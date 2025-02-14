@@ -5,6 +5,7 @@ import FileListFolder from '../fileList/fileListElements/fileListFolder.tsx';
 import { filterFileTree } from '../fileList/fileListUtilities/fileTreeUtilities.tsx';
 import FileSearch from '../fileSearch/fileSearch.tsx';
 import { useState } from 'react';
+import FileTreeElementInfoDialogStyled from './fileTreeElementInfoDialog.module.scss';
 
 function FileTreeElementInfoDialog() {
   const selectedFileTreeElement: FileTreeElementType | undefined = useSelector((state: RootState) => state.files.selectedFileTreeElement);
@@ -47,7 +48,9 @@ function FileTreeElementInfoDialog() {
                 <div>{selectedFileTreeElement.element.maxLength}</div>
                 <h2>Url</h2>
                 <div>
-                  <a href={selectedFileTreeElement.element.webUrl}>{selectedFileTreeElement.element.webUrl}</a>
+                  <a href={selectedFileTreeElement.element.webUrl} target="_blank" rel="noreferrer">
+                    {selectedFileTreeElement.element.webUrl}
+                  </a>
                 </div>
               </>
             )}
@@ -56,10 +59,12 @@ function FileTreeElementInfoDialog() {
               <>
                 <h2>Folder Content</h2>
                 <FileSearch setFileSearch={setFileSearch}></FileSearch>
-                <FileListFolder
-                  folder={filterFileTree(selectedFileTreeElement, fileSearch)}
-                  foldedOut={true}
-                  listOnly={true}></FileListFolder>
+                <div className={FileTreeElementInfoDialogStyled.FolderContentContainer}>
+                  <FileListFolder
+                    folder={filterFileTree(selectedFileTreeElement, fileSearch)}
+                    foldedOut={true}
+                    listOnly={true}></FileListFolder>
+                </div>
               </>
             )}
           </>
