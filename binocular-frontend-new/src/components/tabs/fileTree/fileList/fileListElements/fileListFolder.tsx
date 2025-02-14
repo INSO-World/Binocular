@@ -1,5 +1,5 @@
 import fileListElementsStyles from './fileListElements.module.scss';
-import { FileListElementType, FileListElementTypeType } from '../../../../../types/data/fileListType.ts';
+import { FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType.ts';
 import FolderIcon from '../../../../../assets/folder_gray.svg';
 import FolderOpenIcon from '../../../../../assets/folder_open_gray.svg';
 import FileListFile from './fileListFile.tsx';
@@ -7,7 +7,7 @@ import { AppDispatch, useAppDispatch } from '../../../../../redux';
 import { updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
 import { formatName } from '../fileListUtilities/fileTreeUtilities.tsx';
 
-function FileListFolder(props: { folder: FileListElementType; foldedOut: boolean }) {
+function FileListFolder(props: { folder: FileTreeElementType; foldedOut: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
 
   return (
@@ -43,9 +43,9 @@ function FileListFolder(props: { folder: FileListElementType; foldedOut: boolean
                   }
                   return 0;
                 })
-                .sort((e) => (e.type === FileListElementTypeType.Folder ? -1 : 1))
+                .sort((e) => (e.type === FileTreeElementTypeType.Folder ? -1 : 1))
                 .map((element, i) => {
-                  if (element.type === FileListElementTypeType.Folder && element.children) {
+                  if (element.type === FileTreeElementTypeType.Folder && element.children) {
                     return <FileListFolder key={`fileListElement${i}`} folder={element} foldedOut={false}></FileListFolder>;
                   } else {
                     return <FileListFile key={`fileListElement${i}`} file={element}></FileListFile>;

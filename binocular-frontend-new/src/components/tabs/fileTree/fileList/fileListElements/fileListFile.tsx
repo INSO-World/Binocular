@@ -1,11 +1,11 @@
 import fileListElementsStyles from './fileListElements.module.scss';
-import { FileListElementType } from '../../../../../types/data/fileListType.ts';
+import { FileTreeElementType } from '../../../../../types/data/fileListType.ts';
 import FileIcon from '../../../../../assets/file_gray.svg';
 import { updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
 import { AppDispatch, useAppDispatch } from '../../../../../redux';
 import { formatName } from '../fileListUtilities/fileTreeUtilities.tsx';
 
-function FileListFile(props: { file: FileListElementType }) {
+function FileListFile(props: { file: FileTreeElementType }) {
   const dispatch: AppDispatch = useAppDispatch();
   return (
     <>
