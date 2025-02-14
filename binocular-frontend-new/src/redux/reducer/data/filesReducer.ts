@@ -7,6 +7,7 @@ export interface FilesInitialState {
   fileLists: { [id: number]: FileListElementType[] };
   fileCounts: { [id: number]: number };
   dataPluginId: number | undefined;
+  selectedFileTreeElement?: FileTreeElementType;
 }
 
 const initialState: FilesInitialState = {
@@ -14,6 +15,7 @@ const initialState: FilesInitialState = {
   fileLists: {},
   fileCounts: {},
   dataPluginId: undefined,
+  selectedFileTreeElement: undefined,
 };
 
 export const filesSlice = createSlice({
@@ -51,10 +53,14 @@ export const filesSlice = createSlice({
       });
       localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
+    showFileTreeElementInfo: (state, action: PayloadAction<FileTreeElementType>) => {
+      (document.getElementById('fileTreeElementInfoDialog') as HTMLDialogElement).showModal();
+      state.selectedFileTreeElement = action.payload;
+    },
   },
 });
 
-export const { setFilesDataPluginId, setFileList, updateFileListElement } = filesSlice.actions;
+export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo } = filesSlice.actions;
 export default filesSlice.reducer;
 
 function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
