@@ -14,7 +14,6 @@ function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();
   const currentDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const fileTrees = useSelector((state: RootState) => state.files.fileTrees);
-  const fileLists = useSelector((state: RootState) => state.files.fileLists);
   const fileCounts = useSelector((state: RootState) => state.files.fileCounts);
 
   const filesDataPluginId = useSelector((state: RootState) => state.files.dataPluginId);
@@ -75,7 +74,6 @@ function FileList(props: { orientation?: string; search: string }) {
     }
   });
 
-  console.log(fileLists[filesDataPluginId]);
   return (
     <>
       <div
