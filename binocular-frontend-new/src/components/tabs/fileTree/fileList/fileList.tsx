@@ -2,16 +2,18 @@ import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
-import { FileListElementTypeType } from '../../../../types/data/fileListType.ts';
+import { FileTreeElementTypeType } from '../../../../types/data/fileListType.ts';
 import { filterFileTree, generateFileTree } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
 import { setFileList, setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
+import { DataPluginFile } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();
   const currentDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const fileTrees = useSelector((state: RootState) => state.files.fileTrees);
   const fileLists = useSelector((state: RootState) => state.files.fileLists);
   const fileCounts = useSelector((state: RootState) => state.files.fileCounts);
 
@@ -29,15 +31,20 @@ function FileList(props: { orientation?: string; search: string }) {
                 dispatch(
                   setFileList({
                     dataPluginId: dP.id !== undefined ? dP.id : -1,
-                    files: {
+                    fileTree: {
                       name: '/',
-                      type: FileListElementTypeType.Folder,
+                      type: FileTreeElementTypeType.Folder,
                       children: generateFileTree(files),
                       checked: true,
                       foldedOut: true,
                       isRoot: true,
                     },
-                    fileCount: files.length,
+                    files: files.map((f: DataPluginFile) => {
+                      return {
+                        element: f,
+                        checked: true,
+                      };
+                    }),
                   }),
                 ),
               )
@@ -68,6 +75,7 @@ function FileList(props: { orientation?: string; search: string }) {
     }
   });
 
+  console.log(fileLists[filesDataPluginId]);
   return (
     <>
       <div
@@ -79,8 +87,8 @@ function FileList(props: { orientation?: string; search: string }) {
         }>
         <div>{fileCounts[filesDataPluginId]} Files indexed</div>
         <div>
-          {fileLists[filesDataPluginId] ? (
-            <FileListFolder folder={filterFileTree(fileLists[filesDataPluginId],props.search)} foldedOut={true}></FileListFolder>
+          {fileTrees[filesDataPluginId] ? (
+            <FileListFolder folder={filterFileTree(fileTrees[filesDataPluginId], props.search)} foldedOut={true}></FileListFolder>
           ) : (
             <span className="loading loading-spinner loading-xs text-accent"></span>
           )}

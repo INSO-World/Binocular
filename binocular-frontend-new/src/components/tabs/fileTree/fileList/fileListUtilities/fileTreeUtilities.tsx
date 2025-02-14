@@ -1,8 +1,8 @@
-import { FileListElementType, FileListElementTypeType } from '../../../../../types/data/fileListType.ts';
+import { FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType.ts';
 import { DataPluginFile } from '../../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import fileListElementsStyles from '../fileListElements/fileListElements.module.scss';
 
-export function generateFileTree(files: DataPluginFile[]): FileListElementType[] {
+export function generateFileTree(files: DataPluginFile[]): FileTreeElementType[] {
   return convertData(files).content;
 }
 
@@ -18,7 +18,7 @@ function convertData(files: DataPluginFile[]) {
   return convertedData;
 }
 
-function genPathObjectString(convertedData: FileListElementType[], pathParts: string[], file: DataPluginFile, id: number) {
+function genPathObjectString(convertedData: FileTreeElementType[], pathParts: string[], file: DataPluginFile, id: number) {
   const currElm = pathParts.shift();
   id++;
   if (currElm) {
@@ -26,7 +26,7 @@ function genPathObjectString(convertedData: FileListElementType[], pathParts: st
       convertedData.push({
         name: currElm,
         id: id,
-        type: FileListElementTypeType.File,
+        type: FileTreeElementTypeType.File,
         checked: true,
         element: file,
         foldedOut: false,
@@ -38,7 +38,7 @@ function genPathObjectString(convertedData: FileListElementType[], pathParts: st
         elem = {
           name: currElm,
           id: id,
-          type: FileListElementTypeType.Folder,
+          type: FileTreeElementTypeType.Folder,
           children: [],
           checked: true,
           foldedOut: false,
@@ -58,21 +58,21 @@ function genPathObjectString(convertedData: FileListElementType[], pathParts: st
   return id;
 }
 
-export function filterFileTree(fileTree: FileListElementType, search: string): FileListElementType {
+export function filterFileTree(fileTree: FileTreeElementType, search: string): FileTreeElementType {
   if (fileTree.children) {
     return {
       ...fileTree,
       searchTerm: search,
       children: fileTree.children
         ?.map((child) => {
-          if (child.type === FileListElementTypeType.Folder) {
+          if (child.type === FileTreeElementTypeType.Folder) {
             return filterFileTree(child, search);
           } else {
             return { ...child, searchTerm: search };
           }
         })
         .filter((child) => {
-          if (child.type === FileListElementTypeType.Folder && child.children) {
+          if (child.type === FileTreeElementTypeType.Folder && child.children) {
             return child.children.length > 0;
           }
           return child.element?.path.toLowerCase().includes(search.toLowerCase());

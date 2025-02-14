@@ -1,14 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
-import { FileListElementType } from '../../../types/data/fileListType.ts';
+import { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
 
 export interface FilesInitialState {
-  fileLists: { [id: number]: FileListElementType };
+  fileTrees: { [id: number]: FileTreeElementType };
+  fileLists: { [id: number]: FileListElementType[] };
   fileCounts: { [id: number]: number };
   dataPluginId: number | undefined;
 }
 
 const initialState: FilesInitialState = {
+  fileTrees: {},
   fileLists: {},
   fileCounts: {},
   dataPluginId: undefined,
@@ -26,11 +28,12 @@ export const filesSlice = createSlice({
     }
   },
   reducers: {
-    setFileList: (state, action: PayloadAction<{ dataPluginId: number; files: FileListElementType; fileCount: number }>) => {
+    setFileList: (state, action: PayloadAction<{ dataPluginId: number; fileTree: FileTreeElementType; files: FileListElementType[] }>) => {
       const fileCount: number = state.fileCounts[action.payload.dataPluginId];
-      if (fileCount === undefined || fileCount !== action.payload.fileCount) {
+      if (fileCount === undefined || fileCount !== action.payload.files.length) {
+        state.fileTrees[action.payload.dataPluginId] = action.payload.fileTree;
+        state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
         state.fileLists[action.payload.dataPluginId] = action.payload.files;
-        state.fileCounts[action.payload.dataPluginId] = action.payload.fileCount;
       }
       localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
@@ -38,9 +41,14 @@ export const filesSlice = createSlice({
       state.dataPluginId = action.payload;
       localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
-    updateFileListElement: (state, action: PayloadAction<FileListElementType>) => {
-      state.fileLists[state.dataPluginId] = updateFileListElementRecursive(state.fileLists[state.dataPluginId], action.payload);
-
+    updateFileListElement: (state, action: PayloadAction<FileTreeElementType>) => {
+      const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId], action.payload);
+      state.fileLists[state.dataPluginId] = state.fileLists[state.dataPluginId].map((f: FileListElementType) => {
+        if (updatedPaths.includes(f.element.path)) {
+          f.checked = action.payload.checked;
+        }
+        return f;
+      });
       localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
   },
@@ -49,24 +57,27 @@ export const filesSlice = createSlice({
 export const { setFilesDataPluginId, setFileList, updateFileListElement } = filesSlice.actions;
 export default filesSlice.reducer;
 
-function updateFileListElementRecursive(
-  fileList: FileListElementType,
-  element: FileListElementType,
-  checked?: boolean,
-): FileListElementType {
-  if (fileList.children) {
-    fileList.children = fileList.children.map((f: FileListElementType) => {
+function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
+  const updatedPaths: string[] = [];
+  if (fileTree.children) {
+    fileTree.children = fileTree.children.map((f: FileTreeElementType) => {
       let elementChecked = checked;
       if (f.id === element.id) {
+        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
+          updatedPaths.push(f.element.path);
+        }
         elementChecked = element.checked;
         f.foldedOut = element.foldedOut;
       }
       if (elementChecked !== undefined) {
+        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
+          updatedPaths.push(f.element.path);
+        }
         f.checked = elementChecked;
       }
-      updateFileListElementRecursive(f, element, elementChecked);
+      updatedPaths.push(...updateFileTreeRecursive(f, element, elementChecked));
       return f;
     });
   }
-  return fileList;
+  return updatedPaths;
 }
