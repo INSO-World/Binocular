@@ -7,7 +7,7 @@ import Dashboard from './components/dashboard/dashboard.tsx';
 import TabSection from './components/tabMenu/tabSection/tabSection.tsx';
 import DateRange from './components/tabs/parameters/dataRange/dateRange.tsx';
 import ParametersGeneral from './components/tabs/parameters/parametersGeneral/parametersGeneral.tsx';
-import VisualizationSelector from './components/tabs/components/visualizationSelector/visualizationSelector.tsx';
+import VisualizationSelector from './components/tabs/visualizations/visualizationSelector/visualizationSelector.tsx';
 import AuthorList from './components/tabs/authors/authorList/authorList.tsx';
 import OtherAuthors from './components/tabs/authors/otherAuthors/otherAuthors.tsx';
 import TabControllerButton from './components/tabMenu/tabControllerButton/tabControllerButton.tsx';
@@ -30,6 +30,7 @@ import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerBu
 import { useEffect, useState } from 'react';
 import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
+import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -56,6 +57,7 @@ function App() {
     filesDataPluginId !== undefined
       ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)
       : undefined;
+  const [fileSearch, setFileSearch] = useState('');
 
   const storedTheme = localStorage.getItem('theme');
   const [theme, setTheme] = useState(storedTheme || 'binocularLight');
@@ -112,7 +114,7 @@ function App() {
                 setParametersGeneral={(parametersGeneral) => dispatch(setParametersGeneral(parametersGeneral))}></ParametersGeneral>
             </TabSection>
           </Tab>
-          <Tab displayName={'Components'} alignment={'top'}>
+          <Tab displayName={'Visualizations'} alignment={'top'}>
             <TabSection name={'Visualization Selector'}>
               <VisualizationSelector></VisualizationSelector>
             </TabSection>
@@ -152,8 +154,11 @@ function App() {
                   }
                 }}></DataPluginQuickSelect>
             </TabSection>
+            <TabSection name={'File Search'}>
+              <FileSearch setFileSearch={setFileSearch}></FileSearch>
+            </TabSection>
             <TabSection name={'File Tree'}>
-              <FileList></FileList>
+              <FileList search={fileSearch}></FileList>
             </TabSection>
           </Tab>
           <Tab displayName={'Help'} alignment={'right'}>

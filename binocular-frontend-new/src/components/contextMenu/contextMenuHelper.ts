@@ -1,4 +1,4 @@
-interface ContextMenuOption {
+export interface ContextMenuOption {
   label: string;
   icon: string | null;
   function: () => void;
@@ -19,7 +19,7 @@ export function showContextMenu(x: number, y: number, options: ContextMenuOption
     const optionLabel = document.createElement('span');
     optionLabel.textContent = o.label;
 
-    const optionButton = document.createElement('a');
+    const optionButton = document.createElement('span');
     optionButton.addEventListener('click', o.function);
     optionButton.appendChild(optionIcon);
     optionButton.appendChild(optionLabel);
