@@ -1,25 +1,28 @@
-export interface DefaultSettings {
+export interface SettingsType {
+  splitAdditionsDeletions: boolean;
   visualizationStyle: string;
   showSprints: boolean;
 }
 
-export interface BuildSettings extends DefaultSettings {
-  splitBuildsPerAuthor: boolean;
-}
-
-export interface ChangesSettings extends DefaultSettings {
-  splitAdditionsDeletions: boolean;
-}
-
-export interface TimeSpentSettings extends DefaultSettings {
-  splitAdditionsDeletions: boolean;
-}
-
-// TODO this function is currently ignored, generalization should be done for the basic settings as well
-function Settings(props: { settings: DefaultSettings; setSettings: (newSettings: DefaultSettings) => void }) {
+function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) {
   return (
     <>
       <div>
+        <label className="label cursor-pointer">
+          <span className="label-text">Split Additions and Deletions:</span>
+          <input
+            type="checkbox"
+            className="toggle toggle-accent toggle-sm"
+            defaultChecked={props.settings.splitAdditionsDeletions}
+            onChange={(event) =>
+              props.setSettings({
+                splitAdditionsDeletions: event.target.checked,
+                visualizationStyle: props.settings.visualizationStyle,
+                showSprints: props.settings.showSprints,
+              })
+            }
+          />
+        </label>
         <label className="form-control w-full max-w-xs">
           <div className="label">
             <span className="label-text">Visualization Style:</span>
@@ -29,6 +32,7 @@ function Settings(props: { settings: DefaultSettings; setSettings: (newSettings:
             defaultValue={props.settings.visualizationStyle}
             onChange={(e) =>
               props.setSettings({
+                splitAdditionsDeletions: props.settings.splitAdditionsDeletions,
                 visualizationStyle: e.target.value,
                 showSprints: props.settings.showSprints,
               })
@@ -46,6 +50,7 @@ function Settings(props: { settings: DefaultSettings; setSettings: (newSettings:
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
+                splitAdditionsDeletions: props.settings.splitAdditionsDeletions,
                 visualizationStyle: props.settings.visualizationStyle,
                 showSprints: event.target.checked,
               })
