@@ -17,6 +17,6 @@ export interface FileTreeElementType {
 }
 
 export enum FileTreeElementTypeType {
-  Folder,
-  File,
+  Folder = 'Folder',
+  File = 'File',
 }

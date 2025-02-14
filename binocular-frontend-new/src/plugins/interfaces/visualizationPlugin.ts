@@ -4,6 +4,7 @@ import { AuthorType } from '../../types/data/authorType.ts';
 import { SprintType } from '../../types/data/sprintType.ts';
 import { Reducer, Store } from '@reduxjs/toolkit';
 import { ParametersType } from '../../types/parameters/parametersType.ts';
+import { FileListElementType } from '../../types/data/fileListType.ts';
 
 export interface VisualizationPlugin<SettingsType> {
   name: string;
@@ -15,6 +16,7 @@ export interface VisualizationPlugin<SettingsType> {
     // Not every dataPlugin has all capabilities.
     // !!
     authorList: AuthorType[]; //list of Users set by Binocular
+    fileList: FileListElementType[]; //list of Users set by Binocular
     sprintList: SprintType[]; //list of Sprints set by Binocular
     parameters: ParametersType; // General Parameters Provided By Binocular
     chartContainerRef: RefObject<HTMLDivElement>; //forwarded ref that should reference the chart div

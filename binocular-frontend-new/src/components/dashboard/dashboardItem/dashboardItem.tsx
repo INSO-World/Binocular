@@ -42,6 +42,7 @@ function DashboardItem(props: {
   const [poppedOut, setPoppedOut] = useState(false);
 
   const authorLists = useSelector((state: RootState) => state.authors.authorLists);
+  const fileLists = useSelector((state: RootState) => state.files.fileLists);
   const sprintList = useSelector((state: RootState) => state.sprints.sprintList);
   const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
@@ -89,7 +90,12 @@ function DashboardItem(props: {
       setAuthors(authorLists[props.item.dataPluginId]);
     }
   }, [authorLists, props.item.dataPluginId]);
-
+  const [files, setFiles] = useState([]);
+  useEffect(() => {
+    if (props.item.dataPluginId !== undefined) {
+      setFiles(fileLists[props.item.dataPluginId]);
+    }
+  }, [fileLists, props.item.dataPluginId]);
   const [settings, setSettings] = useState(plugin.defaultSettings);
 
   /**
@@ -152,6 +158,7 @@ function DashboardItem(props: {
                     key={plugin.name}
                     settings={settings}
                     authorList={authors}
+                    fileList={files}
                     sprintList={sprintList}
                     parameters={{
                       parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
@@ -189,6 +196,7 @@ function DashboardItem(props: {
                   key={plugin.name}
                   settings={settings}
                   authorList={authors}
+                  fileList={files}
                   sprintList={sprintList}
                   parameters={{
                     parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
