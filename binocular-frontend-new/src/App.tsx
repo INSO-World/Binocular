@@ -7,7 +7,7 @@ import Dashboard from './components/dashboard/dashboard.tsx';
 import TabSection from './components/tabMenu/tabSection/tabSection.tsx';
 import DateRange from './components/tabs/parameters/dataRange/dateRange.tsx';
 import ParametersGeneral from './components/tabs/parameters/parametersGeneral/parametersGeneral.tsx';
-import VisualizationSelector from './components/tabs/components/visualizationSelector/visualizationSelector.tsx';
+import VisualizationSelector from './components/tabs/visualizations/visualizationSelector/visualizationSelector.tsx';
 import AuthorList from './components/tabs/authors/authorList/authorList.tsx';
 import OtherAuthors from './components/tabs/authors/otherAuthors/otherAuthors.tsx';
 import TabControllerButton from './components/tabMenu/tabControllerButton/tabControllerButton.tsx';
@@ -114,7 +114,7 @@ function App() {
                 setParametersGeneral={(parametersGeneral) => dispatch(setParametersGeneral(parametersGeneral))}></ParametersGeneral>
             </TabSection>
           </Tab>
-          <Tab displayName={'Components'} alignment={'top'}>
+          <Tab displayName={'Visualizations'} alignment={'top'}>
             <TabSection name={'Visualization Selector'}>
               <VisualizationSelector></VisualizationSelector>
             </TabSection>
