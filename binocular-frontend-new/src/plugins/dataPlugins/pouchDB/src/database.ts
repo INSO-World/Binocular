@@ -27,41 +27,43 @@ export default class Database {
           return new Promise((resolve) => {
             const jszip = new JSZip();
             let collectionsImported = 0;
-            jszip
-              .loadAsync(file.file)
-              .then((zip) => {
-                const dbCollectionCount = Object.keys(zip.files).length;
-                zip.forEach((fileName: string) => {
-                  zip
-                    .file(fileName)
-                    ?.async('string')
-                    .then((content) => {
-                      const name = fileName.slice(0, fileName.length - 5).split('/')[1];
-                      const JSONContent = JSON.parse(content);
-                      if (name.includes('-')) {
-                        this.importEdge(name, JSONContent)
-                          .then(() => {
-                            collectionsImported++;
-                            if (collectionsImported >= dbCollectionCount) {
-                              resolve(true);
-                            }
-                          })
-                          .catch((e) => console.log(e));
-                      } else {
-                        this.importDocument(name, JSONContent)
-                          .then(() => {
-                            collectionsImported++;
-                            if (collectionsImported >= dbCollectionCount) {
-                              resolve(true);
-                            }
-                          })
-                          .catch((e) => console.log(e));
-                      }
-                    })
-                    .catch((e) => console.log(e));
-                });
-              })
-              .catch((e) => console.log(e));
+            if (file.file) {
+              jszip
+                .loadAsync(file.file)
+                .then((zip) => {
+                  const dbCollectionCount = Object.keys(zip.files).length;
+                  zip.forEach((fileName: string) => {
+                    zip
+                      .file(fileName)
+                      ?.async('string')
+                      .then((content) => {
+                        const name = fileName.slice(0, fileName.length - 5).split('/')[1];
+                        const JSONContent = JSON.parse(content);
+                        if (name.includes('-')) {
+                          this.importEdge(name, JSONContent)
+                            .then(() => {
+                              collectionsImported++;
+                              if (collectionsImported >= dbCollectionCount) {
+                                resolve(true);
+                              }
+                            })
+                            .catch((e) => console.log(e));
+                        } else {
+                          this.importDocument(name, JSONContent)
+                            .then(() => {
+                              collectionsImported++;
+                              if (collectionsImported >= dbCollectionCount) {
+                                resolve(true);
+                              }
+                            })
+                            .catch((e) => console.log(e));
+                        }
+                      })
+                      .catch((e) => console.log(e));
+                  });
+                })
+                .catch((e) => console.log(e));
+            }
           });
         } else if (newDatabaseInitialized && file.dbObjects !== undefined) {
           return new Promise((resolve) => {

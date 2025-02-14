@@ -36,32 +36,39 @@ function AuthorList(props: { orientation?: string }) {
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
-    DataPluginStorage.getDataPlugin(dP)
-      .then((dataPlugin) => {
-        if (dataPlugin) {
-          dataPlugin.users
-            .getAll()
-            .then((users: DataPluginUser[]) => {
-              const colors = distinctColors({ count: users.length, lightMin: 50 });
-              dispatch(
-                setAuthorList({
-                  dataPluginId: dP.id !== undefined ? dP.id : -1,
-                  authors: users.map((user, i) => {
-                    return {
-                      user: user,
-                      id: 0, // real id gets set in reducer
-                      parent: -1,
-                      color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
-                      selected: true,
-                    };
+    if (dP && dP.id !== undefined) {
+      console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
+      DataPluginStorage.getDataPlugin(dP)
+        .then((dataPlugin) => {
+          if (dataPlugin) {
+            dataPlugin.users
+              .getAll()
+              .then((users: DataPluginUser[]) => {
+                const colors = distinctColors({ count: users.length, lightMin: 50 });
+                dispatch(
+                  setAuthorList({
+                    dataPluginId: dP.id !== undefined ? dP.id : -1,
+                    authors: users.map((user, i) => {
+                      return {
+                        user: user,
+                        id: 0, // real id gets set in reducer
+                        parent: -1,
+                        color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
+                        selected: true,
+                      };
+                    }),
                   }),
-                }),
-              );
-            })
-            .catch(() => console.log('Error loading Users from selected data source!'));
-        }
-      })
-      .catch((e) => console.log(e));
+                );
+              })
+              .catch(() => console.log('Error loading Users from selected data source!'));
+          }
+        })
+        .catch((e) => console.log(e));
+    } else {
+      if (configuredDataPlugins.length > 0) {
+        dispatch(setAuthorsDataPluginId(configuredDataPlugins[0].id));
+      }
+    }
   }
 
   useEffect(() => {
@@ -69,13 +76,10 @@ function AuthorList(props: { orientation?: string }) {
       dispatch(setAuthorsDataPluginId(undefined));
     }
     configuredDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
-      console.log(dP);
       if (authorsDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
         dispatch(setAuthorsDataPluginId(dP.id));
       }
-      if (dP && dP.id !== undefined) {
-        refreshAuthors(dP);
-      }
+      refreshAuthors(dP);
     });
   }, [configuredDataPlugins]);
 
@@ -87,13 +91,8 @@ function AuthorList(props: { orientation?: string }) {
     if (authorsDataPluginId) {
       if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
         if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === authorsDataPluginId) {
-          const dP = globalStore
-            .getState()
-            .settings.database.dataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
-          if (dP) {
-            console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
-            refreshAuthors(dP);
-          }
+          const dP = configuredDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
+          refreshAuthors(dP);
         }
       }
     }

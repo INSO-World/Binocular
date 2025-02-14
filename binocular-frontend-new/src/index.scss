@@ -17,6 +17,10 @@
     @apply text-lg;
     @apply underline;
   }
+  a {
+    @apply text-accent;
+    @apply underline;
+  }
 }
 @tailwind components;
 @tailwind utilities;
