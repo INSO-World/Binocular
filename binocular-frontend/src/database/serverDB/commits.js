@@ -164,6 +164,54 @@ export default class Commits {
     });
   }
 
+  static getCommitDataWithCategoriesAndWebUrl(commitSpan, significantSpan, page, pageSize, tags, withoutTags) {
+    const significantSince = significantSpan[0];
+    const significantUntil = significantSpan[1];
+    const getCommitsPage = (since, until) => (page, perPage) => {
+      return graphQl
+        .query(
+          `query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp) {
+             commits(page: $page, perPage: $perPage, since: $since, until: $until
+             ${tags !== undefined ? ', tags: ' + JSON.stringify(tags) : ''}
+             ${withoutTags !== undefined ? ', withoutTags: ' + withoutTags : ''}
+             ) {
+               count
+               page
+               perPage
+               data {
+                 sha
+                 shortSha
+                 messageHeader
+                 message
+                 tags
+                 branch
+                 date
+                 webUrl
+               }
+             }
+           }`,
+          { page, perPage, since, until },
+        )
+        .then((resp) => resp.commits);
+    };
+
+    const sinceDate = new Date(significantSince).toISOString();
+    const untilDate = new Date(significantUntil).toISOString();
+
+    console.log('Fetching commits with parameters:', {
+      page,
+      pageSize,
+      sinceDate,
+      untilDate,
+    });
+    return getCommitsPage(sinceDate, untilDate)(page, pageSize).then((response) => {
+      return {
+        data: response.data,
+        totalCount: response.count,
+      };
+    });
+  }
+
   static getCommitsForFiles(filenames, omitFiles) {
     return graphQl
       .query(

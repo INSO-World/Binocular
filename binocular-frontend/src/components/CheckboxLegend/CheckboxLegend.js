@@ -11,7 +11,7 @@ const ICON_WIDTH = 15;
 const ICON_HEIGHT = 15;
 
 /**
- * Legend with each entry containing a color, a checkbox and a name. Used for filtering of series in a chart.
+ * Legend with each entry containing a color, a checkbox and a name. Used for filtering of series in a list.
  * Takes the following props:
  *  - palette (Format: {seriesName1: color, sseriesName2: color, ...})
  *            Color palette with the keys being the names that should be displayed.

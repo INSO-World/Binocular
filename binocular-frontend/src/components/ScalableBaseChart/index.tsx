@@ -22,7 +22,7 @@ import { Palette } from '../../types/authorTypes';
  *  - d3offset (Format: d3.stackOffsetNone/d3.stackOffsetDiverging/d3.stackOffsetSilhouette/...
  *             determines the way data is stacked, check d3 docs)
  *  - keys (optional) (Format: [seriesName1, seriesName2, ...])
- *             Filters the chart, only showing the provided keys and leaving everything else out.
+ *             Filters the list, only showing the provided keys and leaving everything else out.
  *  - resolution (Format: 'years'/'months'/'weeks'/'days') Needed for date format in tooltips.
  *  - displayNegative (optional) (Format: true/false) Display negative numbers on y-scale.
  *  - order (optional) (Format: [string, string, ...]) Strings containing the keys in desired order (largest to smallest).
@@ -114,10 +114,10 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
   }
 
   /**
-   * Calculate data for the chart.
+   * Calculate data for the list.
    * @param data Chart data in the format [{date: timestamp(ms), series1: value, series2: value, series3: value, series4: value, ...}, ...]
    * @param order
-   * @returns Stacked chart data for d3 functions and preprocessed data { stackedData, data }
+   * @returns Stacked list data for d3 functions and preprocessed data { stackedData, data }
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   calculateChartData(data: any, order: any) {
@@ -200,9 +200,9 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     this.setState({ componentMounted: false });
   }
 
-  //Draw chart after it updated
+  //Draw list after it updated
   componentDidUpdate() {
-    //Only update the chart if there is data for it and the component is mounted.
+    //Only update the list if there is data for it and the component is mounted.
     //it is not currently in a zoom transition (d3 requirement)
     if (this.state.componentMounted && this.props.content) {
       this.updateElement();
@@ -227,7 +227,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
   }
 
   /**
-   * Update the chart element. May only be called if this.props.content is not empty and the component is mounted.
+   * Update the list element. May only be called if this.props.content is not empty and the component is mounted.
    */
   async updateElement() {
     //Initialization
@@ -288,7 +288,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     //Remove old data
     svg.selectAll('*').remove();
 
-    //Draw the chart (and brush box) using everything provided
+    //Draw the list (and brush box) using everything provided
     const { brushArea, axes } = this.drawChart(svg, area, brush, yScale, scales, height, width, paddings);
 
     //Set callback for brush-zoom functionality
@@ -356,7 +356,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
   }
 
   /**
-   * Draw the chart onto the svg element.
+   * Draw the list onto the svg element.
    * @param svg element to draw on (e.g. d3.select(this.ref))
    * @param area d3 area generator
    * @param brush d3 brush generator

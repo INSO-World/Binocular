@@ -1,4 +1,5 @@
 export interface Commit {
+  tags: string[] | undefined;
   sha: string;
   shortSha: string;
   messageHeader: string;

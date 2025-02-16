@@ -89,7 +89,7 @@ export default class rowChartGeneration {
       height = lineHeight * lines,
       margins = { top: 28, right: 0, bottom: 0, left: 2 };
 
-    //Setting chart width and adjusting for margins
+    //Setting list width and adjusting for margins
     d3.select('.chartRowSummary')
       .append('svg')
       .attr('width', width + margins.right + margins.left)
@@ -112,7 +112,7 @@ export default class rowChartGeneration {
       .style('backdrop-filter', 'blur(2px)')
       .style('-webkit-backdrop-filter', 'blur(2px)');
 
-    //chart
+    //list
     setTimeout(
       function () {
         this.updateRowSummary(data, lines, currThis, mode, legendSteps, firstLineNumber, displayProps);

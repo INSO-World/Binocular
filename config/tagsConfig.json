@@ -1,0 +1,56 @@
+{
+  "possibleTags": [
+    "reviewed",
+    "added",
+    "refactored",
+    "bugfix",
+    "feature",
+    "documentation",
+    "ui-update",
+    "performance-improvement",
+    "security-patch",
+    "code",
+    "config",
+    "test",
+    "assets",
+    "frontend",
+    "backend",
+    "database",
+    "api",
+    "optimization",
+    "cleanup",
+    "dependency-update",
+    "breaking-change"
+  ],
+  "defaults": {
+    "provider": "llama",
+    "model": "llama3/Meta-Llama-3-8B-Instruct-Q8_0.gguf"
+  },
+  "provider": {
+    "anthropic": {
+      "models": [
+        {
+          "name": "claude-3-haiku-20240307",
+          "max_tokens": 4096
+        }
+      ],
+      "defaults": {
+        "model": "claude-3-haiku-20240307"
+      }
+    },
+    "llama": {
+      "models": [
+        {
+          "name": "llama3/Meta-Llama-3-8B-Instruct-Q8_0.gguf",
+          "max_tokens": 8192
+        }
+      ],
+      "defaults": {
+        "model": "llama3/Meta-Llama-3-8B-Instruct-Q8_0.gguf"
+      },
+      "jarPath": "llama3/llama3.jar",
+      "javaPath": "java"
+    }
+  }
+}
+

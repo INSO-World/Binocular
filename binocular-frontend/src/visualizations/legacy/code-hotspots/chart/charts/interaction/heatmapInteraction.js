@@ -11,7 +11,7 @@ export default class heatmapInteraction {
     const width = document.getElementById('barChartContainer').clientWidth,
       height = lineHeight * lines,
       margins = { top: lineHeight, right: 0, bottom: 0, left: 0 };
-    //Setting chart width and adjusting for margins
+    //Setting list width and adjusting for margins
     const interactionLayer = d3
       .select('.rowInteraction')
       .attr('width', 'calc(100% - 105px)')

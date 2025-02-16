@@ -56,6 +56,17 @@ export default class Database {
     }
   }
 
+  static async getCommitDataWithCategoriesAndWebUrl(
+    commitSpan,
+    significantSpan,
+    page = 1,
+    pageSize = 20,
+    tags = undefined,
+    withoutTags = undefined,
+  ) {
+    return ServerDB.getCommitDataWithCategoriesAndWebUrl(commitSpan, significantSpan, page, pageSize, tags, withoutTags);
+  }
+
   static async getCommitsForFiles(filenames) {
     if (await this.checkBackendConnection()) {
       return ServerDB.getCommitsForFiles(filenames);

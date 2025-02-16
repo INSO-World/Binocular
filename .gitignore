@@ -13,3 +13,5 @@ pkg
 .grandle
 /.devcontainer
 .DS_Store
+logs
+llama3/Meta-Llama-3-8B-Instruct-Q8_0.gguf

@@ -46,7 +46,7 @@ export default class heatmapChartGeneration {
     const width = document.getElementById('barChartContainer').clientWidth,
       height = lineHeight * lines,
       margins = { top: lineHeight, right: 0, bottom: 0, left: 0 };
-    //Setting chart width and adjusting for margins
+    //Setting list width and adjusting for margins
     const chart = d3
       .select('.chartMain')
       .attr('width', 'calc(100% - 105px)')

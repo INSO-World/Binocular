@@ -5,7 +5,6 @@ import cli from './cli/cli';
 
 // init timestamp for output
 import Moment from 'moment';
-import console_stamp from 'console-stamp';
 let startTime: number;
 
 function threadLog(thread: number, message: string) {
@@ -58,6 +57,7 @@ import GateWayService from './utils/gateway-service';
 import * as projectStructureHelper from './utils/projectStructureHelper';
 
 import getDbExportEndpoint from './endpoints/get-db-export';
+import getTagCommitsEndpoint from './endpoints/get-tag-commits.ts';
 
 import graphQlEndpoint from './endpoints/graphQl';
 
@@ -81,10 +81,10 @@ import Note from './models/models/Note.ts';
 import IssueNoteConnection from './models/connections/IssueNoteConnection.ts';
 import NoteAccountConnection from './models/connections/NoteAccountConnection.ts';
 import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
+import './logger/customLogger.js';
 
 cli.parse(
   (targetPath, options) => {
-    console_stamp(console, { format: ':date(yyyy/mm/dd HH:MM:ss)' });
     console.log(`Running binocular with following options on path "${targetPath}":`);
     console.log(options);
     ctx.setOptions(options);
@@ -133,6 +133,7 @@ function runBackend() {
 
   // set up the endpoints
   ctx.app.get('/api/db-export', (req: express.Request, res: express.Response) => getDbExportEndpoint(req, res, ctx));
+  ctx.app.post('/api/tag-commits', (req: express.Request, res: express.Response) => getTagCommitsEndpoint(req, res, ctx));
 
   // proxy to the FOXX-service
   ctx.app.get('/graphQl', (req: express.Request, res: express.Response) => graphQlEndpoint(req, res, ctx));

@@ -33,6 +33,14 @@ const queryType = new gql.GraphQLObjectType({
           since: { type: Timestamp },
           until: { type: Timestamp },
           sort: { type: Sort },
+          tags: {
+            type: new gql.GraphQLList(gql.GraphQLString),
+            description: 'Filter commits by these tags (multiple tags allowed)',
+          },
+          withoutTags: {
+            type: gql.GraphQLBoolean,
+            description: 'Filter commits that do not have any tags',
+          },
         },
         query: (root, args, limit) => {
           return aql`
@@ -40,6 +48,8 @@ const queryType = new gql.GraphQLObjectType({
             IN ${commits}
             ${args.since ? queryHelpers.addDateFilterAQL('commit.date', '>=', args.since) : aql``}
             ${args.until ? queryHelpers.addDateFilterAQL('commit.date', '<=', args.until) : aql``}
+            ${args.tags && args.tags.length > 0 ? aql`FILTER LENGTH(INTERSECTION(${args.tags}, commit.tags)) > 0` : aql``}
+            ${args.withoutTags ? aql`FILTER commit.tags == null OR LENGTH(commit.tags) == 0` : aql``}
             SORT commit.date ${args.sort}
             ${limit}
             RETURN commit`;

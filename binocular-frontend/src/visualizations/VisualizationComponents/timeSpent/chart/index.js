@@ -12,7 +12,7 @@ import _ from 'lodash';
 import { convertToTimeString, extractTimeTrackingDataFromNotes } from '../../../../utils/timeTracking';
 import { useSelector } from 'react-redux';
 
-// the chart cant deal with 0 values
+// the list cant deal with 0 values
 const stackedAreaChartMinValue = 0.001;
 
 const timeRemovedPrefix = '(time removed) ';
@@ -213,7 +213,7 @@ export default () => {
             return;
           }
 
-          // the stacked area chart cannot deal with 0 values
+          // the stacked area list cannot deal with 0 values
           dataEntry.data[authorName] = stackedAreaChartMinValue;
           dataEntry.data[authorNameTimeRemoved] = -1 * stackedAreaChartMinValue;
 

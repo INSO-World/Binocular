@@ -126,7 +126,7 @@ export default (props) => {
       return mr;
     });
 
-    //create chart
+    //create list
 
     const tooltip = d3
       .select(svgChartRef.current)

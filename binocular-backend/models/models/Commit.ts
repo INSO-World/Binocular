@@ -21,8 +21,11 @@ import GatewayService from '../../utils/gateway-service';
 import Context from '../../utils/context';
 import _ from 'lodash';
 import CommitDto from '../../types/dtos/CommitDto';
+import { promisify } from 'node:util';
 
 const log = debug('git:commit');
+
+const execAsync = promisify(exec);
 
 export interface CommitDataType {
   sha: string;
@@ -31,6 +34,30 @@ export interface CommitDataType {
   webUrl: string;
   branch: string;
   stats: Stats;
+}
+
+interface DiffLine {
+  content: string;
+  origin: string;
+}
+
+interface DiffHunk {
+  oldStart: number;
+  oldLines: number;
+  newStart: number;
+  newLines: number;
+  lines: DiffLine[];
+}
+
+interface DiffFile {
+  oldFilePath: string;
+  newFilePath: string;
+  status: string;
+  hunks: DiffHunk[];
+}
+
+interface DiffData {
+  files: DiffFile[];
 }
 
 class Commit extends Model<CommitDataType> {
@@ -93,23 +120,109 @@ class Commit extends Model<CommitDataType> {
       },
       { isNew: true },
     );
+    // Process each parent commit
     await Promise.all(
-      parents.split(',').map((parentSha) => {
+      parents.split(',').map(async (parentSha) => {
         if (parentSha === '') {
           return;
         }
-        return this.findOneBy('sha', parentSha).then((parentCommit) => {
-          if (parentCommit === null) {
-            return;
-          }
-          return CommitCommitConnection.connect({}, { from: commit, to: parentCommit });
-        });
+        const parentCommit = await this.findOneBy('sha', parentSha);
+        if (parentCommit === null) {
+          return;
+        }
+
+        const diff = await this.computeDiff(repo, parentSha, sha);
+
+        await CommitCommitConnection.connect({ diff }, { from: parentCommit, to: commit });
       }),
     );
     const results = await User.ensureBy('gitSignature', authorSignature, {} as UserDataType);
     const user = results[0];
     await CommitUserConnection.connect({}, { from: commit, to: user });
     return commit;
+  }
+
+  async computeDiff(repo: Repository, parentSha: string, currentSha: string): Promise<DiffData> {
+    try {
+      const { stdout: diffStdout, stderr: diffStderr } = await execAsync(`git diff --unified=0 ${parentSha} ${currentSha} --`, {
+        cwd: repo.path,
+        maxBuffer: 1024 * 1024 * 10,
+      });
+
+      if (diffStderr) {
+        console.warn(`Stderr while computing detailed diff between ${parentSha} and ${currentSha}:`, diffStderr);
+      }
+
+      const lines = diffStdout.split('\n');
+      const diffData: DiffData = {
+        files: [],
+      };
+
+      let currentFile: DiffFile | null = null;
+
+      for (const line of lines) {
+        if (line.startsWith('diff --git')) {
+          const parts = line.split(' ');
+          const oldFile = parts[2].replace('a/', '');
+          const newFile = parts[3].replace('b/', '');
+          currentFile = {
+            oldFilePath: oldFile,
+            newFilePath: newFile,
+            status: 'modified',
+            hunks: [],
+          };
+          diffData.files.push(currentFile);
+        } else if (line.startsWith('@@')) {
+          const hunkHeader = line.match(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
+          if (hunkHeader && currentFile) {
+            const oldStart = parseInt(hunkHeader[1], 10);
+            const oldLines = hunkHeader[2] ? parseInt(hunkHeader[2], 10) : 1;
+            const newStart = parseInt(hunkHeader[3], 10);
+            const newLines = hunkHeader[4] ? parseInt(hunkHeader[4], 10) : 1;
+
+            const currentHunk: DiffHunk = {
+              oldStart,
+              oldLines,
+              newStart,
+              newLines,
+              lines: [],
+            };
+            currentFile.hunks.push(currentHunk);
+          }
+        } else if (['+', '-', ' '].includes(line[0])) {
+          if (currentFile && currentFile.hunks.length > 0) {
+            const currentHunk = currentFile.hunks[currentFile.hunks.length - 1];
+            currentHunk.lines.push({
+              content: line.slice(1),
+              origin: line[0],
+            });
+          }
+        } else if (line.startsWith('rename from')) {
+          if (currentFile) {
+            currentFile.status = 'renamed';
+          }
+        } else if (line.startsWith('new file mode')) {
+          if (currentFile) {
+            currentFile.status = 'added';
+          }
+        } else if (line.startsWith('deleted file mode')) {
+          if (currentFile) {
+            currentFile.status = 'deleted';
+          }
+        }
+      }
+
+      for (const file of diffData.files) {
+        if (!file.status) {
+          file.status = 'modified';
+        }
+      }
+
+      return diffData;
+    } catch (error) {
+      console.error(`Error computing diff between ${parentSha} and ${currentSha}:`, error);
+      return { files: [] };
+    }
   }
 
   /**

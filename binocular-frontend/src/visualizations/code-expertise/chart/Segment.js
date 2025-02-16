@@ -115,7 +115,7 @@ function Segment({ rad, startPercent, endPercent, devName, devData, devColor, ma
 
   // ######################## FUNCTIONS ########################
 
-  //enlarge segment and show additional information in the chart if mouse hovers over segment
+  //enlarge segment and show additional information in the list if mouse hovers over segment
   const mouseEnter = () => {
     if (!focus) {
       setFocus(true);
@@ -187,7 +187,7 @@ function Segment({ rad, startPercent, endPercent, devName, devData, devColor, ma
     //text fades in when segment is focused
     animate(additionsTextRef, ['opacity'], focus ? [1] : [0]);
 
-    //allow animations after first time of displaying the chart
+    //allow animations after first time of displaying the list
     if (radius !== 0 && !readyToAnimate) {
       setReadyToAnimate(true);
     }
@@ -247,7 +247,7 @@ function Segment({ rad, startPercent, endPercent, devName, devData, devColor, ma
 
   //good commits are shown in an arc outside the circle segment, bad commits inside.
   //this displays the ratio of good/bad commits to the number of total commits
-  //this sets the bounds for this section of the chart
+  //this sets the bounds for this section of the list
   const buildWeight = radius * 0.2;
   const commitsNumber = devData.commits.length;
   const goodCommits = devData.commits.filter((c) => c.build === 'success').length;

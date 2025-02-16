@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 import { formatDate } from '../../utils/date';
 
 /**
- * Stacked area chart
+ * Stacked area list
  * Takes the following props:
  *  - content (Format: [{date: timestamp(ms), seriesName1: number, seriesName2, number, ...}, ...],
  *             e.g. array of data points with date and series values)
@@ -21,7 +21,7 @@ import { formatDate } from '../../utils/date';
  *  - d3offset (Format: d3.stackOffsetNone/d3.stackOffsetDiverging/d3.stackOffsetSilhouette/...
  *             determines the way data is stacked, check d3 docs)
  *  - keys (optional) (Format: [seriesName1, seriesName2, ...])
- *             Filters the chart, only showing the provided keys and leaving everything else out.
+ *             Filters the list, only showing the provided keys and leaving everything else out.
  *  - resolution (Format: 'years'/'months'/'weeks'/'days') Needed for date format in tooltips.
  *  - displayNegative (optional) (Format: true/false) Display negative numbers on y-scale.
  *  - order (optional) (Format: [string, string, ...]) Strings containing the keys in desired order (largest to smallest).
@@ -51,7 +51,7 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
    * @returns {*}
    */
   createAreaFunction(scales: any) {
-    //Area generator for the chart
+    //Area generator for the list
     return d3
       .area()
       .x(function (d: any) {
@@ -67,10 +67,10 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
   }
 
   /**
-   * Calculate data for the chart.
+   * Calculate data for the list.
    * @param data Chart data in the format [{date: timestamp(ms), series1: value, series2: value, series3: value, series4: value, ...}, ...]
    * @param order
-   * @returns Stacked chart data for d3 functions and preprocessed data { stackedData, data }
+   * @returns Stacked list data for d3 functions and preprocessed data { stackedData, data }
    */
   calculateChartData(data: any, order: any) {
     //Keys are the names of the developers, date is excluded
@@ -90,7 +90,7 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
       orderedKeys = keys;
     }
 
-    //Stack function for a ThemeRiver chart, using the keys provided
+    //Stack function for a ThemeRiver list, using the keys provided
     const stack = d3.stack().offset(this.props.d3offset).order(d3.stackOrderReverse).keys(orderedKeys);
 
     //Data formatted for d3
@@ -206,7 +206,7 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
   }
 
   /**
-   * Finds the chart values (for the displayed line) for the moused-over data-point
+   * Finds the list values (for the displayed line) for the moused-over data-point
    * @param data
    * @param key
    * @param timeValue

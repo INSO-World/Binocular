@@ -31,7 +31,7 @@ import IssueStream, { IssueColor, IssueData, IssueStat } from './IssueStream';
  *  - yDims (Format: [topValue, bottomValue],
  *             limits of the y-Axis on top/bottom, should correspond to data.)
  *  - keys (optional) (Format: [seriesName1, seriesName2, ...])
- *             Filters the chart, only showing the provided keys and leaving everything else out.
+ *             Filters the list, only showing the provided keys and leaving everything else out.
  *  - resolution (Format: 'years'/'months'/'weeks'/'days') Needed for date format in tooltips.
  *  - displayNegative (optional) (Format: true/false) Display negative numbers on y-scale.
  *  - order (optional) (Format: [string, string, ...]) Strings containing the keys in desired order (largest to smallest).
@@ -48,7 +48,7 @@ export default class DataRiverChartComponent extends ScalableBaseChartComponent 
    * @returns {*}
    */
   createAreaFunction(scales) {
-    //Area generator for the chart
+    //Area generator for the list
     return d3
       .area()
       .x((d) => scales.x(d.data.date))
@@ -267,11 +267,11 @@ export default class DataRiverChartComponent extends ScalableBaseChartComponent 
   }
 
   /**
-   * Calculate data for the chart.
+   * Calculate data for the list.
    *
    * @param data Chart data in the format [RiverData, ...]
    * @param order contains the order to draw the data streams
-   * @returns Stacked chart data for d3 functions and preprocessed data { stackedData, data }
+   * @returns Stacked list data for d3 functions and preprocessed data { stackedData, data }
    */
   calculateChartData(data, order) {
     if (!data.length) {

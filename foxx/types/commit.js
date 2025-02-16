@@ -61,7 +61,7 @@ module.exports = new gql.GraphQLObjectType({
             ._query(
               aql`
             FOR c, edge
-            IN OUTBOUND ${commit} ${commitsToCommits}
+            IN INBOUND ${commit} ${commitsToCommits}
             RETURN c.sha`
             )
             .toArray();
@@ -75,9 +75,36 @@ module.exports = new gql.GraphQLObjectType({
         type: gql.GraphQLString,
         description: 'Web-url (if available) of this commit',
       },
+      tags: {
+        type: new gql.GraphQLList(gql.GraphQLString),
+        description: 'The generated classification of the commit',
+      },
       stats: {
         type: require('./stats'),
         description: 'The changing stats of the commit',
+      },
+      diffs: {
+        type: new gql.GraphQLList(require('./diff.js')),
+        description: 'Parents of the commit',
+        resolve(commit) {
+          return db
+            ._query(
+              aql`
+            FOR c, edge
+            IN INBOUND ${commit} ${commitsToCommits}
+            RETURN {
+              sha: c.sha,
+              shortSha: c.shortSha,
+              messageHeader: c.messageHeader,
+              message: c.message,
+              branch: c.branch,
+              date: c.date,
+              webUrl: c.webUrl,
+              files: edge.diff.files != null ? edge.diff.files : []
+            }`
+            )
+            .toArray();
+        },
       },
       files: paginated({
         type: require('./fileInCommit.js'),

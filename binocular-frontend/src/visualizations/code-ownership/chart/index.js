@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import _ from 'lodash';
 
 export default () => {
-  //local state used for the chart
+  //local state used for the list
   const [ownershipData, setOwnershipData] = useState([]);
   const [keys, setKeys] = useState([]);
   const [scale, setScale] = useState([]);
@@ -116,7 +116,7 @@ export default () => {
     setOwnershipData(resultOwnershipData);
   }, [relevantOwnershipData, previousFilenames, activeFiles, excludedCommits, excludeCommits]);
 
-  //everytime the settings change (different files selected, mode changed etc.) recompute the chart data
+  //everytime the settings change (different files selected, mode changed etc.) recompute the list data
   useEffect(() => {
     //if the global state has not loaded yet, return
     if (ownershipData === undefined || ownershipData === null) {
@@ -245,7 +245,7 @@ export default () => {
     }
   }, [ownershipData, displayMode, universalSettings]);
 
-  //check if the data needed for the chart has all been set
+  //check if the data needed for the list has all been set
   useEffect(() => {
     if (chartData && chartData.length !== 0 && scale && scale.length !== 0 && keys && keys.length !== 0) {
       setChartComponent(

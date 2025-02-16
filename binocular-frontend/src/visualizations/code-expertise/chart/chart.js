@@ -46,7 +46,7 @@ const Chart = ({ devData }) => {
   const legendDotsId = 'legend_dots';
   const legendHatchId = 'legend_hatch';
 
-  //functions to handle zooming and resizing of the chart
+  //functions to handle zooming and resizing of the list
   const onResize = (evt) => {
     setDimensions(zoomUtils.onResizeFactoryForFunctional(0.7, 0.7)(evt));
   };

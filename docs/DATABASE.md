@@ -284,12 +284,62 @@ Tracks which builds were triggered because of which commits.
 
 ### commits-commits
 
-Tracks parent-child relationships between commits.
+Tracks parent-child relationships between commits, including the structured diff data between them.
 
 | attribute name | type   | details                                    |
 |----------------|--------|--------------------------------------------|
 | `_from`        | string | internal ArangoDB key of the parent commit |
 | `_to`          | string | internal ArangoDB key of the child commit  |
+| `diff`         | object | Structured diff data between the commits   |
+
+#### **Attributes**
+
+| attribute name | type   | details                                                                                     |
+|----------------|--------|---------------------------------------------------------------------------------------------|
+| `diff`         | object | Contains detailed information about the changes between the parent and child commit.       |
+
+#### **Structure of `diff` Object**
+
+The `diff` object should encapsulate the changes in a structured manner, similar to Git's diff output. Here's an example structure:
+
+```json
+{
+  "files": [
+    {
+      "oldFilePath": "src/oldFile.js",
+      "newFilePath": "src/newFile.js",
+      "status": "modified", // Possible values: "added", "deleted", "modified", "renamed"
+      "hunks": [
+        {
+          "oldStart": 10,
+          "oldLines": 2,
+          "newStart": 10,
+          "newLines": 3,
+          "lines": [
+            {
+              "content": "const x = 10;",
+              "origin": " " // Possible values: '+', '-', ' ' (added, deleted, context)
+            },
+            {
+              "content": "console.log(x);",
+              "origin": "+"
+            },
+            {
+              "content": "export default x;",
+              "origin": "+"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+#### **Details**
+
+- **`diff.files`:** An array where each element represents a file that was added, deleted, modified, or renamed.
+- **`diff.files[].hunks`:** Each hunk represents a contiguous block of changes within the file.
+- **`diff.files[].hunks[].lines`:** Detailed line-by-line changes within the hunk.
 
 ### commits-files
 

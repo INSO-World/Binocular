@@ -63,7 +63,7 @@ export default ({ data }) => {
     y: dimensions.height / 2,
   };
 
-  //functions to handle zooming and resizing of the chart
+  //functions to handle zooming and resizing of the list
   const onResize = (evt) => {
     setDimensions(zoomUtils.onResizeFactoryForFunctional(0.7, 0.7)(evt));
   };
@@ -89,7 +89,7 @@ export default ({ data }) => {
     setUiRadius((Math.min(dimensions.fullHeight, dimensions.fullWidth) / 2) * uiSizeFactor);
   }, [dimensions]);
 
-  //update parts of the chart when data changes
+  //update parts of the list when data changes
   useEffect(() => {
     const dials = [];
     const numOfDials = selectedLayers.length;

@@ -20,7 +20,7 @@ export default function (req, res, context) {
         })
         .catch((err) => {
           console.log(err);
-          res.status(err.statusCode).json({ errors: err.error.errors });
+          res.status(err.statusCode).json({ errors: err.error });
         });
     });
   } else if (req.method === 'GET') {

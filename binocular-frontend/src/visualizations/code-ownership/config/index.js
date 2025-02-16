@@ -131,7 +131,7 @@ export default () => {
           </>
         )}
 
-        {/* if the chart should display the absolute ownership (stacked chart) or the relative percentage of ownership of each dev */}
+        {/* if the list should display the absolute ownership (stacked list) or the relative percentage of ownership of each dev */}
         <div className="field">
           <div className="control">
             <label className="label">Mode:</label>

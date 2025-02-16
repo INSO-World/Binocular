@@ -50,16 +50,16 @@ binocular-backend/indexers
 ├── ci                      # CI-specific indexers
 │   ├── GitLabCIIndexer.js  # Indexer for GitLab-CI
 │   ├── ...                 # (Additional CI-indexers could be added here)
-│   └── index.tsx
+│   └── list.tsx
 ├── its                     # ITS-specific indexers
 │   ├── GitHubITSIndexer.ts    # Indexer for GitHub
 │   ├── GitLabITSIndexer.js # Indexer for GitLab
 │   ├── ...                 # (Additional ITS-indexers could be added here)
-│   └── index.tsx
+│   └── list.tsx
 └── vcs
     ├── GitIndexer.js       # Indexer for git
 │   ├── ...                 # (Additional VCS-indexers could be added here)
-    └── index.tsx
+    └── list.tsx
 ```
 
 ## GraphQL-Interface
@@ -86,7 +86,7 @@ binocular-frontend
 └── src
    ├── components                 # Holds general components used everywhere in the app
    ├── database                   # Database functions to access either the arangoDB or local JSON database
-   ├── index.tsx                   # Main JS-entry-point
+   ├── list.tsx                   # Main JS-entry-point
    ├── reducers                   # Holds general reducers
    ├── sagas                      # Holds general sagas
    ├── utils                      # Utility functions
@@ -97,68 +97,68 @@ binocular-frontend
       │  ├── code-hotspots
       │  │  ├── chart              # Main chart component
       │  │  ├── config             # Main config component (shown in the sidebar)
-      │  │  ├── help.js            # Component shown in the help-section
-      │  │  ├── index.tsx           # main entry point for the component, bundles everything together
+      │  │  ├── help.tsx            # Component shown in the help-section
+      │  │  ├── list.tsx           # main entry point for the component, bundles everything together
       │  │   ├── reducers           # Reducers for the visualization
-      │  │   │   ├── config.js      # Configuration-related reducers
-      │  │   │   ├── data.js        # Data-related reducers
-      │  │   │   └── index.tsx
+      │  │   │   ├── config.tsx      # Configuration-related reducers
+      │  │   │   ├── data.ts        # Data-related reducers
+      │  │   │   └── list.tsx
       │  │   ├── sagas              # Sagas/Actions for the visualization
       │  │   └── styles.scss        # Styles for the visualization      
       │  ├── hotspot-dials
-      │  │   ├── chart.js
-      │  │   ├── help.js
+      │  │   ├── list.tsx
+      │  │   ├── help.tsx
       │  │   ├── reducers
-      │  │   │   ├── config.js
-      │  │   │   ├── data.js
-      │  │   │   └── index.tsx
+      │  │   │   ├── config.tsx
+      │  │   │   ├── data.ts
+      │  │   │   └── list.tsx
       │  │   ├── sagas
-      │  │   │   └── index.tsx
+      │  │   │   └── list.tsx
       │  │   └── styles.scss
       │  └── issue-impact
-      │      ├── chart.js
-      │      ├── config.js
-      │      ├── help.js
-      │      ├── index.tsx
+      │      ├── list.tsx
+      │      ├── config.tsx
+      │      ├── help.tsx
+      │      ├── list.tsx
       │      ├── reducers
-      │      │   ├── config.js
-      │      │   ├── data.js
-      │      │   └── index.tsx
+      │      │   ├── config.tsx
+      │      │   ├── data.ts
+      │      │   └── list.tsx
       │      ├── sagas
-      │      │   └── index.tsx
+      │      │   └── list.tsx
       │      └── styles.scss
       └── VisualizationComponents              # Small visualizaitons for use in the dashboard
          ├── changes 
          │  ├── chart              # Main chart component
          │  ├── config.ts          # Main config component (shown in the sidebar)
          │  ├── help.ts            # Component shown in the help-section
-         │  ├── index.tsx           # main entry point for the component, bundles everything together
+         │  ├── list.tsx           # main entry point for the component, bundles everything together
          │   ├── reducers           # Reducers for the visualization
          │   │   ├── config.ts      # Configuration-related reducers
          │   │   ├── data.ts        # Data-related reducers
-         │   │   └── index.tsx
+         │   │   └── list.tsx
          │   ├── sagas              # Sagas/Actions for the visualization
          │   └── styles.scss        # Styles for the visualization
          ├── ciBuilds
          │  ├── chart
          │  ├── config
-         │  ├── help.js
-         │  ├── index.tsx
+         │  ├── help.tsx
+         │  ├── list.tsx
          │   ├── reducers
-         │   │   ├── config.js
-         │   │   ├── data.js
-         │   │   └── index.tsx
+         │   │   ├── config.tsx
+         │   │   ├── data.ts
+         │   │   └── list.tsx
          │   ├── sagas
          │   └── styles.scss
          └── issues
             ├── chart
             ├── config
-            ├── help.js
-            ├── index.tsx
+            ├── help.tsx
+            ├── list.tsx
              ├── reducers
-             │   ├── config.js
-             │   ├── data.js
-             │   └── index.tsx
+             │   ├── config.tsx
+             │   ├── data.ts
+             │   └── list.tsx
              ├── sagas
              └── styles.scss
 ```
@@ -246,4 +246,4 @@ The default for the web interface is http://localhost:8529/
 Please make sure ArangoDB is running.
 https://www.arangodb.com/arangodb-training-center/
 To see how content is queried, please see "GraphQL-Interface" above.
-You can also access the GraphiQL interface over the web interface (click services -> binocular-ql -> show interface).
+You can also access the GraphQL interface over the web interface (click services -> binocular-ql -> show interface).
