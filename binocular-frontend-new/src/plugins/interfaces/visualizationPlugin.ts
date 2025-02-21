@@ -10,7 +10,7 @@ import { ChartData, Palette } from '../visualizationPlugins/simpleVisualizationP
 
 export interface VisualizationPlugin<SettingsType, DataType> {
   name: string;
-  chartComponent: (props: {
+  chartComponent?: (props: {
     settings: SettingsType; // Interface for settings defines which settings are transported
     // between the settingsComponent and Chart Component
     dataConnection: DataPlugin; // Data connection of the type DataPlugin provided by Binocular.
@@ -33,7 +33,8 @@ export interface VisualizationPlugin<SettingsType, DataType> {
   }) => ReactNode;
   settingsComponent: (props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) => ReactNode;
   helpComponent: () => ReactNode;
-  dataConverter: (
+  dataConnectionName?: string; //
+  dataConverter?: (
     data: DataType[],
     props: Properties<SettingsType, DataType>,
   ) => { chartData: ChartData[]; scale: number[]; palette: Palette };
@@ -51,5 +52,5 @@ export interface VisualizationPlugin<SettingsType, DataType> {
     thumbnail: string;
   };
   reducer: Reducer;
-  saga: (dataConnection: DataPlugin, name?: string) => Generator;
+  saga: (dataConnection: DataPlugin, name?: string, dataConnectionName?: string) => Generator;
 }

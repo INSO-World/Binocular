@@ -97,7 +97,6 @@ function DashboardItem(props: {
     }
   }, [fileLists, props.item.dataPluginId]);
   const [settings, setSettings] = useState(plugin.defaultSettings);
-  const [dataName] = useState(plugin.name);
 
   /**
    * Create Redux Store from Reducer for individual Item and run saga
@@ -109,7 +108,7 @@ function DashboardItem(props: {
       reducer: plugin.reducer,
       middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger),
     });
-    sagaMiddleware.run(() => plugin.saga(dataPlugin, dataName));
+    sagaMiddleware.run(() => plugin.saga(dataPlugin, plugin.name, plugin.dataConnectionName));
   } else {
     store = undefined;
   }
@@ -155,21 +154,25 @@ function DashboardItem(props: {
             {dataPlugin && store ? (
               <DashboardItemPopout name={plugin.name} onClosing={() => setPoppedOut(false)}>
                 <ReduxSubAppStoreWrapper store={store}>
-                  <plugin.chartComponent
-                    key={plugin.name}
-                    settings={settings}
-                    authorList={authors}
-                    fileList={files}
-                    sprintList={sprintList}
-                    parameters={{
-                      parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
-                      parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
-                    }}
-                    dataConnection={dataPlugin}
-                    dataConverter={plugin.dataConverter}
-                    chartContainerRef={chartContainerRef}
-                    store={store}
-                    dataName={dataName}></plugin.chartComponent>
+                  {plugin.chartComponent !== undefined ? (
+                    <plugin.chartComponent
+                      key={plugin.name}
+                      settings={settings}
+                      authorList={authors}
+                      fileList={files}
+                      sprintList={sprintList}
+                      parameters={{
+                        parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
+                        parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
+                      }}
+                      dataConnection={dataPlugin}
+                      dataConverter={plugin.dataConverter}
+                      chartContainerRef={chartContainerRef}
+                      store={store}
+                      dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
+                  ) : (
+                    <div>No Chart Component Found!</div>
+                  )}
                 </ReduxSubAppStoreWrapper>
               </DashboardItemPopout>
             ) : (
@@ -195,21 +198,25 @@ function DashboardItem(props: {
               </div>
             ) : dataPlugin && store && authors ? (
               <ReduxSubAppStoreWrapper store={store}>
-                <plugin.chartComponent
-                  key={plugin.name}
-                  settings={settings}
-                  authorList={authors}
-                  fileList={files}
-                  sprintList={sprintList}
-                  parameters={{
-                    parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
-                    parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
-                  }}
-                  dataConnection={dataPlugin}
-                  dataConverter={plugin.dataConverter}
-                  chartContainerRef={chartContainerRef}
-                  store={store}
-                  dataName={dataName}></plugin.chartComponent>
+                {plugin.chartComponent !== undefined ? (
+                  <plugin.chartComponent
+                    key={plugin.name}
+                    settings={settings}
+                    authorList={authors}
+                    fileList={files}
+                    sprintList={sprintList}
+                    parameters={{
+                      parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
+                      parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
+                    }}
+                    dataConnection={dataPlugin}
+                    dataConverter={plugin.dataConverter}
+                    chartContainerRef={chartContainerRef}
+                    store={store}
+                    dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
+                ) : (
+                  <div>No Chart Component Found!</div>
+                )}
               </ReduxSubAppStoreWrapper>
             ) : (
               <div>No Data Plugin Selected</div>

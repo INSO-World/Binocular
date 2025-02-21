@@ -16,8 +16,8 @@ import ExampleStats from './visualizationPlugins/exampleStats';
 import ExampleVisualization from './visualizationPlugins/exampleVisualization';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
-const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>('builds', Builds);
-const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>('commits', Changes);
+const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
+const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
 
 //The implicit type here has to be any because every Visualization plugin has a different settings type implied
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
