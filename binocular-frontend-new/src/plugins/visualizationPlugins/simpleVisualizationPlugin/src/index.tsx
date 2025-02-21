@@ -6,16 +6,16 @@ import { getDataSlice } from './reducer';
 import Saga from './saga';
 
 export default function createVisualizationPlugin<SettingsType extends DefaultSettings, DataType>(
-  name: string,
-  components: VisualizationPlugin<SettingsType, DataType>,
+  component: VisualizationPlugin<SettingsType, DataType>,
 ): VisualizationPlugin<SettingsType, DataType> {
   return {
-    name: name,
+    name: component.name,
     chartComponent: Chart<SettingsType, DataType>,
-    dataConverter: components.dataConverter,
-    settingsComponent: components.settingsComponent,
-    helpComponent: components.helpComponent,
-    defaultSettings: components.defaultSettings,
+    dataConnectionName: component.dataConnectionName,
+    dataConverter: component.dataConverter,
+    settingsComponent: component.settingsComponent,
+    helpComponent: component.helpComponent,
+    defaultSettings: component.defaultSettings,
     export: {
       getSVGData: getSVGData,
     },
@@ -24,9 +24,9 @@ export default function createVisualizationPlugin<SettingsType extends DefaultSe
       export: true,
     },
     images: {
-      thumbnail: components.images.thumbnail,
+      thumbnail: component.images.thumbnail,
     },
-    reducer: getDataSlice(name).reducer,
+    reducer: getDataSlice(component.name).reducer,
     saga: Saga,
   };
 }

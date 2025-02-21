@@ -10,9 +10,9 @@ import { DataPluginBuild } from '../../../interfaces/dataPluginInterfaces/dataPl
 
 const Builds: VisualizationPlugin<SettingsType, DataPluginBuild> = {
   name: 'Builds',
-  // ts-expect-error
-  chartComponent: null,
+  chartComponent: undefined,
   settingsComponent: Settings,
+  dataConnectionName: 'builds',
   dataConverter: convertToChartData,
   helpComponent: Help,
   defaultSettings: { splitBuildsPerAuthor: false, visualizationStyle: 'curved', showSprints: false },

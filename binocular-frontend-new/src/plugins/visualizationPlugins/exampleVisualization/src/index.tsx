@@ -6,7 +6,7 @@ import Reducer from './reducer';
 import Saga from './saga';
 import Help from './help/help.tsx';
 
-const ExampleVisualization: VisualizationPlugin<SettingsType> = {
+const ExampleVisualization: VisualizationPlugin<SettingsType, null> = {
   name: 'Example Visualization',
   chartComponent: Chart,
   settingsComponent: Settings,
