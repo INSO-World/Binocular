@@ -1,7 +1,8 @@
 import * as d3 from 'd3';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HierarchyRectangularNode } from 'd3';
 import { SunburstData } from './chart.tsx';
+import ArrowBack from '../../assets/arrow-left-long.svg';
 
 type SunburstChartProps = {
   width: number;
@@ -10,7 +11,9 @@ type SunburstChartProps = {
 };
 
 export const SunburstChart = ({ width, height, data }: SunburstChartProps) => {
-  const d3Container = useRef(null);
+  const d3Container = useRef<SVGSVGElement | null>(null);
+  const [tooltip, setTooltip] = useState({ visible: false, content: '', x: 0, y: 0 });
+  const [tableData, setTableData] = useState<{ name: string; covered: number; missed: number }[]>([]);
 
   useEffect(() => {
     if (d3Container.current && data.children?.length) {
@@ -82,7 +85,48 @@ export const SunburstChart = ({ width, height, data }: SunburstChartProps) => {
         .attr('pointer-events', (d) => (arcVisible(d.current) ? 'auto' : 'none'))
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        .attr('d', (d) => arc(d.current));
+        .attr('d', (d) => arc(d.current))
+        .on('mouseenter', (event, d) => {
+          const aggregatedCounters = calculateAggregatedCounters(d);
+          setTooltip({
+            visible: true,
+            x: event.pageX + 10,
+            y: event.pageY + 10,
+            content: `${d
+              .ancestors()
+              .map((d) => d.data.name)
+              .reverse()
+              .join('/')}`,
+          });
+          setTableData([
+            {
+              name: 'instruction',
+              covered: aggregatedCounters.INSTRUCTION?.covered ?? 0,
+              missed: aggregatedCounters.INSTRUCTION?.missed ?? 0,
+            },
+            {
+              name: 'line',
+              covered: aggregatedCounters.LINE?.covered ?? 0,
+              missed: aggregatedCounters.LINE?.missed ?? 0,
+            },
+            {
+              name: 'complexity',
+              covered: aggregatedCounters.COMPLEXITY?.covered ?? 0,
+              missed: aggregatedCounters.COMPLEXITY?.missed ?? 0,
+            },
+            {
+              name: 'method',
+              covered: aggregatedCounters.METHOD?.covered ?? 0,
+              missed: aggregatedCounters.METHOD?.missed ?? 0,
+            },
+          ]);
+        })
+        .on('mousemove', (event) => {
+          setTooltip((prev) => ({ ...prev, x: event.pageX + 10, y: event.pageY + 10 }));
+        })
+        .on('mouseleave', () => {
+          setTooltip((prev) => ({ ...prev, visible: false }));
+        });
 
       // Make them clickable if they have children.
       path
@@ -91,22 +135,6 @@ export const SunburstChart = ({ width, height, data }: SunburstChartProps) => {
         .filter((d) => d.children)
         .style('cursor', 'pointer')
         .on('click', (e, p) => clicked(e, p, parent, svg, root, arc, path, label, radius));
-
-      // on hover display coverage data
-      const format = d3.format(',d');
-      path.append('title').text((d) => {
-        const aggregatedCounters = calculateAggregatedCounters(d);
-        return `${d
-          .ancestors()
-          .map((d) => d.data.name)
-          .reverse()
-          .join('/')}
-            \nINSTRUCTION: ${format(aggregatedCounters.INSTRUCTION?.covered ?? 0)} covered, ${format(aggregatedCounters.INSTRUCTION?.missed ?? 0)} missed
-            \nLINE: ${format(aggregatedCounters.LINE?.covered ?? 0)} covered, ${format(aggregatedCounters.LINE?.missed ?? 0)} missed
-            \nCOMPLEXITY: ${format(aggregatedCounters.COMPLEXITY?.covered ?? 0)} covered, ${format(aggregatedCounters.COMPLEXITY?.missed ?? 0)} missed
-            \nMETHOD: ${format(aggregatedCounters.METHOD?.covered ?? 0)} covered, ${format(aggregatedCounters.METHOD?.missed ?? 0)} missed
-          `;
-      });
 
       const label = svg
         .append('g')
@@ -125,19 +153,133 @@ export const SunburstChart = ({ width, height, data }: SunburstChartProps) => {
         .attr('transform', (d) => labelTransform(d.current, radius))
         .text((d) => d.data.name);
 
-      const parent: d3.Selection<SVGCircleElement, d3.HierarchyRectangularNode<SunburstData>, HTMLElement, unknown> = svg
+      const parent: d3.Selection<SVGCircleElement, d3.HierarchyRectangularNode<SunburstData>, null, unknown> = svg
         .append('circle')
         .datum(root)
-        .attr('r', radius)
-        .attr('fill', 'none')
+        .attr('r', radius / 2.5)
+        .attr('fill', 'rgba(0, 0, 0, 0.1)')
         .attr('pointer-events', 'all')
+        .style('cursor', 'pointer')
+        .on('mouseover', function () {
+          d3.select(this).attr('fill', 'rgba(0, 0, 0, 0.3)'); // Darker on hover
+        })
+        .on('mouseout', function () {
+          d3.select(this).attr('fill', 'rgba(0, 0, 0, 0.1)'); // Revert to default
+        })
         .on('click', (e, p) => clicked(e, p, parent, svg, root, arc, path, label, radius));
+
+      svg
+        .append('image')
+        .attr('xlink:href', ArrowBack)
+        .attr('width', 70)
+        .attr('height', 70)
+        .attr('x', -35)
+        .attr('y', -35)
+        .attr('pointer-events', 'none');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d3Container.current]);
 
   return (
-    <div>
-      <svg ref={d3Container} width={width} height={height}></svg>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ position: 'relative' }}>
+        <svg ref={d3Container} width={width} height={height}></svg>
+        {tooltip.visible && (
+          <div
+            style={{
+              position: 'absolute',
+              top: tooltip.y,
+              left: tooltip.x,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              color: '#fff',
+              padding: '5px 10px',
+              borderRadius: '10px',
+              pointerEvents: 'none',
+              fontSize: '12px',
+              maxWidth: '300px',
+              wordWrap: 'break-word',
+              whiteSpace: 'normal',
+              boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
+            }}>
+            {tooltip.content}
+            {tableData.length > 0 && (
+              <table
+                style={{
+                  borderCollapse: 'collapse',
+                  width: '100%',
+                  marginTop: '5px',
+                }}>
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+                        padding: '5px',
+                        textAlign: 'left',
+                      }}>
+                      Metric
+                    </th>
+                    <th
+                      style={{
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+                        padding: '5px',
+                        textAlign: 'right',
+                      }}>
+                      Covered
+                    </th>
+                    <th
+                      style={{
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
+                        padding: '5px',
+                        textAlign: 'right',
+                      }}>
+                      Missed
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableData.map((row, index) => (
+                    <tr key={row.name}>
+                      <td
+                        style={{
+                          borderBottom: index === tableData.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+                          padding: '5px',
+                          textAlign: 'left',
+                        }}>
+                        {row.name}
+                      </td>
+                      <td
+                        style={{
+                          borderBottom: index === tableData.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRight: '1px solid rgba(255, 255, 255, 0.3)',
+                          padding: '5px',
+                          textAlign: 'right',
+                          color: row.covered > 0 ? 'lightgreen' : 'white',
+                          fontWeight: 'bold',
+                        }}>
+                        {row.covered}
+                      </td>
+                      <td
+                        style={{
+                          borderBottom: index === tableData.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                          padding: '5px',
+                          textAlign: 'right',
+                          color: row.missed > 0 ? 'tomato' : 'white',
+                          fontWeight: 'bold',
+                        }}>
+                        {row.missed}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -197,8 +339,8 @@ function calculateAggregatedCounters(node: HierarchyRectangularNode<SunburstData
 function clicked(
   event: MouseEvent,
   p: d3.HierarchyRectangularNode<SunburstData>,
-  parent: d3.Selection<SVGCircleElement, d3.HierarchyRectangularNode<SunburstData>, HTMLElement, unknown>,
-  svg: d3.Selection<d3.BaseType, unknown, HTMLElement, unknown>,
+  parent: d3.Selection<SVGCircleElement, d3.HierarchyRectangularNode<SunburstData>, null, unknown>,
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   root: d3.HierarchyRectangularNode<SunburstData>,
   arc: d3.Arc<unknown, { x0: number; y0: number; x1: number; y1: number }>,
   path: d3.Selection<d3.BaseType | SVGPathElement, d3.HierarchyRectangularNode<SunburstData>, SVGGElement, unknown>,
@@ -227,6 +369,8 @@ function clicked(
   // the next transition from the desired position.
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   path
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     .transition(t)
     .tween('data', (d) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -261,6 +405,8 @@ function clicked(
       // @ts-expect-error
       return +this.getAttribute('fill-opacity') || labelVisible(d.target);
     })
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     .transition(t)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error

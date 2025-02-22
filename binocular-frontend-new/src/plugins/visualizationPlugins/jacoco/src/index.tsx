@@ -11,13 +11,13 @@ const Jacoco: VisualizationPlugin<SettingsType> = {
   chartComponent: Chart,
   settingsComponent: Settings,
   helpComponent: Help,
-  defaultSettings: {},
+  defaultSettings: { selectedReport: 'last' },
   export: {
     getSVGData: () => '<svg></svg>',
   },
   capabilities: {
     popoutOnly: true,
-    export: true,
+    export: false,
   },
   images: {
     thumbnail: PreviewImage,

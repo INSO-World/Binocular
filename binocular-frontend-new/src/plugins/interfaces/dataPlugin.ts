@@ -2,12 +2,14 @@ import { DataPluginGeneral } from './dataPluginInterfaces/dataPluginGeneral.ts';
 import { DataPluginCommits } from './dataPluginInterfaces/dataPluginCommits.ts';
 import { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
 import { DataPluginFiles } from './dataPluginInterfaces/dataPluginFiles.ts';
+import { DataPluginJacocoReports } from './dataPluginInterfaces/dataPluginArtifacts.ts';
 
 export interface DataPlugin {
   name: string;
   description: string;
   general: DataPluginGeneral;
   commits: DataPluginCommits;
+  jacocoReports: DataPluginJacocoReports;
   users: DataPluginUsers;
   files: DataPluginFiles;
   capabilities: string[];
