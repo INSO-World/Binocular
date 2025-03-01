@@ -1,28 +1,23 @@
 'use strict';
 
-import * as d3 from 'd3';
 import * as React from 'react';
 import * as baseStyles from './commitChangeDisplay.module.scss';
 import CodeMirror from '@uiw/react-codemirror';
-import { useEffect } from 'react';
+import { Commit } from '../../types/commitTypes.ts';
 
 interface Props {
-  commit: any;
-  // FROM,TO Date ????
+  commit: Commit | any;
 }
 
 interface State {
-  commit: any;
+  commit: Commit;
   componentMounted: boolean;
   allChangedFiles: any; // [{code: string, filename: string, patch: string}]
-  currentIndex: number
-  // Maybe put key and value also here ...
+  currentIndex: number;
 }
 
 export default class CommitChangeDisplay extends React.Component<Props, State> {
   protected styles: any;
-  private svgRef: SVGSVGElement | null | undefined;
-  private tooltipRef: HTMLDivElement | null | undefined;
   constructor(props: Props | Readonly<Props>, styles: any) {
     super(props);
     console.log('Props from CommitChangeDisplay', props);
@@ -39,7 +34,7 @@ export default class CommitChangeDisplay extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Readonly<Props>) {
     if (prevProps.commit['sha'] !== this.props.commit['sha']) {
       this.setState({ currentIndex: 0, commit: this.props.commit });
-      this.fetchAllSourceCode();  // Update the source code once the sha of commit changes
+      this.fetchAllSourceCode(); // Update the source code once the sha of commit changes
     }
   }
 

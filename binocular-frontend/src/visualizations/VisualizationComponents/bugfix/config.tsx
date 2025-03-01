@@ -9,41 +9,29 @@ import {
   setFiles,
   setGraphStyle,
   setRegexConfig,
-  setShowFilterMenu
+  setShowFilterMenu,
 } from './sagas';
 import styles from './styles.module.scss';
-import { GlobalState } from '../../../types/globalTypes'; // TODO: check if the file route is correct
+import { GlobalState } from '../../../types/globalTypes';
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { getBranches, getFilenamesForBranch } from './sagas/helper';
 import Filepicker from '../../../components/Filepicker';
-import { Palette } from '../../../types/authorTypes.ts';
 import FilterManager from './filterManager/filterManager.tsx';
 
 const mapStateToProps = (state: GlobalState) => {
-  const dashboardState = state.visualizations.changes.state;
-
-  // Declarations mostly copied from code-ownership because of similarity in dashboard layout and functionality
-
-  //global state from redux store
+  // Global state from redux store
   const bugfixState: GlobalState = state.visualizations.bugfix.state;
   const currentBranch = bugfixState.config.currentBranch;
   const currentBranchName = (currentBranch && currentBranch.branch) || undefined;
   const currentActiveFiles = bugfixState.config.activeFiles;
-  const showFilterMenu = bugfixState.config.showFilterMenu;
 
   // State from sagas config
   const allBranches = bugfixState.config.allBranches;
   const branchOptions = bugfixState.config.branchOptions;
   const files = bugfixState.config.files;
 
-  console.log('Palette', dashboardState.data.data.palette);
   return {
-    committers: dashboardState.data.data.committers,
-    resolution: dashboardState.config.chartResolution,
-    palette: dashboardState.data.data.palette,
-    metric: dashboardState.config.displayMetric,
-    selectedAuthors: dashboardState.config.selectedAuthors,
     currentBranchName: currentBranchName,
     branchOptions: branchOptions,
     currentBranch: currentBranch,
@@ -89,12 +77,8 @@ const mapDispatchToProps = (dispatch: any) => {
   };
 };
 
+// TODO: Other types
 interface Props {
-  committers: string[]; // From changes component
-  metric: string; // From changes component
-  palette: Palette; // From changes component
-  resolution: string; // From changes component
-  selectedAuthors: string[]; // From changes component
   currentBranchName: string | undefined;
   currentActiveFiles: any;
   branchOptions: any; // TODO: What types????
@@ -116,12 +100,12 @@ interface Props {
 
 const BugfixConfigComponent = (props: Props) => {
   useEffect(() => {
-    //get all branches for branch-select
+    // Get all branches for branch-select
     getBranches()
       .then((branches) => branches.sort((a, b) => a.branch.localeCompare(b.branch)))
       .then((branches) => {
         props.setAllBranches(branches);
-        //select the currently active branch
+        // Select the currently active branch
         if (!props.currentBranch) {
           let activeBranch = branches.filter((b) => b.active === 'true')[0];
           if (!activeBranch) {
@@ -129,14 +113,14 @@ const BugfixConfigComponent = (props: Props) => {
           }
           props.onSetBranch(activeBranch, branches);
         }
-        //return just the names of the branches
+        // Return just the names of the branches
         return branches.map((b) => b.branch);
       })
       .then((branches) => [...new Set(branches)])
       .then((branches) => {
-        //build the selection box
+        // Build the selection box
         const temp: JSX.Element[] = [];
-        //placeholder option
+        //Placeholder option
         temp.push(
           <option key={-1} value={''}>
             Select a Branch
@@ -153,8 +137,8 @@ const BugfixConfigComponent = (props: Props) => {
       });
   }, []);
 
-  // update files every time the branch changes
-  // also reset selected files
+  // Update files every time the branch changes
+  // Also reset selected files
   useEffect(() => {
     if (props.currentBranch) {
       props.resetActiveFiles(); // Resets current active files back to []
@@ -208,8 +192,7 @@ const BugfixConfigComponent = (props: Props) => {
           <div className="control">
             <label className="label">Branch (by default all bugfixes for all branches/files are shown):</label>
             <div className="select">
-              <select value={props.currentBranchName}
-                      onChange={(e) => props.onSetBranch(e.target.value, props.allBranches)}>
+              <select value={props.currentBranchName} onChange={(e) => props.onSetBranch(e.target.value, props.allBranches)}>
                 {props.branchOptions}
               </select>
             </div>

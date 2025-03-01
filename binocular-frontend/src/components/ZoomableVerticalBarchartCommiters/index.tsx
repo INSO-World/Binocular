@@ -3,9 +3,6 @@
 import * as d3 from 'd3';
 import * as React from 'react';
 import * as baseStyles from './verticalBarChart.module.scss';
-import { ReactDOM } from 'react';
-import ReactDOMServer from 'react-dom/server';
-import {color} from "d3";
 
 interface Props {
   content: any[];

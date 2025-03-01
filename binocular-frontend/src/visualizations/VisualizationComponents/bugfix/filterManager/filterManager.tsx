@@ -14,7 +14,7 @@ export default (props: Props) => {
     commitMessage: props.filters.commitMessage,
     issueTitle: props.filters.issueTitle,
     issueLabelName: props.filters.issueLabelName,
-  }); // OR are next array element, AND are recursive objects
+  });
   return (
     <div className={styles.filterManager}>
       <div className={styles.backgroundBlur} onClick={props.close}>

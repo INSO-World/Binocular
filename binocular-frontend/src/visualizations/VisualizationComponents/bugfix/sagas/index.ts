@@ -27,11 +27,6 @@ export const setGraphStyle = createAction('SET_GRAPH_STYLE', (o) => o);
 export const setShowFilterMenu = createAction('SET_SHOW_FILTER_MENU', (o) => o);
 export const setRegexConfig = createAction('SET_REGEX_CONFIG', (o) => o);
 
-// export default function* () {
-//   yield fork(watchRefreshRequests);
-//   yield fork(watchSetCurrentBranch);
-// }
-
 //throttle ensures that only one refresh action will be dispatched in an interval of 2000ms
 function* watchRefreshRequests() {
   yield throttle(2000, 'REQUEST_REFRESH', mapSaga(refresh));
@@ -40,10 +35,6 @@ function* watchRefreshRequests() {
 function* watchSetCurrentBranch() {
   yield takeEvery('CO_SET_CURRENT_BRANCH', mapSaga(requestRefresh));
 }
-
-// Following code was copied mostly 1:1 from changes component to get the graph running (TODO: Implement functions you need)
-export const setSelectedAuthors = createAction('SET_SELECTED_AUTHORS');
-export const setDisplayMetric = createAction('SET_DISPLAY_METRIC');
 
 export const requestChangesData = createAction('REQUEST_CHANGES_DATA');
 export const receiveChangesData = timestampedActionFactory('RECEIVE_CHANGES_DATA');
@@ -80,7 +71,6 @@ export default function* () {
   yield fork(watchSelectedAuthorsGlobal);
   yield fork(watchMergedAuthors);
   yield fork(watchOtherAuthors);
-  yield fork(watchExcludeMergeCommits);
 }
 
 function* watchTimeSpan() {
@@ -93,10 +83,6 @@ function* watchSelectedAuthorsGlobal() {
 
 function* watchOtherAuthors() {
   yield takeEvery('SET_OTHER_AUTHORS', fetchChangesData);
-}
-
-function* watchExcludeMergeCommits() {
-  yield takeEvery('SET_EXCLUDE_MERGE_COMMITS', fetchChangesData);
 }
 
 function* watchMergedAuthors() {
