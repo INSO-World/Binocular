@@ -50,10 +50,15 @@ export default class ZoomableVerticalBarchartCommiters extends React.Component<P
   }
 
   //Draw chart after it updated
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: Readonly<Props>) {
     //Only update the chart if there is data for it and the component is mounted.
     //it is not currently in a zoom transition (d3 requirement)
-    if (this.state.componentMounted && this.props.content) {
+    if (this.state.componentMounted && this.props.content && this.props.content !== prevProps.content) {
+      this.setState({
+        content: this.props.content,
+      });
+      this.updateElement();
+    } else if (this.state.componentMounted && this.props.content) {
       this.updateElement();
     }
   }
