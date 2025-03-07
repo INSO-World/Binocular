@@ -1,12 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { DragResizeMode } from '../../../components/dashboard/resizeMode.ts';
 import Config from '../../../config.ts';
 import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
 
 export interface DashboardInitialState {
   dashboardItems: DashboardItemType[];
-  dragResizeMode: DragResizeMode;
-  placeableItem: DashboardItemType;
+  placeableItem?: DashboardItemType;
   dashboardItemCount: number;
   popupCount: number;
   dashboardState: number[][];
@@ -20,8 +18,7 @@ enum DashboardStateUpdateType {
 
 const initialState: DashboardInitialState = {
   dashboardItems: [],
-  dragResizeMode: DragResizeMode.none,
-  placeableItem: { id: 0, x: 0, y: 0, width: 1, height: 1, pluginName: '', dataPluginId: undefined },
+  placeableItem: undefined,
   dashboardItemCount: 0,
   popupCount: 0,
   dashboardState: Array.from(Array(40), () => new Array(40).fill(0)),
@@ -40,7 +37,7 @@ export const dashboardSlice = createSlice({
   },
   reducers: {
     addDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
-      state.dragResizeMode = DragResizeMode.none;
+      state.placeableItem = undefined;
       const nextFreePosition = findNextFreePosition(state.dashboardState, action.payload);
       if (nextFreePosition !== null) {
         state.dashboardItemCount++;
@@ -57,7 +54,7 @@ export const dashboardSlice = createSlice({
       }
     },
     moveDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
-      state.dragResizeMode = DragResizeMode.none;
+      state.placeableItem = undefined;
       if (checkIfSpaceIsFree(state.dashboardState, action.payload)) {
         state.dashboardItems = state.dashboardItems.map((item: DashboardItemType) => {
           if (item.id === action.payload.id) {
@@ -73,7 +70,6 @@ export const dashboardSlice = createSlice({
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     placeDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
-      state.dragResizeMode = DragResizeMode.place;
       state.placeableItem = action.payload;
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
@@ -89,10 +85,6 @@ export const dashboardSlice = createSlice({
         }
         return item;
       });
-      localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
-    },
-    setDragResizeMode: (state, action: PayloadAction<DragResizeMode>) => {
-      state.dragResizeMode = action.payload;
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     increasePopupCount: (state) => {
@@ -115,7 +107,6 @@ export const {
   placeDashboardItem,
   deleteDashboardItem,
   updateDashboardItem,
-  setDragResizeMode,
   increasePopupCount,
   clearDashboardStorage,
   importDashboardStorage,

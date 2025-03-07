@@ -1,7 +1,7 @@
 import dashboardItemStyles from './dashboardItem.module.scss';
 import { DragResizeMode } from '../resizeMode.ts';
 import { visualizationPlugins } from '../../../plugins/pluginRegistry.ts';
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import DashboardItemPopout from '../dashboardItemPopout/dashboardItemPopout.tsx';
 import { increasePopupCount, updateDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
@@ -27,7 +27,7 @@ const logger = createLogger({
   collapsed: () => true,
 });
 
-function DashboardItem(props: {
+const DashboardItem = memo(function DashboardItem(props: {
   item: DashboardItemType;
   cellSize: number;
   colCount: number;
@@ -353,6 +353,6 @@ function DashboardItem(props: {
       </>
     )
   );
-}
+});
 
 export default DashboardItem;
