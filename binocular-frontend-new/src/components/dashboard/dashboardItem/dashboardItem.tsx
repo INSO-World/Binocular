@@ -125,34 +125,80 @@ function DashboardItem(props: {
   });
 
   return (
-    <>
-      <div
-        className={dashboardItemStyles.dashboardItem}
-        id={'dashboardItem' + props.item.id}
-        style={{
-          top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px)`,
-          left: `calc(${(100.0 / props.colCount) * props.item.x}% + 10px)`,
-          width: `calc(${(100.0 / props.colCount) * props.item.width}% - 20px)`,
-          height: `calc(${(100.0 / props.rowCount) * props.item.height}% - 20px)`,
-        }}>
-        {poppedOut ? (
-          <div className={dashboardItemStyles.dashboardItemContent}>
-            <div className={dashboardItemStyles.popoutTextContainer}>
-              <div>
-                <img src={openInNewBlack} alt="Open Visualization" style={{ width: '2rem', height: '2rem' }} />
-                <div className={'font-bold text-2xl'}>Popped Out!</div>
+    props.item.y !== undefined &&
+    props.item.x !== undefined && (
+      <>
+        <div
+          className={dashboardItemStyles.dashboardItem}
+          id={'dashboardItem' + props.item.id}
+          style={{
+            top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px)`,
+            left: `calc(${(100.0 / props.colCount) * props.item.x}% + 10px)`,
+            width: `calc(${(100.0 / props.colCount) * props.item.width}% - 20px)`,
+            height: `calc(${(100.0 / props.rowCount) * props.item.height}% - 20px)`,
+          }}>
+          {poppedOut ? (
+            <div className={dashboardItemStyles.dashboardItemContent}>
+              <div className={dashboardItemStyles.popoutTextContainer}>
+                <div>
+                  <img src={openInNewBlack} alt="Open Visualization" style={{ width: '2rem', height: '2rem' }} />
+                  <div className={'font-bold text-2xl'}>Popped Out!</div>
+                </div>
+                <button
+                  className={'btn btn-sm'}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setPoppedOut(false);
+                  }}>
+                  <div>Dispatch Popout</div>
+                </button>
               </div>
-              <button
-                className={'btn btn-sm'}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setPoppedOut(false);
-                }}>
-                <div>Dispatch Popout</div>
-              </button>
+              {dataPlugin && store ? (
+                <DashboardItemPopout name={plugin.name} onClosing={() => setPoppedOut(false)}>
+                  <ReduxSubAppStoreWrapper store={store}>
+                    {plugin.chartComponent !== undefined ? (
+                      <plugin.chartComponent
+                        key={plugin.name}
+                        settings={settings}
+                        authorList={authors}
+                        fileList={files}
+                        sprintList={sprintList}
+                        parameters={{
+                          parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
+                          parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
+                        }}
+                        dataConnection={dataPlugin}
+                        dataConverter={plugin.dataConverter}
+                        chartContainerRef={chartContainerRef}
+                        store={store}
+                        dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
+                    ) : (
+                      <div>No Chart Component Found!</div>
+                    )}
+                  </ReduxSubAppStoreWrapper>
+                </DashboardItemPopout>
+              ) : (
+                <div>No Data Plugin Selected</div>
+              )}
             </div>
-            {dataPlugin && store ? (
-              <DashboardItemPopout name={plugin.name} onClosing={() => setPoppedOut(false)}>
+          ) : (
+            <div className={dashboardItemStyles.dashboardItemContent}>
+              {plugin.capabilities.popoutOnly ? (
+                <div className={dashboardItemStyles.popoutWarning}>
+                  <div>This Visualization is too complex to display as part of the Dashboard.</div>
+                  <div> Please open it in a new window to view!</div>
+                  <button
+                    className={'btn btn-accent'}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      dispatch(increasePopupCount());
+                      setPoppedOut(true);
+                    }}>
+                    <div>Open Visualization in new Window</div>
+                    <img src={openInNewGray} alt="Open Visualization" />
+                  </button>
+                </div>
+              ) : dataPlugin && store && authors ? (
                 <ReduxSubAppStoreWrapper store={store}>
                   {plugin.chartComponent !== undefined ? (
                     <plugin.chartComponent
@@ -174,181 +220,138 @@ function DashboardItem(props: {
                     <div>No Chart Component Found!</div>
                   )}
                 </ReduxSubAppStoreWrapper>
-              </DashboardItemPopout>
-            ) : (
-              <div>No Data Plugin Selected</div>
-            )}
-          </div>
-        ) : (
-          <div className={dashboardItemStyles.dashboardItemContent}>
-            {plugin.capabilities.popoutOnly ? (
-              <div className={dashboardItemStyles.popoutWarning}>
-                <div>This Visualization is too complex to display as part of the Dashboard.</div>
-                <div> Please open it in a new window to view!</div>
-                <button
-                  className={'btn btn-accent'}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    dispatch(increasePopupCount());
-                    setPoppedOut(true);
-                  }}>
-                  <div>Open Visualization in new Window</div>
-                  <img src={openInNewGray} alt="Open Visualization" />
-                </button>
-              </div>
-            ) : dataPlugin && store && authors ? (
-              <ReduxSubAppStoreWrapper store={store}>
-                {plugin.chartComponent !== undefined ? (
-                  <plugin.chartComponent
-                    key={plugin.name}
-                    settings={settings}
-                    authorList={authors}
-                    fileList={files}
-                    sprintList={sprintList}
-                    parameters={{
-                      parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
-                      parametersDateRange: ignoreGlobalParameters ? parametersDateRangeLocal : parametersDateRangeGlobal,
-                    }}
-                    dataConnection={dataPlugin}
-                    dataConverter={plugin.dataConverter}
-                    chartContainerRef={chartContainerRef}
-                    store={store}
-                    dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
-                ) : (
-                  <div>No Chart Component Found!</div>
-                )}
-              </ReduxSubAppStoreWrapper>
-            ) : (
-              <div>No Data Plugin Selected</div>
-            )}
-          </div>
-        )}
-        <div
-          className={dashboardItemStyles.dashboardItemInteractionBar}
-          style={{
-            background: `linear-gradient(90deg, ${selectedDataPlugin ? selectedDataPlugin.color : 'oklch(var(--b2))'}, oklch(var(--b1))`,
-          }}
-          onMouseDown={() => {
-            console.log('Start dragging dashboard item ' + props.item.pluginName);
-            props.setDragResizeItem(props.item, DragResizeMode.drag);
-          }}>
-          <span>{props.item.pluginName}</span>
-          {selectedDataPlugin && (
-            <span>
-              ({selectedDataPlugin.name} #{selectedDataPlugin.id})
-            </span>
+              ) : (
+                <div>No Data Plugin Selected</div>
+              )}
+            </div>
           )}
-          <button
-            className={dashboardItemStyles.settingsButton}
-            onClick={(event) => {
-              event.stopPropagation();
-              setSettingsVisible(!settingsVisible);
+          <div
+            className={dashboardItemStyles.dashboardItemInteractionBar}
+            style={{
+              background: `linear-gradient(90deg, ${selectedDataPlugin ? selectedDataPlugin.color : 'oklch(var(--b2))'}, oklch(var(--b1))`,
             }}
-            onMouseDown={(event) => event.stopPropagation()}></button>
-          <button
-            className={dashboardItemStyles.helpButton}
-            onClick={(event) => {
-              event.stopPropagation();
-              setHelpVisible(!helpVisible);
-            }}
-            onMouseDown={(event) => event.stopPropagation()}></button>
-          <button
-            className={dashboardItemStyles.popoutButton}
-            onClick={(event) => {
-              event.stopPropagation();
-              dispatch(increasePopupCount());
-              setPoppedOut(true);
-            }}
-            onMouseDown={(event) => event.stopPropagation()}></button>
-          {plugin.capabilities.export && (
+            onMouseDown={() => {
+              console.log('Start dragging dashboard item ' + props.item.pluginName);
+              props.setDragResizeItem(props.item, DragResizeMode.drag);
+            }}>
+            <span>{props.item.pluginName}</span>
+            {selectedDataPlugin && (
+              <span>
+                ({selectedDataPlugin.name} #{selectedDataPlugin.id})
+              </span>
+            )}
             <button
-              className={dashboardItemStyles.exportButton}
+              className={dashboardItemStyles.settingsButton}
               onClick={(event) => {
                 event.stopPropagation();
-                dispatch(setExportType(ExportType.image));
-                dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
-                dispatch(setExportName(`${plugin.name}Export`));
-                (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
+                setSettingsVisible(!settingsVisible);
               }}
               onMouseDown={(event) => event.stopPropagation()}></button>
-          )}
-        </div>
-        <div
-          className={dashboardItemStyles.dashboardItemResizeBarTop}
-          onMouseDown={() => {
-            console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top');
-            props.setDragResizeItem(props.item, DragResizeMode.resizeTop);
-          }}></div>
-        <div
-          className={dashboardItemStyles.dashboardItemResizeBarRight}
-          onMouseDown={() => {
-            console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the right');
-            props.setDragResizeItem(props.item, DragResizeMode.resizeRight);
-          }}></div>
-        <div
-          className={dashboardItemStyles.dashboardItemResizeBarBottom}
-          onMouseDown={() => {
-            console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom');
-            props.setDragResizeItem(props.item, DragResizeMode.resizeBottom);
-          }}></div>
-        <div
-          className={dashboardItemStyles.dashboardItemResizeBarLeft}
-          onMouseDown={() => {
-            console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the left');
-            props.setDragResizeItem(props.item, DragResizeMode.resizeLeft);
-          }}></div>
-      </div>
-      <>
-        {settingsVisible && (
-          <div className={dashboardItemStyles.settingsBackground} onClick={() => setSettingsVisible(false)}>
-            <div
-              onClick={(event) => event.stopPropagation()}
-              className={'text-xs ' + dashboardItemStyles.settingsWindow}
-              style={{
-                top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
-                left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
-              }}>
-              <DashboardItemSettings
-                selectedDataPlugin={selectedDataPlugin ? selectedDataPlugin : undefined}
-                onSelectDataPlugin={(dP: DatabaseSettingsDataPluginType) => {
-                  const newItem = _.clone(props.item);
-                  newItem.dataPluginId = dP.id;
-                  dispatch(updateDashboardItem(newItem));
+            <button
+              className={dashboardItemStyles.helpButton}
+              onClick={(event) => {
+                event.stopPropagation();
+                setHelpVisible(!helpVisible);
+              }}
+              onMouseDown={(event) => event.stopPropagation()}></button>
+            <button
+              className={dashboardItemStyles.popoutButton}
+              onClick={(event) => {
+                event.stopPropagation();
+                dispatch(increasePopupCount());
+                setPoppedOut(true);
+              }}
+              onMouseDown={(event) => event.stopPropagation()}></button>
+            {plugin.capabilities.export && (
+              <button
+                className={dashboardItemStyles.exportButton}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  dispatch(setExportType(ExportType.image));
+                  dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
+                  dispatch(setExportName(`${plugin.name}Export`));
+                  (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
                 }}
-                item={props.item}
-                settingsComponent={
-                  <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
-                }
-                onClickDelete={() => props.deleteItem(props.item)}
-                onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}
-                ignoreGlobalParameters={ignoreGlobalParameters}
-                setIgnoreGlobalParameters={setIgnoreGlobalParameters}
-                doAutomaticUpdate={doAutomaticUpdate}
-                setDoAutomaticUpdate={setDoAutomaticUpdate}
-                parametersGeneral={parametersGeneralLocal}
-                setParametersGeneral={setParametersGeneralLocal}
-                parametersDateRange={parametersDateRangeLocal}
-                setParametersDateRange={setParametersDateRangeLocal}></DashboardItemSettings>
-            </div>
+                onMouseDown={(event) => event.stopPropagation()}></button>
+            )}
           </div>
-        )}
-      </>
-      <>
-        {helpVisible && (
-          <div className={dashboardItemStyles.settingsBackground} onClick={() => setHelpVisible(false)}>
-            <div
-              onClick={(event) => event.stopPropagation()}
-              className={'text-xs ' + dashboardItemStyles.settingsWindow}
-              style={{
-                top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
-                left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
-              }}>
-              <plugin.helpComponent key={plugin.name}></plugin.helpComponent>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarTop}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top');
+              props.setDragResizeItem(props.item, DragResizeMode.resizeTop);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarRight}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the right');
+              props.setDragResizeItem(props.item, DragResizeMode.resizeRight);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarBottom}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom');
+              props.setDragResizeItem(props.item, DragResizeMode.resizeBottom);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarLeft}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the left');
+              props.setDragResizeItem(props.item, DragResizeMode.resizeLeft);
+            }}></div>
+        </div>
+        <>
+          {settingsVisible && (
+            <div className={dashboardItemStyles.settingsBackground} onClick={() => setSettingsVisible(false)}>
+              <div
+                onClick={(event) => event.stopPropagation()}
+                className={'text-xs ' + dashboardItemStyles.settingsWindow}
+                style={{
+                  top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
+                  left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
+                }}>
+                <DashboardItemSettings
+                  selectedDataPlugin={selectedDataPlugin ? selectedDataPlugin : undefined}
+                  onSelectDataPlugin={(dP: DatabaseSettingsDataPluginType) => {
+                    const newItem = _.clone(props.item);
+                    newItem.dataPluginId = dP.id;
+                    dispatch(updateDashboardItem(newItem));
+                  }}
+                  item={props.item}
+                  settingsComponent={
+                    <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
+                  }
+                  onClickDelete={() => props.deleteItem(props.item)}
+                  onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}
+                  ignoreGlobalParameters={ignoreGlobalParameters}
+                  setIgnoreGlobalParameters={setIgnoreGlobalParameters}
+                  doAutomaticUpdate={doAutomaticUpdate}
+                  setDoAutomaticUpdate={setDoAutomaticUpdate}
+                  parametersGeneral={parametersGeneralLocal}
+                  setParametersGeneral={setParametersGeneralLocal}
+                  parametersDateRange={parametersDateRangeLocal}
+                  setParametersDateRange={setParametersDateRangeLocal}></DashboardItemSettings>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </>
+        <>
+          {helpVisible && (
+            <div className={dashboardItemStyles.settingsBackground} onClick={() => setHelpVisible(false)}>
+              <div
+                onClick={(event) => event.stopPropagation()}
+                className={'text-xs ' + dashboardItemStyles.settingsWindow}
+                style={{
+                  top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
+                  left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
+                }}>
+                <plugin.helpComponent key={plugin.name}></plugin.helpComponent>
+              </div>
+            </div>
+          )}
+        </>
       </>
-    </>
+    )
   );
 }
 

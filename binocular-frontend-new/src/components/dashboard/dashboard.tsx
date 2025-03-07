@@ -10,7 +10,6 @@ import {
   setDragResizeMode,
   deleteDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
-import DashboardItemPlaceholder from './dashboardItemPlaceholder/dashboardItemPlaceholder.tsx';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
 import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
 import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
@@ -50,10 +49,10 @@ function Dashboard() {
   const [cellSize, setCellSize] = useState(0);
   const [movingItem, setMovingItem] = useState<DashboardItemDTO>({ id: 0, x: 0, y: 0, width: 0, height: 0 });
 
-  const [targetX, setTargetX] = useState(0);
-  const [targetY, setTargetY] = useState(0);
-  const [targetWidth, setTargetWidth] = useState(0);
-  const [targetHeight, setTargetHeight] = useState(0);
+  let targetX = 0;
+  let targetY = 0;
+  let targetWidth = 0;
+  let targetHeight = 0;
 
   const dashboardItems = useSelector((state: RootState) => state.dashboard.dashboardItems);
   const dragResizeMode = useSelector((state: RootState) => state.dashboard.dragResizeMode);
@@ -140,10 +139,9 @@ function Dashboard() {
               })}
             </tbody>
           </table>
-          <div className={dashboardStyles.dragIndicator} ref={dragIndicatorRef} id={'dragIndicator'}></div>
           <>
             {dashboardItems.map((dashboardItem: DashboardItemType) => {
-              return dragResizeMode === DragResizeMode.none ? (
+              return (
                 <DashboardItem
                   key={'dashboardItem' + dashboardItem.id}
                   cellSize={cellSize}
@@ -152,16 +150,10 @@ function Dashboard() {
                   rowCount={rowCount * gridMultiplier}
                   setDragResizeItem={setDragResizeItem}
                   deleteItem={(item) => dispatch(deleteDashboardItem(item))}></DashboardItem>
-              ) : (
-                <DashboardItemPlaceholder
-                  key={'dashboardItem' + dashboardItem.id}
-                  cellSize={cellSize}
-                  item={dashboardItem}
-                  colCount={columnCount * gridMultiplier}
-                  rowCount={rowCount * gridMultiplier}></DashboardItemPlaceholder>
               );
             })}
           </>
+          <div className={dashboardStyles.dragIndicator} ref={dragIndicatorRef} id={'dragIndicator'}></div>
           {dragResizeMode !== DragResizeMode.none && (
             <>
               <div
@@ -192,48 +184,48 @@ function Dashboard() {
                       case DragResizeMode.drag:
                         dragIndicatorRef.current.style.left = dragIndicatorRef.current.offsetLeft + event.movementX + 'px';
                         dragIndicatorRef.current.style.top = dragIndicatorRef.current.offsetTop + event.movementY + 'px';
-                        setTargetX(Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize));
-                        setTargetY(Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize));
-                        setTargetWidth(movingItem.width / gridMultiplier);
-                        setTargetHeight(movingItem.height / gridMultiplier);
+                        targetX = Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize);
+                        targetY = Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize);
+                        targetWidth = movingItem.width / gridMultiplier;
+                        targetHeight = movingItem.height / gridMultiplier;
                         break;
                       case DragResizeMode.resizeTop:
                         dragIndicatorRef.current.style.top = dragIndicatorRef.current.offsetTop + event.movementY + 'px';
                         dragIndicatorRef.current.style.height = dragIndicatorRef.current.offsetHeight - event.movementY + 'px';
-                        setTargetX(movingItem.x / gridMultiplier);
-                        setTargetY(Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize));
-                        setTargetWidth(movingItem.width / gridMultiplier);
-                        setTargetHeight(Math.round((dragIndicatorRef.current.offsetHeight + event.movementY) / cellSize));
+                        targetX = movingItem.x / gridMultiplier;
+                        targetY = Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize);
+                        targetWidth = movingItem.width / gridMultiplier;
+                        targetHeight = Math.round((dragIndicatorRef.current.offsetHeight + event.movementY) / cellSize);
                         break;
                       case DragResizeMode.resizeRight:
                         dragIndicatorRef.current.style.width = dragIndicatorRef.current.offsetWidth + event.movementX + 'px';
-                        setTargetX(movingItem.x / gridMultiplier);
-                        setTargetY(movingItem.y / gridMultiplier);
-                        setTargetWidth(Math.round((dragIndicatorRef.current.offsetWidth + event.movementX) / cellSize));
-                        setTargetHeight(movingItem.height / gridMultiplier);
+                        targetX = movingItem.x / gridMultiplier;
+                        targetY = movingItem.y / gridMultiplier;
+                        targetWidth = Math.round((dragIndicatorRef.current.offsetWidth + event.movementX) / cellSize);
+                        targetHeight = movingItem.height / gridMultiplier;
                         break;
                       case DragResizeMode.resizeBottom:
                         dragIndicatorRef.current.style.height = dragIndicatorRef.current.offsetHeight + event.movementY + 'px';
-                        setTargetX(movingItem.x / gridMultiplier);
-                        setTargetY(movingItem.y / gridMultiplier);
-                        setTargetWidth(movingItem.width / gridMultiplier);
-                        setTargetHeight(Math.round((dragIndicatorRef.current.offsetHeight + event.movementX) / cellSize));
+                        targetX = movingItem.x / gridMultiplier;
+                        targetY = movingItem.y / gridMultiplier;
+                        targetWidth = movingItem.width / gridMultiplier;
+                        targetHeight = Math.round((dragIndicatorRef.current.offsetHeight + event.movementX) / cellSize);
                         break;
                       case DragResizeMode.resizeLeft:
                         dragIndicatorRef.current.style.left = dragIndicatorRef.current.offsetLeft + event.movementX + 'px';
                         dragIndicatorRef.current.style.width = dragIndicatorRef.current.offsetWidth - event.movementX + 'px';
-                        setTargetX(Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize));
-                        setTargetY(movingItem.y / gridMultiplier);
-                        setTargetWidth(Math.round((dragIndicatorRef.current.offsetWidth + event.movementX) / cellSize));
-                        setTargetHeight(movingItem.height / gridMultiplier);
+                        targetX = Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize);
+                        targetY = movingItem.y / gridMultiplier;
+                        targetWidth = Math.round((dragIndicatorRef.current.offsetWidth + event.movementX) / cellSize);
+                        targetHeight = movingItem.height / gridMultiplier;
                         break;
                       case DragResizeMode.place:
                         dragIndicatorRef.current.style.left = dragIndicatorRef.current.offsetLeft + event.movementX + 'px';
                         dragIndicatorRef.current.style.top = dragIndicatorRef.current.offsetTop + event.movementY + 'px';
-                        setTargetX(Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize));
-                        setTargetY(Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize));
-                        setTargetWidth(placeableItem.width / gridMultiplier);
-                        setTargetHeight(placeableItem.height / gridMultiplier);
+                        targetX = Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize);
+                        targetY = Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize);
+                        targetWidth = placeableItem.width / gridMultiplier;
+                        targetHeight = placeableItem.height / gridMultiplier;
                         break;
                       default:
                         break;
@@ -245,10 +237,10 @@ function Dashboard() {
                 onMouseUp={() => {
                   if (itemMoved && movingItem.x !== undefined && movingItem.y !== undefined) {
                     if (targetX < 0 || targetY < 0 || targetX + targetWidth > columnCount || targetY + targetHeight > rowCount) {
-                      setTargetX(movingItem.x);
-                      setTargetY(movingItem.y);
-                      setTargetWidth(movingItem.width);
-                      setTargetHeight(movingItem.height);
+                      targetX = movingItem.x;
+                      targetY = movingItem.y;
+                      targetWidth = movingItem.width;
+                      targetHeight = movingItem.height;
                       dispatch(
                         addNotification({
                           text: `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
@@ -262,10 +254,10 @@ function Dashboard() {
                     }
 
                     if (targetWidth < 1 || targetHeight < 1) {
-                      setTargetX(movingItem.x);
-                      setTargetY(movingItem.y);
-                      setTargetWidth(movingItem.width);
-                      setTargetHeight(movingItem.height);
+                      targetX = movingItem.x;
+                      targetY = movingItem.y;
+                      targetWidth = movingItem.width;
+                      targetHeight = movingItem.height;
                       dispatch(
                         addNotification({
                           text: `Cannot resize to size ${targetWidth},${targetHeight} as its too small`,
