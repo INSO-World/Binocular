@@ -8,11 +8,11 @@ export default function* <DataType>(dataConnection: DataPlugin, name?: string, d
 }
 
 function* watchRefresh<DataType>(dataConnection: DataPlugin, name: string, dataConnectionName: string) {
-  yield takeEvery('REFRESH', () => fetchChangesData<DataType>(dataConnection, name,dataConnectionName));
+  yield takeEvery('REFRESH', () => fetchChangesData<DataType>(dataConnection, name, dataConnectionName));
 }
 
 function* watchDateRangeChange<DataType>(dataConnection: DataPlugin, name: string, dataConnectionName: string) {
-  yield takeEvery(getDataSlice(name).actions.setDateRange, () => fetchChangesData<DataType>(dataConnection, name,dataConnectionName));
+  yield takeEvery(getDataSlice(name).actions.setDateRange, () => fetchChangesData<DataType>(dataConnection, name, dataConnectionName));
 }
 
 function* fetchChangesData<DataType>(dataConnection: DataPlugin, name: string, dataConnectionName: string) {

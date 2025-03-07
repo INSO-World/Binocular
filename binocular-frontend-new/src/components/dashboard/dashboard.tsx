@@ -1,7 +1,6 @@
 import dashboardStyles from './dashboard.module.scss';
 import { createRef, useEffect, useState } from 'react';
 import DashboardItem from './dashboardItem/dashboardItem.tsx';
-import { showDialog } from '../informationDialog/dialogHelper.ts';
 import { DragResizeMode } from './resizeMode.ts';
 import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../redux';
@@ -15,6 +14,8 @@ import DashboardItemPlaceholder from './dashboardItemPlaceholder/dashboardItemPl
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
 import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
 import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
+import { addNotification } from '../../redux/reducer/general/notificationsReducer.ts';
+import { AlertType } from '../../types/general/alertType.ts';
 
 function Dashboard() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -80,8 +81,8 @@ function Dashboard() {
     }
   }
 
-  function highlightDropArea(posX: number, posY: number, width: number, height: number) {
-    console.log(6 * gridMultiplier < movingItem.y || 6 * gridMultiplier > movingItem.y + movingItem.height);
+  function highlightDropArea(posX: number, posY: number, width: number, height: number): boolean {
+    let placeable = true;
     for (let y = 0; y < rowCount; y++) {
       for (let x = 0; x < columnCount; x++) {
         if (y > posY - 1 && x > posX - 1 && y < posY + height && x < posX + width) {
@@ -90,6 +91,7 @@ function Dashboard() {
             dashboardState[y * gridMultiplier][x * gridMultiplier] !== movingItem.id
           ) {
             document.getElementById('highlightY' + y + 'X' + x)?.classList.add(dashboardStyles.dashboardBackgroundCellHighlightNotPossible);
+            placeable = false;
           } else {
             document.getElementById('highlightY' + y + 'X' + x)?.classList.add(dashboardStyles.dashboardBackgroundCellHighlightActive);
           }
@@ -101,6 +103,7 @@ function Dashboard() {
         }
       }
     }
+    return placeable;
   }
 
   useEffect(() => {
@@ -166,7 +169,7 @@ function Dashboard() {
                 onMouseEnter={(event) => {
                   setItemMoved(true);
                   event.stopPropagation();
-                  if (dragIndicatorRef.current !== null) {
+                  if (dragIndicatorRef.current !== null && movingItem.x !== undefined && movingItem.y !== undefined) {
                     if (dragResizeMode === DragResizeMode.place) {
                       dragIndicatorRef.current.style.display = 'block';
                       dragIndicatorRef.current.style.top = `calc(${(50.0 / columnCount / gridMultiplier) * (1 - placeableItem.width)}% + 10px)`;
@@ -184,7 +187,7 @@ function Dashboard() {
                 }}
                 onMouseMove={(event) => {
                   event.stopPropagation();
-                  if (dragIndicatorRef.current !== null) {
+                  if (dragIndicatorRef.current !== null && movingItem.x !== undefined && movingItem.y !== undefined) {
                     switch (dragResizeMode) {
                       case DragResizeMode.drag:
                         dragIndicatorRef.current.style.left = dragIndicatorRef.current.offsetLeft + event.movementX + 'px';
@@ -240,15 +243,17 @@ function Dashboard() {
                   }
                 }}
                 onMouseUp={() => {
-                  if (itemMoved) {
+                  if (itemMoved && movingItem.x !== undefined && movingItem.y !== undefined) {
                     if (targetX < 0 || targetY < 0 || targetX + targetWidth > columnCount || targetY + targetHeight > rowCount) {
                       setTargetX(movingItem.x);
                       setTargetY(movingItem.y);
                       setTargetWidth(movingItem.width);
                       setTargetHeight(movingItem.height);
-                      showDialog(
-                        'Warning!',
-                        `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
+                      dispatch(
+                        addNotification({
+                          text: `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
+                          type: AlertType.warning,
+                        }),
                       );
                       console.warn(
                         `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
@@ -261,40 +266,70 @@ function Dashboard() {
                       setTargetY(movingItem.y);
                       setTargetWidth(movingItem.width);
                       setTargetHeight(movingItem.height);
-                      showDialog('Warning!', `Cannot resize to size ${targetWidth},${targetHeight} as its too small`);
+                      dispatch(
+                        addNotification({
+                          text: `Cannot resize to size ${targetWidth},${targetHeight} as its too small`,
+                          type: AlertType.warning,
+                        }),
+                      );
                       console.warn(`Cannot resize to size ${targetWidth},${targetHeight} as its too small`);
                       return;
                     }
 
-                    if (dragResizeMode === DragResizeMode.place) {
-                      console.log(targetX * gridMultiplier);
-                      dispatch(
-                        addDashboardItem({
-                          id: movingItem.id,
-                          x: targetX * gridMultiplier,
-                          y: targetY * gridMultiplier,
-                          width: targetWidth * gridMultiplier,
-                          height: targetHeight * gridMultiplier,
-                          pluginName: placeableItem.pluginName,
-                          dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-                        }),
-                      );
-                    } else {
-                      dispatch(
-                        moveDashboardItem({
-                          id: movingItem.id,
-                          x: targetX * gridMultiplier,
-                          y: targetY * gridMultiplier,
-                          width: targetWidth * gridMultiplier,
-                          height: targetHeight * gridMultiplier,
-                          dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-                        }),
-                      );
+                    switch (dragResizeMode) {
+                      case DragResizeMode.place:
+                        if (highlightDropArea(targetX, targetY, targetWidth, targetHeight)) {
+                          dispatch(
+                            addDashboardItem({
+                              id: movingItem.id,
+                              x: targetX * gridMultiplier,
+                              y: targetY * gridMultiplier,
+                              width: targetWidth * gridMultiplier,
+                              height: targetHeight * gridMultiplier,
+                              pluginName: placeableItem.pluginName,
+                              dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+                            }),
+                          );
+                        } else {
+                          dispatch(
+                            addNotification({
+                              text: `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                              type: AlertType.warning,
+                            }),
+                          );
+                          console.warn(
+                            `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                          );
+                        }
+                        break;
+                      default:
+                        if (highlightDropArea(targetX, targetY, targetWidth, targetHeight)) {
+                          dispatch(
+                            moveDashboardItem({
+                              id: movingItem.id,
+                              x: targetX * gridMultiplier,
+                              y: targetY * gridMultiplier,
+                              width: targetWidth * gridMultiplier,
+                              height: targetHeight * gridMultiplier,
+                              dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+                            }),
+                          );
+                        } else {
+                          dispatch(
+                            addNotification({
+                              text: `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                              type: AlertType.warning,
+                            }),
+                          );
+                          console.warn(
+                            `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                          );
+                        }
+                        break;
                     }
                   }
                   setItemMoved(false);
                   clearHighlightDropArea(columnCount, rowCount);
-                  dispatch(setDragResizeMode(DragResizeMode.none));
                 }}
                 onMouseLeave={() => {
                   setItemMoved(false);
