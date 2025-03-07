@@ -10,10 +10,30 @@ import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboa
 import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
 import { addNotification } from '../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../types/general/alertType.ts';
+import { createSelector } from 'reselect';
+
+const selectDashboardItems = createSelector(
+  (state) => state.dashboard,
+  (dashboard) => dashboard.dashboardItems,
+);
+
+const selectPlaceableItem = createSelector(
+  (state) => state.dashboard,
+  (dashboard) => dashboard.placeableItem,
+);
+
+const selectDashboardState = createSelector(
+  (state) => state.dashboard,
+  (dashboard) => dashboard.dashboardState,
+);
+
+const selectDataPlugins = createSelector(
+  (state) => state.settings,
+  (settings) => settings.database.dataPlugins,
+);
 
 function Dashboard() {
   const dispatch: AppDispatch = useAppDispatch();
-  console.log('REFRESH Dashbaord');
 
   const gridSize = useSelector((state: RootState) => state.settings.general.gridSize);
   let cellCount: number;
@@ -60,11 +80,11 @@ function Dashboard() {
   let targetWidth = 0;
   let targetHeight = 0;
 
-  const dashboardItems = useSelector((state: RootState) => state.dashboard.dashboardItems);
-  const placeableItem = useSelector((state: RootState) => state.dashboard.placeableItem);
-  const dashboardState = useSelector((state: RootState) => state.dashboard.dashboardState);
+  const dashboardItems = useSelector(selectDashboardItems);
+  const placeableItem = useSelector(selectPlaceableItem);
+  const dashboardState = useSelector(selectDashboardState);
 
-  const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const configuredDataPlugins = useSelector(selectDataPlugins);
 
   const defaultDataPlugin = configuredDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0];
 
