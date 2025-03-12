@@ -15,6 +15,7 @@ import ExampleComplex from './visualizationPlugins/exampleComplex';
 import ExampleStats from './visualizationPlugins/exampleStats';
 import ExampleVisualization from './visualizationPlugins/exampleVisualization';
 import CodeOwnership from './visualizationPlugins/code-ownership';
+import FileChanges from './visualizationPlugins/fileChanges';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
@@ -29,6 +30,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   ExampleStats,
   ExampleVisualization,
   ExampleComplex,
+  FileChanges,
 ];
 
 //Order = priority used when nothing selected by the user.

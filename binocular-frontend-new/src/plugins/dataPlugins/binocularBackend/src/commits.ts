@@ -141,7 +141,7 @@ export default class Commits implements DataPluginCommits {
                       additions
                       deletions
                     }
-                    files(path: $file, page: 1, perPage: 1000) {
+                    files(page: 1, perPage: 1000) {
                       data {
                         file {
                           path
