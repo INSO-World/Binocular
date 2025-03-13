@@ -6,6 +6,8 @@ export interface DataPluginCommits {
   getOwnershipDataForCommits: () => Promise<DataPluginOwnership[]>;
   getCommitDataForSha: (sha: string) => Promise<DataPluginCommit | undefined>;
   getByFile: (file: string) => Promise<DataPluginCommit[]>;
+  getDateOfFirstCommit: () => Promise<string>;
+  getDateOfLastCommit: () => Promise<string>;
 }
 
 export interface DataPluginCommit {
