@@ -54,54 +54,85 @@ export default class Commits implements DataPluginCommits {
   private name;
   constructor(apiKey: string, endpoint: string) {
     this.graphQl = new GraphQL(apiKey);
-    this.owner = endpoint.split('/')[0];
-    this.name = endpoint.split('/')[1];
+    this.owner = endpoint.split("/")[0];
+    this.name = endpoint.split("/")[1];
   }
   public async getAll(from: string, to: string) {
-    return await Promise.resolve(this.getCommits(100, new Date(from).toISOString(), new Date(to).toISOString()));
+    return await Promise.resolve(
+      this.getCommits(
+        100,
+        new Date(from).toISOString(),
+        new Date(to).toISOString(),
+      ),
+    );
   }
-  private async getCommits(perPage: number, from: string, to: string): Promise<DataPluginCommit[]> {
+  private async getCommits(
+    perPage: number,
+    from: string,
+    to: string,
+  ): Promise<DataPluginCommit[]> {
     let hasNextPage: boolean = true;
     let nextPageCursor: string | null = null;
 
     const commitNodes: DataPluginCommit[] = [];
 
     while (hasNextPage) {
-      const resp: void | ApolloQueryResult<CommitQueryResult> = await this.graphQl.client
-        .query<
-          CommitQueryResult,
-          { nextPageCursor: string | null; perPage: number; from: string; to: string; owner: string; name: string }
-        >({
-          query: gql`
-            query ($nextPageCursor: String, $perPage: Int, $from: GitTimestamp, $to: GitTimestamp, $owner: String!, $name: String!) {
-              repository(owner: $owner, name: $name) {
-                defaultBranchRef {
-                  target {
-                    ... on Commit {
-                      history(after: $nextPageCursor, first: $perPage, since: $from, until: $to) {
-                        pageInfo {
-                          endCursor
-                          hasNextPage
-                        }
-                        totalCount
-                        nodes {
-                          oid
-                          messageHeadline
-                          message
-                          committedDate
-                          url
-                          deletions
-                          additions
-                          author {
-                            user {
-                              id
-                              login
-                            }
+      const resp: void | ApolloQueryResult<CommitQueryResult> =
+        await this.graphQl.client
+          .query<
+            CommitQueryResult,
+            {
+              nextPageCursor: string | null;
+              perPage: number;
+              from: string;
+              to: string;
+              owner: string;
+              name: string;
+            }
+          >({
+            query: gql`
+              query (
+                $nextPageCursor: String
+                $perPage: Int
+                $from: GitTimestamp
+                $to: GitTimestamp
+                $owner: String!
+                $name: String!
+              ) {
+                repository(owner: $owner, name: $name) {
+                  defaultBranchRef {
+                    target {
+                      ... on Commit {
+                        history(
+                          after: $nextPageCursor
+                          first: $perPage
+                          since: $from
+                          until: $to
+                        ) {
+                          pageInfo {
+                            endCursor
+                            hasNextPage
                           }
-                          parents(first: 100) {
-                            totalCount
-                            nodes {
-                              oid
+                          totalCount
+                          nodes {
+                            oid
+                            messageHeadline
+                            message
+                            committedDate
+                            url
+                            deletions
+                            additions
+                            author {
+                              user {
+                                id
+                                login
+                              }
+                            }
+                            parents(first: 100) {
+                              totalCount
+                              nodes {
+                                oid
+                              }
                             }
                           }
                         }
@@ -110,34 +141,55 @@ export default class Commits implements DataPluginCommits {
                   }
                 }
               }
-            }
-          `,
-          variables: { nextPageCursor, perPage, from, to, owner: this.owner, name: this.name },
-        })
-        .catch((e) => console.log(e));
+            `,
+            variables: {
+              nextPageCursor,
+              perPage,
+              from,
+              to,
+              owner: this.owner,
+              name: this.name,
+            },
+          })
+          .catch((e) => console.log(e));
 
       if (resp) {
-        console.log(resp.data.repository.defaultBranchRef.target.history.pageInfo.hasNextPage);
-        resp.data.repository.defaultBranchRef.target.history.nodes.forEach((commit) => {
-          if (commit.author.user === null) {
-            return;
-          }
-          commitNodes.push({
-            sha: commit.oid,
-            shortSha: '',
-            messageHeader: commit.messageHeadline,
-            files: { data: [] }, // Placeholder for files, as this is not fetched in this query
-            message: commit.message,
-            user: { id: commit.author.user.id, gitSignature: commit.author.user.login },
-            branch: '',
-            date: commit.committedDate,
-            parents: commit.parents.nodes.map((parent) => parent.oid),
-            webUrl: commit.url,
-            stats: { additions: commit.additions, deletions: commit.deletions },
-          });
-        });
-        nextPageCursor = resp.data.repository.defaultBranchRef.target.history.pageInfo.endCursor;
-        hasNextPage = resp.data.repository.defaultBranchRef.target.history.pageInfo.hasNextPage;
+        console.log(
+          resp.data.repository.defaultBranchRef.target.history.pageInfo
+            .hasNextPage,
+        );
+        resp.data.repository.defaultBranchRef.target.history.nodes.forEach(
+          (commit) => {
+            if (commit.author.user === null) {
+              return;
+            }
+            commitNodes.push({
+              sha: commit.oid,
+              shortSha: "",
+              files: { data: [] },
+              messageHeader: commit.messageHeadline,
+              message: commit.message,
+              user: {
+                id: commit.author.user.id,
+                gitSignature: commit.author.user.login,
+              },
+              branch: "",
+              date: commit.committedDate,
+              parents: commit.parents.nodes.map((parent) => parent.oid),
+              webUrl: commit.url,
+              stats: {
+                additions: commit.additions,
+                deletions: commit.deletions,
+              },
+            });
+          },
+        );
+        nextPageCursor =
+          resp.data.repository.defaultBranchRef.target.history.pageInfo
+            .endCursor;
+        hasNextPage =
+          resp.data.repository.defaultBranchRef.target.history.pageInfo
+            .hasNextPage;
       } else {
         hasNextPage = false;
       }
@@ -224,8 +276,11 @@ export default class Commits implements DataPluginCommits {
             files: { data: [] }, // Placeholder for files, as this is not fetched in this query
             messageHeader: commit.messageHeadline,
             message: commit.message,
-            user: { id: commit.author.user.id, gitSignature: commit.author.user.login },
-            branch: '',
+            user: {
+              id: commit.author.user.id,
+              gitSignature: commit.author.user.login,
+            },
+            branch: "",
             date: commit.committedDate,
             parents: commit.parents.nodes.map((parent) => parent.oid),
             webUrl: commit.url,
@@ -239,6 +294,61 @@ export default class Commits implements DataPluginCommits {
       }
     }
 
-    return commitNodes.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
+    return commitNodes.sort(
+      (a, b) =>
+        new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds(),
+    );
+  }
+
+  public async getDateOfFirstCommit() {
+    console.log(`Getting Date of First Commit`);
+    const resp = await this.graphQl.client.query({
+      query: gql`
+        query ($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            defaultBranchRef {
+              target {
+                ... on Commit {
+                  history(first: 1) {
+                    nodes {
+                      committedDate
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: { owner: this.owner, name: this.name },
+    });
+    return resp.data.repository.defaultBranchRef.target.history.nodes[0]
+      .committedDate;
+  }
+
+  public async getDateOfLastCommit() {
+    console.log(`Getting Date of Last Commit`);
+    const resp = await this.graphQl.client.query({
+      query: gql`
+        query ($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            defaultBranchRef {
+              target {
+                ... on Commit {
+                  history(last: 1) {
+                    nodes {
+                      committedDate
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: { owner: this.owner, name: this.name },
+    });
+    return resp.data.repository.defaultBranchRef.target.history.nodes[0]
+      .committedDate;
   }
 }

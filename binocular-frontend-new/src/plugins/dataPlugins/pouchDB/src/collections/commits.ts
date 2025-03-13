@@ -77,4 +77,34 @@ export default class Commits implements DataPluginCommits {
       });
     }
   }
+
+  public async getDateOfFirstCommit() {
+    console.log('Getting date of first commit');
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findAllCommits(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+        const firstCommit = (res.docs as DataPluginCommit[])
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+        return firstCommit?.date;
+      });
+    } else {
+      return new Promise<string>((resolve) => {
+        resolve('');
+      });
+    }
+  }
+
+  public async getDateOfLastCommit() {
+    console.log('Getting date of last commit');
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findAllCommits(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+        const lastCommit = (res.docs as DataPluginCommit[])
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+        return lastCommit?.date;
+      });
+    } else {
+      return new Promise<string>((resolve) => {
+        resolve('');
+      });
+    }
+  }
 }
