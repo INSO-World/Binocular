@@ -32,12 +32,10 @@ const DashboardItem = memo(function DashboardItem(props: {
   cellSize: number;
   colCount: number;
   rowCount: number;
-  setDragResizeItem: (item: DashboardItemType, mode: DragResizeMode) => void;
-  deleteItem: (item: DashboardItemType) => void;
+  setDragResizeItem: (itemId: number, mode: DragResizeMode) => void;
+  deleteItem: (itemId: number) => void;
 }) {
   const dispatch: AppDispatch = useAppDispatch();
-  const [settingsVisible, setSettingsVisible] = useState(false);
-  const [helpVisible, setHelpVisible] = useState(false);
 
   const [poppedOut, setPoppedOut] = useState(false);
 
@@ -54,6 +52,9 @@ const DashboardItem = memo(function DashboardItem(props: {
   const [parametersDateRangeLocal, setParametersDateRangeLocal] = useState(parametersInitialState.parametersDateRange);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const helpRef = useRef<HTMLDivElement>(null);
 
   const [selectedDataPlugin, setSelectedDataPlugin] = useState<DatabaseSettingsDataPluginType | undefined>(undefined);
 
@@ -232,7 +233,7 @@ const DashboardItem = memo(function DashboardItem(props: {
             }}
             onMouseDown={() => {
               console.log('Start dragging dashboard item ' + props.item.pluginName);
-              props.setDragResizeItem(props.item, DragResizeMode.drag);
+              props.setDragResizeItem(props.item.id, DragResizeMode.drag);
             }}>
             <span>{props.item.pluginName}</span>
             {selectedDataPlugin && (
@@ -244,14 +245,18 @@ const DashboardItem = memo(function DashboardItem(props: {
               className={dashboardItemStyles.settingsButton}
               onClick={(event) => {
                 event.stopPropagation();
-                setSettingsVisible(!settingsVisible);
+                if (settingsRef.current) {
+                  settingsRef.current.style.display = 'block';
+                }
               }}
               onMouseDown={(event) => event.stopPropagation()}></button>
             <button
               className={dashboardItemStyles.helpButton}
               onClick={(event) => {
                 event.stopPropagation();
-                setHelpVisible(!helpVisible);
+                if (helpRef.current) {
+                  helpRef.current.style.display = 'block';
+                }
               }}
               onMouseDown={(event) => event.stopPropagation()}></button>
             <button
@@ -279,76 +284,90 @@ const DashboardItem = memo(function DashboardItem(props: {
             className={dashboardItemStyles.dashboardItemResizeBarTop}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top');
-              props.setDragResizeItem(props.item, DragResizeMode.resizeTop);
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeTop);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarRight}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the right');
-              props.setDragResizeItem(props.item, DragResizeMode.resizeRight);
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeRight);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarBottom}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom');
-              props.setDragResizeItem(props.item, DragResizeMode.resizeBottom);
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottom);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarLeft}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the left');
-              props.setDragResizeItem(props.item, DragResizeMode.resizeLeft);
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeLeft);
             }}></div>
         </div>
         <>
-          {settingsVisible && (
-            <div className={dashboardItemStyles.settingsBackground} onClick={() => setSettingsVisible(false)}>
-              <div
-                onClick={(event) => event.stopPropagation()}
-                className={'text-xs ' + dashboardItemStyles.settingsWindow}
-                style={{
-                  top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
-                  left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
-                }}>
-                <DashboardItemSettings
-                  selectedDataPlugin={selectedDataPlugin ? selectedDataPlugin : undefined}
-                  onSelectDataPlugin={(dP: DatabaseSettingsDataPluginType) => {
-                    const newItem = _.clone(props.item);
-                    newItem.dataPluginId = dP.id;
-                    dispatch(updateDashboardItem(newItem));
-                  }}
-                  item={props.item}
-                  settingsComponent={
-                    <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
-                  }
-                  onClickDelete={() => props.deleteItem(props.item)}
-                  onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}
-                  ignoreGlobalParameters={ignoreGlobalParameters}
-                  setIgnoreGlobalParameters={setIgnoreGlobalParameters}
-                  doAutomaticUpdate={doAutomaticUpdate}
-                  setDoAutomaticUpdate={setDoAutomaticUpdate}
-                  parametersGeneral={parametersGeneralLocal}
-                  setParametersGeneral={setParametersGeneralLocal}
-                  parametersDateRange={parametersDateRangeLocal}
-                  setParametersDateRange={setParametersDateRangeLocal}></DashboardItemSettings>
-              </div>
+          <div
+            id={`dashboardItem${props.item.id}_settings`}
+            ref={settingsRef}
+            className={dashboardItemStyles.settingsBackground}
+            onClick={() => {
+              if (settingsRef.current) {
+                settingsRef.current.style.display = 'none';
+              }
+            }}
+            style={{ display: 'none' }}>
+            <div
+              onClick={(event) => event.stopPropagation()}
+              className={'text-xs ' + dashboardItemStyles.settingsWindow}
+              style={{
+                top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
+                left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
+              }}>
+              <DashboardItemSettings
+                selectedDataPlugin={selectedDataPlugin ? selectedDataPlugin : undefined}
+                onSelectDataPlugin={(dP: DatabaseSettingsDataPluginType) => {
+                  const newItem = _.clone(props.item);
+                  newItem.dataPluginId = dP.id;
+                  dispatch(updateDashboardItem(newItem));
+                }}
+                item={props.item}
+                settingsComponent={
+                  <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
+                }
+                onClickDelete={() => props.deleteItem(props.item.id)}
+                onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}
+                ignoreGlobalParameters={ignoreGlobalParameters}
+                setIgnoreGlobalParameters={setIgnoreGlobalParameters}
+                doAutomaticUpdate={doAutomaticUpdate}
+                setDoAutomaticUpdate={setDoAutomaticUpdate}
+                parametersGeneral={parametersGeneralLocal}
+                setParametersGeneral={setParametersGeneralLocal}
+                parametersDateRange={parametersDateRangeLocal}
+                setParametersDateRange={setParametersDateRangeLocal}></DashboardItemSettings>
             </div>
-          )}
+          </div>
         </>
         <>
-          {helpVisible && (
-            <div className={dashboardItemStyles.settingsBackground} onClick={() => setHelpVisible(false)}>
-              <div
-                onClick={(event) => event.stopPropagation()}
-                className={'text-xs ' + dashboardItemStyles.settingsWindow}
-                style={{
-                  top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
-                  left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
-                }}>
-                <plugin.helpComponent key={plugin.name}></plugin.helpComponent>
-              </div>
+          <div
+            id={`dashboardItem${props.item.id}_help`}
+            ref={helpRef}
+            className={dashboardItemStyles.settingsBackground}
+            onClick={() => {
+              if (helpRef.current) {
+                helpRef.current.style.display = 'none';
+              }
+            }}
+            style={{ display: 'none' }}>
+            <div
+              onClick={(event) => event.stopPropagation()}
+              className={'text-xs ' + dashboardItemStyles.settingsWindow}
+              style={{
+                top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
+                left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
+              }}>
+              <plugin.helpComponent key={plugin.name}></plugin.helpComponent>
             </div>
-          )}
+          </div>
         </>
       </>
     )
