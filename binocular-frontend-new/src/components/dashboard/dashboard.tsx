@@ -8,7 +8,7 @@ import {
   addDashboardItem,
   deleteDashboardItem,
   moveDashboardItem,
-  updateDashboardItem
+  updateDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
 import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
