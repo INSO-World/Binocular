@@ -4,7 +4,12 @@ import DashboardItem from './dashboardItem/dashboardItem.tsx';
 import { DragResizeMode } from './resizeMode.ts';
 import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, store, useAppDispatch } from '../../redux';
-import { addDashboardItem, deleteDashboardItem, moveDashboardItem } from '../../redux/reducer/general/dashboardReducer.ts';
+import {
+  addDashboardItem,
+  deleteDashboardItem,
+  moveDashboardItem,
+  updateDashboardItem
+} from '../../redux/reducer/general/dashboardReducer.ts';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
 import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
 import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
@@ -79,6 +84,7 @@ function Dashboard() {
         });
         break;
       case addDashboardItem.type:
+      case updateDashboardItem.type:
       case deleteDashboardItem.type:
         setDashboardItems(newDashboardItems);
         setDashboardState(newDashboardState);

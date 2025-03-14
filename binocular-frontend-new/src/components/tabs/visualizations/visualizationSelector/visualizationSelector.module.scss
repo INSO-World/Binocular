@@ -26,7 +26,7 @@
   border-radius: $border-radius-small;
   cursor: pointer;
   transition: scale ease-in-out .2s;
-  @apply bg-base-300;
+  @apply bg-base-100;
 }
 
 .visualizationButton:hover{
