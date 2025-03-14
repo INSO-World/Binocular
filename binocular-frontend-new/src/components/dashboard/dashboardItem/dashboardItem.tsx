@@ -309,7 +309,7 @@ const DashboardItem = memo(function DashboardItem(props: {
           <div
             id={`dashboardItem${props.item.id}_settings`}
             ref={settingsRef}
-            className={dashboardItemStyles.settingsBackground}
+            className={dashboardItemStyles.subWindowBackground}
             onClick={() => {
               if (settingsRef.current) {
                 settingsRef.current.style.display = 'none';
@@ -318,7 +318,7 @@ const DashboardItem = memo(function DashboardItem(props: {
             style={{ display: 'none' }}>
             <div
               onClick={(event) => event.stopPropagation()}
-              className={'text-xs ' + dashboardItemStyles.settingsWindow}
+              className={'text-xs ' + dashboardItemStyles.subWindow}
               style={{
                 top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
                 left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
@@ -351,7 +351,7 @@ const DashboardItem = memo(function DashboardItem(props: {
           <div
             id={`dashboardItem${props.item.id}_help`}
             ref={helpRef}
-            className={dashboardItemStyles.settingsBackground}
+            className={dashboardItemStyles.subWindowBackground}
             onClick={() => {
               if (helpRef.current) {
                 helpRef.current.style.display = 'none';
@@ -360,7 +360,7 @@ const DashboardItem = memo(function DashboardItem(props: {
             style={{ display: 'none' }}>
             <div
               onClick={(event) => event.stopPropagation()}
-              className={'text-xs ' + dashboardItemStyles.settingsWindow}
+              className={'text-xs ' + dashboardItemStyles.subWindow}
               style={{
                 top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
                 left: `calc(${(100.0 / props.colCount) * (props.item.x + props.item.width)}% - 10px - 20rem)`,
