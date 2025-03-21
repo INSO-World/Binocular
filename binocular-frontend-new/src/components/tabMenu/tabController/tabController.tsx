@@ -489,7 +489,7 @@ function generateHandle(
           dispatch(placeDashboardItem(undefined));
           dispatch(
             addNotification({
-              text: `Item not a tab`,
+              text: `Dropped Item not a Tab!`,
               type: AlertType.error,
             }),
           );

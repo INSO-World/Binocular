@@ -290,8 +290,15 @@ function Dashboard() {
                 if (dashboardRef.current) {
                   const item: DashboardItemType = _.cloneDeep(placeableItem);
                   if (item) {
-                    item.y = _.floor((dashboardRef.current?.scrollTop / cellSize) * gridMultiplier);
-                    item.x = _.floor((event.clientX / cellSize) * gridMultiplier);
+                    item.y =
+                      _.floor(
+                        ((event.clientY + dashboardRef.current.scrollTop - dashboardRef.current.getBoundingClientRect().y) / cellSize) *
+                          gridMultiplier,
+                      ) -
+                      item.height / 2;
+                    item.x =
+                      _.floor(((event.clientX - dashboardRef.current.getBoundingClientRect().x) / cellSize) * gridMultiplier) -
+                      item.width / 2;
                     movingItem.current = item;
                   }
                   movingItem.current = item;
