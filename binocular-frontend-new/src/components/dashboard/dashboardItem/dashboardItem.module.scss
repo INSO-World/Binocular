@@ -5,7 +5,7 @@ $dashboardItemResizeBarThickness: 3px;
 .dashboardItem{
   position: absolute;
   @apply bg-base-200;
-  border-radius: $border-radius-default;
+  border-radius: $border-radius-small;
   border: $border-default;
   @apply border-base-300;
   box-shadow: $shadow-default;
@@ -94,8 +94,13 @@ $dashboardItemResizeBarThickness: 3px;
   background: url("../../../assets/info_gray.svg");
 }
 
+.deleteButton{
+  background: url("../../../assets/close_red.svg");
+}
 
-.settingsBackground{
+
+
+.subWindowBackground{
   position: absolute;
   top: 0;
   left: 0;
@@ -104,7 +109,7 @@ $dashboardItemResizeBarThickness: 3px;
   z-index: +1;
 }
 
-.settingsWindow{
+.subWindow{
   position: absolute;
   width: 20rem;
   min-height: 5rem;

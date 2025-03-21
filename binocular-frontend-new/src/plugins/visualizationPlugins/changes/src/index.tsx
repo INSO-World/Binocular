@@ -10,10 +10,10 @@ import { DataPluginCommit } from '../../../interfaces/dataPluginInterfaces/dataP
 
 const Changes: VisualizationPlugin<SettingsType, DataPluginCommit> = {
   name: 'Changes',
-  // ts-expect-error
-  chartComponent: null,
+  chartComponent: undefined,
   settingsComponent: Settings,
   helpComponent: Help,
+  dataConnectionName: 'commits',
   dataConverter: convertToChartData,
   defaultSettings: { splitAdditionsDeletions: true, visualizationStyle: 'curved' },
   export: {

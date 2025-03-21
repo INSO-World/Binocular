@@ -1,13 +1,14 @@
 import tabStyles from './tabSection.module.scss';
 import React, { ReactElement } from 'react';
+import { TabAlignment } from '../../../types/general/tabType.ts';
 
 export interface TabSectionProps {
   children: ReactElement[] | ReactElement;
-  alignment?: string;
+  alignment?: TabAlignment;
   name?: string;
 }
 function TabSection(props: TabSectionProps) {
-  if (props.alignment === undefined || props.alignment === 'top' || props.alignment === 'bottom') {
+  if (props.alignment === undefined || props.alignment === TabAlignment.top || props.alignment === TabAlignment.bottom) {
     return (
       <div className={tabStyles.tabSectionHorizontal}>
         <div className={tabStyles.tabSectionName}>{props.name}</div>
