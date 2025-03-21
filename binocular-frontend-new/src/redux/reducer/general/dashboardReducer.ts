@@ -69,7 +69,7 @@ export const dashboardSlice = createSlice({
       }
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
-    placeDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
+    placeDashboardItem: (state, action: PayloadAction<DashboardItemType | undefined>) => {
       state.placeableItem = action.payload;
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },

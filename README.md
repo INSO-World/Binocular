@@ -1,8 +1,8 @@
 Binocular
 =====
 
-[![Build Offline-Binocular](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml/badge.svg?branch=develop)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml)
-[![Test ESLint](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml/badge.svg?branch=develop)](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml)
+[![Build Offline-Binocular](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml)
+[![Test ESLint](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml)
 [![Docker Image CI](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-docker.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-docker.yml)
 
 ![Default Dashboard](docs/assets/screenshots/default_dashboard.png)
@@ -38,7 +38,7 @@ $ cd Binocular
 
 ### Configuration
 
-As Binocular needs to access an ArangoDB instance (run `binocular -sdb` or `binocular --setup-db` to access the ArangoDB download page),
+As Binocular needs to access an ArangoDB instance (run `binocular setup` to access the ArangoDB download page),
 you have to configure the database connection before you can use Binocular. This can be done in
 the global Binocular configuration file `~/.binocularrc`. Additionally, the
 configuration file also stores authentication credentials for the used
@@ -48,7 +48,7 @@ see the supported formats. For the purpose of this README, we'll use
 json.
 
 For simpler configuration there is also a configuration assistant avaliable
-by executing `binocular -sc` or `binocular --setup-config`.
+by executing `binocular setup`.
 It will ask you some questions about the repository and generate the config file for you.
 
 #### Configuration options

@@ -24,7 +24,7 @@
   overflow: hidden;
   box-shadow: $shadow-default;
   border-radius: $border-radius-small;
-  cursor: pointer;
+  cursor: grab;
   transition: scale ease-in-out .2s;
   @apply bg-base-100;
 }

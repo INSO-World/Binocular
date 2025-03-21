@@ -18,6 +18,10 @@ import arrowUpIcon from '../../../assets/arrow_up_gray.svg';
 import arrowRightIcon from '../../../assets/arrow_right_gray.svg';
 import arrowDownIcon from '../../../assets/arrow_down_gray.svg';
 import arrowLeftIcon from '../../../assets/arrow_left_gray.svg';
+import { DragDropElementType } from '../../../types/general/dragDropElementType.ts';
+import { addNotification } from '../../../redux/reducer/general/notificationsReducer.ts';
+import { AlertType } from '../../../types/general/alertType.ts';
+import { placeDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
 
 interface TabContents {
   [id: number]: ReactElement;
@@ -115,20 +119,18 @@ function TabController(props: {
             event.preventDefault();
           }}
           onDrop={(event) => {
-            moveTab(
-              event.dataTransfer.getData('text/plain'),
-              TabAlignment.top,
-              tabList,
-              (tabs) => dispatch(setTabList(tabs)),
-              setDragState,
-            );
+            console.log(event);
+            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
+            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
+              moveTab(transferredData.tabName, TabAlignment.top, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            }
           }}>
           <div className={tabControllerStyles.appName}>{props.appName}</div>
 
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.top)
             .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState))}
+            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
         </div>
         <div
           id={'tabBarRight'}
@@ -142,18 +144,15 @@ function TabController(props: {
             event.preventDefault();
           }}
           onDrop={(event) => {
-            moveTab(
-              event.dataTransfer.getData('text/plain'),
-              TabAlignment.right,
-              tabList,
-              (tabs) => dispatch(setTabList(tabs)),
-              setDragState,
-            );
+            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
+            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
+              moveTab(transferredData.tabName, TabAlignment.right, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            }
           }}>
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.right)
             .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState))}
+            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
         </div>
         <div
           id={'tabBarBottom'}
@@ -163,18 +162,15 @@ function TabController(props: {
             event.preventDefault();
           }}
           onDrop={(event) => {
-            moveTab(
-              event.dataTransfer.getData('text/plain'),
-              TabAlignment.bottom,
-              tabList,
-              (tabs) => dispatch(setTabList(tabs)),
-              setDragState,
-            );
+            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
+            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
+              moveTab(transferredData.tabName, TabAlignment.bottom, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            }
           }}>
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.bottom)
             .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState))}
+            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
         </div>
         <div
           id={'tabBarLeft'}
@@ -188,18 +184,15 @@ function TabController(props: {
             event.preventDefault();
           }}
           onDrop={(event) => {
-            moveTab(
-              event.dataTransfer.getData('text/plain'),
-              TabAlignment.left,
-              tabList,
-              (tabs) => dispatch(setTabList(tabs)),
-              setDragState,
-            );
+            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
+            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
+              moveTab(transferredData.tabName, TabAlignment.left, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            }
           }}>
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.left)
             .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState))}
+            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
         </div>
       </>
       <>
@@ -364,12 +357,14 @@ function changeTabVisibility(listTab: TabType, tab: TabType, visibility: boolean
  * @param tabList List of all tabs
  * @param setTabList Set reducer function for a list of all tabs
  * @param setDragState Set reducer Function for drag and drop reducer of tabs
+ * @param dispatch AppDispatch
  */
 function generateHandle(
   tab: TabType,
   tabList: TabType[],
   setTabList: (newTabList: TabType[]) => void,
   setDragState: (dragState: boolean) => void,
+  dispatch: AppDispatch,
 ) {
   return (
     <div
@@ -468,7 +463,7 @@ function generateHandle(
         console.log(`Dragging: ${tab.displayName}`);
         setDragState(true);
         event.dataTransfer.clearData();
-        event.dataTransfer.setData('text/plain', tab.displayName);
+        event.dataTransfer.setData('data', JSON.stringify({ dragDropElementType: DragDropElementType.Tab, tabName: tab.displayName }));
       }}
       onDragEnd={(event) => {
         setDragState(false);
@@ -487,7 +482,18 @@ function generateHandle(
       onDrop={(event) => {
         event.stopPropagation();
         document.getElementById('tab_' + tab.displayName)?.classList.remove(tabHandleStyles.tabHandleSwitch);
-        switchTabs(event.dataTransfer.getData('text/plain'), tab.displayName, tabList, setTabList, setDragState);
+        const transferredData = JSON.parse(event.dataTransfer.getData('data'));
+        if (transferredData.dragDropElementType === DragDropElementType.Tab) {
+          switchTabs(transferredData.tabName, tab.displayName, tabList, setTabList, setDragState);
+        } else {
+          dispatch(placeDashboardItem(undefined));
+          dispatch(
+            addNotification({
+              text: `Item not a tab`,
+              type: AlertType.error,
+            }),
+          );
+        }
       }}>
       {tab.displayName}
     </div>
@@ -549,14 +555,10 @@ function switchTabs(
   setTabList(
     tabList.map((listTab) => {
       if (listTab.displayName === name) {
-        listTab.alignment = targetTab.alignment;
-        listTab.position = targetTab.position;
-        listTab.selected = targetTab.selected;
+        return { ...listTab, alignment: targetTab.alignment, position: targetTab.position, selected: targetTab.selected };
       }
       if (listTab.displayName === targetTabName) {
-        listTab.alignment = tab.alignment;
-        listTab.position = tab.position;
-        listTab.selected = tab.selected;
+        return { ...listTab, alignment: tab.alignment, position: tab.position, selected: tab.selected };
       }
       return listTab;
     }),

@@ -53,6 +53,8 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const helpRef = useRef<HTMLDivElement>(null);
 
@@ -124,6 +126,39 @@ const DashboardItem = memo(function DashboardItem(props: {
       }
     }
   });
+
+  // WINDOW SHIFT MODE
+  function keyDown(e: KeyboardEvent) {
+    if (e.key === 'Shift') {
+      if (settingsButtonRef.current) {
+        settingsButtonRef.current.style.display = 'none';
+      }
+      if (deleteButtonRef.current) {
+        deleteButtonRef.current.style.display = 'block';
+      }
+    }
+  }
+
+  function keyUp(e: KeyboardEvent) {
+    if (e.key === 'Shift') {
+      if (settingsButtonRef.current) {
+        settingsButtonRef.current.style.display = 'block';
+      }
+      if (deleteButtonRef.current) {
+        deleteButtonRef.current.style.display = 'none';
+      }
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('keydown', keyDown);
+    window.addEventListener('keyup', keyUp);
+
+    return () => {
+      window.removeEventListener('keydown', keyDown);
+      window.removeEventListener('keyup', keyUp);
+    };
+  }, []);
 
   return (
     props.item.y !== undefined &&
@@ -243,11 +278,21 @@ const DashboardItem = memo(function DashboardItem(props: {
             )}
             <button
               className={dashboardItemStyles.settingsButton}
+              ref={settingsButtonRef}
               onClick={(event) => {
                 event.stopPropagation();
                 if (settingsRef.current) {
                   settingsRef.current.style.display = 'block';
                 }
+              }}
+              onMouseDown={(event) => event.stopPropagation()}></button>
+            <button
+              className={dashboardItemStyles.deleteButton}
+              ref={deleteButtonRef}
+              style={{ display: 'none' }}
+              onClick={(event) => {
+                event.stopPropagation();
+                props.deleteItem(props.item.id);
               }}
               onMouseDown={(event) => event.stopPropagation()}></button>
             <button

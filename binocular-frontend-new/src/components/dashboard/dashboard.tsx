@@ -8,6 +8,7 @@ import {
   addDashboardItem,
   deleteDashboardItem,
   moveDashboardItem,
+  placeDashboardItem,
   updateDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
@@ -23,6 +24,8 @@ import {
   placeDragIndicator,
   setDragResizeMode,
 } from './dashboardHelper.ts';
+import _ from 'lodash';
+import { DragDropElementType } from '../../types/general/dragDropElementType.ts';
 
 function Dashboard() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -47,6 +50,8 @@ function Dashboard() {
       break;
   }
 
+  const lastPlaceCoordinates = useRef<{ x: number; y: number } | undefined>(undefined);
+
   const columnCount = cellCount;
   const rowCount = cellCount;
 
@@ -68,9 +73,9 @@ function Dashboard() {
   // eslint-disable-next-line prefer-const
   let [dashboardState, setDashboardState] = useState(store.getState().dashboard.dashboardState);
 
-  const placeableItem = useSelector((state: RootState) => state.dashboard.placeableItem);
+  const placeableItem: DashboardItemType = useSelector((state: RootState) => state.dashboard.placeableItem);
 
-  const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const configuredDataPlugins: DatabaseSettingsDataPluginType[] = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   store.subscribe(() => {
     const newDashboardItems = store.getState().dashboard.dashboardItems;
@@ -83,6 +88,7 @@ function Dashboard() {
           dashboardState = newDashboardState;
         });
         break;
+      case placeDashboardItem.type:
       case addDashboardItem.type:
       case updateDashboardItem.type:
       case deleteDashboardItem.type:
@@ -112,6 +118,121 @@ function Dashboard() {
       setCellSize(dashboardRef.current.offsetWidth / columnCount);
     }
   }, [columnCount, gridSize]);
+
+  function positionDashboardItem() {
+    if (movingItem.current.x !== undefined && movingItem.current.y !== undefined) {
+      if (targetX < 0 || targetY < 0 || targetX + targetWidth > columnCount || targetY + targetHeight > rowCount) {
+        targetX = movingItem.current.x;
+        targetY = movingItem.current.y;
+        targetWidth = movingItem.current.width;
+        targetHeight = movingItem.current.height;
+        setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
+        clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+        dispatch(
+          addNotification({
+            text: `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
+            type: AlertType.warning,
+          }),
+        );
+        console.warn(`Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`);
+        return;
+      }
+
+      if (targetWidth < 1 || targetHeight < 1) {
+        targetX = movingItem.current.x;
+        targetY = movingItem.current.y;
+        targetWidth = movingItem.current.width;
+        targetHeight = movingItem.current.height;
+        dispatch(
+          addNotification({
+            text: `Cannot resize to size ${targetWidth},${targetHeight} as its too small`,
+            type: AlertType.warning,
+          }),
+        );
+        console.warn(`Cannot resize to size ${targetWidth},${targetHeight} as its too small`);
+        return;
+      }
+
+      switch (dragResizeMode.current) {
+        case DragResizeMode.place:
+          if (
+            highlightDropArea(
+              movingItem,
+              dashboardState,
+              rowCount,
+              columnCount,
+              gridMultiplier,
+              targetX,
+              targetY,
+              targetWidth,
+              targetHeight,
+            )
+          ) {
+            dispatch(
+              addDashboardItem({
+                id: movingItem.current.id,
+                x: targetX * gridMultiplier,
+                y: targetY * gridMultiplier,
+                width: targetWidth * gridMultiplier,
+                height: targetHeight * gridMultiplier,
+                pluginName: placeableItem.pluginName,
+                dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+              }),
+            );
+          } else {
+            setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
+            clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+            dispatch(
+              addNotification({
+                text: `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                type: AlertType.warning,
+              }),
+            );
+            console.warn(
+              `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+            );
+          }
+          break;
+        default:
+          if (
+            highlightDropArea(
+              movingItem,
+              dashboardState,
+              rowCount,
+              columnCount,
+              gridMultiplier,
+              targetX,
+              targetY,
+              targetWidth,
+              targetHeight,
+            )
+          ) {
+            dispatch(
+              moveDashboardItem({
+                id: movingItem.current.id,
+                x: targetX * gridMultiplier,
+                y: targetY * gridMultiplier,
+                width: targetWidth * gridMultiplier,
+                height: targetHeight * gridMultiplier,
+                dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+              }),
+            );
+          } else {
+            dispatch(
+              addNotification({
+                text: `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                type: AlertType.warning,
+              }),
+            );
+            console.warn(
+              `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+            );
+          }
+          break;
+      }
+    }
+    clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+  }
 
   return (
     <>
@@ -163,17 +284,45 @@ function Dashboard() {
               ref={dragResizeZoneRef}
               style={{ display: 'none' }}
               className={dashboardStyles.dragResizeZone}
+              onDragEnter={(event) => {
+                event.stopPropagation();
+
+                if (dashboardRef.current) {
+                  const item: DashboardItemType = _.cloneDeep(placeableItem);
+                  if (item) {
+                    item.y = _.floor((dashboardRef.current?.scrollTop / cellSize) * gridMultiplier);
+                    item.x = _.floor((event.clientX / cellSize) * gridMultiplier);
+                    movingItem.current = item;
+                  }
+                  movingItem.current = item;
+                }
+                lastPlaceCoordinates.current = { x: event.clientX, y: event.clientY };
+                placeDragIndicator(dragIndicatorRef, movingItem, columnCount, gridMultiplier, rowCount);
+              }}
               onMouseEnter={(event) => {
                 event.stopPropagation();
-                placeDragIndicator(dragIndicatorRef, movingItem, dragResizeMode, columnCount, gridMultiplier, placeableItem, rowCount);
+                placeDragIndicator(dragIndicatorRef, movingItem, columnCount, gridMultiplier, rowCount);
               }}
-              onMouseMove={(event) => {
+              onDragOver={(event) => {
                 event.stopPropagation();
+                event.preventDefault();
+                let movement = {
+                  movementX: 0,
+                  movementY: 0,
+                };
+                if (lastPlaceCoordinates.current) {
+                  movement = {
+                    movementX: event.clientX - lastPlaceCoordinates.current.x,
+                    movementY: event.clientY - lastPlaceCoordinates.current.y,
+                  };
+                }
+
+                lastPlaceCoordinates.current = { x: event.clientX, y: event.clientY };
                 const __ret = moveDragIndicator(
                   dragIndicatorRef,
                   movingItem,
                   dragResizeMode,
-                  event,
+                  movement,
                   targetX,
                   cellSize,
                   targetY,
@@ -190,116 +339,40 @@ function Dashboard() {
                 targetWidth = __ret.targetWidth;
                 targetHeight = __ret.targetHeight;
               }}
-              onMouseUp={() => {
-                if (movingItem.current.x !== undefined && movingItem.current.y !== undefined) {
-                  if (targetX < 0 || targetY < 0 || targetX + targetWidth > columnCount || targetY + targetHeight > rowCount) {
-                    targetX = movingItem.current.x;
-                    targetY = movingItem.current.y;
-                    targetWidth = movingItem.current.width;
-                    targetHeight = movingItem.current.height;
-                    dispatch(
-                      addNotification({
-                        text: `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
-                        type: AlertType.warning,
-                      }),
-                    );
-                    console.warn(
-                      `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
-                    );
-                    return;
-                  }
-
-                  if (targetWidth < 1 || targetHeight < 1) {
-                    targetX = movingItem.current.x;
-                    targetY = movingItem.current.y;
-                    targetWidth = movingItem.current.width;
-                    targetHeight = movingItem.current.height;
-                    dispatch(
-                      addNotification({
-                        text: `Cannot resize to size ${targetWidth},${targetHeight} as its too small`,
-                        type: AlertType.warning,
-                      }),
-                    );
-                    console.warn(`Cannot resize to size ${targetWidth},${targetHeight} as its too small`);
-                    return;
-                  }
-
-                  switch (dragResizeMode.current) {
-                    case DragResizeMode.place:
-                      if (
-                        highlightDropArea(
-                          movingItem,
-                          dashboardState,
-                          rowCount,
-                          columnCount,
-                          gridMultiplier,
-                          targetX,
-                          targetY,
-                          targetWidth,
-                          targetHeight,
-                        )
-                      ) {
-                        dispatch(
-                          addDashboardItem({
-                            id: movingItem.current.id,
-                            x: targetX * gridMultiplier,
-                            y: targetY * gridMultiplier,
-                            width: targetWidth * gridMultiplier,
-                            height: targetHeight * gridMultiplier,
-                            pluginName: placeableItem.pluginName,
-                            dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-                          }),
-                        );
-                      } else {
-                        dispatch(
-                          addNotification({
-                            text: `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
-                            type: AlertType.warning,
-                          }),
-                        );
-                        console.warn(
-                          `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
-                        );
-                      }
-                      break;
-                    default:
-                      if (
-                        highlightDropArea(
-                          movingItem,
-                          dashboardState,
-                          rowCount,
-                          columnCount,
-                          gridMultiplier,
-                          targetX,
-                          targetY,
-                          targetWidth,
-                          targetHeight,
-                        )
-                      ) {
-                        dispatch(
-                          moveDashboardItem({
-                            id: movingItem.current.id,
-                            x: targetX * gridMultiplier,
-                            y: targetY * gridMultiplier,
-                            width: targetWidth * gridMultiplier,
-                            height: targetHeight * gridMultiplier,
-                            dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-                          }),
-                        );
-                      } else {
-                        dispatch(
-                          addNotification({
-                            text: `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
-                            type: AlertType.warning,
-                          }),
-                        );
-                        console.warn(
-                          `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
-                        );
-                      }
-                      break;
-                  }
+              onMouseMove={(event) => {
+                event.stopPropagation();
+                const __ret = moveDragIndicator(
+                  dragIndicatorRef,
+                  movingItem,
+                  dragResizeMode,
+                  { movementY: event.movementY, movementX: event.movementX },
+                  targetX,
+                  cellSize,
+                  targetY,
+                  targetWidth,
+                  gridMultiplier,
+                  targetHeight,
+                  placeableItem,
+                  dashboardState,
+                  rowCount,
+                  columnCount,
+                );
+                targetX = __ret.targetX;
+                targetY = __ret.targetY;
+                targetWidth = __ret.targetWidth;
+                targetHeight = __ret.targetHeight;
+              }}
+              onDrop={(event) => {
+                if (JSON.parse(event.dataTransfer.getData('data')).dragDropElementType === DragDropElementType.Visualization) {
+                  positionDashboardItem();
                 }
+                event.dataTransfer.clearData();
+              }}
+              onMouseUp={() => {
+                positionDashboardItem();
+              }}
+              onDragLeave={() => {
+                setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
                 clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
               }}
               onMouseLeave={() => {
