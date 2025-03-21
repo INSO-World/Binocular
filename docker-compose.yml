@@ -66,8 +66,11 @@ services:
     # command: ["tail", "-f", "/dev/null"]
     ports:
       - 8088:8080
+    networks:
+      - binocular
     volumes:
       - ./binocular-frontend-new/package.json:/app/binocular/frontend/package.json
+      - ./binocular-frontend-new/vite.compose.config.ts:/app/binocular/frontend/vite.config.ts
     build:
       context: ./
       dockerfile: docker/frontend.v2.Dockerfile
