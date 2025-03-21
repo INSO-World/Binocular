@@ -40,7 +40,7 @@ COPY --chown=node:node ./utils /app/binocular/utils
 RUN npm run build
 
 ########## final lean image #########
-FROM nginxinc/nginx-unprivileged:alpine3.20
+FROM nginxinc/nginx-unprivileged:alpine3.20 AS lean
 
 # copying compiled code from dist to nginx folder for serving
 COPY  --from=builder --chown=node:node /app/binocular/frontend/dist /usr/share/nginx/html
