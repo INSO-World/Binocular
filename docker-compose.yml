@@ -1,19 +1,21 @@
-x-binocular-backend-image: &binocular-backend-image binocular-backend:latest-local #:${TAG:-latest-dev}
-x-binocular-db-image: &binocular-db-image arangodb:3.11.1 #ghcr.io/inso-tuwien/binocular-database:6773404196 #:${TAG:-latest-dev}
-# x-binocular-frontend-image: &binocular-frontend-image ghcr.io/inso-tuwien/binocular-frontend:${TAG:-latest}
+x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest} #:${TAG:-latest-dev}
+x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
+x-binocular-frontend-image: &binocular-frontend-image ghcr.io/inso-world/binocular-frontend:${TAG:-latest}
 x-binocular-depends-on: &binocular-depends-on
   - db
-x-binocular-volumes-backend:
-  &binocular-volumes-backend
-    - /tmp/24ws-se-pr-inso-01:/app/binocular/repo/24ws-se-pr-inso-01
-#     - ./cli:/app/binocular/cli
-#     - ./binocular-backend:/app/binocular/binocular-backend
-#     - ./services:/app/binocular/services
-#     - ./foxx:/app/binocular/foxx
-#     - ./binocular.js:/app/binocular.js
-#     - ./cli.js:/app/binocular/cli.js
-#     - ./package.json:/app/binocular/package.json
-    - ./.binocularrc2:/app/binocular/.binocularrc
+x-binocular-volumes-backend: &binocular-volumes-backend
+  - /Users/rise/Repositories/test_repositories/Binocular:/app/binocular/repo
+  #     - ./cli:/app/binocular/cli
+  #     - ./binocular-backend:/app/binocular/binocular-backend
+  #     - ./services:/app/binocular/services
+  #     - ./foxx:/app/binocular/foxx
+  #     - ./binocular.js:/app/binocular.js
+  #     - ./cli.js:/app/binocular/cli.js
+  #     - ./package.json:/app/binocular/package.json
+  - ./.binocularrc-binocular:/app/binocular/.binocularrc
+
+networks:
+  binocular:
 
 services:
   db:
@@ -24,6 +26,8 @@ services:
       - "8529:8529"
     environment:
       ARANGO_NO_AUTH: 1
+    networks:
+      - binocular
 
   binocular-init:
     image: *binocular-backend-image
@@ -32,46 +36,67 @@ services:
     tty: true
     environment:
       - DEBUG=idx*,importer*,git*,db*,context*
-    command:
-      [
+    command: [
         "binocular",
-        ""
-        # "run",
-        # "--clean",
-        # "--no-frontend",
-        # # "--no-backend",
+        # "--help"
+        "run",
+        # "--clean", # uncomment to truncate all documents
+        "--no-frontend",
         # "--no-ci",
         # "--no-its",
-        # "--no-jobs",
-        # "--no-server",
-        # # "/app/binocular/repo/test-repo"
-        # "/app/binocular/repo/24ws-se-pr-inso-01/"
+        "--no-jobs",
+        "--no-server",
+        "/app/binocular/repo/",
       ]
     volumes: *binocular-volumes-backend
+    networks:
+      - binocular
+    build:
+      context: ./
+      dockerfile: docker/backend.Dockerfile
 
-  # binocular:
-  #   container_name: binocular_app
-  #   image: *binocular-frontend-image
-  #   # depends_on:
-  #   #   - *binocular-depends-on
-  #   #   - binocular-backend
-  #   ports:
-  #     - 8088:80
+  binocular:
+    container_name: binocular_app
+    image: *binocular-frontend-image
+    # depends_on:
+    #   - *binocular-depends-on
+    #   - binocular-backend
+    command: ["npm", "run", "dev"]
+    # entrypoint: [""]
+    # command: ["tail", "-f", "/dev/null"]
+    ports:
+      - 8088:8080
+    volumes:
+      - ./binocular-frontend-new/package.json:/app/binocular/frontend/package.json
+    build:
+      context: ./
+      dockerfile: docker/frontend.v2.Dockerfile
+      target: builder
 
-  # binocular-backend:
-  #   image: *binocular-backend-image
-  #   depends_on: *binocular-depends-on
-  #   container_name: "binocular_backend"
-  #   user: "root"
-  #   tty: true
-  #   environment:
-  #     - DEBUG=idx*,importer*,git*,db*,context*
-  #   # command:
-  #   #   [
-  #   #     "tsx",
-  #   #     "watch",
-  #   #     "binocular.js",
-  #   #     "--no-binocular-frontend",
-  #   #     "--no-open"
-  #   #   ]
-  #   # volumes: *binocular-volumes-backend
+  binocular-backend:
+    image: *binocular-backend-image
+    depends_on: *binocular-depends-on
+    container_name: "binocular_backend"
+    user: "root"
+    tty: true
+    environment:
+      - DEBUG=idx*,importer*,git*,db*,context*
+    command: [
+        "binocular",
+        "run",
+        "--no-frontend",
+        "--no-vcs",
+        "--no-ci",
+        "--no-its",
+        "--no-jobs",
+        "/app/binocular/repo/",
+      ]
+    ports:
+      - "8080:8080"
+      - "48763:48763"
+    build:
+      context: ./
+      dockerfile: docker/backend.Dockerfile
+    volumes: *binocular-volumes-backend
+    networks:
+      - binocular
