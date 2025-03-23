@@ -28,6 +28,8 @@ services:
       ARANGO_NO_AUTH: 1
     networks:
       - binocular
+    volumes:
+      - ./docker/arangodb/data:/var/lib/arangodb3
 
   binocular-init:
     image: *binocular-backend-image
