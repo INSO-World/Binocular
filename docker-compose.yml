@@ -1,7 +1,6 @@
 x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest}
 x-node-image: &node-image node:22.13.1-alpine # check if same as in .nvmrc!
 x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
-x-binocular-frontend-image: &binocular-frontend-image ghcr.io/inso-world/binocular-frontend:${TAG:-latest}
 x-binocular-depends-on: &binocular-depends-on
   - db
 x-binocular-volumes-backend: &binocular-volumes-backend
@@ -9,7 +8,7 @@ x-binocular-volumes-backend: &binocular-volumes-backend
   - ./utils:/app/binocular/utils
   - ./binocular-backend:/app/binocular/backend
   - ./services:/app/binocular/services
-  - /Users/rise/Repositories/test_repositories/Binocular:/app/binocular/repo
+  - /path_to_repo:/app/binocular/repo #TODO: change as required, e.g. ./ for local Binocular
   - ./.binocularrc-binocular:/app/binocular/.binocularrc
 x-binocular-build-args: &binocular-build-args
   NODE_VERSION: "22.13.1" # check if same as in .nvmrc!
@@ -59,20 +58,21 @@ services:
 
   binocular:
     container_name: binocular_app
-    image: *binocular-frontend-image
-    # depends_on:
-    #   - *binocular-depends-on
-    #   - binocular-backend
-    command: ["npm", "run", "dev"]
-    # entrypoint: [""]
-    # command: ["tail", "-f", "/dev/null"]
+    image: *node-image
+    depends_on:
+      - binocular-backend
+    working_dir: "/app/binocular/frontend"
+    entrypoint: ["/bin/sh"]
+    command: ["-c", "npm i && npm run dev -- --host"]
     ports:
       - 8088:8080
     networks:
       - binocular
+    environment:
+      - BACKEND_URL=binocular_backend
     volumes:
-      - ./binocular-frontend-new/package.json:/app/binocular/frontend/package.json
-      - ./binocular-frontend-new/vite.compose.config.ts:/app/binocular/frontend/vite.config.ts
+      - ./binocular-frontend-new:/app/binocular/frontend
+      - ./utils:/app/binocular/utils
     build:
       context: ./
       dockerfile: docker/frontend.v2.Dockerfile
