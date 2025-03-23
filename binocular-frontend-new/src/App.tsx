@@ -7,7 +7,7 @@ import Dashboard from './components/dashboard/dashboard.tsx';
 import TabSection from './components/tabMenu/tabSection/tabSection.tsx';
 import DateRange from './components/tabs/parameters/dataRange/dateRange.tsx';
 import ParametersGeneral from './components/tabs/parameters/parametersGeneral/parametersGeneral.tsx';
-import VisualizationSelector from './components/tabs/components/visualizationSelector/visualizationSelector.tsx';
+import VisualizationSelector from './components/tabs/visualizations/visualizationSelector/visualizationSelector.tsx';
 import AuthorList from './components/tabs/authors/authorList/authorList.tsx';
 import OtherAuthors from './components/tabs/authors/otherAuthors/otherAuthors.tsx';
 import TabControllerButton from './components/tabMenu/tabControllerButton/tabControllerButton.tsx';
@@ -30,6 +30,8 @@ import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerBu
 import { useEffect, useState } from 'react';
 import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
+import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
+import { TabAlignment } from './types/general/tabType.ts';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -56,6 +58,7 @@ function App() {
     filesDataPluginId !== undefined
       ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)
       : undefined;
+  const [fileSearch, setFileSearch] = useState('');
 
   const storedTheme = localStorage.getItem('theme');
   const [theme, setTheme] = useState(storedTheme || 'binocularLight');
@@ -98,7 +101,7 @@ function App() {
             icon={SettingsGray}
             name={'Settings'}
             animation={'rotate'}></TabControllerButton>
-          <Tab displayName={'Parameters'} alignment={'top'}>
+          <Tab displayName={'Parameters'} alignment={TabAlignment.top}>
             <TabSection name={'Date Range'}>
               <DateRange
                 disabled={false}
@@ -112,12 +115,12 @@ function App() {
                 setParametersGeneral={(parametersGeneral) => dispatch(setParametersGeneral(parametersGeneral))}></ParametersGeneral>
             </TabSection>
           </Tab>
-          <Tab displayName={'Components'} alignment={'top'}>
+          <Tab displayName={'Visualizations'} alignment={TabAlignment.top}>
             <TabSection name={'Visualization Selector'}>
               <VisualizationSelector></VisualizationSelector>
             </TabSection>
           </Tab>
-          <Tab displayName={'Sprints'} alignment={'top'}>
+          <Tab displayName={'Sprints'} alignment={TabAlignment.top}>
             <TabSection name={'Sprints'}>
               <SprintView></SprintView>
             </TabSection>
@@ -125,7 +128,7 @@ function App() {
               <AddSprint></AddSprint>
             </TabSection>
           </Tab>
-          <Tab displayName={'Authors'} alignment={'right'}>
+          <Tab displayName={'Authors'} alignment={TabAlignment.right}>
             <TabSection name={'Database'}>
               <DataPluginQuickSelect
                 selected={authorsDataPlugin}
@@ -142,7 +145,7 @@ function App() {
               <OtherAuthors></OtherAuthors>
             </TabSection>
           </Tab>
-          <Tab displayName={'File Tree'} alignment={'right'}>
+          <Tab displayName={'File Tree'} alignment={TabAlignment.right}>
             <TabSection name={'Database'}>
               <DataPluginQuickSelect
                 selected={filesDataPlugin}
@@ -152,11 +155,14 @@ function App() {
                   }
                 }}></DataPluginQuickSelect>
             </TabSection>
+            <TabSection name={'File Search'}>
+              <FileSearch setFileSearch={setFileSearch}></FileSearch>
+            </TabSection>
             <TabSection name={'File Tree'}>
-              <FileList></FileList>
+              <FileList search={fileSearch}></FileList>
             </TabSection>
           </Tab>
-          <Tab displayName={'Help'} alignment={'right'}>
+          <Tab displayName={'Help'} alignment={TabAlignment.right}>
             <TabSection name={'General'}>
               <HelpGeneral></HelpGeneral>
             </TabSection>
