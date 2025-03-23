@@ -36,11 +36,11 @@ services:
         "binocular",
         "run",
         # "--clean", # uncomment to truncate all documents
-        "--no-frontend",
         # "--no-vcs",
         # "--no-ci",
         # "--no-its",
         # "--no-jobs",
+        "--no-frontend",
         "--no-server",
         "/app/binocular/repo/",
       ]

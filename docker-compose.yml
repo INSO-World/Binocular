@@ -35,18 +35,17 @@ services:
     image: *binocular-backend-image
     depends_on: *binocular-depends-on
     container_name: "binocular_init"
-    tty: true
     environment:
       - DEBUG=idx*,importer*,git*,db*,context*
     command: [
         "binocular",
-        # "--help"
         "run",
         # "--clean", # uncomment to truncate all documents
-        "--no-frontend",
+        # "--no-vcs",
         # "--no-ci",
         # "--no-its",
-        "--no-jobs",
+        # "--no-jobs",
+        "--no-frontend",
         "--no-server",
         "/app/binocular/repo/",
       ]
@@ -56,6 +55,7 @@ services:
     build:
       context: ./
       dockerfile: docker/backend.Dockerfile
+      args: *binocular-build-args
 
   binocular:
     container_name: binocular_app
