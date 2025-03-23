@@ -1,0 +1,11 @@
+logging:
+  level:
+    com:
+      inso_world:
+        binocular: debug
+    root: warn
+server:
+  port: 8080
+spring:
+  application:
+    name: binocular
