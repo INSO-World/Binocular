@@ -13,3 +13,6 @@ pkg
 .grandle
 /.devcontainer
 .DS_Store
+*.tsbuildinfo
+docker/arangodb/data
+!docker/arangodb/data/.gitkeep
