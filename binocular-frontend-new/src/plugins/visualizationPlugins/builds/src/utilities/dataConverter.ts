@@ -4,7 +4,7 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
-import { Properties } from '../../../simpleVisualizationPlugin/src/interfaces/properties.ts';
+import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { SettingsType } from '../settings/settings.tsx';
 
 interface BuildChartData {

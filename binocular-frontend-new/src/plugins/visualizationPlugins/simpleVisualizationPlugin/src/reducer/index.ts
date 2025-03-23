@@ -50,7 +50,7 @@ export function getDataSlice<DataType>(name: string) {
     dataState: DataState.EMPTY,
   };
   return createSlice({
-    name: name,
+    name: name.toLowerCase(),
     initialState,
     reducers: {
       setData: (state, action: PayloadAction<DataType[]>) => {

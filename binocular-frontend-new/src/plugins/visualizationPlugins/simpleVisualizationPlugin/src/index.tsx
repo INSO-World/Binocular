@@ -6,24 +6,24 @@ import { getDataSlice } from './reducer';
 import Saga from './saga';
 
 export default function createVisualizationPlugin<SettingsType extends DefaultSettings, DataType>(
-  name: string,
-  components: VisualizationPlugin<SettingsType, DataType>,
+  component: VisualizationPlugin<SettingsType, DataType>,
 ): VisualizationPlugin<SettingsType, DataType> {
   // Create a wrapped settings component that merges global + plugin settings
   const wrappedSettingsComponent: VisualizationPlugin<SettingsType, DataType>['settingsComponent'] = ({ settings, setSettings }) => {
     const mergedSettings = { ...Settings, ...settings };
-    return components.settingsComponent({
+    return component.settingsComponent({
       settings: mergedSettings,
       setSettings: (updated) => setSettings({ ...Settings, ...updated }),
     });
   };
   return {
-    name: name,
+    name: component.name,
     chartComponent: Chart<SettingsType, DataType>,
-    dataConverter: components.dataConverter,
+    dataConnectionName: component.dataConnectionName,
+    dataConverter: component.dataConverter,
     settingsComponent: wrappedSettingsComponent,
-    helpComponent: components.helpComponent,
-    defaultSettings: components.defaultSettings,
+    helpComponent: component.helpComponent,
+    defaultSettings: component.defaultSettings,
     export: {
       getSVGData: getSVGData,
     },
@@ -32,9 +32,9 @@ export default function createVisualizationPlugin<SettingsType extends DefaultSe
       export: true,
     },
     images: {
-      thumbnail: components.images.thumbnail,
+      thumbnail: component.images.thumbnail,
     },
-    reducer: getDataSlice(name).reducer,
+    reducer: getDataSlice(component.name).reducer,
     saga: Saga,
   };
 }

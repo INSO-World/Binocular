@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
       - "develop"
-      #- "feature/266" #For testing
+      #- "feature/281" #For testing
   schedule:
     - cron: '30 3 * * 1' # At 03:30 on Monday, https://crontab.guru/#30_3_*_*_1
   workflow_dispatch:
@@ -106,7 +106,7 @@ jobs:
         run: npm run build:offline
 
       - name: Publish artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: binocular_ui
           path: |
@@ -156,10 +156,10 @@ jobs:
 
     steps:
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5
 
       - name: Download Artifact from previous job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binocular_ui
           path: artifact/
@@ -171,11 +171,11 @@ jobs:
           ls -l artifact/dist/
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: 'artifact/dist/'
       
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4

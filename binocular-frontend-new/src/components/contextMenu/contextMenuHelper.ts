@@ -1,4 +1,4 @@
-interface ContextMenuOption {
+export interface ContextMenuOption {
   label: string;
   icon: string | null;
   function: () => void;
@@ -6,8 +6,20 @@ interface ContextMenuOption {
 
 export function showContextMenu(x: number, y: number, options: ContextMenuOption[]) {
   (document.getElementById('contextMenu') as HTMLDialogElement).showModal();
-  (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `${y}px`;
-  (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `${x}px`;
+  if (y >= window.innerHeight / 2) {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `auto`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.bottom = `${window.innerHeight - y}px`;
+  } else {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `${y}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.bottom = `auto`;
+  }
+  if (x >= window.innerWidth / 2) {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `auto`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.right = `${window.innerWidth - x}px`;
+  } else {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `${x}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.right = `auto`;
+  }
 
   (document.getElementById('contextMenuContent') as HTMLDivElement).innerHTML = '';
   options.forEach((o) => {
@@ -19,7 +31,7 @@ export function showContextMenu(x: number, y: number, options: ContextMenuOption
     const optionLabel = document.createElement('span');
     optionLabel.textContent = o.label;
 
-    const optionButton = document.createElement('a');
+    const optionButton = document.createElement('span');
     optionButton.addEventListener('click', o.function);
     optionButton.appendChild(optionIcon);
     optionButton.appendChild(optionLabel);

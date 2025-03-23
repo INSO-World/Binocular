@@ -6,16 +6,16 @@ function DateRange(props: {
   parametersDateRange: ParametersDateRangeType;
   setParametersDateRange: (parametersDateRange: ParametersDateRangeType) => void;
 }) {
-  const [altMode, setAltMode] = useState(false);
+  const [shiftMode, setShiftMode] = useState(false);
   function keyDown(e: KeyboardEvent) {
     if (e.key === 'Shift') {
-      setAltMode(true);
+      setShiftMode(true);
     }
   }
 
   function keyUp(e: KeyboardEvent) {
     if (e.key === 'Shift') {
-      setAltMode(false);
+      setShiftMode(false);
     }
   }
 
@@ -57,7 +57,7 @@ function DateRange(props: {
               <button
                 className={'btn btn-xs btn-accent'}
                 onClick={() =>
-                  altMode
+                  shiftMode
                     ? props.setParametersDateRange({
                         from: subtractYear(props.parametersDateRange.from),
                         to: props.parametersDateRange.to,
@@ -67,16 +67,16 @@ function DateRange(props: {
                         to: props.parametersDateRange.to,
                       })
                 }
-                title={altMode ? 'remove 1 year' : 'remove 1 month'}
+                title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
                 disabled={props.disabled}>
-                {altMode ? '-Y' : '-M'}
+                {shiftMode ? '-Y' : '-M'}
               </button>
             </td>
             <td>
               <button
                 className={'btn btn-xs btn-accent'}
                 onClick={() =>
-                  altMode
+                  shiftMode
                     ? props.setParametersDateRange({
                         from: addYear(props.parametersDateRange.from),
                         to: props.parametersDateRange.to,
@@ -86,9 +86,9 @@ function DateRange(props: {
                         to: props.parametersDateRange.to,
                       })
                 }
-                title={altMode ? 'add 1 year' : 'add 1 month'}
+                title={shiftMode ? 'add 1 year' : 'add 1 month'}
                 disabled={props.disabled}>
-                {altMode ? '+Y' : '+M'}
+                {shiftMode ? '+Y' : '+M'}
               </button>
             </td>
           </tr>
@@ -121,7 +121,7 @@ function DateRange(props: {
               <button
                 className={'btn btn-xs btn-accent'}
                 onClick={() =>
-                  altMode
+                  shiftMode
                     ? props.setParametersDateRange({
                         from: props.parametersDateRange.from,
                         to: subtractYear(props.parametersDateRange.to),
@@ -131,16 +131,16 @@ function DateRange(props: {
                         to: subtractMonth(props.parametersDateRange.to),
                       })
                 }
-                title={altMode ? 'remove 1 year' : 'remove 1 month'}
+                title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
                 disabled={props.disabled}>
-                {altMode ? '-Y' : '-M'}
+                {shiftMode ? '-Y' : '-M'}
               </button>
             </td>
             <td>
               <button
                 className={'btn btn-xs btn-accent'}
                 onClick={() =>
-                  altMode
+                  shiftMode
                     ? props.setParametersDateRange({
                         from: props.parametersDateRange.from,
                         to: addYear(props.parametersDateRange.to),
@@ -150,9 +150,9 @@ function DateRange(props: {
                         to: addMonth(props.parametersDateRange.to),
                       })
                 }
-                title={altMode ? 'add 1 year' : 'add 1 month'}
+                title={shiftMode ? 'add 1 year' : 'add 1 month'}
                 disabled={props.disabled}>
-                {altMode ? '+Y' : '+M'}
+                {shiftMode ? '+Y' : '+M'}
               </button>
             </td>
           </tr>

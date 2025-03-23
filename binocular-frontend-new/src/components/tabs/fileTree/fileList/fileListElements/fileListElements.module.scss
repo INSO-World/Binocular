@@ -22,3 +22,11 @@
   border-left: 1px solid;
   @apply border-base-300;
 }
+
+.searchMark{
+  @apply bg-accent;
+  border-radius: 2px;
+  padding: 0 .1rem;
+  margin: 0 .1rem;
+  border: 1px solid;
+}

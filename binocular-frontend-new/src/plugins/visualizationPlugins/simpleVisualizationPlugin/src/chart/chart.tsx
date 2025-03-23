@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { throttle } from 'throttle-debounce';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
-import { Properties } from '../interfaces/properties.ts';
+import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { DefaultSettings } from '../settings/settings.tsx';
 
 export interface ChartData {

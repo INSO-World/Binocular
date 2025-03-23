@@ -4,6 +4,7 @@ import { addDashboardItem, placeDashboardItem } from '../../../../redux/reducer/
 import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
 import { useSelector } from 'react-redux';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
+import { DragDropElementType } from '../../../../types/general/dragDropElementType.ts';
 
 function VisualizationSelector(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -23,14 +24,13 @@ function VisualizationSelector(props: { orientation?: string }) {
         {visualizationPlugins.map((plugin, i) => {
           return (
             <div
+              draggable={true}
               key={'VisualizationSelectorV' + i}
               className={visualizationSelectorStyles.visualizationButton}
               onClick={() => {
                 dispatch(
                   addDashboardItem({
                     id: 0,
-                    x: 0,
-                    y: 0,
                     width: 12,
                     height: 8,
                     pluginName: plugin.name,
@@ -38,7 +38,9 @@ function VisualizationSelector(props: { orientation?: string }) {
                   }),
                 );
               }}
-              onMouseDown={() => {
+              onDragStart={(event) => {
+                event.dataTransfer.clearData();
+                event.dataTransfer.setData('data', JSON.stringify({ dragDropElementType: DragDropElementType.Visualization }));
                 dispatch(
                   placeDashboardItem({
                     id: 0,

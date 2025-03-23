@@ -32,7 +32,7 @@ class PouchDb implements DataPlugin {
     this.builds = new Builds(undefined);
     this.users = new Users(undefined);
     this.general = new General();
-    this.files = new Files();
+    this.files = new Files(undefined);
     this.database = new Database();
   }
 
@@ -43,7 +43,7 @@ class PouchDb implements DataPlugin {
       this.builds = new Builds(this.database);
       this.users = new Users(this.database);
       this.general = new General();
-      this.files = new Files();
+      this.files = new Files(this.database);
     }
   }
 
