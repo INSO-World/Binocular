@@ -1,18 +1,18 @@
-x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest} #:${TAG:-latest-dev}
+x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest}
+x-node-image: &node-image node:22.13.1-alpine # check if same as in .nvmrc!
 x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
 x-binocular-frontend-image: &binocular-frontend-image ghcr.io/inso-world/binocular-frontend:${TAG:-latest}
 x-binocular-depends-on: &binocular-depends-on
   - db
 x-binocular-volumes-backend: &binocular-volumes-backend
+  - ./foxx:/app/binocular/foxx
+  - ./utils:/app/binocular/utils
+  - ./binocular-backend:/app/binocular/backend
+  - ./services:/app/binocular/services
   - /Users/rise/Repositories/test_repositories/Binocular:/app/binocular/repo
-  #     - ./cli:/app/binocular/cli
-  #     - ./binocular-backend:/app/binocular/binocular-backend
-  #     - ./services:/app/binocular/services
-  #     - ./foxx:/app/binocular/foxx
-  #     - ./binocular.js:/app/binocular.js
-  #     - ./cli.js:/app/binocular/cli.js
-  #     - ./package.json:/app/binocular/package.json
   - ./.binocularrc-binocular:/app/binocular/.binocularrc
+x-binocular-build-args: &binocular-build-args
+  NODE_VERSION: "22.13.1" # check if same as in .nvmrc!
 
 networks:
   binocular:
@@ -82,26 +82,23 @@ services:
     image: *binocular-backend-image
     depends_on: *binocular-depends-on
     container_name: "binocular_backend"
-    user: "root"
-    tty: true
+    # user: root
     environment:
       - DEBUG=idx*,importer*,git*,db*,context*
-    command: [
-        "binocular",
-        "run",
-        "--no-frontend",
-        "--no-vcs",
-        "--no-ci",
-        "--no-its",
-        "--no-jobs",
-        "/app/binocular/repo/",
+    entrypoint: ["/bin/sh"]
+    command:
+      [
+        "-c",
+        "npm i && npm i -g tsx ts-node && npm i --include=dev mocha && tsx watch binocular.ts run --no-frontend --no-vcs --no-ci --no-its --no-jobs /app/binocular/repo"
       ]
+    working_dir: "/app/binocular/backend"
     ports:
       - "8080:8080"
       - "48763:48763"
     build:
       context: ./
       dockerfile: docker/backend.Dockerfile
+      args: *binocular-build-args
     volumes: *binocular-volumes-backend
     networks:
       - binocular
