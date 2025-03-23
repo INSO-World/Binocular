@@ -1,24 +1,9 @@
-ARG NODE_VERSION=${NODE_VERSION:-18.18.2}
+# check if NODE_VERSION same as in .nvmrc!
+ARG NODE_VERSION=${NODE_VERSION:-22.13.1}
 ARG BUILDPLATFORM=${BUILDPLATFORM:-amd64}
-
-# FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS install_root
-
-# # NPM ci first, as to NOT invalidate previous steps except for when package.json changes
-# WORKDIR /app/binocular
-
-# RUN --mount=type=bind,src=./docker/frontend-mem-nag.sh,target=/frontend-mem-nag.sh \
-#     /frontend-mem-nag.sh
-
-# RUN --mount=type=bind,src=./package-lock.json,target=./package-lock.json,readonly \
-#    --mount=type=bind,src=./package.json,target=./package.json,readonly \
-#     npm ci --ignore-scripts && \
-#     npm cache clean --force
 
 FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS install_fe
 WORKDIR /app/binocular/frontend
-
-RUN --mount=type=bind,src=./docker/frontend-mem-nag.sh,target=/frontend-mem-nag.sh \
-    /frontend-mem-nag.sh
 
 RUN --mount=type=bind,src=./binocular-frontend-new/package-lock.json,target=./package-lock.json,readonly \
    --mount=type=bind,src=./binocular-frontend-new/package.json,target=./package.json,readonly \
