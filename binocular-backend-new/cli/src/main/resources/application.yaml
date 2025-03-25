@@ -1,0 +1,15 @@
+spring:
+  main:
+    web-application-type: none
+    banner-mode: off
+  application:
+    name: binocular-cli
+  shell:
+    script:
+      enabled: true
+    interactive:
+      enabled: true
+## disable console logging
+logging:
+  pattern:
+    console:

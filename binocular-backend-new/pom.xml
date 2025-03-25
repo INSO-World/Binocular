@@ -34,12 +34,12 @@
     </url>
   </scm>
   <properties>
-    <binocular.java.version>23</binocular.java.version>
-    <binocular.kotlin.version>2.1.20</binocular.kotlin.version>
+    <java.version>23</java.version>
+    <kotlin.version>2.1.20</kotlin.version>
   </properties>
   <modules>
-    <!--        <module>cli</module>-->
-            <module>web</module>
+    <module>cli</module>
+    <module>web</module>
   </modules>
   <dependencyManagement>
     <!--
@@ -56,15 +56,23 @@
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-reflect</artifactId>
+        <version>${kotlin.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-stdlib</artifactId>
+        <version>${kotlin.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-test-junit5</artifactId>
+        <version>${kotlin.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-maven-allopen</artifactId>
+        <version>${kotlin.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -72,52 +80,66 @@
   <dependencies>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
-      <artifactId>kotlin-stdlib-jdk8</artifactId>
-      <version>${kotlin.version}</version>
+      <artifactId>kotlin-maven-allopen</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
-      <artifactId>kotlin-test</artifactId>
-      <version>${kotlin.version}</version>
-      <scope>test</scope>
+      <artifactId>kotlin-stdlib</artifactId>
     </dependency>
   </dependencies>
 
-
-  <build>
-    <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
-    <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.graalvm.buildtools</groupId>
-          <artifactId>native-maven-plugin</artifactId>
-        </plugin>
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-        </plugin>
-        <plugin>
-          <groupId>org.jetbrains.kotlin</groupId>
-          <artifactId>kotlin-maven-plugin</artifactId>
-          <configuration>
-            <args>
-              <arg>-Xjsr305=strict</arg>
-            </args>
-            <compilerPlugins>
-              <plugin>spring</plugin>
-            </compilerPlugins>
-          </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>org.jetbrains.kotlin</groupId>
-              <artifactId>kotlin-maven-allopen</artifactId>
-              <version>${binocular.kotlin.version}</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+  <!--  <build>-->
+  <!--    <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>-->
+  <!--    <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>-->
+  <!--    <pluginManagement>-->
+  <!--      <plugins>-->
+  <!--        <plugin>-->
+  <!--          <groupId>org.graalvm.buildtools</groupId>-->
+  <!--          <artifactId>native-maven-plugin</artifactId>-->
+  <!--        </plugin>-->
+  <!--        <plugin>-->
+  <!--          <groupId>org.springframework.boot</groupId>-->
+  <!--          <artifactId>spring-boot-maven-plugin</artifactId>-->
+  <!--        </plugin>-->
+  <!--        <plugin>-->
+  <!--          <groupId>org.jetbrains.kotlin</groupId>-->
+  <!--          <artifactId>kotlin-maven-plugin</artifactId>-->
+  <!--          <version>${kotlin.version}</version>-->
+  <!--          <configuration>-->
+  <!--            <args>-->
+  <!--              <arg>-Xjsr305=strict</arg>-->
+  <!--            </args>-->
+  <!--            <compilerPlugins>-->
+  <!--              <plugin>spring</plugin>-->
+  <!--            </compilerPlugins>-->
+  <!--            <jvmTarget>23</jvmTarget>-->
+  <!--          </configuration>-->
+  <!--          <executions>-->
+  <!--            <execution>-->
+  <!--              <id>compile</id>-->
+  <!--              <phase>compile</phase>-->
+  <!--              <goals>-->
+  <!--                <goal>compile</goal>-->
+  <!--              </goals>-->
+  <!--            </execution>-->
+  <!--            <execution>-->
+  <!--              <id>test-compile</id>-->
+  <!--              <phase>test-compile</phase>-->
+  <!--              <goals>-->
+  <!--                <goal>test-compile</goal>-->
+  <!--              </goals>-->
+  <!--            </execution>-->
+  <!--          </executions>-->
+  <!--          <dependencies>-->
+  <!--            <dependency>-->
+  <!--              <groupId>org.jetbrains.kotlin</groupId>-->
+  <!--              <artifactId>kotlin-maven-allopen</artifactId>-->
+  <!--              <version>${kotlin.version}</version>-->
+  <!--            </dependency>-->
+  <!--          </dependencies>-->
+  <!--        </plugin>-->
+  <!--      </plugins>-->
+  <!--    </pluginManagement>-->
+  <!--  </build>-->
 
 </project>
