@@ -2,10 +2,13 @@ logging:
   level:
     com:
       inso_world:
-        binocular: debug
+        binocular: trace
     root: warn
 server:
   port: 8080
 spring:
   application:
     name: binocular
+  graphql:
+    graphiql:
+      enabled: true

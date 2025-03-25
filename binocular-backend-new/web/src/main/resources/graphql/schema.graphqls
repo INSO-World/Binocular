@@ -1,0 +1,36 @@
+type Query {
+  commits(page: Int, perPage: Int): [Commit]!
+}
+
+"""
+A single git commit
+"""
+type Commit {
+  id: ID
+  sha: String
+  date: String
+  message: String
+  webUrl: String
+  branch: String
+  stats: Stats
+  """
+  Parent commits
+  """
+  parents: [Commit]
+  """
+  Child commits
+  """
+  children: [Commit]
+  pageInfo: PageInfo
+}
+type Stats {
+  additions: Int
+  deletions: Int
+}
+
+type PageInfo {
+  startCursor: ID
+  endCursor: ID
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
