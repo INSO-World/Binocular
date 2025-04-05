@@ -42,7 +42,7 @@ class Commit extends Model<CommitDataType> {
   }
 
   /**
-   * get or create an new commit and connect it to its parents
+   * get or create a new commit and connect it to its parents
    *
    * @param repo contains the repository object
    * @param _commitData contains the current commit that is created by the given repo object and holds the required data

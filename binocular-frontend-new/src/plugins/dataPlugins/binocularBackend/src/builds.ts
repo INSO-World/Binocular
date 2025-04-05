@@ -10,15 +10,15 @@ export default class Builds implements DataPluginBuilds {
     this.graphQl = new GraphQL(endpoint);
   }
 
-  public async getAll(from: string, to: string) {
+  public async getAll(from: string, to: string, sort: string = 'ASC') {
     console.log(`Getting Builds from ${from} to ${to}`);
     const builds: DataPluginBuild[] = [];
-    const getBuildPage = (since?: number, until?: number) => async (page: number, perPage: number) => {
+    const getBuildPage = (since?: string, until?: string, sort?: string) => async (page: number, perPage: number) => {
       const resp = await this.graphQl.client.query({
         // variable tag not queried, because it cannot be found(maybe a keyword), not needed at the moment
         query: gql`
-          query ($page: Int, $perPage: Int, $until: Timestamp) {
-            builds(page: $page, perPage: $perPage, until: $until) {
+          query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp, $sort: Sort) {
+            builds(page: $page, perPage: $perPage, since: $since, until: $until, sort: $sort) {
               count
               page
               perPage
@@ -49,16 +49,15 @@ export default class Builds implements DataPluginBuilds {
             }
           }
         `,
-        variables: { page, perPage, since, until },
+        variables: { page, perPage, since, until, sort },
       });
       return resp.data.builds;
     };
 
-    await traversePages(getBuildPage(new Date(from).getTime(), new Date(to).getTime()), (build: Build) => {
+    await traversePages(getBuildPage(from, to, sort), (build: Build) => {
       builds.push(convertToDataPluginBuild(build));
     });
-    const allBuilds = builds.sort((a, b) => new Date(b.createdAt).getMilliseconds() - new Date(a.createdAt).getMilliseconds());
-    return allBuilds.filter((c) => new Date(c.createdAt) >= new Date(from) && new Date(c.createdAt) <= new Date(to));
+    return builds;
   }
 }
 

@@ -37,6 +37,7 @@ class GitHub {
           name,
           assignableUsers(first: 100, after:$cursor) {
             nodes {
+              id
               login
               email
               name

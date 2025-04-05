@@ -12,7 +12,8 @@ export interface ChangesSettings extends DefaultSettings {
 }
 
 export interface TimeSpentSettings extends DefaultSettings {
-  splitAdditionsDeletions: boolean;
+  splitByIssue: boolean;
+  splitSpentRemoved: boolean;
 }
 
 // TODO this function is currently ignored, generalization should be done for the basic settings as well
