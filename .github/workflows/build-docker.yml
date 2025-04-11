@@ -44,12 +44,58 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
+          platforms: linux/amd64,linux/arm64
           context: ./
-          file: docker/Dockerfile.frontend
+          file: docker/frontend.Dockerfile
           push: true
           build-args: |
             NODE_VERSION=${{ steps.docker_setup.outputs.nvmrc_node_version }}
             NPM_BUILD_CMD=build:prod
+          builder: ${{ steps.buildx.outputs.name }}
+          tags: |
+            ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
+            ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
+            ${{ steps.docker_setup.outputs.docker_image_name }}:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+          
+  build-frontend-new:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setting env variables
+        id: docker_setup
+        uses: ./.github/actions/docker-env/
+        with:
+          image_name: binocular-frontend-new
+
+      - name: Debug echo env variables
+        run: |
+          echo "########## Docker Tags ##########"
+          echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
+          echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
+          echo ${{ steps.docker_setup.outputs.docker_image_name }}:latest
+          echo "##########     env     ##########"
+          echo NODE_VERSION: ${{ steps.docker_setup.outputs.nvmrc_node_version }}
+
+      - name: Init Docker
+        uses: ./.github/actions/docker-setup
+        with:
+          registry_url: ${{ env.REGISTRY }}
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: ./
+          file: docker/frontend.v2.Dockerfile
+          push: true
+          build-args: |
+            NODE_VERSION=${{ steps.docker_setup.outputs.nvmrc_node_version }}
           builder: ${{ steps.buildx.outputs.name }}
           tags: |
             ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
@@ -89,8 +135,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
+          platforms: linux/amd64,linux/arm64
           context: ./
-          file: docker/Dockerfile.backend
+          file: docker/backend.Dockerfile
           push: true
           build-args: |
             NODE_VERSION=${{ steps.docker_setup.outputs.nvmrc_node_version }}
