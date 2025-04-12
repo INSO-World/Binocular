@@ -3,7 +3,7 @@ ARG BUILDPLATFORM=${BUILDPLATFORM:-amd64}
 FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS install
 
 # NPM ci first, as to NOT invalidate previous steps except for when package.json changes
-WORKDIR /app/binocular/binocular-frontend
+WORKDIR /app/binocular/
 
 #RUN --mount=type=bind,src=./package-lock.json,target=./package-lock.json,readonly \
 #    --mount=type=bind,src=./package.json,target=./package.json,readonly \
@@ -26,10 +26,10 @@ ENV NODE_ENV=production
 ENV NODE_OPTIONS=--max_old_space_size=4096
 ENV GENERATE_SOURCEMAP=false
 
-WORKDIR /app/binocular/binocular-frontend
+WORKDIR /app/binocular
 
 COPY --from=install --chown=node:node /app/binocular/binocular-frontend/node_modules ./node_modules
-COPY --from=install --chown=node:node /app/binocular/binocular-frontend/binocular-frontend/node_modules ./binocular-frontend/node_modules
+COPY --from=install --chown=node:node /app/binocular/binocular-frontend/node_modules ./binocular-frontend/node_modules
 COPY --chown=node:node ./LICENSE ./LICENSE
 COPY --chown=node:node ./binocular-frontend ./binocular-frontend
 COPY --chown=node:node ./utils ./utils
@@ -40,20 +40,31 @@ RUN echo "{\"repo\":{\"name\":\"TODO: remove static context.json\"}}" > ./binocu
 RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
     npm run ${BUILD_CMD}
 
+COPY ./package.json ./package.json
+COPY ./package-lock.json ./package-lock.json
 COPY ./binocular-frontend/package.json ./binocular-frontend/package.json
 
-RUN chown node:node -R /app
-RUN chown node:node $(npm root -g)
-RUN chown node:node $(npm root)
+# RUN chown node:node -R /app
+# RUN chown node:node $(npm root -g)
+# RUN chown node:node $(npm root)
 
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS lean
 # FROM alpine AS lean
 
 # WORKDIR /app
-# COPY --from=builder --chown=node:node /app/binocular/binocular-frontend /app
-USER node
+COPY --from=builder --chown=node:node /app/binocular/binocular-frontend /app/binocular/frontend
+# USER node
 
 WORKDIR /app/binocular
-COPY ./package.json ./package.json
-# COPY ./package-lock.json ./package-lock.json
-
 ENTRYPOINT [ "npm" ]
+
+# FROM nginx:1.25.3-alpine as ngx
+
+# # copying compiled code from dist to nginx folder for serving
+# COPY  --from=builder --chown=node:node /app/binocular/binocular-frontend/dist /usr/share/nginx/html
+
+# # copying nginx config from local to image
+# COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+# # exposing internal port
+# EXPOSE 80
