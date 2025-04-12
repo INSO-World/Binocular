@@ -1,0 +1,7 @@
+binocular:
+  database:
+    database_name: "binocular-1234"
+    host: "localhost"
+    port: 8529
+    user: TODO
+    password: TODO
