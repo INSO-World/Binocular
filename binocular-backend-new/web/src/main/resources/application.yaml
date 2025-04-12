@@ -3,10 +3,12 @@ logging:
     com:
       inso_world:
         binocular: trace
-    root: warn
+#    root: warn
 server:
   port: 8080
 spring:
+  profiles:
+    active: nosql, arangodb
   application:
     name: binocular
   graphql:
