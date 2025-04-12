@@ -1,22 +1,16 @@
 package com.inso_world.binocular.web.entity
 
-import com.arangodb.springframework.annotation.Document
-import com.arangodb.springframework.annotation.Edge
-import com.arangodb.springframework.annotation.Field
-import com.arangodb.springframework.annotation.From
-import com.arangodb.springframework.annotation.Relations
-import com.arangodb.springframework.annotation.To
-import com.fasterxml.jackson.annotation.JsonFormat
+import com.arangodb.springframework.annotation.*
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonValue
 import org.springframework.data.annotation.Id
 import java.util.Date
 
 @Document(collection = "commits")
 data class Commit(
   @Id var id: String? = null,
-  @Field("sha") var sha: String? = null,
+  @Field("sha")
+  @PersistentIndexed(unique = true)
+  var sha: String? = null,
   var date: Date? = null,
   var message: String? = null,
   var webUrl: String? = null,

@@ -1,7 +1,12 @@
+binocular:
+  index:
+    path: "/Users/rise/Repositories/test_repositories/Binocular"
 spring:
+  profiles:
+    active: arangodb
   main:
     web-application-type: none
-    banner-mode: off
+#    banner-mode: off
   application:
     name: binocular-cli
   shell:
@@ -11,5 +16,8 @@ spring:
       enabled: true
 ## disable console logging
 logging:
-  pattern:
-    console:
+  level:
+    com:
+      inso_world:
+        binocular: trace
+    root: warn

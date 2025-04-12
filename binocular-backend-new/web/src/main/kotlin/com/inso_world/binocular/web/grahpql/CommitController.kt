@@ -1,8 +1,9 @@
 package com.inso_world.binocular.web.grahpql
 
-import com.inso_world.binocular.web.dao.CommitRepository
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.service.CommitService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -15,9 +16,11 @@ import org.springframework.stereotype.Controller
 class CommitController(
   @Autowired private val commitService: CommitService,
 ) {
+  private var logger: Logger = LoggerFactory.getLogger(CommitController::class.java)
 
   @QueryMapping(name = "commits")
-  fun findAll(@Argument page: Int?, @Argument perPage: Int?): List<Commit> {
+  fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Commit> {
+    logger.trace("Getting all commits...")
     return commitService.findAll(
       page, perPage
     )

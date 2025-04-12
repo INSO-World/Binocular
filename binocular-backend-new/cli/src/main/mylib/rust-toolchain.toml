@@ -1,0 +1,6 @@
+# Before upgrading check that everything is available on all tier1 targets here:
+# https://rust-lang.github.io/rustup-components-history
+# https://rust-lang.github.io/rustup/overrides.html
+# AFTER CHANGES: rustup update (https://rust-lang.github.io/rustup/basics.html)
+[toolchain]
+channel = "nightly-2025-03-26"

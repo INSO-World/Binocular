@@ -1,0 +1,13 @@
+namespace math {
+    u32 add(u32 a, u32 b);
+};
+
+namespace transform {
+    [Throws=AnyhowError]
+    string transform_string(string str);
+};
+
+namespace git_ops {
+    [Throws=AnyhowError]
+    Point find_repo(string path);
+};

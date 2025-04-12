@@ -1,16 +1,57 @@
+uniffi::setup_scaffolding!();
 use std::ffi::CString;
+use std::fmt::Formatter;
 
-#[repr(C)] // Add this!
-#[derive(Debug)]
+#[derive(Debug, Default)]
+#[derive(uniffi::Object)]
 pub struct Point {
-    x: i32,
-    y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 // Rust function: Adds two numbers
 #[no_mangle]
 pub extern "C" fn add_numbers(x: i32, y: i32) -> i32 {
     x + y
+}
+pub mod ffi {
+    use crate::Point;
+
+    #[uniffi::export]
+    fn add(a: u32, b: u32) -> u32 {
+        a + b
+    }
+
+    type AnyhowError = anyhow::Error;
+    // For interfaces, wrap a unit struct with `#[uniffi::remote]`.
+    #[uniffi::remote(Object)]
+    pub struct AnyhowError;
+    #[uniffi::export]
+    fn transform_string(s: String) -> anyhow::Result<String> {
+        Ok(format!("hello, {}", s))
+    }
+
+    #[uniffi::export]
+    fn find_repo(path: String) -> anyhow::Result<Point> {
+        println!("Searching for git at '{}'", path);
+
+        let repo = match gix::discover(path) {
+            Ok(repo) => repo,
+            Err(e) => panic!("{}", e),
+        };
+
+        println!("Repo found at {:?}", repo.git_dir());
+        println!("Repo common_dir {:?}", repo.git_dir());
+
+        let head = repo.head()?.peel_to_commit_in_place()?;
+
+        println!("{:?}", head.id);
+
+        let p = Point { x: 1, y: 2 };
+        println!("{:?}", p);
+
+        Ok(p)
+    }
 }
 
 #[no_mangle]
