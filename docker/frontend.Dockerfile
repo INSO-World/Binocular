@@ -3,7 +3,7 @@ ARG BUILDPLATFORM=${BUILDPLATFORM:-amd64}
 FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS install
 
 # NPM ci first, as to NOT invalidate previous steps except for when package.json changes
-WORKDIR /app/binocular/binocular-frontend
+WORKDIR /app/binocular/
 
 #RUN --mount=type=bind,src=./package-lock.json,target=./package-lock.json,readonly \
 #    --mount=type=bind,src=./package.json,target=./package.json,readonly \
@@ -26,15 +26,15 @@ ENV NODE_ENV=production
 ENV NODE_OPTIONS=--max_old_space_size=4096
 ENV GENERATE_SOURCEMAP=false
 
-WORKDIR /app/binocular/frontend
+WORKDIR /app/binocular
 
-COPY --from=install --chown=node:node /app/binocular/frontend/node_modules ./node_modules
-COPY --from=install --chown=node:node /app/binocular/frontend/node_modules ./frontend/node_modules
+COPY --from=install --chown=node:node /app/binocular/binocular-frontend/node_modules ./node_modules
+COPY --from=install --chown=node:node /app/binocular/binocular-frontend/node_modules ./binocular-frontend/node_modules
 COPY --chown=node:node ./LICENSE ./LICENSE
-COPY --chown=node:node ./binocular-frontend ./frontend
+COPY --chown=node:node ./binocular-frontend ./binocular-frontend
 COPY --chown=node:node ./utils ./utils
 
-RUN echo "{\"repo\":{\"name\":\"TODO: remove static context.json\"}}" > ./frontend/config/context.json
+RUN echo "{\"repo\":{\"name\":\"TODO: remove static context.json\"}}" > ./binocular-frontend/config/context.json
 
 # This seems to be the most expensive step
 RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
@@ -42,17 +42,18 @@ RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
 
 COPY ./package.json ./package.json
 COPY ./package-lock.json ./package-lock.json
-COPY ./binocular-frontend/package.json ./frontend/package.json
+COPY ./binocular-frontend/package.json ./binocular-frontend/package.json
 
-RUN chown node:node -R /app
-RUN chown node:node $(npm root -g)
-RUN chown node:node $(npm root)
+# RUN chown node:node -R /app
+# RUN chown node:node $(npm root -g)
+# RUN chown node:node $(npm root)
 
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS lean
 # FROM alpine AS lean
 
 # WORKDIR /app
-# COPY --from=builder --chown=node:node /app/binocular/binocular-frontend /app
-USER node
+COPY --from=builder --chown=node:node /app/binocular/binocular-frontend /app/binocular/frontend
+# USER node
 
 WORKDIR /app/binocular
 ENTRYPOINT [ "npm" ]
