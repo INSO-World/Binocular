@@ -8,5 +8,5 @@ docker build --build-arg NODE_VERSION=$(cat .nvmrc | tr -cd '[:digit:].') -f doc
 ## Backend
 
 ```bash
-docker build --build-arg NODE_VERSION=$(cat .nvmrc | tr -cd '[:digit:].') -f docker/Dockerfile.backend . -t binocular-backend:latest
+docker build --build-arg NODE_VERSION=$(cat .nvmrc | tr -cd '[:digit:].') -f docker/backend.Dockerfile . -t binocular-backend:latest
 ```

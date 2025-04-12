@@ -25,13 +25,16 @@ COPY --chown=node:node ./utils /app/binocular/utils
 RUN npm run build
 
 ########## final lean image #########
-FROM nginxinc/nginx-unprivileged:alpine3.20 AS lean
+# FROM nginxinc/nginx-unprivileged:alpine3.20 AS lean
+FROM nginx:alpine AS lean
 
 # copying compiled code from dist to nginx folder for serving
 COPY  --from=builder --chown=node:node /app/binocular/frontend/dist /usr/share/nginx/html
+COPY  --from=builder --chown=node:node /app/binocular/frontend/popout.html /usr/share/nginx/html/popout.html
 
 # copying nginx config from local to image
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx
 
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
 # exposing internal port
 EXPOSE 80

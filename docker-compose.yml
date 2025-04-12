@@ -65,7 +65,7 @@ services:
     entrypoint: ["/bin/sh"]
     command: ["-c", "npm i && npm run dev -- --host"]
     ports:
-      - 8088:8080
+      - "8089:8080"
     networks:
       - binocular
     environment:

@@ -70,7 +70,7 @@ RUN chown node:node $(npm root -g)
 RUN git config --global --add safe.directory /app/binocular/repo/*
 
 RUN chown node:node -R /app/binocular
-USER node
+# USER node
 
 # ENTRYPOINT ["/usr/bin/dumb-init", "--", "/entrypoint"]
 # CMD []
