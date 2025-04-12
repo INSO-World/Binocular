@@ -64,6 +64,7 @@ services:
     working_dir: "/app/binocular/frontend"
     entrypoint: ["/bin/sh"]
     command: ["-c", "npm i && npm run dev -- --host"]
+#    command: ["tail", "-f", "/dev/null"]
     ports:
       - "8089:8080"
     networks:
