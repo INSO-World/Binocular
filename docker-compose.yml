@@ -9,7 +9,7 @@ x-binocular-volumes-backend: &binocular-volumes-backend
   - ./binocular-backend:/app/binocular/backend
   - ./services:/app/binocular/services
   - /path_to_repo:/app/binocular/repo #TODO: change as required, e.g. ./ for local Binocular
-  - ./.binocularrc-binocular:/app/binocular/.binocularrc
+  - ./.binocularrc-binocular:/app/binocular/repo/.binocularrc
 x-binocular-build-args: &binocular-build-args
   NODE_VERSION: "22.13.1" # check if same as in .nvmrc!
 
@@ -65,7 +65,7 @@ services:
     entrypoint: ["/bin/sh"]
     command: ["-c", "npm i && npm run dev -- --host"]
     ports:
-      - 8088:8080
+      - "8089:8080"
     networks:
       - binocular
     environment:
@@ -77,6 +77,30 @@ services:
       context: ./
       dockerfile: docker/frontend.v2.Dockerfile
       target: builder
+      
+  binocular-v1:
+    container_name: binocular_app_v1
+    image: *node-image
+    depends_on:
+      - binocular-backend
+    working_dir: "/app/binocular/frontend"
+    entrypoint: ["/bin/sh"]
+    command: ["-c", "npm i && npm run dev -- --host"]
+#    command: ["-c", "tail -f /dev/null"]
+    ports:
+      - "8099:8080"
+    networks:
+      - binocular
+    environment:
+      - BACKEND_URL=binocular_backend
+    volumes:
+      - ./binocular-frontend:/app/binocular/frontend
+      - ./utils:/app/binocular/utils
+    build:
+      context: ./
+      dockerfile: docker/frontend.Dockerfile
+      args: *binocular-build-args
+#      target: builder
 
   binocular-backend:
     image: *binocular-backend-image
