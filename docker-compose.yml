@@ -9,7 +9,7 @@ x-binocular-volumes-backend: &binocular-volumes-backend
   - ./binocular-backend:/app/binocular/backend
   - ./services:/app/binocular/services
   - /path_to_repo:/app/binocular/repo #TODO: change as required, e.g. ./ for local Binocular
-  - ./.binocularrc-binocular:/app/binocular/.binocularrc
+  - ./.binocularrc-binocular:/app/binocular/repo/.binocularrc
 x-binocular-build-args: &binocular-build-args
   NODE_VERSION: "22.13.1" # check if same as in .nvmrc!
 
