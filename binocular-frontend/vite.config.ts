@@ -9,7 +9,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import ConditionalCompile from 'vite-plugin-conditional-compiler';
 
-function get_env_var(env: Record<K,V>, name: string, default_val: any) {
+function get_env_var(env: Record<any, any>, name: string, default_val: any) {
   if (env.BACKEND_URL) {
     return env.BACKEND_URL;
   } else {
@@ -22,7 +22,7 @@ function get_env_var(env: Record<K,V>, name: string, default_val: any) {
 export default defineConfig(({ mode }) => {
   const isOfflineBuild = () => process.env.VITE_OFFLINE !== undefined && process.env.VITE_OFFLINE.trim() === 'true';
   const env = loadEnv(mode, process.cwd(), '');
-  const BACKEND_URL = get_env_var(env, "BACKEND_URL", "localhost");
+  const BACKEND_URL = get_env_var(env, 'BACKEND_URL', 'localhost');
   console.info(`BACKEND_URL: ${BACKEND_URL}`);
 
   return {

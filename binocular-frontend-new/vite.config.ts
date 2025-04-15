@@ -6,7 +6,7 @@ import ConditionalCompile from 'vite-plugin-conditional-compiler';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
-function get_env_var(env: Record<K,V>, name: string, default_val: any) {
+function get_env_var(env: Record<any, any>, name: string, default_val: any) {
   if (env.BACKEND_URL) {
     return env.BACKEND_URL;
   } else {
@@ -17,8 +17,8 @@ function get_env_var(env: Record<K,V>, name: string, default_val: any) {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  
-  const BACKEND_URL = get_env_var(env, "BACKEND_URL", "localhost");
+
+  const BACKEND_URL = get_env_var(env, 'BACKEND_URL', 'localhost');
   console.info(`BACKEND_URL: ${BACKEND_URL}`);
 
   return {
