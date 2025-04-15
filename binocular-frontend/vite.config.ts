@@ -1,4 +1,4 @@
-import { defineConfig, transformWithEsbuild } from 'vite';
+import { defineConfig, transformWithEsbuild, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import autoprefixer from 'autoprefixer';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
@@ -9,27 +9,39 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import ConditionalCompile from 'vite-plugin-conditional-compiler';
 
-// https://vitejs.dev/config/
-export default () => {
-  const isOfflineBuild = () => process.env.VITE_OFFLINE !== undefined && process.env.VITE_OFFLINE.trim() === 'true';
+function get_env_var(env: Record<K,V>, name: string, default_val: any) {
+  if (env.BACKEND_URL) {
+    return env.BACKEND_URL;
+  } else {
+    return default_val;
+  }
+}
 
-  return defineConfig({
+// https://vitejs.dev/config/
+
+export default defineConfig(({ mode }) => {
+  const isOfflineBuild = () => process.env.VITE_OFFLINE !== undefined && process.env.VITE_OFFLINE.trim() === 'true';
+  const env = loadEnv(mode, process.cwd(), '');
+  const BACKEND_URL = get_env_var(env, "BACKEND_URL", "localhost");
+  console.info(`BACKEND_URL: ${BACKEND_URL}`);
+
+  return {
     root: './',
     base: '',
     server: {
       port: 8080,
       proxy: {
         '/api': {
-          target: 'http://localhost:48763/',
+          target: `http://${BACKEND_URL}:48763/`,
           secure: false,
         },
         '/graphQl': {
-          target: 'http://localhost:48763/',
+          target: `http://${BACKEND_URL}:48763/`,
           secure: false,
           changeOrigin: true,
         },
         '/wsapi': {
-          target: 'ws://localhost:48763',
+          target: `ws://${BACKEND_URL}:48763`,
           ws: true,
         },
       },
@@ -114,5 +126,5 @@ export default () => {
     resolve: {
       alias: viteAlias,
     },
-  });
-};
+  };
+});
