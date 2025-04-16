@@ -376,6 +376,7 @@ function Dashboard() {
                 event.dataTransfer.clearData();
               }}
               onMouseUp={() => {
+                setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
                 positionDashboardItem();
               }}
               onDragLeave={() => {

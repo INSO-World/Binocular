@@ -44,8 +44,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
+          platforms: linux/amd64,linux/arm64
           context: ./
-          file: docker/Dockerfile.frontend
+          file: docker/frontend.Dockerfile
           push: true
           build-args: |
             NODE_VERSION=${{ steps.docker_setup.outputs.nvmrc_node_version }}
@@ -89,6 +90,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
+          platforms: linux/amd64,linux/arm64
           context: ./
           file: docker/frontend.v2.Dockerfile
           push: true
@@ -133,6 +135,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
+          platforms: linux/amd64,linux/arm64
           context: ./
           file: docker/backend.Dockerfile
           push: true
