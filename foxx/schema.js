@@ -1,34 +1,35 @@
-'use strict';
+"use strict";
 
 /**
  * The GraphQL-Schema exposed by our FOXX service
  */
 
-const gql = require('graphql-sync');
-const arangodb = require('@arangodb');
+const gql = require("graphql-sync");
+const arangodb = require("@arangodb");
 const db = arangodb.db;
 const aql = arangodb.aql;
-const paginated = require('./types/paginated.js');
-const queryHelpers = require('./query-helpers.js');
-const Timestamp = require('./types/Timestamp.js');
-const Sort = require('./types/Sort.js');
+const paginated = require("./types/paginated.js");
+const queryHelpers = require("./query-helpers.js");
+const Timestamp = require("./types/Timestamp.js");
+const Sort = require("./types/Sort.js");
 
-const commits = db._collection('commits');
-const files = db._collection('files');
-const users = db._collection('users');
-const modules = db._collection('modules');
-const issues = db._collection('issues');
-const builds = db._collection('builds');
-const branches = db._collection('branches');
-const mergeRequests = db._collection('mergeRequests');
-const milestones = db._collection('milestones');
+const commits = db._collection("commits");
+const files = db._collection("files");
+const users = db._collection("users");
+const modules = db._collection("modules");
+const issues = db._collection("issues");
+const builds = db._collection("builds");
+const branches = db._collection("branches");
+const mergeRequests = db._collection("mergeRequests");
+const milestones = db._collection("milestones");
+const accounts = db._collection("accounts");
 
 const queryType = new gql.GraphQLObjectType({
-  name: 'Query',
+  name: "Query",
   fields() {
     return {
       commits: paginated({
-        type: require('./types/commit.js'),
+        type: require("./types/commit.js"),
         args: {
           since: { type: Timestamp },
           until: { type: Timestamp },
@@ -38,18 +39,18 @@ const queryType = new gql.GraphQLObjectType({
           return aql`
             FOR commit
             IN ${commits}
-            ${args.since ? queryHelpers.addDateFilterAQL('commit.date', '>=', args.since) : aql``}
-            ${args.until ? queryHelpers.addDateFilterAQL('commit.date', '<=', args.until) : aql``}
+            ${args.since ? queryHelpers.addDateFilterAQL("commit.date", ">=", args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL("commit.date", "<=", args.until) : aql``}
             SORT commit.date ${args.sort}
             ${limit}
             RETURN commit`;
         },
       }),
       commit: {
-        type: require('./types/commit.js'),
+        type: require("./types/commit.js"),
         args: {
           sha: {
-            description: 'sha of the commit',
+            description: "sha of the commit",
             type: new gql.GraphQLNonNull(gql.GraphQLString),
           },
         },
@@ -58,7 +59,7 @@ const queryType = new gql.GraphQLObjectType({
         },
       },
       latestCommit: {
-        type: require('./types/commit.js'),
+        type: require("./types/commit.js"),
         args: {
           since: { type: Timestamp },
           until: { type: Timestamp },
@@ -68,7 +69,7 @@ const queryType = new gql.GraphQLObjectType({
         },
       },
       files: paginated({
-        type: require('./types/file.js'),
+        type: require("./types/file.js"),
         args: {
           sort: { type: Sort },
           paths: { type: new gql.GraphQLList(gql.GraphQLString) },
@@ -94,10 +95,10 @@ const queryType = new gql.GraphQLObjectType({
         },
       }),
       file: {
-        type: require('./types/file.js'),
+        type: require("./types/file.js"),
         args: {
           path: {
-            description: 'Path of the file',
+            description: "Path of the file",
             type: new gql.GraphQLNonNull(gql.GraphQLString),
           },
         },
@@ -106,7 +107,7 @@ const queryType = new gql.GraphQLObjectType({
         },
       },
       modules: paginated({
-        type: require('./types/module'),
+        type: require("./types/module"),
         query: (root, args, limit) => aql`
           FOR module
             IN
@@ -115,10 +116,10 @@ const queryType = new gql.GraphQLObjectType({
               RETURN module`,
       }),
       module: {
-        type: require('./types/module'),
+        type: require("./types/module"),
         args: {
           path: {
-            description: 'path of module',
+            description: "path of module",
             type: new gql.GraphQLNonNull(gql.GraphQLString),
           },
         },
@@ -127,13 +128,22 @@ const queryType = new gql.GraphQLObjectType({
         },
       },
       users: paginated({
-        type: require('./types/user.js'),
+        type: require("./types/user.js"),
         query: (root, args, limit) => aql`
           FOR user
             IN
             ${users}
             ${limit}
               RETURN user`,
+      }),
+      accounts: paginated({
+        type: require("./types/gitHubUser.js"),
+        query: (root, args, limit) => aql`
+          FOR account
+            IN
+            ${accounts}
+            ${limit}
+              RETURN account`,
       }),
       committers: {
         type: new gql.GraphQLList(gql.GraphQLString),
@@ -143,13 +153,13 @@ const queryType = new gql.GraphQLObjectType({
               aql`
               FOR user IN ${users}
                 SORT user.gitSignature ASC
-                RETURN DISTINCT user.gitSignature`
+                RETURN DISTINCT user.gitSignature`,
             )
             .toArray();
         },
       },
       baseBuilds: paginated({
-        type: require('./types/build.js'),
+        type: require("./types/build.js"),
         args: {},
         query: (root, args, limit) => aql`
           FOR build IN ${builds}
@@ -158,14 +168,14 @@ const queryType = new gql.GraphQLObjectType({
             RETURN build`,
       }),
       builds: paginated({
-        type: require('./types/build.js'),
+        type: require("./types/build.js"),
         args: { since: { type: Timestamp }, until: { type: Timestamp } },
         query: (root, args, limit) => {
           return aql`
           FOR build IN ${builds}
             SORT build.createdAt ASC
-            ${args.since ? queryHelpers.addDateFilterAQL('build.createdAt', '>=', args.since) : aql``}
-            ${args.until ? queryHelpers.addDateFilterAQL('build.createdAt', '<=', args.until) : aql``}
+            ${args.since ? queryHelpers.addDateFilterAQL("build.createdAt", ">=", args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL("build.createdAt", "<=", args.until) : aql``}
             ${limit}
             LET countsByStatus = (
               COLLECT status = build.status WITH COUNT INTO statusCount
@@ -175,7 +185,7 @@ const queryType = new gql.GraphQLObjectType({
         },
       }),
       issues: paginated({
-        type: require('./types/issue.js'),
+        type: require("./types/issue.js"),
         args: {
           since: { type: Timestamp },
           until: { type: Timestamp },
@@ -185,18 +195,18 @@ const queryType = new gql.GraphQLObjectType({
           return aql`
           FOR issue
           IN issues
-          ${args.since ? queryHelpers.addDateFilterAQL('issue.createdAt', '>=', args.since) : aql``}
-          ${args.until ? queryHelpers.addDateFilterAQL('issue.createdAt', '<=', args.until) : aql``}
+          ${args.since ? queryHelpers.addDateFilterAQL("issue.createdAt", ">=", args.since) : aql``}
+          ${args.until ? queryHelpers.addDateFilterAQL("issue.createdAt", "<=", args.until) : aql``}
           SORT issue.createdAt ${args.sort}
           ${limit}
           RETURN issue`;
         },
       }),
       issue: {
-        type: require('./types/issue.js'),
+        type: require("./types/issue.js"),
         args: {
           iid: {
-            description: 'Project-Internal issue number',
+            description: "Project-Internal issue number",
             type: new gql.GraphQLNonNull(gql.GraphQLInt),
           },
         },
@@ -207,13 +217,13 @@ const queryType = new gql.GraphQLObjectType({
                   IN
                   ${issues}
                   FILTER issue.iid == ${args.iid}
-                    RETURN issue`
+                    RETURN issue`,
             )
             .toArray()[0];
         },
       },
       branches: paginated({
-        type: require('./types/branch.js'),
+        type: require("./types/branch.js"),
         args: {
           sort: { type: Sort },
         },
@@ -227,10 +237,10 @@ const queryType = new gql.GraphQLObjectType({
         },
       }),
       branch: {
-        type: require('./types/branch.js'),
+        type: require("./types/branch.js"),
         args: {
           branchName: {
-            description: 'name of the branch',
+            description: "name of the branch",
             type: new gql.GraphQLNonNull(gql.GraphQLString),
           },
         },
@@ -241,13 +251,13 @@ const queryType = new gql.GraphQLObjectType({
                   IN
                   ${branches}
                   FILTER branch.branch == ${args.branchName}
-                    RETURN branch`
+                    RETURN branch`,
             )
             .toArray()[0];
         },
       },
       mergeRequests: paginated({
-        type: require('./types/mergeRequest.js'),
+        type: require("./types/mergeRequest.js"),
         args: {
           since: { type: Timestamp },
           until: { type: Timestamp },
@@ -258,14 +268,14 @@ const queryType = new gql.GraphQLObjectType({
             FOR mergeRequest
             IN ${mergeRequests}
             SORT mergeRequest.createdAt ${args.sort}
-            ${args.since ? queryHelpers.addDateFilterAQL('mergeRequest.createdAt', '>=', args.since) : aql``}
-            ${args.until ? queryHelpers.addDateFilterAQL('mergeRequest.createdAt', '<=', args.until) : aql``}
+            ${args.since ? queryHelpers.addDateFilterAQL("mergeRequest.createdAt", ">=", args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL("mergeRequest.createdAt", "<=", args.until) : aql``}
             ${limit}
             RETURN mergeRequest`;
         },
       }),
       milestones: paginated({
-        type: require('./types/milestone.js'),
+        type: require("./types/milestone.js"),
         args: {
           sort: { type: Sort },
         },
