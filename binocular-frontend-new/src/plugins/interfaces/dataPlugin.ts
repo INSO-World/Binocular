@@ -1,9 +1,13 @@
-import { DataPluginGeneral } from './dataPluginInterfaces/dataPluginGeneral.ts';
-import { DataPluginCommits } from './dataPluginInterfaces/dataPluginCommits.ts';
-import { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
-import { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
-import { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
-import { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
+import { DataPluginGeneral } from "./dataPluginInterfaces/dataPluginGeneral.ts";
+import { DataPluginCommits } from "./dataPluginInterfaces/dataPluginCommits.ts";
+import { DataPluginUsers } from "./dataPluginInterfaces/dataPluginUsers.ts";
+import { DataPluginBuilds } from "./dataPluginInterfaces/dataPluginBuilds.ts";
+import {
+  DataPluginFiles,
+  FileConfig,
+} from "./dataPluginInterfaces/dataPluginFiles.ts";
+import { ProgressUpdateConfig } from "../../types/settings/databaseSettingsType.ts";
+import { DataPluginAccounts } from "./dataPluginInterfaces/dataPluginAccount.ts";
 
 export interface DataPlugin {
   name: string;
@@ -13,9 +17,15 @@ export interface DataPlugin {
   builds: DataPluginBuilds;
   users: DataPluginUsers;
   files: DataPluginFiles;
+  accountsIssues: DataPluginAccounts;
   capabilities: string[];
   experimental: boolean;
-  requirements: { apiKey: boolean; endpoint: boolean; file: boolean; progressUpdate: boolean };
+  requirements: {
+    apiKey: boolean;
+    endpoint: boolean;
+    file: boolean;
+    progressUpdate: boolean;
+  };
   init: (
     apiKey: string | undefined,
     endpoint: string | undefined,

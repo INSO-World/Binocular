@@ -11,7 +11,14 @@ export interface ChangesSettings extends DefaultSettings {
   splitAdditionsDeletions: boolean;
 }
 
-function Settings(props: { settings: BuildSettings; setSettings: (newSettings: BuildSettings) => void }) {
+export interface CollaborationSettings extends DefaultSettings {
+  splitBuildsPerAuthor: boolean;
+}
+
+function Settings(props: {
+  settings: BuildSettings;
+  setSettings: (newSettings: BuildSettings) => void;
+}) {
   return (
     <>
       <div>
@@ -43,10 +50,11 @@ function Settings(props: { settings: BuildSettings; setSettings: (newSettings: B
                 visualizationStyle: e.target.value,
                 showSprints: props.settings.showSprints,
               })
-            }>
-            <option value={'curved'}>curved</option>
-            <option value={'stepped'}>stepped</option>
-            <option value={'linear'}>linear</option>
+            }
+          >
+            <option value={"curved"}>curved</option>
+            <option value={"stepped"}>stepped</option>
+            <option value={"linear"}>linear</option>
           </select>
         </label>
         <label className="label cursor-pointer">
