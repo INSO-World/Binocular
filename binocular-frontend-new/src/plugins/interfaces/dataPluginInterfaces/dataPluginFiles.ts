@@ -2,6 +2,8 @@ import { DataPluginStats } from './dataPluginCommits.ts';
 
 export interface DataPluginFiles {
   getAll: () => Promise<DataPluginFile[]>;
+  getFilenamesForBranch: (branchName: string) => Promise<any>;
+  getPreviousFilenamesForFilesOnBranch: (branchName: string) => Promise<PreviousFilePaths[]>;
 }
 
 export interface DataPluginFile {
@@ -18,4 +20,9 @@ export interface FileConfig {
 
 export interface JSONObject {
   [key: string]: string | string[] | boolean | number | DataPluginStats | object | null;
+}
+
+export interface PreviousFilePaths {
+  path: string;
+  previousFileNames: string[];
 }

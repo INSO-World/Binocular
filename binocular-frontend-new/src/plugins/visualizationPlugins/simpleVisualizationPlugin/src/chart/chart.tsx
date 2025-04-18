@@ -67,10 +67,12 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
 
   // Effect on data change
   useEffect(() => {
-    const { chartData, scale, palette } = props.dataConverter(data, props);
-    setChartData(chartData);
-    setChartScale(scale);
-    setChartPalette(palette);
+    if (props.dataConverter) {
+      const { chartData, scale, palette } = props.dataConverter(data, props);
+      setChartData(chartData);
+      setChartScale(scale);
+      setChartPalette(palette);
+    }
   }, [data, props]);
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
