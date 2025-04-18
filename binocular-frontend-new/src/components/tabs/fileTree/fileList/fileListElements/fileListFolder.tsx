@@ -34,7 +34,7 @@ function FileListFolder(props: { folder: FileTreeElementType; foldedOut: boolean
                 type={'checkbox'}
                 className={'checkbox checkbox-accent checkbox-xs'}
                 checked={props.folder.checked}
-                onChange={(e) => dispatch(updateFileListElement({ ...props.folder, checked: e.target.checked }))}
+                onChange={(e) => dispatch(updateFileListElement({ ...props.folder, checked: e.target.checked, update: true }))}
               />
             )}
             <div
@@ -88,7 +88,7 @@ function FileListFolder(props: { folder: FileTreeElementType; foldedOut: boolean
             type={'checkbox'}
             className={'checkbox checkbox-accent checkbox-xs'}
             checked={props.folder.checked}
-            onChange={(e) => dispatch(updateFileListElement({ ...props.folder, checked: e.target.checked }))}
+            onChange={(e) => dispatch(updateFileListElement({ ...props.folder, checked: e.target.checked, update: true }))}
           />
           <div
             onClick={() => dispatch(updateFileListElement({ ...props.folder, foldedOut: true }))}

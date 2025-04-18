@@ -42,7 +42,7 @@ function FileListFile(props: { file: FileTreeElementType; listOnly?: boolean }) 
             type={'checkbox'}
             className={'checkbox checkbox-accent checkbox-xs'}
             checked={props.file.checked}
-            onChange={(e) => dispatch(updateFileListElement({ ...props.file, checked: e.target.checked }))}
+            onChange={(e) => dispatch(updateFileListElement({ ...props.file, checked: e.target.checked, update: true }))}
           />
         )}
         <div
