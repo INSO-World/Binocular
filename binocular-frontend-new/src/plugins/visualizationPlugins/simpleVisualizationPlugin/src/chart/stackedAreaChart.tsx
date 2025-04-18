@@ -56,7 +56,7 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
       if (!extent) {
         //This Timeout is necessary because it not the reset of the brush would trigger the reset of the domain
         // and the brushing wouldn't work.
-        if (!idleTimeout) return (idleTimeout = setTimeout(idled, 350));
+        if (!idleTimeout) return (idleTimeout = window.setTimeout(idled, 350));
         xScale.domain([xMin || 0, xMax || 0]);
       } else {
         xScale.domain([xScale.invert(extent[0]), xScale.invert(extent[1])]);

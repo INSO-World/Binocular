@@ -18,8 +18,8 @@ function* watchDateRangeChange(dataConnection: DataPlugin) {
 
 function* fetchChangesData(dataConnection: DataPlugin) {
   yield put(setDataState(DataState.FETCHING));
-  const state: BuildsState = yield select();
-  const builds: DataPluginBuild[] = yield call(() => dataConnection.builds.getAll(state.dateRange.from, state.dateRange.to));
+  const state: { plugin: BuildsState } = yield select();
+  const builds: DataPluginBuild[] = yield call(() => dataConnection.builds.getAll(state.plugin.dateRange.from, state.plugin.dateRange.to));
   yield put(setBuilds(builds));
   yield put(setDataState(DataState.COMPLETE));
 }

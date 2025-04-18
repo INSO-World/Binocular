@@ -13,7 +13,7 @@ import { parametersInitialState } from '../../../redux/reducer/parameters/parame
 import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
 import { ExportType, setExportName, setExportSVGData, setExportType } from '../../../redux/reducer/export/exportReducer.ts';
 import ReduxSubAppStoreWrapper from '../reduxSubAppStoreWrapper/reduxSubAppStoreWrapper.tsx';
-import { configureStore, Store } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, Store } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import { createLogger } from 'redux-logger';
 import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
@@ -22,6 +22,8 @@ import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 
 import { store as globalStore } from '../../../redux';
+import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
+import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -108,8 +110,8 @@ const DashboardItem = memo(function DashboardItem(props: {
   if (dataPlugin) {
     const sagaMiddleware = createSagaMiddleware();
     store = configureStore({
-      reducer: plugin.reducer,
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger),
+      reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
     });
     sagaMiddleware.run(() => plugin.saga(dataPlugin, plugin.name, plugin.dataConnectionName));
   } else {
@@ -190,7 +192,10 @@ const DashboardItem = memo(function DashboardItem(props: {
                 </button>
               </div>
               {dataPlugin && store ? (
-                <DashboardItemPopout name={plugin.name} onClosing={() => setPoppedOut(false)}>
+                <DashboardItemPopout
+                  name={plugin.name}
+                  onClosing={() => setPoppedOut(false)}
+                  onResize={() => store?.dispatch({ type: 'RESIZE' })}>
                   <ReduxSubAppStoreWrapper store={store}>
                     {plugin.chartComponent !== undefined ? (
                       <plugin.chartComponent
