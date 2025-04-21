@@ -1,5 +1,5 @@
 import { findAllBuilds } from '../utils.js';
-import { Database } from '../database.ts';
+import Database from '../database.ts';
 import { DataPluginBuild, DataPluginBuilds } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 
 export default class Builds implements DataPluginBuilds {
