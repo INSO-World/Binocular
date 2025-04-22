@@ -4,6 +4,7 @@ import { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
 import { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
 import { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
 import { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
+import { DataPluginCommitsFilesChanges } from './dataPluginInterfaces/dataPluginCommitsFilesChanges.ts';
 
 export interface DataPlugin {
   name: string;
@@ -11,6 +12,7 @@ export interface DataPlugin {
   general: DataPluginGeneral;
   commits: DataPluginCommits;
   builds: DataPluginBuilds;
+  commitByFile: DataPluginCommitsFilesChanges;
   users: DataPluginUsers;
   files: DataPluginFiles;
   capabilities: string[];

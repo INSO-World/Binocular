@@ -54,7 +54,11 @@ const queryType = new gql.GraphQLObjectType({
           },
         },
         resolve(root, args) {
-          return commits.document(args.sha);
+          return db._query(aql`
+            FOR commit IN ${commits}
+            FILTER commit.sha == ${args.sha}
+            RETURN commit
+          `).toArray()[0];
         },
       },
       latestCommit: {
