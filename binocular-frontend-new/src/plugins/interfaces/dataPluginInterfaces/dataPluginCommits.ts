@@ -27,13 +27,13 @@ export interface DataPluginOwnership {
     path: string;
     action: string;
     ownership: DataPluginFileOwnership[];
-  };
+  }[];
 }
 
 export interface DataPluginFileOwnership {
   user: string;
   hunks: {
-    originalCommit: DataPluginCommit;
+    originalCommit: string;
     lines: {
       from: number;
       to: number;
