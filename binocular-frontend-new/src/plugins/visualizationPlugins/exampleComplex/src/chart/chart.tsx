@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SunburstChart } from './sunburstChart.tsx';
 import { Store } from '@reduxjs/toolkit';
-import { handelPopoutResizing } from '../../../../utils/Resizing.ts';
+import { handelPopoutResizing } from '../../../../utils/resizing.ts';
 
 function Chart(props: { store: Store }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);

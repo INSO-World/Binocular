@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
 import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { DefaultSettings } from '../settings/settings.tsx';
-import { handelPopoutResizing } from '../../../../utils/Resizing.ts';
+import { handelPopoutResizing } from '../../../../utils/resizing.ts';
 
 export interface ChartData {
   date: number;
