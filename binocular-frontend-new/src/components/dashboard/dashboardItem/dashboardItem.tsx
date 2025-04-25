@@ -119,12 +119,21 @@ const DashboardItem = memo(function DashboardItem(props: {
   }
 
   globalStore.subscribe(() => {
-    if (store !== undefined && selectedDataPlugin && doAutomaticUpdate) {
-      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
-        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
-          console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
-          store.dispatch({ type: 'REFRESH' });
-        }
+    if (store !== undefined) {
+      switch (globalStore.getState().actions.lastAction) {
+        case 'REFRESH_PLUGIN':
+          if (selectedDataPlugin && doAutomaticUpdate) {
+            if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
+              console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
+              store.dispatch({ type: 'REFRESH' });
+            }
+          }
+          break;
+        case 'RESIZE_DASHBOARD_ITEM':
+          if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+            store.dispatch({ type: 'RESIZE' });
+          }
+          break;
       }
     }
   });
