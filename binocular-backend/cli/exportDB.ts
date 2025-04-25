@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 export function exportDB(targetPath: string, options: any): Promise<string> {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
-    let targetPathFull = __dirname + '/../binocular-frontend';
+    let targetPathFull = __dirname + '/../../binocular-frontend';
     if (targetPath) {
       targetPathFull = path.resolve(targetPath);
     }
