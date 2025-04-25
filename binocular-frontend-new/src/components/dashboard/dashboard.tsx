@@ -217,6 +217,7 @@ function Dashboard() {
                 dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
               }),
             );
+            dispatch({ type: 'RESIZE_DASHBOARD_ITEM', payload: { dashboardItemId: movingItem.current.id } });
           } else {
             dispatch(
               addNotification({

@@ -1,5 +1,6 @@
 import { ReactElement, useEffect, useState } from 'react';
 import { createRoot, Root } from 'react-dom/client';
+import { throttle } from 'throttle-debounce';
 
 /**
  *  React Popout (https://github.com/JakeGinnivan/react-popout)
@@ -16,6 +17,7 @@ interface PropsType {
   containerClassName?: string;
   children: ReactElement;
   onError: () => void;
+  onResize: () => void;
 }
 
 interface OptionsType {
@@ -52,6 +54,15 @@ export default function PopoutController(props: PropsType) {
   const [root, setRoot] = useState<Root>();
 
   let interval: number;
+
+  const throttledResize = throttle(
+    1000,
+    () => {
+      props.onResize();
+    },
+    { noLeading: false, noTrailing: false },
+  );
+
   useEffect(() => {
     const ownerWindow = props.window || window;
 
@@ -92,6 +103,7 @@ export default function PopoutController(props: PropsType) {
 
   function openPopoutWindow(ownerWindow: Window) {
     const popoutWindow = ownerWindow.open(props.url, props.title, createOptions(ownerWindow));
+    popoutWindow?.addEventListener('resize', throttledResize);
     if (!popoutWindow) {
       props.onError();
       return;
@@ -142,7 +154,7 @@ export default function PopoutController(props: PropsType) {
    * @param popoutWindow
    */
   function checkForPopoutWindowClosure() {
-    interval = setInterval(() => {
+    interval = window.setInterval(() => {
       if (popoutWindow && popoutWindow.closed) {
         clearInterval(interval);
         props.onClosing();

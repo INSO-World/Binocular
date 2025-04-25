@@ -18,8 +18,10 @@ function* watchDateRangeChange(dataConnection: DataPlugin) {
 
 function* fetchChangesData(dataConnection: DataPlugin) {
   yield put(setDataState(DataState.FETCHING));
-  const state: ChangesState = yield select();
-  const commits: DataPluginCommit[] = yield call(() => dataConnection.commits.getAll(state.dateRange.from, state.dateRange.to));
+  const state: { plugin: ChangesState } = yield select();
+  const commits: DataPluginCommit[] = yield call(() =>
+    dataConnection.commits.getAll(state.plugin.dateRange.from, state.plugin.dateRange.to),
+  );
   yield put(setCommits(commits));
   yield put(setDataState(DataState.COMPLETE));
 }

@@ -1,10 +1,10 @@
 import { StackedAreaChart } from './stackedAreaChart.tsx';
 import { useEffect, useState } from 'react';
-import { throttle } from 'throttle-debounce';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
 import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { DefaultSettings } from '../settings/settings.tsx';
+import { handelPopoutResizing } from '../../../../utils/resizing.ts';
 
 export interface ChartData {
   date: number;
@@ -27,8 +27,8 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
    * -----------------------------
    */
   //Redux Global State
-  const data = useSelector((state: RootState) => state.data);
-  const dataState = useSelector((state: RootState) => state.dataState);
+  const data = useSelector((state: RootState) => state.plugin.data);
+  const dataState = useSelector((state: RootState) => state.plugin.dataState);
   //React Component State
   const [chartWidth, setChartWidth] = useState(100);
   const [chartHeight, setChartHeight] = useState(100);
@@ -37,40 +37,36 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
   const [chartScale, setChartScale] = useState<number[]>([]);
   const [chartPalette, setChartPalette] = useState<Palette>({});
 
-  /*
-  Throttle the resize of the svg (refresh rate) to every 1s to not overwhelm the renderer,
-  This isn't really necessary for this visualization, but for bigger visualization this can be quite essential
+  /**
+   * RESIZE Logic START
    */
-  const throttledResize = throttle(
-    1000,
-    () => {
-      if (!props.chartContainerRef.current) return;
-      if (props.chartContainerRef.current?.offsetWidth !== chartWidth) {
-        setChartWidth(props.chartContainerRef.current.offsetWidth);
-      }
-      if (props.chartContainerRef.current?.offsetHeight !== chartHeight) {
-        setChartHeight(props.chartContainerRef.current.offsetHeight);
-      }
-    },
-    { noLeading: false, noTrailing: false },
-  );
-
-  //Resize Observer -> necessary for dynamically refreshing d3 chart
-  useEffect(() => {
+  function resize() {
     if (!props.chartContainerRef.current) return;
-    const resizeObserver = new ResizeObserver(() => {
-      throttledResize();
-    });
-    resizeObserver.observe(props.chartContainerRef.current);
-    return () => resizeObserver.disconnect();
+    if (props.chartContainerRef.current?.offsetWidth !== chartWidth) {
+      setChartWidth(props.chartContainerRef.current.offsetWidth);
+    }
+    if (props.chartContainerRef.current?.offsetHeight !== chartHeight) {
+      setChartHeight(props.chartContainerRef.current.offsetHeight);
+    }
+  }
+
+  useEffect(() => {
+    resize();
   }, [props.chartContainerRef, chartHeight, chartWidth]);
+
+  handelPopoutResizing(props.store, resize);
+  /**
+   * RESIZE Logic END
+   */
 
   // Effect on data change
   useEffect(() => {
-    const { chartData, scale, palette } = props.dataConverter(data, props);
-    setChartData(chartData);
-    setChartScale(scale);
-    setChartPalette(palette);
+    if (props.dataConverter) {
+      const { chartData, scale, palette } = props.dataConverter(data, props);
+      setChartData(chartData);
+      setChartScale(scale);
+      setChartPalette(palette);
+    }
   }, [data, props]);
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
