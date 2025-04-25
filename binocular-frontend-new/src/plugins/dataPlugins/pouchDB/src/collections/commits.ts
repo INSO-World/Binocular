@@ -1,5 +1,5 @@
 import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
-import { findAllCommits, findOwnershipData } from '../utils.js';
+import { findAllCommits, findCommit, findOwnershipData } from '../utils.js';
 import Database from '../database.ts';
 
 export default class Commits implements DataPluginCommits {
@@ -37,8 +37,7 @@ export default class Commits implements DataPluginCommits {
         res.docs = (res.docs as DataPluginOwnership[]).sort((a, b) => {
           return new Date(a.date).getTime() - new Date(b.date).getTime();
         });
-
-        return res.docs as unknown as DataPluginCommit[];
+        return res.docs as DataPluginOwnership[];
       });
     } else {
       return new Promise<DataPluginOwnership[]>((resolve) => {
@@ -48,7 +47,11 @@ export default class Commits implements DataPluginCommits {
     }
   }
 
-  public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
-
+  public async getCommitDataForSha(sha: string): Promise<DataPluginCommit | undefined> {
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findCommit(this.database.documentStore, this.database.edgeStore, sha).then((res: { docs: unknown[] }) => {
+        return res.docs[0] as DataPluginCommit;
+      });
+    } else return Promise.resolve(undefined);
   }
 }

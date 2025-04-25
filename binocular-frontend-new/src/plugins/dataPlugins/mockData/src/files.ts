@@ -30,11 +30,17 @@ export default class Files implements DataPluginFiles {
     });
   }
 
-  getFilenamesForBranch(_branchName: string): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getFilenamesForBranch(branchName: string): Promise<string[]> {
     return Promise.resolve(['index.js', 'src/app.js', 'src/app.css']);
   }
 
-  getPreviousFilenamesForFilesOnBranch(_branchName: string): Promise<PreviousFilePaths[]> {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getPreviousFilenamesForFilesOnBranch(branchName: string): Promise<PreviousFilePaths[]> {
     return Promise.resolve([]);
   }
 }

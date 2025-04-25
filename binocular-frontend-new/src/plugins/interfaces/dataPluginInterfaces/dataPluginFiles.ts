@@ -2,7 +2,7 @@ import { DataPluginStats } from './dataPluginCommits.ts';
 
 export interface DataPluginFiles {
   getAll: () => Promise<DataPluginFile[]>;
-  getFilenamesForBranch: (branchName: string) => Promise<any>;
+  getFilenamesForBranch: (branchName: string) => Promise<string[]>;
   getPreviousFilenamesForFilesOnBranch: (branchName: string) => Promise<PreviousFilePaths[]>;
 }
 

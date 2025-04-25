@@ -3,7 +3,7 @@ import { DataPluginUser } from './dataPluginUsers.ts';
 export interface DataPluginCommits {
   getAll: (from: string, to: string) => Promise<DataPluginCommit[]>;
   getOwnershipDataForCommits: () => Promise<DataPluginOwnership[]>;
-  getCommitDataForSha: (sha: string) => Promise<DataPluginCommit>;
+  getCommitDataForSha: (sha: string) => Promise<DataPluginCommit | undefined>;
 }
 
 export interface DataPluginCommit {

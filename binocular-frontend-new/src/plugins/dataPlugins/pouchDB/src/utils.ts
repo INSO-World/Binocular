@@ -417,7 +417,7 @@ export function findFileCommitUserConnections(relations: PouchDB.Database) {
   return findAll(relations, 'commits-files-users');
 }
 
-export function findBranch(database: PouchDB.Database, branch: string) {
+export function findBranch(database: PouchDB.Database, branch: string): Promise<any> {
   return database.find({
     selector: {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
