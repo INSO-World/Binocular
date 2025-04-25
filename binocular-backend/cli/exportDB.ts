@@ -25,7 +25,7 @@ export async function exportDB(targetPath: string, options: any) {
     arangoHost = binocularrc.arango.host;
     arangoPort = binocularrc.arango.port;
     arangoUser = binocularrc.arango.user;
-    arangoPassword = binocularrc.arango.root;
+    arangoPassword = binocularrc.arango.password;
   } else {
     console.log(chalk.red(chalk.underline('No binocular config file found in current folder. Please provide ArangoDB credentials.')));
     const answers: { arangoHost: string; arangoPort: number; arangoUser: string; arangoPassword: string } = await inquirer.prompt([

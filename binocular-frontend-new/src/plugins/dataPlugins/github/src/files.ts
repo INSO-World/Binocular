@@ -1,4 +1,4 @@
-import { DataPluginFile } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { DataPluginFile, PreviousFilePaths } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default {
   getAll: () => {
@@ -6,6 +6,20 @@ export default {
     return new Promise<DataPluginFile[]>((resolve) => {
       const files: DataPluginFile[] = [];
       resolve(files);
+    });
+  },
+  getFilenamesForBranch: (branchName: string) => {
+    console.log(`Getting Filenames For ` + branchName);
+    return new Promise<DataPluginFile[]>((resolve) => {
+      const files: DataPluginFile[] = [];
+      resolve(files);
+    });
+  },
+  getPreviousFilenamesForFilesOnBranch: (branchName: string) => {
+    console.log(`Getting Previous Filenames For ` + branchName);
+    return new Promise<PreviousFilePaths[]>((resolve) => {
+      const names: PreviousFilePaths[] = [];
+      resolve(names);
     });
   },
 };

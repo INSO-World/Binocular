@@ -1,8 +1,4 @@
-import {
-  DataPluginCommit,
-  DataPluginCommits,
-  DataPluginOwnership
-} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
   constructor() {}
@@ -112,7 +108,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 3,
                           to: 3,
-                        }
+                        },
                       ],
                     },
                     {
@@ -121,7 +117,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 22,
                           to: 22,
-                        }
+                        },
                       ],
                     },
                     {
@@ -134,7 +130,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 47,
                           to: 51,
-                        }
+                        },
                       ],
                     },
                     {
@@ -143,7 +139,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 46,
                           to: 46,
-                        }
+                        },
                       ],
                     },
                     {
@@ -156,7 +152,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 56,
                           to: 56,
-                        }
+                        },
                       ],
                     },
                     {
@@ -169,7 +165,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 101,
                           to: 101,
-                        }
+                        },
                       ],
                     },
                     {
@@ -178,9 +174,9 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 95,
                           to: 95,
-                        }
+                        },
                       ],
-                    }
+                    },
                   ],
                 },
                 {
@@ -192,7 +188,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 1,
                           to: 1,
-                        }
+                        },
                       ],
                     },
                     {
@@ -201,7 +197,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 4,
                           to: 5,
-                        }
+                        },
                       ],
                     },
                     {
@@ -210,7 +206,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 6,
                           to: 6,
-                        }
+                        },
                       ],
                     },
                     {
@@ -227,7 +223,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 17,
                           to: 17,
-                        }
+                        },
                       ],
                     },
                     {
@@ -240,7 +236,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 15,
                           to: 16,
-                        }
+                        },
                       ],
                     },
                     {
@@ -249,7 +245,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 19,
                           to: 19,
-                        }
+                        },
                       ],
                     },
                     {
@@ -258,7 +254,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 20,
                           to: 20,
-                        }
+                        },
                       ],
                     },
                     {
@@ -267,7 +263,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 21,
                           to: 21,
-                        }
+                        },
                       ],
                     },
                     {
@@ -284,7 +280,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 166,
                           to: 168,
-                        }
+                        },
                       ],
                     },
                     {
@@ -293,7 +289,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 158,
                           to: 160,
-                        }
+                        },
                       ],
                     },
                     {
@@ -310,7 +306,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 177,
                           to: 177,
-                        }
+                        },
                       ],
                     },
                     {
@@ -327,14 +323,14 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 178,
                           to: 181,
-                        }
+                        },
                       ],
-                    }
+                    },
                   ],
-                }
-              ]
-            }
-          ]
+                },
+              ],
+            },
+          ],
         },
         {
           sha: '5f13d85a7c3a2e62711e5e78f79f04854ecc5907',
@@ -354,9 +350,9 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 168,
                           to: 168,
-                        }
+                        },
                       ],
-                    }
+                    },
                   ],
                 },
                 {
@@ -368,7 +364,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 24,
                           to: 24,
-                        }
+                        },
                       ],
                     },
                     {
@@ -381,12 +377,12 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 54,
                           to: 54,
-                        }
+                        },
                       ],
-                    }
+                    },
                   ],
                 },
-              ]
+              ],
             },
             {
               path: 'src/app.js',
@@ -433,9 +429,9 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 369,
                           to: 385,
-                        }
+                        },
                       ],
-                    }
+                    },
                   ],
                 },
                 {
@@ -471,7 +467,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 314,
                           to: 368,
-                        }
+                        },
                       ],
                     },
                     {
@@ -553,7 +549,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 218,
                           to: 219,
-                        }
+                        },
                       ],
                     },
                     {
@@ -574,7 +570,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 313,
                           to: 313,
-                        }
+                        },
                       ],
                     },
                     {
@@ -599,12 +595,12 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 101,
                           to: 101,
-                        }
+                        },
                       ],
                     },
                   ],
-                }
-              ]
+                },
+              ],
             },
             {
               path: 'src/app.css',
@@ -627,7 +623,7 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 82,
                           to: 167,
-                        }
+                        },
                       ],
                     },
                     {
@@ -640,14 +636,14 @@ export default class Commits implements DataPluginCommits {
                         {
                           from: 78,
                           to: 81,
-                        }
+                        },
                       ],
-                    }
+                    },
                   ],
-                }
-              ]
+                },
+              ],
             },
-          ]
+          ],
         },
       ];
       resolve(commits);
@@ -668,7 +664,7 @@ export default class Commits implements DataPluginCommits {
       date: '2024-11-25T15:05:10.000Z',
       parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
       webUrl: 'www.github.com',
-      stats: {additions: 5, deletions: 0},
+      stats: { additions: 5, deletions: 0 },
     };
   }
 }

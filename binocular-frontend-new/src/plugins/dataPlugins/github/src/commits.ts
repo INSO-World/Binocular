@@ -1,6 +1,6 @@
 import { GraphQL } from './utils.ts';
 import { ApolloQueryResult, gql } from '@apollo/client';
-import { DataPluginCommit, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 interface CommitQueryResult {
   repository: {
@@ -121,5 +121,13 @@ export default class Commits implements DataPluginCommits {
     }
 
     return commitNodes;
+  }
+
+  public async getOwnershipDataForCommits(): Promise<DataPluginOwnership[]> {
+    return Promise.resolve([]);
+  }
+  public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
+    // @ts-ignore
+    return Promise.resolve({});
   }
 }
