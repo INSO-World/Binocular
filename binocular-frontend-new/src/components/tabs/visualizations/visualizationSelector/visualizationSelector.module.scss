@@ -23,10 +23,10 @@
   height: 2rem;
   overflow: hidden;
   box-shadow: $shadow-default;
-  border-radius: $border-radius-default;
-  cursor: pointer;
+  border-radius: $border-radius-small;
+  cursor: grab;
   transition: scale ease-in-out .2s;
-  @apply bg-base-300;
+  @apply bg-base-100;
 }
 
 .visualizationButton:hover{
@@ -42,7 +42,7 @@
 
 .visualizationButton>div>img{
   border: $border-default;
-  border-radius: $border-radius-default;
+  border-radius: $border-radius-small;
   box-shadow: $shadow-default;
   @apply border-base-300;
   height: 2rem;

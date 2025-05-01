@@ -31,6 +31,7 @@ import { useEffect, useState } from 'react';
 import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
 import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
+import { TabAlignment } from './types/general/tabType.ts';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -100,7 +101,7 @@ function App() {
             icon={SettingsGray}
             name={'Settings'}
             animation={'rotate'}></TabControllerButton>
-          <Tab displayName={'Parameters'} alignment={'top'}>
+          <Tab displayName={'Parameters'} alignment={TabAlignment.top}>
             <TabSection name={'Date Range'}>
               <DateRange
                 disabled={false}
@@ -114,12 +115,12 @@ function App() {
                 setParametersGeneral={(parametersGeneral) => dispatch(setParametersGeneral(parametersGeneral))}></ParametersGeneral>
             </TabSection>
           </Tab>
-          <Tab displayName={'Visualizations'} alignment={'top'}>
+          <Tab displayName={'Visualizations'} alignment={TabAlignment.top}>
             <TabSection name={'Visualization Selector'}>
               <VisualizationSelector></VisualizationSelector>
             </TabSection>
           </Tab>
-          <Tab displayName={'Sprints'} alignment={'top'}>
+          <Tab displayName={'Sprints'} alignment={TabAlignment.top}>
             <TabSection name={'Sprints'}>
               <SprintView></SprintView>
             </TabSection>
@@ -127,7 +128,7 @@ function App() {
               <AddSprint></AddSprint>
             </TabSection>
           </Tab>
-          <Tab displayName={'Authors'} alignment={'right'}>
+          <Tab displayName={'Authors'} alignment={TabAlignment.right}>
             <TabSection name={'Database'}>
               <DataPluginQuickSelect
                 selected={authorsDataPlugin}
@@ -144,7 +145,7 @@ function App() {
               <OtherAuthors></OtherAuthors>
             </TabSection>
           </Tab>
-          <Tab displayName={'File Tree'} alignment={'right'}>
+          <Tab displayName={'File Tree'} alignment={TabAlignment.right}>
             <TabSection name={'Database'}>
               <DataPluginQuickSelect
                 selected={filesDataPlugin}
@@ -161,7 +162,7 @@ function App() {
               <FileList search={fileSearch}></FileList>
             </TabSection>
           </Tab>
-          <Tab displayName={'Help'} alignment={'right'}>
+          <Tab displayName={'Help'} alignment={TabAlignment.right}>
             <TabSection name={'General'}>
               <HelpGeneral></HelpGeneral>
             </TabSection>

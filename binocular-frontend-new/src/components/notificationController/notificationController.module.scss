@@ -10,12 +10,34 @@
 }
 
 .notification{
-  width: 50%;
-  height: 3rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: .5rem;
-  border-radius: 4px;
-  @apply shadow-2xl;
+  @apply alert;
+  @apply w-3/5;
+  @apply m-1;
+  @apply transition-all;
+  @apply ease-in-out;
+  @apply duration-500;
+  position: relative;
+  cursor: pointer;
+}
+
+.notification::after{
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  border-radius: 1rem;
+  top:0;
+  left:0;
+  background: white;
+  opacity: 0.2;
+  animation: linear 10s timeBarFrames;
+}
+
+@keyframes timeBarFrames {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
 }

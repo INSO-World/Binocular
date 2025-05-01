@@ -1,25 +1,34 @@
 import dashboardStyles from './dashboard.module.scss';
-import { createRef, useEffect, useState } from 'react';
+import { createRef, useEffect, useRef, useState } from 'react';
 import DashboardItem from './dashboardItem/dashboardItem.tsx';
-import { showDialog } from '../informationDialog/dialogHelper.ts';
 import { DragResizeMode } from './resizeMode.ts';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, useAppDispatch } from '../../redux';
+import { AppDispatch, RootState, store, useAppDispatch } from '../../redux';
 import {
   addDashboardItem,
-  moveDashboardItem,
-  setDragResizeMode,
   deleteDashboardItem,
+  moveDashboardItem,
+  placeDashboardItem,
+  updateDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
-import DashboardItemPlaceholder from './dashboardItemPlaceholder/dashboardItemPlaceholder.tsx';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
 import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
 import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
+import { addNotification } from '../../redux/reducer/general/notificationsReducer.ts';
+import { AlertType } from '../../types/general/alertType.ts';
+import {
+  clearHighlightDropArea,
+  highlightDropArea,
+  moveDragIndicator,
+  moveResizeDashboardItem,
+  placeDragIndicator,
+  setDragResizeMode,
+} from './dashboardHelper.ts';
+import _ from 'lodash';
+import { DragDropElementType } from '../../types/general/dragDropElementType.ts';
 
 function Dashboard() {
   const dispatch: AppDispatch = useAppDispatch();
-
-  const [itemMoved, setItemMoved] = useState(false);
 
   const gridSize = useSelector((state: RootState) => state.settings.general.gridSize);
   let cellCount: number;
@@ -41,73 +50,189 @@ function Dashboard() {
       break;
   }
 
+  const lastPlaceCoordinates = useRef<{ x: number; y: number } | undefined>(undefined);
+
   const columnCount = cellCount;
   const rowCount = cellCount;
 
   const dashboardRef = createRef<HTMLDivElement>();
   const dragIndicatorRef = createRef<HTMLDivElement>();
+  const dragResizeZoneRef = createRef<HTMLDivElement>();
   const [cellSize, setCellSize] = useState(0);
-  const [movingItem, setMovingItem] = useState<DashboardItemDTO>({ id: 0, x: 0, y: 0, width: 0, height: 0 });
+  const movingItem = useRef<DashboardItemDTO>({ id: 0, x: 0, y: 0, width: 0, height: 0 });
 
-  const [targetX, setTargetX] = useState(0);
-  const [targetY, setTargetY] = useState(0);
-  const [targetWidth, setTargetWidth] = useState(0);
-  const [targetHeight, setTargetHeight] = useState(0);
+  const dragResizeMode = useRef(DragResizeMode.none);
 
-  const dashboardItems = useSelector((state: RootState) => state.dashboard.dashboardItems);
-  const dragResizeMode = useSelector((state: RootState) => state.dashboard.dragResizeMode);
-  const placeableItem = useSelector((state: RootState) => state.dashboard.placeableItem);
-  const dashboardState = useSelector((state: RootState) => state.dashboard.dashboardState);
+  let targetX = 0;
+  let targetY = 0;
+  let targetWidth = 0;
+  let targetHeight = 0;
 
-  const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  // eslint-disable-next-line prefer-const
+  let [dashboardItems, setDashboardItems] = useState(store.getState().dashboard.dashboardItems);
+  // eslint-disable-next-line prefer-const
+  let [dashboardState, setDashboardState] = useState(store.getState().dashboard.dashboardState);
+
+  const placeableItem: DashboardItemType = useSelector((state: RootState) => state.dashboard.placeableItem);
+
+  const configuredDataPlugins: DatabaseSettingsDataPluginType[] = useSelector((state: RootState) => state.settings.database.dataPlugins);
+
+  store.subscribe(() => {
+    const newDashboardItems = store.getState().dashboard.dashboardItems;
+    const newDashboardState = store.getState().dashboard.dashboardState;
+    switch (store.getState().actions.lastAction) {
+      case moveDashboardItem.type:
+        newDashboardItems.forEach((dashboardItem: DashboardItemType) => {
+          moveResizeDashboardItem(dashboardItem, rowCount, gridMultiplier, columnCount);
+          dashboardItems = newDashboardItems;
+          dashboardState = newDashboardState;
+        });
+        break;
+      case placeDashboardItem.type:
+      case addDashboardItem.type:
+      case updateDashboardItem.type:
+      case deleteDashboardItem.type:
+        setDashboardItems(newDashboardItems);
+        setDashboardState(newDashboardState);
+        break;
+    }
+  });
 
   const defaultDataPlugin = configuredDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0];
 
-  function setDragResizeItem(item: DashboardItemDTO, mode: DragResizeMode) {
-    setMovingItem(item);
-    dispatch(setDragResizeMode(mode));
+  function setDragResizeItem(itemId: number, mode: DragResizeMode) {
+    movingItem.current = dashboardItems.find((dashboardItem: DashboardItemType) => dashboardItem.id === itemId);
+    setDragResizeMode(dragResizeZoneRef, dragResizeMode, mode);
   }
 
-  function clearHighlightDropArea(columnCount: number, rowCount: number) {
-    if (dragIndicatorRef.current !== null) {
-      dragIndicatorRef.current.style.display = 'none';
+  useEffect(() => {
+    if (placeableItem !== undefined) {
+      setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.place);
+    } else {
+      setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
     }
-    for (let y = 0; y < rowCount; y++) {
-      for (let x = 0; x < columnCount; x++) {
-        document.getElementById('highlightY' + y + 'X' + x)?.classList.remove(dashboardStyles.dashboardBackgroundCellHighlightActive);
-        document.getElementById('highlightY' + y + 'X' + x)?.classList.remove(dashboardStyles.dashboardBackgroundCellHighlightNotPossible);
-      }
-    }
-  }
-
-  function highlightDropArea(posX: number, posY: number, width: number, height: number) {
-    console.log(6 * gridMultiplier < movingItem.y || 6 * gridMultiplier > movingItem.y + movingItem.height);
-    for (let y = 0; y < rowCount; y++) {
-      for (let x = 0; x < columnCount; x++) {
-        if (y > posY - 1 && x > posX - 1 && y < posY + height && x < posX + width) {
-          if (
-            dashboardState[y * gridMultiplier][x * gridMultiplier] !== 0 &&
-            dashboardState[y * gridMultiplier][x * gridMultiplier] !== movingItem.id
-          ) {
-            document.getElementById('highlightY' + y + 'X' + x)?.classList.add(dashboardStyles.dashboardBackgroundCellHighlightNotPossible);
-          } else {
-            document.getElementById('highlightY' + y + 'X' + x)?.classList.add(dashboardStyles.dashboardBackgroundCellHighlightActive);
-          }
-        } else {
-          document.getElementById('highlightY' + y + 'X' + x)?.classList.remove(dashboardStyles.dashboardBackgroundCellHighlightActive);
-          document
-            .getElementById('highlightY' + y + 'X' + x)
-            ?.classList.remove(dashboardStyles.dashboardBackgroundCellHighlightNotPossible);
-        }
-      }
-    }
-  }
+  }, [placeableItem]);
 
   useEffect(() => {
     if (dashboardRef.current !== null) {
       setCellSize(dashboardRef.current.offsetWidth / columnCount);
     }
-  }, [columnCount, dashboardRef, gridSize]);
+  }, [columnCount, gridSize]);
+
+  function positionDashboardItem() {
+    if (movingItem.current.x !== undefined && movingItem.current.y !== undefined) {
+      if (targetX < 0 || targetY < 0 || targetX + targetWidth > columnCount || targetY + targetHeight > rowCount) {
+        targetX = movingItem.current.x;
+        targetY = movingItem.current.y;
+        targetWidth = movingItem.current.width;
+        targetHeight = movingItem.current.height;
+        setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
+        clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+        dispatch(
+          addNotification({
+            text: `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
+            type: AlertType.warning,
+          }),
+        );
+        console.warn(`Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`);
+        return;
+      }
+
+      if (targetWidth < 1 || targetHeight < 1) {
+        targetX = movingItem.current.x;
+        targetY = movingItem.current.y;
+        targetWidth = movingItem.current.width;
+        targetHeight = movingItem.current.height;
+        dispatch(
+          addNotification({
+            text: `Cannot resize to size ${targetWidth},${targetHeight} as its too small`,
+            type: AlertType.warning,
+          }),
+        );
+        console.warn(`Cannot resize to size ${targetWidth},${targetHeight} as its too small`);
+        return;
+      }
+
+      switch (dragResizeMode.current) {
+        case DragResizeMode.place:
+          if (
+            highlightDropArea(
+              movingItem,
+              dashboardState,
+              rowCount,
+              columnCount,
+              gridMultiplier,
+              targetX,
+              targetY,
+              targetWidth,
+              targetHeight,
+            )
+          ) {
+            dispatch(
+              addDashboardItem({
+                id: movingItem.current.id,
+                x: targetX * gridMultiplier,
+                y: targetY * gridMultiplier,
+                width: targetWidth * gridMultiplier,
+                height: targetHeight * gridMultiplier,
+                pluginName: placeableItem.pluginName,
+                dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+              }),
+            );
+          } else {
+            setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
+            clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+            dispatch(
+              addNotification({
+                text: `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                type: AlertType.warning,
+              }),
+            );
+            console.warn(
+              `Cannot place to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+            );
+          }
+          break;
+        default:
+          if (
+            highlightDropArea(
+              movingItem,
+              dashboardState,
+              rowCount,
+              columnCount,
+              gridMultiplier,
+              targetX,
+              targetY,
+              targetWidth,
+              targetHeight,
+            )
+          ) {
+            dispatch(
+              moveDashboardItem({
+                id: movingItem.current.id,
+                x: targetX * gridMultiplier,
+                y: targetY * gridMultiplier,
+                width: targetWidth * gridMultiplier,
+                height: targetHeight * gridMultiplier,
+                dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+              }),
+            );
+          } else {
+            dispatch(
+              addNotification({
+                text: `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+                type: AlertType.warning,
+              }),
+            );
+            console.warn(
+              `Cannot move to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as it would overlap with a different item`,
+            );
+          }
+          break;
+      }
+    }
+    clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+  }
 
   return (
     <>
@@ -137,10 +262,9 @@ function Dashboard() {
               })}
             </tbody>
           </table>
-          <div className={dashboardStyles.dragIndicator} ref={dragIndicatorRef} id={'dragIndicator'}></div>
           <>
             {dashboardItems.map((dashboardItem: DashboardItemType) => {
-              return dragResizeMode === DragResizeMode.none ? (
+              return (
                 <DashboardItem
                   key={'dashboardItem' + dashboardItem.id}
                   cellSize={cellSize}
@@ -148,161 +272,122 @@ function Dashboard() {
                   colCount={columnCount * gridMultiplier}
                   rowCount={rowCount * gridMultiplier}
                   setDragResizeItem={setDragResizeItem}
-                  deleteItem={(item) => dispatch(deleteDashboardItem(item))}></DashboardItem>
-              ) : (
-                <DashboardItemPlaceholder
-                  key={'dashboardItem' + dashboardItem.id}
-                  cellSize={cellSize}
-                  item={dashboardItem}
-                  colCount={columnCount * gridMultiplier}
-                  rowCount={rowCount * gridMultiplier}></DashboardItemPlaceholder>
+                  deleteItem={(itemId) =>
+                    dispatch(deleteDashboardItem(dashboardItems.find((dashboardItem: DashboardItemType) => dashboardItem.id === itemId)))
+                  }></DashboardItem>
               );
             })}
           </>
-          {dragResizeMode !== DragResizeMode.none && (
-            <>
-              <div
-                className={dashboardStyles.dragResizeZone}
-                onMouseEnter={(event) => {
-                  setItemMoved(true);
-                  event.stopPropagation();
-                  if (dragIndicatorRef.current !== null) {
-                    if (dragResizeMode === DragResizeMode.place) {
-                      dragIndicatorRef.current.style.display = 'block';
-                      dragIndicatorRef.current.style.top = `calc(${(50.0 / columnCount / gridMultiplier) * (1 - placeableItem.width)}% + 10px)`;
-                      dragIndicatorRef.current.style.left = `calc(${(50.0 / columnCount / gridMultiplier) * (1 - placeableItem.height)}% + 10px)`;
-                      dragIndicatorRef.current.style.width = `calc(${(100.0 / columnCount / gridMultiplier) * placeableItem.width}% - 20px)`;
-                      dragIndicatorRef.current.style.height = `calc(${(100.0 / rowCount / gridMultiplier) * placeableItem.height}% - 20px)`;
-                    } else {
-                      dragIndicatorRef.current.style.display = 'block';
-                      dragIndicatorRef.current.style.top = `calc(${(100.0 / rowCount / gridMultiplier) * movingItem.y}% + 10px)`;
-                      dragIndicatorRef.current.style.left = `calc(${(100.0 / columnCount / gridMultiplier) * movingItem.x}% + 10px)`;
-                      dragIndicatorRef.current.style.width = `calc(${(100.0 / columnCount / gridMultiplier) * movingItem.width}% - 20px)`;
-                      dragIndicatorRef.current.style.height = `calc(${(100.0 / rowCount / gridMultiplier) * movingItem.height}% - 20px)`;
-                    }
-                  }
-                }}
-                onMouseMove={(event) => {
-                  event.stopPropagation();
-                  if (dragIndicatorRef.current !== null) {
-                    switch (dragResizeMode) {
-                      case DragResizeMode.drag:
-                        dragIndicatorRef.current.style.left = dragIndicatorRef.current.offsetLeft + event.movementX + 'px';
-                        dragIndicatorRef.current.style.top = dragIndicatorRef.current.offsetTop + event.movementY + 'px';
-                        setTargetX(Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize));
-                        setTargetY(Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize));
-                        setTargetWidth(movingItem.width / gridMultiplier);
-                        setTargetHeight(movingItem.height / gridMultiplier);
-                        break;
-                      case DragResizeMode.resizeTop:
-                        dragIndicatorRef.current.style.top = dragIndicatorRef.current.offsetTop + event.movementY + 'px';
-                        dragIndicatorRef.current.style.height = dragIndicatorRef.current.offsetHeight - event.movementY + 'px';
-                        setTargetX(movingItem.x / gridMultiplier);
-                        setTargetY(Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize));
-                        setTargetWidth(movingItem.width / gridMultiplier);
-                        setTargetHeight(Math.round((dragIndicatorRef.current.offsetHeight + event.movementY) / cellSize));
-                        break;
-                      case DragResizeMode.resizeRight:
-                        dragIndicatorRef.current.style.width = dragIndicatorRef.current.offsetWidth + event.movementX + 'px';
-                        setTargetX(movingItem.x / gridMultiplier);
-                        setTargetY(movingItem.y / gridMultiplier);
-                        setTargetWidth(Math.round((dragIndicatorRef.current.offsetWidth + event.movementX) / cellSize));
-                        setTargetHeight(movingItem.height / gridMultiplier);
-                        break;
-                      case DragResizeMode.resizeBottom:
-                        dragIndicatorRef.current.style.height = dragIndicatorRef.current.offsetHeight + event.movementY + 'px';
-                        setTargetX(movingItem.x / gridMultiplier);
-                        setTargetY(movingItem.y / gridMultiplier);
-                        setTargetWidth(movingItem.width / gridMultiplier);
-                        setTargetHeight(Math.round((dragIndicatorRef.current.offsetHeight + event.movementX) / cellSize));
-                        break;
-                      case DragResizeMode.resizeLeft:
-                        dragIndicatorRef.current.style.left = dragIndicatorRef.current.offsetLeft + event.movementX + 'px';
-                        dragIndicatorRef.current.style.width = dragIndicatorRef.current.offsetWidth - event.movementX + 'px';
-                        setTargetX(Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize));
-                        setTargetY(movingItem.y / gridMultiplier);
-                        setTargetWidth(Math.round((dragIndicatorRef.current.offsetWidth + event.movementX) / cellSize));
-                        setTargetHeight(movingItem.height / gridMultiplier);
-                        break;
-                      case DragResizeMode.place:
-                        dragIndicatorRef.current.style.left = dragIndicatorRef.current.offsetLeft + event.movementX + 'px';
-                        dragIndicatorRef.current.style.top = dragIndicatorRef.current.offsetTop + event.movementY + 'px';
-                        setTargetX(Math.round((dragIndicatorRef.current.offsetLeft + event.movementX) / cellSize));
-                        setTargetY(Math.round((dragIndicatorRef.current.offsetTop + event.movementY) / cellSize));
-                        setTargetWidth(placeableItem.width / gridMultiplier);
-                        setTargetHeight(placeableItem.height / gridMultiplier);
-                        break;
-                      default:
-                        break;
-                    }
+          <div className={dashboardStyles.dragIndicator} ref={dragIndicatorRef} id={'dragIndicator'}></div>
+          <>
+            <div
+              ref={dragResizeZoneRef}
+              style={{ display: 'none' }}
+              className={dashboardStyles.dragResizeZone}
+              onDragEnter={(event) => {
+                event.stopPropagation();
 
-                    highlightDropArea(targetX, targetY, targetWidth, targetHeight);
+                if (dashboardRef.current) {
+                  const item: DashboardItemType = _.cloneDeep(placeableItem);
+                  if (item) {
+                    item.y =
+                      _.floor(
+                        ((event.clientY + dashboardRef.current.scrollTop - dashboardRef.current.getBoundingClientRect().y) / cellSize) *
+                          gridMultiplier,
+                      ) -
+                      item.height / 2;
+                    item.x =
+                      _.floor(((event.clientX - dashboardRef.current.getBoundingClientRect().x) / cellSize) * gridMultiplier) -
+                      item.width / 2;
+                    movingItem.current = item;
                   }
-                }}
-                onMouseUp={() => {
-                  if (itemMoved) {
-                    if (targetX < 0 || targetY < 0 || targetX + targetWidth > columnCount || targetY + targetHeight > rowCount) {
-                      setTargetX(movingItem.x);
-                      setTargetY(movingItem.y);
-                      setTargetWidth(movingItem.width);
-                      setTargetHeight(movingItem.height);
-                      showDialog(
-                        'Warning!',
-                        `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
-                      );
-                      console.warn(
-                        `Cannot move/resize to position ${targetX},${targetY} with size ${targetWidth},${targetHeight} as its out of bounds`,
-                      );
-                      return;
-                    }
+                  movingItem.current = item;
+                }
+                lastPlaceCoordinates.current = { x: event.clientX, y: event.clientY };
+                placeDragIndicator(dragIndicatorRef, movingItem, columnCount, gridMultiplier, rowCount);
+              }}
+              onMouseEnter={(event) => {
+                event.stopPropagation();
+                placeDragIndicator(dragIndicatorRef, movingItem, columnCount, gridMultiplier, rowCount);
+              }}
+              onDragOver={(event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                let movement = {
+                  movementX: 0,
+                  movementY: 0,
+                };
+                if (lastPlaceCoordinates.current) {
+                  movement = {
+                    movementX: event.clientX - lastPlaceCoordinates.current.x,
+                    movementY: event.clientY - lastPlaceCoordinates.current.y,
+                  };
+                }
 
-                    if (targetWidth < 1 || targetHeight < 1) {
-                      setTargetX(movingItem.x);
-                      setTargetY(movingItem.y);
-                      setTargetWidth(movingItem.width);
-                      setTargetHeight(movingItem.height);
-                      showDialog('Warning!', `Cannot resize to size ${targetWidth},${targetHeight} as its too small`);
-                      console.warn(`Cannot resize to size ${targetWidth},${targetHeight} as its too small`);
-                      return;
-                    }
-
-                    if (dragResizeMode === DragResizeMode.place) {
-                      console.log(targetX * gridMultiplier);
-                      dispatch(
-                        addDashboardItem({
-                          id: movingItem.id,
-                          x: targetX * gridMultiplier,
-                          y: targetY * gridMultiplier,
-                          width: targetWidth * gridMultiplier,
-                          height: targetHeight * gridMultiplier,
-                          pluginName: placeableItem.pluginName,
-                          dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-                        }),
-                      );
-                    } else {
-                      dispatch(
-                        moveDashboardItem({
-                          id: movingItem.id,
-                          x: targetX * gridMultiplier,
-                          y: targetY * gridMultiplier,
-                          width: targetWidth * gridMultiplier,
-                          height: targetHeight * gridMultiplier,
-                          dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-                        }),
-                      );
-                    }
-                  }
-                  setItemMoved(false);
-                  clearHighlightDropArea(columnCount, rowCount);
-                  dispatch(setDragResizeMode(DragResizeMode.none));
-                }}
-                onMouseLeave={() => {
-                  setItemMoved(false);
-                  dispatch(setDragResizeMode(DragResizeMode.none));
-                  clearHighlightDropArea(columnCount, rowCount);
-                }}></div>
-            </>
-          )}
+                lastPlaceCoordinates.current = { x: event.clientX, y: event.clientY };
+                const __ret = moveDragIndicator(
+                  dragIndicatorRef,
+                  movingItem,
+                  dragResizeMode,
+                  movement,
+                  targetX,
+                  cellSize,
+                  targetY,
+                  targetWidth,
+                  gridMultiplier,
+                  targetHeight,
+                  placeableItem,
+                  dashboardState,
+                  rowCount,
+                  columnCount,
+                );
+                targetX = __ret.targetX;
+                targetY = __ret.targetY;
+                targetWidth = __ret.targetWidth;
+                targetHeight = __ret.targetHeight;
+              }}
+              onMouseMove={(event) => {
+                event.stopPropagation();
+                const __ret = moveDragIndicator(
+                  dragIndicatorRef,
+                  movingItem,
+                  dragResizeMode,
+                  { movementY: event.movementY, movementX: event.movementX },
+                  targetX,
+                  cellSize,
+                  targetY,
+                  targetWidth,
+                  gridMultiplier,
+                  targetHeight,
+                  placeableItem,
+                  dashboardState,
+                  rowCount,
+                  columnCount,
+                );
+                targetX = __ret.targetX;
+                targetY = __ret.targetY;
+                targetWidth = __ret.targetWidth;
+                targetHeight = __ret.targetHeight;
+              }}
+              onDrop={(event) => {
+                if (JSON.parse(event.dataTransfer.getData('data')).dragDropElementType === DragDropElementType.Visualization) {
+                  positionDashboardItem();
+                }
+                event.dataTransfer.clearData();
+              }}
+              onMouseUp={() => {
+                setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
+                positionDashboardItem();
+              }}
+              onDragLeave={() => {
+                setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
+                clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+              }}
+              onMouseLeave={() => {
+                setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
+                clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
+              }}></div>
+          </>
         </div>
       </div>
     </>

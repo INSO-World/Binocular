@@ -1,7 +1,8 @@
 import tabStyles from './tab.module.scss';
 import { ReactElement } from 'react';
 import TabSection, { TabSectionProps } from '../tabSection/tabSection.tsx';
-function Tab(props: { children: ReactElement[] | ReactElement; displayName: string; alignment: string }) {
+import { TabAlignment } from '../../../types/general/tabType.ts';
+function Tab(props: { children: ReactElement[] | ReactElement; displayName: string; alignment: TabAlignment }) {
   if (Array.isArray(props.children)) {
     return (
       <div className={tabStyles.tab}>

@@ -3,7 +3,7 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
-import { Properties } from '../../../simpleVisualizationPlugin/src/interfaces/properties.ts';
+import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { SettingsType } from '../settings/settings.tsx';
 
 interface CommitChartData {

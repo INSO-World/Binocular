@@ -1,7 +1,7 @@
 export interface DashboardItemDTO {
   id: number;
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
   width: number;
   height: number;
 }
