@@ -2,6 +2,7 @@ import { DataPluginUser } from './dataPluginUsers.ts';
 
 export interface DataPluginCommits {
   getAll: (from: string, to: string) => Promise<DataPluginCommit[]>;
+  getAllShort: () => Promise<DataPluginCommitShort[]>;
 }
 
 export interface DataPluginCommit {
@@ -20,4 +21,10 @@ export interface DataPluginCommit {
 export interface DataPluginStats {
   additions: number;
   deletions: number;
+}
+
+export interface DataPluginCommitShort {
+  sha: string;
+  date: string;
+  messageHeader: string;
 }

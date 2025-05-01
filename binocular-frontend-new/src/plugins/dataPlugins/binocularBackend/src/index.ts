@@ -6,7 +6,7 @@ import Users from './users.ts';
 import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './builds.ts';
-import CommitsFilesChanges from './commitsFilesChanges.ts';
+import CommitsFiles from './commitsFiles.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -32,7 +32,7 @@ class BinocularBackend implements DataPlugin {
     this.users = new Users('/graphQl');
     this.general = new General('/graphQl', undefined);
     this.files = new Files('/graphQl');
-    this.commitByFile = new CommitsFilesChanges('/graphQl');
+    this.commitByFile = new CommitsFiles('/graphQl');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -51,7 +51,7 @@ class BinocularBackend implements DataPlugin {
     this.users = new Users(endpoint);
     this.general = new General(endpoint, progressUpdateConfig);
     this.files = new Files(endpoint);
-    this.commitByFile = new CommitsFilesChanges(endpoint);
+    this.commitByFile = new CommitsFiles(endpoint);
   }
 
   public async clearRemains() {}

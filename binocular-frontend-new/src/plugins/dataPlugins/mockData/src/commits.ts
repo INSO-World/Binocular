@@ -1,7 +1,26 @@
-import { DataPluginCommit, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { DataPluginCommit, DataPluginCommitShort,
+  DataPluginCommits
+} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
-  constructor() {}
+  public async getAllShort() {
+    console.log('Getting all commits short');
+    return new Promise<DataPluginCommitShort[]>((resolve) => {
+      const commits: DataPluginCommitShort[] = [
+        {
+          sha: '1',
+          date: '2024-06-01T12:00:00.000Z',
+          messageHeader: 'Commit 1',
+        },
+        {
+          sha: '2',
+          date: '2024-01-02T12:00:00.000Z',
+          messageHeader: 'Commit 2',
+        },
+      ];
+      resolve(commits);
+    });
+  }
 
   public async getAll(from: string, to: string) {
     console.log(`Getting Commits from ${from} to ${to}`);

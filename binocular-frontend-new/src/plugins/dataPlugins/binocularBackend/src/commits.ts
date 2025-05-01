@@ -1,12 +1,43 @@
 import { GraphQL, traversePages } from './utils';
 import { gql } from '@apollo/client';
-import { DataPluginCommit, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { DataPluginCommit, DataPluginCommitShort, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
-  private graphQl;
+  private readonly graphQl;
 
   constructor(endpoint: string) {
     this.graphQl = new GraphQL(endpoint);
+  }
+
+  public async getAllShort() {
+    console.log('Getting all commits short');
+    const commitList: DataPluginCommitShort[] = [];
+    const getCommitsPage = () => async (page: number, perPage: number) => {
+      const resp = await this.graphQl.client.query({
+        query: gql`
+          query ($page: Int, $perPage: Int) {
+            commits(page: $page, perPage: $perPage) {
+              count
+              page
+              perPage
+              data {
+                sha
+                date
+                messageHeader
+              }
+            }
+          }
+        `,
+        variables: { page, perPage },
+      });
+      return resp.data.commits;
+    };
+
+    await traversePages(getCommitsPage(), (commit: DataPluginCommitShort) => {
+      commitList.push(commit);
+    });
+
+    return commitList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   public async getAll(from: string, to: string) {
