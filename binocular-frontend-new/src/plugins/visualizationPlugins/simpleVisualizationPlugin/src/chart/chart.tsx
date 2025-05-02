@@ -61,11 +61,15 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
 
   // Effect on data change
   useEffect(() => {
-    if (props.dataConverter) {
-      const { chartData, scale, palette } = props.dataConverter(data, props);
-      setChartData(chartData);
-      setChartScale(scale);
-      setChartPalette(palette);
+    try {
+      if (props.dataConverter) {
+        const { chartData, scale, palette } = props.dataConverter(data, props);
+        setChartData(chartData);
+        setChartScale(scale);
+        setChartPalette(palette);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }, [data, props]);
 
@@ -90,17 +94,20 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
             <span className="loading loading-spinner loading-lg text-accent"></span>
           </div>
         )}
-        {dataState === DataState.COMPLETE && (
-          <StackedAreaChart
-            data={chartData}
-            scale={chartScale}
-            palette={chartPalette}
-            sprintList={props.sprintList}
-            width={chartWidth}
-            height={chartHeight}
-            settings={props.settings}
-          />
-        )}
+        {dataState === DataState.COMPLETE &&
+          (chartData.length !== 0 ? (
+            <StackedAreaChart
+              data={chartData}
+              scale={chartScale}
+              palette={chartPalette}
+              sprintList={props.sprintList}
+              width={chartWidth}
+              height={chartHeight}
+              settings={props.settings}
+            />
+          ) : (
+            <div>No Data matching the selected Parameters!</div>
+          ))}
       </div>
     </>
   );
