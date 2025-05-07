@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.entity
 
 import com.arangodb.springframework.annotation.*
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.inso_world.binocular.web.entity.edge.*
 import org.springframework.data.annotation.Id
 import java.util.Date
 
@@ -16,19 +17,34 @@ data class Commit(
   var webUrl: String? = null,
   var branch: String? = null,
   var stats: Stats? = null,
-  @Relations(edges = [CommitParent::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
+
+  @Relations(edges = [CommitCommitConnection::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
   @JsonIgnoreProperties(value = ["parents", "children"])
   var parents: List<Commit>? = null,
 
-  @Relations(edges = [CommitParent::class], lazy = true, maxDepth = 1, direction = Relations.Direction.INBOUND)
+  @Relations(edges = [CommitCommitConnection::class], lazy = true, maxDepth = 1, direction = Relations.Direction.INBOUND)
   @JsonIgnoreProperties(value = ["parents", "children"])
-  var children: List<Commit>? = null
-)
+  var children: List<Commit>? = null,
 
+  @Relations(edges = [CommitBuildConnection::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
+  @JsonIgnoreProperties(value = ["commits"])
+  var builds: List<Build>? = null,
 
-@Edge(value = "`commits-commits`")
-data class CommitParent(
-  @Id var id: String? = null,
+  @Relations(edges = [CommitFileConnection::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
+  @JsonIgnoreProperties(value = ["commits"])
+  var files: List<File>? = null,
+
+  @Relations(edges = [CommitModuleConnection::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
+  @JsonIgnoreProperties(value = ["commits"])
+  var modules: List<Module>? = null,
+
+  @Relations(edges = [CommitUserConnection::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
+  @JsonIgnoreProperties(value = ["commits"])
+  var users: List<User>? = null,
+
+  @Relations(edges = [IssueCommitConnection::class], lazy = true, maxDepth = 1, direction = Relations.Direction.INBOUND)
+  @JsonIgnoreProperties(value = ["commits"])
+  var issues: List<Issue>? = null
 )
 
 data class Stats(
