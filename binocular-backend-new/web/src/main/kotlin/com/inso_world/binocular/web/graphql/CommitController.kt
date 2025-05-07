@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql
 
 import com.inso_world.binocular.web.entity.Commit
+import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.CommitService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,14 +22,15 @@ class CommitController(
   @QueryMapping(name = "commits")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Commit> {
     logger.trace("Getting all commits...")
-    return commitService.findAll(
-      page, perPage
-    )
+
+    GraphQLValidationUtils.validatePagination(page, perPage)
+
+    return commitService.findAll(page, perPage)
   }
 
-  @QueryMapping(name = "commit")
-  fun findById(@Argument id: String): Commit? {
-    logger.trace("Getting commit by id: $id")
-    return commitService.findById(id)
-  }
+    @QueryMapping(name = "commit")
+    fun findById(@Argument id: String): Commit {
+        logger.trace("Getting commit by id: $id")
+        return GraphQLValidationUtils.requireEntityExists(commitService.findById(id), "Commit", id)
+    }
 }

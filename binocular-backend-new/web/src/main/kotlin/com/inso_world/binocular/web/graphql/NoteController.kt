@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql
 
 import com.inso_world.binocular.web.entity.Note
+import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.NoteService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,12 +21,15 @@ class NoteController(
   @QueryMapping(name = "notes")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Note> {
     logger.trace("Getting all notes...")
+
+    GraphQLValidationUtils.validatePagination(page, perPage)
+
     return noteService.findAll(page, perPage)
   }
 
   @QueryMapping(name = "note")
-  fun findById(@Argument id: String): Note? {
+  fun findById(@Argument id: String): Note {
     logger.trace("Getting note by id: $id")
-    return noteService.findById(id)
+    return GraphQLValidationUtils.requireEntityExists(noteService.findById(id), "Note", id)
   }
 }
