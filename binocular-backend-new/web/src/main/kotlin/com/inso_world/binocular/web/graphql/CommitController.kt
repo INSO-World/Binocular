@@ -1,4 +1,4 @@
-package com.inso_world.binocular.web.grahpql
+package com.inso_world.binocular.web.graphql
 
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.service.CommitService
@@ -26,4 +26,9 @@ class CommitController(
     )
   }
 
+  @QueryMapping(name = "commit")
+  fun findById(@Argument id: String): Commit? {
+    logger.trace("Getting commit by id: $id")
+    return commitService.findById(id)
+  }
 }
