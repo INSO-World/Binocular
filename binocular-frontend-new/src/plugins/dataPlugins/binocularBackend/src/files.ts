@@ -11,31 +11,36 @@ export default class Files implements DataPluginFiles {
 
   public async getAll() {
     console.log(`Getting Files`);
-    const fileList: DataPluginFile[] = [];
-    const getFilesPage = () => async (page: number, perPage: number) => {
-      const resp = await this.graphQl.client.query({
-        query: gql`
-          query ($page: Int, $perPage: Int) {
-            files(page: $page, perPage: $perPage) {
-              count
-              page
-              perPage
-              data {
-                path
-                webUrl
-                maxLength
+    try {
+      const fileList: DataPluginFile[] = [];
+      const getFilesPage = () => async (page: number, perPage: number) => {
+        const resp = await this.graphQl.client.query({
+          query: gql`
+            query ($page: Int, $perPage: Int) {
+              files(page: $page, perPage: $perPage) {
+                count
+                page
+                perPage
+                data {
+                  path
+                  webUrl
+                  maxLength
+                }
               }
             }
-          }
-        `,
-        variables: { page, perPage },
-      });
-      return resp.data.files;
-    };
+          `,
+          variables: { page, perPage },
+        });
+        return resp.data.files;
+      };
 
-    await traversePages(getFilesPage(), (file: DataPluginFile) => {
-      fileList.push(file);
-    });
-    return fileList;
+      await traversePages(getFilesPage(), (file: DataPluginFile) => {
+        fileList.push(file);
+      });
+      return fileList;
+    } catch (e) {
+      console.log(e);
+      return [];
+    }
   }
 }
