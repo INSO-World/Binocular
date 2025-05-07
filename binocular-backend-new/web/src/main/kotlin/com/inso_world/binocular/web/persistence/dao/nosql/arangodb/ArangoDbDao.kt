@@ -17,7 +17,7 @@ class ArangoDbDao<T : Any, I : Serializable> : NoSqlDao<T, I>() {
   private lateinit var arangoRepository: ArangoRepository<T, I>
 
   override fun findById(id: I): T? {
-    TODO("Not yet implemented")
+    return arangoRepository.findById(id).orElse(null)
   }
 
   override fun findAll(): Iterable<T> {
