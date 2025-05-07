@@ -1,5 +1,28 @@
 type Query {
   commits(page: Int, perPage: Int): [Commit]!
+  accounts(page: Int, perPage: Int): [Account]!
+  branches(page: Int, perPage: Int): [Branch]!
+  builds(page: Int, perPage: Int): [Build]!
+  files(page: Int, perPage: Int): [File]!
+  issues(page: Int, perPage: Int): [Issue]!
+  mergeRequests(page: Int, perPage: Int): [MergeRequest]!
+  milestones(page: Int, perPage: Int): [Milestone]!
+  modules(page: Int, perPage: Int): [Module]!
+  notes(page: Int, perPage: Int): [Note]!
+  users(page: Int, perPage: Int): [User]!
+
+  # Single item queries
+  commit(id: ID!): Commit
+  account(id: ID!): Account
+  branch(id: ID!): Branch
+  build(id: ID!): Build
+  file(id: ID!): File
+  issue(id: ID!): Issue
+  mergeRequest(id: ID!): MergeRequest
+  milestone(id: ID!): Milestone
+  module(id: ID!): Module
+  note(id: ID!): Note
+  user(id: ID!): User
 }
 
 """
@@ -21,8 +44,14 @@ type Commit {
   Child commits
   """
   children: [Commit]
+  builds: [Build]
+  files: [File]
+  modules: [Module]
+  users: [User]
+  issues: [Issue]
   pageInfo: PageInfo
 }
+
 type Stats {
   additions: Int
   deletions: Int
@@ -33,4 +62,160 @@ type PageInfo {
   endCursor: ID
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
+}
+
+type Account {
+  id: ID
+  platform: Platform
+  login: String
+  name: String
+  avatarUrl: String
+  url: String
+  issues: [Issue]
+  mergeRequests: [MergeRequest]
+  notes: [Note]
+}
+
+enum Platform {
+  GitHub
+  GitLab
+}
+
+type Branch {
+  id: ID
+  branch: String
+  active: Boolean
+  tracksFileRenames: Boolean
+  latestCommit: String
+  files: [File]
+}
+
+type Build {
+  id: ID
+  arangoId: String
+  sha: String
+  ref: String
+  status: String
+  tag: String
+  user: String
+  userFullName: String
+  createdAt: String
+  updatedAt: String
+  startedAt: String
+  finishedAt: String
+  committedAt: String
+  duration: Int
+  jobs: [Job]
+  webUrl: String
+  commits: [Commit]
+}
+
+type Job {
+  id: ID
+  name: String
+  status: String
+  stage: String
+  createdAt: String
+  finishedAt: String
+  webUrl: String
+}
+
+type File {
+  id: ID
+  path: String
+  webUrl: String
+  maxLength: Int
+  commits: [Commit]
+  branches: [Branch]
+  modules: [Module]
+}
+
+type Issue {
+  id: ID
+  iid: Int
+  title: String
+  description: String
+  createdAt: String
+  closedAt: String
+  updatedAt: String
+  labels: [String]
+  state: String
+  webUrl: String
+  mentions: [Mention]
+  accounts: [Account]
+  commits: [Commit]
+  milestones: [Milestone]
+  notes: [Note]
+  users: [User]
+}
+
+type Mention {
+  commit: String
+  createdAt: String
+  closes: Boolean
+}
+
+type MergeRequest {
+  id: ID
+  iid: Int
+  title: String
+  description: String
+  createdAt: String
+  closedAt: String
+  updatedAt: String
+  labels: [String]
+  state: String
+  webUrl: String
+  mentions: [Mention]
+  accounts: [Account]
+  milestones: [Milestone]
+  notes: [Note]
+}
+
+type Milestone {
+  id: ID
+  iid: Int
+  title: String
+  description: String
+  createdAt: String
+  updatedAt: String
+  startDate: String
+  dueDate: String
+  state: String
+  expired: Boolean
+  webUrl: String
+  issues: [Issue]
+  mergeRequests: [MergeRequest]
+}
+
+type Module {
+  id: ID
+  path: String
+  commits: [Commit]
+  files: [File]
+  childModules: [Module]
+  parentModules: [Module]
+}
+
+type Note {
+  id: ID
+  body: String
+  createdAt: String
+  updatedAt: String
+  system: Boolean
+  resolvable: Boolean
+  confidential: Boolean
+  internal: Boolean
+  imported: Boolean
+  importedFrom: String
+  accounts: [Account]
+  issues: [Issue]
+  mergeRequests: [MergeRequest]
+}
+
+type User {
+  id: ID
+  gitSignature: String
+  commits: [Commit]
+  issues: [Issue]
 }
