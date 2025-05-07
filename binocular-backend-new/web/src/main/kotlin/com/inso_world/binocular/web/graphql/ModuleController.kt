@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql
 
 import com.inso_world.binocular.web.entity.Module
+import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.ModuleService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,12 +21,15 @@ class ModuleController(
   @QueryMapping(name = "modules")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Module> {
     logger.trace("Getting all modules...")
+
+    GraphQLValidationUtils.validatePagination(page, perPage)
+
     return moduleService.findAll(page, perPage)
   }
 
   @QueryMapping(name = "module")
-  fun findById(@Argument id: String): Module? {
+  fun findById(@Argument id: String): Module {
     logger.trace("Getting module by id: $id")
-    return moduleService.findById(id)
+    return GraphQLValidationUtils.requireEntityExists(moduleService.findById(id), "Module", id)
   }
 }

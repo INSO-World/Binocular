@@ -33,9 +33,4 @@ class CommitService(
     return commitDao.findById(id)
   }
 
-  fun findById(id: String): Commit? {
-    logger.trace("Getting commit by id: $id")
-    return commitDao.findById(id)
-  }
-
 }

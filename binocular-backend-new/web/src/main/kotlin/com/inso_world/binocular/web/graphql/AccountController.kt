@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql
 
 import com.inso_world.binocular.web.entity.Account
+import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.AccountService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,12 +21,15 @@ class AccountController(
   @QueryMapping(name = "accounts")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Account> {
     logger.trace("Getting all accounts...")
+
+    GraphQLValidationUtils.validatePagination(page, perPage)
+
     return accountService.findAll(page, perPage)
   }
 
   @QueryMapping(name = "account")
-  fun findById(@Argument id: String): Account? {
+  fun findById(@Argument id: String): Account {
     logger.trace("Getting account by id: $id")
-    return accountService.findById(id)
+    return GraphQLValidationUtils.requireEntityExists(accountService.findById(id), "Account", id)
   }
 }
