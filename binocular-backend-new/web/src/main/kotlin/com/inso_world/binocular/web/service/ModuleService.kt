@@ -21,9 +21,9 @@ class ModuleService(
     val page = page ?: 1
     val perPage = perPage ?: 100
     logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page, perPage)
+    val pageable: Pageable = PageRequest.of(page - 1, perPage)
 
-    return moduleDao.findAll()
+    return moduleDao.findAll(pageable)
   }
 
   fun findById(id: String): Module? {
