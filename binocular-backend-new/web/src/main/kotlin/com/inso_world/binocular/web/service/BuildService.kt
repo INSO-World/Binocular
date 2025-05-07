@@ -21,9 +21,9 @@ class BuildService(
     val page = page ?: 1
     val perPage = perPage ?: 100
     logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page, perPage)
+    val pageable: Pageable = PageRequest.of(page - 1, perPage)
 
-    return buildDao.findAll()
+    return buildDao.findAll(pageable)
   }
 
   fun findById(id: String): Build? {

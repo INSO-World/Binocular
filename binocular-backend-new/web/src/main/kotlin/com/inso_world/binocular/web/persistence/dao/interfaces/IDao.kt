@@ -1,5 +1,6 @@
 package com.inso_world.binocular.web.persistence.dao.interfaces
 
+import org.springframework.data.domain.Pageable
 import java.io.Serializable
 
 
@@ -9,6 +10,8 @@ interface IDao<T, I : Serializable> {
   fun create(entity: T): T
 
   fun findAll(): Iterable<T>
+
+  fun findAll(pageable: Pageable): Iterable<T>
 
   fun update(entity: T): T
 

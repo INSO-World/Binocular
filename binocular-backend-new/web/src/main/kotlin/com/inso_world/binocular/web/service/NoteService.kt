@@ -21,9 +21,9 @@ class NoteService(
     val page = page ?: 1
     val perPage = perPage ?: 100
     logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page, perPage)
+    val pageable: Pageable = PageRequest.of(page - 1, perPage)
 
-    return noteDao.findAll()
+    return noteDao.findAll(pageable)
   }
 
   fun findById(id: String): Note? {

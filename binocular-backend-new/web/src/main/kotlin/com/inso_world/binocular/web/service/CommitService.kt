@@ -23,9 +23,14 @@ class CommitService(
     val page = page ?: 1
     val perPage = perPage ?: 100
     logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page, perPage)
+    val pageable: Pageable = PageRequest.of(page - 1, perPage)
 
-    return commitDao.findAll()
+    return commitDao.findAll(pageable)
+  }
+
+  fun findById(id: String): Commit? {
+    logger.trace("Getting commit by id: $id")
+    return commitDao.findById(id)
   }
 
   fun findById(id: String): Commit? {
