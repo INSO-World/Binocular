@@ -1,0 +1,4 @@
+projects:
+  frontend:
+    schema: http://localhost:48763/graphQl
+    documents: frontend/**/*.{graphql,js,ts}

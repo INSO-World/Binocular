@@ -2,7 +2,7 @@ import {
   DataPluginGeneral,
   DataPluginIndexer,
   DataPluginIndexerState,
-} from '../../../interfaces/dataPluginInterfaces/dataPluginGeneral.ts';
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginGeneral.ts';
 //import {GraphQL} from "./utils.ts";
 
 export default class General implements DataPluginGeneral {

@@ -1,9 +1,10 @@
-import Commits from './commits.ts';
+import Commits from './dataConnections/commits.ts';
 import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
-import Users from './users.ts';
-import General from './general.ts';
-import Files from './files.ts';
-import Builds from './builds.ts';
+import Users from './dataConnections/users.ts';
+import General from './dataConnections/general.ts';
+import Files from './dataConnections/files.ts';
+import Builds from './dataConnections/builds.ts';
+import Issues from './dataConnections/issues.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';
@@ -18,6 +19,7 @@ class MockData implements DataPlugin {
   };
   public commits;
   public builds;
+  public issues;
   public users;
   public general;
   public files;
@@ -25,6 +27,7 @@ class MockData implements DataPlugin {
   constructor() {
     this.commits = new Commits();
     this.builds = new Builds();
+    this.issues = new Issues();
     this.users = new Users();
     this.general = new General();
     this.files = new Files();
