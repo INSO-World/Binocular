@@ -45,7 +45,10 @@ export async function findBestUserMatchLeve(author: AccountUser) {
   let highestScore = 0;
 
   for (const user of users) {
-    if (user === null) {
+    if (user === null || user.data.gitSignature === null) {
+      return;
+    }
+    if (author === null || author.name === null) {
       return;
     }
     const distance = levenshteinDistance(author.name, user.data.gitSignature);

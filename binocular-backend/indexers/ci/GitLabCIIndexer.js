@@ -22,7 +22,7 @@ class GitLabCIIndexer extends BaseGitLabIndexer {
       pipeline.jobs = jobs.map((job) => ({
         id: job.id.replace('gid://gitlab/Ci::Build/', ''),
         name: job.name,
-        status: job.status,
+        status: job.status.lower,
         stage: job.stage.name,
         createdAt: job.createdAt,
         finishedAt: job.finishedAt,
