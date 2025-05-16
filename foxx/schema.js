@@ -22,6 +22,8 @@ const builds = db._collection('builds');
 const branches = db._collection('branches');
 const mergeRequests = db._collection('mergeRequests');
 const milestones = db._collection('milestones');
+const notes = db._collection('notes');
+
 
 const queryType = new gql.GraphQLObjectType({
   name: 'Query',
@@ -277,6 +279,24 @@ const queryType = new gql.GraphQLObjectType({
             ${limit}
             RETURN milestone`;
         },
+      }),
+      notes: paginated({
+        type: require('./types/gitlabNote.js'),
+        args: {
+          since: { type: Timestamp },
+          until: { type: Timestamp },
+          sort: { type: Sort },
+        },
+        query: (root, args, limit) => {
+          return aql`
+            FOR note
+            IN ${notes}
+            SORT note.createdAt ${args.sort}
+            ${args.since ? queryHelpers.addDateFilterAQL('note.createdAt', '>=', args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL('note.createdAt', '<=', args.until) : aql``}
+            ${limit}
+            RETURN note`;
+        }
       }),
     };
   },

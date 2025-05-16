@@ -139,6 +139,8 @@ export function findID(database: PouchDB.Database, id: string) {
 
 // ###################### SPECIFIC SEARCHES ######################
 
+// ###################### COMMITS ######################
+
 export async function findAllCommits(database: PouchDB.Database, relations: PouchDB.Database) {
   const commits = await findAll(database, 'commits');
   const allCommits = sortByAttributeString(commits.docs, '_id');
@@ -220,6 +222,8 @@ function preprocessCommit(
   return _.assign(commit, { user: { gitSignature: author, id: commitUserRelation.to } });
 }
 
+// ###################### BUILDS ######################
+
 export async function findAllBuilds(database: PouchDB.Database, relations: PouchDB.Database) {
   const builds = await findAll(database, 'builds');
   const commitBuildConnections = sortByAttributeString((await findCommitBuildConnections(relations)).docs, 'to');
@@ -249,6 +253,85 @@ function preprocessBuild(build: JSONObject, commitBuildConnections: JSONObject[]
   const author = users[commitUserRelation.to];
   return _.assign(build, { user: { gitSignature: author, id: commitUserRelation.to } });
 }
+
+// ###################### NOTES ######################
+
+export async function findAllNotes(database: PouchDB.Database, relations: PouchDB.Database) {
+  const notes = await findAll(database, 'notes');
+  const noteAccountConnections = sortByAttributeString((await findNoteAccountConnections(relations)).docs, 'to');
+  const accountUserConnections = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'to');
+  const noteIssueConnections = sortByAttributeString((await findIssueNoteConnection(relations)).docs, 'to');
+  const noteMRConnections = sortByAttributeString((await findMRNoteConnection(relations)).docs, 'to');
+  const users = (await findAll(database, 'users')).docs;
+  const mergeRequests = (await findAll(database, 'mergeRequests')).docs;
+  const issues = (await findAll(database, 'issues')).docs;
+  const noteUserConnections: { from: string; to: string }[] = [];
+
+  noteAccountConnections.forEach((noteAccount) => {
+    const matchedAccount = accountUserConnections.find((accountUser) => accountUser.from === noteAccount.to);
+    if (matchedAccount) {
+      noteUserConnections.push({
+        from: noteAccount.from as string,
+        to: matchedAccount.to as string,
+      });
+    }
+  });
+  // sort it to match the order of notes
+  noteUserConnections.sort((a, b) => {
+    if (a.from < b.from) return -1;
+    if (a.from > b.from) return 1;
+    return 0;
+  });
+
+  notes.docs = await Promise.all(
+    notes.docs.map((n, index) =>
+      preprocessNotes(n, noteUserConnections[index], noteIssueConnections, noteMRConnections, users, mergeRequests, issues),
+    ),
+  );
+
+  console.log(notes);
+  return notes;
+}
+
+function preprocessNotes(
+  note: JSONObject,
+  noteUserConnection: { from: string; to: string },
+  noteIssueConnections: JSONObject[],
+  noteMRConnections: JSONObject[],
+  users: JSONObject[],
+  mergeRequests: JSONObject[],
+  issues: JSONObject[],
+) {
+  const rawUser = binarySearch(users, noteUserConnection.to, '_id');
+  if (rawUser == null) {
+    return _.assign(note, { manualRun: true });
+  }
+  const dataPluginGitUser = {
+    id: rawUser._id as string,
+    gitSignature: rawUser.gitSignature as string,
+  };
+  // id and name of author currently not needed, not implemented to reduce amount of searches to find unnecessary information
+  note.author = {
+    id: '',
+    name: '',
+    user: dataPluginGitUser,
+  };
+  const noteMRRelation = binarySearch(noteMRConnections, note._id, 'to');
+  if (noteMRRelation !== null) {
+    console.log(noteMRRelation);
+    const mergeRequest = binarySearch(mergeRequests, noteMRRelation.from, '_id');
+    return _.assign(note, { mergeRequest: mergeRequest });
+  } else {
+    const noteIssueRelation = binarySearch(noteIssueConnections, note._id, 'to');
+    if (noteIssueRelation !== null) {
+      const issue = binarySearch(issues, noteIssueRelation.from, '_id');
+      return _.assign(note, { issue: issue });
+    }
+  }
+  return _.assign(note, { manualRun: true });
+}
+
+// ###################### OTHER ######################
 
 export function findIssue(database: PouchDB.Database, iid: number) {
   return database.find({
@@ -407,4 +490,16 @@ export function findIssueNoteConnections(relations: PouchDB.Database) {
 
 export function findNoteAccountConnections(relations: PouchDB.Database) {
   return findAll(relations, 'notes-accounts');
+}
+
+export function findAccountUserConnections(relations: PouchDB.Database) {
+  return findAll(relations, 'accounts-users');
+}
+
+export function findIssueNoteConnection(relations: PouchDB.Database) {
+  return findAll(relations, 'issues-notes');
+}
+
+export function findMRNoteConnection(relations: PouchDB.Database) {
+  return findAll(relations, 'mergeRequests-notes');
 }

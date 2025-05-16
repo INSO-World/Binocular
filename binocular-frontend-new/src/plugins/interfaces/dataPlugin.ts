@@ -5,6 +5,8 @@ import { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
 import { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
 import { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
 import { DataPluginIssues } from './dataPluginInterfaces/dataPluginIssues.ts';
+import { DataPluginIssues } from './dataPluginInterfaces/dataPluginIssue.ts';
+import { DataPluginNotes } from './dataPluginInterfaces/dataPluginNote.ts';
 
 export interface DataPlugin {
   name: string;
@@ -13,6 +15,7 @@ export interface DataPlugin {
   commits: DataPluginCommits;
   builds: DataPluginBuilds;
   issues: DataPluginIssues;
+  notes: DataPluginNotes;
   users: DataPluginUsers;
   files: DataPluginFiles;
   capabilities: string[];
