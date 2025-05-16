@@ -9,51 +9,46 @@ export default class Commits implements DataPluginCommits {
     this.graphQl = new GraphQL(endpoint);
   }
 
-  public async getAll(from: string, to: string) {
+  public async getAll(from: string, to: string, sort: string = 'ASC') {
     console.log(`Getting Commits from ${from} to ${to}`);
-    try {
-      const commitList: DataPluginCommit[] = [];
-      const getCommitsPage = (from?: string, to?: string) => async (page: number, perPage: number) => {
-        const resp = await this.graphQl.client.query({
-          query: gql`
-            query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp) {
-              commits(page: $page, perPage: $perPage, since: $since, until: $until) {
-                count
-                page
-                perPage
-                data {
-                  sha
-                  shortSha
-                  message
-                  messageHeader
-                  user {
-                    id
-                    gitSignature
-                  }
-                  branch
-                  parents
-                  date
-                  webUrl
-                  stats {
-                    additions
-                    deletions
-                  }
+    const commitList: DataPluginCommit[] = [];
+    const getCommitsPage = (since?: string, until?: string, sort?: string) => async (page: number, perPage: number) => {
+      const resp = await this.graphQl.client.query({
+        query: gql`
+          query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp, $sort: Sort) {
+            commits(page: $page, perPage: $perPage, since: $since, until: $until, sort: $sort) {
+              count
+              page
+              perPage
+              data {
+                sha
+                shortSha
+                message
+                messageHeader
+                user {
+                  id
+                  gitSignature
+                }
+                branch
+                parents
+                date
+                webUrl
+                stats {
+                  additions
+                  deletions
                 }
               }
             }
-          `,
-          variables: { page, perPage, from, to },
-        });
-        return resp.data.commits;
-      };
-      await traversePages(getCommitsPage(from, to), (commit: DataPluginCommit) => {
-        commitList.push(commit);
+          }
+        `,
+        variables: { page, perPage, since, until, sort },
       });
-      const allCommits = commitList.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
-      return allCommits.filter((c) => new Date(c.date) >= new Date(from) && new Date(c.date) <= new Date(to));
-    } catch (e) {
-      console.log(e);
-      return [];
-    }
+      return resp.data.commits;
+    };
+
+    await traversePages(getCommitsPage(from, to, sort), (commit: DataPluginCommit) => {
+      commitList.push(commit);
+    });
+    return commitList;
   }
 }

@@ -5,7 +5,7 @@ import General from './dataConnections/general.ts';
 import Files from './dataConnections/files.ts';
 import Builds from './dataConnections/builds.ts';
 import Issues from './dataConnections/issues.ts';
-import Issues from './dataConnections/notes.ts';
+import Notes from './dataConnections/notes.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';

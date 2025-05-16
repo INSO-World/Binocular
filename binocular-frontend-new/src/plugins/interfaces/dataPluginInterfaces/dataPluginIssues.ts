@@ -24,6 +24,7 @@ export interface DataPluginIssue {
 export interface DataPluginIssueAccount {
   login: string;
   name: string;
+  user: DataPluginUser;
 }
 
 export interface DataPluginIssueNote {

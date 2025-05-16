@@ -7,7 +7,7 @@ import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginF
 import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './dataConnections/builds.ts';
 import Issues from './dataConnections/issues.ts';
-import Issues from './dataConnections/notes.ts';
+import Notes from './dataConnections/notes.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
