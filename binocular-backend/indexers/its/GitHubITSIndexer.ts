@@ -56,7 +56,13 @@ GitHubITSIndexer.prototype.index = async function () {
       let issueEntry: Entry<IssueDataType | MergeRequestDataType>;
 
       // create GitHub account objects for each relevant user (author, assignee, assignees)
-      const authorEntry: Entry<AccountDataType> = (await Account.ensureGitHubAccount(this.controller.getUser(issue.author.login)))[0];
+      const login = issue.author?.login ?? 'ghost';
+
+      const authorEntry: Entry<AccountDataType> =
+        (await Account.ensureGitHubAccount(
+          this.controller.getUser(login)
+        ))[0];
+
       const assigneeEntries: Entry<AccountDataType>[] = [];
       for (const a of issue.assignees.nodes) {
         assigneeEntries.push((await Account.ensureGitHubAccount(this.controller.getUser(a.login)))[0]);
