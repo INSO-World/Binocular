@@ -3,6 +3,7 @@ import authorStyles from '../authors.module.scss';
 import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import {
+  checkAllAuthors,
   editAuthor,
   moveAuthorToOther,
   resetAuthor,
@@ -10,7 +11,9 @@ import {
   setAuthorsDataPluginId,
   setDragging,
   setParentAuthor,
+  switchAllAuthorSelection,
   switchAuthorSelection,
+  uncheckAllAuthors,
 } from '../../../../redux/reducer/data/authorsReducer.ts';
 import { useEffect, useState } from 'react';
 import distinctColors from 'distinct-colors';
@@ -19,6 +22,8 @@ import addToOtherIcon from '../../../../assets/group_add_gray.svg';
 import editIcon from '../../../../assets/edit_gray.svg';
 import dragIndicatorIcon from '../../../../assets/drag_indicator_gray.svg';
 import removePersonIcon from '../../../../assets/remove_person_gray.svg';
+import checkBoxIconGray from '../../../../assets/check_box_gray.svg';
+import checkBoxOutlineIconGray from '../../../../assets/check_box_outline_gray.svg';
 import { AuthorType } from '../../../../types/data/authorType.ts';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
@@ -106,6 +111,14 @@ function AuthorList(props: { orientation?: string }) {
           ' ' +
           (props.orientation === 'horizontal' ? authorListStyles.authorListHorizontal : authorListStyles.authorListVertical)
         }>
+        <div className={'border-b border-base-300 pt-1'}>
+          <button
+            className={'btn btn-circle btn-xs ' + authorListStyles.checkAllButton}
+            onClick={() => dispatch(checkAllAuthors())}></button>
+          <button
+            className={'btn btn-circle btn-xs ml-1 ' + authorListStyles.uncheckAllButton}
+            onClick={() => dispatch(uncheckAllAuthors())}></button>
+        </div>
         <div>
           {authors
             .filter((a: AuthorType) => a.parent === -1)
@@ -124,7 +137,29 @@ function AuthorList(props: { orientation?: string }) {
                       type={'checkbox'}
                       className={'checkbox checkbox-accent ' + authorListStyles.authorCheckbox}
                       checked={parentAuthor.selected}
-                      onChange={() => dispatch(switchAuthorSelection(parentAuthor.id))}
+                      onClick={(e) => {
+                        if (e.shiftKey) {
+                          dispatch(switchAllAuthorSelection());
+                        } else {
+                          dispatch(switchAuthorSelection(parentAuthor.id));
+                        }
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showContextMenu(e.clientX, e.clientY, [
+                          {
+                            label: 'check all',
+                            icon: checkBoxIconGray,
+                            function: () => dispatch(checkAllAuthors()),
+                          },
+                          {
+                            label: 'uncheck all',
+                            icon: checkBoxOutlineIconGray,
+                            function: () => dispatch(uncheckAllAuthors()),
+                          },
+                        ]);
+                      }}
                     />
                     <div
                       style={{ borderColor: parentAuthor.color.main }}
