@@ -1,7 +1,11 @@
-import { DataPluginCommit, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { DataPluginCommit, DataPluginCommits, DataPluginCommitBuild } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import Builds from './builds.ts';
 
 export default class Commits implements DataPluginCommits {
-  constructor() {}
+  private builds: Builds;
+  constructor() {
+    this.builds= new Builds();
+  }
 
   public async getAll(from: string, to: string) {
     console.log(`Getting Commits from ${from} to ${to}`);
@@ -176,5 +180,46 @@ export default class Commits implements DataPluginCommits {
     ];
     resolve(commits);
     });
+  }
+
+  public async getCommitsWithBuilds(from: string, to: string): Promise<DataPluginCommitBuild[]> {
+    console.log(`Getting CommitsBuilds from ${from} to ${to}`);
+    // Get all commits and builds
+    const commits = await this.getAll(from, to);
+    const builds = await this.builds.getAll(from, to);
+
+    // Map to create combined data
+    const commitsBuilds: DataPluginCommitBuild[] = [];
+
+    // For each commit, find a matching build based on timestamp
+    for (const commit of commits) {
+      const matchingBuild = builds.find(build =>
+        build.committedAt === commit.date
+      );
+      console.log(matchingBuild)
+      // Only include commits that have a matching build
+      if (matchingBuild) {
+        const commitBuild: DataPluginCommitBuild = {
+          ...commit,
+          builds: [{
+            id: matchingBuild.id,
+            status: matchingBuild.status,
+            duration: matchingBuild.duration,
+            startedAt: matchingBuild.startedAt,
+            finishedAt: matchingBuild.finishedAt,
+            jobs: matchingBuild.jobs.map(job => ({
+              id: parseInt(job.id),
+              name: job.name,
+              status: job.status,
+              stage: job.stage
+            }))
+          }]
+        };
+
+        commitsBuilds.push(commitBuild);
+      }
+    }
+
+    return commitsBuilds;
   }
 }

@@ -11,7 +11,6 @@ export interface DataPlugin {
   description: string;
   general: DataPluginGeneral;
   commits: DataPluginCommits;
-  commits_builds: DataPluginCommitsBuilds;
   builds: DataPluginBuilds;
   users: DataPluginUsers;
   files: DataPluginFiles;
