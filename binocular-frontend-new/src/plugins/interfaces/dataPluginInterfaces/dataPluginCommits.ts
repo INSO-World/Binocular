@@ -1,8 +1,10 @@
 import { DataPluginUser } from './dataPluginUsers.ts';
+import {DataPluginFile} from "./dataPluginFiles.ts";
 
 export interface DataPluginCommits {
   getAll: (from: string, to: string) => Promise<DataPluginCommit[]>;
   getCommitsWithBuilds: (from: string, to: string) => Promise<DataPluginCommitBuild[]>;
+  getCommitsWithFiles: (from: string, to: string) => Promise<DataPluginCommitFile[]>;
 }
 
 export interface DataPluginCommit {
@@ -36,6 +38,13 @@ export interface DataPluginCommitBuild extends DataPluginCommit {
       status: string;
       stage: string;
     }[];
+  }[];
+}
+
+export interface DataPluginCommitFile extends DataPluginCommit {
+  files: {
+    action: string;
+    file: DataPluginFile;
   }[];
 }
 
