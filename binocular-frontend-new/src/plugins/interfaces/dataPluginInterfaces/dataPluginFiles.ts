@@ -1,4 +1,5 @@
 import { DataPluginStats } from './dataPluginCommits.ts';
+import { PreviousFileData } from '../../../types/data/ownershipType.ts';
 
 export interface DataPluginFiles {
   getAll: () => Promise<DataPluginFile[]>;
@@ -24,5 +25,5 @@ export interface JSONObject {
 
 export interface PreviousFilePaths {
   path: string;
-  previousFileNames: string[];
+  previousFileNames: PreviousFileData[];
 }

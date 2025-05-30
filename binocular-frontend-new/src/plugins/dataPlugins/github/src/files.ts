@@ -10,8 +10,8 @@ export default {
   },
   getFilenamesForBranch: (branchName: string) => {
     console.log(`Getting Filenames For ` + branchName);
-    return new Promise<DataPluginFile[]>((resolve) => {
-      const files: DataPluginFile[] = [];
+    return new Promise<string[]>((resolve) => {
+      const files: string[] = [];
       resolve(files);
     });
   },

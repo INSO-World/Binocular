@@ -47,7 +47,7 @@ function FileList(props: { orientation?: string; search: string }) {
                   }),
                 ),
               )
-              .catch(() => console.log('Error loading Users from selected data source!'));
+              .catch(() => console.log('Error loading Files from selected data source!'));
           }
         })
         .catch((e) => console.log(e));
