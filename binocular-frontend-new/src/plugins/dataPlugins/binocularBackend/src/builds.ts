@@ -12,53 +12,58 @@ export default class Builds implements DataPluginBuilds {
 
   public async getAll(from: string, to: string) {
     console.log(`Getting Builds from ${from} to ${to}`);
-    const builds: DataPluginBuild[] = [];
-    const getBuildPage = (since?: number, until?: number) => async (page: number, perPage: number) => {
-      const resp = await this.graphQl.client.query({
-        // variable tag not queried, because it cannot be found(maybe a keyword), not needed at the moment
-        query: gql`
-          query ($page: Int, $perPage: Int, $until: Timestamp) {
-            builds(page: $page, perPage: $perPage, until: $until) {
-              count
-              page
-              perPage
-              data {
-                id
-                committedAt
-                createdAt
-                duration
-                finishedAt
-                jobs {
+    try {
+      const builds: DataPluginBuild[] = [];
+      const getBuildPage = (since?: number, until?: number) => async (page: number, perPage: number) => {
+        const resp = await this.graphQl.client.query({
+          // variable tag not queried, because it cannot be found(maybe a keyword), not needed at the moment
+          query: gql`
+            query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp) {
+              builds(page: $page, perPage: $perPage, since: $since, until: $until) {
+                count
+                page
+                perPage
+                data {
                   id
-                  name
-                  status
-                  stage
+                  committedAt
                   createdAt
+                  duration
                   finishedAt
-                }
-                startedAt
-                status
-                updatedAt
-                commit {
-                  user {
+                  jobs {
                     id
-                    gitSignature
+                    name
+                    status
+                    stage
+                    createdAt
+                    finishedAt
+                  }
+                  startedAt
+                  status
+                  updatedAt
+                  commit {
+                    user {
+                      id
+                      gitSignature
+                    }
                   }
                 }
               }
             }
-          }
-        `,
-        variables: { page, perPage, since, until },
-      });
-      return resp.data.builds;
-    };
+          `,
+          variables: { page, perPage, since, until },
+        });
+        return resp.data.builds;
+      };
 
-    await traversePages(getBuildPage(new Date(from).getTime(), new Date(to).getTime()), (build: Build) => {
-      builds.push(convertToDataPluginBuild(build));
-    });
-    const allBuilds = builds.sort((a, b) => new Date(b.createdAt).getMilliseconds() - new Date(a.createdAt).getMilliseconds());
-    return allBuilds.filter((c) => new Date(c.createdAt) >= new Date(from) && new Date(c.createdAt) <= new Date(to));
+      await traversePages(getBuildPage(new Date(from).getTime(), new Date(to).getTime()), (build: Build) => {
+        builds.push(convertToDataPluginBuild(build));
+      });
+      const allBuilds = builds.sort((a, b) => new Date(b.createdAt).getMilliseconds() - new Date(a.createdAt).getMilliseconds());
+      return allBuilds.filter((c) => new Date(c.createdAt) >= new Date(from) && new Date(c.createdAt) <= new Date(to));
+    } catch (e) {
+      console.log(e);
+      return [];
+    }
   }
 }
 
