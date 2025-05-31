@@ -43,7 +43,7 @@ module.exports = new gql.GraphQLObjectType({
               aql`
               FOR issue, edge
               IN INBOUND ${account} ${issuesToAccounts}
-              FILTER edge.role == "assignees"
+              FILTER edge.role IN ["assignees", "author", "reviewer", "commenter"]
               RETURN issue
               `
             )
