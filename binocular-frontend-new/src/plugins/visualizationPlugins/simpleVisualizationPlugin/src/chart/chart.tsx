@@ -40,7 +40,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
   const [chartWidth, setChartWidth] = useState(100);
   const [chartHeight, setChartHeight] = useState(100);
 
-  const ChartRenderer = props.dataName === 'sumCommits' ? ColumnChart : StackedAreaChart;
+  const ChartRenderer = props.dataName?.toLowerCase() === 'sumcommits' ? ColumnChart : StackedAreaChart;
   type AreaOrBarChart = ChartData | BarChartData;
 
   const [chartData, setChartData] = useState<AreaOrBarChart[]>([]);
