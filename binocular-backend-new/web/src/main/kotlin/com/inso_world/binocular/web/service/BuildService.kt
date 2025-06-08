@@ -1,7 +1,10 @@
 package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.Build
+import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BuildDao
+import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.CommitDao
+import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,6 +15,8 @@ import org.springframework.stereotype.Service
 @Service
 class BuildService(
   @Autowired private val buildDao: BuildDao,
+  @Autowired private val commitDao: CommitDao,
+  @Autowired private val commitBuildConnectionRepository: CommitBuildConnectionRepository,
 ) {
 
   var logger: Logger = LoggerFactory.getLogger(BuildService::class.java)
@@ -29,5 +34,13 @@ class BuildService(
   fun findById(id: String): Build? {
     logger.trace("Getting build by id: $id")
     return buildDao.findById(id)
+  }
+
+  fun findCommitsByBuildId(buildId: String): List<Commit> {
+    logger.trace("Getting commits for build: $buildId")
+    return commitBuildConnectionRepository.findAll()
+      .filter { it.to == "builds/$buildId" }
+      .mapNotNull { it.from?.removePrefix("commits/") }
+      .mapNotNull { commitDao.findById(it) }
   }
 }

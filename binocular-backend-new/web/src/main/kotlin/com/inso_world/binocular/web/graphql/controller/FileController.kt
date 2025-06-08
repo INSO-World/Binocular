@@ -1,4 +1,4 @@
-package com.inso_world.binocular.web.graphql
+package com.inso_world.binocular.web.graphql.controller
 
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
