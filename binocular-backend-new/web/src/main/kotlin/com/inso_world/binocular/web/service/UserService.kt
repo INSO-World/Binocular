@@ -4,49 +4,50 @@ import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.User
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.UserDao
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueUserConnectionRepository
-import com.inso_world.binocular.web.service.interfaces.UserServiceInterface
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class UserService(
-  @Autowired private val userDao: UserDao,
-  @Autowired private val commitUserConnectionRepository: CommitUserConnectionRepository,
-  @Autowired private val issueUserConnectionRepository: IssueUserConnectionRepository,
-  @Autowired private val commitFileUserConnectionRepository: CommitFileUserConnectionRepository
-) : UserServiceInterface {
+/**
+ * Interface for UserService.
+ * Provides methods to retrieve users and their related entities.
+ */
+interface UserService {
+    /**
+     * Find all users with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Iterable of users
+     */
+    fun findAll(pageable: Pageable): Iterable<User>
 
-  var logger: Logger = LoggerFactory.getLogger(UserService::class.java)
+    /**
+     * Find a user by ID.
+     *
+     * @param id The ID of the user to find
+     * @return The user if found, null otherwise
+     */
+    fun findById(id: String): User?
 
-  override fun findAll(pageable: Pageable): Iterable<User> {
-    logger.trace("Getting all users with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
-    return userDao.findAll(pageable)
-  }
+    /**
+     * Find commits by user ID.
+     *
+     * @param userId The ID of the user
+     * @return List of commits associated with the user
+     */
+    fun findCommitsByUserId(userId: String): List<Commit>
 
-  override fun findById(id: String): User? {
-    logger.trace("Getting user by id: $id")
-    return userDao.findById(id)
-  }
+    /**
+     * Find issues by user ID.
+     *
+     * @param userId The ID of the user
+     * @return List of issues associated with the user
+     */
+    fun findIssuesByUserId(userId: String): List<Issue>
 
-  override fun findCommitsByUserId(userId: String): List<Commit> {
-    logger.trace("Getting commits for user: $userId")
-    return commitUserConnectionRepository.findCommitsByUser(userId)
-  }
-
-  override fun findIssuesByUserId(userId: String): List<Issue> {
-    logger.trace("Getting issues for user: $userId")
-    return issueUserConnectionRepository.findIssuesByUser(userId)
-  }
-
-  override fun findFilesByUserId(userId: String): List<File> {
-    logger.trace("Getting files for user: $userId")
-    return commitFileUserConnectionRepository.findCommitFilesByUser(userId)
-  }
+    /**
+     * Find files by user ID.
+     *
+     * @param userId The ID of the user
+     * @return List of files associated with the user
+     */
+    fun findFilesByUserId(userId: String): List<File>
 }
