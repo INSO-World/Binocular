@@ -11,6 +11,7 @@ import com.inso_world.binocular.web.persistence.repository.arangodb.edges.Branch
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileUserConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleFileConnectionRepository
+import com.inso_world.binocular.web.service.interfaces.FileServiceInterface
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,41 +26,41 @@ class FileService(
   @Autowired private val commitFileConnectionRepository: CommitFileConnectionRepository,
   @Autowired private val commitFileUserConnectionRepository: CommitFileUserConnectionRepository,
   @Autowired private val moduleFileConnectionRepository: ModuleFileConnectionRepository
-) {
+) : FileServiceInterface {
 
   var logger: Logger = LoggerFactory.getLogger(FileService::class.java)
 
-  fun findAll(pageable: Pageable): Iterable<File> {
+  override fun findAll(pageable: Pageable): Iterable<File> {
     logger.trace("Getting all files with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
     return fileDao.findAll(pageable)
   }
 
-  fun findById(id: String): File? {
+  override fun findById(id: String): File? {
     logger.trace("Getting file by id: $id")
     return fileDao.findById(id)
   }
 
-  fun findBranchesByFileId(fileId: String): List<Branch> {
+  override fun findBranchesByFileId(fileId: String): List<Branch> {
     logger.trace("Getting branches for file: $fileId")
     return branchFileConnectionRepository.findBranchesByFile(fileId)
   }
 
-  fun findCommitsByFileId(fileId: String): List<Commit> {
+  override fun findCommitsByFileId(fileId: String): List<Commit> {
     logger.trace("Getting commits for file: $fileId")
     return commitFileConnectionRepository.findCommitsByFile(fileId)
   }
 
-  fun findModulesByFileId(fileId: String): List<Module> {
+  override fun findModulesByFileId(fileId: String): List<Module> {
     logger.trace("Getting modules for file: $fileId")
     return moduleFileConnectionRepository.findModulesByFile(fileId)
   }
 
-  fun findRelatedFilesByFileId(fileId: String): List<File> {
+  override fun findRelatedFilesByFileId(fileId: String): List<File> {
     logger.trace("Getting related files for file: $fileId")
     return branchFileFileConnectionRepository.findFilesByBranchFile(fileId)
   }
 
-  fun findUsersByFileId(fileId: String): List<User> {
+  override fun findUsersByFileId(fileId: String): List<User> {
     logger.trace("Getting users for file: $fileId")
     return commitFileUserConnectionRepository.findUsersByCommitFile(fileId)
   }

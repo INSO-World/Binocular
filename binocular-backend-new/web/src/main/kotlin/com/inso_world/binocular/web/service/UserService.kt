@@ -8,6 +8,7 @@ import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.UserDao
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileUserConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitUserConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueUserConnectionRepository
+import com.inso_world.binocular.web.service.interfaces.UserServiceInterface
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,31 +21,31 @@ class UserService(
   @Autowired private val commitUserConnectionRepository: CommitUserConnectionRepository,
   @Autowired private val issueUserConnectionRepository: IssueUserConnectionRepository,
   @Autowired private val commitFileUserConnectionRepository: CommitFileUserConnectionRepository
-) {
+) : UserServiceInterface {
 
   var logger: Logger = LoggerFactory.getLogger(UserService::class.java)
 
-  fun findAll(pageable: Pageable): Iterable<User> {
+  override fun findAll(pageable: Pageable): Iterable<User> {
     logger.trace("Getting all users with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
     return userDao.findAll(pageable)
   }
 
-  fun findById(id: String): User? {
+  override fun findById(id: String): User? {
     logger.trace("Getting user by id: $id")
     return userDao.findById(id)
   }
 
-  fun findCommitsByUserId(userId: String): List<Commit> {
+  override fun findCommitsByUserId(userId: String): List<Commit> {
     logger.trace("Getting commits for user: $userId")
     return commitUserConnectionRepository.findCommitsByUser(userId)
   }
 
-  fun findIssuesByUserId(userId: String): List<Issue> {
+  override fun findIssuesByUserId(userId: String): List<Issue> {
     logger.trace("Getting issues for user: $userId")
     return issueUserConnectionRepository.findIssuesByUser(userId)
   }
 
-  fun findFilesByUserId(userId: String): List<File> {
+  override fun findFilesByUserId(userId: String): List<File> {
     logger.trace("Getting files for user: $userId")
     return commitFileUserConnectionRepository.findCommitFilesByUser(userId)
   }

@@ -7,6 +7,7 @@ import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueC
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueMilestoneConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueNoteConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueUserConnectionRepository
+import com.inso_world.binocular.web.service.interfaces.IssueServiceInterface
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,41 +22,41 @@ class IssueService(
   @Autowired private val issueMilestoneConnectionRepository: IssueMilestoneConnectionRepository,
   @Autowired private val issueNoteConnectionRepository: IssueNoteConnectionRepository,
   @Autowired private val issueUserConnectionRepository: IssueUserConnectionRepository
-) {
+) : IssueServiceInterface {
 
   var logger: Logger = LoggerFactory.getLogger(IssueService::class.java)
 
-  fun findAll(pageable: Pageable): Iterable<Issue> {
+  override fun findAll(pageable: Pageable): Iterable<Issue> {
     logger.trace("Getting all issues with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
     return issueDao.findAll(pageable)
   }
 
-  fun findById(id: String): Issue? {
+  override fun findById(id: String): Issue? {
     logger.trace("Getting issue by id: $id")
     return issueDao.findById(id)
   }
 
-  fun findAccountsByIssueId(issueId: String): List<Account> {
+  override fun findAccountsByIssueId(issueId: String): List<Account> {
     logger.trace("Getting accounts for issue: $issueId")
     return issueAccountConnectionRepository.findAccountsByIssue(issueId)
   }
 
-  fun findCommitsByIssueId(issueId: String): List<Commit> {
+  override fun findCommitsByIssueId(issueId: String): List<Commit> {
     logger.trace("Getting commits for issue: $issueId")
     return issueCommitConnectionRepository.findCommitsByIssue(issueId)
   }
 
-  fun findMilestonesByIssueId(issueId: String): List<Milestone> {
+  override fun findMilestonesByIssueId(issueId: String): List<Milestone> {
     logger.trace("Getting milestones for issue: $issueId")
     return issueMilestoneConnectionRepository.findMilestonesByIssue(issueId)
   }
 
-  fun findNotesByIssueId(issueId: String): List<Note> {
+  override fun findNotesByIssueId(issueId: String): List<Note> {
     logger.trace("Getting notes for issue: $issueId")
     return issueNoteConnectionRepository.findNotesByIssue(issueId)
   }
 
-  fun findUsersByIssueId(issueId: String): List<User> {
+  override fun findUsersByIssueId(issueId: String): List<User> {
     logger.trace("Getting users for issue: $issueId")
     return issueUserConnectionRepository.findUsersByIssue(issueId)
   }
