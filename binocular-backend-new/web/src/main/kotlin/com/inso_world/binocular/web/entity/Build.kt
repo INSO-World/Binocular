@@ -12,8 +12,7 @@ import java.util.*
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Build(
   @Id
-  var arangoId: String? = null,
-  var id: Long? = null,
+  var id: String? = null,
   var sha: String? = null,
   var ref: String? = null,
   var status: String? = null,

@@ -1,32 +1,13 @@
 package com.inso_world.binocular.web
 
-import com.inso_world.binocular.web.entity.Account
-import com.inso_world.binocular.web.entity.Branch
-import com.inso_world.binocular.web.entity.Build
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.Issue
-import com.inso_world.binocular.web.entity.Mention
-import com.inso_world.binocular.web.entity.MergeRequest
-import com.inso_world.binocular.web.entity.Module
-import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.entity.Platform
-import com.inso_world.binocular.web.entity.Stats
-import com.inso_world.binocular.web.entity.User
-import com.inso_world.binocular.web.persistence.repository.arangodb.AccountRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.BranchRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.BuildRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.CommitRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.FileRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.IssueRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.MergeRequestRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.ModuleRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.NoteRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.UserRepository
+import com.inso_world.binocular.web.entity.*
+import com.inso_world.binocular.web.entity.edge.BranchFileConnection
+import com.inso_world.binocular.web.persistence.repository.arangodb.*
+import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileConnectionRepository
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.graphql.test.tester.GraphQlTester
 import java.util.Date
 
@@ -71,304 +52,83 @@ abstract class BaseDbTest {
     @Autowired
     protected lateinit var userRepository: UserRepository
 
-    /**
-     * Test data that will be created in the database.
-     */
+    @Autowired
+    protected lateinit var branchFileConnectionRepository: BranchFileConnectionRepository
+
     protected val testAccounts = listOf(
-        Account(
-            id = "1",
-            platform = Platform.GitHub,
-            login = "user1",
-            name = "User One",
-            avatarUrl = "https://example.com/avatars/user1.png",
-            url = "https://github.com/user1"
-        ),
-        Account(
-            id = "2",
-            platform = Platform.GitLab,
-            login = "user2",
-            name = "User Two",
-            avatarUrl = "https://example.com/avatars/user2.png",
-            url = "https://gitlab.com/user2"
-        )
+        Account("1", Platform.GitHub, "user1", "User One", "https://example.com/avatars/user1.png", "https://github.com/user1"),
+        Account("2", Platform.GitLab, "user2", "User Two", "https://example.com/avatars/user2.png", "https://gitlab.com/user2")
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testCommits = listOf(
-        Commit(
-            id = "1",
-            sha = "abc123",
-            date = Date(),
-            message = "First commit",
-            webUrl = "https://example.com/commit/abc123",
-            branch = "main",
-            stats = Stats(additions = 10, deletions = 5)
-        ),
-        Commit(
-            id = "2",
-            sha = "def456",
-            date = Date(),
-            message = "Second commit",
-            webUrl = "https://example.com/commit/def456",
-            branch = "main",
-            stats = Stats(additions = 7, deletions = 3)
-        )
+        Commit("1", "abc123", Date(), "First commit", "https://example.com/commit/abc123", "main", Stats(10, 5)),
+        Commit("2", "def456", Date(), "Second commit", "https://example.com/commit/def456", "main", Stats(7, 3))
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testBranches = listOf(
-        Branch(
-            id = "1",
-            branch = "main",
-            active = true,
-            tracksFileRenames = true,
-            latestCommit = "abc123"
-        ),
-        Branch(
-            id = "2",
-            branch = "feature/new-feature",
-            active = true,
-            tracksFileRenames = false,
-            latestCommit = "def456"
-        )
+        Branch("1", "main", true, true, "abc123"),
+        Branch("2", "feature/new-feature", true, false, "def456")
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testBuilds = listOf(
         Build(
-            arangoId = "1",
-            id = 1L,
-            sha = "abc123",
-            ref = "main",
-            status = "success",
-            tag = null,
-            user = "user1",
-            userFullName = "User One",
-            createdAt = Date(),
-            updatedAt = Date(),
-            startedAt = Date(),
-            finishedAt = Date(),
-            committedAt = Date(),
-            duration = 120,
-            jobs = listOf(
-                Build.Job(
-                    id = "job1",
-                    name = "test",
-                    status = "success",
-                    stage = "test",
-                    createdAt = Date(),
-                    finishedAt = Date(),
-                    webUrl = "https://example.com/jobs/job1"
-                )
+            "1", "abc123", "main", "success", null, "user1", "User One",
+            Date(), Date(), Date(), Date(), Date(), 120, listOf(
+                Build.Job("job1", "test", "success", "test", Date(), Date(), "https://example.com/jobs/job1")
             ),
-            webUrl = "https://example.com/builds/1"
+            "https://example.com/builds/1"
         ),
         Build(
-            arangoId = "2",
-            id = 2L,
-            sha = "def456",
-            ref = "feature/new-feature",
-            status = "failed",
-            tag = "v1.0.0",
-            user = "user2",
-            userFullName = "User Two",
-            createdAt = Date(),
-            updatedAt = Date(),
-            startedAt = Date(),
-            finishedAt = Date(),
-            committedAt = Date(),
-            duration = 180,
-            jobs = listOf(
-                Build.Job(
-                    id = "job2",
-                    name = "build",
-                    status = "failed",
-                    stage = "build",
-                    createdAt = Date(),
-                    finishedAt = Date(),
-                    webUrl = "https://example.com/jobs/job2"
-                )
+            "2", "def456", "feature/new-feature", "failed", "v1.0.0", "user2", "User Two",
+            Date(), Date(), Date(), Date(), Date(), 180, listOf(
+                Build.Job("job2", "build", "failed", "build", Date(), Date(), "https://example.com/jobs/job2")
             ),
-            webUrl = "https://example.com/builds/2"
+            "https://example.com/builds/2"
         )
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testFiles = listOf(
-        File(
-            id = "1",
-            path = "src/main/kotlin/com/example/Main.kt",
-            webUrl = "https://example.com/files/Main.kt",
-            maxLength = 1000
-        ),
-        File(
-            id = "2",
-            path = "src/main/kotlin/com/example/Utils.kt",
-            webUrl = "https://example.com/files/Utils.kt",
-            maxLength = 500
-        )
+        File("1", "src/main/kotlin/com/example/Main.kt", "https://example.com/files/Main.kt", 1000),
+        File("2", "src/main/kotlin/com/example/Utils.kt", "https://example.com/files/Utils.kt", 500)
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testIssues = listOf(
-        Issue(
-            id = "1",
-            iid = 101,
-            title = "Fix bug in login flow",
-            description = "Users are unable to log in when using special characters in their password",
-            createdAt = Date(),
-            updatedAt = Date(),
-            closedAt = null,
-            labels = listOf("bug", "high-priority"),
-            state = "open",
-            webUrl = "https://example.com/issues/101",
-            mentions = listOf(
-                Mention(
-                    commit = "abc123",
-                    createdAt = Date(),
-                    closes = false
-                )
-            )
-        ),
-        Issue(
-            id = "2",
-            iid = 102,
-            title = "Add new feature for user profiles",
-            description = "Implement the ability for users to customize their profiles",
-            createdAt = Date(),
-            updatedAt = Date(),
-            closedAt = Date(),
-            labels = listOf("enhancement", "feature"),
-            state = "closed",
-            webUrl = "https://example.com/issues/102",
-            mentions = listOf(
-                Mention(
-                    commit = "def456",
-                    createdAt = Date(),
-                    closes = true
-                )
-            )
-        )
+        Issue("1", 101, "Fix bug in login flow", "Users are unable to log in...", Date(), Date(), null, listOf("bug", "high-priority"), "open", "https://example.com/issues/101",
+            listOf(Mention("abc123", Date(), false))),
+        Issue("2", 102, "Add new feature", "Implement profile customization", Date(), Date(), Date(), listOf("enhancement", "feature"), "closed", "https://example.com/issues/102",
+            listOf(Mention("def456", Date(), true)))
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testMergeRequests = listOf(
-        MergeRequest(
-            id = "1",
-            iid = 201,
-            title = "Implement user authentication",
-            description = "Add JWT-based authentication for user login",
-            createdAt = Date().toString(),
-            updatedAt = Date().toString(),
-            closedAt = null,
-            labels = listOf("feature", "security"),
-            state = "open",
-            webUrl = "https://example.com/merge_requests/201",
-            mentions = listOf(
-                Mention(
-                    commit = "abc123",
-                    createdAt = Date(),
-                    closes = false
-                )
-            )
-        ),
-        MergeRequest(
-            id = "2",
-            iid = 202,
-            title = "Fix CSS styling issues",
-            description = "Fix responsive design issues on mobile devices",
-            createdAt = Date().toString(),
-            updatedAt = Date().toString(),
-            closedAt = Date().toString(),
-            labels = listOf("bug", "ui"),
-            state = "merged",
-            webUrl = "https://example.com/merge_requests/202",
-            mentions = listOf(
-                Mention(
-                    commit = "def456",
-                    createdAt = Date(),
-                    closes = true
-                )
-            )
-        )
+        MergeRequest("1", 201, "Implement user authentication", "Add JWT auth", Date().toString(), Date().toString(), null, listOf("feature", "security"), "open", "https://example.com/merge_requests/201",
+            listOf(Mention("abc123", Date(), false))),
+        MergeRequest("2", 202, "Fix CSS", "Fix responsive design", Date().toString(), Date().toString(), Date().toString(), listOf("bug", "ui"), "merged", "https://example.com/merge_requests/202",
+            listOf(Mention("def456", Date(), true)))
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testModules = listOf(
-        Module(
-            id = "1",
-            path = "src/main/kotlin/com/example/core"
-        ),
-        Module(
-            id = "2",
-            path = "src/main/kotlin/com/example/api"
-        )
+        Module("1", "src/main/kotlin/com/example/core"),
+        Module("2", "src/main/kotlin/com/example/api")
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testNotes = listOf(
-        Note(
-            id = "1",
-            body = "This is a comment on an issue",
-            createdAt = "2023-01-01T10:00:00Z",
-            updatedAt = "2023-01-01T10:00:00Z",
-            system = false,
-            resolvable = true,
-            confidential = false,
-            internal = false,
-            imported = false,
-            importedFrom = "gitlab"
-        ),
-        Note(
-            id = "2",
-            body = "This is a system note",
-            createdAt = "2023-01-02T11:00:00Z",
-            updatedAt = "2023-01-02T11:00:00Z",
-            system = true,
-            resolvable = false,
-            confidential = false,
-            internal = true,
-            imported = false,
-            importedFrom = "github"
-        )
+        Note("1", "This is a comment", "2023-01-01T10:00:00Z", "2023-01-01T10:00:00Z", false, true, false, false, false, "gitlab"),
+        Note("2", "This is a system note", "2023-01-02T11:00:00Z", "2023-01-02T11:00:00Z", true, false, false, true, false, "github")
     )
 
-    /**
-     * Test data that will be created in the database.
-     */
     protected val testUsers = listOf(
-        User(
-            id = "1",
-            gitSignature = "John Doe <john.doe@example.com>"
-        ),
-        User(
-            id = "2",
-            gitSignature = "Jane Smith <jane.smith@example.com>"
-        )
+        User("1", "John Doe <john.doe@example.com>"),
+        User("2", "Jane Smith <jane.smith@example.com>")
     )
 
-    /**
-     * Set up test data in the database before each test.
-     */
     @BeforeEach
     fun setupTestData() {
-        // Clear existing data
+        clearAllData()
+        createBasicEntities()
+        createEntityRelationships()
+    }
+
+    private fun clearAllData() {
         commitRepository.deleteAll()
         accountRepository.deleteAll()
         branchRepository.deleteAll()
@@ -379,46 +139,53 @@ abstract class BaseDbTest {
         moduleRepository.deleteAll()
         noteRepository.deleteAll()
         userRepository.deleteAll()
-
-        // Create test data
-        testCommits.forEach { commit ->
-            commitRepository.save(commit)
-        }
-
-        testAccounts.forEach { account ->
-            accountRepository.save(account)
-        }
-
-        testBranches.forEach { branch ->
-            branchRepository.save(branch)
-        }
-
-        testBuilds.forEach { build ->
-            buildRepository.save(build)
-        }
-
-        testFiles.forEach { file ->
-            fileRepository.save(file)
-        }
-
-        testIssues.forEach { issue ->
-            issueRepository.save(issue)
-        }
-
-        testMergeRequests.forEach { mergeRequest ->
-            mergeRequestRepository.save(mergeRequest)
-        }
-
-        testModules.forEach { module ->
-            moduleRepository.save(module)
-        }
-
-        testNotes.forEach { note ->
-            noteRepository.save(note)
-        }
-
-        testUsers.forEach { user ->
-            userRepository.save(user)
-        }
     }
+
+    private fun createBasicEntities() {
+        commitRepository.saveAll(testCommits)
+        accountRepository.saveAll(testAccounts)
+        branchRepository.saveAll(testBranches)
+        buildRepository.saveAll(testBuilds)
+        fileRepository.saveAll(testFiles)
+        issueRepository.saveAll(testIssues)
+        mergeRequestRepository.saveAll(testMergeRequests)
+        moduleRepository.saveAll(testModules)
+        noteRepository.saveAll(testNotes)
+        userRepository.saveAll(testUsers)
+    }
+
+    private fun createEntityRelationships() {
+        connectBranchesToFiles()
+        // Other relationships can be added here
+    }
+
+    private fun connectBranchesToFiles() {
+        val branch1 = testBranches[0]
+        val branch2 = testBranches[1]
+
+        val branch1Id = branch1.id ?: throw IllegalStateException("Branch ID cannot be null")
+        val branch2Id = branch2.id ?: throw IllegalStateException("Branch ID cannot be null")
+
+        // Branch 1 -> File 1 and File 2
+        testFiles.forEach { file ->
+            val fileId = file.id ?: throw IllegalStateException("File ID cannot be null")
+            val connection = BranchFileConnection(
+                id = "branch_${branch1Id}_file_${fileId}", // <-- Set id here (equals to _key)
+                from = branch1,
+                to = file
+            )
+            branchFileConnectionRepository.save(connection)
+        }
+
+        // Branch 2 -> File 2 only
+        val file2Id = testFiles[1].id ?: throw IllegalStateException("File ID cannot be null")
+        val connection = BranchFileConnection(
+            id = "branch_${branch2Id}_file_${file2Id}", // <-- Set id here too
+            from = branch2,
+            to = testFiles[1]
+        )
+        branchFileConnectionRepository.save(connection)
+    }
+
+
 }

@@ -92,7 +92,6 @@ type Branch {
 
 type Build {
   id: ID
-  arangoId: String
   sha: String
   ref: String
   status: String
