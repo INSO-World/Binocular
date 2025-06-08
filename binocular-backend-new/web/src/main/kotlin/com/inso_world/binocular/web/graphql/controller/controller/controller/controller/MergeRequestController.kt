@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.MergeRequestService
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,16 +21,16 @@ class MergeRequestController(
 
   @QueryMapping(name = "mergeRequests")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<MergeRequest> {
-    logger.trace("Getting all merge requests...")
+    logger.info("Getting all merge requests...")
 
-    GraphQLValidationUtils.validatePagination(page, perPage)
+    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    return mergeRequestService.findAll(page, perPage)
+    return mergeRequestService.findAll(pageable)
   }
 
   @QueryMapping(name = "mergeRequest")
   fun findById(@Argument id: String): MergeRequest {
-    logger.trace("Getting merge request by id: $id")
+    logger.info("Getting merge request by id: $id")
     return GraphQLValidationUtils.requireEntityExists(mergeRequestService.findById(id), "MergeRequest", id)
   }
 }

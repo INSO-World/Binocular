@@ -1,14 +1,20 @@
-package com.inso_world.binocular.web.graphql
+package com.inso_world.binocular.web.graphql.controller
 
 import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.entity.Module
-import com.inso_world.binocular.web.exception.NotFoundException
-import com.inso_world.binocular.web.exception.ValidationException
+import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
+/**
+ * Test class for ModuleController.
+ * Tests the functionality of retrieving modules with and without pagination,
+ * as well as error handling for invalid requests.
+ */
 class ModuleControllerWebTest : BaseDbTest() {
 
+  @Nested
+  inner class BasicFunctionality {
     @Test
     fun `should return all modules`() {
         // Test data is set up in BaseDbTest
@@ -33,8 +39,11 @@ class ModuleControllerWebTest : BaseDbTest() {
         // Check that the modules match the test data
         testModules.forEachIndexed { index, expectedModule ->
             val actualModule = modules[index]
-            assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" }
-            assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" }
+
+            assertAll(
+                { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
+                { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+            )
         }
     }
 
@@ -61,10 +70,15 @@ class ModuleControllerWebTest : BaseDbTest() {
         val actualModule = result.entity(Module::class.java).get()
 
         // Check that the module matches the test data
-        assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" }
-        assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" }
+        assertAll(
+            { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
+            { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+        )
     }
+  }
 
+  @Nested
+  inner class Pagination {
     @Test
     fun `should return modules with pagination`() {
         // Test with page=1, perPage=1 (should return only the first module)
@@ -89,10 +103,66 @@ class ModuleControllerWebTest : BaseDbTest() {
         // Check that the module matches the first test module
         val expectedModule = testModules.first()
         val actualModule = modules.first()
-        assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" }
-        assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" }
+
+        assertAll(
+            { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
+            { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+        )
     }
 
+    @Test
+    fun `should handle null pagination parameters`() {
+        // Test with null page and perPage parameters (should use defaults)
+        val result = graphQlTester.document("""
+            query {
+                modules {
+                    id
+                    path
+                }
+            }
+        """)
+        .execute()
+        .path("modules")
+        .entityList(Module::class.java)
+
+        // Check size (should return all modules with default pagination)
+        result.hasSize(2)
+    }
+
+    @Test
+    fun `should return second page of modules`() {
+        // Test with page=2, perPage=1 (should return only the second module)
+        val result = graphQlTester.document("""
+            query {
+                modules(page: 2, perPage: 1) {
+                    id
+                    path
+                }
+            }
+        """)
+        .execute()
+        .path("modules")
+        .entityList(Module::class.java)
+
+        // Check size
+        result.hasSize(1)
+
+        // Get the modules from the result
+        val modules = result.get()
+
+        // Check that the module matches the second test module
+        val expectedModule = testModules[1]
+        val actualModule = modules.first()
+
+        assertAll(
+            { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
+            { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+        )
+    }
+  }
+
+  @Nested
+  inner class ErrorHandling {
     @Test
     fun `should throw exception for non-existent module id`() {
         // Test with a non-existent module ID
@@ -148,51 +218,5 @@ class ModuleControllerWebTest : BaseDbTest() {
         }
         .verify()
     }
-
-    @Test
-    fun `should handle null pagination parameters`() {
-        // Test with null page and perPage parameters (should use defaults)
-        val result = graphQlTester.document("""
-            query {
-                modules {
-                    id
-                    path
-                }
-            }
-        """)
-        .execute()
-        .path("modules")
-        .entityList(Module::class.java)
-
-        // Check size (should return all modules with default pagination)
-        result.hasSize(2)
-    }
-
-    @Test
-    fun `should return second page of modules`() {
-        // Test with page=2, perPage=1 (should return only the second module)
-        val result = graphQlTester.document("""
-            query {
-                modules(page: 2, perPage: 1) {
-                    id
-                    path
-                }
-            }
-        """)
-        .execute()
-        .path("modules")
-        .entityList(Module::class.java)
-
-        // Check size
-        result.hasSize(1)
-
-        // Get the modules from the result
-        val modules = result.get()
-
-        // Check that the module matches the second test module
-        val expectedModule = testModules[1]
-        val actualModule = modules.first()
-        assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" }
-        assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" }
-    }
+  }
 }

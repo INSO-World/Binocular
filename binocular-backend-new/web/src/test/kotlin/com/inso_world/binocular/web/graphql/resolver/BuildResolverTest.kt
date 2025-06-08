@@ -1,0 +1,195 @@
+package com.inso_world.binocular.web.graphql.resolver
+
+import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.web.BaseDbTest
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+
+/**
+ * Test class for verifying the Build resolver functionality.
+ * This class extends BaseDbTest to leverage the test data setup.
+ */
+class BuildResolverTest : BaseDbTest() {
+
+    @Nested
+    inner class BasicFunctionality {
+        @Test
+        fun `should retrieve build with all fields`() {
+            // Test data is set up in BaseDbTest
+            val result: JsonNode = graphQlTester.document("""
+                query {
+                    build(id: "1") {
+                        id
+                        sha
+                        ref
+                        status
+                        tag
+                        user
+                        userFullName
+                        duration
+                        webUrl
+                        jobs {
+                            id
+                            name
+                            status
+                            stage
+                            webUrl
+                        }
+                    }
+                }
+            """)
+                .execute()
+                .path("build")
+                .entity(JsonNode::class.java)
+                .get()
+
+            // Verify build data
+            assertAll(
+                { assertEquals("1", result.get("id").asText(), "Build ID mismatch") },
+                { assertEquals("abc123", result.get("sha").asText(), "Build SHA mismatch") },
+                { assertEquals("main", result.get("ref").asText(), "Build ref mismatch") },
+                { assertEquals("success", result.get("status").asText(), "Build status mismatch") },
+                { assertEquals("v0.0.1-rc", result.get("tag").asText(), "Build tag mismatch") },
+                { assertEquals("user1", result.get("user").asText(), "Build user mismatch") },
+                { assertEquals("User One", result.get("userFullName").asText(), "Build userFullName mismatch") },
+                { assertEquals(120, result.get("duration").asInt(), "Build duration mismatch") },
+                { assertEquals("https://example.com/builds/1", result.get("webUrl").asText(), "Build webUrl mismatch") }
+            )
+
+            // Verify jobs
+            val jobs = result.get("jobs")
+            assertNotNull(jobs, "Jobs should not be null")
+            assertEquals(1, jobs.size(), "Should have 1 job")
+
+            // Verify the job data
+            val job = jobs.get(0)
+            assertAll(
+                { assertEquals("job1", job.get("id").asText(), "Job ID mismatch") },
+                { assertEquals("test", job.get("name").asText(), "Job name mismatch") },
+                { assertEquals("success", job.get("status").asText(), "Job status mismatch") },
+                { assertEquals("test", job.get("stage").asText(), "Job stage mismatch") },
+                { assertEquals("https://example.com/jobs/job1", job.get("webUrl").asText(), "Job webUrl mismatch") }
+            )
+        }
+    }
+
+    @Nested
+    inner class RelationshipTests {
+        @Test
+        fun `should retrieve build with related commits`() {
+            // Test data is set up in BaseDbTest
+            val result: JsonNode = graphQlTester.document("""
+                query {
+                    build(id: "1") {
+                        id
+                        sha
+                        ref
+                        status
+                        userFullName
+                        user
+                        commits {
+                            id
+                            sha
+                            message
+                        }
+                    }
+                }
+            """)
+                .execute()
+                .path("build")
+                .entity(JsonNode::class.java)
+                .get()
+
+            // Verify build data
+            assertAll(
+                { assertEquals("1", result.get("id").asText(), "Build ID mismatch") },
+                { assertEquals("abc123", result.get("sha").asText(), "Build SHA mismatch") },
+                { assertEquals("main", result.get("ref").asText(), "Build ref mismatch") },
+                { assertEquals("success", result.get("status").asText(), "Build status mismatch") },
+                { assertEquals("User One", result.get("userFullName").asText(), "Build userFullName mismatch") },
+                { assertEquals("user1", result.get("user").asText(), "Build user mismatch") }
+            )
+
+            // Verify commits
+            val commits = result.get("commits")
+            assertNotNull(commits, "Commits should not be null")
+            assertEquals(1, commits.size(), "Should have 1 commit")
+
+            // Verify the commit data
+            val commit = commits.get(0)
+            assertAll(
+                { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
+                { assertEquals("abc123", commit.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") }
+            )
+        }
+
+        @Test
+        fun `should retrieve build with no related commits`() {
+            // Test data is set up in BaseDbTest
+            val result: JsonNode = graphQlTester.document("""
+                query {
+                    build(id: "2") {
+                        id
+                        sha
+                        ref
+                        status
+                        tag
+                        userFullName
+                        user
+                        commits {
+                            id
+                            sha
+                            message
+                        }
+                    }
+                }
+            """)
+                .execute()
+                .path("build")
+                .entity(JsonNode::class.java)
+                .get()
+
+            // Verify build data
+            assertAll(
+                { assertEquals("2", result.get("id").asText(), "Build ID mismatch") },
+                { assertEquals("def456", result.get("sha").asText(), "Build SHA mismatch") },
+                { assertEquals("feature/new-feature", result.get("ref").asText(), "Build ref mismatch") },
+                { assertEquals("failed", result.get("status").asText(), "Build status mismatch") },
+                { assertEquals("v1.0.0", result.get("tag").asText(), "Build tag mismatch") },
+                { assertEquals("User Two", result.get("userFullName").asText(), "Build userFullName mismatch") },
+                { assertEquals("user2", result.get("user").asText(), "Build user mismatch") }
+            )
+
+            // Verify commits (should be empty array)
+            val commits = result.get("commits")
+            assertNotNull(commits, "Commits should not be null")
+            assertEquals(0, commits.size(), "Should have 0 commits")
+        }
+    }
+
+    @Nested
+    inner class EdgeCases {
+        @Test
+        fun `should handle non-existent build`() {
+            // Create a test query for a build that doesn't exist in the test data
+            // This should return an error
+            graphQlTester.document("""
+                query {
+                    build(id: "999") {
+                        id
+                        sha
+                        ref
+                    }
+                }
+            """)
+                .execute()
+                .errors()
+                .expect { error ->
+                    error.message?.contains("Build not found with id: 999") ?: false
+                }
+                .verify()
+        }
+    }
+}

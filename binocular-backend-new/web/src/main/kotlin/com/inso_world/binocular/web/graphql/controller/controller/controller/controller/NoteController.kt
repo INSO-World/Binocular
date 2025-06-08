@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.entity.Note
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.NoteService
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,16 +21,16 @@ class NoteController(
 
   @QueryMapping(name = "notes")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Note> {
-    logger.trace("Getting all notes...")
+    logger.info("Getting all notes...")
 
-    GraphQLValidationUtils.validatePagination(page, perPage)
+    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    return noteService.findAll(page, perPage)
+    return noteService.findAll(pageable)
   }
 
   @QueryMapping(name = "note")
   fun findById(@Argument id: String): Note {
-    logger.trace("Getting note by id: $id")
+    logger.info("Getting note by id: $id")
     return GraphQLValidationUtils.requireEntityExists(noteService.findById(id), "Note", id)
   }
 }

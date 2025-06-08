@@ -127,6 +127,8 @@ type File {
   commits: [Commit]
   branches: [Branch]
   modules: [Module]
+  relatedFiles: [File]
+  users: [User]
 }
 
 type Issue {
@@ -217,4 +219,5 @@ type User {
   gitSignature: String
   commits: [Commit]
   issues: [Issue]
+  files: [File]
 }

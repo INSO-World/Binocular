@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.FileService
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,16 +21,16 @@ class FileController(
 
   @QueryMapping(name = "files")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<File> {
-    logger.trace("Getting all files...")
+    logger.info("Getting all files...")
 
-    GraphQLValidationUtils.validatePagination(page, perPage)
+    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    return fileService.findAll(page, perPage)
+    return fileService.findAll(pageable)
   }
 
   @QueryMapping(name = "file")
   fun findById(@Argument id: String): File {
-    logger.trace("Getting file by id: $id")
+    logger.info("Getting file by id: $id")
     return GraphQLValidationUtils.requireEntityExists(fileService.findById(id), "File", id)
   }
 }

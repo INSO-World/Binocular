@@ -1,33 +1,43 @@
 package com.inso_world.binocular.web.service
 
+import com.inso_world.binocular.web.entity.Issue
+import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MilestoneDao
+import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueMilestoneConnectionRepository
+import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestMilestoneConnectionRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
 class MilestoneService(
   @Autowired private val milestoneDao: MilestoneDao,
+  @Autowired private val issueMilestoneConnectionRepository: IssueMilestoneConnectionRepository,
+  @Autowired private val mergeRequestMilestoneConnectionRepository: MergeRequestMilestoneConnectionRepository
 ) {
 
   var logger: Logger = LoggerFactory.getLogger(MilestoneService::class.java)
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Milestone> {
-    logger.trace("Getting all milestones...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
-
+  fun findAll(pageable: Pageable): Iterable<Milestone> {
+    logger.trace("Getting all milestones with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
     return milestoneDao.findAll(pageable)
   }
 
   fun findById(id: String): Milestone? {
     logger.trace("Getting milestone by id: $id")
     return milestoneDao.findById(id)
+  }
+
+  fun findIssuesByMilestoneId(milestoneId: String): List<Issue> {
+    logger.trace("Getting issues for milestone: $milestoneId")
+    return issueMilestoneConnectionRepository.findIssuesByMilestone(milestoneId)
+  }
+
+  fun findMergeRequestsByMilestoneId(milestoneId: String): List<MergeRequest> {
+    logger.trace("Getting merge requests for milestone: $milestoneId")
+    return mergeRequestMilestoneConnectionRepository.findMergeRequestsByMilestone(milestoneId)
   }
 }
