@@ -2,7 +2,6 @@ package com.inso_world.binocular.web.entity
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.inso_world.binocular.web.entity.edge.IssueNoteConnection
 import com.inso_world.binocular.web.entity.edge.MergeRequestNoteConnection
 import com.inso_world.binocular.web.entity.edge.NoteAccountConnection
@@ -28,7 +27,6 @@ data class Note(
     maxDepth = 1,
     direction = Relations.Direction.OUTBOUND
   )
-  @JsonIgnoreProperties(value = ["notes"])
   var accounts: List<Account>? = null,
 
   @Relations(
@@ -37,7 +35,6 @@ data class Note(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["notes"])
   var issues: List<Issue>? = null,
 
   @Relations(
@@ -46,6 +43,5 @@ data class Note(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["notes"])
   var mergeRequests: List<MergeRequest>? = null
 )

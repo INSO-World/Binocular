@@ -2,7 +2,6 @@ package com.inso_world.binocular.web.entity
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.inso_world.binocular.web.entity.edge.CommitFileUserConnection
 import com.inso_world.binocular.web.entity.edge.CommitUserConnection
 import com.inso_world.binocular.web.entity.edge.IssueUserConnection
@@ -20,7 +19,6 @@ data class User(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["users"])
   var commits: List<Commit>? = null,
 
   @Relations(
@@ -29,7 +27,6 @@ data class User(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["users"])
   var issues: List<Issue>? = null,
 
   @Relations(
@@ -38,6 +35,5 @@ data class User(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["users"])
   var files: List<File>? = null
 )

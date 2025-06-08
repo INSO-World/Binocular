@@ -2,14 +2,11 @@ package com.inso_world.binocular.web.entity
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.inso_world.binocular.web.entity.edge.CommitBuildConnection
 import org.springframework.data.annotation.Id
 import java.util.*
 
 @Document("builds")
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class Build(
   @Id
   var id: String? = null,
@@ -34,7 +31,6 @@ data class Build(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["builds"])
   var commits: List<Commit>? = null
 ) {
   data class Job(

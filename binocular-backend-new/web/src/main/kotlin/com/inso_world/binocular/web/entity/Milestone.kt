@@ -2,7 +2,6 @@ package com.inso_world.binocular.web.entity
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.inso_world.binocular.web.entity.edge.IssueMilestoneConnection
 import com.inso_world.binocular.web.entity.edge.MergeRequestMilestoneConnection
 import org.springframework.data.annotation.Id
@@ -29,7 +28,6 @@ data class Milestone(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["milestones"])
   var issues: List<Issue>? = null,
 
   @Relations(
@@ -38,6 +36,5 @@ data class Milestone(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["milestones"])
   var mergeRequests: List<MergeRequest>? = null
 )
