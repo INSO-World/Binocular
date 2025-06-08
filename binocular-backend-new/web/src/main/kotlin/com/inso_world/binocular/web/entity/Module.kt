@@ -2,7 +2,6 @@ package com.inso_world.binocular.web.entity
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.inso_world.binocular.web.entity.edge.CommitModuleConnection
 import com.inso_world.binocular.web.entity.edge.ModuleFileConnection
 import com.inso_world.binocular.web.entity.edge.ModuleModuleConnection
@@ -20,7 +19,6 @@ data class Module(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["modules"])
   var commits: List<Commit>? = null,
 
   @Relations(
@@ -29,7 +27,6 @@ data class Module(
     maxDepth = 1,
     direction = Relations.Direction.OUTBOUND
   )
-  @JsonIgnoreProperties(value = ["modules"])
   var files: List<File>? = null,
 
   @Relations(
@@ -38,7 +35,6 @@ data class Module(
     maxDepth = 1,
     direction = Relations.Direction.OUTBOUND
   )
-  @JsonIgnoreProperties(value = ["parentModules", "childModules"])
   var childModules: List<Module>? = null,
 
   @Relations(
@@ -47,6 +43,5 @@ data class Module(
     maxDepth = 1,
     direction = Relations.Direction.INBOUND
   )
-  @JsonIgnoreProperties(value = ["parentModules", "childModules"])
   var parentModules: List<Module>? = null
 )

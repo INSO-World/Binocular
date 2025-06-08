@@ -2,8 +2,6 @@ package com.inso_world.binocular.web.entity
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.inso_world.binocular.web.entity.edge.MergeRequestAccountConnection
 import com.inso_world.binocular.web.entity.edge.MergeRequestMilestoneConnection
 import com.inso_world.binocular.web.entity.edge.MergeRequestNoteConnection
@@ -32,7 +30,6 @@ data class MergeRequest(
     maxDepth = 1,
     direction = Relations.Direction.OUTBOUND
   )
-  @JsonIgnoreProperties(value = ["mergeRequests"])
   var accounts: List<Account>? = null,
 
   @Relations(
@@ -41,7 +38,6 @@ data class MergeRequest(
     maxDepth = 1,
     direction = Relations.Direction.OUTBOUND
   )
-  @JsonIgnoreProperties(value = ["mergeRequests"])
   var milestones: List<Milestone>? = null,
 
   @Relations(
@@ -50,6 +46,5 @@ data class MergeRequest(
     maxDepth = 1,
     direction = Relations.Direction.OUTBOUND
   )
-  @JsonIgnoreProperties(value = ["mergeRequests"])
   var notes: List<Note>? = null
 )
