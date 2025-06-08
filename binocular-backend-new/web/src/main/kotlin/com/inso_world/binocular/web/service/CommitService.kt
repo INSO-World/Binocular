@@ -1,77 +1,82 @@
 package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.*
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.CommitDao
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitCommitConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitModuleConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueCommitConnectionRepository
-import com.inso_world.binocular.web.service.interfaces.CommitServiceInterface
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class CommitService(
-  @Autowired private val commitDao: CommitDao,
-  @Autowired private val commitBuildConnectionRepository: CommitBuildConnectionRepository,
-  @Autowired private val commitCommitConnectionRepository: CommitCommitConnectionRepository,
-  @Autowired private val commitFileConnectionRepository: CommitFileConnectionRepository,
-  @Autowired private val commitModuleConnectionRepository: CommitModuleConnectionRepository,
-  @Autowired private val commitUserConnectionRepository: CommitUserConnectionRepository,
-  @Autowired private val issueCommitConnectionRepository: IssueCommitConnectionRepository
-) : CommitServiceInterface {
+/**
+ * Interface for CommitService.
+ * Provides methods to retrieve commits and their related entities.
+ */
+interface CommitService {
+    /**
+     * Find all commits with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Iterable of commits
+     */
+    fun findAll(pageable: Pageable): Iterable<Commit>
 
-  var logger: Logger = LoggerFactory.getLogger(CommitService::class.java)
+    /**
+     * Find a commit by ID.
+     *
+     * @param id The ID of the commit to find
+     * @return The commit if found, null otherwise
+     */
+    fun findById(id: String): Commit?
 
+    /**
+     * Find builds by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of builds associated with the commit
+     */
+    fun findBuildsByCommitId(commitId: String): List<Build>
 
-  override fun findAll(pageable: Pageable): Iterable<Commit> {
-    logger.trace("Getting all commits with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
-    return commitDao.findAll(pageable)
-  }
+    /**
+     * Find files by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of files associated with the commit
+     */
+    fun findFilesByCommitId(commitId: String): List<File>
 
-  override fun findById(id: String): Commit? {
-    logger.trace("Getting commit by id: $id")
-    return commitDao.findById(id)
-  }
+    /**
+     * Find modules by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of modules associated with the commit
+     */
+    fun findModulesByCommitId(commitId: String): List<Module>
 
-  override fun findBuildsByCommitId(commitId: String): List<Build> {
-    logger.trace("Getting builds for commit: $commitId")
-    return commitBuildConnectionRepository.findBuildsByCommit(commitId)
-  }
+    /**
+     * Find users by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of users associated with the commit
+     */
+    fun findUsersByCommitId(commitId: String): List<User>
 
-  override fun findFilesByCommitId(commitId: String): List<File> {
-    logger.trace("Getting files for commit: $commitId")
-    return commitFileConnectionRepository.findFilesByCommit(commitId)
-  }
+    /**
+     * Find issues by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of issues associated with the commit
+     */
+    fun findIssuesByCommitId(commitId: String): List<Issue>
 
-  override fun findModulesByCommitId(commitId: String): List<Module> {
-    logger.trace("Getting modules for commit: $commitId")
-    return commitModuleConnectionRepository.findModulesByCommit(commitId)
-  }
+    /**
+     * Find parent commits by child commit ID.
+     *
+     * @param childCommitId The ID of the child commit
+     * @return List of parent commits
+     */
+    fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit>
 
-  override fun findUsersByCommitId(commitId: String): List<User> {
-    logger.trace("Getting users for commit: $commitId")
-    return commitUserConnectionRepository.findUsersByCommit(commitId)
-  }
-
-  override fun findIssuesByCommitId(commitId: String): List<Issue> {
-    logger.trace("Getting issues for commit: $commitId")
-    return issueCommitConnectionRepository.findIssuesByCommit(commitId)
-  }
-
-  override fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit> {
-    logger.trace("Getting parent commits for child commit: $childCommitId")
-    return commitCommitConnectionRepository.findParentCommitsByChildCommit(childCommitId)
-  }
-
-  override fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit> {
-    logger.trace("Getting child commits for parent commit: $parentCommitId")
-    return commitCommitConnectionRepository.findChildCommitsByParentCommit(parentCommitId)
-  }
-
+    /**
+     * Find child commits by parent commit ID.
+     *
+     * @param parentCommitId The ID of the parent commit
+     * @return List of child commits
+     */
+    fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit>
 }

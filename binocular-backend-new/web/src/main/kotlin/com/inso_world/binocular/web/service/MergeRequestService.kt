@@ -4,49 +4,50 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MergeRequestDao
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestAccountConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestMilestoneConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestNoteConnectionRepository
-import com.inso_world.binocular.web.service.interfaces.MergeRequestServiceInterface
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class MergeRequestService(
-  @Autowired private val mergeRequestDao: MergeRequestDao,
-  @Autowired private val mergeRequestAccountConnectionRepository: MergeRequestAccountConnectionRepository,
-  @Autowired private val mergeRequestMilestoneConnectionRepository: MergeRequestMilestoneConnectionRepository,
-  @Autowired private val mergeRequestNoteConnectionRepository: MergeRequestNoteConnectionRepository
-) : MergeRequestServiceInterface {
+/**
+ * Interface for MergeRequestService.
+ * Provides methods to retrieve merge requests and their related entities.
+ */
+interface MergeRequestService {
+    /**
+     * Find all merge requests with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Iterable of merge requests
+     */
+    fun findAll(pageable: Pageable): Iterable<MergeRequest>
 
-  var logger: Logger = LoggerFactory.getLogger(MergeRequestService::class.java)
+    /**
+     * Find a merge request by ID.
+     *
+     * @param id The ID of the merge request to find
+     * @return The merge request if found, null otherwise
+     */
+    fun findById(id: String): MergeRequest?
 
-  override fun findAll(pageable: Pageable): Iterable<MergeRequest> {
-    logger.trace("Getting all merge requests with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
-    return mergeRequestDao.findAll(pageable)
-  }
+    /**
+     * Find accounts by merge request ID.
+     *
+     * @param mergeRequestId The ID of the merge request
+     * @return List of accounts associated with the merge request
+     */
+    fun findAccountsByMergeRequestId(mergeRequestId: String): List<Account>
 
-  override fun findById(id: String): MergeRequest? {
-    logger.trace("Getting merge request by id: $id")
-    return mergeRequestDao.findById(id)
-  }
+    /**
+     * Find milestones by merge request ID.
+     *
+     * @param mergeRequestId The ID of the merge request
+     * @return List of milestones associated with the merge request
+     */
+    fun findMilestonesByMergeRequestId(mergeRequestId: String): List<Milestone>
 
-  override fun findAccountsByMergeRequestId(mergeRequestId: String): List<Account> {
-    logger.trace("Getting accounts for merge request: $mergeRequestId")
-    return mergeRequestAccountConnectionRepository.findAccountsByMergeRequest(mergeRequestId)
-  }
-
-  override fun findMilestonesByMergeRequestId(mergeRequestId: String): List<Milestone> {
-    logger.trace("Getting milestones for merge request: $mergeRequestId")
-    return mergeRequestMilestoneConnectionRepository.findMilestonesByMergeRequest(mergeRequestId)
-  }
-
-  override fun findNotesByMergeRequestId(mergeRequestId: String): List<Note> {
-    logger.trace("Getting notes for merge request: $mergeRequestId")
-    return mergeRequestNoteConnectionRepository.findNotesByMergeRequest(mergeRequestId)
-  }
+    /**
+     * Find notes by merge request ID.
+     *
+     * @param mergeRequestId The ID of the merge request
+     * @return List of notes associated with the merge request
+     */
+    fun findNotesByMergeRequestId(mergeRequestId: String): List<Note>
 }

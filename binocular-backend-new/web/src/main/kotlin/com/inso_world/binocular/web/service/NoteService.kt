@@ -4,49 +4,50 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.NoteDao
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueNoteConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestNoteConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.NoteAccountConnectionRepository
-import com.inso_world.binocular.web.service.interfaces.NoteServiceInterface
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class NoteService(
-  @Autowired private val noteDao: NoteDao,
-  @Autowired private val noteAccountConnectionRepository: NoteAccountConnectionRepository,
-  @Autowired private val issueNoteConnectionRepository: IssueNoteConnectionRepository,
-  @Autowired private val mergeRequestNoteConnectionRepository: MergeRequestNoteConnectionRepository
-) : NoteServiceInterface {
+/**
+ * Interface for NoteService.
+ * Provides methods to retrieve notes and their related entities.
+ */
+interface NoteService {
+    /**
+     * Find all notes with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Iterable of notes
+     */
+    fun findAll(pageable: Pageable): Iterable<Note>
 
-  var logger: Logger = LoggerFactory.getLogger(NoteService::class.java)
+    /**
+     * Find a note by ID.
+     *
+     * @param id The ID of the note to find
+     * @return The note if found, null otherwise
+     */
+    fun findById(id: String): Note?
 
-  override fun findAll(pageable: Pageable): Iterable<Note> {
-    logger.trace("Getting all notes with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
-    return noteDao.findAll(pageable)
-  }
+    /**
+     * Find accounts by note ID.
+     *
+     * @param noteId The ID of the note
+     * @return List of accounts associated with the note
+     */
+    fun findAccountsByNoteId(noteId: String): List<Account>
 
-  override fun findById(id: String): Note? {
-    logger.trace("Getting note by id: $id")
-    return noteDao.findById(id)
-  }
+    /**
+     * Find issues by note ID.
+     *
+     * @param noteId The ID of the note
+     * @return List of issues associated with the note
+     */
+    fun findIssuesByNoteId(noteId: String): List<Issue>
 
-  override fun findAccountsByNoteId(noteId: String): List<Account> {
-    logger.trace("Getting accounts for note: $noteId")
-    return noteAccountConnectionRepository.findAccountsByNote(noteId)
-  }
-
-  override fun findIssuesByNoteId(noteId: String): List<Issue> {
-    logger.trace("Getting issues for note: $noteId")
-    return issueNoteConnectionRepository.findIssuesByNote(noteId)
-  }
-
-  override fun findMergeRequestsByNoteId(noteId: String): List<MergeRequest> {
-    logger.trace("Getting merge requests for note: $noteId")
-    return mergeRequestNoteConnectionRepository.findMergeRequestsByNote(noteId)
-  }
+    /**
+     * Find merge requests by note ID.
+     *
+     * @param noteId The ID of the note
+     * @return List of merge requests associated with the note
+     */
+    fun findMergeRequestsByNoteId(noteId: String): List<MergeRequest>
 }
