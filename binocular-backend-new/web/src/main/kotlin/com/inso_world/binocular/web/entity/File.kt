@@ -5,7 +5,9 @@ import com.arangodb.springframework.annotation.Relations
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.inso_world.binocular.web.entity.edge.BranchFileConnection
+import com.inso_world.binocular.web.entity.edge.BranchFileFileConnection
 import com.inso_world.binocular.web.entity.edge.CommitFileConnection
+import com.inso_world.binocular.web.entity.edge.CommitFileUserConnection
 import com.inso_world.binocular.web.entity.edge.ModuleFileConnection
 import org.springframework.data.annotation.Id
 
@@ -43,5 +45,23 @@ data class File(
     direction = Relations.Direction.INBOUND
   )
   @JsonIgnoreProperties(value = ["files"])
-  var modules: List<Module>? = null
+  var modules: List<Module>? = null,
+
+  @Relations(
+    edges = [BranchFileFileConnection::class],
+    lazy = true,
+    maxDepth = 1,
+    direction = Relations.Direction.OUTBOUND
+  )
+  @JsonIgnoreProperties(value = ["relatedFiles"])
+  var relatedFiles: List<File>? = null,
+
+  @Relations(
+    edges = [CommitFileUserConnection::class],
+    lazy = true,
+    maxDepth = 1,
+    direction = Relations.Direction.OUTBOUND
+  )
+  @JsonIgnoreProperties(value = ["files"])
+  var users: List<User>? = null
 )

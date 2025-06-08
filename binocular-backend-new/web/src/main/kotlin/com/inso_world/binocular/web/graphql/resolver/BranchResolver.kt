@@ -2,18 +2,22 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileConnectionRepository
+import com.inso_world.binocular.web.service.BranchService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
 @Controller
 class BranchResolver(
-    private val branchFileConnectionRepository: BranchFileConnectionRepository
+    private val branchService: BranchService
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(BranchResolver::class.java)
     @SchemaMapping(typeName = "Branch", field = "files")
     fun files(branch: Branch): List<File> {
         val id = branch.id ?: return emptyList()
+        logger.info("Resolving files for branch: $id")
         // Get all files for this branch
-        return branchFileConnectionRepository.findFilesByBranch(id)
+        return branchService.findFilesByBranchId(id)
     }
 }

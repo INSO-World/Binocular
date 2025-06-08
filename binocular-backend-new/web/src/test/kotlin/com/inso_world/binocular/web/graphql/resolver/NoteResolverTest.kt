@@ -1,0 +1,204 @@
+package com.inso_world.binocular.web.graphql.resolver
+
+import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.web.BaseDbTest
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+
+/**
+ * Test class for verifying the Note resolver functionality.
+ * This class extends BaseDbTest to leverage the test data setup.
+ */
+class NoteResolverTest : BaseDbTest() {
+
+    @Nested
+    inner class BasicFunctionality {
+        @Test
+        fun `should retrieve note with all fields`() {
+            // Test data is set up in BaseDbTest
+            val result: JsonNode = graphQlTester.document("""
+                query {
+                    note(id: "1") {
+                        id
+                        body
+                        createdAt
+                        updatedAt
+                        system
+                        resolvable
+                        internal
+                        confidential
+                        imported
+                        importedFrom
+                    }
+                }
+            """)
+                .execute()
+                .path("note")
+                .entity(JsonNode::class.java)
+                .get()
+
+            // Verify note data
+            assertAll(
+                { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
+                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") },
+                { assertEquals("2023-01-01T10:00:00Z", result.get("createdAt").asText(), "Note createdAt mismatch") },
+                { assertEquals("2023-01-01T10:00:00Z", result.get("updatedAt").asText(), "Note updatedAt mismatch") },
+                { assertEquals(false, result.get("system").asBoolean(), "Note system mismatch") },
+                { assertEquals(true, result.get("resolvable").asBoolean(), "Note resolvable mismatch") },
+                { assertEquals(false, result.get("internal").asBoolean(), "Note internal mismatch") },
+                { assertEquals(false, result.get("confidential").asBoolean(), "Note confidential mismatch") },
+                { assertEquals(false, result.get("imported").asBoolean(), "Note imported mismatch") },
+                { assertEquals("gitlab", result.get("importedFrom").asText(), "Note importedFrom mismatch") }
+            )
+        }
+    }
+
+    @Nested
+    inner class RelationshipTests {
+        @Test
+        fun `should retrieve note with related accounts`() {
+            // Test data is set up in BaseDbTest
+            val result: JsonNode = graphQlTester.document("""
+                query {
+                    note(id: "1") {
+                        id
+                        body
+                        accounts {
+                            id
+                            platform
+                            login
+                            name
+                        }
+                    }
+                }
+            """)
+                .execute()
+                .path("note")
+                .entity(JsonNode::class.java)
+                .get()
+
+            // Verify note data
+            assertAll(
+                { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
+                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") }
+            )
+
+            // Verify accounts
+            val accounts = result.get("accounts")
+            assertNotNull(accounts, "Accounts should not be null")
+            assertEquals(1, accounts.size(), "Should have 1 account")
+
+            val account = accounts.get(0)
+            assertAll(
+                { assertEquals("1", account.get("id").asText(), "Account ID mismatch") },
+                { assertEquals("GitHub", account.get("platform").asText(), "Account platform mismatch") },
+                { assertEquals("user1", account.get("login").asText(), "Account login mismatch") },
+                { assertEquals("User One", account.get("name").asText(), "Account name mismatch") }
+            )
+        }
+
+        @Test
+        fun `should retrieve note with related issues`() {
+            // Test data is set up in BaseDbTest
+            val result: JsonNode = graphQlTester.document("""
+                query {
+                    note(id: "1") {
+                        id
+                        body
+                        issues {
+                            id
+                            iid
+                            title
+                        }
+                    }
+                }
+            """)
+                .execute()
+                .path("note")
+                .entity(JsonNode::class.java)
+                .get()
+
+            // Verify note data
+            assertAll(
+                { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
+                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") }
+            )
+
+            // Verify issues
+            val issues = result.get("issues")
+            assertNotNull(issues, "Issues should not be null")
+            assertEquals(1, issues.size(), "Should have 1 issue")
+
+            val issue = issues.get(0)
+            assertAll(
+                { assertEquals("1", issue.get("id").asText(), "Issue ID mismatch") },
+                { assertEquals(101, issue.get("iid").asInt(), "Issue IID mismatch") },
+                { assertEquals("Fix bug in login flow", issue.get("title").asText(), "Issue title mismatch") }
+            )
+        }
+
+        @Test
+        fun `should retrieve note with related merge requests`() {
+            // Test data is set up in BaseDbTest
+            val result: JsonNode = graphQlTester.document("""
+                query {
+                    note(id: "1") {
+                        id
+                        body
+                        mergeRequests {
+                            id
+                            iid
+                            title
+                        }
+                    }
+                }
+            """)
+                .execute()
+                .path("note")
+                .entity(JsonNode::class.java)
+                .get()
+
+            // Verify note data
+            assertAll(
+                { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
+                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") }
+            )
+
+            // Verify merge requests
+            val mergeRequests = result.get("mergeRequests")
+            assertNotNull(mergeRequests, "Merge requests should not be null")
+            assertEquals(1, mergeRequests.size(), "Should have 1 merge request")
+
+            val mergeRequest = mergeRequests.get(0)
+            assertAll(
+                { assertEquals("1", mergeRequest.get("id").asText(), "Merge request ID mismatch") },
+                { assertEquals(201, mergeRequest.get("iid").asInt(), "Merge request IID mismatch") },
+                { assertEquals("Implement user authentication", mergeRequest.get("title").asText(), "Merge request title mismatch") }
+            )
+        }
+    }
+
+    @Nested
+    inner class EdgeCases {
+        @Test
+        fun `should handle non-existent note`() {
+            // Create a test query for a note that doesn't exist in the test data
+            // This should return an error
+            graphQlTester.document("""
+                query {
+                    note(id: "999") {
+                        id
+                        body
+                    }
+                }
+            """)
+                .execute()
+                .errors()
+                .expect { error ->
+                    error.message?.contains("Note not found with id: 999") ?: false
+                }
+                .verify()
+        }
+    }
+}

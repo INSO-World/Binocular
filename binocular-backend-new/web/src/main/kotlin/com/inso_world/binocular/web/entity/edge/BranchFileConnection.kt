@@ -7,9 +7,9 @@ import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.entity.File
 import org.springframework.data.annotation.Id
 
-@Edge(value = "`branches-files`")
+@Edge(value = "branches-files")
 data class BranchFileConnection(
   @Id var id: String? = null,
-  @From var from: Branch? = null,
-  @To var to: File? = null
+  @From var from: Branch,
+  @To var to: File
 )

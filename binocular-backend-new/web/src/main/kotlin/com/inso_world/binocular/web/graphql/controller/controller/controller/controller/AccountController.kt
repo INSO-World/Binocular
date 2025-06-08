@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.AccountService
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,16 +21,16 @@ class AccountController(
 
   @QueryMapping(name = "accounts")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Account> {
-    logger.trace("Getting all accounts...")
+    logger.info("Getting all accounts...")
 
-    GraphQLValidationUtils.validatePagination(page, perPage)
+    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    return accountService.findAll(page, perPage)
+    return accountService.findAll(pageable)
   }
 
   @QueryMapping(name = "account")
   fun findById(@Argument id: String): Account {
-    logger.trace("Getting account by id: $id")
+    logger.info("Getting account by id: $id")
     return GraphQLValidationUtils.requireEntityExists(accountService.findById(id), "Account", id)
   }
 }

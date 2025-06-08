@@ -3,31 +3,23 @@ package com.inso_world.binocular.web.service
 import com.inso_world.binocular.web.entity.Build
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BuildDao
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
 class BuildService(
   @Autowired private val buildDao: BuildDao,
-  @Autowired private val commitDao: CommitDao,
   @Autowired private val commitBuildConnectionRepository: CommitBuildConnectionRepository,
 ) {
 
   var logger: Logger = LoggerFactory.getLogger(BuildService::class.java)
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Build> {
-    logger.trace("Getting all builds...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
-
+  fun findAll(pageable: Pageable): Iterable<Build> {
+    logger.trace("Getting all builds with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
     return buildDao.findAll(pageable)
   }
 
@@ -38,9 +30,6 @@ class BuildService(
 
   fun findCommitsByBuildId(buildId: String): List<Commit> {
     logger.trace("Getting commits for build: $buildId")
-    return commitBuildConnectionRepository.findAll()
-      .filter { it.to == "builds/$buildId" }
-      .mapNotNull { it.from?.removePrefix("commits/") }
-      .mapNotNull { commitDao.findById(it) }
+    return commitBuildConnectionRepository.findCommitsByBuild(buildId)
   }
 }

@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.MilestoneService
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,16 +21,16 @@ class MilestoneController(
 
   @QueryMapping(name = "milestones")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Milestone> {
-    logger.trace("Getting all milestones...")
+    logger.info("Getting all milestones...")
 
-    GraphQLValidationUtils.validatePagination(page, perPage)
+    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    return milestoneService.findAll(page, perPage)
+    return milestoneService.findAll(pageable)
   }
 
   @QueryMapping(name = "milestone")
   fun findById(@Argument id: String): Milestone {
-    logger.trace("Getting milestone by id: $id")
+    logger.info("Getting milestone by id: $id")
     return GraphQLValidationUtils.requireEntityExists(milestoneService.findById(id), "Milestone", id)
   }
 }

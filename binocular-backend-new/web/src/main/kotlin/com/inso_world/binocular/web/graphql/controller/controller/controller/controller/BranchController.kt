@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.BranchService
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,16 +21,16 @@ class BranchController(
 
   @QueryMapping(name = "branches")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Branch> {
-    logger.trace("Getting all branches...")
+    logger.info("Getting all branches...")
 
-    GraphQLValidationUtils.validatePagination(page, perPage)
+    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    return branchService.findAll(page, perPage)
+    return branchService.findAll(pageable)
   }
 
   @QueryMapping(name = "branch")
   fun findById(@Argument id: String): Branch {
-    logger.trace("Getting branch by id: $id")
+    logger.info("Getting branch by id: $id")
     return GraphQLValidationUtils.requireEntityExists(branchService.findById(id), "Branch", id)
   }
 }

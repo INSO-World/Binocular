@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.entity.Build
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.service.BuildService
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,16 +21,16 @@ class BuildController(
 
   @QueryMapping(name = "builds")
   fun findAll(@Argument page: Int?, @Argument perPage: Int?): Iterable<Build> {
-    logger.trace("Getting all builds...")
+    logger.info("Getting all builds...")
 
-    GraphQLValidationUtils.validatePagination(page, perPage)
+    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    return buildService.findAll(page, perPage)
+    return buildService.findAll(pageable)
   }
 
   @QueryMapping(name = "build")
   fun findById(@Argument id: String): Build {
-    logger.trace("Getting build by id: $id")
+    logger.info("Getting build by id: $id")
     return GraphQLValidationUtils.requireEntityExists(buildService.findById(id), "Build", id)
   }
 }
