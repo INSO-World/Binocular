@@ -8,6 +8,7 @@ import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.AccountDao
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.NoteAccountConnectionRepository
+import com.inso_world.binocular.web.service.interfaces.AccountServiceInterface
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,31 +21,31 @@ class AccountService(
   @Autowired private val issueAccountConnectionRepository: IssueAccountConnectionRepository,
   @Autowired private val mergeRequestAccountConnectionRepository: MergeRequestAccountConnectionRepository,
   @Autowired private val noteAccountConnectionRepository: NoteAccountConnectionRepository
-) {
+) : AccountServiceInterface {
 
   var logger: Logger = LoggerFactory.getLogger(AccountService::class.java)
 
-  fun findAll(pageable: Pageable): Iterable<Account> {
+  override fun findAll(pageable: Pageable): Iterable<Account> {
     logger.trace("Getting all accounts with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
     return accountDao.findAll(pageable)
   }
 
-  fun findById(id: String): Account? {
+  override fun findById(id: String): Account? {
     logger.trace("Getting account by id: $id")
     return accountDao.findById(id)
   }
 
-  fun findIssuesByAccountId(accountId: String): List<Issue> {
+  override fun findIssuesByAccountId(accountId: String): List<Issue> {
     logger.trace("Getting issues for account: $accountId")
     return issueAccountConnectionRepository.findIssuesByAccount(accountId)
   }
 
-  fun findMergeRequestsByAccountId(accountId: String): List<MergeRequest> {
+  override fun findMergeRequestsByAccountId(accountId: String): List<MergeRequest> {
     logger.trace("Getting merge requests for account: $accountId")
     return mergeRequestAccountConnectionRepository.findMergeRequestsByAccount(accountId)
   }
 
-  fun findNotesByAccountId(accountId: String): List<Note> {
+  override fun findNotesByAccountId(accountId: String): List<Note> {
     logger.trace("Getting notes for account: $accountId")
     return noteAccountConnectionRepository.findNotesByAccount(accountId)
   }
