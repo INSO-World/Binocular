@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -15,9 +16,9 @@ interface AccountService {
      * Find all accounts with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of accounts
+     * @return Page of accounts
      */
-    fun findAll(pageable: Pageable): Iterable<Account>
+    fun findAll(pageable: Pageable): Page<Account>
 
     /**
      * Find an account by ID.

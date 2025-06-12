@@ -16,7 +16,6 @@ class IssueResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve issue with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     issue(id: "1") {
@@ -54,7 +53,6 @@ class IssueResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve issue with related accounts`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     issue(id: "1") {
@@ -104,7 +102,6 @@ class IssueResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve issue with related commits`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     issue(id: "1") {
@@ -146,7 +143,6 @@ class IssueResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve issue with related milestones`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     issue(id: "1") {
@@ -190,7 +186,6 @@ class IssueResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve issue with related notes`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     issue(id: "1") {
@@ -230,7 +225,6 @@ class IssueResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve issue with related users`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     issue(id: "1") {

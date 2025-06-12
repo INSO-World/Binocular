@@ -16,7 +16,6 @@ class UserResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve user with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     user(id: "1") {
@@ -42,7 +41,6 @@ class UserResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve user with related commits`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     user(id: "1") {
@@ -82,7 +80,6 @@ class UserResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve user with related issues`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     user(id: "1") {
@@ -122,7 +119,6 @@ class UserResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve user with related files`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     user(id: "1") {

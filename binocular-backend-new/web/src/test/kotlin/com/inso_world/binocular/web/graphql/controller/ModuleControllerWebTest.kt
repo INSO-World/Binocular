@@ -1,8 +1,10 @@
 package com.inso_world.binocular.web.graphql.controller
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.entity.Module
 import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -17,42 +19,49 @@ class ModuleControllerWebTest : BaseDbTest() {
   inner class BasicFunctionality {
     @Test
     fun `should return all modules`() {
-        // Test data is set up in BaseDbTest
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 modules(page: 1, perPage: 100) {
-                    id
-                    path
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                    }
                 }
             }
         """)
         .execute()
         .path("modules")
-        .entityList(Module::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
         // Get the modules from the result
-        val modules = result.get()
+        val modulesData = result.get("data")
+        assertEquals(2, modulesData.size(), "Expected 2 modules, but got ${modulesData.size()}")
 
         // Check that the modules match the test data
         testModules.forEachIndexed { index, expectedModule ->
-            val actualModule = modules[index]
+            val actualModule = modulesData.get(index)
 
             assertAll(
-                { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
-                { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+                { assertEquals(expectedModule.id, actualModule.get("id").asText(), "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.get("id").asText()}") },
+                { assertEquals(expectedModule.path, actualModule.get("path").asText(), "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.get("path").asText()}") }
             )
         }
     }
 
     @Test
     fun `should return module by id`() {
-        // Test data is set up in BaseDbTest
         val expectedModule = testModules.first { it.id == "1" }
 
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 module(id: "1") {
                     id
@@ -62,17 +71,13 @@ class ModuleControllerWebTest : BaseDbTest() {
         """)
         .execute()
         .path("module")
-
-        // Check that the module exists
-        result.hasValue()
-
-        // Get the module from the result
-        val actualModule = result.entity(Module::class.java).get()
+        .entity(JsonNode::class.java)
+        .get()
 
         // Check that the module matches the test data
         assertAll(
-            { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
-            { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+            { assertEquals(expectedModule.id, result.get("id").asText(), "Module ID mismatch: expected ${expectedModule.id}, got ${result.get("id").asText()}") },
+            { assertEquals(expectedModule.path, result.get("path").asText(), "Module path mismatch: expected ${expectedModule.path}, got ${result.get("path").asText()}") }
         )
     }
   }
@@ -82,82 +87,144 @@ class ModuleControllerWebTest : BaseDbTest() {
     @Test
     fun `should return modules with pagination`() {
         // Test with page=1, perPage=1 (should return only the first module)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 modules(page: 1, perPage: 1) {
-                    id
-                    path
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                    }
                 }
             }
         """)
         .execute()
         .path("modules")
-        .entityList(Module::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the modules from the result
-        val modules = result.get()
+        val modulesData = result.get("data")
+        assertEquals(1, modulesData.size(), "Expected 1 module, but got ${modulesData.size()}")
 
         // Check that the module matches the first test module
         val expectedModule = testModules.first()
-        val actualModule = modules.first()
+        val actualModule = modulesData.get(0)
 
         assertAll(
-            { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
-            { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+            { assertEquals(expectedModule.id, actualModule.get("id").asText(), "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.get("id").asText()}") },
+            { assertEquals(expectedModule.path, actualModule.get("path").asText(), "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.get("path").asText()}") }
         )
     }
 
     @Test
     fun `should handle null pagination parameters`() {
         // Test with null page and perPage parameters (should use defaults)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 modules {
-                    id
-                    path
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                    }
                 }
             }
         """)
         .execute()
         .path("modules")
-        .entityList(Module::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size (should return all modules with default pagination)
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
+        assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
+
+        // Get the modules from the result
+        val modulesData = result.get("data")
+        assertEquals(2, modulesData.size(), "Expected 2 modules, but got ${modulesData.size()}")
     }
 
     @Test
     fun `should return second page of modules`() {
         // Test with page=2, perPage=1 (should return only the second module)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 modules(page: 2, perPage: 1) {
-                    id
-                    path
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                    }
                 }
             }
         """)
         .execute()
         .path("modules")
-        .entityList(Module::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the modules from the result
-        val modules = result.get()
+        val modulesData = result.get("data")
+        assertEquals(1, modulesData.size(), "Expected 1 module, but got ${modulesData.size()}")
 
         // Check that the module matches the second test module
         val expectedModule = testModules[1]
-        val actualModule = modules.first()
+        val actualModule = modulesData.get(0)
 
         assertAll(
-            { assert(actualModule.id == expectedModule.id) { "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.id}" } },
-            { assert(actualModule.path == expectedModule.path) { "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.path}" } }
+            { assertEquals(expectedModule.id, actualModule.get("id").asText(), "Module ID mismatch: expected ${expectedModule.id}, got ${actualModule.get("id").asText()}") },
+            { assertEquals(expectedModule.path, actualModule.get("path").asText(), "Module path mismatch: expected ${expectedModule.path}, got ${actualModule.get("path").asText()}") }
         )
+    }
+
+    @Test
+    fun `should return empty list for page beyond available data`() {
+      val result: JsonNode = graphQlTester.document(
+        """
+              query {
+                  modules(page: 3, perPage: 1) {
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          path
+                      }
+                  }
+              }
+          """
+      )
+        .execute()
+        .path("modules")
+        .entity(JsonNode::class.java)
+        .get()
+
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
+
+      // Get the modules from the result
+      val modulesData = result.get("data")
+      assertEquals(0, modulesData.size(), "Expected 0 modules on page beyond available data, but got ${modulesData.size()}")
     }
   }
 
@@ -190,8 +257,13 @@ class ModuleControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 modules(page: 0, perPage: 10) {
-                    id
-                    path
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                    }
                 }
             }
         """)
@@ -206,8 +278,13 @@ class ModuleControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 modules(page: 1, perPage: 0) {
-                    id
-                    path
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                    }
                 }
             }
         """)

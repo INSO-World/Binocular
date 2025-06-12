@@ -5,6 +5,7 @@ import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MergeRequestDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestMilestoneConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestNoteConnectionRepository
@@ -25,8 +26,8 @@ class MergeRequestServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(MergeRequestServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<MergeRequest> {
-    logger.trace("Getting all merge requests with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<MergeRequest> {
+    logger.trace("Getting all merge requests with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return mergeRequestDao.findAll(pageable)
   }
 

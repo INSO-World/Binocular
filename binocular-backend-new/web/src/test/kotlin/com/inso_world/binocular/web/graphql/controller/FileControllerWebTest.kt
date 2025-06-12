@@ -1,8 +1,10 @@
 package com.inso_world.binocular.web.graphql.controller
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.entity.File
 import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -17,46 +19,53 @@ class FileControllerWebTest : BaseDbTest() {
   inner class BasicFunctionality {
     @Test
     fun `should return all files`() {
-        // Test data is set up in BaseDbTest
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 files(page: 1, perPage: 100) {
-                    id
-                    path
-                    webUrl
-                    maxLength
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                        webUrl
+                        maxLength
+                    }
                 }
             }
         """)
         .execute()
         .path("files")
-        .entityList(File::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
         // Get the files from the result
-        val files = result.get()
+        val filesData = result.get("data")
+        assertEquals(2, filesData.size(), "Expected 2 files, but got ${filesData.size()}")
 
         // Check that the files match the test data
         testFiles.forEachIndexed { index, expectedFile ->
-            val actualFile = files[index]
+            val actualFile = filesData.get(index)
 
             assertAll(
-                { assert(actualFile.id == expectedFile.id) { "File ID mismatch: expected ${expectedFile.id}, got ${actualFile.id}" } },
-                { assert(actualFile.path == expectedFile.path) { "File path mismatch: expected ${expectedFile.path}, got ${actualFile.path}" } },
-                { assert(actualFile.webUrl == expectedFile.webUrl) { "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.webUrl}" } },
-                { assert(actualFile.maxLength == expectedFile.maxLength) { "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.maxLength}" } }
+                { assertEquals(expectedFile.id, actualFile.get("id").asText(), "File ID mismatch: expected ${expectedFile.id}, got ${actualFile.get("id").asText()}") },
+                { assertEquals(expectedFile.path, actualFile.get("path").asText(), "File path mismatch: expected ${expectedFile.path}, got ${actualFile.get("path").asText()}") },
+                { assertEquals(expectedFile.webUrl, actualFile.get("webUrl").asText(), "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.get("webUrl").asText()}") },
+                { assertEquals(expectedFile.maxLength, actualFile.get("maxLength").asInt(), "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.get("maxLength").asInt()}") }
             )
         }
     }
 
     @Test
     fun `should return file by id`() {
-        // Test data is set up in BaseDbTest
         val expectedFile = testFiles.first { it.id == "1" }
 
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 file(id: "1") {
                     id
@@ -68,19 +77,15 @@ class FileControllerWebTest : BaseDbTest() {
         """)
         .execute()
         .path("file")
-
-        // Check that the file exists
-        result.hasValue()
-
-        // Get the file from the result
-        val actualFile = result.entity(File::class.java).get()
+        .entity(JsonNode::class.java)
+        .get()
 
         // Check that the file matches the test data
         assertAll(
-            { assert(actualFile.id == expectedFile.id) { "File ID mismatch: expected ${expectedFile.id}, got ${actualFile.id}" } },
-            { assert(actualFile.path == expectedFile.path) { "File path mismatch: expected ${expectedFile.path}, got ${actualFile.path}" } },
-            { assert(actualFile.webUrl == expectedFile.webUrl) { "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.webUrl}" } },
-            { assert(actualFile.maxLength == expectedFile.maxLength) { "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.maxLength}" } }
+            { assertEquals(expectedFile.id, result.get("id").asText(), "File ID mismatch: expected ${expectedFile.id}, got ${result.get("id").asText()}") },
+            { assertEquals(expectedFile.path, result.get("path").asText(), "File path mismatch: expected ${expectedFile.path}, got ${result.get("path").asText()}") },
+            { assertEquals(expectedFile.webUrl, result.get("webUrl").asText(), "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${result.get("webUrl").asText()}") },
+            { assertEquals(expectedFile.maxLength, result.get("maxLength").asInt(), "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${result.get("maxLength").asInt()}") }
         )
     }
   }
@@ -90,91 +95,155 @@ class FileControllerWebTest : BaseDbTest() {
     @Test
     fun `should return files with pagination`() {
         // Test with page=1, perPage=1 (should return only the first file)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 files(page: 1, perPage: 1) {
-                    id
-                    path
-                    webUrl
-                    maxLength
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                        webUrl
+                        maxLength
+                    }
                 }
             }
         """)
         .execute()
         .path("files")
-        .entityList(File::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the files from the result
-        val files = result.get()
+        val filesData = result.get("data")
+        assertEquals(1, filesData.size(), "Expected 1 file, but got ${filesData.size()}")
 
         // Check that the file matches the first test file
         val expectedFile = testFiles.first()
-        val actualFile = files.first()
+        val actualFile = filesData.get(0)
 
         assertAll(
-            { assert(actualFile.id == expectedFile.id) { "File ID mismatch: expected ${expectedFile.id}, got ${actualFile.id}" } },
-            { assert(actualFile.path == expectedFile.path) { "File path mismatch: expected ${expectedFile.path}, got ${actualFile.path}" } },
-            { assert(actualFile.webUrl == expectedFile.webUrl) { "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.webUrl}" } },
-            { assert(actualFile.maxLength == expectedFile.maxLength) { "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.maxLength}" } }
+            { assertEquals(expectedFile.id, actualFile.get("id").asText(), "File ID mismatch: expected ${expectedFile.id}, got ${actualFile.get("id").asText()}") },
+            { assertEquals(expectedFile.path, actualFile.get("path").asText(), "File path mismatch: expected ${expectedFile.path}, got ${actualFile.get("path").asText()}") },
+            { assertEquals(expectedFile.webUrl, actualFile.get("webUrl").asText(), "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.get("webUrl").asText()}") },
+            { assertEquals(expectedFile.maxLength, actualFile.get("maxLength").asInt(), "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.get("maxLength").asInt()}") }
         )
     }
 
     @Test
     fun `should handle null pagination parameters`() {
         // Test with null page and perPage parameters (should use defaults)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 files {
-                    id
-                    path
-                    webUrl
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                        webUrl
+                    }
                 }
             }
         """)
         .execute()
         .path("files")
-        .entityList(File::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size (should return all files with default pagination)
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
+        assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
+
+        // Get the files from the result
+        val filesData = result.get("data")
+        assertEquals(2, filesData.size(), "Expected 2 files, but got ${filesData.size()}")
     }
 
     @Test
     fun `should return second page of files`() {
         // Test with page=2, perPage=1 (should return only the second file)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 files(page: 2, perPage: 1) {
-                    id
-                    path
-                    webUrl
-                    maxLength
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                        webUrl
+                        maxLength
+                    }
                 }
             }
         """)
         .execute()
         .path("files")
-        .entityList(File::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the files from the result
-        val files = result.get()
+        val filesData = result.get("data")
+        assertEquals(1, filesData.size(), "Expected 1 file, but got ${filesData.size()}")
 
         // Check that the file matches the second test file
         val expectedFile = testFiles[1]
-        val actualFile = files.first()
+        val actualFile = filesData.get(0)
 
         assertAll(
-            { assert(actualFile.id == expectedFile.id) { "File ID mismatch: expected ${expectedFile.id}, got ${actualFile.id}" } },
-            { assert(actualFile.path == expectedFile.path) { "File path mismatch: expected ${expectedFile.path}, got ${actualFile.path}" } },
-            { assert(actualFile.webUrl == expectedFile.webUrl) { "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.webUrl}" } },
-            { assert(actualFile.maxLength == expectedFile.maxLength) { "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.maxLength}" } }
+            { assertEquals(expectedFile.id, actualFile.get("id").asText(), "File ID mismatch: expected ${expectedFile.id}, got ${actualFile.get("id").asText()}") },
+            { assertEquals(expectedFile.path, actualFile.get("path").asText(), "File path mismatch: expected ${expectedFile.path}, got ${actualFile.get("path").asText()}") },
+            { assertEquals(expectedFile.webUrl, actualFile.get("webUrl").asText(), "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.get("webUrl").asText()}") },
+            { assertEquals(expectedFile.maxLength, actualFile.get("maxLength").asInt(), "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.get("maxLength").asInt()}") }
         )
+    }
+
+    @Test
+    fun `should return empty list for page beyond available data`() {
+      val result: JsonNode = graphQlTester.document(
+        """
+              query {
+                  files(page: 3, perPage: 1) {
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          path
+                          webUrl
+                          maxLength
+                      }
+                  }
+              }
+          """
+      )
+        .execute()
+        .path("files")
+        .entity(JsonNode::class.java)
+        .get()
+
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
+
+      // Get the files from the result
+      val filesData = result.get("data")
+      assertEquals(0, filesData.size(), "Expected 0 files on page beyond available data, but got ${filesData.size()}")
     }
   }
 
@@ -208,9 +277,14 @@ class FileControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 files(page: 0, perPage: 10) {
-                    id
-                    path
-                    webUrl
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                        webUrl
+                    }
                 }
             }
         """)
@@ -225,9 +299,14 @@ class FileControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 files(page: 1, perPage: 0) {
-                    id
-                    path
-                    webUrl
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        path
+                        webUrl
+                    }
                 }
             }
         """)

@@ -1,8 +1,10 @@
 package com.inso_world.binocular.web.graphql.controller
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.entity.User
 import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -17,42 +19,49 @@ class UserControllerWebTest : BaseDbTest() {
   inner class BasicFunctionality {
     @Test
     fun `should return all users`() {
-        // Test data is set up in BaseDbTest
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 users(page: 1, perPage: 100) {
-                    id
-                    gitSignature
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        gitSignature
+                    }
                 }
             }
         """)
         .execute()
         .path("users")
-        .entityList(User::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
         // Get the users from the result
-        val users = result.get()
+        val usersData = result.get("data")
+        assertEquals(2, usersData.size(), "Expected 2 users, but got ${usersData.size()}")
 
         // Check that the users match the test data
         testUsers.forEachIndexed { index, expectedUser ->
-            val actualUser = users[index]
+            val actualUser = usersData.get(index)
 
             assertAll(
-                { assert(actualUser.id == expectedUser.id) { "User ID mismatch: expected ${expectedUser.id}, got ${actualUser.id}" } },
-                { assert(actualUser.gitSignature == expectedUser.gitSignature) { "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${actualUser.gitSignature}" } }
+                { assertEquals(expectedUser.id, actualUser.get("id").asText(), "User ID mismatch: expected ${expectedUser.id}, got ${actualUser.get("id").asText()}") },
+                { assertEquals(expectedUser.gitSignature, actualUser.get("gitSignature").asText(), "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${actualUser.get("gitSignature").asText()}") }
             )
         }
     }
 
     @Test
     fun `should return user by id`() {
-        // Test data is set up in BaseDbTest
         val expectedUser = testUsers.first { it.id == "1" }
 
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 user(id: "1") {
                     id
@@ -62,17 +71,13 @@ class UserControllerWebTest : BaseDbTest() {
         """)
         .execute()
         .path("user")
-
-        // Check that the user exists
-        result.hasValue()
-
-        // Get the user from the result
-        val actualUser = result.entity(User::class.java).get()
+        .entity(JsonNode::class.java)
+        .get()
 
         // Check that the user matches the test data
         assertAll(
-            { assert(actualUser.id == expectedUser.id) { "User ID mismatch: expected ${expectedUser.id}, got ${actualUser.id}" } },
-            { assert(actualUser.gitSignature == expectedUser.gitSignature) { "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${actualUser.gitSignature}" } }
+            { assertEquals(expectedUser.id, result.get("id").asText(), "User ID mismatch: expected ${expectedUser.id}, got ${result.get("id").asText()}") },
+            { assertEquals(expectedUser.gitSignature, result.get("gitSignature").asText(), "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${result.get("gitSignature").asText()}") }
         )
     }
   }
@@ -82,82 +87,144 @@ class UserControllerWebTest : BaseDbTest() {
     @Test
     fun `should return users with pagination`() {
         // Test with page=1, perPage=1 (should return only the first user)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 users(page: 1, perPage: 1) {
-                    id
-                    gitSignature
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        gitSignature
+                    }
                 }
             }
         """)
         .execute()
         .path("users")
-        .entityList(User::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the users from the result
-        val users = result.get()
+        val usersData = result.get("data")
+        assertEquals(1, usersData.size(), "Expected 1 user, but got ${usersData.size()}")
 
         // Check that the user matches the first test user
         val expectedUser = testUsers.first()
-        val actualUser = users.first()
+        val actualUser = usersData.get(0)
 
         assertAll(
-            { assert(actualUser.id == expectedUser.id) { "User ID mismatch: expected ${expectedUser.id}, got ${actualUser.id}" } },
-            { assert(actualUser.gitSignature == expectedUser.gitSignature) { "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${actualUser.gitSignature}" } }
+            { assertEquals(expectedUser.id, actualUser.get("id").asText(), "User ID mismatch: expected ${expectedUser.id}, got ${actualUser.get("id").asText()}") },
+            { assertEquals(expectedUser.gitSignature, actualUser.get("gitSignature").asText(), "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${actualUser.get("gitSignature").asText()}") }
         )
     }
 
     @Test
     fun `should handle null pagination parameters`() {
         // Test with null page and perPage parameters (should use defaults)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 users {
-                    id
-                    gitSignature
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        gitSignature
+                    }
                 }
             }
         """)
         .execute()
         .path("users")
-        .entityList(User::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size (should return all users with default pagination)
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
+        assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
+
+        // Get the users from the result
+        val usersData = result.get("data")
+        assertEquals(2, usersData.size(), "Expected 2 users, but got ${usersData.size()}")
     }
 
     @Test
     fun `should return second page of users`() {
         // Test with page=2, perPage=1 (should return only the second user)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 users(page: 2, perPage: 1) {
-                    id
-                    gitSignature
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        gitSignature
+                    }
                 }
             }
         """)
         .execute()
         .path("users")
-        .entityList(User::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the users from the result
-        val users = result.get()
+        val usersData = result.get("data")
+        assertEquals(1, usersData.size(), "Expected 1 user, but got ${usersData.size()}")
 
         // Check that the user matches the second test user
         val expectedUser = testUsers[1]
-        val actualUser = users.first()
+        val actualUser = usersData.get(0)
 
         assertAll(
-            { assert(actualUser.id == expectedUser.id) { "User ID mismatch: expected ${expectedUser.id}, got ${actualUser.id}" } },
-            { assert(actualUser.gitSignature == expectedUser.gitSignature) { "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${actualUser.gitSignature}" } }
+            { assertEquals(expectedUser.id, actualUser.get("id").asText(), "User ID mismatch: expected ${expectedUser.id}, got ${actualUser.get("id").asText()}") },
+            { assertEquals(expectedUser.gitSignature, actualUser.get("gitSignature").asText(), "User gitSignature mismatch: expected ${expectedUser.gitSignature}, got ${actualUser.get("gitSignature").asText()}") }
         )
+    }
+
+    @Test
+    fun `should return empty list for page beyond available data`() {
+      val result: JsonNode = graphQlTester.document(
+        """
+              query {
+                  users(page: 3, perPage: 1) {
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          gitSignature
+                      }
+                  }
+              }
+          """
+      )
+        .execute()
+        .path("users")
+        .entity(JsonNode::class.java)
+        .get()
+
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
+
+      // Get the users from the result
+      val usersData = result.get("data")
+      assertEquals(0, usersData.size(), "Expected 0 users on page beyond available data, but got ${usersData.size()}")
     }
   }
 
@@ -190,8 +257,13 @@ class UserControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 users(page: 0, perPage: 10) {
-                    id
-                    gitSignature
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        gitSignature
+                    }
                 }
             }
         """)
@@ -206,8 +278,13 @@ class UserControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 users(page: 1, perPage: 0) {
-                    id
-                    gitSignature
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        gitSignature
+                    }
                 }
             }
         """)

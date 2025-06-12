@@ -12,6 +12,15 @@ class MergeRequestResolver(
     private val mergeRequestService: MergeRequestService
 ) {
     private val logger: Logger = LoggerFactory.getLogger(MergeRequestResolver::class.java)
+    /**
+     * Resolves the accounts field for a MergeRequest in GraphQL.
+     * 
+     * This method retrieves all accounts associated with the given merge request.
+     * If the merge request ID is null, an empty list is returned.
+     * 
+     * @param mergeRequest The merge request for which to retrieve accounts
+     * @return A list of accounts associated with the merge request, or an empty list if the merge request ID is null
+     */
     @SchemaMapping(typeName = "MergeRequest", field = "accounts")
     fun accounts(mergeRequest: MergeRequest): List<Account> {
         val id = mergeRequest.id ?: return emptyList()
@@ -20,6 +29,15 @@ class MergeRequestResolver(
         return mergeRequestService.findAccountsByMergeRequestId(id)
     }
 
+    /**
+     * Resolves the milestones field for a MergeRequest in GraphQL.
+     * 
+     * This method retrieves all milestones associated with the given merge request.
+     * If the merge request ID is null, an empty list is returned.
+     * 
+     * @param mergeRequest The merge request for which to retrieve milestones
+     * @return A list of milestones associated with the merge request, or an empty list if the merge request ID is null
+     */
     @SchemaMapping(typeName = "MergeRequest", field = "milestones")
     fun milestones(mergeRequest: MergeRequest): List<Milestone> {
         val id = mergeRequest.id ?: return emptyList()
@@ -28,6 +46,15 @@ class MergeRequestResolver(
         return mergeRequestService.findMilestonesByMergeRequestId(id)
     }
 
+    /**
+     * Resolves the notes field for a MergeRequest in GraphQL.
+     * 
+     * This method retrieves all notes associated with the given merge request.
+     * If the merge request ID is null, an empty list is returned.
+     * 
+     * @param mergeRequest The merge request for which to retrieve notes
+     * @return A list of notes associated with the merge request, or an empty list if the merge request ID is null
+     */
     @SchemaMapping(typeName = "MergeRequest", field = "notes")
     fun notes(mergeRequest: MergeRequest): List<Note> {
         val id = mergeRequest.id ?: return emptyList()

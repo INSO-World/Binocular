@@ -12,6 +12,16 @@ class BuildResolver(
     private val buildService: BuildService
 ) {
     private val logger: Logger = LoggerFactory.getLogger(BuildResolver::class.java)
+
+    /**
+     * Resolves the commits field for a Build in GraphQL.
+     * 
+     * This method retrieves all commits associated with the given build.
+     * If the build ID is null, an empty list is returned.
+     * 
+     * @param build The build for which to retrieve commits
+     * @return A list of commits associated with the build, or an empty list if the build ID is null
+     */
     @SchemaMapping(typeName = "Build", field = "commits")
     fun commits(build: Build): List<Commit> {
         val id = build.id ?: return emptyList()

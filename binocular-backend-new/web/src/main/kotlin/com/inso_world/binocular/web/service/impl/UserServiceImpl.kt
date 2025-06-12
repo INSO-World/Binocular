@@ -5,6 +5,7 @@ import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.User
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.UserDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitUserConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileUserConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueUserConnectionRepository
@@ -25,8 +26,8 @@ class UserServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<User> {
-    logger.trace("Getting all users with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<User> {
+    logger.trace("Getting all users with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return userDao.findAll(pageable)
   }
 

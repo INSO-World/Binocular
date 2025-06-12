@@ -21,28 +21,33 @@ class BuildControllerWebTest : BaseDbTest() {
         """
               query {
                   builds(page: 1, perPage: 100) {
-                      id
-                      sha
-                      ref
-                      status
-                      tag
-                      user
-                      userFullName
-                      createdAt
-                      updatedAt
-                      startedAt
-                      finishedAt
-                      committedAt
-                      duration
-                      webUrl
-                      jobs {
+                      count
+                      page
+                      perPage
+                      data {
                           id
-                          name
+                          sha
+                          ref
                           status
-                          stage
+                          tag
+                          user
+                          userFullName
                           createdAt
+                          updatedAt
+                          startedAt
                           finishedAt
+                          committedAt
+                          duration
                           webUrl
+                          jobs {
+                              id
+                              name
+                              status
+                              stage
+                              createdAt
+                              finishedAt
+                              webUrl
+                          }
                       }
                   }
               }
@@ -53,9 +58,16 @@ class BuildControllerWebTest : BaseDbTest() {
         .entity(JsonNode::class.java)
         .get()
 
-      assertEquals(2, result.size(), "Expected 2 builds, but got ${result.size()}")
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+      assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
-      result.forEachIndexed { index, actualBuild ->
+      // Get the builds from the result
+      val buildsData = result.get("data")
+      assertEquals(2, buildsData.size(), "Expected 2 builds, but got ${buildsData.size()}")
+
+      buildsData.forEachIndexed { index, actualBuild ->
         val expectedBuild = testBuilds[index]
 
         assertAll(
@@ -188,10 +200,15 @@ class BuildControllerWebTest : BaseDbTest() {
         """
               query {
                   builds(page: 1, perPage: 1) {
-                      id
-                      sha
-                      ref
-                      status
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          sha
+                          ref
+                          status
+                      }
                   }
               }
           """
@@ -201,9 +218,16 @@ class BuildControllerWebTest : BaseDbTest() {
         .entity(JsonNode::class.java)
         .get()
 
-      assertEquals(1, result.size(), "Expected 1 build on first page, but got ${result.size()}")
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
-      val actualBuild = result[0]
+      // Get the builds from the result
+      val buildsData = result.get("data")
+      assertEquals(1, buildsData.size(), "Expected 1 build on first page, but got ${buildsData.size()}")
+
+      val actualBuild = buildsData.get(0)
       val expectedBuild = testBuilds.first()
 
       assertAll(
@@ -220,8 +244,13 @@ class BuildControllerWebTest : BaseDbTest() {
         """
               query {
                   builds {
-                      id
-                      sha
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          sha
+                      }
                   }
               }
           """
@@ -231,7 +260,14 @@ class BuildControllerWebTest : BaseDbTest() {
         .entity(JsonNode::class.java)
         .get()
 
-      assertEquals(2, result.size(), "Expected 2 builds with default pagination, but got ${result.size()}")
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
+      assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
+
+      // Get the builds from the result
+      val buildsData = result.get("data")
+      assertEquals(2, buildsData.size(), "Expected 2 builds with default pagination, but got ${buildsData.size()}")
     }
 
     @Test
@@ -240,10 +276,15 @@ class BuildControllerWebTest : BaseDbTest() {
         """
               query {
                   builds(page: 2, perPage: 1) {
-                      id
-                      sha
-                      ref
-                      status
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          sha
+                          ref
+                          status
+                      }
                   }
               }
           """
@@ -253,9 +294,16 @@ class BuildControllerWebTest : BaseDbTest() {
         .entity(JsonNode::class.java)
         .get()
 
-      assertEquals(1, result.size(), "Expected 1 build on second page, but got ${result.size()}")
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
-      val actualBuild = result[0]
+      // Get the builds from the result
+      val buildsData = result.get("data")
+      assertEquals(1, buildsData.size(), "Expected 1 build on second page, but got ${buildsData.size()}")
+
+      val actualBuild = buildsData.get(0)
       val expectedBuild = testBuilds[1]
 
       assertAll(
@@ -272,10 +320,15 @@ class BuildControllerWebTest : BaseDbTest() {
         """
               query {
                   builds(page: 3, perPage: 1) {
-                      id
-                      sha
-                      ref
-                      status
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          sha
+                          ref
+                          status
+                      }
                   }
               }
           """
@@ -285,7 +338,14 @@ class BuildControllerWebTest : BaseDbTest() {
         .entity(JsonNode::class.java)
         .get()
 
-      assertEquals(0, result.size(), "Expected 0 builds on page beyond available data, but got ${result.size()}")
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
+
+      // Get the builds from the result
+      val buildsData = result.get("data")
+      assertEquals(0, buildsData.size(), "Expected 0 builds on page beyond available data, but got ${buildsData.size()}")
     }
   }
 
@@ -319,8 +379,13 @@ class BuildControllerWebTest : BaseDbTest() {
         """
               query {
                   builds(page: 0, perPage: 10) {
-                      id
-                      sha
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          sha
+                      }
                   }
               }
           """
@@ -336,8 +401,13 @@ class BuildControllerWebTest : BaseDbTest() {
         """
               query {
                   builds(page: 1, perPage: 0) {
-                      id
-                      sha
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          sha
+                      }
                   }
               }
           """

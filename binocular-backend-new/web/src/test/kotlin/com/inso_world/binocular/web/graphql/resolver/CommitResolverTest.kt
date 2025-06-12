@@ -16,7 +16,6 @@ class CommitResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve commit with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "1") {
@@ -54,7 +53,6 @@ class CommitResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve commit with related builds`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "1") {
@@ -100,7 +98,6 @@ class CommitResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve commit with related files`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "1") {
@@ -144,7 +141,6 @@ class CommitResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve commit with related modules`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "1") {
@@ -184,7 +180,6 @@ class CommitResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve commit with related users`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "1") {
@@ -224,7 +219,6 @@ class CommitResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve commit with related issues`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "1") {
@@ -270,7 +264,6 @@ class CommitResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve commit with parent relationships`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "2") {
@@ -312,7 +305,6 @@ class CommitResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve commit with child relationships`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     commit(id: "1") {

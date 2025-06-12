@@ -16,7 +16,6 @@ class MergeRequestResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve merge request with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     mergeRequest(id: "1") {
@@ -57,7 +56,6 @@ class MergeRequestResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve merge request with related accounts`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     mergeRequest(id: "1") {
@@ -107,7 +105,6 @@ class MergeRequestResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve merge request with related milestones`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     mergeRequest(id: "1") {
@@ -151,7 +148,6 @@ class MergeRequestResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve merge request with related notes`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     mergeRequest(id: "1") {

@@ -16,7 +16,6 @@ class FileResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve file with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     file(id: "1") {
@@ -46,7 +45,6 @@ class FileResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve file with related branches`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     file(id: "1") {
@@ -90,7 +88,6 @@ class FileResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve second file with related branches`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     file(id: "2") {
@@ -133,7 +130,6 @@ class FileResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve file with related commits`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     file(id: "1") {
@@ -175,7 +171,6 @@ class FileResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve file with related modules`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     file(id: "1") {
@@ -215,7 +210,6 @@ class FileResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve file with related users`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     file(id: "1") {

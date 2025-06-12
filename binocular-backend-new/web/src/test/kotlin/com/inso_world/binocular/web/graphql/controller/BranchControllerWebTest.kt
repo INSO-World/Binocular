@@ -1,8 +1,10 @@
 package com.inso_world.binocular.web.graphql.controller
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.entity.Branch
 import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -17,48 +19,55 @@ class BranchControllerWebTest : BaseDbTest() {
   inner class BasicFunctionality {
     @Test
     fun `should return all branches`() {
-        // Test data is set up in BaseDbTest
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 branches(page: 1, perPage: 100) {
-                    id
-                    branch
-                    active
-                    tracksFileRenames
-                    latestCommit
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        branch
+                        active
+                        tracksFileRenames
+                        latestCommit
+                    }
                 }
             }
         """)
         .execute()
         .path("branches")
-        .entityList(Branch::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
         // Get the branches from the result
-        val branches = result.get()
+        val branchesData = result.get("data")
+        assertEquals(2, branchesData.size(), "Expected 2 branches, but got ${branchesData.size()}")
 
         // Check that the branches match the test data
         testBranches.forEachIndexed { index, expectedBranch ->
-            val actualBranch = branches[index]
+            val actualBranch = branchesData.get(index)
 
             assertAll(
-                { assert(actualBranch.id == expectedBranch.id) { "Branch ID mismatch: expected ${expectedBranch.id}, got ${actualBranch.id}" } },
-                { assert(actualBranch.branch == expectedBranch.branch) { "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.branch}" } },
-                { assert(actualBranch.active == expectedBranch.active) { "Branch active mismatch: expected ${expectedBranch.active}, got ${actualBranch.active}" } },
-                { assert(actualBranch.tracksFileRenames == expectedBranch.tracksFileRenames) { "Branch tracksFileRenames mismatch: expected ${expectedBranch.tracksFileRenames}, got ${actualBranch.tracksFileRenames}" } },
-                { assert(actualBranch.latestCommit == expectedBranch.latestCommit) { "Branch latestCommit mismatch: expected ${expectedBranch.latestCommit}, got ${actualBranch.latestCommit}" } }
+                { assertEquals(expectedBranch.id, actualBranch.get("id").asText(), "Branch ID mismatch: expected ${expectedBranch.id}, got ${actualBranch.get("id").asText()}") },
+                { assertEquals(expectedBranch.branch, actualBranch.get("branch").asText(), "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.get("branch").asText()}") },
+                { assertEquals(expectedBranch.active, actualBranch.get("active").asBoolean(), "Branch active mismatch: expected ${expectedBranch.active}, got ${actualBranch.get("active").asBoolean()}") },
+                { assertEquals(expectedBranch.tracksFileRenames, actualBranch.get("tracksFileRenames").asBoolean(), "Branch tracksFileRenames mismatch: expected ${expectedBranch.tracksFileRenames}, got ${actualBranch.get("tracksFileRenames").asBoolean()}") },
+                { assertEquals(expectedBranch.latestCommit, actualBranch.get("latestCommit").asText(), "Branch latestCommit mismatch: expected ${expectedBranch.latestCommit}, got ${actualBranch.get("latestCommit").asText()}") }
             )
         }
     }
 
     @Test
     fun `should return branch by id`() {
-        // Test data is set up in BaseDbTest
         val expectedBranch = testBranches.first { it.id == "1" }
 
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 branch(id: "1") {
                     id
@@ -71,20 +80,16 @@ class BranchControllerWebTest : BaseDbTest() {
         """)
         .execute()
         .path("branch")
-
-        // Check that the branch exists
-        result.hasValue()
-
-        // Get the branch from the result
-        val actualBranch = result.entity(Branch::class.java).get()
+        .entity(JsonNode::class.java)
+        .get()
 
         // Check that the branch matches the test data
         assertAll(
-            { assert(actualBranch.id == expectedBranch.id) { "Branch ID mismatch: expected ${expectedBranch.id}, got ${actualBranch.id}" } },
-            { assert(actualBranch.branch == expectedBranch.branch) { "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.branch}" } },
-            { assert(actualBranch.active == expectedBranch.active) { "Branch active mismatch: expected ${expectedBranch.active}, got ${actualBranch.active}" } },
-            { assert(actualBranch.tracksFileRenames == expectedBranch.tracksFileRenames) { "Branch tracksFileRenames mismatch: expected ${expectedBranch.tracksFileRenames}, got ${actualBranch.tracksFileRenames}" } },
-            { assert(actualBranch.latestCommit == expectedBranch.latestCommit) { "Branch latestCommit mismatch: expected ${expectedBranch.latestCommit}, got ${actualBranch.latestCommit}" } }
+            { assertEquals(expectedBranch.id, result.get("id").asText(), "Branch ID mismatch: expected ${expectedBranch.id}, got ${result.get("id").asText()}") },
+            { assertEquals(expectedBranch.branch, result.get("branch").asText(), "Branch name mismatch: expected ${expectedBranch.branch}, got ${result.get("branch").asText()}") },
+            { assertEquals(expectedBranch.active, result.get("active").asBoolean(), "Branch active mismatch: expected ${expectedBranch.active}, got ${result.get("active").asBoolean()}") },
+            { assertEquals(expectedBranch.tracksFileRenames, result.get("tracksFileRenames").asBoolean(), "Branch tracksFileRenames mismatch: expected ${expectedBranch.tracksFileRenames}, got ${result.get("tracksFileRenames").asBoolean()}") },
+            { assertEquals(expectedBranch.latestCommit, result.get("latestCommit").asText(), "Branch latestCommit mismatch: expected ${expectedBranch.latestCommit}, got ${result.get("latestCommit").asText()}") }
         )
     }
   }
@@ -94,89 +99,152 @@ class BranchControllerWebTest : BaseDbTest() {
     @Test
     fun `should return branches with pagination`() {
         // Test with page=1, perPage=1 (should return only the first branch)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 branches(page: 1, perPage: 1) {
-                    id
-                    branch
-                    active
-                    tracksFileRenames
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        branch
+                        active
+                        tracksFileRenames
+                    }
                 }
             }
         """)
         .execute()
         .path("branches")
-        .entityList(Branch::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the branches from the result
-        val branches = result.get()
+        val branchesData = result.get("data")
+        assertEquals(1, branchesData.size(), "Expected 1 branch, but got ${branchesData.size()}")
 
         // Check that the branch matches the first test branch
         val expectedBranch = testBranches.first()
-        val actualBranch = branches.first()
+        val actualBranch = branchesData.get(0)
 
         assertAll(
-            { assert(actualBranch.id == expectedBranch.id) { "Branch ID mismatch: expected ${expectedBranch.id}, got ${actualBranch.id}" } },
-            { assert(actualBranch.branch == expectedBranch.branch) { "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.branch}" } },
-            { assert(actualBranch.active == expectedBranch.active) { "Branch active mismatch: expected ${expectedBranch.active}, got ${actualBranch.active}" } },
-            { assert(actualBranch.tracksFileRenames == expectedBranch.tracksFileRenames) { "Branch tracksFileRenames mismatch: expected ${expectedBranch.tracksFileRenames}, got ${actualBranch.tracksFileRenames}" } }
+            { assertEquals(expectedBranch.id, actualBranch.get("id").asText(), "Branch ID mismatch: expected ${expectedBranch.id}, got ${actualBranch.get("id").asText()}") },
+            { assertEquals(expectedBranch.branch, actualBranch.get("branch").asText(), "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.get("branch").asText()}") },
+            { assertEquals(expectedBranch.active, actualBranch.get("active").asBoolean(), "Branch active mismatch: expected ${expectedBranch.active}, got ${actualBranch.get("active").asBoolean()}") },
+            { assertEquals(expectedBranch.tracksFileRenames, actualBranch.get("tracksFileRenames").asBoolean(), "Branch tracksFileRenames mismatch: expected ${expectedBranch.tracksFileRenames}, got ${actualBranch.get("tracksFileRenames").asBoolean()}") }
         )
     }
 
     @Test
     fun `should handle null pagination parameters`() {
         // Test with null page and perPage parameters (should use defaults)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 branches {
-                    id
-                    branch
-                    active
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        branch
+                        active
+                    }
                 }
             }
         """)
         .execute()
         .path("branches")
-        .entityList(Branch::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size (should return all branches with default pagination)
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
+        assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
+
+        // Get the branches from the result
+        val branchesData = result.get("data")
+        assertEquals(2, branchesData.size(), "Expected 2 branches, but got ${branchesData.size()}")
     }
 
     @Test
     fun `should return second page of branches`() {
         // Test with page=2, perPage=1 (should return only the second branch)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 branches(page: 2, perPage: 1) {
-                    id
-                    branch
-                    active
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        branch
+                        active
+                    }
                 }
             }
         """)
         .execute()
         .path("branches")
-        .entityList(Branch::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the branches from the result
-        val branches = result.get()
+        val branchesData = result.get("data")
+        assertEquals(1, branchesData.size(), "Expected 1 branch, but got ${branchesData.size()}")
 
         // Check that the branch matches the second test branch
         val expectedBranch = testBranches[1]
-        val actualBranch = branches.first()
+        val actualBranch = branchesData.get(0)
 
         assertAll(
-            { assert(actualBranch.id == expectedBranch.id) { "Branch ID mismatch: expected ${expectedBranch.id}, got ${actualBranch.id}" } },
-            { assert(actualBranch.branch == expectedBranch.branch) { "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.branch}" } },
-            { assert(actualBranch.active == expectedBranch.active) { "Branch active mismatch: expected ${expectedBranch.active}, got ${actualBranch.active}" } }
+            { assertEquals(expectedBranch.id, actualBranch.get("id").asText(), "Branch ID mismatch: expected ${expectedBranch.id}, got ${actualBranch.get("id").asText()}") },
+            { assertEquals(expectedBranch.branch, actualBranch.get("branch").asText(), "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.get("branch").asText()}") },
+            { assertEquals(expectedBranch.active, actualBranch.get("active").asBoolean(), "Branch active mismatch: expected ${expectedBranch.active}, got ${actualBranch.get("active").asBoolean()}") }
         )
+    }
+
+    @Test
+    fun `should return empty list for page beyond available data`() {
+      val result: JsonNode = graphQlTester.document(
+        """
+              query {
+                  branches(page: 3, perPage: 1) {
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          branch
+                          active
+                      }
+                  }
+              }
+          """
+      )
+        .execute()
+        .path("branches")
+        .entity(JsonNode::class.java)
+        .get()
+
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
+
+      // Get the branches from the result
+      val branchesData = result.get("data")
+      assertEquals(0, branchesData.size(), "Expected 0 branches on page beyond available data, but got ${branchesData.size()}")
     }
   }
 
@@ -210,9 +278,14 @@ class BranchControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 branches(page: 0, perPage: 10) {
-                    id
-                    branch
-                    active
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        branch
+                        active
+                    }
                 }
             }
         """)
@@ -227,9 +300,14 @@ class BranchControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 branches(page: 1, perPage: 0) {
-                    id
-                    branch
-                    active
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        branch
+                        active
+                    }
                 }
             }
         """)

@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -15,9 +16,9 @@ interface NoteService {
      * Find all notes with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of notes
+     * @return Page of notes
      */
-    fun findAll(pageable: Pageable): Iterable<Note>
+    fun findAll(pageable: Pageable): Page<Note>
 
     /**
      * Find a note by ID.

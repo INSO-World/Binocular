@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -15,9 +16,9 @@ interface MergeRequestService {
      * Find all merge requests with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of merge requests
+     * @return Page of merge requests
      */
-    fun findAll(pageable: Pageable): Iterable<MergeRequest>
+    fun findAll(pageable: Pageable): Page<MergeRequest>
 
     /**
      * Find a merge request by ID.

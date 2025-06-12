@@ -1,8 +1,10 @@
 package com.inso_world.binocular.web.graphql.controller
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.entity.Commit
 import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -17,55 +19,62 @@ class CommitControllerWebTest : BaseDbTest() {
   inner class BasicFunctionality {
     @Test
     fun `should return all commits`() {
-        // Test data is set up in BaseDbTest
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 commits(page: 1, perPage: 100) {
-                    id
-                    sha
-                    message
-                    branch
-                    webUrl
-                    stats {
-                        additions
-                        deletions
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        sha
+                        message
+                        branch
+                        webUrl
+                        stats {
+                            additions
+                            deletions
+                        }
                     }
                 }
             }
         """)
         .execute()
         .path("commits")
-        .entityList(Commit::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
         // Get the commits from the result
-        val commits = result.get()
+        val commitsData = result.get("data")
+        assertEquals(2, commitsData.size(), "Expected 2 commits, but got ${commitsData.size()}")
 
         // Check that the commits match the test data
         testCommits.forEachIndexed { index, expectedCommit ->
-            val actualCommit = commits[index]
+            val actualCommit = commitsData.get(index)
 
             assertAll(
-                { assert(actualCommit.id == expectedCommit.id) { "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.id}" } },
-                { assert(actualCommit.sha == expectedCommit.sha) { "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.sha}" } },
+                { assertEquals(expectedCommit.id, actualCommit.get("id").asText(), "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.get("id").asText()}") },
+                { assertEquals(expectedCommit.sha, actualCommit.get("sha").asText(), "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.get("sha").asText()}") },
                 // Skip date field verification for now as they're causing issues
-                { assert(actualCommit.message == expectedCommit.message) { "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.message}" } },
-                { assert(actualCommit.branch == expectedCommit.branch) { "Commit branch mismatch: expected ${expectedCommit.branch}, got ${actualCommit.branch}" } },
-                { assert(actualCommit.webUrl == expectedCommit.webUrl) { "Commit webUrl mismatch: expected ${expectedCommit.webUrl}, got ${actualCommit.webUrl}" } },
-                { assert(actualCommit.stats?.additions == expectedCommit.stats?.additions) { "Commit additions mismatch: expected ${expectedCommit.stats?.additions}, got ${actualCommit.stats?.additions}" } },
-                { assert(actualCommit.stats?.deletions == expectedCommit.stats?.deletions) { "Commit deletions mismatch: expected ${expectedCommit.stats?.deletions}, got ${actualCommit.stats?.deletions}" } }
+                { assertEquals(expectedCommit.message, actualCommit.get("message").asText(), "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.get("message").asText()}") },
+                { assertEquals(expectedCommit.branch, actualCommit.get("branch").asText(), "Commit branch mismatch: expected ${expectedCommit.branch}, got ${actualCommit.get("branch").asText()}") },
+                { assertEquals(expectedCommit.webUrl, actualCommit.get("webUrl").asText(), "Commit webUrl mismatch: expected ${expectedCommit.webUrl}, got ${actualCommit.get("webUrl").asText()}") },
+                { assertEquals(expectedCommit.stats?.additions?.toInt(), actualCommit.get("stats").get("additions").asInt(), "Commit additions mismatch: expected ${expectedCommit.stats?.additions}, got ${actualCommit.get("stats").get("additions").asInt()}") },
+                { assertEquals(expectedCommit.stats?.deletions?.toInt(), actualCommit.get("stats").get("deletions").asInt(), "Commit deletions mismatch: expected ${expectedCommit.stats?.deletions}, got ${actualCommit.get("stats").get("deletions").asInt()}") }
             )
         }
     }
 
     @Test
     fun `should return commit by id`() {
-        // Test data is set up in BaseDbTest
         val expectedCommit = testCommits.first { it.id == "1" }
 
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 commit(id: "1") {
                     id
@@ -82,23 +91,19 @@ class CommitControllerWebTest : BaseDbTest() {
         """)
         .execute()
         .path("commit")
-
-        // Check that the commit exists
-        result.hasValue()
-
-        // Get the commit from the result
-        val actualCommit = result.entity(Commit::class.java).get()
+        .entity(JsonNode::class.java)
+        .get()
 
         // Check that the commit matches the test data
         assertAll(
-            { assert(actualCommit.id == expectedCommit.id) { "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.id}" } },
-            { assert(actualCommit.sha == expectedCommit.sha) { "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.sha}" } },
+            { assertEquals(expectedCommit.id, result.get("id").asText(), "Commit ID mismatch: expected ${expectedCommit.id}, got ${result.get("id").asText()}") },
+            { assertEquals(expectedCommit.sha, result.get("sha").asText(), "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${result.get("sha").asText()}") },
             // Skip date field verification for now as they're causing issues
-            { assert(actualCommit.message == expectedCommit.message) { "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.message}" } },
-            { assert(actualCommit.branch == expectedCommit.branch) { "Commit branch mismatch: expected ${expectedCommit.branch}, got ${actualCommit.branch}" } },
-            { assert(actualCommit.webUrl == expectedCommit.webUrl) { "Commit webUrl mismatch: expected ${expectedCommit.webUrl}, got ${actualCommit.webUrl}" } },
-            { assert(actualCommit.stats?.additions == expectedCommit.stats?.additions) { "Commit additions mismatch: expected ${expectedCommit.stats?.additions}, got ${actualCommit.stats?.additions}" } },
-            { assert(actualCommit.stats?.deletions == expectedCommit.stats?.deletions) { "Commit deletions mismatch: expected ${expectedCommit.stats?.deletions}, got ${actualCommit.stats?.deletions}" } }
+            { assertEquals(expectedCommit.message, result.get("message").asText(), "Commit message mismatch: expected ${expectedCommit.message}, got ${result.get("message").asText()}") },
+            { assertEquals(expectedCommit.branch, result.get("branch").asText(), "Commit branch mismatch: expected ${expectedCommit.branch}, got ${result.get("branch").asText()}") },
+            { assertEquals(expectedCommit.webUrl, result.get("webUrl").asText(), "Commit webUrl mismatch: expected ${expectedCommit.webUrl}, got ${result.get("webUrl").asText()}") },
+            { assertEquals(expectedCommit.stats?.additions?.toInt(), result.get("stats").get("additions").asInt(), "Commit additions mismatch: expected ${expectedCommit.stats?.additions}, got ${result.get("stats").get("additions").asInt()}") },
+            { assertEquals(expectedCommit.stats?.deletions?.toInt(), result.get("stats").get("deletions").asInt(), "Commit deletions mismatch: expected ${expectedCommit.stats?.deletions}, got ${result.get("stats").get("deletions").asInt()}") }
         )
     }
   }
@@ -108,87 +113,150 @@ class CommitControllerWebTest : BaseDbTest() {
     @Test
     fun `should return commits with pagination`() {
         // Test with page=1, perPage=1 (should return only the first commit)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 commits(page: 1, perPage: 1) {
-                    id
-                    sha
-                    message
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        sha
+                        message
+                    }
                 }
             }
         """)
         .execute()
         .path("commits")
-        .entityList(Commit::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the commits from the result
-        val commits = result.get()
+        val commitsData = result.get("data")
+        assertEquals(1, commitsData.size(), "Expected 1 commit, but got ${commitsData.size()}")
 
         // Check that the commit matches the first test commit
         val expectedCommit = testCommits.first()
-        val actualCommit = commits.first()
+        val actualCommit = commitsData.get(0)
 
         assertAll(
-            { assert(actualCommit.id == expectedCommit.id) { "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.id}" } },
-            { assert(actualCommit.sha == expectedCommit.sha) { "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.sha}" } },
-            { assert(actualCommit.message == expectedCommit.message) { "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.message}" } }
+            { assertEquals(expectedCommit.id, actualCommit.get("id").asText(), "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.get("id").asText()}") },
+            { assertEquals(expectedCommit.sha, actualCommit.get("sha").asText(), "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.get("sha").asText()}") },
+            { assertEquals(expectedCommit.message, actualCommit.get("message").asText(), "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.get("message").asText()}") }
         )
     }
 
     @Test
     fun `should handle null pagination parameters`() {
         // Test with null page and perPage parameters (should use defaults)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 commits {
-                    id
-                    sha
-                    message
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        sha
+                        message
+                    }
                 }
             }
         """)
         .execute()
         .path("commits")
-        .entityList(Commit::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size (should return all commits with default pagination)
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
+        assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
+
+        // Get the commits from the result
+        val commitsData = result.get("data")
+        assertEquals(2, commitsData.size(), "Expected 2 commits, but got ${commitsData.size()}")
     }
 
     @Test
     fun `should return second page of commits`() {
         // Test with page=2, perPage=1 (should return only the second commit)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 commits(page: 2, perPage: 1) {
-                    id
-                    sha
-                    message
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        sha
+                        message
+                    }
                 }
             }
         """)
         .execute()
         .path("commits")
-        .entityList(Commit::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the commits from the result
-        val commits = result.get()
+        val commitsData = result.get("data")
+        assertEquals(1, commitsData.size(), "Expected 1 commit, but got ${commitsData.size()}")
 
         // Check that the commit matches the second test commit
         val expectedCommit = testCommits[1]
-        val actualCommit = commits.first()
+        val actualCommit = commitsData.get(0)
 
         assertAll(
-            { assert(actualCommit.id == expectedCommit.id) { "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.id}" } },
-            { assert(actualCommit.sha == expectedCommit.sha) { "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.sha}" } },
-            { assert(actualCommit.message == expectedCommit.message) { "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.message}" } }
+            { assertEquals(expectedCommit.id, actualCommit.get("id").asText(), "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.get("id").asText()}") },
+            { assertEquals(expectedCommit.sha, actualCommit.get("sha").asText(), "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.get("sha").asText()}") },
+            { assertEquals(expectedCommit.message, actualCommit.get("message").asText(), "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.get("message").asText()}") }
         )
+    }
+
+    @Test
+    fun `should return empty list for page beyond available data`() {
+      val result: JsonNode = graphQlTester.document(
+        """
+              query {
+                  commits(page: 3, perPage: 1) {
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          sha
+                          message
+                      }
+                  }
+              }
+          """
+      )
+        .execute()
+        .path("commits")
+        .entity(JsonNode::class.java)
+        .get()
+
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
+
+      // Get the commits from the result
+      val commitsData = result.get("data")
+      assertEquals(0, commitsData.size(), "Expected 0 commits on page beyond available data, but got ${commitsData.size()}")
     }
   }
 
@@ -222,9 +290,14 @@ class CommitControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 commits(page: 0, perPage: 10) {
-                    id
-                    sha
-                    message
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        sha
+                        message
+                    }
                 }
             }
         """)
@@ -239,9 +312,14 @@ class CommitControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 commits(page: 1, perPage: 0) {
-                    id
-                    sha
-                    message
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        sha
+                        message
+                    }
                 }
             }
         """)

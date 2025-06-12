@@ -5,6 +5,7 @@ import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.entity.User
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -16,9 +17,9 @@ interface FileService {
      * Find all files with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of files
+     * @return Page of files
      */
-    fun findAll(pageable: Pageable): Iterable<File>
+    fun findAll(pageable: Pageable): Page<File>
 
     /**
      * Find a file by ID.

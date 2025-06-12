@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.service
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -14,9 +15,9 @@ interface ModuleService {
      * Find all modules with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of modules
+     * @return Page of modules
      */
-    fun findAll(pageable: Pageable): Iterable<Module>
+    fun findAll(pageable: Pageable): Page<Module>
 
     /**
      * Find a module by ID.

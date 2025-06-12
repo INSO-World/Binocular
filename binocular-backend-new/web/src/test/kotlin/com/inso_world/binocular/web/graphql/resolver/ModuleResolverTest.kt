@@ -16,7 +16,6 @@ class ModuleResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve module with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     module(id: "1") {
@@ -42,7 +41,6 @@ class ModuleResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve module with related commits`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     module(id: "1") {
@@ -82,7 +80,6 @@ class ModuleResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve module with related files`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     module(id: "1") {
@@ -122,7 +119,6 @@ class ModuleResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve module with child modules`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     module(id: "1") {
@@ -160,7 +156,6 @@ class ModuleResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve module with parent modules`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     module(id: "2") {

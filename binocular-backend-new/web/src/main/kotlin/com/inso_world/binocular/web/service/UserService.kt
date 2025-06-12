@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.User
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -15,9 +16,9 @@ interface UserService {
      * Find all users with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of users
+     * @return Page of users
      */
-    fun findAll(pageable: Pageable): Iterable<User>
+    fun findAll(pageable: Pageable): Page<User>
 
     /**
      * Find a user by ID.

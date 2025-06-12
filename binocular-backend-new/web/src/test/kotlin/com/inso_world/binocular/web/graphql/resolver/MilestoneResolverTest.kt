@@ -16,7 +16,6 @@ class MilestoneResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve milestone with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     milestone(id: "1") {
@@ -60,7 +59,6 @@ class MilestoneResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve milestone with related issues`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     milestone(id: "1") {
@@ -110,7 +108,6 @@ class MilestoneResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve milestone with related merge requests`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     milestone(id: "1") {
