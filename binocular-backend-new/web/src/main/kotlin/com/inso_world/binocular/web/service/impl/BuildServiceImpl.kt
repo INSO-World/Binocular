@@ -25,6 +25,23 @@ class BuildServiceImpl(
     return buildDao.findAll(pageable)
   }
 
+  override fun findAll(pageable: Pageable, until: Long?): Page<Build> {
+    logger.trace("Getting builds with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}, until=$until")
+
+    if (until == null) {
+      return findAll(pageable)
+    }
+
+    val allBuilds = buildDao.findAll(pageable)
+    val filteredBuilds = allBuilds.content.filter { build ->
+      build.committedAt?.time?.let { committedTime ->
+        committedTime <= until
+      } ?: true // Include builds with null committedAt
+    }
+
+    return Page(filteredBuilds, filteredBuilds.size.toLong(), pageable)
+  }
+
   override fun findById(id: String): Build? {
     logger.trace("Getting build by id: $id")
     return buildDao.findById(id)

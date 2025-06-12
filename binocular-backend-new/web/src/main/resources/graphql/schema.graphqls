@@ -1,8 +1,13 @@
+"""
+Scalar type for timestamp values (milliseconds since epoch)
+"""
+scalar Timestamp
+
 type Query {
-  commits(page: Int, perPage: Int): CommitPage!
+  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp): CommitPage!
   accounts(page: Int, perPage: Int): AccountPage!
   branches(page: Int, perPage: Int): BranchPage!
-  builds(page: Int, perPage: Int): BuildPage!
+  builds(page: Int, perPage: Int, until: Timestamp): BuildPage!
   files(page: Int, perPage: Int): FilePage!
   issues(page: Int, perPage: Int): IssuePage!
   mergeRequests(page: Int, perPage: Int): MergeRequestPage!
@@ -31,15 +36,25 @@ A single git commit
 type Commit {
   id: ID
   sha: String
+  shortSha: String
   date: String
   message: String
+  messageHeader: String
   webUrl: String
   branch: String
   stats: Stats
   """
-  Parent commits
+  Parent commits as a list of strings (doesn't require subselection)
   """
-  parents: [Commit]
+  parents: [String]
+  """
+  Parent commits as a scalar (doesn't require subselection)
+  """
+  parentsScalar: String
+  """
+  Parent commit SHAs (scalar array that doesn't require subselection)
+  """
+  parentShas: [String]
   """
   Child commits
   """
@@ -48,6 +63,7 @@ type Commit {
   files: [File]
   modules: [Module]
   users: [User]
+  user: User
   issues: [Issue]
   pageInfo: PageInfo
 }
@@ -107,6 +123,7 @@ type Build {
   jobs: [Job]
   webUrl: String
   commits: [Commit]
+  commit: Commit
 }
 
 type Job {

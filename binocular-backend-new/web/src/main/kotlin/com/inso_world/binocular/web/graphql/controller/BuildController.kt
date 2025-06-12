@@ -21,7 +21,7 @@ class BuildController(
   private var logger: Logger = LoggerFactory.getLogger(BuildController::class.java)
 
   /**
-   * Find all builds with pagination.
+   * Find all builds with pagination and optional timestamp filter.
    * 
    * This method returns a Page object that includes:
    * - count: total number of items
@@ -31,15 +31,24 @@ class BuildController(
    * 
    * @param page The page number (1-based). If null, defaults to 1.
    * @param perPage The number of items per page. If null, defaults to 20.
+   * @param until Optional timestamp to filter builds (only include builds before this timestamp)
    * @return A Page object containing the builds and pagination metadata.
    */
   @QueryMapping(name = "builds")
-  fun findAll(@Argument page: Int?, @Argument perPage: Int?): PageDto<Build> {
-    logger.info("Getting all builds...")
+  fun findAll(
+    @Argument page: Int?, 
+    @Argument perPage: Int?,
+    @Argument until: Long?
+  ): PageDto<Build> {
+    logger.info("Getting builds with page=$page, perPage=$perPage, until=$until")
 
     val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    val buildsPage = buildService.findAll(pageable)
+    val buildsPage = if (until != null) {
+      buildService.findAll(pageable, until)
+    } else {
+      buildService.findAll(pageable)
+    }
 
     return PageDto(buildsPage)
   }
