@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.entity.File
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -13,9 +14,9 @@ interface BranchService {
      * Find all branches with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of branches
+     * @return Page of branches
      */
-    fun findAll(pageable: Pageable): Iterable<Branch>
+    fun findAll(pageable: Pageable): Page<Branch>
 
     /**
      * Find a branch by ID.

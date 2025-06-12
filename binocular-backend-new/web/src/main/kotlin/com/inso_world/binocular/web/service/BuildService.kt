@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.Build
 import com.inso_world.binocular.web.entity.Commit
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -13,9 +14,9 @@ interface BuildService {
      * Find all builds with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of builds
+     * @return Page of builds
      */
-    fun findAll(pageable: Pageable): Iterable<Build>
+    fun findAll(pageable: Pageable): Page<Build>
 
     /**
      * Find a build by ID.

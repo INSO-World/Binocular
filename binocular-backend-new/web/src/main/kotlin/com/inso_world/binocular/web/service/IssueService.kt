@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.*
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -12,9 +13,9 @@ interface IssueService {
      * Find all issues with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of issues
+     * @return Page of issues
      */
-    fun findAll(pageable: Pageable): Iterable<Issue>
+    fun findAll(pageable: Pageable): Page<Issue>
 
     /**
      * Find an issue by ID.

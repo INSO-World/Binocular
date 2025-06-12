@@ -6,6 +6,7 @@ import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.entity.User
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.FileDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileFileConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileConnectionRepository
@@ -30,8 +31,8 @@ class FileServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(FileServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<File> {
-    logger.trace("Getting all files with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<File> {
+    logger.trace("Getting all files with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return fileDao.findAll(pageable)
   }
 

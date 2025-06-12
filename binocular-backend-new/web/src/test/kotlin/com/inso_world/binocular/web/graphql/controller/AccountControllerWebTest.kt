@@ -1,8 +1,10 @@
 package com.inso_world.binocular.web.graphql.controller
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.entity.Account
 import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -17,50 +19,57 @@ class AccountControllerWebTest : BaseDbTest() {
   inner class BasicFunctionality {
     @Test
     fun `should return all accounts`() {
-        // Test data is set up in BaseDbTest
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 accounts(page: 1, perPage: 100) {
-                    id
-                    platform
-                    login
-                    name
-                    avatarUrl
-                    url
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        platform
+                        login
+                        name
+                        avatarUrl
+                        url
+                    }
                 }
             }
         """)
         .execute()
         .path("accounts")
-        .entityList(Account::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
         // Get the accounts from the result
-        val accounts = result.get()
+        val accountsData = result.get("data")
+        assertEquals(2, accountsData.size(), "Expected 2 accounts, but got ${accountsData.size()}")
 
         // Check that the accounts match the test data
         testAccounts.forEachIndexed { index, expectedAccount ->
-            val actualAccount = accounts[index]
+            val actualAccount = accountsData.get(index)
 
             assertAll(
-                { assert(actualAccount.id == expectedAccount.id) { "Account ID mismatch: expected ${expectedAccount.id}, got ${actualAccount.id}" } },
-                { assert(actualAccount.platform == expectedAccount.platform) { "Account platform mismatch: expected ${expectedAccount.platform}, got ${actualAccount.platform}" } },
-                { assert(actualAccount.login == expectedAccount.login) { "Account login mismatch: expected ${expectedAccount.login}, got ${actualAccount.login}" } },
-                { assert(actualAccount.name == expectedAccount.name) { "Account name mismatch: expected ${expectedAccount.name}, got ${actualAccount.name}" } },
-                { assert(actualAccount.avatarUrl == expectedAccount.avatarUrl) { "Account avatarUrl mismatch: expected ${expectedAccount.avatarUrl}, got ${actualAccount.avatarUrl}" } },
-                { assert(actualAccount.url == expectedAccount.url) { "Account url mismatch: expected ${expectedAccount.url}, got ${actualAccount.url}" } }
+                { assertEquals(expectedAccount.id, actualAccount.get("id").asText(), "Account ID mismatch: expected ${expectedAccount.id}, got ${actualAccount.get("id").asText()}") },
+                { assertEquals(expectedAccount.platform.toString(), actualAccount.get("platform").asText(), "Account platform mismatch: expected ${expectedAccount.platform}, got ${actualAccount.get("platform").asText()}") },
+                { assertEquals(expectedAccount.login, actualAccount.get("login").asText(), "Account login mismatch: expected ${expectedAccount.login}, got ${actualAccount.get("login").asText()}") },
+                { assertEquals(expectedAccount.name, actualAccount.get("name").asText(), "Account name mismatch: expected ${expectedAccount.name}, got ${actualAccount.get("name").asText()}") },
+                { assertEquals(expectedAccount.avatarUrl, actualAccount.get("avatarUrl").asText(), "Account avatarUrl mismatch: expected ${expectedAccount.avatarUrl}, got ${actualAccount.get("avatarUrl").asText()}") },
+                { assertEquals(expectedAccount.url, actualAccount.get("url").asText(), "Account url mismatch: expected ${expectedAccount.url}, got ${actualAccount.get("url").asText()}") }
             )
         }
     }
 
     @Test
     fun `should return account by id`() {
-        // Test data is set up in BaseDbTest
         val expectedAccount = testAccounts.first { it.id == "1" }
 
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 account(id: "1") {
                     id
@@ -74,21 +83,17 @@ class AccountControllerWebTest : BaseDbTest() {
         """)
         .execute()
         .path("account")
-
-        // Check that the account exists
-        result.hasValue()
-
-        // Get the account from the result
-        val actualAccount = result.entity(Account::class.java).get()
+        .entity(JsonNode::class.java)
+        .get()
 
         // Check that the account matches the test data
         assertAll(
-            { assert(actualAccount.id == expectedAccount.id) { "Account ID mismatch: expected ${expectedAccount.id}, got ${actualAccount.id}" } },
-            { assert(actualAccount.platform == expectedAccount.platform) { "Account platform mismatch: expected ${expectedAccount.platform}, got ${actualAccount.platform}" } },
-            { assert(actualAccount.login == expectedAccount.login) { "Account login mismatch: expected ${expectedAccount.login}, got ${actualAccount.login}" } },
-            { assert(actualAccount.name == expectedAccount.name) { "Account name mismatch: expected ${expectedAccount.name}, got ${actualAccount.name}" } },
-            { assert(actualAccount.avatarUrl == expectedAccount.avatarUrl) { "Account avatarUrl mismatch: expected ${expectedAccount.avatarUrl}, got ${actualAccount.avatarUrl}" } },
-            { assert(actualAccount.url == expectedAccount.url) { "Account url mismatch: expected ${expectedAccount.url}, got ${actualAccount.url}" } }
+            { assertEquals(expectedAccount.id, result.get("id").asText(), "Account ID mismatch: expected ${expectedAccount.id}, got ${result.get("id").asText()}") },
+            { assertEquals(expectedAccount.platform.toString(), result.get("platform").asText(), "Account platform mismatch: expected ${expectedAccount.platform}, got ${result.get("platform").asText()}") },
+            { assertEquals(expectedAccount.login, result.get("login").asText(), "Account login mismatch: expected ${expectedAccount.login}, got ${result.get("login").asText()}") },
+            { assertEquals(expectedAccount.name, result.get("name").asText(), "Account name mismatch: expected ${expectedAccount.name}, got ${result.get("name").asText()}") },
+            { assertEquals(expectedAccount.avatarUrl, result.get("avatarUrl").asText(), "Account avatarUrl mismatch: expected ${expectedAccount.avatarUrl}, got ${result.get("avatarUrl").asText()}") },
+            { assertEquals(expectedAccount.url, result.get("url").asText(), "Account url mismatch: expected ${expectedAccount.url}, got ${result.get("url").asText()}") }
         )
     }
   }
@@ -98,89 +103,152 @@ class AccountControllerWebTest : BaseDbTest() {
     @Test
     fun `should return accounts with pagination`() {
         // Test with page=1, perPage=1 (should return only the first account)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 accounts(page: 1, perPage: 1) {
-                    id
-                    platform
-                    login
-                    name
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        platform
+                        login
+                        name
+                    }
                 }
             }
         """)
         .execute()
         .path("accounts")
-        .entityList(Account::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the accounts from the result
-        val accounts = result.get()
+        val accountsData = result.get("data")
+        assertEquals(1, accountsData.size(), "Expected 1 account, but got ${accountsData.size()}")
 
         // Check that the account matches the first test account
         val expectedAccount = testAccounts.first()
-        val actualAccount = accounts.first()
+        val actualAccount = accountsData.get(0)
 
         assertAll(
-            { assert(actualAccount.id == expectedAccount.id) { "Account ID mismatch: expected ${expectedAccount.id}, got ${actualAccount.id}" } },
-            { assert(actualAccount.platform == expectedAccount.platform) { "Account platform mismatch: expected ${expectedAccount.platform}, got ${actualAccount.platform}" } },
-            { assert(actualAccount.login == expectedAccount.login) { "Account login mismatch: expected ${expectedAccount.login}, got ${actualAccount.login}" } },
-            { assert(actualAccount.name == expectedAccount.name) { "Account name mismatch: expected ${expectedAccount.name}, got ${actualAccount.name}" } }
+            { assertEquals(expectedAccount.id, actualAccount.get("id").asText(), "Account ID mismatch: expected ${expectedAccount.id}, got ${actualAccount.get("id").asText()}") },
+            { assertEquals(expectedAccount.platform.toString(), actualAccount.get("platform").asText(), "Account platform mismatch: expected ${expectedAccount.platform}, got ${actualAccount.get("platform").asText()}") },
+            { assertEquals(expectedAccount.login, actualAccount.get("login").asText(), "Account login mismatch: expected ${expectedAccount.login}, got ${actualAccount.get("login").asText()}") },
+            { assertEquals(expectedAccount.name, actualAccount.get("name").asText(), "Account name mismatch: expected ${expectedAccount.name}, got ${actualAccount.get("name").asText()}") }
         )
     }
 
     @Test
     fun `should handle null pagination parameters`() {
         // Test with null page and perPage parameters (should use defaults)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 accounts {
-                    id
-                    platform
-                    login
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        platform
+                        login
+                    }
                 }
             }
         """)
         .execute()
         .path("accounts")
-        .entityList(Account::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size (should return all accounts with default pagination)
-        result.hasSize(2)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
+        assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
+
+        // Get the accounts from the result
+        val accountsData = result.get("data")
+        assertEquals(2, accountsData.size(), "Expected 2 accounts, but got ${accountsData.size()}")
     }
 
     @Test
     fun `should return second page of accounts`() {
         // Test with page=2, perPage=1 (should return only the second account)
-        val result = graphQlTester.document("""
+        val result: JsonNode = graphQlTester.document("""
             query {
                 accounts(page: 2, perPage: 1) {
-                    id
-                    platform
-                    login
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        platform
+                        login
+                    }
                 }
             }
         """)
         .execute()
         .path("accounts")
-        .entityList(Account::class.java)
+        .entity(JsonNode::class.java)
+        .get()
 
-        // Check size
-        result.hasSize(1)
+        // Check pagination metadata
+        assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+        assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
+        assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
         // Get the accounts from the result
-        val accounts = result.get()
+        val accountsData = result.get("data")
+        assertEquals(1, accountsData.size(), "Expected 1 account, but got ${accountsData.size()}")
 
         // Check that the account matches the second test account
         val expectedAccount = testAccounts[1]
-        val actualAccount = accounts.first()
+        val actualAccount = accountsData.get(0)
 
         assertAll(
-            { assert(actualAccount.id == expectedAccount.id) { "Account ID mismatch: expected ${expectedAccount.id}, got ${actualAccount.id}" } },
-            { assert(actualAccount.platform == expectedAccount.platform) { "Account platform mismatch: expected ${expectedAccount.platform}, got ${actualAccount.platform}" } },
-            { assert(actualAccount.login == expectedAccount.login) { "Account login mismatch: expected ${expectedAccount.login}, got ${actualAccount.login}" } }
+            { assertEquals(expectedAccount.id, actualAccount.get("id").asText(), "Account ID mismatch: expected ${expectedAccount.id}, got ${actualAccount.get("id").asText()}") },
+            { assertEquals(expectedAccount.platform.toString(), actualAccount.get("platform").asText(), "Account platform mismatch: expected ${expectedAccount.platform}, got ${actualAccount.get("platform").asText()}") },
+            { assertEquals(expectedAccount.login, actualAccount.get("login").asText(), "Account login mismatch: expected ${expectedAccount.login}, got ${actualAccount.get("login").asText()}") }
         )
+    }
+
+    @Test
+    fun `should return empty list for page beyond available data`() {
+      val result: JsonNode = graphQlTester.document(
+        """
+              query {
+                  accounts(page: 3, perPage: 1) {
+                      count
+                      page
+                      perPage
+                      data {
+                          id
+                          platform
+                          login
+                      }
+                  }
+              }
+          """
+      )
+        .execute()
+        .path("accounts")
+        .entity(JsonNode::class.java)
+        .get()
+
+      // Check pagination metadata
+      assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+      assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+      assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
+
+      // Get the accounts from the result
+      val accountsData = result.get("data")
+      assertEquals(0, accountsData.size(), "Expected 0 accounts on page beyond available data, but got ${accountsData.size()}")
     }
   }
 
@@ -214,9 +282,14 @@ class AccountControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 accounts(page: 0, perPage: 10) {
-                    id
-                    platform
-                    login
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        platform
+                        login
+                    }
                 }
             }
         """)
@@ -231,9 +304,14 @@ class AccountControllerWebTest : BaseDbTest() {
         graphQlTester.document("""
             query {
                 accounts(page: 1, perPage: 0) {
-                    id
-                    platform
-                    login
+                    count
+                    page
+                    perPage
+                    data {
+                        id
+                        platform
+                        login
+                    }
                 }
             }
         """)

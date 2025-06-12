@@ -5,6 +5,7 @@ import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.AccountDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.NoteAccountConnectionRepository
@@ -25,8 +26,8 @@ class AccountServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(AccountServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Account> {
-    logger.trace("Getting all accounts with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Account> {
+    logger.trace("Getting all accounts with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return accountDao.findAll(pageable)
   }
 

@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.service.impl
 import com.inso_world.binocular.web.entity.Build
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BuildDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
 import com.inso_world.binocular.web.service.BuildService
 import org.slf4j.Logger
@@ -19,8 +20,8 @@ class BuildServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(BuildServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Build> {
-    logger.trace("Getting all builds with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Build> {
+    logger.trace("Getting all builds with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return buildDao.findAll(pageable)
   }
 

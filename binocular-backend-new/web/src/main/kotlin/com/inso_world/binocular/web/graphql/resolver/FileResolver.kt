@@ -16,6 +16,16 @@ class FileResolver(
     private val fileService: FileService
 ) {
     private val logger: Logger = LoggerFactory.getLogger(FileResolver::class.java)
+
+    /**
+     * Resolves the branches field for a File in GraphQL.
+     * 
+     * This method retrieves all branches associated with the given file.
+     * If the file ID is null, an empty list is returned.
+     * 
+     * @param file The file for which to retrieve branches
+     * @return A list of branches associated with the file, or an empty list if the file ID is null
+     */
     @SchemaMapping(typeName = "File", field = "branches")
     fun branches(file: File): List<Branch> {
         val id = file.id ?: return emptyList()
@@ -24,6 +34,15 @@ class FileResolver(
         return fileService.findBranchesByFileId(id)
     }
 
+    /**
+     * Resolves the commits field for a File in GraphQL.
+     * 
+     * This method retrieves all commits associated with the given file.
+     * If the file ID is null, an empty list is returned.
+     * 
+     * @param file The file for which to retrieve commits
+     * @return A list of commits associated with the file, or an empty list if the file ID is null
+     */
     @SchemaMapping(typeName = "File", field = "commits")
     fun commits(file: File): List<Commit> {
         val id = file.id ?: return emptyList()
@@ -32,6 +51,15 @@ class FileResolver(
         return fileService.findCommitsByFileId(id)
     }
 
+    /**
+     * Resolves the modules field for a File in GraphQL.
+     * 
+     * This method retrieves all modules associated with the given file.
+     * If the file ID is null, an empty list is returned.
+     * 
+     * @param file The file for which to retrieve modules
+     * @return A list of modules associated with the file, or an empty list if the file ID is null
+     */
     @SchemaMapping(typeName = "File", field = "modules")
     fun modules(file: File): List<Module> {
         val id = file.id ?: return emptyList()
@@ -40,6 +68,15 @@ class FileResolver(
         return fileService.findModulesByFileId(id)
     }
 
+    /**
+     * Resolves the relatedFiles field for a File in GraphQL.
+     * 
+     * This method retrieves all related files associated with the given file.
+     * If the file ID is null, an empty list is returned.
+     * 
+     * @param file The file for which to retrieve related files
+     * @return A list of related files associated with the file, or an empty list if the file ID is null
+     */
     @SchemaMapping(typeName = "File", field = "relatedFiles")
     fun relatedFiles(file: File): List<File> {
         val id = file.id ?: return emptyList()
@@ -48,6 +85,15 @@ class FileResolver(
         return fileService.findRelatedFilesByFileId(id)
     }
 
+    /**
+     * Resolves the users field for a File in GraphQL.
+     * 
+     * This method retrieves all users associated with the given file.
+     * If the file ID is null, an empty list is returned.
+     * 
+     * @param file The file for which to retrieve users
+     * @return A list of users associated with the file, or an empty list if the file ID is null
+     */
     @SchemaMapping(typeName = "File", field = "users")
     fun users(file: File): List<User> {
         val id = file.id ?: return emptyList()

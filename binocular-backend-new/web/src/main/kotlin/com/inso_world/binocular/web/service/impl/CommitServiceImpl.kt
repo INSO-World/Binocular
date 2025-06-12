@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.service.impl
 
 import com.inso_world.binocular.web.entity.*
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.CommitDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitCommitConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileConnectionRepository
@@ -28,8 +29,8 @@ class CommitServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(CommitServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Commit> {
-    logger.trace("Getting all commits with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Commit> {
+    logger.trace("Getting all commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return commitDao.findAll(pageable)
   }
 

@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.persistence.dao.nosql.arangodb
 
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.web.persistence.dao.nosql.NoSqlDao
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
@@ -25,8 +26,12 @@ class ArangoDbDao<T : Any, I : Serializable> : NoSqlDao<T, I>() {
     return this.arangoRepository.findAll()
   }
 
-  override fun findAll(pageable: Pageable): Iterable<T> {
-    return this.arangoRepository.findAll(pageable)
+  override fun findAll(pageable: Pageable): Page<T> {
+    val result = this.arangoRepository.findAll(pageable)
+    val content = result.content
+    val totalElements = result.totalElements
+
+    return Page(content, totalElements, pageable)
   }
 
   override fun create(entity: T): T {

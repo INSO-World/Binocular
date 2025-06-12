@@ -13,6 +13,16 @@ class BranchResolver(
     private val branchService: BranchService
 ) {
     private val logger: Logger = LoggerFactory.getLogger(BranchResolver::class.java)
+
+    /**
+     * Resolves the files field for a Branch in GraphQL.
+     * 
+     * This method retrieves all files associated with the given branch.
+     * If the branch ID is null, an empty list is returned.
+     * 
+     * @param branch The branch for which to retrieve files
+     * @return A list of files associated with the branch, or an empty list if the branch ID is null
+     */
     @SchemaMapping(typeName = "Branch", field = "files")
     fun files(branch: Branch): List<File> {
         val id = branch.id ?: return emptyList()

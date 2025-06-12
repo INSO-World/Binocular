@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.service.impl
 
 import com.inso_world.binocular.web.entity.*
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.IssueDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueCommitConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueMilestoneConnectionRepository
@@ -26,8 +27,8 @@ class IssueServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(IssueServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Issue> {
-    logger.trace("Getting all issues with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Issue> {
+    logger.trace("Getting all issues with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return issueDao.findAll(pageable)
   }
 

@@ -16,7 +16,6 @@ class BranchResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve branch with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     branch(id: "1") {
@@ -48,7 +47,6 @@ class BranchResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve branch with related files`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     branch(id: "1") {
@@ -96,7 +94,6 @@ class BranchResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve second branch with related files`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     branch(id: "2") {

@@ -16,7 +16,6 @@ class BuildResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve build with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     build(id: "1") {
@@ -78,7 +77,6 @@ class BuildResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve build with related commits`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     build(id: "1") {
@@ -127,7 +125,6 @@ class BuildResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve build with no related commits`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     build(id: "2") {

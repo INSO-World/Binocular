@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.*
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -12,9 +13,9 @@ interface CommitService {
      * Find all commits with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of commits
+     * @return Page of commits
      */
-    fun findAll(pageable: Pageable): Iterable<Commit>
+    fun findAll(pageable: Pageable): Page<Commit>
 
     /**
      * Find a commit by ID.

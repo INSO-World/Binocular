@@ -22,7 +22,6 @@ class AccountResolverTest : BaseDbTest() {
     inner class BasicFunctionality {
         @Test
         fun `should retrieve account with all fields`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     account(id: "1") {
@@ -58,7 +57,6 @@ class AccountResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve account with related issues`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     account(id: "1") {
@@ -102,7 +100,6 @@ class AccountResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve account with related merge requests`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     account(id: "1") {
@@ -146,7 +143,6 @@ class AccountResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve account with related notes`() {
-            // Test data is set up in BaseDbTest
             val result: JsonNode = graphQlTester.document("""
                 query {
                     account(id: "1") {

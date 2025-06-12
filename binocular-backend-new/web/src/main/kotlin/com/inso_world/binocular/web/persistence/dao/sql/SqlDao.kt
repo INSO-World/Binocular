@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.persistence.dao.sql
 
 import com.inso_world.binocular.web.exception.NotFoundException
 import com.inso_world.binocular.web.persistence.dao.interfaces.GenericDao
+import com.inso_world.binocular.web.persistence.model.Page
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.context.annotation.Profile
@@ -28,11 +29,17 @@ class SqlDao<T, I : Serializable> : GenericDao<T, I> {
   override fun findAll(): List<T> =
     entityManager.createQuery("FROM ${clazz.name}", clazz).resultList
 
-  override fun findAll(pageable: Pageable): List<T> =
-    entityManager.createQuery("FROM ${clazz.name}", clazz)
+  override fun findAll(pageable: Pageable): Page<T> {
+    val query = entityManager.createQuery("FROM ${clazz.name}", clazz)
+    val totalElements = entityManager.createQuery("SELECT COUNT(e) FROM ${clazz.name} e", Long::class.java).singleResult
+
+    val content = query
       .setFirstResult(pageable.pageNumber * pageable.pageSize)
       .setMaxResults(pageable.pageSize)
       .resultList
+
+    return Page(content, totalElements, pageable)
+  }
 
   override fun create(entity: T): T {
     entityManager.persist(entity)

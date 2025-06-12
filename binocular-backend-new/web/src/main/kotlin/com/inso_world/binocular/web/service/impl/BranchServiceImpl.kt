@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.service.impl
 import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BranchDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileConnectionRepository
 import com.inso_world.binocular.web.service.BranchService
 import org.slf4j.Logger
@@ -19,8 +20,8 @@ class BranchServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(BranchServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Branch> {
-    logger.trace("Getting all branches with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Branch> {
+    logger.trace("Getting all branches with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return branchDao.findAll(pageable)
   }
 

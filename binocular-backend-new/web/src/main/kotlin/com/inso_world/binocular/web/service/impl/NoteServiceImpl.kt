@@ -5,6 +5,7 @@ import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.NoteDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.NoteAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueNoteConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestNoteConnectionRepository
@@ -25,8 +26,8 @@ class NoteServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(NoteServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Note> {
-    logger.trace("Getting all notes with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Note> {
+    logger.trace("Getting all notes with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return noteDao.findAll(pageable)
   }
 

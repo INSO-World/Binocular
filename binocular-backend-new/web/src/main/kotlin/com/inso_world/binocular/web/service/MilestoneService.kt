@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.service
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Milestone
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -14,9 +15,9 @@ interface MilestoneService {
      * Find all milestones with pagination.
      *
      * @param pageable Pagination information
-     * @return Iterable of milestones
+     * @return Page of milestones
      */
-    fun findAll(pageable: Pageable): Iterable<Milestone>
+    fun findAll(pageable: Pageable): Page<Milestone>
 
     /**
      * Find a milestone by ID.

@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.ModuleDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitModuleConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleFileConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleModuleConnectionRepository
@@ -24,8 +25,8 @@ class ModuleServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(ModuleServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Module> {
-    logger.trace("Getting all modules with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Module> {
+    logger.trace("Getting all modules with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return moduleDao.findAll(pageable)
   }
 

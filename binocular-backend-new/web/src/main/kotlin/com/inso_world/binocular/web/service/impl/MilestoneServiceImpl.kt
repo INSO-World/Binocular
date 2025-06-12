@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MilestoneDao
+import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueMilestoneConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestMilestoneConnectionRepository
 import com.inso_world.binocular.web.service.MilestoneService
@@ -22,8 +23,8 @@ class MilestoneServiceImpl(
 
   var logger: Logger = LoggerFactory.getLogger(MilestoneServiceImpl::class.java)
 
-  override fun findAll(pageable: Pageable): Iterable<Milestone> {
-    logger.trace("Getting all milestones with pageable: page=${pageable.pageNumber + 1}, size=${pageable.pageSize}")
+  override fun findAll(pageable: Pageable): Page<Milestone> {
+    logger.trace("Getting all milestones with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
     return milestoneDao.findAll(pageable)
   }
 
