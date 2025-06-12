@@ -22,7 +22,7 @@ class CommitController(
   private var logger: Logger = LoggerFactory.getLogger(CommitController::class.java)
 
   /**
-   * Find all commits with pagination.
+   * Find all commits with pagination and optional timestamp filters.
    * 
    * This method returns a Page object that includes:
    * - count: total number of items
@@ -32,15 +32,22 @@ class CommitController(
    * 
    * @param page The page number (1-based). If null, defaults to 1.
    * @param perPage The number of items per page. If null, defaults to 20.
+   * @param since Optional timestamp to filter commits (only include commits after this timestamp)
+   * @param until Optional timestamp to filter commits (only include commits before this timestamp)
    * @return A Page object containing the commits and pagination metadata.
    */
   @QueryMapping(name = "commits")
-  fun findAll(@Argument page: Int?, @Argument perPage: Int?): PageDto<Commit> {
-    logger.info("Getting all commits...")
+  fun findAll(
+    @Argument page: Int?, 
+    @Argument perPage: Int?,
+    @Argument since: Long?,
+    @Argument until: Long?
+  ): PageDto<Commit> {
+    logger.info("Getting commits with page=$page, perPage=$perPage, since=$since, until=$until")
 
     val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    val commitsPage = commitService.findAll(pageable)
+    val commitsPage = commitService.findAll(pageable, since, until)
 
     return PageDto(commitsPage)
   }

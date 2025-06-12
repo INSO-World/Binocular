@@ -29,4 +29,22 @@ class BuildResolver(
         // Get all connections for this build and extract the commits
         return buildService.findCommitsByBuildId(id)
     }
+
+    /**
+     * Resolves the commit field for a Build in GraphQL.
+     * 
+     * This method retrieves the first commit associated with the given build.
+     * If the build ID is null or there are no commits associated with the build, null is returned.
+     * 
+     * @param build The build for which to retrieve the commit
+     * @return The first commit associated with the build, or null if there are no commits
+     */
+    @SchemaMapping(typeName = "Build", field = "commit")
+    fun commit(build: Build): Commit? {
+        val id = build.id ?: return null
+        logger.info("Resolving commit for build: $id")
+        // Get all connections for this build and extract the first commit
+        val commits = buildService.findCommitsByBuildId(id)
+        return commits.firstOrNull()
+    }
 }

@@ -19,6 +19,15 @@ interface BuildService {
     fun findAll(pageable: Pageable): Page<Build>
 
     /**
+     * Find all builds with pagination and timestamp filter.
+     *
+     * @param pageable Pagination information
+     * @param until Timestamp to filter builds (only include builds before this timestamp)
+     * @return Page of builds
+     */
+    fun findAll(pageable: Pageable, until: Long?): Page<Build>
+
+    /**
      * Find a build by ID.
      *
      * @param id The ID of the build to find

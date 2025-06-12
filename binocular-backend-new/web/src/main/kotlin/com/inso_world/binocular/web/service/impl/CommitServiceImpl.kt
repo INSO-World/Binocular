@@ -34,6 +34,25 @@ class CommitServiceImpl(
     return commitDao.findAll(pageable)
   }
 
+  override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Commit> {
+    logger.trace("Getting commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}, since=$since, until=$until")
+
+    if (since == null && until == null) {
+      return findAll(pageable)
+    }
+
+    val allCommits = commitDao.findAll(pageable)
+    val filteredCommits = allCommits.content.filter { commit ->
+      commit.date?.time?.let { commitTime ->
+        val afterSince = since == null || commitTime >= since
+        val beforeUntil = until == null || commitTime <= until
+        afterSince && beforeUntil
+      } ?: true // Include commits with null date
+    }
+
+    return Page(filteredCommits, filteredCommits.size.toLong(), pageable)
+  }
+
   override fun findById(id: String): Commit? {
     logger.trace("Getting commit by id: $id")
     return commitDao.findById(id)

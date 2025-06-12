@@ -18,6 +18,16 @@ interface CommitService {
     fun findAll(pageable: Pageable): Page<Commit>
 
     /**
+     * Find all commits with pagination and timestamp filters.
+     *
+     * @param pageable Pagination information
+     * @param since Optional timestamp to filter commits (only include commits after this timestamp)
+     * @param until Optional timestamp to filter commits (only include commits before this timestamp)
+     * @return Page of commits
+     */
+    fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Commit>
+
+    /**
      * Find a commit by ID.
      *
      * @param id The ID of the commit to find
