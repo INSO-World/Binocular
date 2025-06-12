@@ -5,12 +5,13 @@ logging:
         binocular: trace
 #    root: warn
 server:
-  port: 8080
+  port: 48763
 spring:
   profiles:
     active: nosql, arangodb
   application:
     name: binocular
   graphql:
+    path: /graphQl
     graphiql:
       enabled: true
