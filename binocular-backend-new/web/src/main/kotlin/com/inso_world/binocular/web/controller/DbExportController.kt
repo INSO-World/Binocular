@@ -13,7 +13,6 @@ class DbExportController (private val exportService: DbExportService) {
   @GetMapping("/db-export")
   fun exportDb(): Map<String, Any> {
 
-    // TODO: implement the service function
     return exportService.exportDb()
   }
 
