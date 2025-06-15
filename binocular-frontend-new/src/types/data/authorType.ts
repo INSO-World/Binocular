@@ -8,3 +8,7 @@ export interface AuthorType {
   selected: boolean;
   displayName?: string;
 }
+
+export interface Palette {
+  [signature: string]: string;
+}

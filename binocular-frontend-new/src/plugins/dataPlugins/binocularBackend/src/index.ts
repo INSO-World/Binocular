@@ -6,6 +6,7 @@ import Users from './users.ts';
 import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './builds.ts';
+import Branches from './branches.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -23,6 +24,7 @@ class BinocularBackend implements DataPlugin {
   public users;
   public general;
   public files;
+  public branches;
 
   constructor() {
     this.commits = new Commits('/graphQl');
@@ -30,6 +32,7 @@ class BinocularBackend implements DataPlugin {
     this.users = new Users('/graphQl');
     this.general = new General('/graphQl', undefined);
     this.files = new Files('/graphQl');
+    this.branches = new Branches('/graphQl');
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await

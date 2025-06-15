@@ -56,4 +56,60 @@ export default class Commits implements DataPluginCommits {
       return [];
     }
   }
+
+  public async getOwnershipDataForCommits() {
+    return await this.graphQl.client
+      .query({
+        query: gql`
+          query {
+            commits {
+              data {
+                sha
+                date
+                parents
+                files {
+                  data {
+                    file {
+                      path
+                    }
+                    action
+                    ownership {
+                      user
+                      hunks {
+                        originalCommit
+                        lines {
+                          from
+                          to
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+      })
+      .then((res) => res.data.commits)
+      .then((commits) =>
+        commits.data.map((c: { sha: string; date: string; parents: string[]; files: { data: any[] } }) => {
+          return {
+            sha: c.sha,
+            date: c.date,
+            parents: c.parents,
+            files: c.files.data.map((fileData) => {
+              return {
+                path: fileData.file.path,
+                action: fileData.action,
+                ownership: fileData.ownership,
+              };
+            }),
+          };
+        }),
+      );
+  }
+
+  public async getCommitDataForSha(sha: string) {
+    return this.getAll(new Date(0).toISOString(), new Date().toISOString()).then((commits) => commits.filter((c) => c.sha === sha)[0]);
+  }
 }

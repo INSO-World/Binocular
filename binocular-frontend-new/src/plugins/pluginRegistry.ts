@@ -14,6 +14,7 @@ import { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCo
 import ExampleComplex from './visualizationPlugins/exampleComplex';
 import ExampleStats from './visualizationPlugins/exampleStats';
 import ExampleVisualization from './visualizationPlugins/exampleVisualization';
+import CodeOwnership from './visualizationPlugins/code-ownership';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
@@ -21,7 +22,14 @@ const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Cha
 
 //The implicit type here has to be any because every Visualization plugin has a different settings type implied
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const visualizationPlugins: VisualizationPlugin<any, any>[] = [builds, changes, ExampleStats, ExampleVisualization, ExampleComplex];
+export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
+  builds,
+  CodeOwnership,
+  changes,
+  ExampleStats,
+  ExampleVisualization,
+  ExampleComplex,
+];
 
 //Order = priority used when nothing selected by the user.
 export const dataPlugins = [MockData, BinocularBackend, PouchDb, Github];
