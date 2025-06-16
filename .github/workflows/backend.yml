@@ -14,31 +14,22 @@ on:
   workflow_dispatch:
 
 env:
-  MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true --file binocular-backend-new/pom.xml'
-  MATRIX_STRATEGY: |
-    {
-      "fail-fast": true,
-      "matrix": {
-        "os": ["ubuntu-latest", "ubuntu-24.04-arm"],
-        "java_version": ["21", "23"],
-        "include": [
-          {
-            "os": "ubuntu-latest",
-            "architecture": "x64"
-          },
-          {
-            "os": "ubuntu-24.04-arm",
-            "architecture": "aarch64"
-          }
-        ],
-        "distribution": "temurin"
-      }
-    }
+  MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true'
 
 jobs:
   build:
     name: Build
-    strategy: ${{ fromJSON(env.MATRIX_STRATEGY) }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        java_version: [ '21', '23' ]
+        distribution: [ 'temurin' ]
+        include:
+          - os: ubuntu-latest
+            architecture: 'x64'
+          - os: ubuntu-24.04-arm
+            architecture: 'aarch64'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -54,15 +45,26 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Verify Parent with Maven
-        run: mvn $MAVEN_CLI_OPTS validate
+        run: mvn $MAVEN_CLI_OPTS validate --file binocular-backend-new/pom.xml
 
       - name: Compile with Maven
-        run: mvn $MAVEN_CLI_OPTS compile
+        run: mvn $MAVEN_CLI_OPTS compile --file binocular-backend-new/pom.xml
 
   test:
     name: Test
     needs: build
-    strategy: ${{ fromJSON(env.MATRIX_STRATEGY) }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        java_version: [ '21', '23' ]
+        distribution: [ 'temurin' ]
+        module: [ 'web', 'core' ]
+        include:
+          - os: ubuntu-latest
+            architecture: 'x64'
+          - os: ubuntu-24.04-arm
+            architecture: 'aarch64'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -77,5 +79,5 @@ jobs:
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
 
-      - name: Run Tests
-        run: mvn $MAVEN_CLI_OPTS verify
+      - name: Run tests for module ${{ matrix.module }}
+        run: mvn $MAVEN_CLI_OPTS verify --file binocular-backend-new/${{ matrix.module }}/pom.xml
