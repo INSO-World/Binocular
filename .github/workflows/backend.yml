@@ -15,6 +15,7 @@ on:
 
 env:
   MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true'
+  WD: binocular-backend-new
 
 jobs:
 
@@ -23,7 +24,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: binocular-backend-new
+        working-directory: $WD
 
     strategy:
       fail-fast: true
@@ -55,7 +56,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           cache: 'maven'
-          cache-dependency-path: '**/pom.xml' # optional
+          cache-dependency-path: '**/pom.xml'
           java-version: ${{ matrix.java_version }}
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
@@ -69,6 +70,11 @@ jobs:
   test:
     name: Test
     needs: build
+
+    defaults:
+      run:
+        working-directory: $WD
+
     strategy:
       fail-fast: false
       matrix:
@@ -100,9 +106,10 @@ jobs:
         uses: actions/setup-java@v4
         with:
           cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
           java-version: ${{ matrix.java_version }}
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --file binocular-backend-new/${{ matrix.module }}/pom.xml
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
