@@ -21,11 +21,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        #        os: [ubuntu-latest, windows-latest]
+        #        os: [ubuntu-latest, windows-latest, macos-latest]
         os: [ ubuntu-latest ]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
-        architecture: [ 'x64' ]
+        architecture: [ 'x64', 'aarch64' ]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -40,3 +40,5 @@ jobs:
           architecture: ${{ matrix.architecture }}
       - name: Verify Parent with Maven
         run: mvn -B validate --file binocular-backend-new/pom.xml
+      - name: Compile with Maven
+        run: mvn -B compile --file binocular-backend-new/pom.xml
