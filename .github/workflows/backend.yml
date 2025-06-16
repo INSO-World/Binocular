@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 23 for ${{ matrix.architecture }}
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
         uses: actions/setup-java@v4
         with:
           cache: 'maven'
