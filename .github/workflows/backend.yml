@@ -20,13 +20,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - java_version: 23.0.2
-            distribution: 'temurin'
-            architecture: x86
+#    strategy:
+#      fail-fast: true
+#      matrix:
+#        include:
+#          - java_version: 23.0.2
+#            distribution: 'temurin'
+#            architecture: x86
 
     steps:
       - uses: actions/checkout@v2
@@ -35,8 +35,8 @@ jobs:
         with:
           cache: 'maven'
 #          cache-dependency-path: 'sub-project/pom.xml' # optional
-          java-version: ${{ matrix.java_version }}
-          distribution: ${{ matrix.distribution }}
-          architecture: ${{ matrix.architecture }}
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x86
       - name: Verify Parent with Maven
         run: mvn -B validate --file binocular-backend-new/pom.xml
