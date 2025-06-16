@@ -1,4 +1,4 @@
-name: backend.yml
+name: Backend CI
 
 on:
   push:
@@ -13,36 +13,69 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
+env:
+  MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true --file binocular-backend-new/pom.xml'
+  MATRIX_STRATEGY: |
+    {
+      "fail-fast": true,
+      "matrix": {
+        "os": ["ubuntu-latest", "ubuntu-24.04-arm"],
+        "java_version": ["21", "23"],
+        "include": [
+          {
+            "os": "ubuntu-latest",
+            "architecture": "x64"
+          },
+          {
+            "os": "ubuntu-24.04-arm",
+            "architecture": "aarch64"
+          }
+        ],
+        "distribution": "temurin"
+      }
+    }
 
 jobs:
   build:
-    strategy:
-      fail-fast: true
-      matrix:
-        #        os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ ubuntu-latest, ubuntu-24.04-arm ]
-        java_version: [ '21', '23' ]
-        distribution: [ 'temurin' ]
-        include:
-          - os: ubuntu-latest
-            architecture: 'x64'
-          - os: ubuntu-24.04-arm
-            architecture: 'aarch64'
+    name: Build
+    strategy: ${{ fromJSON(env.MATRIX_STRATEGY) }}
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
         uses: actions/setup-java@v4
         with:
           cache: 'maven'
-          #          cache-dependency-path: 'sub-project/pom.xml' # optional
           java-version: ${{ matrix.java_version }}
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
+
       - name: Verify Parent with Maven
-        run: mvn -B validate --file binocular-backend-new/pom.xml
+        run: mvn $MAVEN_CLI_OPTS validate
+
       - name: Compile with Maven
-        run: mvn -B compile --file binocular-backend-new/pom.xml
+        run: mvn $MAVEN_CLI_OPTS compile
+
+  test:
+    name: Test
+    needs: build
+    strategy: ${{ fromJSON(env.MATRIX_STRATEGY) }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Run Tests
+        run: mvn $MAVEN_CLI_OPTS verify
