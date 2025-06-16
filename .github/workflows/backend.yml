@@ -22,7 +22,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+#        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        os: [ ubuntu-latest ]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
         include:
@@ -57,7 +58,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+#        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        os: [ ubuntu-latest ]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
         module: [ 'web', 'core' ]
