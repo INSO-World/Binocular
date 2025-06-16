@@ -22,11 +22,12 @@ jobs:
       fail-fast: true
       matrix:
         #        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ ubuntu-latest, ubuntu-24.04-arm ]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
-        os: [ ubuntu-latest ]
-        architecture: [ 'x64' ]
         include:
+          - os: ubuntu-latest
+            architecture: 'x64'
           - os: ubuntu-24.04-arm
             architecture: 'aarch64'
     runs-on: ${{ matrix.os }}
