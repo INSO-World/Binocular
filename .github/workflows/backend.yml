@@ -24,8 +24,8 @@ jobs:
         #        os: [ubuntu-latest, windows-latest, macos-latest]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
-        os: ['']
-        architecture: ['']
+        os:
+        architecture:
         include:
           - os: ubuntu-latest
             architecture: 'x64'
