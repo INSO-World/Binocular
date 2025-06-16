@@ -18,14 +18,15 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
     strategy:
       fail-fast: true
       matrix:
+        #        os: [ubuntu-latest, windows-latest]
+        os: [ ubuntu-latest ]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
-        architecture: [ 'x86' ]
+        architecture: [ 'x64' ]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
