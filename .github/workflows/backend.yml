@@ -17,20 +17,26 @@ env:
   MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true'
 
 jobs:
+
   build:
     name: Build
+
+    defaults:
+      run:
+        working-directory: binocular-backend-new
+
     strategy:
       fail-fast: true
       matrix:
-#        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        #        os: [ ubuntu-latest, ubuntu-24.04-arm ]
         os: [ ubuntu-latest ]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
-#          - os: ubuntu-24.04-arm
-#            architecture: 'aarch64'
+    #          - os: ubuntu-24.04-arm
+    #            architecture: 'aarch64'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -55,10 +61,10 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Verify Parent with Maven
-        run: mvn $MAVEN_CLI_OPTS validate --file binocular-backend-new/pom.xml
+        run: mvn $MAVEN_CLI_OPTS validate
 
       - name: Compile with Maven
-        run: mvn $MAVEN_CLI_OPTS compile --file binocular-backend-new/pom.xml -am
+        run: mvn $MAVEN_CLI_OPTS compile
 
   test:
     name: Test
@@ -66,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-#        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        #        os: [ ubuntu-latest, ubuntu-24.04-arm ]
         os: [ ubuntu-latest ]
         java_version: [ '21', '23' ]
         distribution: [ 'temurin' ]
@@ -74,8 +80,8 @@ jobs:
         include:
           - os: ubuntu-latest
             architecture: 'x64'
-#          - os: ubuntu-24.04-arm
-#            architecture: 'aarch64'
+    #          - os: ubuntu-24.04-arm
+    #            architecture: 'aarch64'
     runs-on: ${{ matrix.os }}
 
     steps:
