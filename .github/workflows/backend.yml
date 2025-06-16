@@ -26,15 +26,17 @@ jobs:
         include:
           - java_version: '21'
             distribution: 'temurin'
+            architecture: 'x86'
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 23 for x86
+      - name: Set up JDK 23 for ${{ matrix.architecture }}
         uses: actions/setup-java@v4
         with:
           cache: 'maven'
 #          cache-dependency-path: 'sub-project/pom.xml' # optional
           java-version: ${{ matrix.java_version }}
           distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
       - name: Verify Parent with Maven
         run: mvn -B validate --file binocular-backend-new/pom.xml
