@@ -35,8 +35,7 @@ jobs:
         with:
           cache: 'maven'
 #          cache-dependency-path: 'sub-project/pom.xml' # optional
+          distribution: 'temurin' # See 'Supported distributions' for available options
           java-version: '21'
-          distribution: 'temurin'
-          architecture: x86
       - name: Verify Parent with Maven
         run: mvn -B validate --file binocular-backend-new/pom.xml
