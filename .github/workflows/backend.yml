@@ -24,7 +24,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - java_version: '23'
+          - java_version: '23.0.2'
             distribution: 'temurin'
             architecture: x86
 
