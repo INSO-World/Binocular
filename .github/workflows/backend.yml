@@ -24,7 +24,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: $WD
+        working-directory: ${{ env.WD }}
 
     strategy:
       fail-fast: true
@@ -73,7 +73,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: $WD
+        working-directory: ${{ env.WD }}
 
     strategy:
       fail-fast: false
