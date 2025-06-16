@@ -23,10 +23,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        include:
-          - java_version: '21'
-            distribution: 'temurin'
-            architecture: 'x86'
+        java_version: [ '21', '23' ]
+        distribution: [ 'temurin' ]
+        architecture: [ 'x86' ]
 
     steps:
       - uses: actions/checkout@v2
@@ -34,7 +33,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           cache: 'maven'
-#          cache-dependency-path: 'sub-project/pom.xml' # optional
+          #          cache-dependency-path: 'sub-project/pom.xml' # optional
           java-version: ${{ matrix.java_version }}
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
