@@ -2,15 +2,15 @@ name: Backend CI
 
 on:
   push:
-    branches:
-      - main
-      - develop
-      - 'feature/backend-new-gha'
-    tags-ignore:
-      - '*'
-  pull_request:
-    branches:
-      - main
+#    branches:
+#      - main
+#      - develop
+#      - 'feature/backend-new-gha'
+#    tags-ignore:
+#      - '*'
+#  pull_request:
+#    branches:
+#      - main
   workflow_dispatch:
 
 env:
