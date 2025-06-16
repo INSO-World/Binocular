@@ -50,7 +50,7 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS validate --file binocular-backend-new/pom.xml
 
       - name: Compile with Maven
-        run: mvn $MAVEN_CLI_OPTS compile --file binocular-backend-new/pom.xml
+        run: mvn $MAVEN_CLI_OPTS compile --file binocular-backend-new/pom.xml -am
 
   test:
     name: Test
@@ -83,4 +83,4 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS verify --file binocular-backend-new/${{ matrix.module }}/pom.xml
+        run: mvn $MAVEN_CLI_OPTS test --file binocular-backend-new/${{ matrix.module }}/pom.xml
