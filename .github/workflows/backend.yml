@@ -29,8 +29,8 @@ jobs:
         include:
           - os: ubuntu-latest
             architecture: 'x64'
-          - os: ubuntu-24.04-arm
-            architecture: 'aarch64'
+#          - os: ubuntu-24.04-arm
+#            architecture: 'aarch64'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -66,8 +66,8 @@ jobs:
         include:
           - os: ubuntu-latest
             architecture: 'x64'
-          - os: ubuntu-24.04-arm
-            architecture: 'aarch64'
+#          - os: ubuntu-24.04-arm
+#            architecture: 'aarch64'
     runs-on: ${{ matrix.os }}
 
     steps:
