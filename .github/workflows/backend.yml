@@ -1,0 +1,123 @@
+name: Backend CI
+
+on:
+  push:
+#    branches:
+#      - main
+#      - develop
+#      - 'feature/backend-new-gha'
+#    tags-ignore:
+#      - '*'
+#  pull_request:
+#    branches:
+#      - main
+  workflow_dispatch:
+
+env:
+  MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true'
+  WD: binocular-backend-new
+
+jobs:
+
+  build:
+    name: Build
+
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        #        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        os: [ ubuntu-latest ]
+        java_version: [ '23', '24' ]
+        distribution: [ 'temurin' ]
+        include:
+          - os: ubuntu-latest
+            architecture: 'x64'
+    #          - os: ubuntu-24.04-arm
+    #            architecture: 'aarch64'
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Verify Parent with Maven
+        run: mvn $MAVEN_CLI_OPTS validate
+
+      - name: Compile with Maven
+        run: mvn $MAVEN_CLI_OPTS compile
+
+  test:
+    name: Test
+    needs: build
+
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    services:
+      db:
+        image: arangodb:3.12
+        ports:
+          - "8529:8529"
+        env:
+          ARANGO_NO_AUTH: 1
+
+    strategy:
+      fail-fast: false
+      matrix:
+        #        os: [ ubuntu-latest, ubuntu-24.04-arm ]
+        os: [ ubuntu-latest ]
+        java_version: [ '23', '24' ]
+        distribution: [ 'temurin' ]
+        module: [ 'web', 'core' ]
+        include:
+          - os: ubuntu-latest
+            architecture: 'x64'
+    #          - os: ubuntu-24.04-arm
+    #            architecture: 'aarch64'
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Run tests for module ${{ matrix.module }}
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
