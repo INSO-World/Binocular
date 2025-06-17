@@ -37,7 +37,7 @@ module.exports = new gql.GraphQLObjectType({
       issues: {
         type: new gql.GraphQLList(require('./issue.js')),
         description: 'Issues where this account is an assignee',
-        resolve(account /*, args*/) {
+        resolve(account) {
           return db
             ._query(
               aql`
