@@ -1,0 +1,20 @@
+spring:
+  main:
+    banner-mode: off
+  h2:
+    console:
+      enabled: true
+  datasource:
+    #    url: jdbc:h2:mem:binocular
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/binocular
+    username: ${DATABASE_USER:binocular}
+    password: ${DATABASE_PW:binocular}
+#    driverClassName: org.hibernate.dialect.PostgreSQLDialect
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

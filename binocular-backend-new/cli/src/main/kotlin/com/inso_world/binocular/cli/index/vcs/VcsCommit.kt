@@ -1,0 +1,53 @@
+package com.inso_world.binocular.cli.index.vcs
+
+import com.inso_world.binocular.cli.entity.Commit
+import com.inso_world.binocular.cli.uniffi.BinocularCommitVec
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+
+data class VcsCommit(
+  val sha: String,
+  val message: String,
+  val branch: String,
+  val committer: VcsPerson?,
+  val author: VcsPerson?,
+  val commitTime: LocalDateTime?,
+  val authorTime: LocalDateTime?,
+  val parents: List<String>?,
+){
+
+  override fun toString(): String {
+    return "VcsCommit(sha='$sha', message='$message', branch=$branch, parents=$parents, commitTime=$commitTime, authorTime=$authorTime)"
+  }
+
+  fun toEntity(): Commit {
+    return Commit(
+      sha = this.sha,
+      message = this.message,
+      commitTime = this.commitTime ?: LocalDateTime.now(),
+      authorTime = this.authorTime,
+      committer = this.committer?.toEntity(),
+      author = this.author?.toEntity(),
+      parents = emptyList(), // Will be set later in transformCommits
+      branches = mutableSetOf(), // Will be set later in transformCommits
+      repository = null // Will be set later in transformCommits
+    )
+  }
+}
+
+fun BinocularCommitVec.toDto(): VcsCommit {
+  return VcsCommit(
+    sha = this.commit,
+    message = this.message,
+    branch = this.branch!!, // TODO avoid non null check
+    commitTime = this.committer?.let { ct ->
+      LocalDateTime.ofEpochSecond(ct.time.seconds, 0, ZoneOffset.UTC)
+    },
+    authorTime = this.author?.let { ct ->
+      LocalDateTime.ofEpochSecond(ct.time.seconds, 0, ZoneOffset.UTC)
+    },
+    parents = this.parents.ifEmpty { null },
+    committer = this.committer?.toVcsPerson(),
+    author = this.author?.toVcsPerson(),
+  )
+}
