@@ -12,5 +12,5 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ExtendWith(SpringExtension::class)
 @Tag("integration")
 abstract class BaseIntegrationTest {
-    // Add common setup and utilities for integration tests here
+  // Add common setup and utilities for integration tests here
 }

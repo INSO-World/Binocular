@@ -1,15 +1,15 @@
 package com.inso_world.binocular.cli.integration.service.base
 
-import com.inso_world.binocular.cli.integration.BaseFixturesIntegrationTest
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
 import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
+import com.inso_world.binocular.cli.integration.BaseFixturesIntegrationTest
+import com.inso_world.binocular.cli.integration.utils.generateCommits
+import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.persistence.repository.sql.BranchRepository
 import com.inso_world.binocular.cli.persistence.repository.sql.CommitRepository
 import com.inso_world.binocular.cli.persistence.repository.sql.RepositoryRepository
 import com.inso_world.binocular.cli.persistence.repository.sql.UserRepository
-import com.inso_world.binocular.cli.integration.utils.generateCommits
-import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,7 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest
   classes = [BinocularCommandLineApplication::class],
   webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
-internal open class BaseServiceTest : BaseFixturesIntegrationTest() {
+internal class BaseServiceTest : BaseFixturesIntegrationTest() {
 
   @Autowired
   internal lateinit var commitRepository: CommitRepository

@@ -3,9 +3,9 @@ package com.inso_world.binocular.cli.integration.service
 import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
+import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.ICommitDao
 import com.inso_world.binocular.cli.service.CommitService
-import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -30,7 +30,7 @@ internal class CommitServiceTest private constructor(
     assertAll(
       "Check Number of saved commits",
       { assertThat(allCommits).isNotEmpty() },
-      { assertThat(allCommits.count()).isEqualTo(14) },
+      { assertThat(allCommits).hasSize(14) },
     )
   }
 
@@ -41,7 +41,7 @@ internal class CommitServiceTest private constructor(
     assertAll(
       "Check if exactly one root commit exists",
       { assertThat(root).isNotEmpty() },
-      { assertThat(root.count()).isEqualTo(1) },
+      { assertThat(root).hasSize(1) },
     )
   }
 
@@ -135,7 +135,7 @@ internal class CommitServiceTest private constructor(
 
     assertAll(
       { assertThat(simpleRepoCommits).isNotEmpty() },
-      { assertThat(simpleRepoCommits.count()).isEqualTo(14) },
+      { assertThat(simpleRepoCommits).hasSize(14) },
     )
   }
 

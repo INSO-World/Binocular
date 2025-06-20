@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.integration.service
 
-import com.inso_world.binocular.cli.service.UserService
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
+import com.inso_world.binocular.cli.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll

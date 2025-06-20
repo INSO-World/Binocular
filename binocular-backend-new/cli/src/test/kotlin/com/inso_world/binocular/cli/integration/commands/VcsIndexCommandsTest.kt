@@ -19,11 +19,11 @@ import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @Transactional
-internal open class VcsIndexCommandsTest(
-    @Autowired val idxClient: Index,
+internal class VcsIndexCommandsTest(
+  @Autowired val idxClient: Index,
 //  @Autowired val client: ShellTestClient,
-    @Autowired val repoService: RepositoryService,
-    @Autowired val transactionTemplate: TransactionTemplate
+  @Autowired val repoService: RepositoryService,
+  @Autowired val transactionTemplate: TransactionTemplate
 ) : BaseShellTest() {
 
   @ParameterizedTest
@@ -31,7 +31,7 @@ internal open class VcsIndexCommandsTest(
     "master,14", "origin/master,13"
   )
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  open fun `index commits -b master - simple repo`(
+  fun `index commits -b master - simple repo`(
     branchName: String, noOfCommits: Int
   ) {
 //    val session = client.interactive().run()
@@ -206,19 +206,19 @@ internal open class VcsIndexCommandsTest(
     )
     var repo1: Repository? = null
 //    await().atMost(20, TimeUnit.SECONDS).untilAsserted {
-      transactionTemplate.execute {
-        val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
-        assertAll(
-          { assertThat(repo).isNotNull() },
-          { assertThat(repo!!.id).isNotNull() },
-          { assertThat(repo!!.branches).isNotEmpty() },
-          { assertThat(repo!!.branches).hasSize(1) },
-          { assertThat(repo!!.branches.map { it.name }).contains("master") },
-          { assertThat(repo!!.commits).isNotEmpty() },
-          { assertThat(repo!!.commits).hasSize(14) },
-          { assertThat(repo!!.user).hasSize(3) },
-        )
-        repo1 = repo
+    transactionTemplate.execute {
+      val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+      assertAll(
+        { assertThat(repo).isNotNull() },
+        { assertThat(repo!!.id).isNotNull() },
+        { assertThat(repo!!.branches).isNotEmpty() },
+        { assertThat(repo!!.branches).hasSize(1) },
+        { assertThat(repo!!.branches.map { it.name }).contains("master") },
+        { assertThat(repo!!.commits).isNotEmpty() },
+        { assertThat(repo!!.commits).hasSize(14) },
+        { assertThat(repo!!.user).hasSize(3) },
+      )
+      repo1 = repo
 //      }
     }
 
@@ -233,7 +233,7 @@ internal open class VcsIndexCommandsTest(
       listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a")
     )//.toEntity()
 //    // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
-    val head = repo1!!.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+    repo1!!.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
 
     transactionTemplate.execute {
       val vcsRepo = BinocularRepository(
