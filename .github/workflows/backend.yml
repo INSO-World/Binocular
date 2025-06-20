@@ -2,15 +2,15 @@ name: Backend CI
 
 on:
   push:
-#    branches:
-#      - main
-#      - develop
-#      - 'feature/backend-new-gha'
-#    tags-ignore:
-#      - '*'
-#  pull_request:
-#    branches:
-#      - main
+  #    branches:
+  #      - main
+  #      - develop
+  #      - 'feature/backend-new-gha'
+  #    tags-ignore:
+  #      - '*'
+  #  pull_request:
+  #    branches:
+  #      - main
   workflow_dispatch:
 
 env:
@@ -171,3 +171,37 @@ jobs:
       - test
       - test-cli
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        java_version: [ '23', '24' ]
+        distribution: [ 'temurin' ]
+        module: [ 'web', 'cli' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+
+      - name: Package module ${{ matrix.module }}
+        run: mvn $MAVEN_CLI_OPTS package -DskipTests --pl ${{ matrix.module }} -am
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: ${{ matrix.module }}/${{ matrix.module }}-*.jar
