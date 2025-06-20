@@ -16,7 +16,7 @@ import org.springframework.shell.command.annotation.Option
 )
 open class Index(
   @Autowired private val vcsService: VcsService
-) : IndexCommand() {
+) {
   private var logger: Logger = LoggerFactory.getLogger(Index::class.java)
 
   @Command(command = ["hello"], description = "Hello World")
