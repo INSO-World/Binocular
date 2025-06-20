@@ -65,11 +65,6 @@
           <version>3.4.4</version>
       </dependency>
       <dependency>
-        <groupId>com.arangodb</groupId>
-        <artifactId>arangodb-spring-data</artifactId>
-        <version>4.4.2</version>
-      </dependency>
-      <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-reflect</artifactId>
         <version>${kotlin.version}</version>
@@ -104,19 +99,22 @@
     </dependency>
   </dependencies>
 
-  <!--  <build>-->
+    <build>
   <!--    <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>-->
   <!--    <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>-->
-  <!--    <pluginManagement>-->
-  <!--      <plugins>-->
+      <pluginManagement>
+        <plugins>
   <!--        <plugin>-->
   <!--          <groupId>org.graalvm.buildtools</groupId>-->
   <!--          <artifactId>native-maven-plugin</artifactId>-->
   <!--        </plugin>-->
-  <!--        <plugin>-->
-  <!--          <groupId>org.springframework.boot</groupId>-->
-  <!--          <artifactId>spring-boot-maven-plugin</artifactId>-->
-  <!--        </plugin>-->
+          <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
   <!--        <plugin>-->
   <!--          <groupId>org.jetbrains.kotlin</groupId>-->
   <!--          <artifactId>kotlin-maven-plugin</artifactId>-->
@@ -154,8 +152,8 @@
   <!--            </dependency>-->
   <!--          </dependencies>-->
   <!--        </plugin>-->
-  <!--      </plugins>-->
-  <!--    </pluginManagement>-->
-  <!--  </build>-->
+        </plugins>
+      </pluginManagement>
+    </build>
 
 </project>

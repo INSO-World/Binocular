@@ -90,7 +90,7 @@ jobs:
         os: [ ubuntu-latest ]
         java_version: [ '23', '24' ]
         distribution: [ 'temurin' ]
-        module: [ 'web', 'core' ]
+        module: [ 'web', 'core', 'cli' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
