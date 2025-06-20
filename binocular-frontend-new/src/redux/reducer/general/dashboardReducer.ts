@@ -103,20 +103,22 @@ export const dashboardSlice = createSlice({
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     setDashboardState: (state, action: PayloadAction<DashboardItemType[]>) => {
-      state.dashboardItems = action.payload.map((item, id) => {
+      const dashboardItems = action.payload.map((item, id) => {
         item.id = id + 1;
         state.dashboardItemCount = item.id;
         return item;
       });
-      action.payload.forEach((item) => {
-        if (item.x && item.y) {
+      state.dashboardState = Array.from(Array(40), () => new Array(40).fill(0));
+      dashboardItems.forEach((item: DashboardItemType) => {
+        if (item.x !== undefined && item.y !== undefined) {
           for (let x = item.x; x < item.x + item.width; x++) {
             for (let y = item.y; y < item.y + item.height; y++) {
-              state.dashboardState[x][y] = item.id;
+              state.dashboardState[y][x] = item.id;
             }
           }
         }
       });
+      state.dashboardItems = dashboardItems;
       state.initialized = true;
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },

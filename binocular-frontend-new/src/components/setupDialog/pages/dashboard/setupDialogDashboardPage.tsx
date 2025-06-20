@@ -33,7 +33,7 @@ function SetupDialogDashboardPage() {
       <div className={'flex gap-4 w-full flex-wrap'}>
         {recommendedDashboards.map((recommendedDashboard, i) => {
           return (
-            <div key={'recommendedDashbaord' + i} className={'card bg-base-100 w-96 shadow-xl'}>
+            <div key={'recommendedDashboard' + i} className={'card bg-base-100 w-96 shadow-xl'}>
               <div className={'card-body'}>
                 <h2 className={'card-title'}>{recommendedDashboard.name}</h2>
                 <DashboardPreview dashboardItems={recommendedDashboard.items}></DashboardPreview>
@@ -45,8 +45,7 @@ function SetupDialogDashboardPage() {
                     dispatch(
                       setDashboardState(
                         recommendedDashboard.items.map((item) => {
-                          item.dataPluginId = defaultDataPluginItemId;
-                          return item;
+                          return { ...item, dataPluginId: defaultDataPluginItemId };
                         }),
                       ),
                     );
