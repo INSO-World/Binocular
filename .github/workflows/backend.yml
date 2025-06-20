@@ -69,7 +69,7 @@ jobs:
 
   test-cli:
     name: Test-CLI (native libraries)
-    needs: build
+    needs: compile
 
     defaults:
       run:
