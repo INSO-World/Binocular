@@ -115,7 +115,7 @@ jobs:
 
   test:
     name: Test
-    needs: build
+    needs: compile
 
     defaults:
       run:
