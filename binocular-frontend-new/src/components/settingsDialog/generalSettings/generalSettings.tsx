@@ -114,6 +114,15 @@ function GeneralSettings() {
           {fileImportError && <div className={'text-error'}>{fileImportError}</div>}
           {fileImportSuccess && <div className={'text-success'}>{fileImportSuccess}</div>}
         </label>
+        <h2>Setup Wizard</h2>
+        <button
+          className={'btn btn-outline'}
+          onClick={() => {
+            (document.getElementById('settingsDialog') as HTMLDialogElement).close();
+            (document.getElementById('setupDialog') as HTMLDialogElement).showModal();
+          }}>
+          Open Setup Wizard
+        </button>
       </div>
     </>
   );

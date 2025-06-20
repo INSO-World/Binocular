@@ -6,6 +6,7 @@ import distinctColors from 'distinct-colors';
 
 export interface SettingsInitialState {
   general: GeneralSettingsType;
+  initialized: boolean;
   database: DatabaseSettingsType;
   localDatabaseLoadingState: LocalDatabaseLoadingState;
 }
@@ -19,6 +20,7 @@ const initialState: SettingsInitialState = {
   general: {
     gridSize: SettingsGeneralGridSize.medium,
   },
+  initialized: false,
   database: {
     currID: 0,
     dataPlugins: [],
@@ -69,6 +71,7 @@ export const settingsSlice = createSlice({
           console.log(`Updated dataPlugin ${action.payload.id}`);
         }
       }
+      state.initialized = true;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     removeDataPlugin: (state, action: PayloadAction<number>) => {

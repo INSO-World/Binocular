@@ -25,7 +25,6 @@ function SettingsDialog() {
         {activeTab === 'Database' && <DatabaseSettings></DatabaseSettings>}
         <div className={'modal-action absolute bottom-4 right-4'}>
           <form method={'dialog'}>
-            {/* if there is a button in form, it will close the modal */}
             <button className={'btn btn-sm btn-accent'}>Close</button>
           </form>
         </div>
