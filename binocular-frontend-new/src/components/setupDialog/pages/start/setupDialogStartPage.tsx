@@ -1,7 +1,7 @@
 function SetupDialogStartPage() {
   return (
     <>
-      <h1>Welcome To Binocular</h1>
+      <h1>Welcome zo Binocular</h1>
       <p>
         Binocular is a tool for visualizing data from various software-engineering tools. It works as a command-line tool run from a
         git-repository. When run, Binocular will gather data from the repository and the GitHub or GitLab API and persist it to a configured
@@ -13,8 +13,9 @@ function SetupDialogStartPage() {
         sources to gater Data from its own dedicated backend to loading data directly from json files in the browser without the need of a
         backend at all.
       </p>
-      {/* eslint-disable-next-line react/no-unescaped-entities */}
-      <p>Just press the "Next" button to start with the setup process!</p>
+      <p>
+        Just press the <span className={'btn btn-accent btn-xs no-animation'}>Next</span> button to start with the setup process!
+      </p>
     </>
   );
 }

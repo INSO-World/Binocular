@@ -26,13 +26,13 @@ function SetupDialog() {
           Setup
         </h3>
         <ul className="steps steps-vertical lg:steps-horizontal w-full">
-          <li data-content="?" className="step" id={'setupStep1'}>
+          <li data-content="●" className="step" id={'setupStep1'}>
             Start
           </li>
-          <li data-content="●" className="step" id={'setupStep2'}>
+          <li data-content="?" className="step" id={'setupStep2'}>
             Database
           </li>
-          <li data-content="●" className="step" id={'setupStep3'}>
+          <li data-content="?" className="step" id={'setupStep3'}>
             Dashboard
           </li>
           <li data-content="!" className="step" id={'setupStep4'}>

@@ -1,9 +1,5 @@
 // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
-import {
-  addDataPlugin,
-  LocalDatabaseLoadingState,
-  setLocalDatabaseLoadingState
-} from '../redux/reducer/settings/settingsReducer.ts';
+import { addDataPlugin, LocalDatabaseLoadingState, setLocalDatabaseLoadingState } from '../redux/reducer/settings/settingsReducer.ts';
 import { AppDispatch } from '../redux';
 import { PouchDB } from '../plugins/pluginRegistry.ts';
 

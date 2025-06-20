@@ -1,5 +1,6 @@
 export interface DatabaseSettingsType {
   dataPlugins: DatabaseSettingsDataPluginType[];
+  defaultDataPluginItemId?: number;
   currID: number;
 }
 

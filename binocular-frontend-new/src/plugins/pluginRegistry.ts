@@ -24,7 +24,7 @@ const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Cha
 export const visualizationPlugins: VisualizationPlugin<any, any>[] = [builds, changes, ExampleStats, ExampleVisualization, ExampleComplex];
 
 //Order = priority used when nothing selected by the user.
-export const dataPlugins = [MockData, BinocularBackend, PouchDb, Github];
+export const dataPlugins = [BinocularBackend, PouchDb, MockData, Github];
 
 // Separate Export for PouchDB Plugin to streamline Database loading
 export const PouchDB = new PouchDb();

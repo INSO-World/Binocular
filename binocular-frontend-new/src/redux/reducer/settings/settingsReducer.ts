@@ -48,11 +48,15 @@ export const settingsSlice = createSlice({
       if (action.payload.id === undefined) {
         const colors = distinctColors({ count: 100 });
         action.payload.isDefault = state.database.dataPlugins.length === 0;
+
         state.database.currID++;
         if (action.payload.color === '#000') {
           action.payload.color = colors[state.database.currID].hex() + '22';
         }
         action.payload.id = state.database.currID;
+        if (action.payload.isDefault) {
+          state.defaultDataPluginItemId = action.payload.id;
+        }
         state.database.dataPlugins.push(action.payload);
         console.log(`Inserted dataPlugin ${action.payload.id}`);
       } else {
@@ -83,6 +87,7 @@ export const settingsSlice = createSlice({
         dP.isDefault = dP.id === action.payload;
         return dP;
       });
+      state.defaultDataPluginItemId = action.payload;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     clearSettingsStorage: () => {
