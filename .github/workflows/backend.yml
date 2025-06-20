@@ -214,4 +214,4 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          path: ${{ matrix.module }}/target/*.jar
+          path: ${{ env.WD }}/${{ matrix.module }}/target/*.jar
