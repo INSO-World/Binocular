@@ -208,4 +208,4 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          path: ${{ matrix.module }}/target/${{ matrix.module }}-*.jar
+          path: ${{ matrix.module }}/target/*.jar
