@@ -206,6 +206,12 @@ jobs:
       - name: Package module ${{ matrix.module }}
         run: mvn $MAVEN_CLI_OPTS package -DskipTests --pl ${{ matrix.module }} -am
 
+      - name: ls -la
+        run: |
+          ls -la .
+          ls -la ${{ matrix.module }}
+          ls -la ${{ matrix.module }}/target
+
       - uses: actions/upload-artifact@v4
         with:
           path: ${{ matrix.module }}/target/*.jar
