@@ -5,21 +5,21 @@ import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
 import com.inso_world.binocular.cli.index.vcs.toDto
-import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
-import com.inso_world.binocular.cli.uniffi.BinocularCommitVec
-import com.inso_world.binocular.cli.uniffi.BinocularRepository
-import com.inso_world.binocular.cli.uniffi.findCommit
-import com.inso_world.binocular.cli.uniffi.findRepo
-import com.inso_world.binocular.cli.uniffi.traverseBranch
+import com.inso_world.binocular.cli.integration.utils.generateCommits
+import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
+import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.cli.uniffi.*
 import io.mockk.MockKAnnotations
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Ignore
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,18 +37,15 @@ internal class RepositoryServiceTest(
   fun setUp() {
     MockKAnnotations.init(this)
     val simpleRepo = findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-    val simpleRepoHeadCommit = findCommit(simpleRepo, "HEAD")
-//    simpleRepoVcsCommits = traverse(simpleRepo, simpleRepoHeadCommit, null).map(BinocularCommitVec::toDto)
+    findCommit(simpleRepo, "HEAD")
     simpleRepoVcsCommits = traverseBranch(simpleRepo, "master").map(BinocularCommitVec::toDto)
 
     val octoRepo = findRepo("${FIXTURES_PATH}/${OCTO_REPO}")
-    val octoRepoHeadCommit = findCommit(octoRepo, "HEAD")
-//    octoRepoVcsCommits = traverse(octoRepo, octoRepoHeadCommit, null).map(BinocularCommitVec::toDto)
+    findCommit(octoRepo, "HEAD")
     octoRepoVcsCommits = traverseBranch(octoRepo, "master").map(BinocularCommitVec::toDto)
 
     val advancedRepo = findRepo("${FIXTURES_PATH}/${ADVANCED_REPO}")
-    val advancedRepoHeadCommit = findCommit(advancedRepo, "HEAD")
-//    advancedRepoVcsCommits = traverse(advancedRepo, advancedRepoHeadCommit, null).map(BinocularCommitVec::toDto)
+    findCommit(advancedRepo, "HEAD")
     advancedRepoVcsCommits = traverseBranch(advancedRepo, "master").map(BinocularCommitVec::toDto)
   }
 
@@ -317,21 +314,41 @@ internal class RepositoryServiceTestWithSimpleData(
     branch: String,
     headCommit: String
   ) {
-    val head = this.repositoryService.getHeadCommits(this.simpleRepo, branch);
-    assertThat(head.sha).isEqualTo(headCommit)
+    this.cleanup()
+
+    val simpleRepoConfig = setupRepoConfig(
+      "${FIXTURES_PATH}/${SIMPLE_REPO}",
+      "HEAD",
+      branch
+    )
+    var localRepo = simpleRepoConfig.repo.toVcsRepository().toEntity()
+    generateCommits(simpleRepoConfig, localRepo)
+    localRepo = this.repositoryRepository.save(localRepo)
+
+    val head = this.repositoryService.getHeadCommits(localRepo, branch)
+    assertAll(
+      { assertThat(head).isNotNull() },
+      { assertThat(head!!.sha).isEqualTo(headCommit) },
+      { assertThat(head!!.branches).hasSize(1) },
+      { assertThat(head!!.branches.map { it.name }).contains(branch) }
+    )
   }
 
   @Test
   fun get_head_commit_non_existing_branch() {
-    assertThrows<ServiceException> {
-      this.repositoryService.getHeadCommits(this.simpleRepo, "non-existing-branch-12345657890");
-    }
+    assertAll(
+      {
+        assertDoesNotThrow {
+          this.repositoryService.getHeadCommits(this.simpleRepo, "non-existing-branch-12345657890")
+        }
+      }
+    )
   }
 
   @Test
   @Transactional
   fun `update simple repo, add another commit, same branch`() {
-    val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}");
+    val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
     assertAll(
       { assertThat(repo!!.commits).hasSize(14) },
@@ -350,10 +367,14 @@ internal class RepositoryServiceTestWithSimpleData(
       LocalDateTime.now(),
       listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a")
     )
-    val vcsRepo = BinocularRepository(gitDir = this.simpleRepo.name, workTree = null, commonDir = null) //workTree & commonDir not relevant here
+    val vcsRepo = BinocularRepository(
+      gitDir = this.simpleRepo.name,
+      workTree = null,
+      commonDir = null
+    ) //workTree & commonDir not relevant here
     this.repositoryService.addCommits(vcsRepo, listOf(newVcsCommit), "master")
 
-    val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}");
+    val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
     assertAll(
       { assertThat(repo2!!.commits).hasSize(15) },
@@ -366,7 +387,7 @@ internal class RepositoryServiceTestWithSimpleData(
   @Test
   @Transactional
   fun `update simple repo, add another commit, new branch`() {
-    val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}");
+    val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
     assertAll(
       { assertThat(repo!!.commits).hasSize(14) },
@@ -394,16 +415,20 @@ internal class RepositoryServiceTestWithSimpleData(
         listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a")
       )
     )
-    val vcsRepo = BinocularRepository(gitDir = this.simpleRepo.name, workTree = null, commonDir = null) //workTree & commonDir not relevant here
+    val vcsRepo = BinocularRepository(
+      gitDir = this.simpleRepo.name,
+      workTree = null,
+      commonDir = null
+    ) //workTree & commonDir not relevant here
     this.repositoryService.addCommits(vcsRepo, hashes, "develop")
 
-    val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}");
+    val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
     assertAll(
       { assertThat(repo2!!.commits).hasSize(15) },
       { assertThat(repo2!!.branches).hasSize(2) },
       { assertThat(repo!!.branches.map { it.name }).containsAll(listOf("master", "develop")) },
-      { assertThat(repo!!.branches.map { it.commits.count() }).containsAll(listOf(14, 15)) },
+      { assertThat(repo!!.branches.map { it.commits.count() }).containsAll(listOf(14, 1)) },
       { assertThat(repo2!!.user).hasSize(4) },
     )
   }

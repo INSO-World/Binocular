@@ -3,7 +3,6 @@ package com.inso_world.binocular.cli.service
 import com.inso_world.binocular.cli.entity.Branch
 import com.inso_world.binocular.cli.entity.Commit
 import com.inso_world.binocular.cli.entity.Repository
-import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IRepositoryDao
 import com.inso_world.binocular.cli.uniffi.BinocularRepository
@@ -14,13 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class RepositoryService(
-  @Autowired private val repositoryDao: IRepositoryDao,
-  @Autowired private val commitSerivce: CommitService,
-  @Autowired private val branchService: BranchService,
-) {
+class RepositoryService() {
   private val logger: Logger = LoggerFactory.getLogger(RepositoryService::class.java)
 
+  @Autowired
+  private lateinit var repositoryDao: IRepositoryDao
+
+  @Autowired
+  private lateinit var commitService: CommitService
+
+  @Autowired
+  private lateinit var branchService: BranchService
 
   @Transactional
   internal fun transformCommits(repo: Repository, commits: Iterable<VcsCommit>): Collection<Commit> {
@@ -115,9 +118,8 @@ class RepositoryService(
     }
   }
 
-  fun getHeadCommits(repo: Repository, branch: String): Commit {
-    this.commitSerivce.findHeadForBranch(repo, branch)?.let {}
-    TODO("Not yet implemented")
+  fun getHeadCommits(repo: Repository, branch: String): Commit? {
+    return this.commitService.findHeadForBranch(repo, branch)
   }
 
   fun findBranch(repository: Repository, branchName: String): Branch? {
@@ -132,7 +134,7 @@ class RepositoryService(
   @Transactional
   fun addCommits(vcsRepo: BinocularRepository, commitDtos: Collection<VcsCommit>, branchName: String) {
     val repo = this.getOrCreate(vcsRepo.gitDir)
-    val existingCommitEntities = this.commitSerivce.checkExisting(repo, commitDtos)
+    val existingCommitEntities = this.commitService.checkExisting(repo, commitDtos)
 
     logger.debug("Existing commits: ${existingCommitEntities.first.count()}")
     logger.trace("New commits to add: ${existingCommitEntities.second.count()}")

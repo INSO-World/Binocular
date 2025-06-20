@@ -10,14 +10,14 @@ import java.util.concurrent.TimeUnit
 
 internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
   companion object {
-    const val FIXTURES_PATH = "./src/test/resources/fixtures";
+    const val FIXTURES_PATH = "./src/test/resources/fixtures"
     const val SIMPLE_REPO = "simple"
     const val ADVANCED_REPO = "advanced"
     const val OCTO_REPO = "octo"
 
     @JvmStatic
     @BeforeAll
-    fun setUp(): Unit {
+    fun setUp() {
       fun createGitRepo(path: String) {
         val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("windows")
         val builder = ProcessBuilder()

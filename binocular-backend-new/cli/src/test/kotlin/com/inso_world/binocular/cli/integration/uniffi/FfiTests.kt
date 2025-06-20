@@ -102,7 +102,7 @@ internal class FfiTests : BaseFixturesIntegrationTest() {
     assertAll(
       "Check no. of Commits for Repo $path",
       { assertThat(branches).isNotEmpty() },
-      { assertThat(branches.count()).isEqualTo(noOfBranches) },
+      { assertThat(branches).hasSize(noOfBranches) },
       { assertThat(branches.map { it.name }).containsAll(localBranches) },
       { assertThat(branches.map { it.name }).containsAll(remoteBranches) },
     )
@@ -128,7 +128,7 @@ internal class FfiTests : BaseFixturesIntegrationTest() {
     path: String, branchName: String, noOfCommits: Int
   ) {
     val repo = findRepo("${FIXTURES_PATH}/${path}")
-    val commits = traverseBranch(repo, branchName);
+    val commits = traverseBranch(repo, branchName)
 
     assertAll(
       { assertThat(commits).hasSize(noOfCommits) },

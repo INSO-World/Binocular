@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.integration.service
 
-import com.inso_world.binocular.cli.service.FfiService
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
+import com.inso_world.binocular.cli.service.FfiService
 import com.inso_world.binocular.cli.uniffi.findRepo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.assertAll
@@ -29,7 +29,7 @@ internal class FfiServiceTest(
     assertAll(
       "Check no. of Commits for Repo $path",
       { assertThat(branches).isNotEmpty() },
-      { assertThat(branches.count()).isEqualTo(noOfBranches) },
+      { assertThat(branches).hasSize(noOfBranches) },
       { assertThat(branches.map { it.name }).containsAll(localBranches) },
       { assertThat(branches.map { it.name }).containsAll(remoteBranches) },
     )

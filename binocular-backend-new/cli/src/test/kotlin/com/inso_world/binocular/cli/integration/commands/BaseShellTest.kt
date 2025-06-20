@@ -1,17 +1,17 @@
 package com.inso_world.binocular.cli.integration.commands
 
-import com.inso_world.binocular.cli.integration.BaseFixturesIntegrationTest
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
+import com.inso_world.binocular.cli.integration.BaseFixturesIntegrationTest
 import com.inso_world.binocular.cli.persistence.repository.sql.BranchRepository
 import com.inso_world.binocular.cli.persistence.repository.sql.CommitRepository
 import com.inso_world.binocular.cli.persistence.repository.sql.RepositoryRepository
 import com.inso_world.binocular.cli.persistence.repository.sql.UserRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.shell.test.autoconfigure.AutoConfigureShell
 import org.springframework.shell.test.autoconfigure.AutoConfigureShellTestClient
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.boot.test.context.SpringBootTest
 
 @AutoConfigureShell
 @AutoConfigureShellTestClient
@@ -22,7 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest
 )
 //@ContextConfiguration(classes = [BinocularCommandLineApplication::class])
 //@ShellTest
-internal open class BaseShellTest : BaseFixturesIntegrationTest() {
+internal class BaseShellTest : BaseFixturesIntegrationTest() {
   @Autowired
   internal lateinit var commitRepository: CommitRepository
 
