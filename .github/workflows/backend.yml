@@ -19,8 +19,8 @@ env:
 
 jobs:
 
-  build:
-    name: Build
+  compile:
+    name: Compile
 
     defaults:
       run:
@@ -164,3 +164,10 @@ jobs:
 
       - name: Run tests for module ${{ matrix.module }}
         run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+
+  package:
+    name: Package JAR
+    needs:
+      - test
+      - test-cli
+    runs-on: ubuntu-latest
