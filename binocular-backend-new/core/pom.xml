@@ -12,6 +12,23 @@
   <name>core</name>
   <packaging>jar</packaging>
   <description>Core project for Binocular</description>
+
+  <developers>
+    <developer>
+      <id>stoegerm</id>
+      <name>Manuel Stöger</name>
+      <email>manuel.stoeger@inso-world.com</email>
+      <url>https://www.inso-world.com/profile-manuel-stoeger.html</url>
+      <organization>INSO/BUSY</organization>
+      <organizationUrl>https://www.inso-world.com</organizationUrl>
+      <roles>
+        <role>researcher</role>
+        <role>developer</role>
+      </roles>
+      <timezone>Europe/Vienna</timezone>
+    </developer>
+  </developers>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
