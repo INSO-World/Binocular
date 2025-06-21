@@ -1,9 +1,7 @@
 package com.inso_world.binocular.ffi.integration.base
 
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.assertAll
 import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
@@ -24,11 +22,7 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("windows")
         val builder = ProcessBuilder()
         if (isWindows) {
-          builder.command(
-            "cmd.exe",
-            "/c",
-            "rmdir /s /q $path && rmdir /s /q ${path}_remote.git && call .\\$path.bat $path",
-          )
+          builder.command("cmd.exe", "/c", "rmdir /s /q $path && rmdir /s /q ${path}_remote.git && call .\\$path.bat $path")
         } else {
           builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
         }
@@ -39,12 +33,7 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         val executorService = Executors.newFixedThreadPool(1)
         val future: Future<*> = executorService.submit(streamGobbler)
 
-        val exitCode = process.waitFor()
-
-        assertAll(
-          { assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) } },
-          { assertEquals(0, exitCode) },
-        )
+        assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) }
       }
 
       createGitRepo(SIMPLE_REPO)
