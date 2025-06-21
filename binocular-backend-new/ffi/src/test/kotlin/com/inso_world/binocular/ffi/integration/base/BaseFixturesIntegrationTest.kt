@@ -22,8 +22,7 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("windows")
         val builder = ProcessBuilder()
         if (isWindows) {
-          //      builder.command("cmd.exe", "/c", "dir")
-          TODO()
+          builder.command("cmd.exe", "/c", "rmdir /s /q $path && rmdir /s /q ${path}_remote.git && call .\\$path.bat $path")
         } else {
           builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
         }
