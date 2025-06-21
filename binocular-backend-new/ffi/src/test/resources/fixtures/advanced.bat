@@ -13,8 +13,6 @@ mkdir "%REPO_DIR%"
 pushd "%REPO_DIR%"
 git init -q -b master
 
-REM Helper to commit with fixed author/committer data
-
 REM 1: Initial commit by Alice
 echo Hello, world! > file1.txt
 git add file1.txt
@@ -103,7 +101,7 @@ git checkout master -q
 git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Merge imported history from remote" --date="2023-01-03T01:00:00+00:00" -q
 git merge --allow-unrelated-histories imported -m "Imported commit: independent history from another remote" -q
 
-REM Classical branch merges
+REM Feature branch
 git checkout -b feature -q
 echo Feature update: appended line>>file1-renamed.txt
 git add file1-renamed.txt
@@ -117,6 +115,7 @@ git checkout master -q
 git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Merge branch 'feature'" --date="2023-01-02T04:00:00+00:00" -q
 git merge --no-ff feature -m "Feature: add file6.txt" -q
 
+REM Bugfix branch
 git checkout -b bugfix -q
 echo Bugfix: corrected a typo in file2.txt>>file2.txt
 git add file2.txt
@@ -153,6 +152,72 @@ for %%b in (octo1 octo2 octo3) do (
 git checkout master -q
 git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Octopus merge of octo1, octo2, and octo3" --date="2023-01-02T07:30:00+00:00" -q
 git merge --no-ff octo1 octo2 octo3 -m "Octopus merge of octo1, octo2, and octo3" -q
+
+REM Remove the inserted line from file1-renamed.txt
+powershell -Command "(Get-Content file1-renamed.txt) | Where-Object {$_ -ne 'Inserted line'} | Set-Content file1-renamed.txt"
+git add file1-renamed.txt
+git -c "user.name=Bob" -c "user.email=bob@example.com" commit -m "Remove inserted line from file1-renamed.txt" --date="2023-01-02T08:00:00+00:00" -q
+
+echo Post-merge note>>file6.txt
+git add file6.txt
+git -c "user.name=Dave" -c "user.email=dave@example.com" commit -m "Append post-merge note to file6.txt" --date="2023-01-02T08:30:00+00:00" -q
+
+REM 3 additional commits on 'imported' branch
+git checkout imported -q
+echo Imported update 1>>imported.txt
+git add imported.txt
+git -c "user.name=Dave" -c "user.email=dave@example.com" commit -m "Imported: update 1 to imported.txt" --date="2023-01-03T02:00:00+00:00" -q
+
+echo Imported update 2>>imported.txt
+git add imported.txt
+git -c "user.name=Carol" -c "user.email=carol@example.com" commit -m "Imported: update 2 to imported.txt" --date="2023-01-03T02:30:00+00:00" -q
+
+echo Imported update 3>>imported.txt
+git add imported.txt
+git -c "user.name=Bob" -c "user.email=bob@example.com" commit -m "Imported: update 3 to imported.txt" --date="2023-01-03T03:00:00+00:00" -q
+
+REM Merge 'imported' back into master again
+git checkout master -q
+git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Second merge of imported history" --date="2023-01-03T03:30:00+00:00" -q
+git merge --no-ff imported -m "Second merge of imported history" -q --allow-unrelated-histories
+
+REM 3 commits on master post-import
+echo Master post-import 1>>file1-renamed.txt
+git add file1-renamed.txt
+git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Master: post-import update 1" --date="2023-01-03T04:00:00+00:00" -q
+
+echo Master post-import 2>>file2.txt
+git add file2.txt
+git -c "user.name=Bob" -c "user.email=bob@example.com" commit -m "Master: post-import update 2" --date="2023-01-03T04:30:00+00:00" -q
+
+echo Master post-import 3>>file6.txt
+git add file6.txt
+git -c "user.name=Carol" -c "user.email=carol@example.com" commit -m "Master: post-import update 3" --date="2023-01-03T05:00:00+00:00" -q
+
+REM 5 commits on 'extra' branch and merge into master
+git checkout -b extra -q
+echo Extra change 1>>file1-renamed.txt
+git add file1-renamed.txt
+git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Extra: change 1" --date="2023-01-03T06:00:00+00:00" -q
+
+echo Extra change 2>>file2.txt
+git add file2.txt
+git -c "user.name=Bob" -c "user.email=bob@example.com" commit -m "Extra: change 2" --date="2023-01-03T06:30:00+00:00" -q
+
+echo Extra change 3 > file7.txt
+git add file7.txt
+git -c "user.name=Carol" -c "user.email=carol@example.com" commit -m "Extra: add file7.txt" --date="2023-01-03T07:00:00+00:00" -q
+
+echo Extra change 4>>file7.txt
+git add file7.txt
+git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Extra: update file7.txt" --date="2023-01-03T07:30:00+00:00" -q
+
+git rm file5.bin
+git -c "user.name=Carol" -c "user.email=carol@example.com" commit -m "Extra: remove file5.bin" --date="2023-01-03T08:00:00+00:00" -q
+
+git checkout master -q
+git -c "user.name=Alice" -c "user.email=alice@example.com" commit -m "Merge branch 'extra' with five extra changes" --date="2023-01-03T08:30:00+00:00" -q
+git merge --no-ff extra -m "Merge branch 'extra' with five extra changes" -q
 
 popd
 exit /b 0 
