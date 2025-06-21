@@ -117,7 +117,13 @@ jobs:
         if: startsWith(matrix.os, 'windows')
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            wsl mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+          else
+            mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+          fi
+        shell: bash
 
   test:
     name: Test
