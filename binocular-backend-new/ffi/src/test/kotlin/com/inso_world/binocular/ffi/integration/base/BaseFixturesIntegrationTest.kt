@@ -25,7 +25,7 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
           builder.command(
             "cmd.exe",
             "/c",
-            "if exist \"$path\" rmdir /s /q \"$path\" && if exist \"${path}_remote.git\" rmdir /s /q \"${path}_remote.git\" && call .\\$path.bat $path"
+            "(if exist $path rmdir /s /q $path && if exist ${path}_remote.git rmdir /s /q ${path}_remote.git) && call .\\$path.bat $path",
           )
         } else {
           builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
