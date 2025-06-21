@@ -23,9 +23,10 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         val builder = ProcessBuilder()
         if (isWindows) {
           builder.command(
-            "cmd.exe",
-            "/c",
-            "(if exist $path rmdir /s /q $path && if exist ${path}_remote.git rmdir /s /q ${path}_remote.git) && call .\\$path.bat $path",
+            "wsl",
+            "bash",
+            "-c",
+            "rm -rf $path ${path}_remote.git && ./$path.sh $path"
           )
         } else {
           builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
