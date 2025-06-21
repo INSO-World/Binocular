@@ -113,6 +113,9 @@ jobs:
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
 
+      - uses: Vampire/setup-wsl@v5
+        if: startsWith(matrix.os, 'windows')
+
       - name: Run tests for module ${{ matrix.module }}
         run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
 
