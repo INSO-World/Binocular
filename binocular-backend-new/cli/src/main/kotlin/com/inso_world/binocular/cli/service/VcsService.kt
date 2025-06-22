@@ -3,7 +3,7 @@ package com.inso_world.binocular.cli.service
 import com.inso_world.binocular.cli.exception.CliException
 import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.toDto
-import com.inso_world.binocular.cli.uniffi.BinocularCommitVec
+import com.inso_world.binocular.internal.BinocularCommitVec
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

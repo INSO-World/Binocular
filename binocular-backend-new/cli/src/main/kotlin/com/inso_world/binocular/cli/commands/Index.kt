@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.commands
 
 import com.inso_world.binocular.cli.service.VcsService
-import com.inso_world.binocular.cli.uniffi.hello
+import com.inso_world.binocular.ffi.BinocularFfi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,10 +18,11 @@ open class Index(
   @Autowired private val vcsService: VcsService
 ) {
   private var logger: Logger = LoggerFactory.getLogger(Index::class.java)
+  private val ffi = BinocularFfi()
 
   @Command(command = ["hello"], description = "Hello World")
   fun helloWorld() {
-    hello()
+    ffi.hello()
   }
 
   @Command(command = ["commits"])

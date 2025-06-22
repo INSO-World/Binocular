@@ -1,22 +1,7 @@
 package com.inso_world.binocular.cli.entity
 
-import com.inso_world.binocular.cli.index.vcs.VcsBranch
-import com.inso_world.binocular.cli.uniffi.BinocularBranch
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Index
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinTable
-import jakarta.persistence.ManyToMany
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
-import java.util.Objects
+import jakarta.persistence.*
+import java.util.*
 
 @Entity
 @Table(

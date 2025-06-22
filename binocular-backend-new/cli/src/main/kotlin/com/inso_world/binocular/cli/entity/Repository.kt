@@ -1,6 +1,5 @@
 package com.inso_world.binocular.cli.entity
 
-import com.inso_world.binocular.cli.uniffi.ThreadSafeRepository
 import jakarta.persistence.*
 
 @Entity
