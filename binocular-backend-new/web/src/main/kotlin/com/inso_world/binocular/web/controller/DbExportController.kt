@@ -17,7 +17,7 @@ class DbExportController (private val exportService: DbExportService) {
 
   // TODO: add openAPI
   @GetMapping("/db-export")
-  fun exportDb(): ResponseEntity<Any> {
+  fun exportDb(): ResponseEntity<Map<String, Any?>> {
     logger.info("Received request to export the database")
 
     return try {
