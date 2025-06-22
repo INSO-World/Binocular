@@ -10,20 +10,15 @@ data class Commit(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
-
   @Column(unique = true, nullable = false, length = 40)
   val sha: String,
-
   @Lob
   @Column(nullable = false)
   val message: String? = null,
-
   @Column(name = "commit_time", nullable = false)
   val commitTime: LocalDateTime? = null,
-
   @Column(name = "author_time", nullable = true)
   val authorTime: LocalDateTime? = null,
-
   @ManyToMany(targetEntity = Commit::class, cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
   @JoinTable(
     name = "commit_parents",
@@ -31,7 +26,6 @@ data class Commit(
     inverseJoinColumns = [JoinColumn(name = "parent_id", nullable = true)],
   )
   var parents: List<Commit> = emptyList(),
-
   @ManyToMany(targetEntity = Branch::class, fetch = FetchType.EAGER)
   @JoinTable(
     name = "commit_branches",
@@ -39,14 +33,11 @@ data class Commit(
     inverseJoinColumns = [JoinColumn(name = "branch_id", nullable = true)],
   )
   val branches: MutableSet<Branch> = mutableSetOf(),
-
   @ManyToOne(fetch = FetchType.LAZY)
   var committer: User? = null,
-
   @ManyToOne(fetch = FetchType.LAZY)
   var author: User? = null,
-
-  @ManyToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   var repository: Repository? = null,
 ) {
   fun addBranch(branch: Branch) {
@@ -59,9 +50,8 @@ data class Commit(
     branch.commits.remove(this)
   }
 
-  override fun toString(): String {
-    return "Commit(id=$id, sha='$sha', message='$message', branches=$branches, commitTime=$commitTime, authorTime=$authorTime)"
-  }
+  override fun toString(): String =
+    "Commit(id=$id, sha='$sha', message='$message', branches=$branches, commitTime=$commitTime, authorTime=$authorTime)"
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -72,10 +62,7 @@ data class Commit(
     return sha == other.sha
   }
 
-  override fun hashCode(): Int {
-    return Objects.hash(sha)
-  }
-
+  override fun hashCode(): Int = Objects.hash(sha)
 
 //  fun setCommitter(user: User) {
 //    this.committer = user
@@ -86,6 +73,4 @@ data class Commit(
 //    this.author = user
 //    user.authored_commits.add(this)
 //  }
-
-
 }
