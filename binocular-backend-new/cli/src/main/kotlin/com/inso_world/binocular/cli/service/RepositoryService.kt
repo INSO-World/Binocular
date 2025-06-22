@@ -5,7 +5,7 @@ import com.inso_world.binocular.cli.entity.Commit
 import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IRepositoryDao
-import com.inso_world.binocular.cli.uniffi.BinocularRepository
+import com.inso_world.binocular.internal.BinocularRepository
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

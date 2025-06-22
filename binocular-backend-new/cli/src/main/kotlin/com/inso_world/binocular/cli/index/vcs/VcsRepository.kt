@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.cli.entity.Repository
-import com.inso_world.binocular.cli.uniffi.ThreadSafeRepository
+import com.inso_world.binocular.internal.ThreadSafeRepository
 
 data class VcsRepository(
   val name: String

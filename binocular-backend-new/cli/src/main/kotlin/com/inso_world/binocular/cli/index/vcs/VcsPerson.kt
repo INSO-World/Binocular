@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.cli.entity.User
-import com.inso_world.binocular.cli.uniffi.BinocularSig
+import com.inso_world.binocular.internal.BinocularSig
 
 data class VcsPerson(
   val name: String,

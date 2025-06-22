@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.cli.entity.Commit
-import com.inso_world.binocular.cli.uniffi.BinocularCommitVec
+import com.inso_world.binocular.internal.BinocularCommitVec
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
