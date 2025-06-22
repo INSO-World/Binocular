@@ -23,11 +23,13 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("windows")
         val builder = ProcessBuilder()
         if (isWindows) {
+          val winPath = File(FIXTURES_PATH).absolutePath
+          val wslPath = "/mnt/" + winPath[0].lowercase() + winPath.substring(2).replace("\\", "/")
           builder.command(
             "wsl",
             "bash",
             "-c",
-            "rm -rf $path ${path}_remote.git && ./$path.sh $path",
+            "cd $wslPath && rm -rf $path ${path}_remote.git && ./$path.sh $path"
           )
         } else {
           builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
