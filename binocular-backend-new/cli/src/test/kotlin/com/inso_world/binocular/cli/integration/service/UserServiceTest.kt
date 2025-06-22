@@ -14,26 +14,26 @@ import java.util.stream.Stream
 internal class UserServiceTest(
   @Autowired private val userService: UserService,
 ) : BaseServiceTest() {
-
-  private val simpleRepoEmails = listOf(
-    "alice@example.com",
-    "bob@example.com",
-    "carol@example.com",
-  )
+  private val simpleRepoEmails =
+    listOf(
+      "alice@example.com",
+      "bob@example.com",
+      "carol@example.com",
+    )
 
   @Test
   fun find_all_emails_empty_database() {
     super.cleanup()
 
     assertThat(
-      this.userService.findAllUsersByEmails(simpleRepoEmails)
+      this.userService.findAllUsersByEmails(simpleRepoEmails),
     ).isEmpty()
   }
 
   @Test
   fun find_all_emails_empty_list() {
     assertThat(
-      this.userService.findAllUsersByEmails(emptyList())
+      this.userService.findAllUsersByEmails(emptyList()),
     ).isEmpty()
   }
 
@@ -50,7 +50,10 @@ internal class UserServiceTest(
 
   @ParameterizedTest
   @MethodSource("generatePartialMailSearchData")
-  fun find_all_emails_find_partial(toFind: List<String>, count: Int) {
+  fun find_all_emails_find_partial(
+    toFind: List<String>,
+    count: Int,
+  ) {
     val users = this.userService.findAllUsersByEmails(toFind)
     assertAll(
       { assertThat(users).isNotEmpty() },
@@ -66,7 +69,7 @@ internal class UserServiceTest(
     allToFind: List<String>,
     existing: List<String>,
     nonExisting: List<String>,
-    count: Int
+    count: Int,
   ) {
     val users = this.userService.findAllUsersByEmails(allToFind)
     assertAll(
@@ -79,11 +82,13 @@ internal class UserServiceTest(
 
   @Test
   fun find_all_emails_find_duplicates_expect_one() {
-    val users = this.userService.findAllUsersByEmails(
-      listOf(
-        "alice@example.com", "alice@example.com",
+    val users =
+      this.userService.findAllUsersByEmails(
+        listOf(
+          "alice@example.com",
+          "alice@example.com",
+        ),
       )
-    )
     assertAll(
       { assertThat(users).hasSize(1) },
       { assertThat(users.map { it.id }).doesNotContainNull() },
@@ -93,8 +98,8 @@ internal class UserServiceTest(
 
   companion object {
     @JvmStatic
-    protected fun generatePartialMailSearchData(): Stream<Arguments> {
-      return Stream.of(
+    protected fun generatePartialMailSearchData(): Stream<Arguments> =
+      Stream.of(
         Arguments.of(listOf("alice@example.com"), 1),
         Arguments.of(listOf("bob@example.com"), 1),
         Arguments.of(listOf("carol@example.com"), 1),
@@ -102,38 +107,34 @@ internal class UserServiceTest(
         Arguments.of(listOf("alice@example.com", "bob@example.com"), 2),
         Arguments.of(listOf("bob@example.com", "carol@example.com"), 2),
       )
-    }
 
     @JvmStatic
-    protected fun find_all_emails_find_nonExistingEmailsData(): Stream<Arguments> {
-      return Stream.of(
+    protected fun find_all_emails_find_nonExistingEmailsData(): Stream<Arguments> =
+      Stream.of(
         Arguments.of(
           listOf("nonExistent@example.com", "carol@example.com"),
           listOf("carol@example.com"),
           listOf("nonExistent@example.com"),
-          1
+          1,
         ),
         Arguments.of(
           listOf("nonExistent@example.com", "carol@example.com", "bob@example.com"),
           listOf("carol@example.com", "bob@example.com"),
           listOf("nonExistent@example.com"),
-          2
+          2,
         ),
         Arguments.of(
           listOf("nonExistent@example.com", "nonExistent2@example.com"),
           emptyList<String>(),
           listOf("nonExistent@example.com", "nonExistent2@example.com"),
-          0
+          0,
         ),
         Arguments.of(
           listOf("nonExistent@example.com", "alice@example.com", "bob@example.com", "carol@example.com"),
           listOf("alice@example.com", "bob@example.com", "carol@example.com"),
           listOf("nonExistent@example.com"),
-          3
+          3,
         ),
       )
-    }
   }
-
-
 }

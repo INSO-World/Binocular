@@ -24,7 +24,6 @@ internal class RepositoryDaoTestWithSimpleData(
   @Autowired val branchDao: IBranchDao,
 ) : BasePersistenceTest() {
   companion object {
-
     internal lateinit var simpleRepoConfig: RepositoryConfig
 
     @JvmStatic
@@ -35,11 +34,12 @@ internal class RepositoryDaoTestWithSimpleData(
       val repo = ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
       val cmt = ffi.findCommit(repo, "HEAD")
       val hashes = ffi.traverse(repo, cmt, null)
-      this.simpleRepoConfig = RepositoryConfig(
-        repo = repo,
-        startCommit = cmt,
-        hashes = hashes
-      )
+      this.simpleRepoConfig =
+        RepositoryConfig(
+          repo = repo,
+          startCommit = cmt,
+          hashes = hashes,
+        )
       this.simpleRepoConfig.hashes.map { it.branch = "master" }
     }
   }
@@ -71,7 +71,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     assertAll(
       { assertThat(created.id).isNotNull() },
-      { assertThat(created.name).isEqualTo("${FIXTURES_PATH}/${SIMPLE_REPO}/.git") }
+      { assertThat(created.name).isEqualTo("${FIXTURES_PATH}/${SIMPLE_REPO}/.git") },
     )
   }
 
@@ -81,7 +81,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     assertAll(
       { assertThat(simple.id).isNotNull() },
-      { assertThat(simple.name).isEqualTo("${FIXTURES_PATH}/${SIMPLE_REPO}/.git") }
+      { assertThat(simple.name).isEqualTo("${FIXTURES_PATH}/${SIMPLE_REPO}/.git") },
     )
   }
 
@@ -97,10 +97,11 @@ internal class RepositoryDaoTestWithSimpleData(
     simpleRepo.commits.addAll(commits)
     val saved = this.repositoryDao.updateAndFlush(simpleRepo)
     val commitRepoIds = saved.commits.map { it.repository?.id }
-    val userRepoIds = listOf(
-      saved.commits.map { it.committer },
-      saved.commits.map { it.author }
-    ).flatten()
+    val userRepoIds =
+      listOf(
+        saved.commits.map { it.committer },
+        saved.commits.map { it.author },
+      ).flatten()
 
     assertAll(
       { assertThat(commitRepoIds).isNotEmpty() },
@@ -127,7 +128,7 @@ internal class RepositoryDaoTestWithSimpleData(
     assertAll(
       { assertThat(this.repositoryDao.findAll()).isEmpty() },
       { assertThat(this.commitDao.findAll()).isEmpty() },
-      { assertThat(this.userDao.findAll()).isEmpty() }
+      { assertThat(this.userDao.findAll()).isEmpty() },
     )
   }
 

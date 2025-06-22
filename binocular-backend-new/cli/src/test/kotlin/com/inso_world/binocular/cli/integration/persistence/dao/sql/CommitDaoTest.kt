@@ -12,51 +12,56 @@ import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class CommitDaoTest(
-  @Autowired private val commitDao: ICommitDao
+  @Autowired private val commitDao: ICommitDao,
 ) : BasePersistenceTest() {
   @Test
   fun simpleRepo_check_master_branch_leaf_node() {
-    val masterLeaf = commitDao.findHeadForBranch(
-      this.simpleRepo,
-      "master"
-    )
+    val masterLeaf =
+      commitDao.findHeadForBranch(
+        this.simpleRepo,
+        "master",
+      )
     assertAll(
       { assertThat(masterLeaf).isNotNull() },
       { assertThat(masterLeaf!!.repository!!.id).isEqualTo(this.simpleRepo.id) },
       { assertThat(masterLeaf!!.id).isNotNull() },
-      { assertThat(masterLeaf!!.sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") }
+      { assertThat(masterLeaf!!.sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") },
     )
   }
 
   @Test
   fun simpleRepo_check_null_branch_leaf_node() {
-    val masterLeaf = commitDao.findAllLeafCommits(
-      this.simpleRepo,
-    ).toList()
+    val masterLeaf =
+      commitDao
+        .findAllLeafCommits(
+          this.simpleRepo,
+        ).toList()
     assertAll(
       { assertThat(masterLeaf).isNotEmpty() },
       { assertThat(masterLeaf).hasSize(1) },
       { assertThat(masterLeaf[0].repository!!.id).isEqualTo(this.simpleRepo.id) },
       { assertThat(masterLeaf[0].id).isNotNull() },
-      { assertThat(masterLeaf[0].sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") }
+      { assertThat(masterLeaf[0].sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") },
     )
   }
 
   @Test
   fun simpleRepo_check_non_existing_branch_leaf_node() {
-    val masterLeaf = commitDao.findHeadForBranch(
-      this.simpleRepo,
-      "notexisting"
-    )
+    val masterLeaf =
+      commitDao.findHeadForBranch(
+        this.simpleRepo,
+        "notexisting",
+      )
     assertThat(masterLeaf).isNull()
   }
 
   @Test
   fun octoRepo_check_master_branch_leaf_node() {
-    val masterLeaf = commitDao.findHeadForBranch(
-      this.octoRepo,
-      "master"
-    )
+    val masterLeaf =
+      commitDao.findHeadForBranch(
+        this.octoRepo,
+        "master",
+      )
     assertAll(
       { assertThat(masterLeaf).isNotNull() },
       { assertThat(masterLeaf!!.repository!!.id).isEqualTo(this.octoRepo.id) },
@@ -70,7 +75,7 @@ internal class CommitDaoTest(
             "42fbbe93509ed894cbbd61e4dbc07a440720c491",
             "d5d38cc858bd78498efbe0005052f5cb1fd38cb9",
             "bf51258d6da9aaca9b75e2580251539026b6246a",
-          )
+          ),
         )
       },
       { assertThat(masterLeaf!!.branches).hasSize(1) },
@@ -82,12 +87,16 @@ internal class CommitDaoTest(
   fun octoRepo_check_all_leaf_nodes() {
     this.cleanup()
 
-    fun genBranchCommits(localRepo: Repository?, branch: String): Repository {
-      val octoRepoConfig = setupRepoConfig(
-        "${FIXTURES_PATH}/${OCTO_REPO}",
-        "HEAD",
-        branch
-      )
+    fun genBranchCommits(
+      localRepo: Repository?,
+      branch: String,
+    ): Repository {
+      val octoRepoConfig =
+        setupRepoConfig(
+          "${FIXTURES_PATH}/${OCTO_REPO}",
+          "HEAD",
+          branch,
+        )
       var tmpRepo = octoRepoConfig.repo.toVcsRepository().toEntity()
       generateCommits(octoRepoConfig, localRepo ?: tmpRepo)
       tmpRepo = this.repositoryRepository.save(localRepo ?: tmpRepo)
@@ -99,15 +108,17 @@ internal class CommitDaoTest(
     localRepo = genBranchCommits(localRepo, "feature")
     localRepo = genBranchCommits(localRepo, "imported")
 
-    val leafs = commitDao.findAllLeafCommits(
-      localRepo,
-    )
-    val leafsItems = listOf(
-      "4dedc3c738eee6b69c43cde7d89f146912532cff", // master
-      "3e15df55908eefdb720a7bc78065bcadb6b9e9cc", // bugfix
-      "d16fb2d78e3d867377c078a03aadc5aa34bdb408", // feature
-      "ed167f854e871a1566317302c158704f71f8d16c" // imported
-    )
+    val leafs =
+      commitDao.findAllLeafCommits(
+        localRepo,
+      )
+    val leafsItems =
+      listOf(
+        "4dedc3c738eee6b69c43cde7d89f146912532cff", // master
+        "3e15df55908eefdb720a7bc78065bcadb6b9e9cc", // bugfix
+        "d16fb2d78e3d867377c078a03aadc5aa34bdb408", // feature
+        "ed167f854e871a1566317302c158704f71f8d16c", // imported
+      )
     assertAll(
       { assertThat(leafs).isNotEmpty() },
       { assertThat(leafs).hasSize(4) },
@@ -118,8 +129,8 @@ internal class CommitDaoTest(
             "master",
             "bugfix",
             "feature",
-            "imported"
-          )
+            "imported",
+          ),
         )
       },
     )

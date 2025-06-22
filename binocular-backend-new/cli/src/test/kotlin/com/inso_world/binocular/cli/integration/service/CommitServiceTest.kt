@@ -18,7 +18,6 @@ internal class CommitServiceTest private constructor(
   @Autowired private val commitService: CommitService,
   @Autowired private val commitDao: ICommitDao,
 ) : BaseServiceTest() {
-
   @BeforeEach
   fun setup() {
   }
@@ -57,16 +56,17 @@ internal class CommitServiceTest private constructor(
 
   @Test
   fun `check existing commits, passing head commit list, expect 1 existing commit`() {
-    val exitingHeadCommits = VcsCommit(
-      sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", // head of simple
-      message = "",
-      branch = "",
-      committer = null,
-      author = null,
-      commitTime = null,
-      authorTime = null,
-      parents = listOf()
-    )
+    val exitingHeadCommits =
+      VcsCommit(
+        sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", // head of simple
+        message = "",
+        branch = "",
+        committer = null,
+        author = null,
+        commitTime = null,
+        authorTime = null,
+        parents = listOf(),
+      )
     val existing = commitService.checkExisting(this.simpleRepo, listOf(exitingHeadCommits))
 
     assertAll(
@@ -78,26 +78,28 @@ internal class CommitServiceTest private constructor(
 
   @Test
   fun `check existing commits, passing new commit and existing, expect 1 new commit, 1 missing`() {
-    val headOfOctoRepo = VcsCommit(
-      sha = "ed167f854e871a1566317302c158704f71f8d16c", // imported branch of octo repo
-      message = "",
-      branch = "",
-      committer = null,
-      author = null,
-      commitTime = null,
-      authorTime = null,
-      parents = listOf()
-    )
-    val headOfSimpleRepo = VcsCommit(
-      sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", // head of simple
-      message = "",
-      branch = "",
-      committer = null,
-      author = null,
-      commitTime = null,
-      authorTime = null,
-      parents = listOf()
-    )
+    val headOfOctoRepo =
+      VcsCommit(
+        sha = "ed167f854e871a1566317302c158704f71f8d16c", // imported branch of octo repo
+        message = "",
+        branch = "",
+        committer = null,
+        author = null,
+        commitTime = null,
+        authorTime = null,
+        parents = listOf(),
+      )
+    val headOfSimpleRepo =
+      VcsCommit(
+        sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", // head of simple
+        message = "",
+        branch = "",
+        committer = null,
+        author = null,
+        commitTime = null,
+        authorTime = null,
+        parents = listOf(),
+      )
     val existing = commitService.checkExisting(this.simpleRepo, listOf(headOfSimpleRepo, headOfOctoRepo))
 
     assertAll(
@@ -110,16 +112,17 @@ internal class CommitServiceTest private constructor(
 
   @Test
   fun `check existing commits, passing new commit, expect 1 new commit`() {
-    val exitingHeadCommits = VcsCommit(
-      sha = "ed167f854e871a1566317302c158704f71f8d16c", // imported branch of octo repo
-      message = "",
-      branch = "",
-      committer = null,
-      author = null,
-      commitTime = null,
-      authorTime = null,
-      parents = listOf()
-    )
+    val exitingHeadCommits =
+      VcsCommit(
+        sha = "ed167f854e871a1566317302c158704f71f8d16c", // imported branch of octo repo
+        message = "",
+        branch = "",
+        committer = null,
+        author = null,
+        commitTime = null,
+        authorTime = null,
+        parents = listOf(),
+      )
     val existing = commitService.checkExisting(this.simpleRepo, listOf(exitingHeadCommits))
 
     assertAll(
@@ -145,5 +148,4 @@ internal class CommitServiceTest private constructor(
       this.commitService.findAll(Repository(id = null, name = "something"))
     }
   }
-
 }

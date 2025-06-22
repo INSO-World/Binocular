@@ -53,6 +53,13 @@
     </dependency>
     <dependency>
       <groupId>com.inso-world</groupId>
+      <artifactId>core</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.inso-world</groupId>
       <artifactId>ffi</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
@@ -140,16 +147,16 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.11.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>io.mockk</groupId>
       <artifactId>mockk-jvm</artifactId>
       <version>1.14.2</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
@@ -163,10 +170,6 @@
       </resource>
     </resources>
     <plugins>
-      <plugin>
-        <groupId>org.graalvm.buildtools</groupId>
-        <artifactId>native-maven-plugin</artifactId>
-      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

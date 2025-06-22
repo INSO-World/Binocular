@@ -59,28 +59,29 @@ internal class RepositoryServiceTest(
 
   @Test
   fun `transformCommits with no parents should result in empty parent lists`() {
-    val vcsCommits = listOf(
-      VcsCommit(
-        "sha1",
-        "msg1",
-        "null",
-        VcsPerson("User A", "a@test.com"),
-        null,
-        LocalDateTime.now(),
-        LocalDateTime.now(),
-        null
-      ), // No parents field
-      VcsCommit(
-        "sha2",
-        "msg2",
-        "null",
-        VcsPerson("User B", "b@test.com"),
-        null,
-        LocalDateTime.now(),
-        LocalDateTime.now(),
-        emptyList()
-      ) // Empty parents list
-    )
+    val vcsCommits =
+      listOf(
+        VcsCommit(
+          "sha1",
+          "msg1",
+          "null",
+          VcsPerson("User A", "a@test.com"),
+          null,
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          null,
+        ), // No parents field
+        VcsCommit(
+          "sha2",
+          "msg2",
+          "null",
+          VcsPerson("User B", "b@test.com"),
+          null,
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          emptyList(),
+        ), // Empty parents list
+      )
     val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
     transformedCommits.forEach { commit ->
       assertThat(commit.parents).isEmpty()
@@ -89,29 +90,30 @@ internal class RepositoryServiceTest(
 
   @Test
   fun `transformCommits with null author or committer`() {
-    val vcsCommits = listOf(
-      VcsCommit(
-        "sha1",
-        "msg1",
-        "null",
-        null,
-        VcsPerson("Author Only", "author@test.com"),
-        LocalDateTime.now(),
-        LocalDateTime.now(),
-        null
-      ),
-      VcsCommit(
-        "sha2",
-        "msg2",
-        "null",
-        VcsPerson("Committer Only", "committer@test.com"),
-        null,
-        LocalDateTime.now(),
-        LocalDateTime.now(),
-        null
-      ),
-      VcsCommit("sha3", "msg3", "null", null, null, LocalDateTime.now(), LocalDateTime.now(), null)
-    )
+    val vcsCommits =
+      listOf(
+        VcsCommit(
+          "sha1",
+          "msg1",
+          "null",
+          null,
+          VcsPerson("Author Only", "author@test.com"),
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          null,
+        ),
+        VcsCommit(
+          "sha2",
+          "msg2",
+          "null",
+          VcsPerson("Committer Only", "committer@test.com"),
+          null,
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          null,
+        ),
+        VcsCommit("sha3", "msg3", "null", null, null, LocalDateTime.now(), LocalDateTime.now(), null),
+      )
     val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
 
     assertThat(transformedCommits.find { it.sha == "sha1" }!!.committer).isNull()
@@ -147,32 +149,38 @@ internal class RepositoryServiceTest(
 
   @Test
   fun `transformCommits with non-existent parent SHA should not include it`() {
-    val vcsCommits = listOf(
-      VcsCommit(
-        "sha1",
-        "msg1",
-        "null",
-        VcsPerson("User A", "a@test.com"),
-        null,
-        LocalDateTime.now(),
-        LocalDateTime.now(),
-        listOf("nonExistentSha")
+    val vcsCommits =
+      listOf(
+        VcsCommit(
+          "sha1",
+          "msg1",
+          "null",
+          VcsPerson("User A", "a@test.com"),
+          null,
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          listOf("nonExistentSha"),
+        ),
       )
-    )
     val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
     assertThat(transformedCommits.first().parents).isEmpty()
   }
 
   @Test
   fun `transformCommits with different committer and author sharing same email`() {
-    val vcsCommits = listOf(
-      VcsCommit(
-        "sha1", "msg1", "null",
-        VcsPerson("Committer Name", "shared@test.com"),
-        VcsPerson("Author Name", "shared@test.com"),
-        LocalDateTime.now(), LocalDateTime.now(), null
+    val vcsCommits =
+      listOf(
+        VcsCommit(
+          "sha1",
+          "msg1",
+          "null",
+          VcsPerson("Committer Name", "shared@test.com"),
+          VcsPerson("Author Name", "shared@test.com"),
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          null,
+        ),
       )
-    )
     val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
     val commit = transformedCommits.first()
     assertThat(commit.committer).isNotNull
@@ -210,7 +218,7 @@ internal class RepositoryServiceTest(
             assertThat(commit.author!!.name).isEqualTo(it.name)
           }
         }
-      }
+      },
     )
   }
 
@@ -261,16 +269,17 @@ internal class RepositoryServiceTest(
     val user = VcsPerson("User", "user@test.com")
     val parent =
       VcsCommit("parentSha", "Parent Commit", "null", user, user, LocalDateTime.now(), LocalDateTime.now(), null)
-    val child = VcsCommit(
-      "childSha",
-      "Child Commit",
-      "null",
-      user,
-      user,
-      LocalDateTime.now(),
-      LocalDateTime.now(),
-      listOf("parentSha")
-    )
+    val child =
+      VcsCommit(
+        "childSha",
+        "Child Commit",
+        "null",
+        user,
+        user,
+        LocalDateTime.now(),
+        LocalDateTime.now(),
+        listOf("parentSha"),
+      )
 
     // Order: child first, then parent
     val vcsCommitsOutOfOrder = listOf(child, parent)
@@ -290,9 +299,8 @@ internal class RepositoryServiceTest(
 }
 
 internal class RepositoryServiceTestWithSimpleData(
-  @Autowired private val repositoryService: RepositoryService
+  @Autowired private val repositoryService: RepositoryService,
 ) : BaseServiceTest() {
-
   private val ffi = BinocularFfi()
 
   @Test
@@ -316,15 +324,16 @@ internal class RepositoryServiceTestWithSimpleData(
   )
   fun get_head_commit_of_main_branch(
     branch: String,
-    headCommit: String
+    headCommit: String,
   ) {
     this.cleanup()
 
-    val simpleRepoConfig = setupRepoConfig(
-      "${FIXTURES_PATH}/${SIMPLE_REPO}",
-      "HEAD",
-      branch
-    )
+    val simpleRepoConfig =
+      setupRepoConfig(
+        "${FIXTURES_PATH}/${SIMPLE_REPO}",
+        "HEAD",
+        branch,
+      )
     var localRepo = simpleRepoConfig.repo.toVcsRepository().toEntity()
     generateCommits(simpleRepoConfig, localRepo)
     localRepo = this.repositoryRepository.save(localRepo)
@@ -334,7 +343,7 @@ internal class RepositoryServiceTestWithSimpleData(
       { assertThat(head).isNotNull() },
       { assertThat(head!!.sha).isEqualTo(headCommit) },
       { assertThat(head!!.branches).hasSize(1) },
-      { assertThat(head!!.branches.map { it.name }).contains(branch) }
+      { assertThat(head!!.branches.map { it.name }).contains(branch) },
     )
   }
 
@@ -345,7 +354,7 @@ internal class RepositoryServiceTestWithSimpleData(
         assertDoesNotThrow {
           this.repositoryService.getHeadCommits(this.simpleRepo, "non-existing-branch-12345657890")
         }
-      }
+      },
     )
   }
 
@@ -361,21 +370,23 @@ internal class RepositoryServiceTestWithSimpleData(
       { assertThat(repo!!.user).hasSize(3) },
     )
 
-    val newVcsCommit = VcsCommit(
-      "1234567890123456789012345678901234567890",
-      "msg1",
-      "master",
-      VcsPerson("User A", "a@test.com"),
-      null,
-      LocalDateTime.now(),
-      LocalDateTime.now(),
-      listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a")
-    )
-    val vcsRepo = BinocularRepository(
-      gitDir = this.simpleRepo.name,
-      workTree = null,
-      commonDir = null
-    ) //workTree & commonDir not relevant here
+    val newVcsCommit =
+      VcsCommit(
+        "1234567890123456789012345678901234567890",
+        "msg1",
+        "master",
+        VcsPerson("User A", "a@test.com"),
+        null,
+        LocalDateTime.now(),
+        LocalDateTime.now(),
+        listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
+      )
+    val vcsRepo =
+      BinocularRepository(
+        gitDir = this.simpleRepo.name,
+        workTree = null,
+        commonDir = null,
+      ) // workTree & commonDir not relevant here
     this.repositoryService.addCommits(vcsRepo, listOf(newVcsCommit), "master")
 
     val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
@@ -400,12 +411,12 @@ internal class RepositoryServiceTestWithSimpleData(
       { assertThat(repo!!.user).hasSize(3) },
     )
 
-
     // required to manipulate history
-    var hashes = ffi.traverseBranch(ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").map {
-      it.branch = "develop"
-      it.toDto()
-    }
+    var hashes =
+      ffi.traverseBranch(ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").map {
+        it.branch = "develop"
+        it.toDto()
+      }
     hashes = hashes.toMutableList()
     hashes.add(
       VcsCommit(
@@ -416,14 +427,15 @@ internal class RepositoryServiceTestWithSimpleData(
         VcsPerson("User A", "a@test.com"),
         LocalDateTime.now(),
         LocalDateTime.now(),
-        listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a")
-      )
+        listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
+      ),
     )
-    val vcsRepo = BinocularRepository(
-      gitDir = this.simpleRepo.name,
-      workTree = null,
-      commonDir = null
-    ) //workTree & commonDir not relevant here
+    val vcsRepo =
+      BinocularRepository(
+        gitDir = this.simpleRepo.name,
+        workTree = null,
+        commonDir = null,
+      ) // workTree & commonDir not relevant here
     this.repositoryService.addCommits(vcsRepo, hashes, "develop")
 
     val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
