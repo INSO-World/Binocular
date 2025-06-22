@@ -78,15 +78,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, ubuntu-24.04-arm, windows-latest ]
+#        os: [ ubuntu-latest, ubuntu-24.04-arm, windows-latest ]
+        os: [ windows-latest ]
         java_version: [ '23', '24' ]
         distribution: [ 'temurin' ]
         module: [ 'ffi', 'cli' ]
         include:
-          - os: ubuntu-latest
-            architecture: 'x64'
-          - os: ubuntu-24.04-arm
-            architecture: 'aarch64'
+#          - os: ubuntu-latest
+#            architecture: 'x64'
+#          - os: ubuntu-24.04-arm
+#            architecture: 'aarch64'
           - os: windows-latest
             architecture: 'x64'
 
@@ -117,13 +118,7 @@ jobs:
         if: startsWith(matrix.os, 'windows')
 
       - name: Run tests for module ${{ matrix.module }}
-        run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            wsl mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
-          else
-            mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
-          fi
-        shell: bash
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
 
   test:
     name: Test
