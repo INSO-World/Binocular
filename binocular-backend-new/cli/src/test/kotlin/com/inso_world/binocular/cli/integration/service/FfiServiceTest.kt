@@ -2,7 +2,7 @@ package com.inso_world.binocular.cli.integration.service
 
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.FfiService
-import com.inso_world.binocular.cli.uniffi.findRepo
+import com.inso_world.binocular.ffi.BinocularFfi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
@@ -23,7 +23,7 @@ internal class FfiServiceTest(
     remoteBranches: Collection<String>,
     noOfBranches: Int
   ) {
-    val repo = findRepo("${FIXTURES_PATH}/${path}")
+    val repo = BinocularFfi().findRepo("${FIXTURES_PATH}/${path}")
     val branches = this.ffiService.findAllBranches(repo)
 
     assertAll(

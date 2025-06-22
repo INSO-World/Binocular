@@ -5,7 +5,7 @@ import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.cli.uniffi.BinocularRepository
+import com.inso_world.binocular.internal.BinocularRepository
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

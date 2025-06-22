@@ -9,9 +9,7 @@ import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IBranchDao
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.ICommitDao
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IRepositoryDao
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IUserDao
-import com.inso_world.binocular.cli.uniffi.findCommit
-import com.inso_world.binocular.cli.uniffi.findRepo
-import com.inso_world.binocular.cli.uniffi.traverse
+import com.inso_world.binocular.ffi.BinocularFfi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -33,9 +31,10 @@ internal class RepositoryDaoTestWithSimpleData(
     @BeforeAll
     fun beforeAll() {
       BinocularCommandLineApplication()
-      val repo = findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-      val cmt = findCommit(repo, "HEAD")
-      val hashes = traverse(repo, cmt, null)
+      val ffi = BinocularFfi()
+      val repo = ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
+      val cmt = ffi.findCommit(repo, "HEAD")
+      val hashes = ffi.traverse(repo, cmt, null)
       this.simpleRepoConfig = RepositoryConfig(
         repo = repo,
         startCommit = cmt,
