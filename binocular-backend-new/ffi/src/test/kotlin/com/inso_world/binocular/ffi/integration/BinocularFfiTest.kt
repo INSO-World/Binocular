@@ -26,7 +26,7 @@ internal class BinocularFfiTest : BaseFixturesIntegrationTest() {
     assertAll(
       "Check $paths Repository",
       { assertThat(repo.commonDir).isNull() },
-      { assertThat(repo.gitDir).isEqualTo(Paths.get("${FIXTURES_PATH}/$paths/.git").toString()) },
+      { assertThat(Paths.get(repo.gitDir).toString()).isEqualTo(Paths.get("${FIXTURES_PATH}/$paths/.git").toString()) },
       { assertThat(repo.workTree).isNotNull() },
       { assertThat(repo.workTree).isEqualTo("${FIXTURES_PATH}/$paths") },
     )
