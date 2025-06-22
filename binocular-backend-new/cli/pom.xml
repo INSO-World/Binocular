@@ -218,7 +218,8 @@
             <configuration>
               <enableLazyInitialization>true</enableLazyInitialization>
               <enableDirtyTracking>true</enableDirtyTracking>
-              <enableAssociationManagement>true</enableAssociationManagement>
+              <enableAssociationManagement>false</enableAssociationManagement>
+              <enableExtendedEnhancement>true</enableExtendedEnhancement>
             </configuration>
           </execution>
         </executions>
