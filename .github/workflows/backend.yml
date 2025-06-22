@@ -116,6 +116,9 @@ jobs:
 
       - uses: Vampire/setup-wsl@v5
         if: startsWith(matrix.os, 'windows')
+        with:
+          additional-packages:
+            git
 
       - name: Run tests for module ${{ matrix.module }}
         run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
