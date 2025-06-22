@@ -11,15 +11,15 @@ import org.springframework.shell.test.ShellTestClient
 import java.util.concurrent.TimeUnit
 
 internal class BuiltinCommands(
-  @Autowired val client: ShellTestClient
+  @Autowired val client: ShellTestClient,
 ) : BaseShellTest() {
-
   @Test
   fun context_loads() {
     val session = client.interactive().run()
 
     await().atMost(2, TimeUnit.SECONDS).untilAsserted({
-      ShellAssertions.assertThat(session.screen())
+      ShellAssertions
+        .assertThat(session.screen())
         .containsText("shell:>")
     })
   }
@@ -47,17 +47,22 @@ internal class BuiltinCommands(
     "index,hello",
   )
   fun `help shows USAGE - index commits`(
-    cmdGrp: String, cmdName: String
+    cmdGrp: String,
+    cmdName: String,
   ) {
     val session = client.interactive().run()
 
     session.write(
-      session.writeSequence()
-        .text("help").space()
-        .text(cmdGrp).space()
-        .text(cmdName).space()
+      session
+        .writeSequence()
+        .text("help")
+        .space()
+        .text(cmdGrp)
+        .space()
+        .text(cmdName)
+        .space()
         .carriageReturn()
-        .build()
+        .build(),
     )
 
     await().atMost(2, TimeUnit.SECONDS).untilAsserted {

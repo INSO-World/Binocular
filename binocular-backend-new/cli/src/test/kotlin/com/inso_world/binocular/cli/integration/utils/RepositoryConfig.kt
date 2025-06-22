@@ -12,10 +12,14 @@ import com.inso_world.binocular.internal.ThreadSafeRepository
 internal data class RepositoryConfig(
   val repo: ThreadSafeRepository,
   val startCommit: ObjectId,
-  val hashes: List<BinocularCommitVec>
+  val hashes: List<BinocularCommitVec>,
 )
 
-internal fun setupRepoConfig(path: String, startSha: String? = "HEAD", branch: String = "master"): RepositoryConfig {
+internal fun setupRepoConfig(
+  path: String,
+  startSha: String? = "HEAD",
+  branch: String = "master",
+): RepositoryConfig {
   val ffi = BinocularFfi()
   val repo = ffi.findRepo(path)
   val cmt = ffi.findCommit(repo, startSha ?: "HEAD")
@@ -23,10 +27,18 @@ internal fun setupRepoConfig(path: String, startSha: String? = "HEAD", branch: S
   return RepositoryConfig(
     repo = repo,
     startCommit = cmt,
-    hashes = hashes
+    hashes = hashes,
   )
 }
 
-internal fun generateCommits(repoConfig: RepositoryConfig, concreteRepo: Repository): List<Commit> {
-  return RepositoryService().transformCommits(concreteRepo, repoConfig.hashes.map { it.toDto() }).toList()
-}
+internal fun generateCommits(
+  repoConfig: RepositoryConfig,
+  concreteRepo: Repository,
+): List<Commit> =
+  RepositoryService()
+    .transformCommits(
+      concreteRepo,
+      repoConfig.hashes.map {
+        it.toDto()
+      },
+    ).toList()

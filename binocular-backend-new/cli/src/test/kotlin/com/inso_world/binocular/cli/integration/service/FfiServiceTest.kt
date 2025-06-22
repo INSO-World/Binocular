@@ -12,18 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.stream.Stream
 
 internal class FfiServiceTest(
-  @Autowired private val ffiService: FfiService
+  @Autowired private val ffiService: FfiService,
 ) : BaseServiceTest() {
-
   @ParameterizedTest
   @MethodSource("find_all_branches_data")
   fun find_all_branches_all_repos(
     path: String,
     localBranches: Collection<String>,
     remoteBranches: Collection<String>,
-    noOfBranches: Int
+    noOfBranches: Int,
   ) {
-    val repo = BinocularFfi().findRepo("${FIXTURES_PATH}/${path}")
+    val repo = BinocularFfi().findRepo("${FIXTURES_PATH}/$path")
     val branches = this.ffiService.findAllBranches(repo)
 
     assertAll(
@@ -37,13 +36,13 @@ internal class FfiServiceTest(
 
   companion object {
     @JvmStatic
-    protected fun find_all_branches_data(): Stream<Arguments> {
-      return Stream.of(
+    protected fun find_all_branches_data(): Stream<Arguments> =
+      Stream.of(
         Arguments.of(
           SIMPLE_REPO,
           listOf("master"),
           listOf("origin/master"),
-          2
+          2,
         ),
         Arguments.of(
           OCTO_REPO,
@@ -54,10 +53,10 @@ internal class FfiServiceTest(
             "master",
             "octo1",
             "octo2",
-            "octo3"
+            "octo3",
           ),
           emptyList<String>(),
-          7
+          7,
         ),
         Arguments.of(
           ADVANCED_REPO,
@@ -69,13 +68,11 @@ internal class FfiServiceTest(
             "master",
             "octo1",
             "octo2",
-            "octo3"
+            "octo3",
           ),
           emptyList<String>(),
-          8
-        )
+          8,
+        ),
       )
-    }
   }
-
 }

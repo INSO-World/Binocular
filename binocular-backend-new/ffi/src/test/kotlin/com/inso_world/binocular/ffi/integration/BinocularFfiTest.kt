@@ -1,7 +1,7 @@
 package com.inso_world.binocular.ffi.integration
 
+import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.ffi.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.internal.BinocularException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
