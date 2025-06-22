@@ -78,18 +78,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-#        os: [ ubuntu-latest, ubuntu-24.04-arm, windows-latest ]
-        os: [ windows-latest ]
-        java_version: [ '23', '24' ]
+        os: [ ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest ]
+        java_version: [ '23' ]
         distribution: [ 'temurin' ]
         module: [ 'ffi', 'cli' ]
         include:
-#          - os: ubuntu-latest
-#            architecture: 'x64'
-#          - os: ubuntu-24.04-arm
-#            architecture: 'aarch64'
+          - os: ubuntu-latest
+            architecture: 'x64'
+          - os: ubuntu-24.04-arm
+            architecture: 'aarch64'
           - os: windows-latest
             architecture: 'x64'
+          - os: macos-latest
+            architecture: 'aarch64'
 
     runs-on: ${{ matrix.os }}
 
@@ -143,7 +144,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        java_version: [ '23', '24' ]
+        java_version: [ '23' ]
         distribution: [ 'temurin' ]
         module: [ 'web', 'core' ]
         include:
@@ -189,7 +190,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java_version: [ '23', '24' ]
+        java_version: [ '23' ]
         distribution: [ 'temurin' ]
         module: [ 'web', 'cli' ]
 
