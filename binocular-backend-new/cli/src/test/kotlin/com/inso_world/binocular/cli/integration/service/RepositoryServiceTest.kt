@@ -1,7 +1,6 @@
 package com.inso_world.binocular.cli.integration.service
 
 import com.inso_world.binocular.cli.entity.Repository
-import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
 import com.inso_world.binocular.cli.index.vcs.toDto
@@ -10,11 +9,12 @@ import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.cli.uniffi.*
+import com.inso_world.binocular.ffi.BinocularFfi
+import com.inso_world.binocular.internal.BinocularCommitVec
+import com.inso_world.binocular.internal.BinocularRepository
 import io.mockk.MockKAnnotations
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Ignore
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -32,21 +32,23 @@ internal class RepositoryServiceTest(
   private lateinit var simpleRepoVcsCommits: List<VcsCommit>
   private lateinit var octoRepoVcsCommits: List<VcsCommit>
   private lateinit var advancedRepoVcsCommits: List<VcsCommit>
+  private val ffi = BinocularFfi()
 
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this)
-    val simpleRepo = findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-    findCommit(simpleRepo, "HEAD")
-    simpleRepoVcsCommits = traverseBranch(simpleRepo, "master").map(BinocularCommitVec::toDto)
 
-    val octoRepo = findRepo("${FIXTURES_PATH}/${OCTO_REPO}")
-    findCommit(octoRepo, "HEAD")
-    octoRepoVcsCommits = traverseBranch(octoRepo, "master").map(BinocularCommitVec::toDto)
+    val simpleRepo = ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
+    ffi.findCommit(simpleRepo, "HEAD")
+    simpleRepoVcsCommits = ffi.traverseBranch(simpleRepo, "master").map(BinocularCommitVec::toDto)
 
-    val advancedRepo = findRepo("${FIXTURES_PATH}/${ADVANCED_REPO}")
-    findCommit(advancedRepo, "HEAD")
-    advancedRepoVcsCommits = traverseBranch(advancedRepo, "master").map(BinocularCommitVec::toDto)
+    val octoRepo = ffi.findRepo("${FIXTURES_PATH}/${OCTO_REPO}")
+    ffi.findCommit(octoRepo, "HEAD")
+    octoRepoVcsCommits = ffi.traverseBranch(octoRepo, "master").map(BinocularCommitVec::toDto)
+
+    val advancedRepo = ffi.findRepo("${FIXTURES_PATH}/${ADVANCED_REPO}")
+    ffi.findCommit(advancedRepo, "HEAD")
+    advancedRepoVcsCommits = ffi.traverseBranch(advancedRepo, "master").map(BinocularCommitVec::toDto)
   }
 
   @Test
@@ -291,6 +293,8 @@ internal class RepositoryServiceTestWithSimpleData(
   @Autowired private val repositoryService: RepositoryService
 ) : BaseServiceTest() {
 
+  private val ffi = BinocularFfi()
+
   @Test
   @Transactional
   fun `find existing simple repo`() {
@@ -398,7 +402,7 @@ internal class RepositoryServiceTestWithSimpleData(
 
 
     // required to manipulate history
-    var hashes = traverseBranch(findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").map {
+    var hashes = ffi.traverseBranch(ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").map {
       it.branch = "develop"
       it.toDto()
     }
