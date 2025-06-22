@@ -1,6 +1,7 @@
 package com.inso_world.binocular.ffi.integration.base
 
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import java.io.File
 import java.util.*
@@ -26,7 +27,7 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
             "wsl",
             "bash",
             "-c",
-            "rm -rf $path ${path}_remote.git && ./$path.sh $path"
+            "rm -rf $path ${path}_remote.git && ./$path.sh $path",
           )
         } else {
           builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
@@ -38,7 +39,9 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         val executorService = Executors.newFixedThreadPool(1)
         val future: Future<*> = executorService.submit(streamGobbler)
 
+        val exitCode = process.waitFor()
         assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) }
+        assertEquals(0, exitCode)
       }
 
       createGitRepo(SIMPLE_REPO)
