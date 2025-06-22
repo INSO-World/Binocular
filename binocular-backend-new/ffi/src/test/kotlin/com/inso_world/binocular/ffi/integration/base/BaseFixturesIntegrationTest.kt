@@ -39,7 +39,7 @@ internal open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         //    builder.directory(File(System.getProperty("user.home")))
         builder.directory(File(FIXTURES_PATH))
         val process = builder.start()
-        val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.err::println)
+        val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println)
         val executorService = Executors.newFixedThreadPool(1)
         val future: Future<*> = executorService.submit(streamGobbler)
 
