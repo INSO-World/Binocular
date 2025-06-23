@@ -161,7 +161,7 @@ internal open class ForeignBytes : Structure() {
  *
  * @suppress
  */
-public interface FfiConverter<KotlinType, FfiType> {
+internal interface FfiConverter<KotlinType, FfiType> {
     // Convert an FFI type to a Kotlin type
     fun lift(value: FfiType): KotlinType
 
@@ -232,7 +232,7 @@ public interface FfiConverter<KotlinType, FfiType> {
  *
  * @suppress
  */
-public interface FfiConverterRustBuffer<KotlinType> : FfiConverter<KotlinType, RustBuffer.ByValue> {
+internal interface FfiConverterRustBuffer<KotlinType> : FfiConverter<KotlinType, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue) = liftFromRustBuffer(value)
 
     override fun lower(value: KotlinType) = lowerIntoRustBuffer(value)
@@ -1158,7 +1158,7 @@ public fun uniffiEnsureInitialized() {
 
 // Async support
 
-// Public interface members begin here.
+// internal interface members begin here.
 
 // Interface implemented by anything that can contain an object reference.
 //
@@ -1306,7 +1306,7 @@ private class JavaLangRefCleanable(
 /**
  * @suppress
  */
-public object FfiConverterUByte : FfiConverter<UByte, Byte> {
+internal object FfiConverterUByte : FfiConverter<UByte, Byte> {
     override fun lift(value: Byte): UByte = value.toUByte()
 
     override fun read(buf: ByteBuffer): UByte = lift(buf.get())
@@ -1326,7 +1326,7 @@ public object FfiConverterUByte : FfiConverter<UByte, Byte> {
 /**
  * @suppress
  */
-public object FfiConverterUInt : FfiConverter<UInt, Int> {
+internal object FfiConverterUInt : FfiConverter<UInt, Int> {
     override fun lift(value: Int): UInt = value.toUInt()
 
     override fun read(buf: ByteBuffer): UInt = lift(buf.getInt())
@@ -1346,7 +1346,7 @@ public object FfiConverterUInt : FfiConverter<UInt, Int> {
 /**
  * @suppress
  */
-public object FfiConverterInt : FfiConverter<Int, Int> {
+internal object FfiConverterInt : FfiConverter<Int, Int> {
     override fun lift(value: Int): Int = value
 
     override fun read(buf: ByteBuffer): Int = buf.getInt()
@@ -1366,7 +1366,7 @@ public object FfiConverterInt : FfiConverter<Int, Int> {
 /**
  * @suppress
  */
-public object FfiConverterLong : FfiConverter<Long, Long> {
+internal object FfiConverterLong : FfiConverter<Long, Long> {
     override fun lift(value: Long): Long = value
 
     override fun read(buf: ByteBuffer): Long = buf.getLong()
@@ -1386,7 +1386,7 @@ public object FfiConverterLong : FfiConverter<Long, Long> {
 /**
  * @suppress
  */
-public object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
+internal object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
     override fun lift(value: Byte): Boolean = value.toInt() != 0
 
     override fun read(buf: ByteBuffer): Boolean = lift(buf.get())
@@ -1406,7 +1406,7 @@ public object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
 /**
  * @suppress
  */
-public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
+internal object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
     // store our length and avoid writing it out to the buffer.
@@ -1560,11 +1560,11 @@ public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
 // [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
 //
 
-public interface AnyhowExceptionInterface {
+internal interface AnyhowExceptionInterface {
     companion object
 }
 
-open class AnyhowException :
+internal open class AnyhowException :
     kotlin.Exception,
     Disposable,
     AutoCloseable,
@@ -1664,7 +1664,7 @@ open class AnyhowException :
 /**
  * @suppress
  */
-public object FfiConverterTypeAnyhowError : FfiConverter<AnyhowException, Pointer> {
+internal object FfiConverterTypeAnyhowError : FfiConverter<AnyhowException, Pointer> {
     override fun lower(value: AnyhowException): Pointer = value.uniffiClonePointer()
 
     override fun lift(value: Pointer): AnyhowException = AnyhowException(value)
@@ -1699,7 +1699,7 @@ data class BinocularBlameEntry(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularBlameEntry : FfiConverterRustBuffer<BinocularBlameEntry> {
+internal object FfiConverterTypeBinocularBlameEntry : FfiConverterRustBuffer<BinocularBlameEntry> {
     override fun read(buf: ByteBuffer): BinocularBlameEntry =
         BinocularBlameEntry(
             FfiConverterUInt.read(buf),
@@ -1737,7 +1737,7 @@ data class BinocularBlameOutcome(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularBlameOutcome : FfiConverterRustBuffer<BinocularBlameOutcome> {
+internal object FfiConverterTypeBinocularBlameOutcome : FfiConverterRustBuffer<BinocularBlameOutcome> {
     override fun read(buf: ByteBuffer): BinocularBlameOutcome =
         BinocularBlameOutcome(
             FfiConverterSequenceTypeBinocularBlameEntry.read(buf),
@@ -1759,7 +1759,7 @@ public object FfiConverterTypeBinocularBlameOutcome : FfiConverterRustBuffer<Bin
     }
 }
 
-data class BinocularBlameResult(
+internal data class BinocularBlameResult(
     var `blames`: List<BinocularBlameOutcome>,
     var `commit`: ObjectId,
 ) {
@@ -1769,7 +1769,7 @@ data class BinocularBlameResult(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularBlameResult : FfiConverterRustBuffer<BinocularBlameResult> {
+internal object FfiConverterTypeBinocularBlameResult : FfiConverterRustBuffer<BinocularBlameResult> {
     override fun read(buf: ByteBuffer): BinocularBlameResult =
         BinocularBlameResult(
             FfiConverterSequenceTypeBinocularBlameOutcome.read(buf),
@@ -1791,7 +1791,7 @@ public object FfiConverterTypeBinocularBlameResult : FfiConverterRustBuffer<Bino
     }
 }
 
-data class BinocularBranch(
+internal data class BinocularBranch(
     var `name`: kotlin.String,
     var `commits`: List<kotlin.String>,
 ) {
@@ -1801,7 +1801,7 @@ data class BinocularBranch(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularBranch : FfiConverterRustBuffer<BinocularBranch> {
+internal object FfiConverterTypeBinocularBranch : FfiConverterRustBuffer<BinocularBranch> {
     override fun read(buf: ByteBuffer): BinocularBranch =
         BinocularBranch(
             FfiConverterString.read(buf),
@@ -1823,7 +1823,7 @@ public object FfiConverterTypeBinocularBranch : FfiConverterRustBuffer<Binocular
     }
 }
 
-data class BinocularCommitVec(
+internal data class BinocularCommitVec(
     var `commit`: ObjectId,
     var `message`: kotlin.String,
     var `committer`: BinocularSig?,
@@ -1837,7 +1837,7 @@ data class BinocularCommitVec(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularCommitVec : FfiConverterRustBuffer<BinocularCommitVec> {
+internal object FfiConverterTypeBinocularCommitVec : FfiConverterRustBuffer<BinocularCommitVec> {
     override fun read(buf: ByteBuffer): BinocularCommitVec =
         BinocularCommitVec(
             FfiConverterTypeObjectId.read(buf),
@@ -1871,7 +1871,7 @@ public object FfiConverterTypeBinocularCommitVec : FfiConverterRustBuffer<Binocu
     }
 }
 
-data class BinocularDiffStats(
+internal data class BinocularDiffStats(
     var `insertions`: kotlin.UInt,
     var `deletions`: kotlin.UInt,
     var `kind`: kotlin.String,
@@ -1882,7 +1882,7 @@ data class BinocularDiffStats(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularDiffStats : FfiConverterRustBuffer<BinocularDiffStats> {
+internal object FfiConverterTypeBinocularDiffStats : FfiConverterRustBuffer<BinocularDiffStats> {
     override fun read(buf: ByteBuffer): BinocularDiffStats =
         BinocularDiffStats(
             FfiConverterUInt.read(buf),
@@ -1907,7 +1907,7 @@ public object FfiConverterTypeBinocularDiffStats : FfiConverterRustBuffer<Binocu
     }
 }
 
-data class BinocularDiffVec(
+internal data class BinocularDiffVec(
     var `changeMap`: Map<BString, BinocularDiffStats>,
     var `commit`: ObjectId,
     var `parent`: ObjectId?,
@@ -1920,7 +1920,7 @@ data class BinocularDiffVec(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularDiffVec : FfiConverterRustBuffer<BinocularDiffVec> {
+internal object FfiConverterTypeBinocularDiffVec : FfiConverterRustBuffer<BinocularDiffVec> {
     override fun read(buf: ByteBuffer): BinocularDiffVec =
         BinocularDiffVec(
             FfiConverterMapTypeBStringTypeBinocularDiffStats.read(buf),
@@ -1951,7 +1951,7 @@ public object FfiConverterTypeBinocularDiffVec : FfiConverterRustBuffer<Binocula
     }
 }
 
-data class BinocularRepository(
+internal data class BinocularRepository(
     var `gitDir`: kotlin.String,
     var `workTree`: kotlin.String?,
     var `commonDir`: kotlin.String?,
@@ -1962,7 +1962,7 @@ data class BinocularRepository(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularRepository : FfiConverterRustBuffer<BinocularRepository> {
+internal object FfiConverterTypeBinocularRepository : FfiConverterRustBuffer<BinocularRepository> {
     override fun read(buf: ByteBuffer): BinocularRepository =
         BinocularRepository(
             FfiConverterString.read(buf),
@@ -1987,7 +1987,7 @@ public object FfiConverterTypeBinocularRepository : FfiConverterRustBuffer<Binoc
     }
 }
 
-data class BinocularSig(
+internal data class BinocularSig(
     var `name`: BString,
     var `email`: BString,
     var `time`: BinocularTime,
@@ -1998,7 +1998,7 @@ data class BinocularSig(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularSig : FfiConverterRustBuffer<BinocularSig> {
+internal object FfiConverterTypeBinocularSig : FfiConverterRustBuffer<BinocularSig> {
     override fun read(buf: ByteBuffer): BinocularSig =
         BinocularSig(
             FfiConverterTypeBString.read(buf),
@@ -2023,7 +2023,7 @@ public object FfiConverterTypeBinocularSig : FfiConverterRustBuffer<BinocularSig
     }
 }
 
-data class BinocularTime(
+internal data class BinocularTime(
     /**
      * The seconds that passed since UNIX epoch. This makes it UTC, or `<seconds>+0000`.
      */
@@ -2039,7 +2039,7 @@ data class BinocularTime(
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularTime : FfiConverterRustBuffer<BinocularTime> {
+internal object FfiConverterTypeBinocularTime : FfiConverterRustBuffer<BinocularTime> {
     override fun read(buf: ByteBuffer): BinocularTime =
         BinocularTime(
             FfiConverterLong.read(buf),
@@ -2061,7 +2061,7 @@ public object FfiConverterTypeBinocularTime : FfiConverterRustBuffer<BinocularTi
     }
 }
 
-sealed class BinocularException : kotlin.Exception() {
+internal sealed class BinocularException : kotlin.Exception() {
     class InvalidInput(
         val v1: kotlin.String,
     ) : BinocularException() {
@@ -2085,7 +2085,7 @@ sealed class BinocularException : kotlin.Exception() {
 /**
  * @suppress
  */
-public object FfiConverterTypeBinocularError : FfiConverterRustBuffer<BinocularException> {
+internal object FfiConverterTypeBinocularError : FfiConverterRustBuffer<BinocularException> {
     override fun read(buf: ByteBuffer): BinocularException =
         when (buf.getInt()) {
             1 ->
@@ -2148,7 +2148,7 @@ enum class GixDiffAlgorithm {
 /**
  * @suppress
  */
-public object FfiConverterTypeGixDiffAlgorithm : FfiConverterRustBuffer<GixDiffAlgorithm> {
+internal object FfiConverterTypeGixDiffAlgorithm : FfiConverterRustBuffer<GixDiffAlgorithm> {
     override fun read(buf: ByteBuffer) =
         try {
             GixDiffAlgorithm.values()[buf.getInt() - 1]
@@ -2180,7 +2180,7 @@ enum class LogLevel {
 /**
  * @suppress
  */
-public object FfiConverterTypeLogLevel : FfiConverterRustBuffer<LogLevel> {
+internal object FfiConverterTypeLogLevel : FfiConverterRustBuffer<LogLevel> {
     override fun read(buf: ByteBuffer) =
         try {
             LogLevel.values()[buf.getInt() - 1]
@@ -2201,7 +2201,7 @@ public object FfiConverterTypeLogLevel : FfiConverterRustBuffer<LogLevel> {
 /**
  * @suppress
  */
-public object FfiConverterOptionalString : FfiConverterRustBuffer<kotlin.String?> {
+internal object FfiConverterOptionalString : FfiConverterRustBuffer<kotlin.String?> {
     override fun read(buf: ByteBuffer): kotlin.String? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2233,7 +2233,7 @@ public object FfiConverterOptionalString : FfiConverterRustBuffer<kotlin.String?
 /**
  * @suppress
  */
-public object FfiConverterOptionalTypeBinocularSig : FfiConverterRustBuffer<BinocularSig?> {
+internal object FfiConverterOptionalTypeBinocularSig : FfiConverterRustBuffer<BinocularSig?> {
     override fun read(buf: ByteBuffer): BinocularSig? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2265,7 +2265,7 @@ public object FfiConverterOptionalTypeBinocularSig : FfiConverterRustBuffer<Bino
 /**
  * @suppress
  */
-public object FfiConverterOptionalTypeGixDiffAlgorithm : FfiConverterRustBuffer<GixDiffAlgorithm?> {
+internal object FfiConverterOptionalTypeGixDiffAlgorithm : FfiConverterRustBuffer<GixDiffAlgorithm?> {
     override fun read(buf: ByteBuffer): GixDiffAlgorithm? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2297,7 +2297,7 @@ public object FfiConverterOptionalTypeGixDiffAlgorithm : FfiConverterRustBuffer<
 /**
  * @suppress
  */
-public object FfiConverterOptionalTypeObjectId : FfiConverterRustBuffer<ObjectId?> {
+internal object FfiConverterOptionalTypeObjectId : FfiConverterRustBuffer<ObjectId?> {
     override fun read(buf: ByteBuffer): ObjectId? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2329,7 +2329,7 @@ public object FfiConverterOptionalTypeObjectId : FfiConverterRustBuffer<ObjectId
 /**
  * @suppress
  */
-public object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.String>> {
+internal object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.String>> {
     override fun read(buf: ByteBuffer): List<kotlin.String> {
         val len = buf.getInt()
         return List<kotlin.String>(len) {
@@ -2357,7 +2357,7 @@ public object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.St
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeBinocularBlameEntry : FfiConverterRustBuffer<List<BinocularBlameEntry>> {
+internal object FfiConverterSequenceTypeBinocularBlameEntry : FfiConverterRustBuffer<List<BinocularBlameEntry>> {
     override fun read(buf: ByteBuffer): List<BinocularBlameEntry> {
         val len = buf.getInt()
         return List<BinocularBlameEntry>(len) {
@@ -2385,7 +2385,7 @@ public object FfiConverterSequenceTypeBinocularBlameEntry : FfiConverterRustBuff
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeBinocularBlameOutcome : FfiConverterRustBuffer<List<BinocularBlameOutcome>> {
+internal object FfiConverterSequenceTypeBinocularBlameOutcome : FfiConverterRustBuffer<List<BinocularBlameOutcome>> {
     override fun read(buf: ByteBuffer): List<BinocularBlameOutcome> {
         val len = buf.getInt()
         return List<BinocularBlameOutcome>(len) {
@@ -2413,7 +2413,7 @@ public object FfiConverterSequenceTypeBinocularBlameOutcome : FfiConverterRustBu
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeBinocularBlameResult : FfiConverterRustBuffer<List<BinocularBlameResult>> {
+internal object FfiConverterSequenceTypeBinocularBlameResult : FfiConverterRustBuffer<List<BinocularBlameResult>> {
     override fun read(buf: ByteBuffer): List<BinocularBlameResult> {
         val len = buf.getInt()
         return List<BinocularBlameResult>(len) {
@@ -2441,7 +2441,7 @@ public object FfiConverterSequenceTypeBinocularBlameResult : FfiConverterRustBuf
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeBinocularBranch : FfiConverterRustBuffer<List<BinocularBranch>> {
+internal object FfiConverterSequenceTypeBinocularBranch : FfiConverterRustBuffer<List<BinocularBranch>> {
     override fun read(buf: ByteBuffer): List<BinocularBranch> {
         val len = buf.getInt()
         return List<BinocularBranch>(len) {
@@ -2469,7 +2469,7 @@ public object FfiConverterSequenceTypeBinocularBranch : FfiConverterRustBuffer<L
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeBinocularCommitVec : FfiConverterRustBuffer<List<BinocularCommitVec>> {
+internal object FfiConverterSequenceTypeBinocularCommitVec : FfiConverterRustBuffer<List<BinocularCommitVec>> {
     override fun read(buf: ByteBuffer): List<BinocularCommitVec> {
         val len = buf.getInt()
         return List<BinocularCommitVec>(len) {
@@ -2497,7 +2497,7 @@ public object FfiConverterSequenceTypeBinocularCommitVec : FfiConverterRustBuffe
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeBinocularDiffVec : FfiConverterRustBuffer<List<BinocularDiffVec>> {
+internal object FfiConverterSequenceTypeBinocularDiffVec : FfiConverterRustBuffer<List<BinocularDiffVec>> {
     override fun read(buf: ByteBuffer): List<BinocularDiffVec> {
         val len = buf.getInt()
         return List<BinocularDiffVec>(len) {
@@ -2525,7 +2525,7 @@ public object FfiConverterSequenceTypeBinocularDiffVec : FfiConverterRustBuffer<
 /**
  * @suppress
  */
-public object FfiConverterMapTypeBStringTypeBinocularDiffStats :
+internal object FfiConverterMapTypeBStringTypeBinocularDiffStats :
     FfiConverterRustBuffer<Map<BString, BinocularDiffStats>> {
     override fun read(buf: ByteBuffer): Map<BString, BinocularDiffStats> {
         val len = buf.getInt()
@@ -2567,7 +2567,7 @@ public object FfiConverterMapTypeBStringTypeBinocularDiffStats :
 /**
  * @suppress
  */
-public object FfiConverterMapTypeObjectIdSequenceString : FfiConverterRustBuffer<Map<ObjectId, List<kotlin.String>>> {
+internal object FfiConverterMapTypeObjectIdSequenceString : FfiConverterRustBuffer<Map<ObjectId, List<kotlin.String>>> {
     override fun read(buf: ByteBuffer): Map<ObjectId, List<kotlin.String>> {
         val len = buf.getInt()
         return buildMap<ObjectId, List<kotlin.String>>(len) {
@@ -2610,27 +2610,27 @@ public object FfiConverterMapTypeObjectIdSequenceString : FfiConverterRustBuffer
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-public typealias BString = kotlin.String
-public typealias FfiConverterTypeBString = FfiConverterString
+internal typealias BString = kotlin.String
+internal typealias FfiConverterTypeBString = FfiConverterString
 
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-public typealias ObjectId = kotlin.String
-public typealias FfiConverterTypeObjectId = FfiConverterString
+internal typealias ObjectId = kotlin.String
+internal typealias FfiConverterTypeObjectId = FfiConverterString
 
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-public typealias ThreadSafeRepository = BinocularRepository
-public typealias FfiConverterTypeThreadSafeRepository = FfiConverterTypeBinocularRepository
+internal typealias ThreadSafeRepository = BinocularRepository
+internal typealias FfiConverterTypeThreadSafeRepository = FfiConverterTypeBinocularRepository
 
 @Throws(AnyhowException::class)
-fun `blames`(
+internal fun `blames`(
     `repo`: ThreadSafeRepository,
     `defines`: Map<ObjectId, List<kotlin.String>>,
     `diffAlgorithm`: GixDiffAlgorithm?,
@@ -2649,7 +2649,7 @@ fun `blames`(
     )
 
 @Throws(AnyhowException::class)
-fun `diffs`(
+internal fun `diffs`(
     `repo`: ThreadSafeRepository,
     `commitlist`: List<kotlin.String>,
     `maxThreads`: kotlin.UByte,
@@ -2674,7 +2674,7 @@ fun `diffs`(
     )
 
 @Throws(AnyhowException::class)
-fun `findAllBranches`(`repo`: ThreadSafeRepository): List<BinocularBranch> =
+internal fun `findAllBranches`(`repo`: ThreadSafeRepository): List<BinocularBranch> =
     FfiConverterSequenceTypeBinocularBranch.lift(
         uniffiRustCallWithError(AnyhowException) { _status ->
             UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_all_branches(
@@ -2686,7 +2686,7 @@ fun `findAllBranches`(`repo`: ThreadSafeRepository): List<BinocularBranch> =
     )
 
 @Throws(AnyhowException::class)
-fun `findCommit`(
+internal fun `findCommit`(
     `repo`: ThreadSafeRepository,
     `hash`: kotlin.String,
 ): ObjectId =
@@ -2701,20 +2701,20 @@ fun `findCommit`(
     )
 
 @Throws(AnyhowException::class)
-fun `findRepo`(`path`: kotlin.String): ThreadSafeRepository =
+internal fun `findRepo`(`path`: kotlin.String): ThreadSafeRepository =
     FfiConverterTypeThreadSafeRepository.lift(
         uniffiRustCallWithError(AnyhowException) { _status ->
             UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_repo(FfiConverterString.lower(`path`), _status)
         },
     )
 
-fun `hello`() =
+internal fun `hello`() =
     uniffiRustCall { _status ->
         UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_hello(_status)
     }
 
 @Throws(AnyhowException::class)
-fun `traverse`(
+internal fun `traverse`(
     `repo`: ThreadSafeRepository,
     `sourceCommit`: ObjectId,
     `targetCommit`: ObjectId?,
@@ -2731,7 +2731,7 @@ fun `traverse`(
     )
 
 @Throws(BinocularException::class)
-fun `traverseBranch`(
+internal fun `traverseBranch`(
     `repo`: ThreadSafeRepository,
     `branch`: kotlin.String,
 ): List<BinocularCommitVec> =

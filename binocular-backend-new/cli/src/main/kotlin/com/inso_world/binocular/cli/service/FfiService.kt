@@ -5,10 +5,9 @@ import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsBranch
 import com.inso_world.binocular.cli.index.vcs.toVcsBranch
 import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.ffi.BinocularRepositoryPojo
-import com.inso_world.binocular.internal.AnyhowException
-import com.inso_world.binocular.internal.BinocularCommitVec
-import com.inso_world.binocular.internal.BinocularException
+import com.inso_world.binocular.ffi.exception.BinocularFfiException
+import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
+import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +40,7 @@ internal class FfiService(
         logger.trace("Searching repository... at '$path'")
         return try {
             ffi.findRepo(path)
-        } catch (e: AnyhowException) {
+        } catch (e: BinocularFfiException) {
             throw ServiceException(e)
         }
     }
@@ -49,10 +48,10 @@ internal class FfiService(
     fun traverseAllOnBranch(
         repo: BinocularRepositoryPojo,
         branch: String,
-    ): List<BinocularCommitVec> =
+    ): List<BinocularCommitPojo> =
         try {
             ffi.traverseBranch(repo, branch)
-        } catch (e: BinocularException) {
+        } catch (e: BinocularFfiException) {
             throw ServiceException(e)
         }
 }

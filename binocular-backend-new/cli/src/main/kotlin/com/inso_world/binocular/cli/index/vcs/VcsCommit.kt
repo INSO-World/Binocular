@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.cli.entity.Commit
-import com.inso_world.binocular.internal.BinocularCommitVec
+import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -32,7 +32,7 @@ data class VcsCommit(
         )
 }
 
-fun BinocularCommitVec.toDto(): VcsCommit =
+fun BinocularCommitPojo.toDto(): VcsCommit =
     VcsCommit(
         sha = this.commit,
         message = this.message,

@@ -10,8 +10,8 @@ import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.ffi.BinocularRepositoryPojo
-import com.inso_world.binocular.internal.BinocularCommitVec
+import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
+import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import io.mockk.MockKAnnotations
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
@@ -40,15 +40,15 @@ internal class RepositoryServiceTest(
 
         val simpleRepo = ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
         ffi.findCommit(simpleRepo, "HEAD")
-        simpleRepoVcsCommits = ffi.traverseBranch(simpleRepo, "master").map(BinocularCommitVec::toDto)
+        simpleRepoVcsCommits = ffi.traverseBranch(simpleRepo, "master").map(BinocularCommitPojo::toDto)
 
         val octoRepo = ffi.findRepo("${FIXTURES_PATH}/${OCTO_REPO}")
         ffi.findCommit(octoRepo, "HEAD")
-        octoRepoVcsCommits = ffi.traverseBranch(octoRepo, "master").map(BinocularCommitVec::toDto)
+        octoRepoVcsCommits = ffi.traverseBranch(octoRepo, "master").map(BinocularCommitPojo::toDto)
 
         val advancedRepo = ffi.findRepo("${FIXTURES_PATH}/${ADVANCED_REPO}")
         ffi.findCommit(advancedRepo, "HEAD")
-        advancedRepoVcsCommits = ffi.traverseBranch(advancedRepo, "master").map(BinocularCommitVec::toDto)
+        advancedRepoVcsCommits = ffi.traverseBranch(advancedRepo, "master").map(BinocularCommitPojo::toDto)
     }
 
     @Test

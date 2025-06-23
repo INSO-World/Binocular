@@ -5,8 +5,7 @@ import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.ffi.toPojo
-import com.inso_world.binocular.internal.BinocularRepository
+import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -243,12 +242,12 @@ internal class VcsIndexCommandsTest(
 
         transactionTemplate.execute {
             val vcsRepo =
-                BinocularRepository(
+                BinocularRepositoryPojo(
                     gitDir = "$FIXTURES_PATH/$SIMPLE_REPO",
                     workTree = null,
                     commonDir = null,
                 ) // workTree & commonDir not relevant here
-            this.repoService.addCommits(vcsRepo.toPojo(), listOf(newVcsCommit), "")
+            this.repoService.addCommits(vcsRepo, listOf(newVcsCommit), "")
 //      newCommit.parents = listOf(head!!)
 //      newCommit.repository = repo1
 //      assertThat(newCommit.committer).isNotNull()

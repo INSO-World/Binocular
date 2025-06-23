@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.cli.entity.Repository
-import com.inso_world.binocular.ffi.BinocularRepositoryPojo
+import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 
 data class VcsRepository(
     val name: String,

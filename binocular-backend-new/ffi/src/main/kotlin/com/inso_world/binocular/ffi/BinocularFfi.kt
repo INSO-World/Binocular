@@ -1,10 +1,11 @@
 package com.inso_world.binocular.ffi
 
 import com.inso_world.binocular.ffi.exception.BinocularFfiException
+import com.inso_world.binocular.ffi.pojos.BinocularBranchPojo
+import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
+import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
+import com.inso_world.binocular.ffi.pojos.toPojo
 import com.inso_world.binocular.internal.AnyhowException
-import com.inso_world.binocular.internal.BinocularBranch
-import com.inso_world.binocular.internal.BinocularCommitVec
-import com.inso_world.binocular.internal.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -23,6 +24,7 @@ class BinocularFfi {
             .hello()
     }
 
+    @Throws(BinocularFfiException::class)
     fun findRepo(path: String): BinocularRepositoryPojo {
         logger.trace("Searching repository... at '$path'")
         return try {
@@ -37,28 +39,31 @@ class BinocularFfi {
     fun traverseBranch(
         repo: BinocularRepositoryPojo,
         branchName: String,
-    ): List<BinocularCommitVec> =
+    ): List<BinocularCommitPojo> =
         com.inso_world.binocular.internal
             .traverseBranch(repo.toFfi(), branchName)
+            .map { it.toPojo() }
 
-    fun findAllBranches(repo: BinocularRepositoryPojo): List<BinocularBranch> =
+    fun findAllBranches(repo: BinocularRepositoryPojo): List<BinocularBranchPojo> =
         com.inso_world.binocular.internal
             .findAllBranches(repo.toFfi())
+            .map { it.toPojo() }
 
     fun findCommit(
         repo: BinocularRepositoryPojo,
         hash: String,
-    ): ObjectId =
+    ): String =
         com.inso_world.binocular.internal
             .findCommit(repo.toFfi(), hash)
 
     fun traverse(
         repo: BinocularRepositoryPojo,
-        sourceCmt: ObjectId,
-        trgtCmt: ObjectId? = null,
-    ): List<BinocularCommitVec> =
+        sourceCmt: String,
+        trgtCmt: String? = null,
+    ): List<BinocularCommitPojo> =
         com.inso_world.binocular.internal
             .traverse(repo.toFfi(), sourceCmt, trgtCmt)
+            .map { it.toPojo() }
 }
 
 @Throws(UnsupportedOperationException::class)
