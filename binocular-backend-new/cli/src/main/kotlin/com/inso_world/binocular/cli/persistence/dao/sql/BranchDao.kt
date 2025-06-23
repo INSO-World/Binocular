@@ -10,15 +10,16 @@ import kotlin.jvm.optionals.getOrNull
 
 @Repository
 class BranchDao(
-    @Autowired private val branchRepository: BranchRepository
-) : SqlDao<Branch, Long>(), IBranchDao {
-
+    @Autowired private val branchRepository: BranchRepository,
+) : SqlDao<Branch, Long>(),
+    IBranchDao {
     init {
         this.setClazz(Branch::class.java)
         this.setRepository(branchRepository)
     }
 
-    override fun findByNameAndRepositoryId(name: String, repositoryId: Long): Branch? {
-        return this.branchRepository.findByNameAndRepositoryId(name, repositoryId).getOrNull()
-    }
-} 
+    override fun findByNameAndRepositoryId(
+        name: String,
+        repositoryId: Long,
+    ): Branch? = this.branchRepository.findByNameAndRepositoryId(name, repositoryId).getOrNull()
+}

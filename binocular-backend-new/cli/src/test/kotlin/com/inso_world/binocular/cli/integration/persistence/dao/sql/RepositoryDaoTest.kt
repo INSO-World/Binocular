@@ -8,16 +8,16 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class RepositoryDaoTest(
-  @Autowired val repositoryDao: IRepositoryDao,
+    @Autowired val repositoryDao: IRepositoryDao,
 ) : BasePersistenceTest() {
-  @BeforeEach
-  fun setup() {
-    this.cleanup()
-  }
+    @BeforeEach
+    fun setup() {
+        this.cleanup()
+    }
 
-  @Test
-  fun non_saved_should_return_no_repositories() {
-    val repos = repositoryDao.findAll()
-    assertThat(repos).isEmpty()
-  }
+    @Test
+    fun non_saved_should_return_no_repositories() {
+        val repos = repositoryDao.findAll()
+        assertThat(repos).isEmpty()
+    }
 }

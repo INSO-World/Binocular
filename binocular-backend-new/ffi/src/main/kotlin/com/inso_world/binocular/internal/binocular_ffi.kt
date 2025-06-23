@@ -17,12 +17,11 @@ package com.inso_world.binocular.internal
 // compile the Rust component. The easiest way to ensure this is to bundle the Kotlin
 // helpers directly inline like we're doing here.
 
-import com.sun.jna.Callback
 import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import com.sun.jna.ptr.*
+import com.sun.jna.ptr.ByReference
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.CharBuffer
@@ -42,11 +41,14 @@ import java.util.concurrent.atomic.AtomicLong
 open class RustBuffer : Structure() {
     // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
     // When dealing with these fields, make sure to call `toULong()`.
-    @JvmField var capacity: Long = 0
+    @JvmField
+    var capacity: Long = 0
 
-    @JvmField var len: Long = 0
+    @JvmField
+    var len: Long = 0
 
-    @JvmField var data: Pointer? = null
+    @JvmField
+    var data: Pointer? = null
 
     class ByValue :
         RustBuffer(),
@@ -140,9 +142,11 @@ class RustBufferByReference : ByReference(16) {
 
 @Structure.FieldOrder("len", "data")
 internal open class ForeignBytes : Structure() {
-    @JvmField var len: Int = 0
+    @JvmField
+    var len: Int = 0
 
-    @JvmField var data: Pointer? = null
+    @JvmField
+    var data: Pointer? = null
 
     class ByValue :
         ForeignBytes(),
@@ -242,9 +246,11 @@ internal const val UNIFFI_CALL_UNEXPECTED_ERROR = 2.toByte()
 
 @Structure.FieldOrder("code", "error_buf")
 internal open class UniffiRustCallStatus : Structure() {
-    @JvmField var code: Byte = 0
+    @JvmField
+    var code: Byte = 0
 
-    @JvmField var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
+    @JvmField
+    var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
 
     class ByValue :
         UniffiRustCallStatus(),
@@ -1178,6 +1184,7 @@ interface Disposable {
                             }
                         }
                     }
+
                     is Map<*, *> -> {
                         for (element in arg.values) {
                             if (element is Disposable) {
@@ -1185,6 +1192,7 @@ interface Disposable {
                             }
                         }
                     }
+
                     is Iterable<*> -> {
                         for (element in arg) {
                             if (element is Disposable) {
@@ -1702,11 +1710,11 @@ public object FfiConverterTypeBinocularBlameEntry : FfiConverterRustBuffer<Binoc
 
     override fun allocationSize(value: BinocularBlameEntry) =
         (
-            FfiConverterUInt.allocationSize(value.`startInBlamedFile`) +
-                FfiConverterUInt.allocationSize(value.`startInSourceFile`) +
-                FfiConverterUInt.allocationSize(value.`len`) +
-                FfiConverterTypeObjectId.allocationSize(value.`commitId`)
-        )
+                FfiConverterUInt.allocationSize(value.`startInBlamedFile`) +
+                        FfiConverterUInt.allocationSize(value.`startInSourceFile`) +
+                        FfiConverterUInt.allocationSize(value.`len`) +
+                        FfiConverterTypeObjectId.allocationSize(value.`commitId`)
+                )
 
     override fun write(
         value: BinocularBlameEntry,
@@ -1738,9 +1746,9 @@ public object FfiConverterTypeBinocularBlameOutcome : FfiConverterRustBuffer<Bin
 
     override fun allocationSize(value: BinocularBlameOutcome) =
         (
-            FfiConverterSequenceTypeBinocularBlameEntry.allocationSize(value.`entries`) +
-                FfiConverterString.allocationSize(value.`filePath`)
-        )
+                FfiConverterSequenceTypeBinocularBlameEntry.allocationSize(value.`entries`) +
+                        FfiConverterString.allocationSize(value.`filePath`)
+                )
 
     override fun write(
         value: BinocularBlameOutcome,
@@ -1770,9 +1778,9 @@ public object FfiConverterTypeBinocularBlameResult : FfiConverterRustBuffer<Bino
 
     override fun allocationSize(value: BinocularBlameResult) =
         (
-            FfiConverterSequenceTypeBinocularBlameOutcome.allocationSize(value.`blames`) +
-                FfiConverterTypeObjectId.allocationSize(value.`commit`)
-        )
+                FfiConverterSequenceTypeBinocularBlameOutcome.allocationSize(value.`blames`) +
+                        FfiConverterTypeObjectId.allocationSize(value.`commit`)
+                )
 
     override fun write(
         value: BinocularBlameResult,
@@ -1802,9 +1810,9 @@ public object FfiConverterTypeBinocularBranch : FfiConverterRustBuffer<Binocular
 
     override fun allocationSize(value: BinocularBranch) =
         (
-            FfiConverterString.allocationSize(value.`name`) +
-                FfiConverterSequenceString.allocationSize(value.`commits`)
-        )
+                FfiConverterString.allocationSize(value.`name`) +
+                        FfiConverterSequenceString.allocationSize(value.`commits`)
+                )
 
     override fun write(
         value: BinocularBranch,
@@ -1842,13 +1850,13 @@ public object FfiConverterTypeBinocularCommitVec : FfiConverterRustBuffer<Binocu
 
     override fun allocationSize(value: BinocularCommitVec) =
         (
-            FfiConverterTypeObjectId.allocationSize(value.`commit`) +
-                FfiConverterString.allocationSize(value.`message`) +
-                FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
-                FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`) +
-                FfiConverterOptionalString.allocationSize(value.`branch`) +
-                FfiConverterSequenceString.allocationSize(value.`parents`)
-        )
+                FfiConverterTypeObjectId.allocationSize(value.`commit`) +
+                        FfiConverterString.allocationSize(value.`message`) +
+                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
+                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`) +
+                        FfiConverterOptionalString.allocationSize(value.`branch`) +
+                        FfiConverterSequenceString.allocationSize(value.`parents`)
+                )
 
     override fun write(
         value: BinocularCommitVec,
@@ -1884,10 +1892,10 @@ public object FfiConverterTypeBinocularDiffStats : FfiConverterRustBuffer<Binocu
 
     override fun allocationSize(value: BinocularDiffStats) =
         (
-            FfiConverterUInt.allocationSize(value.`insertions`) +
-                FfiConverterUInt.allocationSize(value.`deletions`) +
-                FfiConverterString.allocationSize(value.`kind`)
-        )
+                FfiConverterUInt.allocationSize(value.`insertions`) +
+                        FfiConverterUInt.allocationSize(value.`deletions`) +
+                        FfiConverterString.allocationSize(value.`kind`)
+                )
 
     override fun write(
         value: BinocularDiffStats,
@@ -1924,12 +1932,12 @@ public object FfiConverterTypeBinocularDiffVec : FfiConverterRustBuffer<Binocula
 
     override fun allocationSize(value: BinocularDiffVec) =
         (
-            FfiConverterMapTypeBStringTypeBinocularDiffStats.allocationSize(value.`changeMap`) +
-                FfiConverterTypeObjectId.allocationSize(value.`commit`) +
-                FfiConverterOptionalTypeObjectId.allocationSize(value.`parent`) +
-                FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
-                FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`)
-        )
+                FfiConverterMapTypeBStringTypeBinocularDiffStats.allocationSize(value.`changeMap`) +
+                        FfiConverterTypeObjectId.allocationSize(value.`commit`) +
+                        FfiConverterOptionalTypeObjectId.allocationSize(value.`parent`) +
+                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
+                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`)
+                )
 
     override fun write(
         value: BinocularDiffVec,
@@ -1964,10 +1972,10 @@ public object FfiConverterTypeBinocularRepository : FfiConverterRustBuffer<Binoc
 
     override fun allocationSize(value: BinocularRepository) =
         (
-            FfiConverterString.allocationSize(value.`gitDir`) +
-                FfiConverterOptionalString.allocationSize(value.`workTree`) +
-                FfiConverterOptionalString.allocationSize(value.`commonDir`)
-        )
+                FfiConverterString.allocationSize(value.`gitDir`) +
+                        FfiConverterOptionalString.allocationSize(value.`workTree`) +
+                        FfiConverterOptionalString.allocationSize(value.`commonDir`)
+                )
 
     override fun write(
         value: BinocularRepository,
@@ -2000,10 +2008,10 @@ public object FfiConverterTypeBinocularSig : FfiConverterRustBuffer<BinocularSig
 
     override fun allocationSize(value: BinocularSig) =
         (
-            FfiConverterTypeBString.allocationSize(value.`name`) +
-                FfiConverterTypeBString.allocationSize(value.`email`) +
-                FfiConverterTypeBinocularTime.allocationSize(value.`time`)
-        )
+                FfiConverterTypeBString.allocationSize(value.`name`) +
+                        FfiConverterTypeBString.allocationSize(value.`email`) +
+                        FfiConverterTypeBinocularTime.allocationSize(value.`time`)
+                )
 
     override fun write(
         value: BinocularSig,
@@ -2040,9 +2048,9 @@ public object FfiConverterTypeBinocularTime : FfiConverterRustBuffer<BinocularTi
 
     override fun allocationSize(value: BinocularTime) =
         (
-            FfiConverterLong.allocationSize(value.`seconds`) +
-                FfiConverterInt.allocationSize(value.`offset`)
-        )
+                FfiConverterLong.allocationSize(value.`seconds`) +
+                        FfiConverterInt.allocationSize(value.`offset`)
+                )
 
     override fun write(
         value: BinocularTime,
@@ -2058,18 +2066,19 @@ sealed class BinocularException : kotlin.Exception() {
         val v1: kotlin.String,
     ) : BinocularException() {
         override val message
-            get() = "v1=${ v1 }"
+            get() = "v1=${v1}"
     }
 
     class OperationFailed(
         val v1: kotlin.String,
     ) : BinocularException() {
         override val message
-            get() = "v1=${ v1 }"
+            get() = "v1=${v1}"
     }
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<BinocularException> {
-        override fun lift(error_buf: RustBuffer.ByValue): BinocularException = FfiConverterTypeBinocularError.lift(error_buf)
+        override fun lift(error_buf: RustBuffer.ByValue): BinocularException =
+            FfiConverterTypeBinocularError.lift(error_buf)
     }
 }
 
@@ -2083,25 +2092,28 @@ public object FfiConverterTypeBinocularError : FfiConverterRustBuffer<BinocularE
                 BinocularException.InvalidInput(
                     FfiConverterString.read(buf),
                 )
+
             2 ->
                 BinocularException.OperationFailed(
                     FfiConverterString.read(buf),
                 )
+
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
 
     override fun allocationSize(value: BinocularException): ULong =
         when (value) {
             is BinocularException.InvalidInput -> (
-                // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4UL +
-                    FfiConverterString.allocationSize(value.v1)
-            )
+                    // Add the size for the Int that specifies the variant plus the size needed for all fields
+                    4UL +
+                            FfiConverterString.allocationSize(value.v1)
+                    )
+
             is BinocularException.OperationFailed -> (
-                // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4UL +
-                    FfiConverterString.allocationSize(value.v1)
-            )
+                    // Add the size for the Int that specifies the variant plus the size needed for all fields
+                    4UL +
+                            FfiConverterString.allocationSize(value.v1)
+                    )
         }
 
     override fun write(
@@ -2114,6 +2126,7 @@ public object FfiConverterTypeBinocularError : FfiConverterRustBuffer<BinocularE
                 FfiConverterString.write(value.v1, buf)
                 Unit
             }
+
             is BinocularException.OperationFailed -> {
                 buf.putInt(2)
                 FfiConverterString.write(value.v1, buf)
@@ -2512,7 +2525,8 @@ public object FfiConverterSequenceTypeBinocularDiffVec : FfiConverterRustBuffer<
 /**
  * @suppress
  */
-public object FfiConverterMapTypeBStringTypeBinocularDiffStats : FfiConverterRustBuffer<Map<BString, BinocularDiffStats>> {
+public object FfiConverterMapTypeBStringTypeBinocularDiffStats :
+    FfiConverterRustBuffer<Map<BString, BinocularDiffStats>> {
     override fun read(buf: ByteBuffer): Map<BString, BinocularDiffStats> {
         val len = buf.getInt()
         return buildMap<BString, BinocularDiffStats>(len) {
@@ -2530,7 +2544,7 @@ public object FfiConverterMapTypeBStringTypeBinocularDiffStats : FfiConverterRus
             value
                 .map { (k, v) ->
                     FfiConverterTypeBString.allocationSize(k) +
-                        FfiConverterTypeBinocularDiffStats.allocationSize(v)
+                            FfiConverterTypeBinocularDiffStats.allocationSize(v)
                 }.sum()
         return spaceForMapSize + spaceForChildren
     }
@@ -2571,7 +2585,7 @@ public object FfiConverterMapTypeObjectIdSequenceString : FfiConverterRustBuffer
             value
                 .map { (k, v) ->
                     FfiConverterTypeObjectId.allocationSize(k) +
-                        FfiConverterSequenceString.allocationSize(v)
+                            FfiConverterSequenceString.allocationSize(v)
                 }.sum()
         return spaceForMapSize + spaceForChildren
     }
@@ -2663,7 +2677,11 @@ fun `diffs`(
 fun `findAllBranches`(`repo`: ThreadSafeRepository): List<BinocularBranch> =
     FfiConverterSequenceTypeBinocularBranch.lift(
         uniffiRustCallWithError(AnyhowException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_all_branches(FfiConverterTypeThreadSafeRepository.lower(`repo`), _status)
+            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_all_branches(
+                FfiConverterTypeThreadSafeRepository.lower(
+                    `repo`
+                ), _status
+            )
         },
     )
 

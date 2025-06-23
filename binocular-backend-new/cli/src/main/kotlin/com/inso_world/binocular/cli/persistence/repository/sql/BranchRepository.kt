@@ -7,5 +7,8 @@ import java.util.Optional
 
 @Repository
 interface BranchRepository : JpaRepository<Branch, Long> {
-    fun findByNameAndRepositoryId(name: String, repositoryId: Long): Optional<Branch>
-} 
+    fun findByNameAndRepositoryId(
+        name: String,
+        repositoryId: Long,
+    ): Optional<Branch>
+}

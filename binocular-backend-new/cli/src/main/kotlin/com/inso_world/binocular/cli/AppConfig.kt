@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConfigurationProperties(prefix = "binocular")
 class BinocularCliConfiguration {
-  lateinit var index: IndexConfig
+    lateinit var index: IndexConfig
 }
 
 class IndexConfig(
-  val path: String,
+    val path: String,
 )

@@ -7,5 +7,5 @@ import java.util.stream.Stream
 
 @Repository
 interface UserRepository : JpaRepository<User, String> {
-  fun findAllByEmailIn(emails: Collection<String>): Stream<User>
+    fun findAllByEmailIn(emails: Collection<String>): Stream<User>
 }

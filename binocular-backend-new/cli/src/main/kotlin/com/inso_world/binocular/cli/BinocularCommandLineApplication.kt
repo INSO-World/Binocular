@@ -11,7 +11,7 @@ import org.springframework.shell.command.annotation.CommandScan
 @CommandScan(basePackages = ["com.inso_world.binocular.cli.commands"])
 @EnableJpaRepositories(basePackages = ["com.inso_world.binocular.core.persistence", "com.inso_world.binocular.cli.persistence"])
 class BinocularCommandLineApplication {
-  private var logger: Logger = LoggerFactory.getLogger(BinocularCommandLineApplication::class.java)
+    private var logger: Logger = LoggerFactory.getLogger(BinocularCommandLineApplication::class.java)
 
 //  @Bean
 //  fun myPromptProvider(): PromptProvider {
@@ -25,7 +25,7 @@ class BinocularCommandLineApplication {
 }
 
 fun main(args: Array<String>) {
-  SpringApplicationBuilder(BinocularCommandLineApplication::class.java)
+    SpringApplicationBuilder(BinocularCommandLineApplication::class.java)
 //    .web(WebApplicationType.NONE)
-    .run(*args)
+        .run(*args)
 }

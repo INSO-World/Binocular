@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest
 // @ActiveProfiles("test")
 @SpringBootTest
 internal class BinocularCommandLineApplicationTest {
-  @Test
-  fun contextLoads() {
-  }
+    @Test
+    fun contextLoads() {
+    }
 }

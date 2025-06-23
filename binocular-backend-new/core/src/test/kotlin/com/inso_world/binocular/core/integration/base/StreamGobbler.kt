@@ -6,12 +6,12 @@ import java.io.InputStreamReader
 import java.util.function.Consumer
 
 internal class StreamGobbler(
-  private var inputStream: InputStream,
-  private var consumer: Consumer<String>,
+    private var inputStream: InputStream,
+    private var consumer: Consumer<String>,
 ) : Runnable {
-  override fun run() {
-    BufferedReader(InputStreamReader(inputStream))
-      .lines()
-      .forEach(consumer)
-  }
+    override fun run() {
+        BufferedReader(InputStreamReader(inputStream))
+            .lines()
+            .forEach(consumer)
+    }
 }

@@ -10,14 +10,13 @@ import java.util.stream.Stream
 
 @Repository
 class UserDao(
-  @Autowired private val userRepository: UserRepository,
-) : SqlDao<User, String>(), IUserDao {
-  init {
-    this.setClazz(User::class.java)
-    this.setRepository(userRepository)
-  }
+    @Autowired private val userRepository: UserRepository,
+) : SqlDao<User, String>(),
+    IUserDao {
+    init {
+        this.setClazz(User::class.java)
+        this.setRepository(userRepository)
+    }
 
-  override fun findAllByEmail(emails: Collection<String>): Stream<User> {
-    return this.userRepository.findAllByEmailIn(emails)
-  }
+    override fun findAllByEmail(emails: Collection<String>): Stream<User> = this.userRepository.findAllByEmailIn(emails)
 }

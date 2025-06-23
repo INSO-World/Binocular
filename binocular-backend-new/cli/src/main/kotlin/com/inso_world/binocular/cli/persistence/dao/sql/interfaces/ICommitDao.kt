@@ -6,10 +6,21 @@ import com.inso_world.binocular.core.persistence.dao.interfaces.IDao
 import org.springframework.data.domain.Pageable
 
 interface ICommitDao : IDao<Commit, String> {
-  fun findExistingSha(repo: Repository, shas: List<String>): Set<Commit>
-  fun findAllByRepo(repo: Repository, pageable: Pageable): Iterable<Commit>
+    fun findExistingSha(
+        repo: Repository,
+        shas: List<String>,
+    ): Set<Commit>
 
-  // TODO branch should be required!
-  fun findHeadForBranch(repo: Repository, branch: String): Commit?
-  fun findAllLeafCommits(repo: Repository): Iterable<Commit>
+    fun findAllByRepo(
+        repo: Repository,
+        pageable: Pageable,
+    ): Iterable<Commit>
+
+    // TODO branch should be required!
+    fun findHeadForBranch(
+        repo: Repository,
+        branch: String,
+    ): Commit?
+
+    fun findAllLeafCommits(repo: Repository): Iterable<Commit>
 }

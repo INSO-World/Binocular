@@ -4,5 +4,8 @@ import com.inso_world.binocular.cli.entity.Branch
 import com.inso_world.binocular.core.persistence.dao.interfaces.IDao
 
 interface IBranchDao : IDao<Branch, Long> {
-    fun findByNameAndRepositoryId(name: String, repositoryId: Long): Branch?
-} 
+    fun findByNameAndRepositoryId(
+        name: String,
+        repositoryId: Long,
+    ): Branch?
+}

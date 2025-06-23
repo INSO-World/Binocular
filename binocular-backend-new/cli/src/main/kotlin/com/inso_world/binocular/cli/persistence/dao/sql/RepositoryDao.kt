@@ -8,17 +8,15 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class RepositoryDao(
-  @Autowired private val repositoryRepository: RepositoryRepository
-) : SqlDao<com.inso_world.binocular.cli.entity.Repository, Long>(), IRepositoryDao {
+    @Autowired private val repositoryRepository: RepositoryRepository,
+) : SqlDao<com.inso_world.binocular.cli.entity.Repository, Long>(),
+    IRepositoryDao {
+    init {
+        this.setClazz(com.inso_world.binocular.cli.entity.Repository::class.java)
+        this.setRepository(repositoryRepository)
+    }
 
-  init {
-    this.setClazz(com.inso_world.binocular.cli.entity.Repository::class.java)
-    this.setRepository(repositoryRepository)
-  }
-
-  override fun findByName(gitDir: String): com.inso_world.binocular.cli.entity.Repository? {
-    return this.repositoryRepository.findByName(gitDir)
-  }
+    override fun findByName(gitDir: String): com.inso_world.binocular.cli.entity.Repository? = this.repositoryRepository.findByName(gitDir)
 
 //  override fun findByNameWithRelations(name: String): com.inso_world.binocular.cli.entity.Repository? {
 //    return this.repositoryRepository.findByNameWithRelations(name)

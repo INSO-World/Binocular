@@ -1,20 +1,18 @@
 package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.cli.entity.Repository
-import com.inso_world.binocular.internal.ThreadSafeRepository
+import com.inso_world.binocular.ffi.BinocularRepositoryPojo
 
 data class VcsRepository(
-  val name: String
+    val name: String,
 ) {
-  fun toEntity(): Repository {
-    return Repository(
-      name = name,
-    )
-  }
+    fun toEntity(): Repository =
+        Repository(
+            name = name,
+        )
 }
 
-fun ThreadSafeRepository.toVcsRepository(): VcsRepository {
-  return VcsRepository(
-    name = this.gitDir
-  )
-}
+fun BinocularRepositoryPojo.toVcsRepository(): VcsRepository =
+    VcsRepository(
+        name = this.gitDir,
+    )

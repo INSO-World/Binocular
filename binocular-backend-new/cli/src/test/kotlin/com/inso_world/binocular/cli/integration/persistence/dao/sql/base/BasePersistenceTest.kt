@@ -25,43 +25,43 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @Import(BinocularCommandLineApplication::class)
 @ComponentScan(basePackages = ["com.inso_world.binocular.cli.persistence.dao.sql"])
 internal class BasePersistenceTest : BaseFixturesIntegrationTest() {
-  @Autowired
-  lateinit var commitRepository: CommitRepository
+    @Autowired
+    lateinit var commitRepository: CommitRepository
 
-  @Autowired
-  lateinit var userRepository: UserRepository
+    @Autowired
+    lateinit var userRepository: UserRepository
 
-  @Autowired
-  internal lateinit var repositoryRepository: RepositoryRepository
+    @Autowired
+    internal lateinit var repositoryRepository: RepositoryRepository
 
-  protected lateinit var simpleRepo: Repository
-  protected lateinit var octoRepo: Repository
+    protected lateinit var simpleRepo: Repository
+    protected lateinit var octoRepo: Repository
 
-  @BeforeEach
-  fun setupBase() {
-    val simpleRepoConfig =
-      setupRepoConfig(
-        "${FIXTURES_PATH}/${SIMPLE_REPO}",
-        "HEAD",
-      )
-    this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toEntity()
-    generateCommits(simpleRepoConfig, simpleRepo)
-    this.simpleRepo = this.repositoryRepository.save(this.simpleRepo)
+    @BeforeEach
+    fun setupBase() {
+        val simpleRepoConfig =
+            setupRepoConfig(
+                "${FIXTURES_PATH}/${SIMPLE_REPO}",
+                "HEAD",
+            )
+        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toEntity()
+        generateCommits(simpleRepoConfig, simpleRepo)
+        this.simpleRepo = this.repositoryRepository.save(this.simpleRepo)
 
-    val octoRepoConfig =
-      setupRepoConfig(
-        "${FIXTURES_PATH}/${OCTO_REPO}",
-        "HEAD",
-      )
-    this.octoRepo = octoRepoConfig.repo.toVcsRepository().toEntity()
-    generateCommits(octoRepoConfig, octoRepo)
-    this.octoRepo = this.repositoryRepository.save(this.octoRepo)
-  }
+        val octoRepoConfig =
+            setupRepoConfig(
+                "${FIXTURES_PATH}/${OCTO_REPO}",
+                "HEAD",
+            )
+        this.octoRepo = octoRepoConfig.repo.toVcsRepository().toEntity()
+        generateCommits(octoRepoConfig, octoRepo)
+        this.octoRepo = this.repositoryRepository.save(this.octoRepo)
+    }
 
-  @AfterEach
-  fun cleanup() {
-    repositoryRepository.deleteAll()
-    commitRepository.deleteAll()
-    userRepository.deleteAll()
-  }
+    @AfterEach
+    fun cleanup() {
+        repositoryRepository.deleteAll()
+        commitRepository.deleteAll()
+        userRepository.deleteAll()
+    }
 }

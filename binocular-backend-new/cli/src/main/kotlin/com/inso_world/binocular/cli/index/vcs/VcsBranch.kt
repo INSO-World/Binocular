@@ -4,19 +4,15 @@ import com.inso_world.binocular.cli.entity.Branch
 import com.inso_world.binocular.internal.BinocularBranch
 
 data class VcsBranch(
-  val name: String
+    val name: String,
 ) {
+    fun toEntity(): Branch =
+        Branch(
+            name = this.name,
+        )
+}
 
-  fun toEntity(): Branch {
-    return Branch(
-      name = this.name,
+fun BinocularBranch.toVcsBranch(): VcsBranch =
+    VcsBranch(
+        name = this.name,
     )
-  }
-
-}
-
-fun BinocularBranch.toVcsBranch(): VcsBranch {
-  return VcsBranch(
-    name = this.name
-  )
-}

@@ -74,9 +74,9 @@
         <version>6.6.12.Final</version>
       </dependency>
       <dependency>
-          <groupId>org.springframework.data</groupId>
-          <artifactId>spring-data-jpa</artifactId>
-          <version>3.4.4</version>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-jpa</artifactId>
+        <version>3.4.4</version>
       </dependency>
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
@@ -113,61 +113,76 @@
     </dependency>
   </dependencies>
 
-    <build>
-  <!--    <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>-->
-  <!--    <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>-->
-      <pluginManagement>
-        <plugins>
-  <!--        <plugin>-->
-  <!--          <groupId>org.graalvm.buildtools</groupId>-->
-  <!--          <artifactId>native-maven-plugin</artifactId>-->
-  <!--        </plugin>-->
-          <plugin>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-            <configuration>
-              <skip>true</skip>
-            </configuration>
-          </plugin>
-  <!--        <plugin>-->
-  <!--          <groupId>org.jetbrains.kotlin</groupId>-->
-  <!--          <artifactId>kotlin-maven-plugin</artifactId>-->
-  <!--          <version>${kotlin.version}</version>-->
-  <!--          <configuration>-->
-  <!--            <args>-->
-  <!--              <arg>-Xjsr305=strict</arg>-->
-  <!--            </args>-->
-  <!--            <compilerPlugins>-->
-  <!--              <plugin>spring</plugin>-->
-  <!--            </compilerPlugins>-->
-  <!--            <jvmTarget>23</jvmTarget>-->
-  <!--          </configuration>-->
-  <!--          <executions>-->
-  <!--            <execution>-->
-  <!--              <id>compile</id>-->
-  <!--              <phase>compile</phase>-->
-  <!--              <goals>-->
-  <!--                <goal>compile</goal>-->
-  <!--              </goals>-->
-  <!--            </execution>-->
-  <!--            <execution>-->
-  <!--              <id>test-compile</id>-->
-  <!--              <phase>test-compile</phase>-->
-  <!--              <goals>-->
-  <!--                <goal>test-compile</goal>-->
-  <!--              </goals>-->
-  <!--            </execution>-->
-  <!--          </executions>-->
-  <!--          <dependencies>-->
-  <!--            <dependency>-->
-  <!--              <groupId>org.jetbrains.kotlin</groupId>-->
-  <!--              <artifactId>kotlin-maven-allopen</artifactId>-->
-  <!--              <version>${kotlin.version}</version>-->
-  <!--            </dependency>-->
-  <!--          </dependencies>-->
-  <!--        </plugin>-->
-        </plugins>
-      </pluginManagement>
-    </build>
+  <build>
+    <!--    <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>-->
+    <!--    <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>-->
+    <pluginManagement>
+      <plugins>
+        <!--        <plugin>-->
+        <!--          <groupId>org.graalvm.buildtools</groupId>-->
+        <!--          <artifactId>native-maven-plugin</artifactId>-->
+        <!--        </plugin>-->
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
+        <!--        <plugin>-->
+        <!--          <groupId>org.jetbrains.kotlin</groupId>-->
+        <!--          <artifactId>kotlin-maven-plugin</artifactId>-->
+        <!--          <version>${kotlin.version}</version>-->
+        <!--          <configuration>-->
+        <!--            <args>-->
+        <!--              <arg>-Xjsr305=strict</arg>-->
+        <!--            </args>-->
+        <!--            <compilerPlugins>-->
+        <!--              <plugin>spring</plugin>-->
+        <!--            </compilerPlugins>-->
+        <!--            <jvmTarget>23</jvmTarget>-->
+        <!--          </configuration>-->
+        <!--          <executions>-->
+        <!--            <execution>-->
+        <!--              <id>compile</id>-->
+        <!--              <phase>compile</phase>-->
+        <!--              <goals>-->
+        <!--                <goal>compile</goal>-->
+        <!--              </goals>-->
+        <!--            </execution>-->
+        <!--            <execution>-->
+        <!--              <id>test-compile</id>-->
+        <!--              <phase>test-compile</phase>-->
+        <!--              <goals>-->
+        <!--                <goal>test-compile</goal>-->
+        <!--              </goals>-->
+        <!--            </execution>-->
+        <!--          </executions>-->
+        <!--          <dependencies>-->
+        <!--            <dependency>-->
+        <!--              <groupId>org.jetbrains.kotlin</groupId>-->
+        <!--              <artifactId>kotlin-maven-allopen</artifactId>-->
+        <!--              <version>${kotlin.version}</version>-->
+        <!--            </dependency>-->
+        <!--          </dependencies>-->
+        <!--        </plugin>-->
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>integration-tests</id>
+      <properties>
+        <groups>integration</groups>
+      </properties>
+    </profile>
+    <profile>
+      <id>unit-tests</id>
+      <properties>
+        <groups>unit</groups>
+      </properties>
+    </profile>
+  </profiles>
 
 </project>
