@@ -11,18 +11,23 @@ import org.springframework.stereotype.Service
 
 @Service
 class BranchService(
-    @Autowired private val branchDao: IBranchDao
+    @Autowired private val branchDao: IBranchDao,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(BranchService::class.java)
 
-    fun findBranch(repository: Repository, branchName: String): Branch? {
+    fun findBranch(
+        repository: Repository,
+        branchName: String,
+    ): Branch? {
         val repoId = repository.id ?: throw IllegalStateException("Repository must have an ID to find a branch.")
         return branchDao.findByNameAndRepositoryId(branchName, repoId)
     }
 
-
     @Transactional
-    fun getOrCreate(repository: Repository, branchName: String): Branch {
+    fun getOrCreate(
+        repository: Repository,
+        branchName: String,
+    ): Branch {
         val existingBranch = this.findBranch(repository, branchName)
         if (existingBranch != null) {
             logger.debug("Branch '$branchName' already exists for repository ${repository.name}. Returning existing branch.")
@@ -33,4 +38,4 @@ class BranchService(
         val newBranch = Branch(name = branchName, repository = repository)
         return branchDao.create(newBranch)
     }
-} 
+}

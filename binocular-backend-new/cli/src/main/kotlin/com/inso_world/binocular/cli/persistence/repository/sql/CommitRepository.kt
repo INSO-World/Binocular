@@ -8,16 +8,20 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface CommitRepository : JpaRepository<Commit, String> {
-  /**
-   * Fetches only the SHAs that actually exist in the database.
-   */
-//  @Query("SELECT c.sha FROM Commit c WHERE c.sha IN :shas")
-  fun findAllByRepository_IdAndShaIn(repoId: Long, shas: Collection<String>): Set<Commit>
+    /**
+     * Fetches only the SHAs that actually exist in the database.
+     */
+    @Suppress("ktlint:standard:function-naming")
+    fun findAllByRepository_IdAndShaIn(
+        repoId: Long,
+        shas: Collection<String>,
+    ): Set<Commit>
 
-  fun findAllByRepository_Id(repoId: Long): Set<Commit>
+    @Suppress("ktlint:standard:function-naming")
+    fun findAllByRepository_Id(repoId: Long): Set<Commit>
 
-  @Query(
-    """
+    @Query(
+        """
     SELECT c FROM Commit c
     JOIN c.branches b
     WHERE (b.name = :branch)
@@ -25,18 +29,23 @@ interface CommitRepository : JpaRepository<Commit, String> {
         AND c.sha NOT IN (
             SELECT p.sha FROM Commit c2 JOIN c2.parents p WHERE c2.repository.id = :repoId
         )
-"""
-  )
-  fun findLeafCommitsByRepository(@Param("repoId") repoId: Long, @Param("branch") branch: String): Commit?
+""",
+    )
+    fun findLeafCommitsByRepository(
+        @Param("repoId") repoId: Long,
+        @Param("branch") branch: String,
+    ): Commit?
 
-  @Query(
-    """
+    @Query(
+        """
     SELECT c FROM Commit c
     WHERE (c.repository.id = :repoId)
         AND c.sha NOT IN (
             SELECT p.sha FROM Commit c2 JOIN c2.parents p WHERE c2.repository.id = :repoId
         )
-"""
-  )
-  fun findAllLeafCommits(@Param("repoId") repoId: Long): Iterable<Commit>
+""",
+    )
+    fun findAllLeafCommits(
+        @Param("repoId") repoId: Long,
+    ): Iterable<Commit>
 }

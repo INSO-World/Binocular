@@ -17,29 +17,29 @@ import org.springframework.test.annotation.DirtiesContext
 @AutoConfigureShellTestClient
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(
-  classes = [BinocularCommandLineApplication::class],
-  webEnvironment = SpringBootTest.WebEnvironment.NONE,
+    classes = [BinocularCommandLineApplication::class],
+    webEnvironment = SpringBootTest.WebEnvironment.NONE,
 )
 // @ContextConfiguration(classes = [BinocularCommandLineApplication::class])
 // @ShellTest
 internal class BaseShellTest : BaseFixturesIntegrationTest() {
-  @Autowired
-  internal lateinit var commitRepository: CommitRepository
+    @Autowired
+    internal lateinit var commitRepository: CommitRepository
 
-  @Autowired
-  internal lateinit var userRepository: UserRepository
+    @Autowired
+    internal lateinit var userRepository: UserRepository
 
-  @Autowired
-  internal lateinit var repositoryRepository: RepositoryRepository
+    @Autowired
+    internal lateinit var repositoryRepository: RepositoryRepository
 
-  @Autowired
-  internal lateinit var branchRepository: BranchRepository
+    @Autowired
+    internal lateinit var branchRepository: BranchRepository
 
-  @AfterEach
-  fun cleanup() {
-    repositoryRepository.deleteAll()
-    branchRepository.deleteAll()
-    commitRepository.deleteAll()
-    userRepository.deleteAll()
-  }
+    @AfterEach
+    fun cleanup() {
+        repositoryRepository.deleteAll()
+        branchRepository.deleteAll()
+        commitRepository.deleteAll()
+        userRepository.deleteAll()
+    }
 }

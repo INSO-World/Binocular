@@ -11,23 +11,24 @@ import org.springframework.stereotype.Service
 
 @Service
 class VcsService(
-  @Autowired private val repoService: RepositoryService,
+    @Autowired private val repoService: RepositoryService,
 ) {
-  private var logger: Logger = LoggerFactory.getLogger(VcsService::class.java)
+    private var logger: Logger = LoggerFactory.getLogger(VcsService::class.java)
 
-  @Autowired
-  private lateinit var ffiService: FfiService
+    @Autowired
+    private lateinit var ffiService: FfiService
 
-  fun indexRepository(
-    repoPath: String?,
-    branch: String,
-  ) {
-    val vcsRepo = try {
-      this.ffiService.findRepo(repoPath)
-    } catch (e: ServiceException) {
-      throw CliException(e)
-    }
-    logger.info("Found repository: ${vcsRepo.gitDir}")
+    fun indexRepository(
+        repoPath: String?,
+        branch: String,
+    ) {
+        val vcsRepo =
+            try {
+                this.ffiService.findRepo(repoPath)
+            } catch (e: ServiceException) {
+                throw CliException(e)
+            }
+        logger.info("Found repository: ${vcsRepo.gitDir}")
 
 //    val repo: Repository = transactionTemplate.execute { repoService.getOrCreate(vcsRepo.gitDir) } as Repository
 //    logger.info("Searching commits for branch '$branchName'")
@@ -35,13 +36,13 @@ class VcsService(
 //    val branchEntity = this.repoService.findBranch(repo, branchName)
 //    val branchName = branchEntity?.name ?: branchName
 //
-    val vcsCommits = this.ffiService.traverseAllOnBranch(vcsRepo, branch).map(BinocularCommitVec::toDto)
-    logger.debug("Existing commits: ${vcsCommits.count()} commit(s) found on branch $branch")
+        val vcsCommits = this.ffiService.traverseAllOnBranch(vcsRepo, branch).map(BinocularCommitVec::toDto)
+        logger.debug("Existing commits: ${vcsCommits.count()} commit(s) found on branch $branch")
 //
-////    val commitEntities = this.repoService.transformCommits(repo, vcsCommits)
+// //    val commitEntities = this.repoService.transformCommits(repo, vcsCommits)
 //    transactionTemplate.execute {
-    this.repoService.addCommits(vcsRepo, vcsCommits, branch)
-    logger.debug("Commits added to database.")
+        this.repoService.addCommits(vcsRepo, vcsCommits, branch)
+        logger.debug("Commits added to database.")
 //    }
-  }
+    }
 }
