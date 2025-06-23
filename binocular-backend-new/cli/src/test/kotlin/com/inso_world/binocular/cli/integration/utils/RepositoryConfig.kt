@@ -5,14 +5,13 @@ import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.toDto
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.ffi.BinocularRepositoryPojo
-import com.inso_world.binocular.internal.BinocularCommitVec
-import com.inso_world.binocular.internal.ObjectId
+import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
+import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 
 internal data class RepositoryConfig(
     val repo: BinocularRepositoryPojo,
-    val startCommit: ObjectId,
-    val hashes: List<BinocularCommitVec>,
+    val startCommit: String,
+    val hashes: List<BinocularCommitPojo>,
 )
 
 internal fun setupRepoConfig(

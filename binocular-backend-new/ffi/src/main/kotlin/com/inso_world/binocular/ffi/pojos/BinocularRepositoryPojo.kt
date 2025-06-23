@@ -1,4 +1,4 @@
-package com.inso_world.binocular.ffi
+package com.inso_world.binocular.ffi.pojos
 
 import com.inso_world.binocular.internal.ThreadSafeRepository
 
@@ -7,7 +7,7 @@ data class BinocularRepositoryPojo(
     val workTree: String?,
     val commonDir: String?,
 ) {
-    fun toFfi(): ThreadSafeRepository =
+    internal fun toFfi(): ThreadSafeRepository =
         ThreadSafeRepository(
             gitDir = gitDir,
             commonDir = commonDir,
@@ -15,7 +15,7 @@ data class BinocularRepositoryPojo(
         )
 }
 
-fun ThreadSafeRepository.toPojo(): BinocularRepositoryPojo =
+internal fun ThreadSafeRepository.toPojo(): BinocularRepositoryPojo =
     BinocularRepositoryPojo(
         gitDir = this.gitDir,
         workTree = this.workTree,
