@@ -198,7 +198,7 @@ export default class Commits implements DataPluginCommits {
   }
 
   public async getDateOfLastCommit() {
-    console.log(`Getting Date of First Commit`);
+    console.log(`Getting Date of Last Commit`);
     const resp = await this.graphQl.client.query({
       query: gql`
         query {

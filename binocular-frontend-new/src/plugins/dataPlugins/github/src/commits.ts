@@ -26,28 +26,6 @@ interface CommitQueryResult {
   };
 }
 
-interface FileCommitQueryResult {
-  repository: {
-    object: {
-      history: {
-        totalCount: number;
-        pageInfo: { endCursor: string; hasNextPage: boolean };
-        nodes: {
-          oid: string;
-          messageHeadline: string;
-          message: string;
-          committedDate: string;
-          url: string;
-          deletions: number;
-          additions: number;
-          author: { user: { id: string; login: string } };
-          parents: { totalCount: number; nodes: { oid: string }[] };
-        }[];
-      };
-    };
-  };
-}
-
 export default class Commits implements DataPluginCommits {
   private graphQl;
   private owner;
@@ -207,98 +185,73 @@ export default class Commits implements DataPluginCommits {
   }
 
   public async getByFile(file: string): Promise<DataPluginCommit[]> {
-    let hasNextPage: boolean = true;
-    let nextPageCursor: string | null = null;
-    const commitNodes: DataPluginCommit[] = [];
+  console.log(`Getting Commits for file ${file}`);
+  let hasNextPage: boolean = true;
+  let nextPageCursor: string | null = null;
+  const commitList: DataPluginCommit[] = [];
+  const perPage = 100; // You can adjust this value or make it a parameter
 
-    while (hasNextPage) {
-      const resp: void | ApolloQueryResult<FileCommitQueryResult> = await this.graphQl.client
-        .query<
-          FileCommitQueryResult,
-          { nextPageCursor: string | null; perPage: number; filePath: string; owner: string; name: string }
-        >({
-          query: gql`
-            query ($nextPageCursor: String, $perPage: Int, $filePath: String!, $owner: String!, $name: String!) {
-              repository(owner: $owner, name: $name) {
-                object(expression: "HEAD") {
-                  ... on Commit {
-                    history(after: $nextPageCursor, first: $perPage, path: $filePath) {
-                      pageInfo {
-                        endCursor
-                        hasNextPage
-                      }
-                      totalCount
-                      nodes {
-                        oid
-                        messageHeadline
-                        message
-                        committedDate
-                        url
-                        deletions
-                        additions
-                        author {
-                          user {
-                            id
-                            login
-                          }
-                        }
-                        parents(first: 100) {
-                          totalCount
-                          nodes {
-                            oid
-                          }
-                        }
+  while (hasNextPage) {
+    const resp : any = await this.graphQl.client
+      .query({
+        query: gql`
+          query ($file: String!, $nextPageCursor: String, $perPage: Int) {
+            file(path: $file) {
+              commits(after: $nextPageCursor, first: $perPage) {
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+                data {
+                  commit {
+                    sha
+                    message
+                    messageHeader
+                    date
+                    stats {
+                      additions
+                      deletions
+                    }
+                  }
+                  files(page: 1, perPage: 1000) {
+                    data {
+                      file {
+                        path
                       }
                     }
                   }
                 }
               }
             }
-          `,
-          variables: { 
-            nextPageCursor, 
-            perPage: 100, 
-            filePath: file,
-            owner: this.owner, 
-            name: this.name 
-          },
-        })
-        .catch((e) => console.log(e));
-
-      if (resp) {
-        resp.data.repository.object.history.nodes.forEach((commit) => {
-          if (commit.author.user === null) {
-            return;
           }
-          commitNodes.push({
-            sha: commit.oid,
-            shortSha: '',
-            files: { data: [] }, // Placeholder for files, as this is not fetched in this query
-            messageHeader: commit.messageHeadline,
-            message: commit.message,
-            user: {
-              id: commit.author.user.id,
-              gitSignature: commit.author.user.login,
-            },
-            branch: "",
-            date: commit.committedDate,
-            parents: commit.parents.nodes.map((parent) => parent.oid),
-            webUrl: commit.url,
-            stats: { additions: commit.additions, deletions: commit.deletions },
-          });
-        });
-        nextPageCursor = resp.data.repository.object.history.pageInfo.endCursor;
-        hasNextPage = resp.data.repository.object.history.pageInfo.hasNextPage;
-      } else {
-        hasNextPage = false;
-      }
-    }
+        `,
+        variables: { nextPageCursor, perPage, file },
+      })
+      .catch((e) => {
+        console.log(e);
+        return null;
+      });
 
-    return commitNodes.sort(
-      (a, b) =>
-        new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds(),
-    );
+    if (resp && resp.data.file.commits) {
+      console.log(resp.data.file.commits.pageInfo.hasNextPage);
+      
+      resp.data.file.commits.data.forEach((data: { commit: DataPluginCommit }) => {
+        commitList.push(data.commit);
+      });
+
+      nextPageCursor = resp.data.file.commits.pageInfo.endCursor;
+      hasNextPage = resp.data.file.commits.pageInfo.hasNextPage;
+    } else {
+      hasNextPage = false;
+    }
   }
+
+  const sortedCommits = commitList.sort((a, b) => {
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+  
+  return sortedCommits;
+}
 
   public async getDateOfFirstCommit() {
     console.log(`Getting Date of First Commit`);
