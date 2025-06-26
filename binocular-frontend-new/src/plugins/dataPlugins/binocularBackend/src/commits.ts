@@ -163,7 +163,7 @@ export default class Commits implements DataPluginCommits {
               }
             }
           `,
-          variables: { page, perPage, file },
+          variables: { page, perPage, file},
         });
         return resp.data.file.commits;
       };
@@ -196,7 +196,6 @@ export default class Commits implements DataPluginCommits {
     });
     return resp.data.commits.data[0].date;
   }
-
 
   public async getDateOfLastCommit() {
     console.log(`Getting Date of First Commit`);
