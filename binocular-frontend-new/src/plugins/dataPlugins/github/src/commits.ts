@@ -26,6 +26,28 @@ interface CommitQueryResult {
   };
 }
 
+interface FileCommitQueryResult {
+  repository: {
+    object: {
+      history: {
+        totalCount: number;
+        pageInfo: { endCursor: string; hasNextPage: boolean };
+        nodes: {
+          oid: string;
+          messageHeadline: string;
+          message: string;
+          committedDate: string;
+          url: string;
+          deletions: number;
+          additions: number;
+          author: { user: { id: string; login: string } };
+          parents: { totalCount: number; nodes: { oid: string }[] };
+        }[];
+      };
+    };
+  };
+}
+
 export default class Commits implements DataPluginCommits {
   private graphQl;
   private owner;
@@ -104,6 +126,7 @@ export default class Commits implements DataPluginCommits {
             sha: commit.oid,
             shortSha: '',
             messageHeader: commit.messageHeadline,
+            files: { data: [] }, // Placeholder for files, as this is not fetched in this query
             message: commit.message,
             user: { id: commit.author.user.id, gitSignature: commit.author.user.login },
             branch: '',
@@ -129,5 +152,93 @@ export default class Commits implements DataPluginCommits {
   public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
     // @ts-ignore
     return Promise.resolve({});
+  }
+
+  public async getByFile(file: string): Promise<DataPluginCommit[]> {
+    let hasNextPage: boolean = true;
+    let nextPageCursor: string | null = null;
+    const commitNodes: DataPluginCommit[] = [];
+
+    while (hasNextPage) {
+      const resp: void | ApolloQueryResult<FileCommitQueryResult> = await this.graphQl.client
+        .query<
+          FileCommitQueryResult,
+          { nextPageCursor: string | null; perPage: number; filePath: string; owner: string; name: string }
+        >({
+          query: gql`
+            query ($nextPageCursor: String, $perPage: Int, $filePath: String!, $owner: String!, $name: String!) {
+              repository(owner: $owner, name: $name) {
+                object(expression: "HEAD") {
+                  ... on Commit {
+                    history(after: $nextPageCursor, first: $perPage, path: $filePath) {
+                      pageInfo {
+                        endCursor
+                        hasNextPage
+                      }
+                      totalCount
+                      nodes {
+                        oid
+                        messageHeadline
+                        message
+                        committedDate
+                        url
+                        deletions
+                        additions
+                        author {
+                          user {
+                            id
+                            login
+                          }
+                        }
+                        parents(first: 100) {
+                          totalCount
+                          nodes {
+                            oid
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          variables: { 
+            nextPageCursor, 
+            perPage: 100, 
+            filePath: file,
+            owner: this.owner, 
+            name: this.name 
+          },
+        })
+        .catch((e) => console.log(e));
+
+      if (resp) {
+        resp.data.repository.object.history.nodes.forEach((commit) => {
+          if (commit.author.user === null) {
+            return;
+          }
+          commitNodes.push({
+            sha: commit.oid,
+            shortSha: '',
+            files: { data: [] }, // Placeholder for files, as this is not fetched in this query
+            messageHeader: commit.messageHeadline,
+            message: commit.message,
+            user: { id: commit.author.user.id, gitSignature: commit.author.user.login },
+            branch: '',
+            date: commit.committedDate,
+            parents: commit.parents.nodes.map((parent) => parent.oid),
+            webUrl: commit.url,
+            stats: { additions: commit.additions, deletions: commit.deletions },
+          });
+        });
+        nextPageCursor = resp.data.repository.object.history.pageInfo.endCursor;
+        hasNextPage = resp.data.repository.object.history.pageInfo.hasNextPage;
+      } else {
+        hasNextPage = false;
+      }
+    }
+
+    return commitNodes.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
   }
 }
