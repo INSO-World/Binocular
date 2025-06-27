@@ -1,9 +1,6 @@
-import { GraphQL, traversePages } from "./utils";
-import { gql } from "@apollo/client";
-import {
-  DataPluginCommit,
-  DataPluginCommits,
-} from "../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts";
+import { GraphQL, traversePages } from './utils';
+import { gql } from '@apollo/client';
+import { DataPluginCommit, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
   private graphQl;
@@ -95,6 +92,7 @@ export default class Commits implements DataPluginCommits {
       })
       .then((res) => res.data.commits)
       .then((commits) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         commits.data.map((c: { sha: string; date: string; parents: string[]; files: { data: any[] } }) => {
           return {
             sha: c.sha,
@@ -119,42 +117,40 @@ export default class Commits implements DataPluginCommits {
   public async getByFile(file: string) {
     console.log(`Getting Commits for file ${file}`);
     const commitList: DataPluginCommit[] = [];
-    const getCommitsPage =
-      (file?: string) => async (page: number, perPage: number) => {
-        const resp = await this.graphQl.client.query({
-          query: gql`
-            query ($file: String!, $page: Int, $perPage: Int) {
-              file(path: $file) {
-                commits(page: $page, perPage: $perPage) {
-                  data {
-                    commit {
-                      sha
-                      shortSha
-                      message
-                      messageHeader
-                      user {
-                        id
-                        gitSignature
-                      }
-                      branch
-                      parents
-                      date
-                      webUrl
-                      stats {
-                        additions
-                        deletions
-                      }
-                      files(page: 1, perPage: 1000) {
-                        data {
-                          file {
-                            path
-                          }
-                          hunks {
-                            newStart
-                            newLines
-                            oldStart
-                            oldLines
-                          }
+    const getCommitsPage = (file?: string) => async (page: number, perPage: number) => {
+      const resp = await this.graphQl.client.query({
+        query: gql`
+          query ($file: String!, $page: Int, $perPage: Int) {
+            file(path: $file) {
+              commits(page: $page, perPage: $perPage) {
+                data {
+                  commit {
+                    sha
+                    shortSha
+                    message
+                    messageHeader
+                    user {
+                      id
+                      gitSignature
+                    }
+                    branch
+                    parents
+                    date
+                    webUrl
+                    stats {
+                      additions
+                      deletions
+                    }
+                    files(page: 1, perPage: 1000) {
+                      data {
+                        file {
+                          path
+                        }
+                        hunks {
+                          newStart
+                          newLines
+                          oldStart
+                          oldLines
                         }
                       }
                     }
@@ -162,22 +158,17 @@ export default class Commits implements DataPluginCommits {
                 }
               }
             }
-          `,
-          variables: { page, perPage, file},
-        });
-        return resp.data.file.commits;
-      };
+          }
+        `,
+        variables: { page, perPage, file },
+      });
+      return resp.data.file.commits;
+    };
 
-    await traversePages(
-      getCommitsPage(file),
-      (data: { commit: DataPluginCommit }) => {
-        commitList.push(data.commit);
-      },
-    );
-    const allCommits = commitList.sort(
-      (a, b) =>
-        new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds(),
-    );
+    await traversePages(getCommitsPage(file), (data: { commit: DataPluginCommit }) => {
+      commitList.push(data.commit);
+    });
+    const allCommits = commitList.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
     return allCommits;
   }
 

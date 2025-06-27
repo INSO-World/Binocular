@@ -744,6 +744,7 @@ export default class Commits implements DataPluginCommits {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
     return {
       sha: sha,
