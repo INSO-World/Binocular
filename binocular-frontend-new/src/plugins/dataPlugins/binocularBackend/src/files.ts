@@ -1,6 +1,9 @@
-import { DataPluginFile, DataPluginFiles } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
-import { GraphQL, traversePages } from './utils.ts';
-import { gql } from '@apollo/client';
+import {
+  DataPluginFile,
+  DataPluginFiles,
+} from "../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts";
+import { GraphQL, traversePages } from "./utils.ts";
+import { gql } from "@apollo/client";
 
 export default class Files implements DataPluginFiles {
   private graphQl;
@@ -42,5 +45,59 @@ export default class Files implements DataPluginFiles {
       console.log(e);
       return [];
     }
+  }
+
+  public async getFilenamesForBranch(branchName: string) {
+    return await this.graphQl.client
+      .query({
+        query: gql`
+      query{
+        branch(branchName: "${branchName}"){
+          files{
+            data{
+              file{
+                path
+              }
+            }
+          }
+        }
+      }
+      `,
+      })
+      .then((result) => {
+        return result.data.branch.files.data.map((entry: { file: { path: string } }) => entry.file.path).sort();
+      });
+  }
+
+  public async getPreviousFilenamesForFilesOnBranch(branchName: string) {
+    const result = await this.graphQl.client.query({
+      query: gql`
+      query{
+        branch(branchName: "${branchName}") {
+          files {
+            data {
+              file {
+                path
+                oldFileNames(branch: "${branchName}") {
+                  data {
+                    oldFilePath
+                    hasThisNameFrom
+                    hasThisNameUntil
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      `,
+    });
+
+    return result.data.branch.files.data.map((entry: { file: { path: string; oldFileNames: { data: string[] } } }) => {
+      return {
+        path: entry.file.path,
+        previousFileNames: entry.file.oldFileNames.data,
+      };
+    });
   }
 }
