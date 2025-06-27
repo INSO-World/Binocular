@@ -13,6 +13,18 @@ export interface DataPluginFile {
   maxLength: number;
 }
 
+export interface DataPluginFileInCommit {
+  file: DataPluginFile;
+  hunks: DataPluginHunk[];
+}
+
+export interface DataPluginHunk {
+  oldStart: number;
+  oldLines: number;
+  newStart: number;
+  newLines: number;
+}
+
 export interface FileConfig {
   name: string | undefined;
   file: File | undefined;

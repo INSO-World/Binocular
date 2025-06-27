@@ -54,4 +54,57 @@ export default class Commits implements DataPluginCommits {
       });
     } else return Promise.resolve(undefined);
   }
+
+  public async getByFile(file: string) {
+    console.log(`Getting Commits for file ${file}`);
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findAllCommits(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+        // Filter commits that have changes to the specified file
+        const commits = (res.docs as DataPluginCommit[])
+          .filter(commit => {
+            // If the commit has files data, check if the specified file was modified
+            return commit.files?.data.some((fileData: { file: { path: string; }; }) => fileData.file.path === file);
+          })
+          .sort((a, b) => {
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          });
+        
+        return commits;
+      });
+    } else {
+      return new Promise<DataPluginCommit[]>((resolve) => {
+        resolve([]);
+      });
+    }
+  }
+
+  public async getDateOfFirstCommit() {
+    console.log('Getting date of first commit');
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findAllCommits(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+        const firstCommit = (res.docs as DataPluginCommit[])
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+        return firstCommit?.date;
+      });
+    } else {
+      return new Promise<string>((resolve) => {
+        resolve('');
+      });
+    }
+  }
+
+  public async getDateOfLastCommit() {
+    console.log('Getting date of last commit');
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findAllCommits(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+        const lastCommit = (res.docs as DataPluginCommit[])
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+        return lastCommit?.date;
+      });
+    } else {
+      return new Promise<string>((resolve) => {
+        resolve('');
+      });
+    }
+  }
 }
