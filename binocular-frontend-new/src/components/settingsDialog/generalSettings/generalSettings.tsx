@@ -9,6 +9,7 @@ import { clearSprintStorage, importSprintStorage } from '../../../redux/reducer/
 import { clearTabsStorage, importTabsStorage } from '../../../redux/reducer/general/tabsReducer.ts';
 import Config from '../../../config.ts';
 import { useState } from 'react';
+import { clearFileStorage } from '../../../redux/reducer/data/filesReducer.ts';
 
 function GeneralSettings() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -18,6 +19,8 @@ function GeneralSettings() {
 
   const [fileImportError, setFileImportError] = useState<string>();
   const [fileImportSuccess, setFileImportSuccess] = useState<string>();
+
+  const [storageCleared, setStorageCleared] = useState(false);
 
   return (
     <>
@@ -37,18 +40,28 @@ function GeneralSettings() {
               <option value={SettingsGeneralGridSize.large}>Large</option>
             </select>
             <h2>Storage</h2>
-            <button
-              className={'btn btn-outline'}
-              onClick={() => {
-                dispatch(clearAuthorsStorage());
-                dispatch(clearDashboardStorage());
-                dispatch(clearParametersStorage());
-                dispatch(clearSprintStorage());
-                dispatch(clearTabsStorage());
-                dispatch(clearSettingsStorage());
-              }}>
-              Clear Storage
-            </button>
+            <div className={'flex gap-2'}>
+              <button
+                className={'btn btn-outline w-full'}
+                onClick={() => {
+                  dispatch(clearAuthorsStorage());
+                  dispatch(clearDashboardStorage());
+                  dispatch(clearParametersStorage());
+                  dispatch(clearSprintStorage());
+                  dispatch(clearTabsStorage());
+                  dispatch(clearSettingsStorage());
+                  dispatch(clearFileStorage());
+                  setStorageCleared(true);
+                }}>
+                Clear Storage
+              </button>
+              {storageCleared && (
+                <button className={'btn btn-outline'} onClick={() => location.reload()}>
+                  Reload Page
+                </button>
+              )}
+            </div>
+
             <button
               className={'mt-1 btn btn-outline'}
               onClick={() => {

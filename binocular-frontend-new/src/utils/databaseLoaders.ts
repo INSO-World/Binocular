@@ -83,7 +83,7 @@ export default abstract class DatabaseLoaders {
       dispatch(
         addDataPlugin({
           name: 'PouchDb',
-          color: '#b2c8fd',
+          color: '#8cadfc',
           id: 0,
           isDefault: true,
           parameters: {

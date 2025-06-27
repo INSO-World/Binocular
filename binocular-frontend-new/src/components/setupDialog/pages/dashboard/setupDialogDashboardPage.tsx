@@ -16,7 +16,7 @@ function SetupDialogDashboardPage() {
 
   const dashboardInitialized = useSelector((state: RootState) => state.dashboard.initialized);
   const defaultDataPluginItemId = useSelector((state: RootState) => state.settings.database.defaultDataPluginItemId);
-
+  console.log(defaultDataPluginItemId);
   return (
     <>
       <h1>Setup Dashboard</h1>

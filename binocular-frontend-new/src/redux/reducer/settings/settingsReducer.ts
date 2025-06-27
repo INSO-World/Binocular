@@ -55,7 +55,7 @@ export const settingsSlice = createSlice({
         }
         action.payload.id = state.database.currID;
         if (action.payload.isDefault) {
-          state.defaultDataPluginItemId = action.payload.id;
+          state.database.defaultDataPluginItemId = action.payload.id;
         }
         state.database.dataPlugins.push(action.payload);
         console.log(`Inserted dataPlugin ${action.payload.id}`);
@@ -68,6 +68,9 @@ export const settingsSlice = createSlice({
           }
           return dp;
         });
+        if (action.payload.isDefault) {
+          state.database.defaultDataPluginItemId = action.payload.id;
+        }
         if (!found) {
           state.database.dataPlugins.push(action.payload);
           console.log(`Inserted dataPlugin ${action.payload.id}`);

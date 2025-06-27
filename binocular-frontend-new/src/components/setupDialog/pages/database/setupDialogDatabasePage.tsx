@@ -69,7 +69,6 @@ function SetupDialogDatabasePage() {
                       dispatch(
                         addDataPlugin({
                           name: 'Binocular Backend',
-                          isDefault: true,
                           color: '#000',
                           parameters: {
                             progressUpdate: undefined,
