@@ -6,6 +6,7 @@ import EditAuthorDialog from '../tabs/authors/editAuthorDialog/editAuthorDialog.
 import ContextMenu from '../contextMenu/contextMenu.tsx';
 import LoadingLocalDatabaseOverlay from './overlays/loadingLocalDatabaseOverlay/loadingLocalDatabaseOverlay.tsx';
 import FileTreeElementInfoDialog from '../tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx';
+import SetupDialog from '../setupDialog/setupDialog.tsx';
 
 function OverlayController() {
   return (
@@ -13,6 +14,7 @@ function OverlayController() {
       <InformationDialog></InformationDialog>
       <ExportDialog></ExportDialog>
       <SettingsDialog></SettingsDialog>
+      <SetupDialog></SetupDialog>
       <NotificationController></NotificationController>
       <EditAuthorDialog></EditAuthorDialog>
       <FileTreeElementInfoDialog></FileTreeElementInfoDialog>

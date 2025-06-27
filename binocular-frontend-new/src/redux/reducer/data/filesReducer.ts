@@ -59,10 +59,13 @@ export const filesSlice = createSlice({
       (document.getElementById('fileTreeElementInfoDialog') as HTMLDialogElement).showModal();
       state.selectedFileTreeElement = action.payload;
     },
+    clearFileStorage: () => {
+      localStorage.removeItem(`${filesSlice.name}StateV${Config.localStorageVersion}`);
+    },
   },
 });
 
-export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo } = filesSlice.actions;
+export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo, clearFileStorage } = filesSlice.actions;
 export default filesSlice.reducer;
 
 function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
