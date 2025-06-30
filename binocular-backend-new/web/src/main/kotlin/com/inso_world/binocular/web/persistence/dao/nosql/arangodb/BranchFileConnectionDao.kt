@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.edge.domain.BranchFileConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IBranchFileConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.BranchFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.BranchFileConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.BranchMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.BranchRepository

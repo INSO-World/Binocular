@@ -3,7 +3,7 @@ package com.inso_world.binocular.web.persistence.dao.nosql.arangodb
 import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.entity.edge.domain.ModuleModuleConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleModuleConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.ModuleModuleConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.ModuleModuleConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.ModuleMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.ModuleRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleModuleConnectionRepository

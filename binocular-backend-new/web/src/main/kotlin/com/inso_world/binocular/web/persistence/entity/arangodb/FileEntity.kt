@@ -2,11 +2,11 @@ package com.inso_world.binocular.web.persistence.entity.arangodb
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.inso_world.binocular.web.entity.Branch
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.Module
-import com.inso_world.binocular.web.entity.User
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.BranchFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.BranchFileFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitFileUserConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.ModuleFileConnectionEntity
 import org.springframework.data.annotation.Id
 
 /**

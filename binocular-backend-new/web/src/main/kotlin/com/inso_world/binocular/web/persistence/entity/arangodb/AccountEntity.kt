@@ -2,10 +2,10 @@ package com.inso_world.binocular.web.persistence.entity.arangodb
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.inso_world.binocular.web.entity.Issue
-import com.inso_world.binocular.web.entity.MergeRequest
-import com.inso_world.binocular.web.entity.Note
 import com.inso_world.binocular.web.entity.Platform
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.MergeRequestAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.NoteAccountConnectionEntity
 import org.springframework.data.annotation.Id
 
 /**

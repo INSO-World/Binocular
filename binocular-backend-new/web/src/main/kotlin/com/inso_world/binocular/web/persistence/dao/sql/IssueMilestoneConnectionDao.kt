@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.IssueMilestoneConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueMilestoneConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IMilestoneDao
-import com.inso_world.binocular.web.persistence.entity.sql.IssueMilestoneConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.IssueMilestoneConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.IssueEntity
+import com.inso_world.binocular.web.persistence.entity.sql.MilestoneEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of IssueMilestoneConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class IssueMilestoneConnectionDao(
-    @Autowired private val issueMilestoneConnectionMapper: IssueMilestoneConnectionMapper,
     @Autowired private val issueDao: IIssueDao,
     @Autowired private val milestoneDao: IMilestoneDao
 ) : IIssueMilestoneConnectionDao {
@@ -29,60 +32,66 @@ class IssueMilestoneConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findMilestonesByIssue(issueId: String): List<Milestone> {
+        // Use the direct relationship between Issue and Milestone
         val query = entityManager.createQuery(
-            "SELECT m FROM MilestoneEntity m JOIN IssueMilestoneConnectionEntity im ON m.id = im.milestoneId WHERE im.issueId = :issueId",
-            com.inso_world.binocular.web.persistence.entity.sql.MilestoneEntity::class.java
+            "SELECT i FROM IssueEntity i WHERE i.id = :issueId",
+            IssueEntity::class.java
         )
         query.setParameter("issueId", issueId)
-        val milestoneEntities = query.resultList
-        
+        val issueEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return milestoneEntities.map { milestoneDao.findById(it.id!!)!! }
+        return issueEntity.milestones.map { milestoneDao.findById(it.id!!)!! }
     }
 
     override fun findIssuesByMilestone(milestoneId: String): List<Issue> {
+        // Use the direct relationship between Milestone and Issue
         val query = entityManager.createQuery(
-            "SELECT i FROM IssueEntity i JOIN IssueMilestoneConnectionEntity im ON i.id = im.issueId WHERE im.milestoneId = :milestoneId",
-            com.inso_world.binocular.web.persistence.entity.sql.IssueEntity::class.java
+            "SELECT m FROM MilestoneEntity m WHERE m.id = :milestoneId",
+            MilestoneEntity::class.java
         )
         query.setParameter("milestoneId", milestoneId)
-        val issueEntities = query.resultList
-        
+        val milestoneEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return issueEntities.map { issueDao.findById(it.id!!)!! }
+        return milestoneEntity.issues.map { issueDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: IssueMilestoneConnection): IssueMilestoneConnection {
-        val entity = issueMilestoneConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val issueId = connection.from.id ?: throw IllegalStateException("Issue ID cannot be null")
+        val milestoneId = connection.to.id ?: throw IllegalStateException("Milestone ID cannot be null")
+
+        // Find the entities
+        val issueEntity = entityManager.find(IssueEntity::class.java, issueId)
+            ?: throw IllegalStateException("Issue with ID $issueId not found")
+        val milestoneEntity = entityManager.find(MilestoneEntity::class.java, milestoneId)
+            ?: throw IllegalStateException("Milestone with ID $milestoneId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!issueEntity.milestones.contains(milestoneEntity)) {
+            issueEntity.milestones.add(milestoneEntity)
+            entityManager.merge(issueEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM IssueMilestoneConnectionEntity WHERE issueId = :issueId AND milestoneId = :milestoneId",
-            IssueMilestoneConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the issue and milestone
+        return IssueMilestoneConnection(
+            id = connectionId,
+            from = issueDao.findById(issueId)!!,
+            to = milestoneDao.findById(milestoneId)!!
         )
-            .setParameter("issueId", entity.issueId)
-            .setParameter("milestoneId", entity.milestoneId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return issueMilestoneConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return issueMilestoneConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM IssueMilestoneConnectionEntity").executeUpdate()
+        // Clear all relationships between issues and milestones
+        val issues = entityManager.createQuery("FROM IssueEntity", IssueEntity::class.java).resultList
+        for (issue in issues) {
+            issue.milestones.clear()
+            entityManager.merge(issue)
+        }
     }
 }

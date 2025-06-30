@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.MergeRequestAccountConnec
 import com.inso_world.binocular.web.persistence.dao.interfaces.IAccountDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestAccountConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestDao
-import com.inso_world.binocular.web.persistence.entity.sql.MergeRequestAccountConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.MergeRequestAccountConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.AccountEntity
+import com.inso_world.binocular.web.persistence.entity.sql.MergeRequestEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of MergeRequestAccountConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class MergeRequestAccountConnectionDao(
-    @Autowired private val mergeRequestAccountConnectionMapper: MergeRequestAccountConnectionMapper,
     @Autowired private val mergeRequestDao: IMergeRequestDao,
     @Autowired private val accountDao: IAccountDao
 ) : IMergeRequestAccountConnectionDao {
@@ -29,60 +32,66 @@ class MergeRequestAccountConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findAccountsByMergeRequest(mergeRequestId: String): List<Account> {
+        // Use the direct relationship between MergeRequest and Account
         val query = entityManager.createQuery(
-            "SELECT a FROM AccountEntity a JOIN MergeRequestAccountConnectionEntity c ON a.id = c.accountId WHERE c.mergeRequestId = :mergeRequestId",
-            com.inso_world.binocular.web.persistence.entity.sql.AccountEntity::class.java
+            "SELECT mr FROM MergeRequestEntity mr WHERE mr.id = :mergeRequestId",
+            MergeRequestEntity::class.java
         )
         query.setParameter("mergeRequestId", mergeRequestId)
-        val accountEntities = query.resultList
-        
+        val mergeRequestEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return accountEntities.map { accountDao.findById(it.id!!)!! }
+        return mergeRequestEntity.accounts.map { accountDao.findById(it.id!!)!! }
     }
 
     override fun findMergeRequestsByAccount(accountId: String): List<MergeRequest> {
+        // Use the direct relationship between Account and MergeRequest
         val query = entityManager.createQuery(
-            "SELECT mr FROM MergeRequestEntity mr JOIN MergeRequestAccountConnectionEntity c ON mr.id = c.mergeRequestId WHERE c.accountId = :accountId",
-            com.inso_world.binocular.web.persistence.entity.sql.MergeRequestEntity::class.java
+            "SELECT a FROM AccountEntity a WHERE a.id = :accountId",
+            AccountEntity::class.java
         )
         query.setParameter("accountId", accountId)
-        val mergeRequestEntities = query.resultList
-        
+        val accountEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return mergeRequestEntities.map { mergeRequestDao.findById(it.id!!)!! }
+        return accountEntity.mergeRequests.map { mergeRequestDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: MergeRequestAccountConnection): MergeRequestAccountConnection {
-        val entity = mergeRequestAccountConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val mergeRequestId = connection.from.id ?: throw IllegalStateException("MergeRequest ID cannot be null")
+        val accountId = connection.to.id ?: throw IllegalStateException("Account ID cannot be null")
+
+        // Find the entities
+        val mergeRequestEntity = entityManager.find(MergeRequestEntity::class.java, mergeRequestId)
+            ?: throw IllegalStateException("MergeRequest with ID $mergeRequestId not found")
+        val accountEntity = entityManager.find(AccountEntity::class.java, accountId)
+            ?: throw IllegalStateException("Account with ID $accountId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!mergeRequestEntity.accounts.contains(accountEntity)) {
+            mergeRequestEntity.accounts.add(accountEntity)
+            entityManager.merge(mergeRequestEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM MergeRequestAccountConnectionEntity WHERE mergeRequestId = :mergeRequestId AND accountId = :accountId",
-            MergeRequestAccountConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the mergeRequest and account
+        return MergeRequestAccountConnection(
+            id = connectionId,
+            from = mergeRequestDao.findById(mergeRequestId)!!,
+            to = accountDao.findById(accountId)!!
         )
-            .setParameter("mergeRequestId", entity.mergeRequestId)
-            .setParameter("accountId", entity.accountId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return mergeRequestAccountConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return mergeRequestAccountConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM MergeRequestAccountConnectionEntity").executeUpdate()
+        // Clear all relationships between mergeRequests and accounts
+        val mergeRequests = entityManager.createQuery("FROM MergeRequestEntity", MergeRequestEntity::class.java).resultList
+        for (mergeRequest in mergeRequests) {
+            mergeRequest.accounts.clear()
+            entityManager.merge(mergeRequest)
+        }
     }
 }

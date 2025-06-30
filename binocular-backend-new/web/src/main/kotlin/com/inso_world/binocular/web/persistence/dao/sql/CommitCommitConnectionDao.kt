@@ -4,8 +4,7 @@ import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.edge.domain.CommitCommitConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitCommitConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitDao
-import com.inso_world.binocular.web.persistence.entity.sql.CommitCommitConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.CommitCommitConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.CommitEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,11 +13,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of CommitCommitConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class CommitCommitConnectionDao(
-    @Autowired private val commitCommitConnectionMapper: CommitCommitConnectionMapper,
     @Autowired private val commitDao: ICommitDao
 ) : ICommitCommitConnectionDao {
 
@@ -26,60 +28,66 @@ class CommitCommitConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findChildCommits(parentCommitId: String): List<Commit> {
+        // Use the direct relationship between Commit and its child Commits
         val query = entityManager.createQuery(
-            "SELECT c FROM CommitEntity c JOIN CommitCommitConnectionEntity cc ON c.id = cc.fromCommitId WHERE cc.toCommitId = :parentCommitId",
-            com.inso_world.binocular.web.persistence.entity.sql.CommitEntity::class.java
+            "SELECT c FROM CommitEntity c WHERE c.id = :parentCommitId",
+            CommitEntity::class.java
         )
         query.setParameter("parentCommitId", parentCommitId)
-        val commitEntities = query.resultList
-        
+        val commitEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return commitEntities.map { commitDao.findById(it.id!!)!! }
+        return commitEntity.childCommits.map { commitDao.findById(it.id!!)!! }
     }
 
     override fun findParentCommits(childCommitId: String): List<Commit> {
+        // Use the direct relationship between Commit and its parent Commits
         val query = entityManager.createQuery(
-            "SELECT c FROM CommitEntity c JOIN CommitCommitConnectionEntity cc ON c.id = cc.toCommitId WHERE cc.fromCommitId = :childCommitId",
-            com.inso_world.binocular.web.persistence.entity.sql.CommitEntity::class.java
+            "SELECT c FROM CommitEntity c WHERE c.id = :childCommitId",
+            CommitEntity::class.java
         )
         query.setParameter("childCommitId", childCommitId)
-        val commitEntities = query.resultList
-        
+        val commitEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return commitEntities.map { commitDao.findById(it.id!!)!! }
+        return commitEntity.parentCommits.map { commitDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: CommitCommitConnection): CommitCommitConnection {
-        val entity = commitCommitConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val fromCommitId = connection.from.id ?: throw IllegalStateException("From Commit ID cannot be null")
+        val toCommitId = connection.to.id ?: throw IllegalStateException("To Commit ID cannot be null")
+
+        // Find the entities
+        val fromCommitEntity = entityManager.find(CommitEntity::class.java, fromCommitId)
+            ?: throw IllegalStateException("From Commit with ID $fromCommitId not found")
+        val toCommitEntity = entityManager.find(CommitEntity::class.java, toCommitId)
+            ?: throw IllegalStateException("To Commit with ID $toCommitId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!fromCommitEntity.childCommits.contains(toCommitEntity)) {
+            fromCommitEntity.childCommits.add(toCommitEntity)
+            entityManager.merge(fromCommitEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM CommitCommitConnectionEntity WHERE fromCommitId = :fromCommitId AND toCommitId = :toCommitId",
-            CommitCommitConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the from and to commits
+        return CommitCommitConnection(
+            id = connectionId,
+            from = commitDao.findById(fromCommitId)!!,
+            to = commitDao.findById(toCommitId)!!
         )
-            .setParameter("fromCommitId", entity.fromCommitId)
-            .setParameter("toCommitId", entity.toCommitId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return commitCommitConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return commitCommitConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM CommitCommitConnectionEntity").executeUpdate()
+        // Clear all relationships between commits
+        val commits = entityManager.createQuery("FROM CommitEntity", CommitEntity::class.java).resultList
+        for (commit in commits) {
+            commit.childCommits.clear()
+            entityManager.merge(commit)
+        }
     }
 }

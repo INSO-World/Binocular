@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.User
 import com.inso_world.binocular.web.entity.edge.domain.IssueUserConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueUserConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.IssueUserConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueUserConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.IssueMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.UserMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.IssueRepository

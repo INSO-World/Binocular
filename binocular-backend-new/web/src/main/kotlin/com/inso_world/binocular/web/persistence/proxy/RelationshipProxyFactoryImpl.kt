@@ -22,6 +22,18 @@ class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
     }
 
     /**
+     * Creates a lazy-loaded list that only loads its contents when accessed,
+     * and maps the loaded entities to domain objects using the provided mapper function.
+     *
+     * @param loader A function that loads the entity list contents when needed
+     * @param mapper A function that maps an entity to a domain object
+     * @return A proxy list that delegates to the loaded and mapped list when accessed
+     */
+    override fun <E, D> createLazyMappedList(loader: () -> List<E>, mapper: (E) -> D): List<D> {
+        return LazyList { loader().map(mapper) }
+    }
+
+    /**
      * A list implementation that lazily loads its contents only when accessed.
      * This class is thread-safe and ensures the loader function is called only once.
      *

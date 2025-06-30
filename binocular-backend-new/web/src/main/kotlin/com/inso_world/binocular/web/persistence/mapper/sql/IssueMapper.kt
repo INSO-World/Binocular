@@ -1,16 +1,11 @@
 package com.inso_world.binocular.web.persistence.mapper.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.inso_world.binocular.web.entity.Issue
-import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueAccountConnectionDao
-import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueCommitConnectionDao
-import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueMilestoneConnectionDao
-import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueNoteConnectionDao
-import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueUserConnectionDao
 import com.inso_world.binocular.web.persistence.entity.sql.IssueEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -19,12 +14,11 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class IssueMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val issueAccountConnectionDao: IIssueAccountConnectionDao,
-    private val issueCommitConnectionDao: IIssueCommitConnectionDao,
-    private val issueMilestoneConnectionDao: IIssueMilestoneConnectionDao,
-    private val issueNoteConnectionDao: IIssueNoteConnectionDao,
-    private val issueUserConnectionDao: IIssueUserConnectionDao,
-    private val objectMapper: ObjectMapper
+    @Lazy private val accountMapper: AccountMapper,
+    @Lazy private val commitMapper: CommitMapper,
+    @Lazy private val milestoneMapper: MilestoneMapper,
+    @Lazy private val noteMapper: NoteMapper,
+    @Lazy private val userMapper: UserMapper
 ) : EntityMapper<Issue, IssueEntity> {
 
     /**
@@ -44,9 +38,9 @@ class IssueMapper @Autowired constructor(
             // Note: Relationships are not directly mapped in SQL entity
         )
 
-        // Convert lists to JSON
-        entity.setLabels(domain.labels, objectMapper)
-        entity.setMentions(domain.mentions, objectMapper)
+        // Set labels and mentions
+        entity.setDomainLabels(domain.labels)
+        entity.setDomainMentions(domain.mentions)
 
         return entity
     }
@@ -70,16 +64,31 @@ class IssueMapper @Autowired constructor(
             createdAt = entity.createdAt,
             closedAt = entity.closedAt,
             updatedAt = entity.updatedAt,
-            labels = entity.getLabels(objectMapper),
+            labels = entity.getDomainLabels(),
             state = entity.state,
             webUrl = entity.webUrl,
-            mentions = entity.getMentions(objectMapper),
-            // Create lazy-loaded proxies for relationships that will load data from DAOs when accessed
-            accounts = proxyFactory.createLazyList { issueAccountConnectionDao.findAccountsByIssue(id) },
-            commits = proxyFactory.createLazyList { issueCommitConnectionDao.findCommitsByIssue(id) },
-            milestones = proxyFactory.createLazyList { issueMilestoneConnectionDao.findMilestonesByIssue(id) },
-            notes = proxyFactory.createLazyList { issueNoteConnectionDao.findNotesByIssue(id) },
-            users = proxyFactory.createLazyList { issueUserConnectionDao.findUsersByIssue(id) }
+            mentions = entity.getDomainMentions(),
+            // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
+            accounts = proxyFactory.createLazyMappedList(
+                { entity.accounts },
+                { accountMapper.toDomain(it) }
+            ),
+            commits = proxyFactory.createLazyMappedList(
+                { entity.commits },
+                { commitMapper.toDomain(it) }
+            ),
+            milestones = proxyFactory.createLazyMappedList(
+                { entity.milestones },
+                { milestoneMapper.toDomain(it) }
+            ),
+            notes = proxyFactory.createLazyMappedList(
+                { entity.notes },
+                { noteMapper.toDomain(it) }
+            ),
+            users = proxyFactory.createLazyMappedList(
+                { entity.users },
+                { userMapper.toDomain(it) }
+            )
         )
     }
 }

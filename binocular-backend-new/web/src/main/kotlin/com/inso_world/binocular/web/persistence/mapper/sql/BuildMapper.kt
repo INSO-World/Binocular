@@ -1,14 +1,11 @@
 package com.inso_world.binocular.web.persistence.mapper.sql
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.inso_world.binocular.web.entity.Build
 import com.inso_world.binocular.web.persistence.entity.sql.BuildEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.CommitMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -17,16 +14,14 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class BuildMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val commitBuildConnectionRepository: CommitBuildConnectionRepository,
-    private val objectMapper: ObjectMapper,
-    private val commitMapper: CommitMapper
+    @Lazy private val commitMapper: CommitMapper
 ) : EntityMapper<Build, BuildEntity> {
 
     /**
      * Converts a domain Build to a SQL BuildEntity
      */
     override fun toEntity(domain: Build): BuildEntity {
-        return BuildEntity(
+        val entity = BuildEntity(
             id = domain.id,
             sha = domain.sha,
             ref = domain.ref,
@@ -40,11 +35,16 @@ class BuildMapper @Autowired constructor(
             finishedAt = domain.finishedAt,
             committedAt = domain.committedAt,
             duration = domain.duration,
-            webUrl = domain.webUrl,
-            // Convert jobs list to JSON
-            jobsJson = if (domain.jobs != null) objectMapper.writeValueAsString(domain.jobs) else null
+            webUrl = domain.webUrl
             // Note: Relationships are not directly mapped in SQL entity
         )
+
+        // Set jobs
+        domain.jobs?.let { jobsList ->
+            entity.setDomainJobs(jobsList)
+        }
+
+        return entity
     }
 
     /**
@@ -58,12 +58,8 @@ class BuildMapper @Autowired constructor(
     override fun toDomain(entity: BuildEntity): Build {
         val id = entity.id ?: throw IllegalStateException("Entity ID cannot be null")
 
-        // Convert JSON to jobs list
-        val jobs = if (entity.jobsJson != null) {
-            objectMapper.readValue(entity.jobsJson, object : TypeReference<List<Build.Job>>() {})
-        } else {
-            null
-        }
+        // Get jobs from entity
+        val jobs = entity.getDomainJobs()
 
         return Build(
             id = id,
@@ -81,10 +77,11 @@ class BuildMapper @Autowired constructor(
             duration = entity.duration,
             jobs = jobs,
             webUrl = entity.webUrl,
-            // Create lazy-loaded proxies for relationships that will load data from repositories when accessed
-            commits = proxyFactory.createLazyList { 
-                commitBuildConnectionRepository.findCommitsByBuild(id).map { commitMapper.toDomain(it) } 
-            }
+            // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
+            commits = proxyFactory.createLazyMappedList(
+                { entity.commits },
+                { commitMapper.toDomain(it) }
+            )
         )
     }
 }

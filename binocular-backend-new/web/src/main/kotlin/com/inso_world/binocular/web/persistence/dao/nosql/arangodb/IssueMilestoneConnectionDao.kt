@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.entity.edge.domain.IssueMilestoneConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueMilestoneConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.IssueMilestoneConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueMilestoneConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.IssueMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.MilestoneMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.IssueRepository

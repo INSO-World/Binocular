@@ -3,14 +3,9 @@ package com.inso_world.binocular.web.persistence.mapper.sql
 import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.persistence.entity.sql.ModuleEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.CommitMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.ModuleMapper as ArangoModuleMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitModuleConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleFileConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleModuleConnectionRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -19,12 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class ModuleMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val commitModuleConnectionRepository: CommitModuleConnectionRepository,
-    private val moduleFileConnectionRepository: ModuleFileConnectionRepository,
-    private val moduleModuleConnectionRepository: ModuleModuleConnectionRepository,
-    private val commitMapper: CommitMapper,
-    private val fileMapper: FileMapper,
-    private val arangoModuleMapper: ArangoModuleMapper
+    @Lazy private val commitMapper: CommitMapper,
+    @Lazy private val fileMapper: FileMapper
 ) : EntityMapper<Module, ModuleEntity> {
 
     /**
@@ -52,19 +43,23 @@ class ModuleMapper @Autowired constructor(
         return Module(
             id = id,
             path = entity.path,
-            // Create lazy-loaded proxies for relationships that will load data from repositories when accessed
-            commits = proxyFactory.createLazyList { 
-                commitModuleConnectionRepository.findCommitsByModule(id).map { commitMapper.toDomain(it) } 
-            },
-            files = proxyFactory.createLazyList { 
-                moduleFileConnectionRepository.findFilesByModule(id).map { fileMapper.toDomain(it) } 
-            },
-            childModules = proxyFactory.createLazyList { 
-                moduleModuleConnectionRepository.findChildModulesByModule(id).map { arangoModuleMapper.toDomain(it) } 
-            },
-            parentModules = proxyFactory.createLazyList { 
-                moduleModuleConnectionRepository.findParentModulesByModule(id).map { arangoModuleMapper.toDomain(it) } 
-            }
+            // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
+            commits = proxyFactory.createLazyMappedList(
+                { entity.commits },
+                { commitMapper.toDomain(it) }
+            ),
+            files = proxyFactory.createLazyMappedList(
+                { entity.files },
+                { fileMapper.toDomain(it) }
+            ),
+            childModules = proxyFactory.createLazyMappedList(
+                { entity.childModules },
+                { toDomain(it) }
+            ),
+            parentModules = proxyFactory.createLazyMappedList(
+                { entity.parentModules },
+                { toDomain(it) }
+            )
         )
     }
 

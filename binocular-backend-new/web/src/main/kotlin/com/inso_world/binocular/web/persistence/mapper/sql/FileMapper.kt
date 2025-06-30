@@ -3,14 +3,9 @@ package com.inso_world.binocular.web.persistence.mapper.sql
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.persistence.entity.sql.FileEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.BranchMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.CommitMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper as ArangoFileMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.ModuleMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.UserMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -19,16 +14,10 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class FileMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val commitFileConnectionRepository: CommitFileConnectionRepository,
-    private val branchFileConnectionRepository: BranchFileConnectionRepository,
-    private val moduleFileConnectionRepository: ModuleFileConnectionRepository,
-    private val branchFileFileConnectionRepository: BranchFileFileConnectionRepository,
-    private val commitFileUserConnectionRepository: CommitFileUserConnectionRepository,
-    private val commitMapper: CommitMapper,
-    private val branchMapper: BranchMapper,
-    private val moduleMapper: ModuleMapper,
-    private val arangoFileMapper: ArangoFileMapper,
-    private val userMapper: UserMapper
+    @Lazy private val commitMapper: CommitMapper,
+    @Lazy private val branchMapper: BranchMapper,
+    @Lazy private val moduleMapper: ModuleMapper,
+    @Lazy private val userMapper: UserMapper
 ) : EntityMapper<File, FileEntity> {
 
     /**
@@ -60,22 +49,27 @@ class FileMapper @Autowired constructor(
             path = entity.path,
             webUrl = entity.webUrl,
             maxLength = entity.maxLength,
-            // Create lazy-loaded proxies for relationships that will load data from repositories when accessed
-            commits = proxyFactory.createLazyList { 
-                commitFileConnectionRepository.findCommitsByFile(id).map { commitMapper.toDomain(it) } 
-            },
-            branches = proxyFactory.createLazyList { 
-                branchFileConnectionRepository.findBranchesByFile(id).map { branchMapper.toDomain(it) } 
-            },
-            modules = proxyFactory.createLazyList { 
-                moduleFileConnectionRepository.findModulesByFile(id).map { moduleMapper.toDomain(it) } 
-            },
-            relatedFiles = proxyFactory.createLazyList { 
-                branchFileFileConnectionRepository.findFilesByBranchFile(id).map { arangoFileMapper.toDomain(it) } 
-            },
-            users = proxyFactory.createLazyList { 
-                commitFileUserConnectionRepository.findUsersByCommitFile(id).map { userMapper.toDomain(it) } 
-            }
+            // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
+            commits = proxyFactory.createLazyMappedList(
+                { entity.commits },
+                { commitMapper.toDomain(it) }
+            ),
+            branches = proxyFactory.createLazyMappedList(
+                { entity.branches },
+                { branchMapper.toDomain(it) }
+            ),
+            modules = proxyFactory.createLazyMappedList(
+                { entity.modules },
+                { moduleMapper.toDomain(it) }
+            ),
+            relatedFiles = proxyFactory.createLazyMappedList(
+                { entity.outgoingFiles },
+                { toDomain(it) }
+            ),
+            users = proxyFactory.createLazyMappedList(
+                { entity.commitUserConnections.mapNotNull { it.user } },
+                { userMapper.toDomain(it) }
+            )
         )
     }
 }

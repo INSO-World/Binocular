@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.CommitBuildConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IBuildDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitBuildConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitDao
-import com.inso_world.binocular.web.persistence.entity.sql.CommitBuildConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.CommitBuildConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.BuildEntity
+import com.inso_world.binocular.web.persistence.entity.sql.CommitEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of CommitBuildConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class CommitBuildConnectionDao(
-    @Autowired private val commitBuildConnectionMapper: CommitBuildConnectionMapper,
     @Autowired private val commitDao: ICommitDao,
     @Autowired private val buildDao: IBuildDao
 ) : ICommitBuildConnectionDao {
@@ -29,60 +32,66 @@ class CommitBuildConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findBuildsByCommit(commitId: String): List<Build> {
+        // Use the direct relationship between Commit and Build
         val query = entityManager.createQuery(
-            "SELECT b FROM BuildEntity b JOIN CommitBuildConnectionEntity c ON b.id = c.buildId WHERE c.commitId = :commitId",
-            com.inso_world.binocular.web.persistence.entity.sql.BuildEntity::class.java
+            "SELECT c FROM CommitEntity c WHERE c.id = :commitId",
+            CommitEntity::class.java
         )
         query.setParameter("commitId", commitId)
-        val buildEntities = query.resultList
-        
+        val commitEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return buildEntities.map { buildDao.findById(it.id!!)!! }
+        return commitEntity.builds.map { buildDao.findById(it.id!!)!! }
     }
 
     override fun findCommitsByBuild(buildId: String): List<Commit> {
+        // Use the direct relationship between Build and Commit
         val query = entityManager.createQuery(
-            "SELECT c FROM CommitEntity c JOIN CommitBuildConnectionEntity cb ON c.id = cb.commitId WHERE cb.buildId = :buildId",
-            com.inso_world.binocular.web.persistence.entity.sql.CommitEntity::class.java
+            "SELECT b FROM BuildEntity b WHERE b.id = :buildId",
+            BuildEntity::class.java
         )
         query.setParameter("buildId", buildId)
-        val commitEntities = query.resultList
-        
+        val buildEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return commitEntities.map { commitDao.findById(it.id!!)!! }
+        return buildEntity.commits.map { commitDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: CommitBuildConnection): CommitBuildConnection {
-        val entity = commitBuildConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val commitId = connection.from.id ?: throw IllegalStateException("Commit ID cannot be null")
+        val buildId = connection.to.id ?: throw IllegalStateException("Build ID cannot be null")
+
+        // Find the entities
+        val commitEntity = entityManager.find(CommitEntity::class.java, commitId)
+            ?: throw IllegalStateException("Commit with ID $commitId not found")
+        val buildEntity = entityManager.find(BuildEntity::class.java, buildId)
+            ?: throw IllegalStateException("Build with ID $buildId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!commitEntity.builds.contains(buildEntity)) {
+            commitEntity.builds.add(buildEntity)
+            entityManager.merge(commitEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM CommitBuildConnectionEntity WHERE commitId = :commitId AND buildId = :buildId",
-            CommitBuildConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the commit and build
+        return CommitBuildConnection(
+            id = connectionId,
+            from = commitDao.findById(commitId)!!,
+            to = buildDao.findById(buildId)!!
         )
-            .setParameter("commitId", entity.commitId)
-            .setParameter("buildId", entity.buildId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return commitBuildConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return commitBuildConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM CommitBuildConnectionEntity").executeUpdate()
+        // Clear all relationships between commits and builds
+        val commits = entityManager.createQuery("FROM CommitEntity", CommitEntity::class.java).resultList
+        for (commit in commits) {
+            commit.builds.clear()
+            entityManager.merge(commit)
+        }
     }
 }

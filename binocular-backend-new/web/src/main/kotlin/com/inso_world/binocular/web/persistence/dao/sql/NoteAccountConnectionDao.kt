@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.NoteAccountConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IAccountDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.INoteAccountConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.INoteDao
-import com.inso_world.binocular.web.persistence.entity.sql.NoteAccountConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.NoteAccountConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.AccountEntity
+import com.inso_world.binocular.web.persistence.entity.sql.NoteEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of NoteAccountConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class NoteAccountConnectionDao(
-    @Autowired private val noteAccountConnectionMapper: NoteAccountConnectionMapper,
     @Autowired private val noteDao: INoteDao,
     @Autowired private val accountDao: IAccountDao
 ) : INoteAccountConnectionDao {
@@ -29,60 +32,66 @@ class NoteAccountConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findAccountsByNote(noteId: String): List<Account> {
+        // Use the direct relationship between Note and Account
         val query = entityManager.createQuery(
-            "SELECT a FROM AccountEntity a JOIN NoteAccountConnectionEntity c ON a.id = c.accountId WHERE c.noteId = :noteId",
-            com.inso_world.binocular.web.persistence.entity.sql.AccountEntity::class.java
+            "SELECT n FROM NoteEntity n WHERE n.id = :noteId",
+            NoteEntity::class.java
         )
         query.setParameter("noteId", noteId)
-        val accountEntities = query.resultList
-        
+        val noteEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return accountEntities.map { accountDao.findById(it.id!!)!! }
+        return noteEntity.accounts.map { accountDao.findById(it.id!!)!! }
     }
 
     override fun findNotesByAccount(accountId: String): List<Note> {
+        // Use the direct relationship between Account and Note
         val query = entityManager.createQuery(
-            "SELECT n FROM NoteEntity n JOIN NoteAccountConnectionEntity c ON n.id = c.noteId WHERE c.accountId = :accountId",
-            com.inso_world.binocular.web.persistence.entity.sql.NoteEntity::class.java
+            "SELECT a FROM AccountEntity a WHERE a.id = :accountId",
+            AccountEntity::class.java
         )
         query.setParameter("accountId", accountId)
-        val noteEntities = query.resultList
-        
+        val accountEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return noteEntities.map { noteDao.findById(it.id!!)!! }
+        return accountEntity.notes.map { noteDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: NoteAccountConnection): NoteAccountConnection {
-        val entity = noteAccountConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val noteId = connection.from.id ?: throw IllegalStateException("Note ID cannot be null")
+        val accountId = connection.to.id ?: throw IllegalStateException("Account ID cannot be null")
+
+        // Find the entities
+        val noteEntity = entityManager.find(NoteEntity::class.java, noteId)
+            ?: throw IllegalStateException("Note with ID $noteId not found")
+        val accountEntity = entityManager.find(AccountEntity::class.java, accountId)
+            ?: throw IllegalStateException("Account with ID $accountId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!accountEntity.notes.contains(noteEntity)) {
+            accountEntity.notes.add(noteEntity)
+            entityManager.merge(accountEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM NoteAccountConnectionEntity WHERE noteId = :noteId AND accountId = :accountId",
-            NoteAccountConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the note and account
+        return NoteAccountConnection(
+            id = connectionId,
+            from = noteDao.findById(noteId)!!,
+            to = accountDao.findById(accountId)!!
         )
-            .setParameter("noteId", entity.noteId)
-            .setParameter("accountId", entity.accountId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return noteAccountConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return noteAccountConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM NoteAccountConnectionEntity").executeUpdate()
+        // Clear all relationships between accounts and notes
+        val accounts = entityManager.createQuery("FROM AccountEntity", AccountEntity::class.java).resultList
+        for (account in accounts) {
+            account.notes.clear()
+            entityManager.merge(account)
+        }
     }
 }

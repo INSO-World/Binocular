@@ -1,13 +1,14 @@
 package com.inso_world.binocular.web.persistence.mapper.sql
 
 import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueNoteConnectionDao
-import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestNoteConnectionDao
-import com.inso_world.binocular.web.persistence.dao.interfaces.INoteAccountConnectionDao
 import com.inso_world.binocular.web.persistence.entity.sql.NoteEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
+import com.inso_world.binocular.web.persistence.mapper.sql.AccountMapper
+import com.inso_world.binocular.web.persistence.mapper.sql.IssueMapper
+import com.inso_world.binocular.web.persistence.mapper.sql.MergeRequestMapper
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -16,9 +17,9 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class NoteMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val noteAccountConnectionDao: INoteAccountConnectionDao,
-    private val issueNoteConnectionDao: IIssueNoteConnectionDao,
-    private val mergeRequestNoteConnectionDao: IMergeRequestNoteConnectionDao
+    @Lazy private val accountMapper: AccountMapper,
+    @Lazy private val issueMapper: IssueMapper,
+    @Lazy private val mergeRequestMapper: MergeRequestMapper
 ) : EntityMapper<Note, NoteEntity> {
 
     /**
@@ -62,10 +63,19 @@ class NoteMapper @Autowired constructor(
             internal = entity.internal,
             imported = entity.imported,
             importedFrom = entity.importedFrom,
-            // Create lazy-loaded proxies for relationships that will load data from DAOs when accessed
-            accounts = proxyFactory.createLazyList { noteAccountConnectionDao.findAccountsByNote(id) },
-            issues = proxyFactory.createLazyList { issueNoteConnectionDao.findIssuesByNote(id) },
-            mergeRequests = proxyFactory.createLazyList { mergeRequestNoteConnectionDao.findMergeRequestsByNote(id) }
+            // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
+            accounts = proxyFactory.createLazyMappedList(
+                { entity.accounts },
+                { accountMapper.toDomain(it) }
+            ),
+            issues = proxyFactory.createLazyMappedList(
+                { entity.issues },
+                { issueMapper.toDomain(it) }
+            ),
+            mergeRequests = proxyFactory.createLazyMappedList(
+                { entity.mergeRequests },
+                { mergeRequestMapper.toDomain(it) }
+            )
         )
     }
 

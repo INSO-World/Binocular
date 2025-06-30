@@ -3,14 +3,9 @@ package com.inso_world.binocular.web.persistence.mapper.sql
 import com.inso_world.binocular.web.entity.User
 import com.inso_world.binocular.web.persistence.entity.sql.UserEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.CommitMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.IssueMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueUserConnectionRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -19,12 +14,9 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class UserMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val commitUserConnectionRepository: CommitUserConnectionRepository,
-    private val issueUserConnectionRepository: IssueUserConnectionRepository,
-    private val commitFileUserConnectionRepository: CommitFileUserConnectionRepository,
-    private val commitMapper: CommitMapper,
-    private val issueMapper: IssueMapper,
-    private val fileMapper: FileMapper
+    @Lazy private val commitMapper: CommitMapper,
+    @Lazy private val issueMapper: IssueMapper,
+    @Lazy private val fileMapper: FileMapper
 ) : EntityMapper<User, UserEntity> {
 
     /**
@@ -52,16 +44,19 @@ class UserMapper @Autowired constructor(
         return User(
             id = id,
             gitSignature = entity.gitSignature,
-            // Create lazy-loaded proxies for relationships that will load data from repositories when accessed
-            commits = proxyFactory.createLazyList { 
-                commitUserConnectionRepository.findCommitsByUser(id).map { commitMapper.toDomain(it) } 
-            },
-            issues = proxyFactory.createLazyList { 
-                issueUserConnectionRepository.findIssuesByUser(id).map { issueMapper.toDomain(it) } 
-            },
-            files = proxyFactory.createLazyList { 
-                commitFileUserConnectionRepository.findCommitFilesByUser(id).map { fileMapper.toDomain(it) } 
-            }
+            // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
+            commits = proxyFactory.createLazyMappedList(
+                { entity.commits },
+                { commitMapper.toDomain(it) }
+            ),
+            issues = proxyFactory.createLazyMappedList(
+                { entity.issues },
+                { issueMapper.toDomain(it) }
+            ),
+            files = proxyFactory.createLazyMappedList(
+                { entity.commitFileConnections.mapNotNull { it.file } },
+                { fileMapper.toDomain(it) }
+            )
         )
     }
 

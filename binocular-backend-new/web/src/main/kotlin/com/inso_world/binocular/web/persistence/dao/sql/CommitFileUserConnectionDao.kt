@@ -6,8 +6,7 @@ import com.inso_world.binocular.web.entity.edge.domain.CommitFileUserConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitFileUserConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IFileDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IUserDao
-import com.inso_world.binocular.web.persistence.entity.sql.CommitFileUserConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.CommitFileUserConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.connections.CommitFileUserConnectionEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +19,6 @@ import java.util.UUID
 @Profile("sql")
 @Transactional
 class CommitFileUserConnectionDao(
-    @Autowired private val commitFileUserConnectionMapper: CommitFileUserConnectionMapper,
     @Autowired private val fileDao: IFileDao,
     @Autowired private val userDao: IUserDao
 ) : ICommitFileUserConnectionDao {
@@ -35,7 +33,7 @@ class CommitFileUserConnectionDao(
         )
         query.setParameter("fileId", fileId)
         val userEntities = query.resultList
-        
+
         // Convert SQL entities to domain models
         return userEntities.map { userDao.findById(it.id!!)!! }
     }
@@ -47,19 +45,24 @@ class CommitFileUserConnectionDao(
         )
         query.setParameter("userId", userId)
         val fileEntities = query.resultList
-        
+
         // Convert SQL entities to domain models
         return fileEntities.map { fileDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: CommitFileUserConnection): CommitFileUserConnection {
-        val entity = commitFileUserConnectionMapper.toEntity(connection)
-        
+        // Convert domain object to entity
+        val entity = CommitFileUserConnectionEntity(
+            id = connection.id,
+            fileId = connection.from.id ?: throw IllegalStateException("File ID cannot be null"),
+            userId = connection.to.id ?: throw IllegalStateException("User ID cannot be null")
+        )
+
         // Generate ID if not provided
         if (entity.id == null) {
             entity.id = UUID.randomUUID().toString()
         }
-        
+
         // Check if entity already exists
         val existingEntity = entityManager.createQuery(
             "FROM CommitFileUserConnectionEntity WHERE fileId = :fileId AND userId = :userId",
@@ -69,16 +72,38 @@ class CommitFileUserConnectionDao(
             .setParameter("userId", entity.userId)
             .resultList
             .firstOrNull()
-        
+
         if (existingEntity != null) {
             // Update existing entity
             existingEntity.id = entity.id
             val mergedEntity = entityManager.merge(existingEntity)
-            return commitFileUserConnectionMapper.toDomain(mergedEntity)
+
+            // Convert entity to domain object
+            val file = fileDao.findById(mergedEntity.fileId)
+                ?: throw IllegalStateException("File with ID ${mergedEntity.fileId} not found")
+            val user = userDao.findById(mergedEntity.userId)
+                ?: throw IllegalStateException("User with ID ${mergedEntity.userId} not found")
+
+            return CommitFileUserConnection(
+                id = mergedEntity.id,
+                from = file,
+                to = user
+            )
         } else {
             // Create new entity
             entityManager.persist(entity)
-            return commitFileUserConnectionMapper.toDomain(entity)
+
+            // Convert entity to domain object
+            val file = fileDao.findById(entity.fileId)
+                ?: throw IllegalStateException("File with ID ${entity.fileId} not found")
+            val user = userDao.findById(entity.userId)
+                ?: throw IllegalStateException("User with ID ${entity.userId} not found")
+
+            return CommitFileUserConnection(
+                id = entity.id,
+                from = file,
+                to = user
+            )
         }
     }
 

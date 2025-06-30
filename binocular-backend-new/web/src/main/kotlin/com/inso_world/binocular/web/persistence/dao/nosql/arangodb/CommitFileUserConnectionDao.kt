@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.User
 import com.inso_world.binocular.web.entity.edge.domain.CommitFileUserConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitFileUserConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.CommitFileUserConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitFileUserConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.UserMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.FileRepository

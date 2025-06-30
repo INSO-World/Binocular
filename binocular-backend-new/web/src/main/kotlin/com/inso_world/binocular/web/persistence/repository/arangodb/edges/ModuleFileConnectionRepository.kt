@@ -4,7 +4,7 @@ import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.web.persistence.entity.arangodb.FileEntity
 import com.inso_world.binocular.web.persistence.entity.arangodb.ModuleEntity
-import com.inso_world.binocular.web.persistence.entity.arangodb.ModuleFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.ModuleFileConnectionEntity
 import org.springframework.stereotype.Repository
 
 @Repository

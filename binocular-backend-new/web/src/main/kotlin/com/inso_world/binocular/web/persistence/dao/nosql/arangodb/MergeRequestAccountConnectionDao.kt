@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.edge.domain.MergeRequestAccountConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestAccountConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.MergeRequestAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.MergeRequestAccountConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.AccountMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.MergeRequestMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.AccountRepository
