@@ -3,7 +3,7 @@ package com.inso_world.binocular.web.persistence.entity.arangodb
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.web.entity.Build
-import com.inso_world.binocular.web.entity.Commit
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitBuildConnectionEntity
 import org.springframework.data.annotation.Id
 import java.util.*
 

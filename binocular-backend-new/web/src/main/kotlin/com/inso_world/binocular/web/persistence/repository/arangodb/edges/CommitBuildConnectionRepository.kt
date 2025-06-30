@@ -3,7 +3,7 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.web.persistence.entity.arangodb.BuildEntity
-import com.inso_world.binocular.web.persistence.entity.arangodb.CommitBuildConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitBuildConnectionEntity
 import com.inso_world.binocular.web.persistence.entity.arangodb.CommitEntity
 import org.springframework.stereotype.Repository
 

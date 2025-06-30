@@ -3,7 +3,7 @@ package com.inso_world.binocular.web.persistence.dao.nosql.arangodb
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.edge.domain.CommitCommitConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitCommitConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.CommitCommitConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitCommitConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.CommitMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.CommitRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitCommitConnectionRepository

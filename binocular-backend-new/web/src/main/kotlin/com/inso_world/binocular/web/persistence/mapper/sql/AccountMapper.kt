@@ -1,22 +1,11 @@
 package com.inso_world.binocular.web.persistence.mapper.sql
 
 import com.inso_world.binocular.web.entity.Account
-import com.inso_world.binocular.web.entity.Issue
-import com.inso_world.binocular.web.entity.MergeRequest
-import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.persistence.entity.arangodb.IssueEntity
-import com.inso_world.binocular.web.persistence.entity.arangodb.MergeRequestEntity
-import com.inso_world.binocular.web.persistence.entity.arangodb.NoteEntity
 import com.inso_world.binocular.web.persistence.entity.sql.AccountEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.IssueMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.MergeRequestMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.NoteMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueAccountConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestAccountConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.NoteAccountConnectionRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -25,12 +14,9 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class AccountMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val issueAccountConnectionRepository: IssueAccountConnectionRepository,
-    private val mergeRequestAccountConnectionRepository: MergeRequestAccountConnectionRepository,
-    private val noteAccountConnectionRepository: NoteAccountConnectionRepository,
-    private val issueMapper: IssueMapper,
-    private val mergeRequestMapper: MergeRequestMapper,
-    private val noteMapper: NoteMapper
+    @Lazy private val issueMapper: IssueMapper,
+    @Lazy private val mergeRequestMapper: MergeRequestMapper,
+    @Lazy private val noteMapper: NoteMapper
 ) : EntityMapper<Account, AccountEntity> {
 
     /**
@@ -66,31 +52,19 @@ class AccountMapper @Autowired constructor(
             name = entity.name,
             avatarUrl = entity.avatarUrl,
             url = entity.url,
-            // Create lazy-loaded proxies for relationships that will load data from repositories when accessed
-            issues = proxyFactory.createLazyList { 
-                val issues = issueAccountConnectionRepository.findIssuesByAccount(id)
-                if (issues.isNotEmpty() && issues[0] is IssueEntity) {
-                    issues.map { issueMapper.toDomain(it as IssueEntity) }
-                } else {
-                    issues as List<Issue>
-                }
-            },
-            mergeRequests = proxyFactory.createLazyList { 
-                val mergeRequests = mergeRequestAccountConnectionRepository.findMergeRequestsByAccount(id)
-                if (mergeRequests.isNotEmpty() && mergeRequests[0] is MergeRequestEntity) {
-                    mergeRequests.map { mergeRequestMapper.toDomain(it as MergeRequestEntity) }
-                } else {
-                    mergeRequests as List<MergeRequest>
-                }
-            },
-            notes = proxyFactory.createLazyList { 
-                val notes = noteAccountConnectionRepository.findNotesByAccount(id)
-                if (notes.isNotEmpty() && notes[0] is NoteEntity) {
-                    notes.map { noteMapper.toDomain(it as NoteEntity) }
-                } else {
-                    notes as List<Note>
-                }
-            }
+            // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
+            issues = proxyFactory.createLazyMappedList(
+                { entity.issues },
+                { issueMapper.toDomain(it) }
+            ),
+            mergeRequests = proxyFactory.createLazyMappedList(
+                { entity.mergeRequests },
+                { mergeRequestMapper.toDomain(it) }
+            ),
+            notes = proxyFactory.createLazyMappedList(
+                { entity.notes },
+                { noteMapper.toDomain(it) }
+            )
         )
     }
 

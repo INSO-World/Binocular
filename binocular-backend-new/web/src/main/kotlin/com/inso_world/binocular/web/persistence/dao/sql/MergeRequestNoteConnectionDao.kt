@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.MergeRequestNoteConnectio
 import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestNoteConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.INoteDao
-import com.inso_world.binocular.web.persistence.entity.sql.MergeRequestNoteConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.MergeRequestNoteConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.MergeRequestEntity
+import com.inso_world.binocular.web.persistence.entity.sql.NoteEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of MergeRequestNoteConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class MergeRequestNoteConnectionDao(
-    @Autowired private val mergeRequestNoteConnectionMapper: MergeRequestNoteConnectionMapper,
     @Autowired private val mergeRequestDao: IMergeRequestDao,
     @Autowired private val noteDao: INoteDao
 ) : IMergeRequestNoteConnectionDao {
@@ -29,60 +32,66 @@ class MergeRequestNoteConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findNotesByMergeRequest(mergeRequestId: String): List<Note> {
+        // Use the direct relationship between MergeRequest and Note
         val query = entityManager.createQuery(
-            "SELECT n FROM NoteEntity n JOIN MergeRequestNoteConnectionEntity c ON n.id = c.noteId WHERE c.mergeRequestId = :mergeRequestId",
-            com.inso_world.binocular.web.persistence.entity.sql.NoteEntity::class.java
+            "SELECT mr FROM MergeRequestEntity mr WHERE mr.id = :mergeRequestId",
+            MergeRequestEntity::class.java
         )
         query.setParameter("mergeRequestId", mergeRequestId)
-        val noteEntities = query.resultList
-        
+        val mergeRequestEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return noteEntities.map { noteDao.findById(it.id!!)!! }
+        return mergeRequestEntity.notes.map { noteDao.findById(it.id!!)!! }
     }
 
     override fun findMergeRequestsByNote(noteId: String): List<MergeRequest> {
+        // Use the direct relationship between Note and MergeRequest
         val query = entityManager.createQuery(
-            "SELECT mr FROM MergeRequestEntity mr JOIN MergeRequestNoteConnectionEntity c ON mr.id = c.mergeRequestId WHERE c.noteId = :noteId",
-            com.inso_world.binocular.web.persistence.entity.sql.MergeRequestEntity::class.java
+            "SELECT n FROM NoteEntity n WHERE n.id = :noteId",
+            NoteEntity::class.java
         )
         query.setParameter("noteId", noteId)
-        val mergeRequestEntities = query.resultList
-        
+        val noteEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return mergeRequestEntities.map { mergeRequestDao.findById(it.id!!)!! }
+        return noteEntity.mergeRequests.map { mergeRequestDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: MergeRequestNoteConnection): MergeRequestNoteConnection {
-        val entity = mergeRequestNoteConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val mergeRequestId = connection.from.id ?: throw IllegalStateException("MergeRequest ID cannot be null")
+        val noteId = connection.to.id ?: throw IllegalStateException("Note ID cannot be null")
+
+        // Find the entities
+        val mergeRequestEntity = entityManager.find(MergeRequestEntity::class.java, mergeRequestId)
+            ?: throw IllegalStateException("MergeRequest with ID $mergeRequestId not found")
+        val noteEntity = entityManager.find(NoteEntity::class.java, noteId)
+            ?: throw IllegalStateException("Note with ID $noteId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!mergeRequestEntity.notes.contains(noteEntity)) {
+            mergeRequestEntity.notes.add(noteEntity)
+            entityManager.merge(mergeRequestEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM MergeRequestNoteConnectionEntity WHERE mergeRequestId = :mergeRequestId AND noteId = :noteId",
-            MergeRequestNoteConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the mergeRequest and note
+        return MergeRequestNoteConnection(
+            id = connectionId,
+            from = mergeRequestDao.findById(mergeRequestId)!!,
+            to = noteDao.findById(noteId)!!
         )
-            .setParameter("mergeRequestId", entity.mergeRequestId)
-            .setParameter("noteId", entity.noteId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return mergeRequestNoteConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return mergeRequestNoteConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM MergeRequestNoteConnectionEntity").executeUpdate()
+        // Clear all relationships between mergeRequests and notes
+        val mergeRequests = entityManager.createQuery("FROM MergeRequestEntity", MergeRequestEntity::class.java).resultList
+        for (mergeRequest in mergeRequests) {
+            mergeRequest.notes.clear()
+            entityManager.merge(mergeRequest)
+        }
     }
 }

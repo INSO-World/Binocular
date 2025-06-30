@@ -2,7 +2,7 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.persistence.entity.arangodb.BranchFileFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.BranchFileFileConnectionEntity
 import com.inso_world.binocular.web.persistence.entity.arangodb.FileEntity
 import org.springframework.stereotype.Repository
 

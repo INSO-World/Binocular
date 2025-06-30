@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.entity.edge.domain.ModuleFileConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleFileConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.ModuleFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.ModuleFileConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.ModuleMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.FileRepository

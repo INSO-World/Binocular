@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Note
 import com.inso_world.binocular.web.entity.edge.domain.NoteAccountConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.INoteAccountConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.NoteAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.NoteAccountConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.AccountMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.NoteMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.AccountRepository

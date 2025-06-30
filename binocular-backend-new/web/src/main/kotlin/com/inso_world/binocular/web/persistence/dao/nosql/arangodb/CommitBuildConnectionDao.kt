@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.entity.Build
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.edge.domain.CommitBuildConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitBuildConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.CommitBuildConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitBuildConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.BuildMapper
 import com.inso_world.binocular.web.persistence.mapper.arangodb.CommitMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.BuildRepository

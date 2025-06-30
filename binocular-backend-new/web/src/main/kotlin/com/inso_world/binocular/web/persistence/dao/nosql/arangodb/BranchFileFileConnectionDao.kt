@@ -1,9 +1,7 @@
 package com.inso_world.binocular.web.persistence.dao.nosql.arangodb
 
 import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.edge.domain.BranchFileFileConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IBranchFileFileConnectionDao
-import com.inso_world.binocular.web.persistence.entity.arangodb.BranchFileFileConnectionEntity
 import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileFileConnectionRepository
 import org.springframework.beans.factory.annotation.Autowired

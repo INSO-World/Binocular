@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.IssueCommitConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueCommitConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueDao
-import com.inso_world.binocular.web.persistence.entity.sql.IssueCommitConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.IssueCommitConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.CommitEntity
+import com.inso_world.binocular.web.persistence.entity.sql.IssueEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of IssueCommitConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class IssueCommitConnectionDao(
-    @Autowired private val issueCommitConnectionMapper: IssueCommitConnectionMapper,
     @Autowired private val issueDao: IIssueDao,
     @Autowired private val commitDao: ICommitDao
 ) : IIssueCommitConnectionDao {
@@ -29,60 +32,66 @@ class IssueCommitConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findCommitsByIssue(issueId: String): List<Commit> {
+        // Use the direct relationship between Issue and Commit
         val query = entityManager.createQuery(
-            "SELECT c FROM CommitEntity c JOIN IssueCommitConnectionEntity ic ON c.id = ic.commitId WHERE ic.issueId = :issueId",
-            com.inso_world.binocular.web.persistence.entity.sql.CommitEntity::class.java
+            "SELECT i FROM IssueEntity i WHERE i.id = :issueId",
+            IssueEntity::class.java
         )
         query.setParameter("issueId", issueId)
-        val commitEntities = query.resultList
-        
+        val issueEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return commitEntities.map { commitDao.findById(it.id!!)!! }
+        return issueEntity.commits.map { commitDao.findById(it.id!!)!! }
     }
 
     override fun findIssuesByCommit(commitId: String): List<Issue> {
+        // Use the direct relationship between Commit and Issue
         val query = entityManager.createQuery(
-            "SELECT i FROM IssueEntity i JOIN IssueCommitConnectionEntity ic ON i.id = ic.issueId WHERE ic.commitId = :commitId",
-            com.inso_world.binocular.web.persistence.entity.sql.IssueEntity::class.java
+            "SELECT c FROM CommitEntity c WHERE c.id = :commitId",
+            CommitEntity::class.java
         )
         query.setParameter("commitId", commitId)
-        val issueEntities = query.resultList
-        
+        val commitEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return issueEntities.map { issueDao.findById(it.id!!)!! }
+        return commitEntity.issues.map { issueDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: IssueCommitConnection): IssueCommitConnection {
-        val entity = issueCommitConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val issueId = connection.from.id ?: throw IllegalStateException("Issue ID cannot be null")
+        val commitId = connection.to.id ?: throw IllegalStateException("Commit ID cannot be null")
+
+        // Find the entities
+        val issueEntity = entityManager.find(IssueEntity::class.java, issueId)
+            ?: throw IllegalStateException("Issue with ID $issueId not found")
+        val commitEntity = entityManager.find(CommitEntity::class.java, commitId)
+            ?: throw IllegalStateException("Commit with ID $commitId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!issueEntity.commits.contains(commitEntity)) {
+            issueEntity.commits.add(commitEntity)
+            entityManager.merge(issueEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM IssueCommitConnectionEntity WHERE issueId = :issueId AND commitId = :commitId",
-            IssueCommitConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the issue and commit
+        return IssueCommitConnection(
+            id = connectionId,
+            from = issueDao.findById(issueId)!!,
+            to = commitDao.findById(commitId)!!
         )
-            .setParameter("issueId", entity.issueId)
-            .setParameter("commitId", entity.commitId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return issueCommitConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return issueCommitConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM IssueCommitConnectionEntity").executeUpdate()
+        // Clear all relationships between issues and commits
+        val issues = entityManager.createQuery("FROM IssueEntity", IssueEntity::class.java).resultList
+        for (issue in issues) {
+            issue.commits.clear()
+            entityManager.merge(issue)
+        }
     }
 }

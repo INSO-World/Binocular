@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class MergeRequestServiceImpl(
-  @Autowired private val mergeRequestDao: MergeRequestDao,
+  @Autowired private val mergeRequestDao: IMergeRequestDao,
   @Autowired private val mergeRequestAccountConnectionRepository: IMergeRequestAccountConnectionDao,
   @Autowired private val mergeRequestMilestoneConnectionRepository: IMergeRequestMilestoneConnectionDao,
   @Autowired private val mergeRequestNoteConnectionRepository: IMergeRequestNoteConnectionDao

@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.IssueAccountConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IAccountDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueAccountConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueDao
-import com.inso_world.binocular.web.persistence.entity.sql.IssueAccountConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.IssueAccountConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.AccountEntity
+import com.inso_world.binocular.web.persistence.entity.sql.IssueEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of IssueAccountConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class IssueAccountConnectionDao(
-    @Autowired private val issueAccountConnectionMapper: IssueAccountConnectionMapper,
     @Autowired private val issueDao: IIssueDao,
     @Autowired private val accountDao: IAccountDao
 ) : IIssueAccountConnectionDao {
@@ -29,60 +32,66 @@ class IssueAccountConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findAccountsByIssue(issueId: String): List<Account> {
+        // Use the direct relationship between Issue and Account
         val query = entityManager.createQuery(
-            "SELECT a FROM AccountEntity a JOIN IssueAccountConnectionEntity c ON a.id = c.accountId WHERE c.issueId = :issueId",
-            com.inso_world.binocular.web.persistence.entity.sql.AccountEntity::class.java
+            "SELECT i FROM IssueEntity i WHERE i.id = :issueId",
+            IssueEntity::class.java
         )
         query.setParameter("issueId", issueId)
-        val accountEntities = query.resultList
-        
+        val issueEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return accountEntities.map { accountDao.findById(it.id!!)!! }
+        return issueEntity.accounts.map { accountDao.findById(it.id!!)!! }
     }
 
     override fun findIssuesByAccount(accountId: String): List<Issue> {
+        // Use the direct relationship between Account and Issue
         val query = entityManager.createQuery(
-            "SELECT i FROM IssueEntity i JOIN IssueAccountConnectionEntity c ON i.id = c.issueId WHERE c.accountId = :accountId",
-            com.inso_world.binocular.web.persistence.entity.sql.IssueEntity::class.java
+            "SELECT a FROM AccountEntity a WHERE a.id = :accountId",
+            AccountEntity::class.java
         )
         query.setParameter("accountId", accountId)
-        val issueEntities = query.resultList
-        
+        val accountEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return issueEntities.map { issueDao.findById(it.id!!)!! }
+        return accountEntity.issues.map { issueDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: IssueAccountConnection): IssueAccountConnection {
-        val entity = issueAccountConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val issueId = connection.from.id ?: throw IllegalStateException("Issue ID cannot be null")
+        val accountId = connection.to.id ?: throw IllegalStateException("Account ID cannot be null")
+
+        // Find the entities
+        val issueEntity = entityManager.find(IssueEntity::class.java, issueId)
+            ?: throw IllegalStateException("Issue with ID $issueId not found")
+        val accountEntity = entityManager.find(AccountEntity::class.java, accountId)
+            ?: throw IllegalStateException("Account with ID $accountId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!issueEntity.accounts.contains(accountEntity)) {
+            issueEntity.accounts.add(accountEntity)
+            entityManager.merge(issueEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM IssueAccountConnectionEntity WHERE issueId = :issueId AND accountId = :accountId",
-            IssueAccountConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the issue and account
+        return IssueAccountConnection(
+            id = connectionId,
+            from = issueDao.findById(issueId)!!,
+            to = accountDao.findById(accountId)!!
         )
-            .setParameter("issueId", entity.issueId)
-            .setParameter("accountId", entity.accountId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return issueAccountConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return issueAccountConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM IssueAccountConnectionEntity").executeUpdate()
+        // Clear all relationships between issues and accounts
+        val issues = entityManager.createQuery("FROM IssueEntity", IssueEntity::class.java).resultList
+        for (issue in issues) {
+            issue.accounts.clear()
+            entityManager.merge(issue)
+        }
     }
 }

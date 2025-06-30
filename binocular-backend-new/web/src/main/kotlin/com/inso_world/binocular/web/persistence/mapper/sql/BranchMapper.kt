@@ -3,10 +3,9 @@ package com.inso_world.binocular.web.persistence.mapper.sql
 import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.persistence.entity.sql.BranchEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.FileMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileConnectionRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -15,8 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class BranchMapper @Autowired constructor(
     private val proxyFactory: RelationshipProxyFactory,
-    private val branchFileConnectionRepository: BranchFileConnectionRepository,
-    private val fileMapper: FileMapper
+    @Lazy private val fileMapper: FileMapper
 ) : EntityMapper<Branch, BranchEntity> {
 
     /**
@@ -50,10 +48,11 @@ class BranchMapper @Autowired constructor(
             active = entity.active,
             tracksFileRenames = entity.tracksFileRenames,
             latestCommit = entity.latestCommit,
-            // Create lazy-loaded proxies for relationships that will load data from repositories when accessed
-            files = proxyFactory.createLazyList { 
-                branchFileConnectionRepository.findFilesByBranch(id).map { fileMapper.toDomain(it) } 
-            }
+            // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
+            files = proxyFactory.createLazyMappedList(
+                { entity.files },
+                { fileMapper.toDomain(it) }
+            )
         )
     }
 }

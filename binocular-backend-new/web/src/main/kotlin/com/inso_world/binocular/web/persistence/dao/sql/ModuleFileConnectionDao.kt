@@ -6,8 +6,8 @@ import com.inso_world.binocular.web.entity.edge.domain.ModuleFileConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IFileDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleFileConnectionDao
-import com.inso_world.binocular.web.persistence.entity.sql.ModuleFileConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.ModuleFileConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.FileEntity
+import com.inso_world.binocular.web.persistence.entity.sql.ModuleEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,11 +16,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of ModuleFileConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class ModuleFileConnectionDao(
-    @Autowired private val moduleFileConnectionMapper: ModuleFileConnectionMapper,
     @Autowired private val moduleDao: IModuleDao,
     @Autowired private val fileDao: IFileDao
 ) : IModuleFileConnectionDao {
@@ -29,60 +32,66 @@ class ModuleFileConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findFilesByModule(moduleId: String): List<File> {
+        // Use the direct relationship between Module and File
         val query = entityManager.createQuery(
-            "SELECT f FROM FileEntity f JOIN ModuleFileConnectionEntity c ON f.id = c.fileId WHERE c.moduleId = :moduleId",
-            com.inso_world.binocular.web.persistence.entity.sql.FileEntity::class.java
+            "SELECT m FROM ModuleEntity m WHERE m.id = :moduleId",
+            ModuleEntity::class.java
         )
         query.setParameter("moduleId", moduleId)
-        val fileEntities = query.resultList
-        
+        val moduleEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return fileEntities.map { fileDao.findById(it.id!!)!! }
+        return moduleEntity.files.map { fileDao.findById(it.id!!)!! }
     }
 
     override fun findModulesByFile(fileId: String): List<Module> {
+        // Use the direct relationship between File and Module
         val query = entityManager.createQuery(
-            "SELECT m FROM ModuleEntity m JOIN ModuleFileConnectionEntity c ON m.id = c.moduleId WHERE c.fileId = :fileId",
-            com.inso_world.binocular.web.persistence.entity.sql.ModuleEntity::class.java
+            "SELECT f FROM FileEntity f WHERE f.id = :fileId",
+            FileEntity::class.java
         )
         query.setParameter("fileId", fileId)
-        val moduleEntities = query.resultList
-        
+        val fileEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return moduleEntities.map { moduleDao.findById(it.id!!)!! }
+        return fileEntity.modules.map { moduleDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: ModuleFileConnection): ModuleFileConnection {
-        val entity = moduleFileConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val moduleId = connection.from.id ?: throw IllegalStateException("Module ID cannot be null")
+        val fileId = connection.to.id ?: throw IllegalStateException("File ID cannot be null")
+
+        // Find the entities
+        val moduleEntity = entityManager.find(ModuleEntity::class.java, moduleId)
+            ?: throw IllegalStateException("Module with ID $moduleId not found")
+        val fileEntity = entityManager.find(FileEntity::class.java, fileId)
+            ?: throw IllegalStateException("File with ID $fileId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!fileEntity.modules.contains(moduleEntity)) {
+            fileEntity.modules.add(moduleEntity)
+            entityManager.merge(fileEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM ModuleFileConnectionEntity WHERE moduleId = :moduleId AND fileId = :fileId",
-            ModuleFileConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the module and file
+        return ModuleFileConnection(
+            id = connectionId,
+            from = moduleDao.findById(moduleId)!!,
+            to = fileDao.findById(fileId)!!
         )
-            .setParameter("moduleId", entity.moduleId)
-            .setParameter("fileId", entity.fileId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return moduleFileConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return moduleFileConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM ModuleFileConnectionEntity").executeUpdate()
+        // Clear all relationships between modules and files
+        val files = entityManager.createQuery("FROM FileEntity", FileEntity::class.java).resultList
+        for (file in files) {
+            file.modules.clear()
+            entityManager.merge(file)
+        }
     }
 }

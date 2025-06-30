@@ -2,7 +2,7 @@ package com.inso_world.binocular.web.persistence.entity.arangodb
 
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
-import com.inso_world.binocular.web.entity.File
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.BranchFileConnectionEntity
 import org.springframework.data.annotation.Id
 
 /**

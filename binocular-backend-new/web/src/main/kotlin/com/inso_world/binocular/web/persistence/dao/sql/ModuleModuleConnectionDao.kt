@@ -4,8 +4,7 @@ import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.entity.edge.domain.ModuleModuleConnection
 import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleModuleConnectionDao
-import com.inso_world.binocular.web.persistence.entity.sql.ModuleModuleConnectionEntity
-import com.inso_world.binocular.web.persistence.mapper.sql.ModuleModuleConnectionMapper
+import com.inso_world.binocular.web.persistence.entity.sql.ModuleEntity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,11 +13,14 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+/**
+ * SQL implementation of ModuleModuleConnectionDao that uses direct JPA relationships
+ * instead of intermediate connection entities.
+ */
 @Repository
 @Profile("sql")
 @Transactional
 class ModuleModuleConnectionDao(
-    @Autowired private val moduleModuleConnectionMapper: ModuleModuleConnectionMapper,
     @Autowired private val moduleDao: IModuleDao
 ) : IModuleModuleConnectionDao {
 
@@ -26,60 +28,66 @@ class ModuleModuleConnectionDao(
     private lateinit var entityManager: EntityManager
 
     override fun findChildModules(parentModuleId: String): List<Module> {
+        // Use the direct relationship between Module and its child Modules
         val query = entityManager.createQuery(
-            "SELECT m FROM ModuleEntity m JOIN ModuleModuleConnectionEntity c ON m.id = c.toModuleId WHERE c.fromModuleId = :parentModuleId",
-            com.inso_world.binocular.web.persistence.entity.sql.ModuleEntity::class.java
+            "SELECT m FROM ModuleEntity m WHERE m.id = :parentModuleId",
+            ModuleEntity::class.java
         )
         query.setParameter("parentModuleId", parentModuleId)
-        val moduleEntities = query.resultList
-        
+        val moduleEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return moduleEntities.map { moduleDao.findById(it.id!!)!! }
+        return moduleEntity.childModules.map { moduleDao.findById(it.id!!)!! }
     }
 
     override fun findParentModules(childModuleId: String): List<Module> {
+        // Use the direct relationship between Module and its parent Modules
         val query = entityManager.createQuery(
-            "SELECT m FROM ModuleEntity m JOIN ModuleModuleConnectionEntity c ON m.id = c.fromModuleId WHERE c.toModuleId = :childModuleId",
-            com.inso_world.binocular.web.persistence.entity.sql.ModuleEntity::class.java
+            "SELECT m FROM ModuleEntity m WHERE m.id = :childModuleId",
+            ModuleEntity::class.java
         )
         query.setParameter("childModuleId", childModuleId)
-        val moduleEntities = query.resultList
-        
+        val moduleEntity = query.resultList.firstOrNull()
+            ?: return emptyList()
+
         // Convert SQL entities to domain models
-        return moduleEntities.map { moduleDao.findById(it.id!!)!! }
+        return moduleEntity.parentModules.map { moduleDao.findById(it.id!!)!! }
     }
 
     override fun save(connection: ModuleModuleConnection): ModuleModuleConnection {
-        val entity = moduleModuleConnectionMapper.toEntity(connection)
-        
-        // Generate ID if not provided
-        if (entity.id == null) {
-            entity.id = UUID.randomUUID().toString()
+        val fromModuleId = connection.from.id ?: throw IllegalStateException("From Module ID cannot be null")
+        val toModuleId = connection.to.id ?: throw IllegalStateException("To Module ID cannot be null")
+
+        // Find the entities
+        val fromModuleEntity = entityManager.find(ModuleEntity::class.java, fromModuleId)
+            ?: throw IllegalStateException("From Module with ID $fromModuleId not found")
+        val toModuleEntity = entityManager.find(ModuleEntity::class.java, toModuleId)
+            ?: throw IllegalStateException("To Module with ID $toModuleId not found")
+
+        // Add the relationship if it doesn't exist
+        if (!fromModuleEntity.childModules.contains(toModuleEntity)) {
+            fromModuleEntity.childModules.add(toModuleEntity)
+            entityManager.merge(fromModuleEntity)
         }
-        
-        // Check if entity already exists
-        val existingEntity = entityManager.createQuery(
-            "FROM ModuleModuleConnectionEntity WHERE fromModuleId = :fromModuleId AND toModuleId = :toModuleId",
-            ModuleModuleConnectionEntity::class.java
+
+        // Generate a connection ID if not provided
+        val connectionId = connection.id ?: UUID.randomUUID().toString()
+
+        // Return the connection with the from and to modules
+        return ModuleModuleConnection(
+            id = connectionId,
+            from = moduleDao.findById(fromModuleId)!!,
+            to = moduleDao.findById(toModuleId)!!
         )
-            .setParameter("fromModuleId", entity.fromModuleId)
-            .setParameter("toModuleId", entity.toModuleId)
-            .resultList
-            .firstOrNull()
-        
-        if (existingEntity != null) {
-            // Update existing entity
-            existingEntity.id = entity.id
-            val mergedEntity = entityManager.merge(existingEntity)
-            return moduleModuleConnectionMapper.toDomain(mergedEntity)
-        } else {
-            // Create new entity
-            entityManager.persist(entity)
-            return moduleModuleConnectionMapper.toDomain(entity)
-        }
     }
 
     override fun deleteAll() {
-        entityManager.createQuery("DELETE FROM ModuleModuleConnectionEntity").executeUpdate()
+        // Clear all relationships between modules
+        val modules = entityManager.createQuery("FROM ModuleEntity", ModuleEntity::class.java).resultList
+        for (module in modules) {
+            module.childModules.clear()
+            entityManager.merge(module)
+        }
     }
 }

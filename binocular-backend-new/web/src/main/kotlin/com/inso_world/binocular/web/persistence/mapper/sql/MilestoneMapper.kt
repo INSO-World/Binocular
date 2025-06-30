@@ -3,12 +3,9 @@ package com.inso_world.binocular.web.persistence.mapper.sql
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.persistence.entity.sql.MilestoneEntity
 import com.inso_world.binocular.web.persistence.mapper.EntityMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.IssueMapper
-import com.inso_world.binocular.web.persistence.mapper.arangodb.MergeRequestMapper
 import com.inso_world.binocular.web.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueMilestoneConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestMilestoneConnectionRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -17,10 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 @Profile("sql")
 class MilestoneMapper @Autowired constructor(
   private val proxyFactory: RelationshipProxyFactory,
-  private val issueMilestoneConnectionRepository: IssueMilestoneConnectionRepository,
-  private val mergeRequestMilestoneConnectionRepository: MergeRequestMilestoneConnectionRepository,
-  private val issueMapper: IssueMapper,
-  private val mergeRequestMapper: MergeRequestMapper
+  @Lazy private val issueMapper: IssueMapper,
+  @Lazy private val mergeRequestMapper: MergeRequestMapper
 ) : EntityMapper<Milestone, MilestoneEntity> {
 
   /**
@@ -66,9 +61,15 @@ class MilestoneMapper @Autowired constructor(
             state = entity.state,
             expired = entity.expired,
             webUrl = entity.webUrl,
-            // Create lazy-loaded proxies for relationships that will load data from repositories when accessed
-            issues = proxyFactory.createLazyList { issueMilestoneConnectionRepository.findIssuesByMilestone(id).map { issueMapper.toDomain(it) }  },
-            mergeRequests = proxyFactory.createLazyList { mergeRequestMilestoneConnectionRepository.findMergeRequestsByMilestone(id).map { mergeRequestMapper.toDomain(it) }  }
+            // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
+            issues = proxyFactory.createLazyMappedList(
+                { entity.issues },
+                { issueMapper.toDomain(it) }
+            ),
+            mergeRequests = proxyFactory.createLazyMappedList(
+                { entity.mergeRequests },
+                { mergeRequestMapper.toDomain(it) }
+            )
         )
     }
 

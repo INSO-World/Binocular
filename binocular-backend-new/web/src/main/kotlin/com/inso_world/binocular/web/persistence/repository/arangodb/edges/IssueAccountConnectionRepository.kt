@@ -2,10 +2,8 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Account
-import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.persistence.entity.arangodb.AccountEntity
-import com.inso_world.binocular.web.persistence.entity.arangodb.IssueAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueAccountConnectionEntity
 import com.inso_world.binocular.web.persistence.entity.arangodb.IssueEntity
 import org.springframework.stereotype.Repository
 

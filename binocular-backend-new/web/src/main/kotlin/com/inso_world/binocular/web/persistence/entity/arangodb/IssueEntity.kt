@@ -3,12 +3,12 @@ package com.inso_world.binocular.web.persistence.entity.arangodb
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Field
 import com.arangodb.springframework.annotation.Relations
-import com.inso_world.binocular.web.entity.Account
-import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.Mention
-import com.inso_world.binocular.web.entity.Milestone
-import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.entity.User
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueCommitConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueMilestoneConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueNoteConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.IssueUserConnectionEntity
 import org.springframework.data.annotation.Id
 import java.util.*
 
