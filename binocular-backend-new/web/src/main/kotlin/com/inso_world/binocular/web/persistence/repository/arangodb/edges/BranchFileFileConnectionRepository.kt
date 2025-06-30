@@ -2,12 +2,12 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.edge.BranchFileFileConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.BranchFileFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.FileEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface BranchFileFileConnectionRepository: ArangoRepository<BranchFileFileConnection, String> {
+interface BranchFileFileConnectionRepository: ArangoRepository<BranchFileFileConnectionEntity, String> {
 
   @Query("""
     FOR c IN `branch-files-files`
@@ -16,7 +16,7 @@ interface BranchFileFileConnectionRepository: ArangoRepository<BranchFileFileCon
             FILTER f._id == c._to
             RETURN f
 """)
-  fun findFilesByBranchFile(branchFileId: String): List<File>
+  fun findFilesByBranchFile(branchFileId: String): List<FileEntity>
 
   @Query("""
     FOR c IN `branch-files-files`
@@ -25,5 +25,5 @@ interface BranchFileFileConnectionRepository: ArangoRepository<BranchFileFileCon
             FILTER f._id == c._from
             RETURN f
 """)
-  fun findBranchFilesByFile(fileId: String): List<File>
+  fun findBranchFilesByFile(fileId: String): List<FileEntity>
 }

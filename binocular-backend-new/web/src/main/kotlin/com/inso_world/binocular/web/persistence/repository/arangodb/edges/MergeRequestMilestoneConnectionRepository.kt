@@ -4,11 +4,13 @@ import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.entity.MergeRequest
-import com.inso_world.binocular.web.entity.edge.MergeRequestMilestoneConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.MergeRequestEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.MergeRequestMilestoneConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.MilestoneEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface MergeRequestMilestoneConnectionRepository: ArangoRepository<MergeRequestMilestoneConnection, String> {
+interface MergeRequestMilestoneConnectionRepository: ArangoRepository<MergeRequestMilestoneConnectionEntity, String> {
 
   @Query("""
     FOR c IN `merge-requests-milestones`
@@ -17,7 +19,7 @@ interface MergeRequestMilestoneConnectionRepository: ArangoRepository<MergeReque
             FILTER m._id == c._to
             RETURN m
 """)
-  fun findMilestonesByMergeRequest(mergeRequestId: String): List<Milestone>
+  fun findMilestonesByMergeRequest(mergeRequestId: String): List<MilestoneEntity>
 
   @Query("""
     FOR c IN `merge-requests-milestones`
@@ -26,5 +28,5 @@ interface MergeRequestMilestoneConnectionRepository: ArangoRepository<MergeReque
             FILTER mr._id == c._from
             RETURN mr
 """)
-  fun findMergeRequestsByMilestone(milestoneId: String): List<MergeRequest>
+  fun findMergeRequestsByMilestone(milestoneId: String): List<MergeRequestEntity>
 }

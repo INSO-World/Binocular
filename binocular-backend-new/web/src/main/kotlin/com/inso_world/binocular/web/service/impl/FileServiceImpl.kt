@@ -5,7 +5,12 @@ import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
 import com.inso_world.binocular.web.entity.User
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.FileDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IBranchFileConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IBranchFileFileConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitFileConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitFileUserConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IFileDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleFileConnectionDao
 import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileFileConnectionRepository
@@ -21,12 +26,12 @@ import org.springframework.stereotype.Service
 
 @Service
 class FileServiceImpl(
-  @Autowired private val fileDao: FileDao,
-  @Autowired private val branchFileConnectionRepository: BranchFileConnectionRepository,
-  @Autowired private val branchFileFileConnectionRepository: BranchFileFileConnectionRepository,
-  @Autowired private val commitFileConnectionRepository: CommitFileConnectionRepository,
-  @Autowired private val commitFileUserConnectionRepository: CommitFileUserConnectionRepository,
-  @Autowired private val moduleFileConnectionRepository: ModuleFileConnectionRepository
+  @Autowired private val fileDao: IFileDao,
+  @Autowired private val branchFileConnectionRepository: IBranchFileConnectionDao,
+  @Autowired private val branchFileFileConnectionRepository: IBranchFileFileConnectionDao,
+  @Autowired private val commitFileConnectionRepository: ICommitFileConnectionDao,
+  @Autowired private val commitFileUserConnectionRepository: ICommitFileUserConnectionDao,
+  @Autowired private val moduleFileConnectionRepository: IModuleFileConnectionDao
 ) : FileService {
 
   var logger: Logger = LoggerFactory.getLogger(FileServiceImpl::class.java)
@@ -63,6 +68,6 @@ class FileServiceImpl(
 
   override fun findUsersByFileId(fileId: String): List<User> {
     logger.trace("Getting users for file: $fileId")
-    return commitFileUserConnectionRepository.findUsersByCommitFile(fileId)
+    return commitFileUserConnectionRepository.findUsersByFile(fileId)
   }
 }

@@ -3,10 +3,10 @@ package com.inso_world.binocular.web.service.impl
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Milestone
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MilestoneDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueMilestoneConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestMilestoneConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMilestoneDao
 import com.inso_world.binocular.web.persistence.model.Page
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueMilestoneConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestMilestoneConnectionRepository
 import com.inso_world.binocular.web.service.MilestoneService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,11 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+/**
+ * Implementation of the MilestoneService interface.
+ * This service is database-agnostic and works with both ArangoDB and SQL implementations.
+ */
 @Service
 class MilestoneServiceImpl(
-  @Autowired private val milestoneDao: MilestoneDao,
-  @Autowired private val issueMilestoneConnectionRepository: IssueMilestoneConnectionRepository,
-  @Autowired private val mergeRequestMilestoneConnectionRepository: MergeRequestMilestoneConnectionRepository
+  @Autowired private val milestoneDao: IMilestoneDao,
+  @Autowired private val issueMilestoneConnectionRepository: IIssueMilestoneConnectionDao,
+  @Autowired private val mergeRequestMilestoneConnectionRepository: IMergeRequestMilestoneConnectionDao
 ) : MilestoneService {
 
   var logger: Logger = LoggerFactory.getLogger(MilestoneServiceImpl::class.java)

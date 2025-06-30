@@ -2,7 +2,8 @@ package com.inso_world.binocular.web.service.impl
 
 import com.inso_world.binocular.web.entity.Build
 import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BuildDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IBuildDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitBuildConnectionDao
 import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
 import com.inso_world.binocular.web.service.BuildService
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class BuildServiceImpl(
-  @Autowired private val buildDao: BuildDao,
-  @Autowired private val commitBuildConnectionRepository: CommitBuildConnectionRepository,
+  @Autowired private val buildDao: IBuildDao,
+  @Autowired private val commitBuildConnectionRepository: ICommitBuildConnectionDao,
 ) : BuildService {
 
   var logger: Logger = LoggerFactory.getLogger(BuildServiceImpl::class.java)

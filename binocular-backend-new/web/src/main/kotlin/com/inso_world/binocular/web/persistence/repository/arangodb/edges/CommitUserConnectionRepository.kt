@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.entity.User
-import com.inso_world.binocular.web.entity.edge.CommitUserConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.CommitEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.CommitUserConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.UserEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CommitUserConnectionRepository: ArangoRepository<CommitUserConnection, String> {
+interface CommitUserConnectionRepository: ArangoRepository<CommitUserConnectionEntity, String> {
 
   @Query("""
     FOR c IN `commits-users`
@@ -17,7 +17,7 @@ interface CommitUserConnectionRepository: ArangoRepository<CommitUserConnection,
             FILTER u._id == c._to
             RETURN u
 """)
-  fun findUsersByCommit(commitId: String): List<User>
+  fun findUsersByCommit(commitId: String): List<UserEntity>
 
   @Query("""
     FOR c IN `commits-users`
@@ -26,5 +26,5 @@ interface CommitUserConnectionRepository: ArangoRepository<CommitUserConnection,
             FILTER cm._id == c._from
             RETURN cm
 """)
-  fun findCommitsByUser(userId: String): List<Commit>
+  fun findCommitsByUser(userId: String): List<CommitEntity>
 }

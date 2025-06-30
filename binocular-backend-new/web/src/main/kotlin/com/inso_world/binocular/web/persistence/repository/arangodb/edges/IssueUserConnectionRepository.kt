@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Issue
-import com.inso_world.binocular.web.entity.User
-import com.inso_world.binocular.web.entity.edge.IssueUserConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.IssueEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.IssueUserConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.UserEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface IssueUserConnectionRepository: ArangoRepository<IssueUserConnection, String> {
+interface IssueUserConnectionRepository: ArangoRepository<IssueUserConnectionEntity, String> {
 
   @Query("""
     FOR c IN `issues-users`
@@ -17,7 +17,7 @@ interface IssueUserConnectionRepository: ArangoRepository<IssueUserConnection, S
             FILTER u._id == c._to
             RETURN u
 """)
-  fun findUsersByIssue(issueId: String): List<User>
+  fun findUsersByIssue(issueId: String): List<UserEntity>
 
   @Query("""
     FOR c IN `issues-users`
@@ -26,5 +26,5 @@ interface IssueUserConnectionRepository: ArangoRepository<IssueUserConnection, S
             FILTER i._id == c._from
             RETURN i
 """)
-  fun findIssuesByUser(userId: String): List<Issue>
+  fun findIssuesByUser(userId: String): List<IssueEntity>
 }
