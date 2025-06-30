@@ -4,11 +4,13 @@ import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Issue
-import com.inso_world.binocular.web.entity.edge.IssueAccountConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.AccountEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.IssueAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.IssueEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnection, String> {
+interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnectionEntity, String> {
 
   @Query("""
     FOR c IN `issues-accounts`
@@ -17,7 +19,7 @@ interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnec
             FILTER a._id == c._to
             RETURN a
 """)
-  fun findAccountsByIssue(issueId: String): List<Account>
+  fun findAccountsByIssue(issueId: String): List<AccountEntity>
 
   @Query("""
     FOR c IN `issues-accounts`
@@ -26,5 +28,5 @@ interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnec
             FILTER i._id == c._from
             RETURN i
 """)
-  fun findIssuesByAccount(accountId: String): List<Issue>
+  fun findIssuesByAccount(accountId: String): List<IssueEntity>
 }

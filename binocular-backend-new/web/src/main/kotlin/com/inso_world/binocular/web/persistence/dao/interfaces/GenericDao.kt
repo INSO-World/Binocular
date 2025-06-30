@@ -14,4 +14,19 @@ interface GenericDao<T, I : Serializable> {
   fun updateAndFlush(entity: T): T
   fun delete(entity: T)
   fun deleteById(id: I)
+
+  /**
+   * Delete all entities
+   */
+  fun deleteAll()
+
+  /**
+   * Save an entity (create or update)
+   */
+  fun save(entity: T): T
+
+  /**
+   * Save multiple entities
+   */
+  fun saveAll(entities: List<T>): Iterable<T>
 }

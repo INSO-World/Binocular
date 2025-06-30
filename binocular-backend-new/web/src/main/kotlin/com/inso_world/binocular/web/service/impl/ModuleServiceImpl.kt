@@ -3,11 +3,11 @@ package com.inso_world.binocular.web.service.impl
 import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.ModuleDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitModuleConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleFileConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IModuleModuleConnectionDao
 import com.inso_world.binocular.web.persistence.model.Page
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitModuleConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleFileConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.ModuleModuleConnectionRepository
 import com.inso_world.binocular.web.service.ModuleService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -15,12 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+/**
+ * Implementation of the ModuleService interface.
+ * This service is database-agnostic and works with both ArangoDB and SQL implementations.
+ */
 @Service
 class ModuleServiceImpl(
-  @Autowired private val moduleDao: ModuleDao,
-  @Autowired private val commitModuleConnectionRepository: CommitModuleConnectionRepository,
-  @Autowired private val moduleFileConnectionRepository: ModuleFileConnectionRepository,
-  @Autowired private val moduleModuleConnectionRepository: ModuleModuleConnectionRepository
+  @Autowired private val moduleDao: IModuleDao,
+  @Autowired private val commitModuleConnectionRepository: ICommitModuleConnectionDao,
+  @Autowired private val moduleFileConnectionRepository: IModuleFileConnectionDao,
+  @Autowired private val moduleModuleConnectionRepository: IModuleModuleConnectionDao
 ) : ModuleService {
 
   var logger: Logger = LoggerFactory.getLogger(ModuleServiceImpl::class.java)
@@ -47,11 +51,11 @@ class ModuleServiceImpl(
 
   override fun findChildModulesByModuleId(moduleId: String): List<Module> {
     logger.trace("Getting child modules for module: $moduleId")
-    return moduleModuleConnectionRepository.findChildModulesByModule(moduleId)
+    return moduleModuleConnectionRepository.findChildModules(moduleId)
   }
 
   override fun findParentModulesByModuleId(moduleId: String): List<Module> {
     logger.trace("Getting parent modules for module: $moduleId")
-    return moduleModuleConnectionRepository.findParentModulesByModule(moduleId)
+    return moduleModuleConnectionRepository.findParentModules(moduleId)
   }
 }

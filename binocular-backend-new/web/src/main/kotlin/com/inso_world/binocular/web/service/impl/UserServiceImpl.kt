@@ -4,11 +4,11 @@ import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.User
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.UserDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitFileUserConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.ICommitUserConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueUserConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IUserDao
 import com.inso_world.binocular.web.persistence.model.Page
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueUserConnectionRepository
 import com.inso_world.binocular.web.service.UserService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,12 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+/**
+ * Implementation of the UserService interface.
+ * This service is database-agnostic and works with both ArangoDB and SQL implementations.
+ */
 @Service
 class UserServiceImpl(
-  @Autowired private val userDao: UserDao,
-  @Autowired private val commitUserConnectionRepository: CommitUserConnectionRepository,
-  @Autowired private val commitFileUserConnectionRepository: CommitFileUserConnectionRepository,
-  @Autowired private val issueUserConnectionRepository: IssueUserConnectionRepository
+  @Autowired private val userDao: IUserDao,
+  @Autowired private val commitUserConnectionRepository: ICommitUserConnectionDao,
+  @Autowired private val commitFileUserConnectionRepository: ICommitFileUserConnectionDao,
+  @Autowired private val issueUserConnectionRepository: IIssueUserConnectionDao
 ) : UserService {
 
   var logger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java)
@@ -48,6 +52,6 @@ class UserServiceImpl(
 
   override fun findFilesByUserId(userId: String): List<File> {
     logger.trace("Getting files for user: $userId")
-    return commitFileUserConnectionRepository.findCommitFilesByUser(userId)
+    return commitFileUserConnectionRepository.findFilesByUser(userId)
   }
 }

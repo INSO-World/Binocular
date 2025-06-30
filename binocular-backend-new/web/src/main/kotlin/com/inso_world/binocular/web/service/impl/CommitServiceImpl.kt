@@ -1,14 +1,9 @@
 package com.inso_world.binocular.web.service.impl
 
 import com.inso_world.binocular.web.entity.*
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.CommitDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.*
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueCommitConnectionDao
 import com.inso_world.binocular.web.persistence.model.Page
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitBuildConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitCommitConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitFileConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitModuleConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.CommitUserConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueCommitConnectionRepository
 import com.inso_world.binocular.web.service.CommitService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,13 +13,13 @@ import org.springframework.stereotype.Service
 
 @Service
 class CommitServiceImpl(
-  @Autowired private val commitDao: CommitDao,
-  @Autowired private val commitBuildConnectionRepository: CommitBuildConnectionRepository,
-  @Autowired private val commitCommitConnectionRepository: CommitCommitConnectionRepository,
-  @Autowired private val commitFileConnectionRepository: CommitFileConnectionRepository,
-  @Autowired private val commitModuleConnectionRepository: CommitModuleConnectionRepository,
-  @Autowired private val commitUserConnectionRepository: CommitUserConnectionRepository,
-  @Autowired private val issueCommitConnectionRepository: IssueCommitConnectionRepository
+  @Autowired private val commitDao: ICommitDao,
+  @Autowired private val commitBuildConnectionRepository: ICommitBuildConnectionDao,
+  @Autowired private val commitCommitConnectionRepository: ICommitCommitConnectionDao,
+  @Autowired private val commitFileConnectionRepository: ICommitFileConnectionDao,
+  @Autowired private val commitModuleConnectionRepository: ICommitModuleConnectionDao,
+  @Autowired private val commitUserConnectionRepository: ICommitUserConnectionDao,
+  @Autowired private val issueCommitConnectionRepository: IIssueCommitConnectionDao
 ) : CommitService {
 
   var logger: Logger = LoggerFactory.getLogger(CommitServiceImpl::class.java)
@@ -85,11 +80,11 @@ class CommitServiceImpl(
 
   override fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit> {
     logger.trace("Getting parent commits for child commit: $childCommitId")
-    return commitCommitConnectionRepository.findParentCommitsByChildCommit(childCommitId)
+    return commitCommitConnectionRepository.findParentCommits(childCommitId)
   }
 
   override fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit> {
     logger.trace("Getting child commits for parent commit: $parentCommitId")
-    return commitCommitConnectionRepository.findChildCommitsByParentCommit(parentCommitId)
+    return commitCommitConnectionRepository.findChildCommits(parentCommitId)
   }
 }

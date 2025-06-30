@@ -1,24 +1,16 @@
 package com.inso_world.binocular.web.entity
 
-import com.arangodb.springframework.annotation.Document
-import com.arangodb.springframework.annotation.Relations
-import com.inso_world.binocular.web.entity.edge.BranchFileConnection
-import org.springframework.data.annotation.Id
-
-@Document("branches")
+/**
+ * Domain model for a Branch, representing a branch in a Git repository.
+ * This class is database-agnostic and contains no persistence-specific annotations.
+ */
 data class Branch(
-  @Id
   var id: String? = null,
   var branch: String? = null,
   var active: Boolean = false,
   var tracksFileRenames: Boolean = false,
   var latestCommit: String? = null,
 
-  @Relations(
-    edges = [BranchFileConnection::class],
-    lazy = true,
-    maxDepth = 1,
-    direction = Relations.Direction.OUTBOUND
-  )
+  // Relationships
   var files: List<File>? = null
 )

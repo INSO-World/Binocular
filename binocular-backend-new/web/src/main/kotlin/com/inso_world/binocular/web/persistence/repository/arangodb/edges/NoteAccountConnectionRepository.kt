@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Account
-import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.entity.edge.NoteAccountConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.AccountEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.NoteAccountConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.NoteEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface NoteAccountConnectionRepository: ArangoRepository<NoteAccountConnection, String> {
+interface NoteAccountConnectionRepository: ArangoRepository<NoteAccountConnectionEntity, String> {
 
   @Query("""
     FOR c IN `notes-accounts`
@@ -17,7 +17,7 @@ interface NoteAccountConnectionRepository: ArangoRepository<NoteAccountConnectio
             FILTER a._id == c._to
             RETURN a
 """)
-  fun findAccountsByNote(noteId: String): List<Account>
+  fun findAccountsByNote(noteId: String): List<AccountEntity>
 
   @Query("""
     FOR c IN `notes-accounts`
@@ -26,5 +26,5 @@ interface NoteAccountConnectionRepository: ArangoRepository<NoteAccountConnectio
             FILTER n._id == c._from
             RETURN n
 """)
-  fun findNotesByAccount(accountId: String): List<Note>
+  fun findNotesByAccount(accountId: String): List<NoteEntity>
 }
