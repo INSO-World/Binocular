@@ -81,8 +81,9 @@ class MergeRequestDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM MergeRequestEntity")
-    query.executeUpdate()
+    val mergeRequests = entityManager.createQuery("SELECT m FROM MergeRequestEntity m", MergeRequestEntity::class.java)
+      .resultList
+    mergeRequests.forEach { entityManager.remove(it) }
   }
 
   /**

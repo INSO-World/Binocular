@@ -84,8 +84,9 @@ class BranchDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM BranchEntity")
-    query.executeUpdate()
+    val branches = entityManager.createQuery("SELECT b FROM BranchEntity b", BranchEntity::class.java)
+      .resultList
+    branches.forEach { entityManager.remove(it) }
   }
 
   /**

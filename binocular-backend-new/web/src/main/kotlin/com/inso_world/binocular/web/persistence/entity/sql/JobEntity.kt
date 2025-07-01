@@ -27,9 +27,6 @@ class JobEntity {
   @Column(name = "web_url")
   var webUrl: String? = null
 
-  @Column(name = "build_id", insertable = false, updatable = false)
-  var buildId: String? = null
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "build_id")
   var build: BuildEntity? = null
@@ -46,7 +43,6 @@ class JobEntity {
     createdAt: Date? = null,
     finishedAt: Date? = null,
     webUrl: String? = null,
-    buildId: String? = null,
     build: BuildEntity? = null
   ) {
     this.id = id
@@ -56,7 +52,6 @@ class JobEntity {
     this.createdAt = createdAt
     this.finishedAt = finishedAt
     this.webUrl = webUrl
-    this.buildId = buildId
     this.build = build
   }
 }

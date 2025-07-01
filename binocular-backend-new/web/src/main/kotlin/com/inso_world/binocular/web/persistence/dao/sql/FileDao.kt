@@ -84,8 +84,9 @@ class FileDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM FileEntity")
-    query.executeUpdate()
+    val files = entityManager.createQuery("SELECT f FROM FileEntity f", FileEntity::class.java)
+      .resultList
+    files.forEach { entityManager.remove(it) }
   }
 
   /**

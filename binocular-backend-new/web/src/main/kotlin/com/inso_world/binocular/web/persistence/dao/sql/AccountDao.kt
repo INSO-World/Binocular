@@ -81,8 +81,9 @@ class AccountDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM AccountEntity")
-    query.executeUpdate()
+    val accounts = entityManager.createQuery("SELECT a FROM AccountEntity a", AccountEntity::class.java)
+      .resultList
+    accounts.forEach { entityManager.remove(it) }
   }
 
   /**

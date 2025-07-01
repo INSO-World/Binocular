@@ -84,8 +84,9 @@ class NoteDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM NoteEntity")
-    query.executeUpdate()
+    val notes = entityManager.createQuery("SELECT n FROM NoteEntity n", NoteEntity::class.java)
+      .resultList
+    notes.forEach { entityManager.remove(it) }
   }
 
   /**

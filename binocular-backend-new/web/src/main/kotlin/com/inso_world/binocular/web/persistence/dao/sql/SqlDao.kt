@@ -68,7 +68,9 @@ class SqlDao<T, I : Serializable> : GenericDao<T, I> {
    * Delete all entities
    */
   override fun deleteAll() {
-    entityManager.createQuery("DELETE FROM ${clazz.name}").executeUpdate()
+    val entities = entityManager.createQuery("SELECT e FROM ${clazz.name} e", clazz)
+      .resultList
+    entities.forEach { entityManager.remove(it) }
   }
 
   /**

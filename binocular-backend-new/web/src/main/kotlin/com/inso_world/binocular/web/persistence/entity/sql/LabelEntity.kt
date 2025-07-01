@@ -14,20 +14,14 @@ data class LabelEntity(
 
   var value: String,
 
-  @Column(name = "issue_id", insertable = false, updatable = false)
-  var issueId: String? = null,
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "issue_id")
   var issue: IssueEntity? = null,
-
-  @Column(name = "merge_request_id", insertable = false, updatable = false)
-  var mergeRequestId: String? = null,
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "merge_request_id")
   var mergeRequest: MergeRequestEntity? = null
 ) {
   // Default constructor for Hibernate
-  constructor() : this(null, "", null, null, null, null)
+  constructor() : this(null, "", null, null)
 }

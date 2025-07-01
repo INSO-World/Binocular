@@ -84,8 +84,9 @@ class BuildDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM BuildEntity")
-    query.executeUpdate()
+    entityManager.createQuery("SELECT b FROM BuildEntity b", BuildEntity::class.java)
+      .resultList
+      .forEach { entityManager.remove(it) }
   }
 
   /**
