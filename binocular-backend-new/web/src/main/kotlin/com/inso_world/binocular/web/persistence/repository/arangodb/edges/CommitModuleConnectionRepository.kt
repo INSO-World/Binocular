@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.entity.Module
-import com.inso_world.binocular.web.entity.edge.CommitModuleConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.CommitEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitModuleConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.ModuleEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CommitModuleConnectionRepository: ArangoRepository<CommitModuleConnection, String> {
+interface CommitModuleConnectionRepository: ArangoRepository<CommitModuleConnectionEntity, String> {
 
   @Query("""
     FOR c IN `commits-modules`
@@ -17,7 +17,7 @@ interface CommitModuleConnectionRepository: ArangoRepository<CommitModuleConnect
             FILTER m._id == c._to
             RETURN m
 """)
-  fun findModulesByCommit(commitId: String): List<Module>
+  fun findModulesByCommit(commitId: String): List<ModuleEntity>
 
   @Query("""
     FOR c IN `commits-modules`
@@ -26,5 +26,5 @@ interface CommitModuleConnectionRepository: ArangoRepository<CommitModuleConnect
             FILTER cm._id == c._from
             RETURN cm
 """)
-  fun findCommitsByModule(moduleId: String): List<Commit>
+  fun findCommitsByModule(moduleId: String): List<CommitEntity>
 }

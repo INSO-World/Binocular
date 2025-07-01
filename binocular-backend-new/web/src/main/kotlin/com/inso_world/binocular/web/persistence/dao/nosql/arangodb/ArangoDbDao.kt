@@ -8,6 +8,26 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.io.Serializable
 
+/**
+ * Base class for ArangoDB DAO implementations using the direct entity approach.
+ * 
+ * There are two approaches for implementing DAOs in this project:
+ * 
+ * 1. Direct entity usage (using this class):
+ *    - Use ArangoDbDao<Entity, ID> where Entity is both the domain model and database entity
+ *    - Call setRepository(repository) and setClazz(Entity::class.java) in the init block
+ *    - Example: BranchDao extends ArangoDbDao<Branch, String>
+ * 
+ * 2. With entity mapping (using MappedArangoDbDao):
+ *    - Use MappedArangoDbDao<DomainModel, Entity, ID> to separate domain models from entities
+ *    - Implement the abstract methods for converting between domain models and entities
+ *    - Example: AccountDao extends MappedArangoDbDao<Account, AccountEntity, String>
+ * 
+ * The second approach is recommended for new code as it provides better separation of concerns
+ * between domain models and database-specific entities.
+ * 
+ * @see MappedArangoDbDao for the entity mapping approach
+ */
 @Repository
 @Profile("nosql", "arangodb")
 class ArangoDbDao<T : Any, I : Serializable> : NoSqlDao<T, I>() {
@@ -39,18 +59,31 @@ class ArangoDbDao<T : Any, I : Serializable> : NoSqlDao<T, I>() {
   }
 
   override fun update(entity: T): T {
-    TODO("Not yet implemented")
+    return this.arangoRepository.save(entity)
   }
 
   override fun updateAndFlush(entity: T): T {
-    TODO("Not yet implemented")
+    // ArangoDB doesn't have a concept of "flush", so this is the same as update
+    return update(entity)
   }
 
   override fun delete(entity: T) {
-    TODO("Not yet implemented")
+    this.arangoRepository.delete(entity)
   }
 
   override fun deleteById(id: I) {
-    TODO("Not yet implemented")
+    this.arangoRepository.deleteById(id)
+  }
+
+  override fun deleteAll() {
+    this.arangoRepository.deleteAll()
+  }
+
+  override fun save(entity: T): T {
+    return this.arangoRepository.save(entity)
+  }
+
+  override fun saveAll(entities: List<T>): Iterable<T> {
+    return entities.map { save(it) }
   }
 }

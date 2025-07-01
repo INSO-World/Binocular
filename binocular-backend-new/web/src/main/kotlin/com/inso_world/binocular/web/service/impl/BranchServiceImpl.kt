@@ -2,7 +2,8 @@ package com.inso_world.binocular.web.service.impl
 
 import com.inso_world.binocular.web.entity.Branch
 import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BranchDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IBranchDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IBranchFileConnectionDao
 import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.BranchFileConnectionRepository
 import com.inso_world.binocular.web.service.BranchService
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class BranchServiceImpl(
-  @Autowired private val branchDao: BranchDao,
-  @Autowired private val branchFileConnectionRepository: BranchFileConnectionRepository
+  @Autowired private val branchDao: IBranchDao,
+  @Autowired private val branchFileConnectionRepository: IBranchFileConnectionDao
 ) : BranchService {
 
   var logger: Logger = LoggerFactory.getLogger(BranchServiceImpl::class.java)

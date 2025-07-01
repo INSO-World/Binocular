@@ -2,12 +2,12 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.entity.edge.CommitCommitConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitCommitConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.CommitEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CommitCommitConnectionRepository: ArangoRepository<CommitCommitConnection, String> {
+interface CommitCommitConnectionRepository: ArangoRepository<CommitCommitConnectionEntity, String> {
 
   @Query("""
     FOR c IN `commits-commits`
@@ -16,7 +16,7 @@ interface CommitCommitConnectionRepository: ArangoRepository<CommitCommitConnect
             FILTER cm._id == c._to
             RETURN cm
 """)
-  fun findParentCommitsByChildCommit(childCommitId: String): List<Commit>
+  fun findParentCommitsByChildCommit(childCommitId: String): List<CommitEntity>
 
   @Query("""
     FOR c IN `commits-commits`
@@ -25,5 +25,5 @@ interface CommitCommitConnectionRepository: ArangoRepository<CommitCommitConnect
             FILTER cm._id == c._from
             RETURN cm
 """)
-  fun findChildCommitsByParentCommit(parentCommitId: String): List<Commit>
+  fun findChildCommitsByParentCommit(parentCommitId: String): List<CommitEntity>
 }

@@ -4,11 +4,12 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Milestone
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestAccountConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestMilestoneConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestNoteConnectionDao
 import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MergeRequestDao
 import com.inso_world.binocular.web.persistence.model.Page
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestAccountConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestMilestoneConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestNoteConnectionRepository
 import com.inso_world.binocular.web.service.MergeRequestService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,12 +17,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+/**
+ * Implementation of the MergeRequestService interface.
+ * This service is database-agnostic and works with both ArangoDB and SQL implementations.
+ */
 @Service
 class MergeRequestServiceImpl(
-  @Autowired private val mergeRequestDao: MergeRequestDao,
-  @Autowired private val mergeRequestAccountConnectionRepository: MergeRequestAccountConnectionRepository,
-  @Autowired private val mergeRequestMilestoneConnectionRepository: MergeRequestMilestoneConnectionRepository,
-  @Autowired private val mergeRequestNoteConnectionRepository: MergeRequestNoteConnectionRepository
+  @Autowired private val mergeRequestDao: IMergeRequestDao,
+  @Autowired private val mergeRequestAccountConnectionRepository: IMergeRequestAccountConnectionDao,
+  @Autowired private val mergeRequestMilestoneConnectionRepository: IMergeRequestMilestoneConnectionDao,
+  @Autowired private val mergeRequestNoteConnectionRepository: IMergeRequestNoteConnectionDao
 ) : MergeRequestService {
 
   var logger: Logger = LoggerFactory.getLogger(MergeRequestServiceImpl::class.java)

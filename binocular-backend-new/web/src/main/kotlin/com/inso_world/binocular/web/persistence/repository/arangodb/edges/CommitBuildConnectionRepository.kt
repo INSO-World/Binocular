@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Build
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.entity.edge.CommitBuildConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.BuildEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitBuildConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.CommitEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CommitBuildConnectionRepository: ArangoRepository<CommitBuildConnection, String> {
+interface CommitBuildConnectionRepository: ArangoRepository<CommitBuildConnectionEntity, String> {
 
   @Query("""
     FOR c IN `commits-builds`
@@ -17,7 +17,7 @@ interface CommitBuildConnectionRepository: ArangoRepository<CommitBuildConnectio
             FILTER b._id == c._to
             RETURN b
 """)
-  fun findBuildsByCommit(commitId: String): List<Build>
+  fun findBuildsByCommit(commitId: String): List<BuildEntity>
 
   @Query("""
     FOR c IN `commits-builds`
@@ -26,5 +26,5 @@ interface CommitBuildConnectionRepository: ArangoRepository<CommitBuildConnectio
             FILTER cm._id == c._from
             RETURN cm
 """)
-  fun findCommitsByBuild(buildId: String): List<Commit>
+  fun findCommitsByBuild(buildId: String): List<CommitEntity>
 }

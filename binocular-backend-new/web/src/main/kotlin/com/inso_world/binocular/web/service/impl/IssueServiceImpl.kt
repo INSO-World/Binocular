@@ -1,7 +1,12 @@
 package com.inso_world.binocular.web.service.impl
 
 import com.inso_world.binocular.web.entity.*
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.IssueDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueAccountConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueCommitConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueMilestoneConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueNoteConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueUserConnectionDao
 import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueCommitConnectionRepository
@@ -17,12 +22,12 @@ import org.springframework.stereotype.Service
 
 @Service
 class IssueServiceImpl(
-  @Autowired private val issueDao: IssueDao,
-  @Autowired private val issueAccountConnectionRepository: IssueAccountConnectionRepository,
-  @Autowired private val issueCommitConnectionRepository: IssueCommitConnectionRepository,
-  @Autowired private val issueMilestoneConnectionRepository: IssueMilestoneConnectionRepository,
-  @Autowired private val issueNoteConnectionRepository: IssueNoteConnectionRepository,
-  @Autowired private val issueUserConnectionRepository: IssueUserConnectionRepository
+  @Autowired private val issueDao: IIssueDao,
+  @Autowired private val issueAccountConnectionRepository: IIssueAccountConnectionDao,
+  @Autowired private val issueCommitConnectionRepository: IIssueCommitConnectionDao,
+  @Autowired private val issueMilestoneConnectionRepository: IIssueMilestoneConnectionDao,
+  @Autowired private val issueNoteConnectionRepository: IIssueNoteConnectionDao,
+  @Autowired private val issueUserConnectionRepository: IIssueUserConnectionDao
 ) : IssueService {
 
   var logger: Logger = LoggerFactory.getLogger(IssueServiceImpl::class.java)

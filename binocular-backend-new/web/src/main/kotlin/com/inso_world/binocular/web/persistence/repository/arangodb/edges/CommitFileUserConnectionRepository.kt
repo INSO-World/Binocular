@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.User
-import com.inso_world.binocular.web.entity.edge.CommitFileUserConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitFileUserConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.FileEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.UserEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CommitFileUserConnectionRepository: ArangoRepository<CommitFileUserConnection, String> {
+interface CommitFileUserConnectionRepository: ArangoRepository<CommitFileUserConnectionEntity, String> {
 
   @Query("""
     FOR c IN `commit-files-users`
@@ -17,7 +17,7 @@ interface CommitFileUserConnectionRepository: ArangoRepository<CommitFileUserCon
             FILTER u._id == c._to
             RETURN u
 """)
-  fun findUsersByCommitFile(commitFileId: String): List<User>
+  fun findUsersByCommitFile(commitFileId: String): List<UserEntity>
 
   @Query("""
     FOR c IN `commit-files-users`
@@ -26,5 +26,5 @@ interface CommitFileUserConnectionRepository: ArangoRepository<CommitFileUserCon
             FILTER f._id == c._from
             RETURN f
 """)
-  fun findCommitFilesByUser(userId: String): List<File>
+  fun findCommitFilesByUser(userId: String): List<FileEntity>
 }

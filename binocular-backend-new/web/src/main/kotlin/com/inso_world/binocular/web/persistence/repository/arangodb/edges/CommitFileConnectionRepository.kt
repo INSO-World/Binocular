@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.edge.CommitFileConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.CommitEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.CommitFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.FileEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CommitFileConnectionRepository: ArangoRepository<CommitFileConnection, String> {
+interface CommitFileConnectionRepository: ArangoRepository<CommitFileConnectionEntity, String> {
 
   @Query("""
     FOR c IN `commits-files`
@@ -17,7 +17,7 @@ interface CommitFileConnectionRepository: ArangoRepository<CommitFileConnection,
             FILTER f._id == c._to
             RETURN f
 """)
-  fun findFilesByCommit(commitId: String): List<File>
+  fun findFilesByCommit(commitId: String): List<FileEntity>
 
   @Query("""
     FOR c IN `commits-files`
@@ -26,5 +26,5 @@ interface CommitFileConnectionRepository: ArangoRepository<CommitFileConnection,
             FILTER cm._id == c._from
             RETURN cm
 """)
-  fun findCommitsByFile(fileId: String): List<Commit>
+  fun findCommitsByFile(fileId: String): List<CommitEntity>
 }

@@ -22,7 +22,18 @@ interface IDao<T, I : Serializable> {
 
   fun updateAndFlush(entity: T): T
 
-  // TBD: Batch saveAll
+  /**
+   * Delete all entities
+   */
+  fun deleteAll()
 
+  /**
+   * Save an entity (create or update)
+   */
+  fun save(entity: T): T
 
+  /**
+   * Save multiple entities
+   */
+  fun saveAll(entities: List<T>): Iterable<T>
 }

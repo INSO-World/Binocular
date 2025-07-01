@@ -2,8 +2,8 @@ package com.inso_world.binocular.web
 
 import com.inso_world.binocular.web.entity.*
 import com.inso_world.binocular.web.entity.edge.*
-import com.inso_world.binocular.web.persistence.repository.arangodb.*
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.*
+import com.inso_world.binocular.web.entity.edge.domain.*
+import com.inso_world.binocular.web.persistence.dao.interfaces.*
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester
@@ -23,94 +23,94 @@ abstract class BaseDbTest {
     protected lateinit var graphQlTester: GraphQlTester
 
     @Autowired
-    protected lateinit var commitRepository: CommitRepository
+    protected lateinit var commitRepository: ICommitDao
 
     @Autowired
-    protected lateinit var accountRepository: AccountRepository
+    protected lateinit var accountRepository: IAccountDao
 
     @Autowired
-    protected lateinit var branchRepository: BranchRepository
+    protected lateinit var branchRepository: IBranchDao
 
     @Autowired
-    protected lateinit var buildRepository: BuildRepository
+    protected lateinit var buildRepository: IBuildDao
 
     @Autowired
-    protected lateinit var fileRepository: FileRepository
+    protected lateinit var fileRepository: IFileDao
 
     @Autowired
-    protected lateinit var issueRepository: IssueRepository
+    protected lateinit var issueRepository: IIssueDao
 
     @Autowired
-    protected lateinit var mergeRequestRepository: MergeRequestRepository
+    protected lateinit var mergeRequestRepository: IMergeRequestDao
 
     @Autowired
-    protected lateinit var moduleRepository: ModuleRepository
+    protected lateinit var moduleRepository: IModuleDao
 
     @Autowired
-    protected lateinit var noteRepository: NoteRepository
+    protected lateinit var noteRepository: INoteDao
 
     @Autowired
-    protected lateinit var userRepository: UserRepository
+    protected lateinit var userRepository: IUserDao
 
     @Autowired
-    protected lateinit var milestoneRepository: MilestoneRepository
+    protected lateinit var milestoneRepository: IMilestoneDao
 
     @Autowired
-    protected lateinit var branchFileConnectionRepository: BranchFileConnectionRepository
+    protected lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
 
     @Autowired
-    protected lateinit var branchFileFileConnectionRepository: BranchFileFileConnectionRepository
+    protected lateinit var branchFileFileConnectionRepository: IBranchFileFileConnectionDao
 
     @Autowired
-    protected lateinit var commitBuildConnectionRepository: CommitBuildConnectionRepository
+    protected lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao
 
     @Autowired
-    protected lateinit var commitCommitConnectionRepository: CommitCommitConnectionRepository
+    protected lateinit var commitCommitConnectionRepository: ICommitCommitConnectionDao
 
     @Autowired
-    protected lateinit var commitFileConnectionRepository: CommitFileConnectionRepository
+    protected lateinit var commitFileConnectionRepository: ICommitFileConnectionDao
 
     @Autowired
-    protected lateinit var commitFileUserConnectionRepository: CommitFileUserConnectionRepository
+    protected lateinit var commitFileUserConnectionRepository: ICommitFileUserConnectionDao
 
     @Autowired
-    protected lateinit var commitModuleConnectionRepository: CommitModuleConnectionRepository
+    protected lateinit var commitModuleConnectionRepository: ICommitModuleConnectionDao
 
     @Autowired
-    protected lateinit var commitUserConnectionRepository: CommitUserConnectionRepository
+    protected lateinit var commitUserConnectionRepository: ICommitUserConnectionDao
 
     @Autowired
-    protected lateinit var issueAccountConnectionRepository: IssueAccountConnectionRepository
+    protected lateinit var issueAccountConnectionRepository: IIssueAccountConnectionDao
 
     @Autowired
-    protected lateinit var issueCommitConnectionRepository: IssueCommitConnectionRepository
+    protected lateinit var issueCommitConnectionRepository: IIssueCommitConnectionDao
 
     @Autowired
-    protected lateinit var issueMilestoneConnectionRepository: IssueMilestoneConnectionRepository
+    protected lateinit var issueMilestoneConnectionRepository: IIssueMilestoneConnectionDao
 
     @Autowired
-    protected lateinit var issueNoteConnectionRepository: IssueNoteConnectionRepository
+    protected lateinit var issueNoteConnectionRepository: IIssueNoteConnectionDao
 
     @Autowired
-    protected lateinit var issueUserConnectionRepository: IssueUserConnectionRepository
+    protected lateinit var issueUserConnectionRepository: IIssueUserConnectionDao
 
     @Autowired
-    protected lateinit var mergeRequestAccountConnectionRepository: MergeRequestAccountConnectionRepository
+    protected lateinit var mergeRequestAccountConnectionRepository: IMergeRequestAccountConnectionDao
 
     @Autowired
-    protected lateinit var mergeRequestMilestoneConnectionRepository: MergeRequestMilestoneConnectionRepository
+    protected lateinit var mergeRequestMilestoneConnectionRepository: IMergeRequestMilestoneConnectionDao
 
     @Autowired
-    protected lateinit var mergeRequestNoteConnectionRepository: MergeRequestNoteConnectionRepository
+    protected lateinit var mergeRequestNoteConnectionRepository: IMergeRequestNoteConnectionDao
 
     @Autowired
-    protected lateinit var moduleFileConnectionRepository: ModuleFileConnectionRepository
+    protected lateinit var moduleFileConnectionRepository: IModuleFileConnectionDao
 
     @Autowired
-    protected lateinit var moduleModuleConnectionRepository: ModuleModuleConnectionRepository
+    protected lateinit var moduleModuleConnectionRepository: IModuleModuleConnectionDao
 
     @Autowired
-    protected lateinit var noteAccountConnectionRepository: NoteAccountConnectionRepository
+    protected lateinit var noteAccountConnectionRepository: INoteAccountConnectionDao
 
     protected val testAccounts = listOf(
         Account("1", Platform.GitHub, "user1", "User One", "https://example.com/avatars/user1.png", "https://github.com/user1"),

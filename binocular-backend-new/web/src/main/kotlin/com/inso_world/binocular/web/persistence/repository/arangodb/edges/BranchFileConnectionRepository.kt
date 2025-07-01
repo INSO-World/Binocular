@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Branch
-import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.edge.BranchFileConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.BranchEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.BranchFileConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.FileEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface BranchFileConnectionRepository: ArangoRepository<BranchFileConnection, String> {
+interface BranchFileConnectionRepository: ArangoRepository<BranchFileConnectionEntity, String> {
 
   @Query("""
     FOR c IN `branches-files`
@@ -17,7 +17,7 @@ interface BranchFileConnectionRepository: ArangoRepository<BranchFileConnection,
             FILTER f._id == c._to
             RETURN f
 """)
-  fun findFilesByBranch(branchId: String): List<File>
+  fun findFilesByBranch(branchId: String): List<FileEntity>
 
   @Query("""
     FOR c IN `branches-files`
@@ -26,6 +26,6 @@ interface BranchFileConnectionRepository: ArangoRepository<BranchFileConnection,
             FILTER b._id == c._from
             RETURN b
 """)
-  fun findBranchesByFile(fileId: String): List<Branch>
+  fun findBranchesByFile(fileId: String): List<BranchEntity>
 
 }

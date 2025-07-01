@@ -1,9 +1,11 @@
 package com.inso_world.binocular.web.persistence.repository.arangodb
 
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.MergeRequest
+import com.inso_world.binocular.web.persistence.entity.arangodb.MergeRequestEntity
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 
 @Repository
-interface MergeRequestRepository: ArangoRepository<MergeRequest, String> {
+@Profile("nosql", "arangodb")
+interface MergeRequestRepository: ArangoRepository<MergeRequestEntity, String> {
 }

@@ -4,11 +4,11 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.NoteDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueNoteConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestNoteConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.INoteAccountConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.INoteDao
 import com.inso_world.binocular.web.persistence.model.Page
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.NoteAccountConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueNoteConnectionRepository
-import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestNoteConnectionRepository
 import com.inso_world.binocular.web.service.NoteService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,12 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+/**
+ * Implementation of the NoteService interface.
+ * This service is database-agnostic and works with both ArangoDB and SQL implementations.
+ */
 @Service
 class NoteServiceImpl(
-  @Autowired private val noteDao: NoteDao,
-  @Autowired private val noteAccountConnectionRepository: NoteAccountConnectionRepository,
-  @Autowired private val issueNoteConnectionRepository: IssueNoteConnectionRepository,
-  @Autowired private val mergeRequestNoteConnectionRepository: MergeRequestNoteConnectionRepository
+  @Autowired private val noteDao: INoteDao,
+  @Autowired private val noteAccountConnectionRepository: INoteAccountConnectionDao,
+  @Autowired private val issueNoteConnectionRepository: IIssueNoteConnectionDao,
+  @Autowired private val mergeRequestNoteConnectionRepository: IMergeRequestNoteConnectionDao
 ) : NoteService {
 
   var logger: Logger = LoggerFactory.getLogger(NoteServiceImpl::class.java)

@@ -63,4 +63,32 @@ class SqlDao<T, I : Serializable> : GenericDao<T, I> {
     val entity = findById(id) ?: throw NotFoundException("Entity not found")
     delete(entity)
   }
+
+  /**
+   * Delete all entities
+   */
+  override fun deleteAll() {
+    val entities = entityManager.createQuery("SELECT e FROM ${clazz.name} e", clazz)
+      .resultList
+    entities.forEach { entityManager.remove(it) }
+  }
+
+  /**
+   * Save an entity (create or update)
+   * For SQL, this is the same as create or update depending on whether the entity exists
+   */
+  override fun save(entity: T): T {
+    return if (entityManager.contains(entity)) {
+      update(entity)
+    } else {
+      create(entity)
+    }
+  }
+
+  /**
+   * Save multiple entities
+   */
+  override fun saveAll(entities: List<T>): Iterable<T> {
+    return entities.map { save(it) }
+  }
 }

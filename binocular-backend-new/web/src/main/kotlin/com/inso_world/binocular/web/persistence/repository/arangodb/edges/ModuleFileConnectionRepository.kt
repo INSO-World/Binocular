@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.entity.Module
-import com.inso_world.binocular.web.entity.edge.ModuleFileConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.FileEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.ModuleEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.ModuleFileConnectionEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ModuleFileConnectionRepository: ArangoRepository<ModuleFileConnection, String> {
+interface ModuleFileConnectionRepository: ArangoRepository<ModuleFileConnectionEntity, String> {
 
   @Query("""
     FOR c IN `modules-files`
@@ -17,7 +17,7 @@ interface ModuleFileConnectionRepository: ArangoRepository<ModuleFileConnection,
             FILTER f._id == c._to
             RETURN f
 """)
-  fun findFilesByModule(moduleId: String): List<File>
+  fun findFilesByModule(moduleId: String): List<FileEntity>
 
   @Query("""
     FOR c IN `modules-files`
@@ -26,5 +26,5 @@ interface ModuleFileConnectionRepository: ArangoRepository<ModuleFileConnection,
             FILTER m._id == c._from
             RETURN m
 """)
-  fun findModulesByFile(fileId: String): List<Module>
+  fun findModulesByFile(fileId: String): List<ModuleEntity>
 }

@@ -2,13 +2,13 @@ package com.inso_world.binocular.web.persistence.repository.arangodb.edges
 
 import com.arangodb.springframework.annotation.Query
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.entity.MergeRequest
-import com.inso_world.binocular.web.entity.edge.MergeRequestNoteConnection
+import com.inso_world.binocular.web.persistence.entity.arangodb.MergeRequestEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.edges.MergeRequestNoteConnectionEntity
+import com.inso_world.binocular.web.persistence.entity.arangodb.NoteEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface MergeRequestNoteConnectionRepository: ArangoRepository<MergeRequestNoteConnection, String> {
+interface MergeRequestNoteConnectionRepository: ArangoRepository<MergeRequestNoteConnectionEntity, String> {
 
   @Query("""
     FOR c IN `merge-requests-notes`
@@ -17,7 +17,7 @@ interface MergeRequestNoteConnectionRepository: ArangoRepository<MergeRequestNot
             FILTER n._id == c._to
             RETURN n
 """)
-  fun findNotesByMergeRequest(mergeRequestId: String): List<Note>
+  fun findNotesByMergeRequest(mergeRequestId: String): List<NoteEntity>
 
   @Query("""
     FOR c IN `merge-requests-notes`
@@ -26,5 +26,5 @@ interface MergeRequestNoteConnectionRepository: ArangoRepository<MergeRequestNot
             FILTER mr._id == c._from
             RETURN mr
 """)
-  fun findMergeRequestsByNote(noteId: String): List<MergeRequest>
+  fun findMergeRequestsByNote(noteId: String): List<MergeRequestEntity>
 }

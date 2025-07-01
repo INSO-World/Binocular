@@ -4,7 +4,10 @@ import com.inso_world.binocular.web.entity.Account
 import com.inso_world.binocular.web.entity.Issue
 import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Note
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.AccountDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IAccountDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueAccountConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestAccountConnectionDao
+import com.inso_world.binocular.web.persistence.dao.interfaces.INoteAccountConnectionDao
 import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.IssueAccountConnectionRepository
 import com.inso_world.binocular.web.persistence.repository.arangodb.edges.MergeRequestAccountConnectionRepository
@@ -18,10 +21,10 @@ import org.springframework.stereotype.Service
 
 @Service
 class AccountServiceImpl(
-  @Autowired private val accountDao: AccountDao,
-  @Autowired private val issueAccountConnectionRepository: IssueAccountConnectionRepository,
-  @Autowired private val mergeRequestAccountConnectionRepository: MergeRequestAccountConnectionRepository,
-  @Autowired private val noteAccountConnectionRepository: NoteAccountConnectionRepository
+  @Autowired private val accountDao: IAccountDao,
+  @Autowired private val issueAccountConnectionRepository: IIssueAccountConnectionDao,
+  @Autowired private val mergeRequestAccountConnectionRepository: IMergeRequestAccountConnectionDao,
+  @Autowired private val noteAccountConnectionRepository: INoteAccountConnectionDao
 ) : AccountService {
 
   var logger: Logger = LoggerFactory.getLogger(AccountServiceImpl::class.java)
