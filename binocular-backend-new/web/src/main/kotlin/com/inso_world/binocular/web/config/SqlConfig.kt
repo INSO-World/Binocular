@@ -18,10 +18,9 @@ import java.util.Properties
 import javax.sql.DataSource
 
 @Configuration
-// @Profile("sql")
+@Profile("sql")
 @EnableTransactionManagement
 @EntityScan("com.inso_world.binocular.web.persistence.entity.sql")
-@EnableJpaRepositories("com.inso_world.binocular.web.persistence.repository.sql")
 class SqlConfig {
 
     @Autowired
