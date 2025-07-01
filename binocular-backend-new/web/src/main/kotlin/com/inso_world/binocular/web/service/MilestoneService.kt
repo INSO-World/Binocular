@@ -1,33 +1,45 @@
 package com.inso_world.binocular.web.service
 
+import com.inso_world.binocular.web.entity.Issue
+import com.inso_world.binocular.web.entity.MergeRequest
 import com.inso_world.binocular.web.entity.Milestone
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MilestoneDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class MilestoneService(
-  @Autowired private val milestoneDao: MilestoneDao,
-) {
+/**
+ * Interface for MilestoneService.
+ * Provides methods to retrieve milestones and their related entities.
+ */
+interface MilestoneService {
+    /**
+     * Find all milestones with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Page of milestones
+     */
+    fun findAll(pageable: Pageable): Page<Milestone>
 
-  var logger: Logger = LoggerFactory.getLogger(MilestoneService::class.java)
+    /**
+     * Find a milestone by ID.
+     *
+     * @param id The ID of the milestone to find
+     * @return The milestone if found, null otherwise
+     */
+    fun findById(id: String): Milestone?
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Milestone> {
-    logger.trace("Getting all milestones...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
+    /**
+     * Find issues by milestone ID.
+     *
+     * @param milestoneId The ID of the milestone
+     * @return List of issues associated with the milestone
+     */
+    fun findIssuesByMilestoneId(milestoneId: String): List<Issue>
 
-    return milestoneDao.findAll(pageable)
-  }
-
-  fun findById(id: String): Milestone? {
-    logger.trace("Getting milestone by id: $id")
-    return milestoneDao.findById(id)
-  }
+    /**
+     * Find merge requests by milestone ID.
+     *
+     * @param milestoneId The ID of the milestone
+     * @return List of merge requests associated with the milestone
+     */
+    fun findMergeRequestsByMilestoneId(milestoneId: String): List<MergeRequest>
 }

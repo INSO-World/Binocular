@@ -1,15 +1,20 @@
+"""
+Scalar type for timestamp values (milliseconds since epoch)
+"""
+scalar Timestamp
+
 type Query {
-  commits(page: Int, perPage: Int): [Commit]!
-  accounts(page: Int, perPage: Int): [Account]!
-  branches(page: Int, perPage: Int): [Branch]!
-  builds(page: Int, perPage: Int): [Build]!
-  files(page: Int, perPage: Int): [File]!
-  issues(page: Int, perPage: Int): [Issue]!
-  mergeRequests(page: Int, perPage: Int): [MergeRequest]!
-  milestones(page: Int, perPage: Int): [Milestone]!
-  modules(page: Int, perPage: Int): [Module]!
-  notes(page: Int, perPage: Int): [Note]!
-  users(page: Int, perPage: Int): [User]!
+  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp): CommitPage!
+  accounts(page: Int, perPage: Int): AccountPage!
+  branches(page: Int, perPage: Int): BranchPage!
+  builds(page: Int, perPage: Int, until: Timestamp): BuildPage!
+  files(page: Int, perPage: Int): FilePage!
+  issues(page: Int, perPage: Int): IssuePage!
+  mergeRequests(page: Int, perPage: Int): MergeRequestPage!
+  milestones(page: Int, perPage: Int): MilestonePage!
+  modules(page: Int, perPage: Int): ModulePage!
+  notes(page: Int, perPage: Int): NotePage!
+  users(page: Int, perPage: Int): UserPage!
 
   # Single item queries
   commit(id: ID!): Commit
@@ -31,15 +36,25 @@ A single git commit
 type Commit {
   id: ID
   sha: String
+  shortSha: String
   date: String
   message: String
+  messageHeader: String
   webUrl: String
   branch: String
   stats: Stats
   """
-  Parent commits
+  Parent commits as a list of strings (doesn't require subselection)
   """
-  parents: [Commit]
+  parents: [String]
+  """
+  Parent commits as a scalar (doesn't require subselection)
+  """
+  parentsScalar: String
+  """
+  Parent commit SHAs (scalar array that doesn't require subselection)
+  """
+  parentShas: [String]
   """
   Child commits
   """
@@ -48,6 +63,7 @@ type Commit {
   files: [File]
   modules: [Module]
   users: [User]
+  user: User
   issues: [Issue]
   pageInfo: PageInfo
 }
@@ -92,7 +108,6 @@ type Branch {
 
 type Build {
   id: ID
-  arangoId: String
   sha: String
   ref: String
   status: String
@@ -108,6 +123,7 @@ type Build {
   jobs: [Job]
   webUrl: String
   commits: [Commit]
+  commit: Commit
 }
 
 type Job {
@@ -128,6 +144,8 @@ type File {
   commits: [Commit]
   branches: [Branch]
   modules: [Module]
+  relatedFiles: [File]
+  users: [User]
 }
 
 type Issue {
@@ -218,4 +236,115 @@ type User {
   gitSignature: String
   commits: [Commit]
   issues: [Issue]
+  files: [File]
+}
+
+"""
+A paginated response for User objects
+"""
+type UserPage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [User]!
+}
+
+"""
+A paginated response for Account objects
+"""
+type AccountPage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Account]!
+}
+
+"""
+A paginated response for Branch objects
+"""
+type BranchPage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Branch]!
+}
+
+"""
+A paginated response for Build objects
+"""
+type BuildPage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Build]!
+}
+
+"""
+A paginated response for Commit objects
+"""
+type CommitPage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Commit]!
+}
+
+"""
+A paginated response for File objects
+"""
+type FilePage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [File]!
+}
+
+"""
+A paginated response for Issue objects
+"""
+type IssuePage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Issue]!
+}
+
+"""
+A paginated response for MergeRequest objects
+"""
+type MergeRequestPage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [MergeRequest]!
+}
+
+"""
+A paginated response for Milestone objects
+"""
+type MilestonePage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Milestone]!
+}
+
+"""
+A paginated response for Module objects
+"""
+type ModulePage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Module]!
+}
+
+"""
+A paginated response for Note objects
+"""
+type NotePage {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Note]!
 }

@@ -1,33 +1,36 @@
 package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.Branch
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BranchDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import com.inso_world.binocular.web.entity.File
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class BranchService(
-  @Autowired private val branchDao: BranchDao,
-) {
+/**
+ * Interface for BranchService.
+ * Provides methods to retrieve branches and their related entities.
+ */
+interface BranchService {
+    /**
+     * Find all branches with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Page of branches
+     */
+    fun findAll(pageable: Pageable): Page<Branch>
 
-  var logger: Logger = LoggerFactory.getLogger(BranchService::class.java)
+    /**
+     * Find a branch by ID.
+     *
+     * @param id The ID of the branch to find
+     * @return The branch if found, null otherwise
+     */
+    fun findById(id: String): Branch?
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Branch> {
-    logger.trace("Getting all branches...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
-
-    return branchDao.findAll(pageable)
-  }
-
-  fun findById(id: String): Branch? {
-    logger.trace("Getting branch by id: $id")
-    return branchDao.findById(id)
-  }
+    /**
+     * Find files by branch ID.
+     *
+     * @param branchId The ID of the branch
+     * @return List of files associated with the branch
+     */
+    fun findFilesByBranchId(branchId: String): List<File>
 }

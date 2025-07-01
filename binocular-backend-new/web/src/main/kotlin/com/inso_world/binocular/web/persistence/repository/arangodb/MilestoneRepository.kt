@@ -1,9 +1,11 @@
 package com.inso_world.binocular.web.persistence.repository.arangodb
 
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.web.entity.Milestone
+import com.inso_world.binocular.web.persistence.entity.arangodb.MilestoneEntity
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 
 @Repository
-interface MilestoneRepository: ArangoRepository<Milestone, String> {
+@Profile("nosql", "arangodb")
+interface MilestoneRepository: ArangoRepository<MilestoneEntity, String> {
 }

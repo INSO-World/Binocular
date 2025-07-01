@@ -1,33 +1,71 @@
 package com.inso_world.binocular.web.service
 
+import com.inso_world.binocular.web.entity.Branch
+import com.inso_world.binocular.web.entity.Commit
 import com.inso_world.binocular.web.entity.File
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.FileDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import com.inso_world.binocular.web.entity.Module
+import com.inso_world.binocular.web.entity.User
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class FileService(
-  @Autowired private val fileDao: FileDao,
-) {
+/**
+ * Interface for FileService.
+ * Provides methods to retrieve files and their related entities.
+ */
+interface FileService {
+    /**
+     * Find all files with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Page of files
+     */
+    fun findAll(pageable: Pageable): Page<File>
 
-  var logger: Logger = LoggerFactory.getLogger(FileService::class.java)
+    /**
+     * Find a file by ID.
+     *
+     * @param id The ID of the file to find
+     * @return The file if found, null otherwise
+     */
+    fun findById(id: String): File?
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<File> {
-    logger.trace("Getting all files...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
+    /**
+     * Find branches by file ID.
+     *
+     * @param fileId The ID of the file
+     * @return List of branches associated with the file
+     */
+    fun findBranchesByFileId(fileId: String): List<Branch>
 
-    return fileDao.findAll(pageable)
-  }
+    /**
+     * Find commits by file ID.
+     *
+     * @param fileId The ID of the file
+     * @return List of commits associated with the file
+     */
+    fun findCommitsByFileId(fileId: String): List<Commit>
 
-  fun findById(id: String): File? {
-    logger.trace("Getting file by id: $id")
-    return fileDao.findById(id)
-  }
+    /**
+     * Find modules by file ID.
+     *
+     * @param fileId The ID of the file
+     * @return List of modules associated with the file
+     */
+    fun findModulesByFileId(fileId: String): List<Module>
+
+    /**
+     * Find related files by file ID.
+     *
+     * @param fileId The ID of the file
+     * @return List of related files
+     */
+    fun findRelatedFilesByFileId(fileId: String): List<File>
+
+    /**
+     * Find users by file ID.
+     *
+     * @param fileId The ID of the file
+     * @return List of users associated with the file
+     */
+    fun findUsersByFileId(fileId: String): List<User>
 }

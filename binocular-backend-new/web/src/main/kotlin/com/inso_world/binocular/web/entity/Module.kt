@@ -1,52 +1,16 @@
 package com.inso_world.binocular.web.entity
 
-import com.arangodb.springframework.annotation.Document
-import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.inso_world.binocular.web.entity.edge.CommitModuleConnection
-import com.inso_world.binocular.web.entity.edge.ModuleFileConnection
-import com.inso_world.binocular.web.entity.edge.ModuleModuleConnection
-import org.springframework.data.annotation.Id
-
-@Document("modules")
+/**
+ * Domain model for a Module, representing a code module or package in the codebase.
+ * This class is database-agnostic and contains no persistence-specific annotations.
+ */
 data class Module(
-  @Id
   var id: String? = null,
   var path: String,
 
-  @Relations(
-    edges = [CommitModuleConnection::class],
-    lazy = true,
-    maxDepth = 1,
-    direction = Relations.Direction.INBOUND
-  )
-  @JsonIgnoreProperties(value = ["modules"])
+  // Relationships
   var commits: List<Commit>? = null,
-
-  @Relations(
-    edges = [ModuleFileConnection::class],
-    lazy = true,
-    maxDepth = 1,
-    direction = Relations.Direction.OUTBOUND
-  )
-  @JsonIgnoreProperties(value = ["modules"])
   var files: List<File>? = null,
-
-  @Relations(
-    edges = [ModuleModuleConnection::class],
-    lazy = true,
-    maxDepth = 1,
-    direction = Relations.Direction.OUTBOUND
-  )
-  @JsonIgnoreProperties(value = ["parentModules", "childModules"])
   var childModules: List<Module>? = null,
-
-  @Relations(
-    edges = [ModuleModuleConnection::class],
-    lazy = true,
-    maxDepth = 1,
-    direction = Relations.Direction.INBOUND
-  )
-  @JsonIgnoreProperties(value = ["parentModules", "childModules"])
   var parentModules: List<Module>? = null
 )

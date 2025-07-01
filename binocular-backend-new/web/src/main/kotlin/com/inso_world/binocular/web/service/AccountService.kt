@@ -1,33 +1,54 @@
 package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.Account
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.AccountDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import com.inso_world.binocular.web.entity.Issue
+import com.inso_world.binocular.web.entity.MergeRequest
+import com.inso_world.binocular.web.entity.Note
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class AccountService(
-  @Autowired private val accountDao: AccountDao,
-) {
+/**
+ * Interface for AccountService.
+ * Provides methods to retrieve accounts and their related entities.
+ */
+interface AccountService {
+    /**
+     * Find all accounts with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Page of accounts
+     */
+    fun findAll(pageable: Pageable): Page<Account>
 
-  var logger: Logger = LoggerFactory.getLogger(AccountService::class.java)
+    /**
+     * Find an account by ID.
+     *
+     * @param id The ID of the account to find
+     * @return The account if found, null otherwise
+     */
+    fun findById(id: String): Account?
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Account> {
-    logger.trace("Getting all accounts...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
+    /**
+     * Find issues by account ID.
+     *
+     * @param accountId The ID of the account
+     * @return List of issues associated with the account
+     */
+    fun findIssuesByAccountId(accountId: String): List<Issue>
 
-    return accountDao.findAll(pageable)
-  }
+    /**
+     * Find merge requests by account ID.
+     *
+     * @param accountId The ID of the account
+     * @return List of merge requests associated with the account
+     */
+    fun findMergeRequestsByAccountId(accountId: String): List<MergeRequest>
 
-  fun findById(id: String): Account? {
-    logger.trace("Getting account by id: $id")
-    return accountDao.findById(id)
-  }
+    /**
+     * Find notes by account ID.
+     *
+     * @param accountId The ID of the account
+     * @return List of notes associated with the account
+     */
+    fun findNotesByAccountId(accountId: String): List<Note>
 }

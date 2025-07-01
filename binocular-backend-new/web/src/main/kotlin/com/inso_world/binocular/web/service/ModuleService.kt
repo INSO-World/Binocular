@@ -1,33 +1,61 @@
 package com.inso_world.binocular.web.service
 
+import com.inso_world.binocular.web.entity.Commit
+import com.inso_world.binocular.web.entity.File
 import com.inso_world.binocular.web.entity.Module
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.ModuleDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class ModuleService(
-  @Autowired private val moduleDao: ModuleDao,
-) {
+/**
+ * Interface for ModuleService.
+ * Provides methods to retrieve modules and their related entities.
+ */
+interface ModuleService {
+    /**
+     * Find all modules with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Page of modules
+     */
+    fun findAll(pageable: Pageable): Page<Module>
 
-  var logger: Logger = LoggerFactory.getLogger(ModuleService::class.java)
+    /**
+     * Find a module by ID.
+     *
+     * @param id The ID of the module to find
+     * @return The module if found, null otherwise
+     */
+    fun findById(id: String): Module?
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Module> {
-    logger.trace("Getting all modules...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
+    /**
+     * Find commits by module ID.
+     *
+     * @param moduleId The ID of the module
+     * @return List of commits associated with the module
+     */
+    fun findCommitsByModuleId(moduleId: String): List<Commit>
 
-    return moduleDao.findAll(pageable)
-  }
+    /**
+     * Find files by module ID.
+     *
+     * @param moduleId The ID of the module
+     * @return List of files associated with the module
+     */
+    fun findFilesByModuleId(moduleId: String): List<File>
 
-  fun findById(id: String): Module? {
-    logger.trace("Getting module by id: $id")
-    return moduleDao.findById(id)
-  }
+    /**
+     * Find child modules by module ID.
+     *
+     * @param moduleId The ID of the module
+     * @return List of child modules
+     */
+    fun findChildModulesByModuleId(moduleId: String): List<Module>
+
+    /**
+     * Find parent modules by module ID.
+     *
+     * @param moduleId The ID of the module
+     * @return List of parent modules
+     */
+    fun findParentModulesByModuleId(moduleId: String): List<Module>
 }

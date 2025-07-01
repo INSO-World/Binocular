@@ -1,33 +1,45 @@
 package com.inso_world.binocular.web.service
 
 import com.inso_world.binocular.web.entity.Build
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.BuildDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import com.inso_world.binocular.web.entity.Commit
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class BuildService(
-  @Autowired private val buildDao: BuildDao,
-) {
+/**
+ * Interface for BuildService.
+ * Provides methods to retrieve builds and their related entities.
+ */
+interface BuildService {
+    /**
+     * Find all builds with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Page of builds
+     */
+    fun findAll(pageable: Pageable): Page<Build>
 
-  var logger: Logger = LoggerFactory.getLogger(BuildService::class.java)
+    /**
+     * Find all builds with pagination and timestamp filter.
+     *
+     * @param pageable Pagination information
+     * @param until Timestamp to filter builds (only include builds before this timestamp)
+     * @return Page of builds
+     */
+    fun findAll(pageable: Pageable, until: Long?): Page<Build>
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Build> {
-    logger.trace("Getting all builds...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
+    /**
+     * Find a build by ID.
+     *
+     * @param id The ID of the build to find
+     * @return The build if found, null otherwise
+     */
+    fun findById(id: String): Build?
 
-    return buildDao.findAll(pageable)
-  }
-
-  fun findById(id: String): Build? {
-    logger.trace("Getting build by id: $id")
-    return buildDao.findById(id)
-  }
+    /**
+     * Find commits by build ID.
+     *
+     * @param buildId The ID of the build
+     * @return List of commits associated with the build
+     */
+    fun findCommitsByBuildId(buildId: String): List<Commit>
 }

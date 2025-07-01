@@ -1,36 +1,93 @@
 package com.inso_world.binocular.web.service
 
-import com.inso_world.binocular.web.persistence.repository.arangodb.CommitRepository
-import com.inso_world.binocular.web.entity.Commit
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.CommitDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import com.inso_world.binocular.web.entity.*
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
 
-@Service
-class CommitService(
-  @Autowired private val commitDao: CommitDao,
-) {
+/**
+ * Interface for CommitService.
+ * Provides methods to retrieve commits and their related entities.
+ */
+interface CommitService {
+    /**
+     * Find all commits with pagination.
+     *
+     * @param pageable Pagination information
+     * @return Page of commits
+     */
+    fun findAll(pageable: Pageable): Page<Commit>
 
-  var logger: Logger = LoggerFactory.getLogger(CommitService::class.java)
+    /**
+     * Find all commits with pagination and timestamp filters.
+     *
+     * @param pageable Pagination information
+     * @param since Optional timestamp to filter commits (only include commits after this timestamp)
+     * @param until Optional timestamp to filter commits (only include commits before this timestamp)
+     * @return Page of commits
+     */
+    fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Commit>
 
+    /**
+     * Find a commit by ID.
+     *
+     * @param id The ID of the commit to find
+     * @return The commit if found, null otherwise
+     */
+    fun findById(id: String): Commit?
 
-  fun findAll(page: Int? = 1, perPage: Int? = 100): Iterable<Commit> {
-    logger.trace("Getting all commits...")
-    val page = page ?: 1
-    val perPage = perPage ?: 100
-    logger.debug("page is $page, perPage is $perPage")
-    val pageable: Pageable = PageRequest.of(page - 1, perPage)
+    /**
+     * Find builds by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of builds associated with the commit
+     */
+    fun findBuildsByCommitId(commitId: String): List<Build>
 
-    return commitDao.findAll(pageable)
-  }
+    /**
+     * Find files by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of files associated with the commit
+     */
+    fun findFilesByCommitId(commitId: String): List<File>
 
-  fun findById(id: String): Commit? {
-    logger.trace("Getting commit by id: $id")
-    return commitDao.findById(id)
-  }
+    /**
+     * Find modules by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of modules associated with the commit
+     */
+    fun findModulesByCommitId(commitId: String): List<Module>
 
+    /**
+     * Find users by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of users associated with the commit
+     */
+    fun findUsersByCommitId(commitId: String): List<User>
+
+    /**
+     * Find issues by commit ID.
+     *
+     * @param commitId The ID of the commit
+     * @return List of issues associated with the commit
+     */
+    fun findIssuesByCommitId(commitId: String): List<Issue>
+
+    /**
+     * Find parent commits by child commit ID.
+     *
+     * @param childCommitId The ID of the child commit
+     * @return List of parent commits
+     */
+    fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit>
+
+    /**
+     * Find child commits by parent commit ID.
+     *
+     * @param parentCommitId The ID of the parent commit
+     * @return List of child commits
+     */
+    fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit>
 }

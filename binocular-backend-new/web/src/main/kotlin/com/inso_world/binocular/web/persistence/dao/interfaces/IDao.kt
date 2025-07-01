@@ -1,5 +1,6 @@
 package com.inso_world.binocular.web.persistence.dao.interfaces
 
+import com.inso_world.binocular.web.persistence.model.Page
 import org.springframework.data.domain.Pageable
 import java.io.Serializable
 
@@ -11,7 +12,7 @@ interface IDao<T, I : Serializable> {
 
   fun findAll(): Iterable<T>
 
-  fun findAll(pageable: Pageable): Iterable<T>
+  fun findAll(pageable: Pageable): Page<T>
 
   fun update(entity: T): T
 
@@ -21,7 +22,18 @@ interface IDao<T, I : Serializable> {
 
   fun updateAndFlush(entity: T): T
 
-  // TBD: Batch saveAll
+  /**
+   * Delete all entities
+   */
+  fun deleteAll()
 
+  /**
+   * Save an entity (create or update)
+   */
+  fun save(entity: T): T
 
+  /**
+   * Save multiple entities
+   */
+  fun saveAll(entities: List<T>): Iterable<T>
 }

@@ -1,19 +1,13 @@
 package com.inso_world.binocular.web.entity
 
-import com.arangodb.springframework.annotation.Document
-import com.arangodb.springframework.annotation.Relations
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.inso_world.binocular.web.entity.edge.CommitBuildConnection
-import org.springframework.data.annotation.Id
 import java.util.*
 
-@Document("builds")
-@JsonInclude(JsonInclude.Include.NON_NULL)
+/**
+ * Domain model for a Build, representing a CI/CD build.
+ * This class is database-agnostic and contains no persistence-specific annotations.
+ */
 data class Build(
-  @Id
-  var arangoId: String? = null,
-  var id: Long? = null,
+  var id: String? = null,
   var sha: String? = null,
   var ref: String? = null,
   var status: String? = null,
@@ -29,13 +23,7 @@ data class Build(
   var jobs: List<Job>? = null,
   var webUrl: String? = null,
 
-  @Relations(
-    edges = [CommitBuildConnection::class],
-    lazy = true,
-    maxDepth = 1,
-    direction = Relations.Direction.INBOUND
-  )
-  @JsonIgnoreProperties(value = ["builds"])
+  // Relationships
   var commits: List<Commit>? = null
 ) {
   data class Job(
