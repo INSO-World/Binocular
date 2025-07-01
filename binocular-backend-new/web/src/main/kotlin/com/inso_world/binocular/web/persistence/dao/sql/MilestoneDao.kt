@@ -81,8 +81,9 @@ class MilestoneDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM MilestoneEntity")
-    query.executeUpdate()
+    val milestones = entityManager.createQuery("SELECT m FROM MilestoneEntity m", MilestoneEntity::class.java)
+      .resultList
+    milestones.forEach { entityManager.remove(it) }
   }
 
   /**

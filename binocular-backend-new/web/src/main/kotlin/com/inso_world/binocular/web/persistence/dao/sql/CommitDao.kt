@@ -84,8 +84,9 @@ class CommitDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM CommitEntity")
-    query.executeUpdate()
+    val commits = entityManager.createQuery("SELECT c FROM CommitEntity c", CommitEntity::class.java)
+      .resultList
+    commits.forEach { entityManager.remove(it) }
   }
 
   /**

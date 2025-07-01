@@ -81,8 +81,9 @@ class ModuleDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM ModuleEntity")
-    query.executeUpdate()
+    val modules = entityManager.createQuery("SELECT m FROM ModuleEntity m", ModuleEntity::class.java)
+      .resultList
+    modules.forEach { entityManager.remove(it) }
   }
 
   /**

@@ -84,8 +84,9 @@ class IssueDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM IssueEntity")
-    query.executeUpdate()
+    val issues = entityManager.createQuery("SELECT i FROM IssueEntity i", IssueEntity::class.java)
+      .resultList
+    issues.forEach { entityManager.remove(it) }
   }
 
   /**

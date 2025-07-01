@@ -81,8 +81,9 @@ class UserDao(
    * Delete all entities
    */
   override fun deleteAll() {
-    val query = entityManager.createQuery("DELETE FROM UserEntity")
-    query.executeUpdate()
+    val users = entityManager.createQuery("SELECT u FROM UserEntity u", UserEntity::class.java)
+      .resultList
+    users.forEach { entityManager.remove(it) }
   }
 
   /**

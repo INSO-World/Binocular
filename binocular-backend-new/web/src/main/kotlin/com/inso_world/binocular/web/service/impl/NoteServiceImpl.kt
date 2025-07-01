@@ -8,10 +8,6 @@ import com.inso_world.binocular.web.persistence.dao.interfaces.IIssueNoteConnect
 import com.inso_world.binocular.web.persistence.dao.interfaces.IMergeRequestNoteConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.INoteAccountConnectionDao
 import com.inso_world.binocular.web.persistence.dao.interfaces.INoteDao
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.IssueNoteConnectionDao
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.MergeRequestNoteConnectionDao
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.NoteAccountConnectionDao
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.NoteDao
 import com.inso_world.binocular.web.persistence.model.Page
 import com.inso_world.binocular.web.service.NoteService
 import org.slf4j.Logger
