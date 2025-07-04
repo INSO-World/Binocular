@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service
 
 /**
  * Implementation of DbExportService interface.
- * This implementation only works with ArangoDB
+ *
+ * This implementation only works with ArangoDB.
  */
 @Service
 @Profile("arangodb")
