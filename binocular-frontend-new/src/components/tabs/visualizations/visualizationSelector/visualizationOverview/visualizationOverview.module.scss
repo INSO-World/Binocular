@@ -1,6 +1,6 @@
-@import "../../variables.scss";
+@import "../../../../../variables.scss";
 
-.contextMenu{
+.visualizationOverview{
   background: transparent;
   width: 100vw;
   max-width: 100vw;
@@ -11,20 +11,28 @@
   overflow: hidden;
 }
 
-.contextMenu::backdrop{
+.visualizationOverview::backdrop{
   background: transparent;
 }
 
-.contextMenu>div{
+.visualizationOverview>div{
   position: absolute;
   top:100px;
 }
 
-.contextMenu>div>ul{
+.visualizationOverviewContent{
   @apply menu;
   @apply bg-base-100;
   @apply rounded;
   @apply w-56;
   @apply text-neutral-content;
+  min-width: 50vw;
   box-shadow: $shadow-default;
+  max-height: 80vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
+
+.selectorRow{
+}
+

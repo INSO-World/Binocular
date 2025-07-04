@@ -4,8 +4,8 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
-import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { BuildSettings } from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
+import { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 interface BuildChartData {
   date: number;
@@ -18,7 +18,7 @@ interface Palette {
 
 export function convertToChartData(
   builds: DataPluginBuild[] | unknown[],
-  props: Properties<BuildSettings, DataPluginBuild>,
+  props: VisualizationPluginProperties<BuildSettings, DataPluginBuild>,
 ): {
   chartData: BuildChartData[];
   scale: number[];

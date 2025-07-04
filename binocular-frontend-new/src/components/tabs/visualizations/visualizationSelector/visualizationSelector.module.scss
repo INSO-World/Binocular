@@ -3,7 +3,9 @@
 
 .selector{
   max-width: 100%;
-
+  display: flex;
+  align-items: center;
+  padding-right: .5rem;
 }
 
 .selectorHorizontal{
@@ -13,8 +15,11 @@
 }
 
 .selectorVertical{
-
+  box-shadow: $shadow-default-inset;
+  border-radius: $border-radius-default;
 }
+
+.selectorRow{}
 
 .visualizationButton{
   display: inline-block;
@@ -36,8 +41,9 @@
 .visualizationButton>div{
   height: 100%;
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: start;
+  margin-right: .25rem;
 }
 
 .visualizationButton>div>img{
