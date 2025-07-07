@@ -1,23 +1,23 @@
 package com.inso_world.binocular.ffi.pojos
 
-import com.inso_world.binocular.internal.ThreadSafeRepository
+import com.inso_world.binocular.internal.BinocularRepository
 
 data class BinocularRepositoryPojo(
     val gitDir: String,
     val workTree: String?,
-    val commonDir: String?,
+    val origin: BinocularRemotePojo? = null,
 ) {
-    internal fun toFfi(): ThreadSafeRepository =
-        ThreadSafeRepository(
+    internal fun toFfi(): BinocularRepository =
+        BinocularRepository(
             gitDir = gitDir,
-            commonDir = commonDir,
             workTree = workTree,
+            origin = origin?.toFfi(),
         )
 }
 
-internal fun ThreadSafeRepository.toPojo(): BinocularRepositoryPojo =
+internal fun BinocularRepository.toPojo(): BinocularRepositoryPojo =
     BinocularRepositoryPojo(
         gitDir = this.gitDir,
-        workTree = this.workTree,
-        commonDir = this.commonDir,
+        workTree = workTree,
+        origin = origin?.toPojo(),
     )
