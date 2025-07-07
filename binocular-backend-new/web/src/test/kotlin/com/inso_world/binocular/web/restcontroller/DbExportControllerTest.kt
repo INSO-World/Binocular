@@ -30,37 +30,37 @@ class DbExportControllerTest : BaseDbTest() {
       content { contentType(MediaType.APPLICATION_JSON) }
       // validation of accounts
       jsonPath("$.accounts")
-      jsonPath("$.accounts.length()").value(2)
+      jsonPath("$.accounts.length()").value(testAccounts.size)
       // validation of commits
       jsonPath("$.commits")
-      jsonPath("$.commits.length()").value(2)
+      jsonPath("$.commits.length()").value(testCommits.size)
       // validation of branches
       jsonPath("$.branches")
-      jsonPath("$.branches.length()").value(2)
+      jsonPath("$.branches.length()").value(testBranches.size)
       // validation of builds
       jsonPath("$.builds")
-      jsonPath("$.builds.length()").value(2)
+      jsonPath("$.builds.length()").value(testBuilds.size)
       // validation of files
       jsonPath("$.files")
-      jsonPath("$.files.length()").value(2)
+      jsonPath("$.files.length()").value(testFiles.size)
       // validation of issues
       jsonPath("$.issues")
-      jsonPath("$.issues.length()").value(2)
+      jsonPath("$.issues.length()").value(testIssues.size)
       // validation of merge requests
       jsonPath("$.merge_requests")
-      jsonPath("$.merge_requests.length()").value(2)
+      jsonPath("$.merge_requests.length()").value(testMergeRequests.size)
       // validation of modules
       jsonPath("$.modules")
-      jsonPath("$.modules.length()").value(2)
+      jsonPath("$.modules.length()").value(testModules.size)
       // validation of notes
       jsonPath("$.notes")
-      jsonPath("$.notes.length()").value(2)
+      jsonPath("$.notes.length()").value(testNotes.size)
       // validation of users
       jsonPath("$.users")
-      jsonPath("$.users.length()").value(2)
+      jsonPath("$.users.length()").value(testUsers.size)
       // validation of milestones
       jsonPath("$.milestones")
-      jsonPath("$.milestones.length()").value(2)
+      jsonPath("$.milestones.length()").value(testMilestones.size)
 
       // Todo validation of connections
     }
