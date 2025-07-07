@@ -2,7 +2,10 @@ name: Backend CI (fast)
 
 on:
   push:
-    !pull_request: 
+  pull_request:
+    branches:
+      - "!main"
+      - "!develop"
   workflow_dispatch:
 
 env:
