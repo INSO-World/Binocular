@@ -5,7 +5,7 @@ import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsBranch
 import com.inso_world.binocular.cli.index.vcs.toVcsBranch
 import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.ffi.exception.BinocularFfiException
+import com.inso_world.binocular.ffi.exception.FfiException
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import org.slf4j.Logger
@@ -40,7 +40,7 @@ internal class FfiService(
         logger.trace("Searching repository... at '$path'")
         return try {
             ffi.findRepo(path)
-        } catch (e: BinocularFfiException) {
+        } catch (e: FfiException) {
             throw ServiceException(e)
         }
     }
@@ -51,7 +51,7 @@ internal class FfiService(
     ): List<BinocularCommitPojo> =
         try {
             ffi.traverseBranch(repo, branch)
-        } catch (e: BinocularFfiException) {
+        } catch (e: FfiException) {
             throw ServiceException(e)
         }
 }

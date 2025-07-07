@@ -2,6 +2,7 @@ package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.cli.entity.Branch
 import com.inso_world.binocular.cli.entity.Commit
+import com.inso_world.binocular.cli.entity.Project
 import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IRepositoryDao
@@ -106,13 +107,17 @@ class RepositoryService {
 //  }
 
     @Transactional
-    fun getOrCreate(gitDir: String): Repository {
+    fun getOrCreate(
+        gitDir: String,
+        p: Project,
+    ): Repository {
         val find = this.findRepo(gitDir)
         if (find == null) {
             logger.info("Repository does not exists, creating new repository")
             return this.repositoryDao.create(
                 Repository(
                     name = normalizePath(gitDir),
+                    project = p,
                 ),
             )
         } else {
@@ -140,30 +145,20 @@ class RepositoryService {
     fun addCommits(
         vcsRepo: BinocularRepositoryPojo,
         commitDtos: Collection<VcsCommit>,
-        branchName: String,
+        project: Project,
     ) {
-        val repo = this.getOrCreate(vcsRepo.gitDir)
+        val repo = this.getOrCreate(vcsRepo.gitDir, project)
+        project.repo = repo
         val existingCommitEntities = this.commitService.checkExisting(repo, commitDtos)
 
         logger.debug("Existing commits: ${existingCommitEntities.first.count()}")
         logger.trace("New commits to add: ${existingCommitEntities.second.count()}")
 
-//    val branch = repo.branches.find { it.name == branchName } ?: run {
-//      logger.debug("Branch '${branchName}' does not exist in repository '${repo.name}'. Creating new branch.")
-//      val b = branchService.getOrCreate(repo, branchName)
-//      repo.branches.add(b)
-//      // add existing commits only if branch is newly created
-//      b.commits.addAll(existingCommitEntities.first)
-//      b
-//    }
         // these commits are new so always added, also to an existing branch
         this.transformCommits(repo, existingCommitEntities.second)
-//      .forEach {
-//      branch.addCommit(it)
-//    }
-//    branch.commits.addAll(existingCommitEntities.second)
+
         this.repositoryDao.updateAndFlush(repo)
 
-        logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()}")
+        logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${project.name}")
     }
 }

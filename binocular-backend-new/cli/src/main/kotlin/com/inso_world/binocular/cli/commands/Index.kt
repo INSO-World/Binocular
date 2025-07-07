@@ -1,5 +1,6 @@
 package com.inso_world.binocular.cli.commands
 
+import com.inso_world.binocular.cli.service.ProjectService
 import com.inso_world.binocular.cli.service.VcsService
 import com.inso_world.binocular.ffi.BinocularFfi
 import org.slf4j.Logger
@@ -15,6 +16,7 @@ import org.springframework.shell.command.annotation.Option
 )
 open class Index(
     @Autowired private val vcsService: VcsService,
+    @Autowired private val projectService: ProjectService,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(Index::class.java)
 
@@ -31,9 +33,17 @@ open class Index(
             shortNames = ['b'],
             required = true,
         ) branchName: String,
+        @Option(
+            longNames = ["project_name"],
+            shortNames = ['n'],
+            required = true,
+            description = "Custom name of the project.",
+        ) projectName: String,
     ) {
         logger.trace(">>> index($repoPath, $branchName)")
-        vcsService.indexRepository(repoPath, branchName)
+        logger.debug("Project '$projectName'")
+        val project = this.projectService.getOrCreateProject(projectName)
+        vcsService.indexRepository(repoPath, branchName, project)
         logger.trace("<<< index($repoPath, $branchName)")
     }
 
