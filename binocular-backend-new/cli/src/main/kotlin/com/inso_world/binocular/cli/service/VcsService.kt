@@ -1,5 +1,6 @@
 package com.inso_world.binocular.cli.service
 
+import com.inso_world.binocular.cli.entity.Project
 import com.inso_world.binocular.cli.exception.CliException
 import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.toDto
@@ -21,6 +22,7 @@ class VcsService(
     fun indexRepository(
         repoPath: String?,
         branch: String,
+        project: Project,
     ) {
         val vcsRepo =
             try {
@@ -41,7 +43,7 @@ class VcsService(
 //
 // //    val commitEntities = this.repoService.transformCommits(repo, vcsCommits)
 //    transactionTemplate.execute {
-        this.repoService.addCommits(vcsRepo, vcsCommits, branch)
+        this.repoService.addCommits(vcsRepo, vcsCommits, project)
         logger.debug("Commits added to database.")
 //    }
     }

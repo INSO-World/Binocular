@@ -14,7 +14,7 @@ import jakarta.persistence.UniqueConstraint
 
 @Entity
 @Table(
-    name = "users",
+    name = "users2",
     uniqueConstraints = [
         UniqueConstraint(columnNames = ["repository_id", "email"]),
     ],
@@ -33,10 +33,19 @@ class User(
     var authoredCommits: MutableSet<Commit> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     var repository: Repository? = null,
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], mappedBy = "user", orphanRemoval = true)
+    var memberAliases: MutableSet<ProjectMember> = mutableSetOf(),
+//    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], mappedBy = "user", orphanRemoval = true)
+//    var timelogs: MutableSet<TimeLog> = mutableSetOf(),
 ) {
     fun addAuthoredCommit(commit: Commit) {
         authoredCommits.add(commit)
         commit.author = this
+    }
+
+    fun addProjectMembership(member: ProjectMember) {
+        memberAliases.add(member)
+        member.user = this
     }
 
     fun addCommittedCommit(commit: Commit) {

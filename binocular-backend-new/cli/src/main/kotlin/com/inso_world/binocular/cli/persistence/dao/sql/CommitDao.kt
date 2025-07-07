@@ -4,12 +4,12 @@ import com.inso_world.binocular.cli.entity.Commit
 import com.inso_world.binocular.cli.exception.PersistenceException
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.ICommitDao
 import com.inso_world.binocular.cli.persistence.repository.sql.CommitRepository
-import com.inso_world.binocular.core.persistence.dao.sql.SqlDao
+import com.inso_world.binocular.infrastructure.sql.persistence.dao.SqlDao
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 
-@Repository
+@Repository("cliCommitDao")
 class CommitDao(
     @Autowired private val commitRepository: CommitRepository,
 ) : SqlDao<Commit, String>(),

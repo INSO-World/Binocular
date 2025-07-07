@@ -2,8 +2,10 @@ package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.cli.entity.Commit
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
+import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.Base64
 
 data class VcsCommit(
     val sha: String,
@@ -35,7 +37,7 @@ data class VcsCommit(
 fun BinocularCommitPojo.toDto(): VcsCommit =
     VcsCommit(
         sha = this.commit,
-        message = this.message,
+        message = Base64.getDecoder().decode(this.message).toString(StandardCharsets.UTF_8),
         branch = this.branch!!, // TODO avoid non null check
         commitTime =
             this.committer?.let { ct ->

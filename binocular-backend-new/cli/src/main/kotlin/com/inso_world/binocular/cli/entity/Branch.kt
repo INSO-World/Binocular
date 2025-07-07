@@ -10,6 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import java.util.Objects
@@ -32,6 +33,8 @@ data class Branch(
     var commits: MutableSet<Commit> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     var repository: Repository? = null,
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = MergeRequest::class, cascade = [CascadeType.ALL])
+    var mergeRequests: MutableSet<MergeRequest> = mutableSetOf(),
 ) {
     fun addCommit(commit: Commit) {
         this.commits.add(commit)

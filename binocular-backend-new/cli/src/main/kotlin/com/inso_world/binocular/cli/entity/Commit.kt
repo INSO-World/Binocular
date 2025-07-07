@@ -14,6 +14,10 @@ import jakarta.persistence.Lob
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.PastOrPresent
+import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 import java.util.Objects
 
@@ -24,13 +28,19 @@ data class Commit(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
     @Column(unique = true, nullable = false, length = 40)
+    @field:NotBlank
+    @field:Size(min = 40, max = 40)
     val sha: String,
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
+    @field:NotBlank
     val message: String? = null,
     @Column(name = "commit_time", nullable = false)
+    @field:PastOrPresent
+    @field:NotNull
     val commitTime: LocalDateTime? = null,
     @Column(name = "author_time", nullable = true)
+    @field:PastOrPresent
     val authorTime: LocalDateTime? = null,
     @ManyToMany(targetEntity = Commit::class, cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @JoinTable(
@@ -53,16 +63,6 @@ data class Commit(
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     var repository: Repository? = null,
 ) {
-    fun addBranch(branch: Branch) {
-        this.branches.add(branch)
-        branch.commits.add(this)
-    }
-
-    fun removeBranch(branch: Branch) {
-        this.branches.remove(branch)
-        branch.commits.remove(this)
-    }
-
     override fun toString(): String =
         "Commit(id=$id, sha='$sha', message='$message', branches=$branches, commitTime=$commitTime, authorTime=$authorTime)"
 
@@ -76,14 +76,4 @@ data class Commit(
     }
 
     override fun hashCode(): Int = Objects.hash(sha)
-
-//  fun setCommitter(user: User) {
-//    this.committer = user
-//    user.committed_commits.add(this)
-//  }
-//
-//  fun setAuthor(user: User) {
-//    this.author = user
-//    user.authored_commits.add(this)
-//  }
 }

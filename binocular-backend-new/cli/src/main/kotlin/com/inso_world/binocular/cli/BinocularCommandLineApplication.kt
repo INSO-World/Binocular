@@ -2,14 +2,22 @@ package com.inso_world.binocular.cli
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.shell.command.annotation.CommandScan
 
-@SpringBootApplication
+@SpringBootApplication(
+    scanBasePackages = [
+        "com.inso_world.binocular.cli",
+//        make sure the ones below match the ones in WebApplication (and vice versa)
+        "com.inso_world.binocular.core.persistence",
+        "com.inso_world.binocular.core.service",
+    ],
+)
 @CommandScan(basePackages = ["com.inso_world.binocular.cli.commands"])
-@EnableJpaRepositories(basePackages = ["com.inso_world.binocular.core.persistence", "com.inso_world.binocular.cli.persistence"])
 class BinocularCommandLineApplication {
     private var logger: Logger = LoggerFactory.getLogger(BinocularCommandLineApplication::class.java)
 
@@ -25,7 +33,18 @@ class BinocularCommandLineApplication {
 }
 
 fun main(args: Array<String>) {
+    var webType = WebApplicationType.NONE
+
+    val initializer =
+        ApplicationContextInitializer<ConfigurableApplicationContext> { ctx ->
+            val env = ctx.environment
+            if (env.activeProfiles.contains("h2")) {
+                webType = WebApplicationType.SERVLET
+            }
+        }
+
     SpringApplicationBuilder(BinocularCommandLineApplication::class.java)
-//    .web(WebApplicationType.NONE)
+        .initializers(initializer)
+        .web(webType)
         .run(*args)
 }
