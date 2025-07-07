@@ -59,13 +59,21 @@ jobs:
       - name: Compile with Maven
         run: mvn $MAVEN_CLI_OPTS compile
 
-  test-cli:
-    name: Test-CLI (native libraries)
+  test-application:
+    name: Test-Application Layers (web, cli)
     needs: compile
 
     defaults:
       run:
         working-directory: ${{ env.WD }}
+
+    services:
+      db:
+        image: arangodb:3.12
+        ports:
+          - "8529:8529"
+        env:
+          ARANGO_NO_AUTH: 1
 
     strategy:
       fail-fast: false
@@ -73,7 +81,7 @@ jobs:
         os: [ ubuntu-latest ]
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
-        module: [ 'ffi', 'cli' ]
+        module: [ 'web','cli' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
@@ -104,7 +112,7 @@ jobs:
       - name: Run tests for module ${{ matrix.module }}
         run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
 
-  test:
+  test-modules:
     name: Test
     needs: compile
 
@@ -126,7 +134,7 @@ jobs:
         os: [ ubuntu-latest ]
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
-        module: [ 'web', 'core' ]
+        module: [ 'domain', 'ffi', 'core', 'infrastructure-arangodb', 'infrastructure-sql' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
