@@ -16,8 +16,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Profile
 import org.springframework.graphql.test.tester.GraphQlTester
-import org.springframework.test.context.ActiveProfiles
 
 /**
  * Base test class that sets up test data in the database.
@@ -28,7 +28,7 @@ import org.springframework.test.context.ActiveProfiles
     classes = [BinocularWebApplication::class],
 )
 @AutoConfigureGraphQlTester
-@ActiveProfiles("arangodb", "test")
+@Profile("test")
 internal abstract class BaseDbTest : BaseIntegrationTest() {
     @Autowired
     protected lateinit var graphQlTester: GraphQlTester
