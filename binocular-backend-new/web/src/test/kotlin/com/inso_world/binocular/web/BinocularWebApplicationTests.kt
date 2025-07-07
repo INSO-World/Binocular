@@ -2,12 +2,12 @@ package com.inso_world.binocular.web
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
+import org.springframework.context.annotation.Profile
 
 @SpringBootTest(
     classes = [BinocularWebApplication::class],
 )
-@ActiveProfiles("nosql", "arangodb", "test")
+@Profile("test")
 internal class BinocularWebApplicationTests {
     @Test
     fun contextLoads() {

@@ -88,13 +88,6 @@
     <profiles>
         <profile>
             <id>arangodb</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-                <property>
-                    <name>spring.profiles.active</name>
-                    <value>nosql,arangodb</value>
-                </property>
-            </activation>
             <dependencies>
                 <dependency>
                     <groupId>com.inso-world.binocular</groupId>
@@ -112,17 +105,18 @@
         </profile>
         <profile>
             <id>postgres</id>
-            <activation>
-                <property>
-                    <name>spring.profiles.active</name>
-                    <value>sql,postgresql</value>
-                </property>
-            </activation>
             <dependencies>
                 <dependency>
                     <groupId>com.inso-world.binocular</groupId>
                     <artifactId>infrastructure-sql</artifactId>
                     <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.inso-world.binocular</groupId>
+                    <artifactId>infrastructure-sql</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>tests</classifier>
+                    <scope>test</scope>
                 </dependency>
             </dependencies>
         </profile>

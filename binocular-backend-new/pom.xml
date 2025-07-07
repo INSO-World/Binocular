@@ -185,6 +185,25 @@
                 <groups>unit</groups>
             </properties>
         </profile>
+        <profile>
+            <id>arangodb</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>spring.profiles.active</name>
+                    <value>nosql,arangodb</value>
+                </property>
+            </activation>
+        </profile>
+        <profile>
+            <id>postgres</id>
+            <activation>
+                <property>
+                    <name>spring.profiles.active</name>
+                    <value>sql,postgresql</value>
+                </property>
+            </activation>
+        </profile>
     </profiles>
 
 </project>

@@ -51,12 +51,6 @@
             <artifactId>domain</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.inso-world.binocular</groupId>
-            <artifactId>infrastructure-arangodb</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
         <!-- Non binocular modules -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
