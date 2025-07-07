@@ -88,6 +88,31 @@ class DbExportServiceTest {
     assertEquals(expected, result)
   }
 
+  @Test
+  fun `should return empty map when database has no user-defined collections`() {
+    val builder = mockk<ArangoDB.Builder>()
+    val arango = mockk<ArangoDB>()
+    val database = mockk<ArangoDatabase>()
+
+    // mock system collection only
+    val systemCollection = mockk<CollectionEntity> {
+      every { isSystem } returns true
+      every { name } returns "_system"
+    }
+
+    every { adbConfig.arango() } returns builder
+    every { builder.build() } returns arango
+    every { adbConfig.database() } returns "testdb"
+    every { arango.db("testdb") } returns database
+    every { database.collections } returns listOf(systemCollection)
+
+    // call the function
+    val result = service.exportDb()
+
+    // assert result is an empty map
+    assertEquals(emptyMap(), result)
+  }
+
 
   @Test
   fun `should throw exception when database connection fails`() {
