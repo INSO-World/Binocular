@@ -6,13 +6,13 @@ import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.ICommitDao
 import com.inso_world.binocular.cli.service.CommitService
-import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.annotation.Transactional
 
 internal class CommitServiceTest private constructor(
     @Autowired private val commitService: CommitService,
@@ -23,6 +23,7 @@ internal class CommitServiceTest private constructor(
     }
 
     @Test
+    @Transactional(readOnly = true)
     fun checkSaveAll() {
         val allCommits = commitDao.findAll()
 
@@ -145,7 +146,7 @@ internal class CommitServiceTest private constructor(
     @Test
     fun find_all_commits_invalid_repo() {
         assertThrows<ServiceException> {
-            this.commitService.findAll(Repository(id = null, name = "something"))
+            this.commitService.findAll(Repository(id = null, name = "something", project = simpleProject))
         }
     }
 }

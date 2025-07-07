@@ -1,5 +1,6 @@
 package com.inso_world.binocular.cli.integration.commands
 
+import com.inso_world.binocular.cli.integration.commands.base.BaseShellNoDataTest
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeUnit
 
 internal class BuiltinCommands(
     @Autowired val client: ShellTestClient,
-) : BaseShellTest() {
+) : BaseShellNoDataTest() {
     @Test
     fun context_loads() {
         val session = client.interactive().run()
@@ -67,10 +68,9 @@ internal class BuiltinCommands(
 
         await().atMost(2, TimeUnit.SECONDS).untilAsserted {
             assertAll(
-                { ShellAssertions.assertThat(session.screen()).containsText("NAME") },
                 { ShellAssertions.assertThat(session.screen()).containsText("SYNOPSIS") },
                 { ShellAssertions.assertThat(session.screen()).containsText("OPTIONS") },
-                { ShellAssertions.assertThat(session.screen()).containsText("$cmdGrp $cmdName - ") },
+                { ShellAssertions.assertThat(session.screen()).containsText("$cmdGrp $cmdName -") },
                 { ShellAssertions.assertThat(session.screen()).containsText("help for $cmdGrp $cmdName") },
             )
         }

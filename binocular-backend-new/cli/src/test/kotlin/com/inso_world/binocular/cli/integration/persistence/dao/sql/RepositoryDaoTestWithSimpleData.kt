@@ -1,16 +1,22 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
+import com.inso_world.binocular.cli.entity.Project
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
-import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest
+import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceNoDataTest
 import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
 import com.inso_world.binocular.cli.integration.utils.generateCommits
+import com.inso_world.binocular.cli.persistence.dao.sql.ProjectDao
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IBranchDao
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.ICommitDao
 import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IRepositoryDao
-import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IUserDao
+import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.FIXTURES_PATH
+import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.SIMPLE_PROJECT_NAME
+import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.SIMPLE_REPO
+import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.ffi.BinocularFfi
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,9 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired
 internal class RepositoryDaoTestWithSimpleData(
     @Autowired val repositoryDao: IRepositoryDao,
     @Autowired val commitDao: ICommitDao,
-    @Autowired val userDao: IUserDao,
+    @Autowired val userDao: UserInfrastructurePort,
     @Autowired val branchDao: IBranchDao,
-) : BasePersistenceTest() {
+) : BasePersistenceNoDataTest() {
+    @Autowired
+    private lateinit var projectDao: ProjectDao
+
     companion object {
         internal lateinit var simpleRepoConfig: RepositoryConfig
 
@@ -39,6 +48,10 @@ internal class RepositoryDaoTestWithSimpleData(
                     repo = repo,
                     startCommit = cmt,
                     hashes = hashes,
+                    project =
+                        Project(
+                            name = SIMPLE_PROJECT_NAME,
+                        ),
                 )
             this.simpleRepoConfig.hashes.map { it.branch = "master" }
         }
@@ -46,8 +59,19 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @BeforeEach
     fun beforeEach() {
-        this.cleanup()
-        this.simpleRepo = this.repositoryDao.create(simpleRepoConfig.repo.toVcsRepository().toEntity())
+        val p = projectDao.create(simpleRepoConfig.project.copy())
+        p.repo = simpleRepoConfig.repo.toVcsRepository().toEntity(p)
+        this.simpleRepo = this.repositoryDao.create(p.repo!!)
+    }
+
+    @AfterEach
+    fun afterEach() {
+        projectDao.delete(this.simpleRepo.project)
+//        projectRepository.deleteAll()
+//        repositoryRepository.deleteAll()
+//        commitRepository.deleteAll()
+//        userRepository.deleteAll()
+//        entityManager.close()
     }
 
     @Test
@@ -119,16 +143,15 @@ internal class RepositoryDaoTestWithSimpleData(
     @Test
     fun delete_repository() {
         val commits = generateCommits(simpleRepoConfig, simpleRepo)
-
         simpleRepo.commits.addAll(commits)
         val saved = this.repositoryDao.update(simpleRepo)
-
         this.repositoryDao.delete(saved)
 
         assertAll(
             { assertThat(this.repositoryDao.findAll()).isEmpty() },
             { assertThat(this.commitDao.findAll()).isEmpty() },
             { assertThat(this.userDao.findAll()).isEmpty() },
+            { assertThat(this.projectDao.findAll()).hasSize(1) },
         )
     }
 

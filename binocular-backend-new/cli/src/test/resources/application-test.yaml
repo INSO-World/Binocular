@@ -14,9 +14,16 @@ spring:
     password: sa
   jpa:
     show-sql: true
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
+#    properties:
+#      hibernate:
+#        format_sql: true
 ## console logging
 logging:
   level:
+#    org.hibernate.orm.jdbc.bind: trace
     com:
       inso_world:
         binocular: debug
