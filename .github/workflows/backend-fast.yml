@@ -81,7 +81,8 @@ jobs:
         os: [ ubuntu-latest ]
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
-        module: [ 'web','cli' ]
+        module: [ 'web', 'cli' ]
+        profile: [ 'arangodb', 'postgres' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
@@ -110,7 +111,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -P${{matrix.profile}}
 
   test-modules:
     name: Test
