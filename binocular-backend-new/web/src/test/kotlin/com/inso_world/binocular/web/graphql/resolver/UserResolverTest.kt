@@ -10,29 +10,31 @@ import org.junit.jupiter.api.Test
  * Test class for verifying the User resolver functionality.
  * This class extends BaseDbTest to leverage the test data setup.
  */
-class UserResolverTest : BaseDbTest() {
-
+internal class UserResolverTest : BaseDbTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve user with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     user(id: "1") {
                         id
                         gitSignature
                     }
                 }
-            """)
-                .execute()
-                .path("user")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("user")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify user data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "User ID mismatch") },
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") }
+                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
             )
         }
     }
@@ -41,7 +43,10 @@ class UserResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve user with related commits`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     user(id: "1") {
                         id
@@ -53,16 +58,16 @@ class UserResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("user")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("user")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify user data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "User ID mismatch") },
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") }
+                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
             )
 
             // Verify commits
@@ -74,13 +79,16 @@ class UserResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", commit.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
 
         @Test
         fun `should retrieve user with related issues`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     user(id: "1") {
                         id
@@ -92,16 +100,16 @@ class UserResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("user")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("user")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify user data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "User ID mismatch") },
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") }
+                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
             )
 
             // Verify issues
@@ -113,13 +121,16 @@ class UserResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", issue.get("id").asText(), "Issue ID mismatch") },
                 { assertEquals(101, issue.get("iid").asInt(), "Issue IID mismatch") },
-                { assertEquals("Fix bug in login flow", issue.get("title").asText(), "Issue title mismatch") }
+                { assertEquals("Fix bug in login flow", issue.get("title").asText(), "Issue title mismatch") },
             )
         }
 
         @Test
         fun `should retrieve user with related files`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     user(id: "1") {
                         id
@@ -131,16 +142,16 @@ class UserResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("user")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("user")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify user data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "User ID mismatch") },
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") }
+                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
             )
 
             // Verify files
@@ -152,7 +163,7 @@ class UserResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", file.get("id").asText(), "File ID mismatch") },
                 { assertEquals("src/main/kotlin/com/example/Main.kt", file.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", file.get("webUrl").asText(), "File webUrl mismatch") }
+                { assertEquals("https://example.com/files/Main.kt", file.get("webUrl").asText(), "File webUrl mismatch") },
             )
         }
     }
@@ -163,20 +174,21 @@ class UserResolverTest : BaseDbTest() {
         fun `should handle non-existent user`() {
             // Create a test query for a user that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     user(id: "999") {
                         id
                         gitSignature
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("User not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }

@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test
  * Test class for verifying the MergeRequest resolver functionality.
  * This class extends BaseDbTest to leverage the test data setup.
  */
-class MergeRequestResolverTest : BaseDbTest() {
-
+internal class MergeRequestResolverTest : BaseDbTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve merge request with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     mergeRequest(id: "1") {
                         id
@@ -31,11 +33,11 @@ class MergeRequestResolverTest : BaseDbTest() {
                         labels
                     }
                 }
-            """)
-                .execute()
-                .path("mergeRequest")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("mergeRequest")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify merge request data
             assertAll(
@@ -47,7 +49,7 @@ class MergeRequestResolverTest : BaseDbTest() {
                 { assertEquals("https://example.com/merge_requests/201", result.get("webUrl").asText(), "MergeRequest webUrl mismatch") },
                 { assertTrue(result.get("labels").isArray(), "Labels should be an array") },
                 { assertEquals("feature", result.get("labels").get(0).asText(), "First label mismatch") },
-                { assertEquals("security", result.get("labels").get(1).asText(), "Second label mismatch") }
+                { assertEquals("security", result.get("labels").get(1).asText(), "Second label mismatch") },
             )
         }
     }
@@ -56,7 +58,10 @@ class MergeRequestResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve merge request with related accounts`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     mergeRequest(id: "1") {
                         id
@@ -73,11 +78,11 @@ class MergeRequestResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("mergeRequest")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("mergeRequest")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify merge request data
             assertAll(
@@ -86,7 +91,7 @@ class MergeRequestResolverTest : BaseDbTest() {
                 { assertEquals("Implement user authentication", result.get("title").asText(), "MergeRequest title mismatch") },
                 { assertEquals("Add JWT auth", result.get("description").asText(), "MergeRequest description mismatch") },
                 { assertEquals("open", result.get("state").asText(), "MergeRequest state mismatch") },
-                { assertEquals("https://example.com/merge_requests/201", result.get("webUrl").asText(), "MergeRequest webUrl mismatch") }
+                { assertEquals("https://example.com/merge_requests/201", result.get("webUrl").asText(), "MergeRequest webUrl mismatch") },
             )
 
             // Verify accounts
@@ -99,13 +104,16 @@ class MergeRequestResolverTest : BaseDbTest() {
                 { assertEquals("1", account.get("id").asText(), "Account ID mismatch") },
                 { assertEquals("GitHub", account.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", account.get("login").asText(), "Account login mismatch") },
-                { assertEquals("User One", account.get("name").asText(), "Account name mismatch") }
+                { assertEquals("User One", account.get("name").asText(), "Account name mismatch") },
             )
         }
 
         @Test
         fun `should retrieve merge request with related milestones`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     mergeRequest(id: "1") {
                         id
@@ -119,17 +127,17 @@ class MergeRequestResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("mergeRequest")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("mergeRequest")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify merge request data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "MergeRequest ID mismatch") },
                 { assertEquals(201, result.get("iid").asInt(), "MergeRequest IID mismatch") },
-                { assertEquals("Implement user authentication", result.get("title").asText(), "MergeRequest title mismatch") }
+                { assertEquals("Implement user authentication", result.get("title").asText(), "MergeRequest title mismatch") },
             )
 
             // Verify milestones
@@ -142,13 +150,16 @@ class MergeRequestResolverTest : BaseDbTest() {
                 { assertEquals("1", milestone.get("id").asText(), "Milestone ID mismatch") },
                 { assertEquals(201, milestone.get("iid").asInt(), "Milestone IID mismatch") },
                 { assertEquals("Release 1.0", milestone.get("title").asText(), "Milestone title mismatch") },
-                { assertEquals("First stable release", milestone.get("description").asText(), "Milestone description mismatch") }
+                { assertEquals("First stable release", milestone.get("description").asText(), "Milestone description mismatch") },
             )
         }
 
         @Test
         fun `should retrieve merge request with related notes`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     mergeRequest(id: "1") {
                         id
@@ -160,17 +171,17 @@ class MergeRequestResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("mergeRequest")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("mergeRequest")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify merge request data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "MergeRequest ID mismatch") },
                 { assertEquals(201, result.get("iid").asInt(), "MergeRequest IID mismatch") },
-                { assertEquals("Implement user authentication", result.get("title").asText(), "MergeRequest title mismatch") }
+                { assertEquals("Implement user authentication", result.get("title").asText(), "MergeRequest title mismatch") },
             )
 
             // Verify notes
@@ -181,7 +192,7 @@ class MergeRequestResolverTest : BaseDbTest() {
             val note = notes.get(0)
             assertAll(
                 { assertEquals("1", note.get("id").asText(), "Note ID mismatch") },
-                { assertEquals("This is a comment", note.get("body").asText(), "Note body mismatch") }
+                { assertEquals("This is a comment", note.get("body").asText(), "Note body mismatch") },
             )
         }
     }
@@ -192,7 +203,9 @@ class MergeRequestResolverTest : BaseDbTest() {
         fun `should handle non-existent merge request`() {
             // Create a test query for a merge request that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     mergeRequest(id: "999") {
                         id
@@ -200,13 +213,12 @@ class MergeRequestResolverTest : BaseDbTest() {
                         title
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("MergeRequest not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }

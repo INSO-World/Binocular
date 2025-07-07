@@ -13,6 +13,7 @@ spring:
   application:
     name: binocular
   graphql:
-    path: '/graphQl'
+    http:
+      path: '/graphQl'
     graphiql:
       enabled: true

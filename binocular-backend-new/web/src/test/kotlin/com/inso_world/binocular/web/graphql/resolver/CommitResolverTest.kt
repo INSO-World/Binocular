@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test
  * Test class for verifying the Commit resolver functionality.
  * This class extends BaseDbTest to leverage the test data setup.
  */
-class CommitResolverTest : BaseDbTest() {
-
+internal class CommitResolverTest : BaseDbTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve commit with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "1") {
                         id
@@ -30,11 +32,11 @@ class CommitResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
@@ -44,7 +46,7 @@ class CommitResolverTest : BaseDbTest() {
                 { assertEquals("https://example.com/commit/abc123", result.get("webUrl").asText(), "Commit webUrl mismatch") },
                 { assertEquals("main", result.get("branch").asText(), "Commit branch mismatch") },
                 { assertEquals(10, result.get("stats").get("additions").asLong(), "Commit stats additions mismatch") },
-                { assertEquals(5, result.get("stats").get("deletions").asLong(), "Commit stats deletions mismatch") }
+                { assertEquals(5, result.get("stats").get("deletions").asLong(), "Commit stats deletions mismatch") },
             )
         }
     }
@@ -53,7 +55,10 @@ class CommitResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve commit with related builds`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "1") {
                         id
@@ -68,17 +73,17 @@ class CommitResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
             // Verify builds
@@ -92,13 +97,16 @@ class CommitResolverTest : BaseDbTest() {
                 { assertEquals("abc123", build.get("sha").asText(), "Build SHA mismatch") },
                 { assertEquals("success", build.get("status").asText(), "Build status mismatch") },
                 { assertEquals("main", build.get("ref").asText(), "Build ref mismatch") },
-                { assertEquals("v0.0.1-rc", build.get("tag").asText(), "Build tag mismatch") }
+                { assertEquals("v0.0.1-rc", build.get("tag").asText(), "Build tag mismatch") },
             )
         }
 
         @Test
         fun `should retrieve commit with related files`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "1") {
                         id
@@ -112,17 +120,17 @@ class CommitResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
             // Verify files
@@ -135,13 +143,16 @@ class CommitResolverTest : BaseDbTest() {
                 { assertEquals("1", file.get("id").asText(), "File ID mismatch") },
                 { assertEquals("src/main/kotlin/com/example/Main.kt", file.get("path").asText(), "File path mismatch") },
                 { assertEquals("https://example.com/files/Main.kt", file.get("webUrl").asText(), "File webUrl mismatch") },
-                { assertEquals(1000, file.get("maxLength").asInt(), "File maxLength mismatch") }
+                { assertEquals(1000, file.get("maxLength").asInt(), "File maxLength mismatch") },
             )
         }
 
         @Test
         fun `should retrieve commit with related modules`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "1") {
                         id
@@ -153,17 +164,17 @@ class CommitResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
             // Verify modules
@@ -174,13 +185,16 @@ class CommitResolverTest : BaseDbTest() {
             val module = modules.get(0)
             assertAll(
                 { assertEquals("1", module.get("id").asText(), "Module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/core", module.get("path").asText(), "Module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/core", module.get("path").asText(), "Module path mismatch") },
             )
         }
 
         @Test
         fun `should retrieve commit with related users`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "1") {
                         id
@@ -192,17 +206,17 @@ class CommitResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
             // Verify users
@@ -213,13 +227,16 @@ class CommitResolverTest : BaseDbTest() {
             val user = users.get(0)
             assertAll(
                 { assertEquals("1", user.get("id").asText(), "User ID mismatch") },
-                { assertEquals("John Doe <john.doe@example.com>", user.get("gitSignature").asText(), "User gitSignature mismatch") }
+                { assertEquals("John Doe <john.doe@example.com>", user.get("gitSignature").asText(), "User gitSignature mismatch") },
             )
         }
 
         @Test
         fun `should retrieve commit with related issues`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "1") {
                         id
@@ -234,17 +251,17 @@ class CommitResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
             // Verify issues
@@ -258,13 +275,16 @@ class CommitResolverTest : BaseDbTest() {
                 { assertEquals(101, issue.get("iid").asInt(), "Issue IID mismatch") },
                 { assertEquals("Fix bug in login flow", issue.get("title").asText(), "Issue title mismatch") },
                 { assertEquals("Users are unable to log in...", issue.get("description").asText(), "Issue description mismatch") },
-                { assertEquals("open", issue.get("state").asText(), "Issue state mismatch") }
+                { assertEquals("open", issue.get("state").asText(), "Issue state mismatch") },
             )
         }
 
         @Test
         fun `should retrieve commit with parent relationships`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "2") {
                         id
@@ -273,17 +293,17 @@ class CommitResolverTest : BaseDbTest() {
                         parents
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
                 { assertEquals("2", result.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("def456", result.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("Second commit", result.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("Second commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
             // Verify parents
@@ -299,7 +319,10 @@ class CommitResolverTest : BaseDbTest() {
 
         @Test
         fun `should retrieve commit with child relationships`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     commit(id: "1") {
                         id
@@ -312,17 +335,17 @@ class CommitResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("commit")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("commit")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
             // Verify children
@@ -334,7 +357,7 @@ class CommitResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("2", child.get("id").asText(), "Child ID mismatch") },
                 { assertEquals("def456", child.get("sha").asText(), "Child SHA mismatch") },
-                { assertEquals("Second commit", child.get("message").asText(), "Child message mismatch") }
+                { assertEquals("Second commit", child.get("message").asText(), "Child message mismatch") },
             )
         }
     }
@@ -345,7 +368,9 @@ class CommitResolverTest : BaseDbTest() {
         fun `should handle non-existent commit`() {
             // Create a test query for a commit that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     commit(id: "999") {
                         id
@@ -353,13 +378,12 @@ class CommitResolverTest : BaseDbTest() {
                         message
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("Commit not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }
