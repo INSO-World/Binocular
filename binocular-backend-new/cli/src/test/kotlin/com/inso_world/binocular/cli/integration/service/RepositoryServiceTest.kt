@@ -62,17 +62,16 @@ internal class RepositoryServiceTest(
         val vcsCommits =
             listOf(
                 VcsCommit(
-                    "sha1",
+                    "123456789-123456789-123456789-123456789-",
                     "msg1",
                     "null",
                     VcsPerson("User A", "a@test.com"),
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    null,
                 ), // No parents field
                 VcsCommit(
-                    "sha2",
+                    "123456789_123456789_123456789_123456789_",
                     "msg2",
                     "null",
                     VcsPerson("User B", "b@test.com"),
@@ -93,58 +92,108 @@ internal class RepositoryServiceTest(
         val vcsCommits =
             listOf(
                 VcsCommit(
-                    "sha1",
+                    "sha1sha1sha1sha1sha1sha1sha1sha1sha1sha1",
                     "msg1",
                     "null",
                     null,
                     VcsPerson("Author Only", "author@test.com"),
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    null,
                 ),
                 VcsCommit(
-                    "sha2",
+                    "sha2sha2sha2sha2sha2sha2sha2sha2sha2sha2",
                     "msg2",
                     "null",
                     VcsPerson("Committer Only", "committer@test.com"),
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    null,
                 ),
-                VcsCommit("sha3", "msg3", "null", null, null, LocalDateTime.now(), LocalDateTime.now(), null),
+                VcsCommit("sha3sha3sha3sha3sha3sha3sha3sha3sha3sha3", "msg3", "null", null, null, LocalDateTime.now(), LocalDateTime.now()),
             )
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
 
-        assertThat(transformedCommits.find { it.sha == "sha1" }!!.committer).isNull()
-        assertThat(transformedCommits.find { it.sha == "sha1" }!!.author).isNotNull
-        assertThat(transformedCommits.find { it.sha == "sha2" }!!.committer).isNotNull
-        assertThat(transformedCommits.find { it.sha == "sha2" }!!.author).isNull()
-        assertThat(transformedCommits.find { it.sha == "sha3" }!!.committer).isNull()
-        assertThat(transformedCommits.find { it.sha == "sha3" }!!.author).isNull()
+        assertThat(transformedCommits.find { it.sha == "sha1sha1sha1sha1sha1sha1sha1sha1sha1sha1" }!!.committer).isNull()
+        assertThat(transformedCommits.find { it.sha == "sha1sha1sha1sha1sha1sha1sha1sha1sha1sha1" }!!.author).isNotNull
+        assertThat(transformedCommits.find { it.sha == "sha2sha2sha2sha2sha2sha2sha2sha2sha2sha2" }!!.committer).isNotNull
+        assertThat(transformedCommits.find { it.sha == "sha2sha2sha2sha2sha2sha2sha2sha2sha2sha2" }!!.author).isNull()
+        assertThat(transformedCommits.find { it.sha == "sha3sha3sha3sha3sha3sha3sha3sha3sha3sha3" }!!.committer).isNull()
+        assertThat(transformedCommits.find { it.sha == "sha3sha3sha3sha3sha3sha3sha3sha3sha3sha3" }!!.author).isNull()
     }
 
     @Test
     fun `transformCommits with diamond parent-child structure`() {
         val user = VcsPerson("User", "user@test.com")
-        val c1 = VcsCommit("c1", "m1", "null", user, user, LocalDateTime.now(), LocalDateTime.now(), null)
-        val c2 = VcsCommit("c2", "m2", "null", user, user, LocalDateTime.now(), LocalDateTime.now(), listOf("c1"))
-        val c3 = VcsCommit("c3", "m3", "null", user, user, LocalDateTime.now(), LocalDateTime.now(), listOf("c1"))
-        val c4 = VcsCommit("c4", "m4", "null", user, user, LocalDateTime.now(), LocalDateTime.now(), listOf("c2", "c3"))
+        val c1 =
+            VcsCommit("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1", "m1", "null", user, user, LocalDateTime.now(), LocalDateTime.now())
+        val c2 =
+            VcsCommit(
+                "c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2",
+                "m2",
+                "null",
+                user,
+                user,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                listOf("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"),
+            )
+        val c3 =
+            VcsCommit(
+                "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+                "m3",
+                "null",
+                user,
+                user,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                listOf("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"),
+            )
+        val c4 =
+            VcsCommit(
+                "c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4",
+                "m4",
+                "null",
+                user,
+                user,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                listOf("c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2", "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"),
+            )
         val vcsCommits = listOf(c1, c2, c3, c4)
 
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
         val commitMap = transformedCommits.associateBy { it.sha }
 
-        assertThat(commitMap["c1"]!!.parents).isEmpty()
-        assertThat(commitMap["c2"]!!.parents.map { it.sha }).containsExactly("c1")
-        assertThat(commitMap["c3"]!!.parents.map { it.sha }).containsExactly("c1")
-        assertThat(commitMap["c4"]!!.parents.map { it.sha }).containsExactlyInAnyOrder("c2", "c3")
+        assertThat(commitMap["c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"]!!.parents).isEmpty()
+        assertThat(
+            commitMap["c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2"]!!.parents.map {
+                it.sha
+            },
+        ).containsExactly("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1")
+        assertThat(
+            commitMap["c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"]!!.parents.map {
+                it.sha
+            },
+        ).containsExactly("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1")
+        assertThat(
+            commitMap["c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4"]!!.parents.map {
+                it.sha
+            },
+        ).containsExactlyInAnyOrder("c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2", "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3")
 
         // Check object identity for parents
-        assertThat(commitMap["c2"]!!.parents.first()).isSameAs(commitMap["c1"]!!)
-        assertThat(commitMap["c3"]!!.parents.first()).isSameAs(commitMap["c1"]!!)
-        assertThat(commitMap["c4"]!!.parents).containsExactlyInAnyOrder(commitMap["c2"]!!, commitMap["c3"]!!)
+        assertThat(
+            commitMap["c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2"]!!.parents.first(),
+        ).isSameAs(commitMap["c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"]!!)
+        assertThat(
+            commitMap["c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"]!!.parents.first(),
+        ).isSameAs(commitMap["c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"]!!)
+        assertThat(
+            commitMap["c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4"]!!.parents,
+        ).containsExactlyInAnyOrder(
+            commitMap["c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2"]!!,
+            commitMap["c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"]!!,
+        )
     }
 
     @Test
@@ -152,7 +201,7 @@ internal class RepositoryServiceTest(
         val vcsCommits =
             listOf(
                 VcsCommit(
-                    "sha1",
+                    "123456789-123456789-123456789-123456789-",
                     "msg1",
                     "null",
                     VcsPerson("User A", "a@test.com"),
@@ -171,14 +220,13 @@ internal class RepositoryServiceTest(
         val vcsCommits =
             listOf(
                 VcsCommit(
-                    "sha1",
+                    "sha1sha1sha1sha1sha1sha1sha1sha1sha1sha1",
                     "msg1",
                     "null",
                     VcsPerson("Committer Name", "shared@test.com"),
                     VcsPerson("Author Name", "shared@test.com"),
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    null,
                 ),
             )
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
@@ -270,17 +318,25 @@ internal class RepositoryServiceTest(
     fun `transformCommits should establish relationships regardless of input order`() {
         val user = VcsPerson("User", "user@test.com")
         val parent =
-            VcsCommit("parentSha", "Parent Commit", "null", user, user, LocalDateTime.now(), LocalDateTime.now(), null)
+            VcsCommit(
+                "parentShaparentShaparentShaparentShapare",
+                "Parent Commit",
+                "null",
+                user,
+                user,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+            )
         val child =
             VcsCommit(
-                "childSha",
+                "childShachildShachildShachildShachildSha",
                 "Child Commit",
                 "null",
                 user,
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                listOf("parentSha"),
+                listOf("parentShaparentShaparentShaparentShapare"),
             )
 
         // Order: child first, then parent
@@ -288,13 +344,13 @@ internal class RepositoryServiceTest(
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommitsOutOfOrder)
         val commitMap = transformedCommits.associateBy { it.sha }
 
-        val transformedChild = commitMap["childSha"]
-        val transformedParent = commitMap["parentSha"]
+        val transformedChild = commitMap["childShachildShachildShachildShachildSha"]
+        val transformedParent = commitMap["parentShaparentShaparentShaparentShapare"]
 
         assertThat(transformedChild).isNotNull
         assertThat(transformedParent).isNotNull
         assertThat(transformedChild!!.parents).hasSize(1)
-        assertThat(transformedChild.parents.first().sha).isEqualTo("parentSha")
+        assertThat(transformedChild.parents.first().sha).isEqualTo("parentShaparentShaparentShaparentShapare")
         assertThat(transformedChild.parents.first()).isSameAs(transformedParent) // Check instance identity
         assertThat(transformedParent!!.parents).isEmpty()
     }

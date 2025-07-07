@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest(
     classes = [BinocularCommandLineApplication::class],
@@ -24,6 +25,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@Transactional
 internal class BaseServiceTest : BaseFixturesIntegrationTest() {
     @Autowired
     private lateinit var testDataSetupService: TestDataSetupService
