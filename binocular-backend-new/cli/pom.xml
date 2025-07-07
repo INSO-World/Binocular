@@ -3,9 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.inso-world</groupId>
-        <artifactId>binocular</artifactId>
+        <groupId>com.inso-world.binocular</groupId>
+        <artifactId>binocular-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>cli</artifactId>
     <version>0.0.1-SNAPSHOT</version>
