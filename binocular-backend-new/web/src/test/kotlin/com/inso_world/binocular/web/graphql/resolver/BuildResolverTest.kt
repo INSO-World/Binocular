@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test
  * Test class for verifying the Build resolver functionality.
  * This class extends BaseDbTest to leverage the test data setup.
  */
-class BuildResolverTest : BaseDbTest() {
-
+internal class BuildResolverTest : BaseDbTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve build with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     build(id: "1") {
                         id
@@ -37,11 +39,11 @@ class BuildResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("build")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("build")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify build data
             assertAll(
@@ -53,7 +55,7 @@ class BuildResolverTest : BaseDbTest() {
                 { assertEquals("user1", result.get("user").asText(), "Build user mismatch") },
                 { assertEquals("User One", result.get("userFullName").asText(), "Build userFullName mismatch") },
                 { assertEquals(120, result.get("duration").asInt(), "Build duration mismatch") },
-                { assertEquals("https://example.com/builds/1", result.get("webUrl").asText(), "Build webUrl mismatch") }
+                { assertEquals("https://example.com/builds/1", result.get("webUrl").asText(), "Build webUrl mismatch") },
             )
 
             // Verify jobs
@@ -68,7 +70,7 @@ class BuildResolverTest : BaseDbTest() {
                 { assertEquals("test", job.get("name").asText(), "Job name mismatch") },
                 { assertEquals("success", job.get("status").asText(), "Job status mismatch") },
                 { assertEquals("test", job.get("stage").asText(), "Job stage mismatch") },
-                { assertEquals("https://example.com/jobs/job1", job.get("webUrl").asText(), "Job webUrl mismatch") }
+                { assertEquals("https://example.com/jobs/job1", job.get("webUrl").asText(), "Job webUrl mismatch") },
             )
         }
     }
@@ -77,7 +79,10 @@ class BuildResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve build with related commits`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     build(id: "1") {
                         id
@@ -93,11 +98,11 @@ class BuildResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("build")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("build")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify build data
             assertAll(
@@ -106,7 +111,7 @@ class BuildResolverTest : BaseDbTest() {
                 { assertEquals("main", result.get("ref").asText(), "Build ref mismatch") },
                 { assertEquals("success", result.get("status").asText(), "Build status mismatch") },
                 { assertEquals("User One", result.get("userFullName").asText(), "Build userFullName mismatch") },
-                { assertEquals("user1", result.get("user").asText(), "Build user mismatch") }
+                { assertEquals("user1", result.get("user").asText(), "Build user mismatch") },
             )
 
             // Verify commits
@@ -119,13 +124,16 @@ class BuildResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", commit.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
 
         @Test
         fun `should retrieve build with no related commits`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     build(id: "2") {
                         id
@@ -142,11 +150,11 @@ class BuildResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("build")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("build")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify build data
             assertAll(
@@ -156,7 +164,7 @@ class BuildResolverTest : BaseDbTest() {
                 { assertEquals("failed", result.get("status").asText(), "Build status mismatch") },
                 { assertEquals("v1.0.0", result.get("tag").asText(), "Build tag mismatch") },
                 { assertEquals("User Two", result.get("userFullName").asText(), "Build userFullName mismatch") },
-                { assertEquals("user2", result.get("user").asText(), "Build user mismatch") }
+                { assertEquals("user2", result.get("user").asText(), "Build user mismatch") },
             )
 
             // Verify commits (should be empty array)
@@ -172,7 +180,9 @@ class BuildResolverTest : BaseDbTest() {
         fun `should handle non-existent build`() {
             // Create a test query for a build that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     build(id: "999") {
                         id
@@ -180,13 +190,12 @@ class BuildResolverTest : BaseDbTest() {
                         ref
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("Build not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }

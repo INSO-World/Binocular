@@ -1,7 +1,12 @@
 package com.inso_world.binocular.web.graphql.resolver
 
-import com.inso_world.binocular.web.entity.*
-import com.inso_world.binocular.web.service.IssueService
+import com.inso_world.binocular.core.service.IssueInfrastructurePort
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.SchemaMapping
@@ -9,16 +14,16 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class IssueResolver(
-    private val issueService: IssueService
+    private val issueService: IssueInfrastructurePort,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(IssueResolver::class.java)
 
     /**
      * Resolves the accounts field for an Issue in GraphQL.
-     * 
+     *
      * This method retrieves all accounts associated with the given issue.
      * If the issue ID is null, an empty list is returned.
-     * 
+     *
      * @param issue The issue for which to retrieve accounts
      * @return A list of accounts associated with the issue, or an empty list if the issue ID is null
      */
@@ -32,10 +37,10 @@ class IssueResolver(
 
     /**
      * Resolves the commits field for an Issue in GraphQL.
-     * 
+     *
      * This method retrieves all commits associated with the given issue.
      * If the issue ID is null, an empty list is returned.
-     * 
+     *
      * @param issue The issue for which to retrieve commits
      * @return A list of commits associated with the issue, or an empty list if the issue ID is null
      */
@@ -49,10 +54,10 @@ class IssueResolver(
 
     /**
      * Resolves the milestones field for an Issue in GraphQL.
-     * 
+     *
      * This method retrieves all milestones associated with the given issue.
      * If the issue ID is null, an empty list is returned.
-     * 
+     *
      * @param issue The issue for which to retrieve milestones
      * @return A list of milestones associated with the issue, or an empty list if the issue ID is null
      */
@@ -66,10 +71,10 @@ class IssueResolver(
 
     /**
      * Resolves the notes field for an Issue in GraphQL.
-     * 
+     *
      * This method retrieves all notes associated with the given issue.
      * If the issue ID is null, an empty list is returned.
-     * 
+     *
      * @param issue The issue for which to retrieve notes
      * @return A list of notes associated with the issue, or an empty list if the issue ID is null
      */
@@ -83,10 +88,10 @@ class IssueResolver(
 
     /**
      * Resolves the users field for an Issue in GraphQL.
-     * 
+     *
      * This method retrieves all users associated with the given issue.
      * If the issue ID is null, an empty list is returned.
-     * 
+     *
      * @param issue The issue for which to retrieve users
      * @return A list of users associated with the issue, or an empty list if the issue ID is null
      */

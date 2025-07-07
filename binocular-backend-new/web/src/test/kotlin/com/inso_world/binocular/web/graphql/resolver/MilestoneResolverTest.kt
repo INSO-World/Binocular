@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test
  * Test class for verifying the Milestone resolver functionality.
  * This class extends BaseDbTest to leverage the test data setup.
  */
-class MilestoneResolverTest : BaseDbTest() {
-
+internal class MilestoneResolverTest : BaseDbTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve milestone with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     milestone(id: "1") {
                         id
@@ -32,11 +34,11 @@ class MilestoneResolverTest : BaseDbTest() {
                         webUrl
                     }
                 }
-            """)
-                .execute()
-                .path("milestone")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("milestone")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify milestone data
             assertAll(
@@ -50,7 +52,7 @@ class MilestoneResolverTest : BaseDbTest() {
                 { assertEquals("2023-02-15T00:00:00Z", result.get("dueDate").asText(), "Milestone dueDate mismatch") },
                 { assertEquals("active", result.get("state").asText(), "Milestone state mismatch") },
                 { assertEquals(false, result.get("expired").asBoolean(), "Milestone expired mismatch") },
-                { assertEquals("https://example.com/milestones/1", result.get("webUrl").asText(), "Milestone webUrl mismatch") }
+                { assertEquals("https://example.com/milestones/1", result.get("webUrl").asText(), "Milestone webUrl mismatch") },
             )
         }
     }
@@ -59,7 +61,10 @@ class MilestoneResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve milestone with related issues`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     milestone(id: "1") {
                         id
@@ -76,11 +81,11 @@ class MilestoneResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("milestone")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("milestone")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify milestone data
             assertAll(
@@ -89,7 +94,7 @@ class MilestoneResolverTest : BaseDbTest() {
                 { assertEquals("Release 1.0", result.get("title").asText(), "Milestone title mismatch") },
                 { assertEquals("First stable release", result.get("description").asText(), "Milestone description mismatch") },
                 { assertEquals("active", result.get("state").asText(), "Milestone state mismatch") },
-                { assertEquals("https://example.com/milestones/1", result.get("webUrl").asText(), "Milestone webUrl mismatch") }
+                { assertEquals("https://example.com/milestones/1", result.get("webUrl").asText(), "Milestone webUrl mismatch") },
             )
 
             // Verify issues
@@ -102,13 +107,16 @@ class MilestoneResolverTest : BaseDbTest() {
                 { assertEquals("1", issue.get("id").asText(), "Issue ID mismatch") },
                 { assertEquals(101, issue.get("iid").asInt(), "Issue IID mismatch") },
                 { assertEquals("Fix bug in login flow", issue.get("title").asText(), "Issue title mismatch") },
-                { assertEquals("Users are unable to log in...", issue.get("description").asText(), "Issue description mismatch") }
+                { assertEquals("Users are unable to log in...", issue.get("description").asText(), "Issue description mismatch") },
             )
         }
 
         @Test
         fun `should retrieve milestone with related merge requests`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     milestone(id: "1") {
                         id
@@ -123,18 +131,18 @@ class MilestoneResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("milestone")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("milestone")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify milestone data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Milestone ID mismatch") },
                 { assertEquals(201, result.get("iid").asInt(), "Milestone IID mismatch") },
                 { assertEquals("Release 1.0", result.get("title").asText(), "Milestone title mismatch") },
-                { assertEquals("First stable release", result.get("description").asText(), "Milestone description mismatch") }
+                { assertEquals("First stable release", result.get("description").asText(), "Milestone description mismatch") },
             )
 
             // Verify merge requests
@@ -147,7 +155,7 @@ class MilestoneResolverTest : BaseDbTest() {
                 { assertEquals("1", mergeRequest.get("id").asText(), "Merge request ID mismatch") },
                 { assertEquals(201, mergeRequest.get("iid").asInt(), "Merge request IID mismatch") },
                 { assertEquals("Implement user authentication", mergeRequest.get("title").asText(), "Merge request title mismatch") },
-                { assertEquals("Add JWT auth", mergeRequest.get("description").asText(), "Merge request description mismatch") }
+                { assertEquals("Add JWT auth", mergeRequest.get("description").asText(), "Merge request description mismatch") },
             )
         }
     }
@@ -158,7 +166,9 @@ class MilestoneResolverTest : BaseDbTest() {
         fun `should handle non-existent milestone`() {
             // Create a test query for a milestone that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     milestone(id: "999") {
                         id
@@ -166,13 +176,12 @@ class MilestoneResolverTest : BaseDbTest() {
                         title
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("Milestone not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }

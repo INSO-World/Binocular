@@ -1,7 +1,10 @@
 package com.inso_world.binocular.web.graphql.resolver
 
-import com.inso_world.binocular.web.entity.*
-import com.inso_world.binocular.web.service.AccountService
+import com.inso_world.binocular.core.service.AccountInfrastructurePort
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Note
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.SchemaMapping
@@ -9,16 +12,16 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class AccountResolver(
-    private val accountService: AccountService
+    private val accountService: AccountInfrastructurePort,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(AccountResolver::class.java)
 
     /**
      * Resolves the issues field for an Account in GraphQL.
-     * 
+     *
      * This method retrieves all issues associated with the given account.
      * If the account ID is null, an empty list is returned.
-     * 
+     *
      * @param account The account for which to retrieve issues
      * @return A list of issues associated with the account, or an empty list if the account ID is null
      */
@@ -32,10 +35,10 @@ class AccountResolver(
 
     /**
      * Resolves the mergeRequests field for an Account in GraphQL.
-     * 
+     *
      * This method retrieves all merge requests associated with the given account.
      * If the account ID is null, an empty list is returned.
-     * 
+     *
      * @param account The account for which to retrieve merge requests
      * @return A list of merge requests associated with the account, or an empty list if the account ID is null
      */
@@ -49,10 +52,10 @@ class AccountResolver(
 
     /**
      * Resolves the notes field for an Account in GraphQL.
-     * 
+     *
      * This method retrieves all notes associated with the given account.
      * If the account ID is null, an empty list is returned.
-     * 
+     *
      * @param account The account for which to retrieve notes
      * @return A list of notes associated with the account, or an empty list if the account ID is null
      */

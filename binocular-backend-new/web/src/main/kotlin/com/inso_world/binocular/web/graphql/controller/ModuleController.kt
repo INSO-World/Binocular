@@ -1,9 +1,8 @@
 package com.inso_world.binocular.web.graphql.controller
 
-import com.inso_world.binocular.web.entity.Module
+import com.inso_world.binocular.core.service.ModuleInfrastructurePort
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
-import com.inso_world.binocular.web.service.ModuleService
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,47 +15,52 @@ import org.springframework.stereotype.Controller
 @Controller
 @SchemaMapping(typeName = "Module")
 class ModuleController(
-  @Autowired private val moduleService: ModuleService,
+    @Autowired private val moduleService: ModuleInfrastructurePort,
 ) {
-  private var logger: Logger = LoggerFactory.getLogger(ModuleController::class.java)
+    private var logger: Logger = LoggerFactory.getLogger(ModuleController::class.java)
 
-  /**
-   * Find all modules with pagination.
-   * 
-   * This method returns a Page object that includes:
-   * - count: total number of items
-   * - page: current page number (1-based)
-   * - perPage: number of items per page
-   * - data: list of modules for the current page
-   * 
-   * @param page The page number (1-based). If null, defaults to 1.
-   * @param perPage The number of items per page. If null, defaults to 20.
-   * @return A Page object containing the modules and pagination metadata.
-   */
-  @QueryMapping(name = "modules")
-  fun findAll(@Argument page: Int?, @Argument perPage: Int?): PageDto<Module> {
-    logger.info("Getting all modules...")
+    /**
+     * Find all modules with pagination.
+     *
+     * This method returns a Page object that includes:
+     * - count: total number of items
+     * - page: current page number (1-based)
+     * - perPage: number of items per page
+     * - data: list of modules for the current page
+     *
+     * @param page The page number (1-based). If null, defaults to 1.
+     * @param perPage The number of items per page. If null, defaults to 20.
+     * @return A Page object containing the modules and pagination metadata.
+     */
+    @QueryMapping(name = "modules")
+    fun findAll(
+        @Argument page: Int?,
+        @Argument perPage: Int?,
+    ): PageDto<com.inso_world.binocular.model.Module> {
+        logger.info("Getting all modules...")
 
-    val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
+        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-    val modulesPage = moduleService.findAll(pageable)
+        val modulesPage = moduleService.findAll(pageable)
 
-    return PageDto(modulesPage)
-  }
+        return PageDto(modulesPage)
+    }
 
-  /**
-   * Find a module by its ID.
-   * 
-   * This method retrieves a single module based on the provided ID.
-   * If no module is found with the given ID, an exception is thrown.
-   * 
-   * @param id The unique identifier of the module to retrieve.
-   * @return The module with the specified ID.
-   * @throws GraphQLException if no module is found with the given ID.
-   */
-  @QueryMapping(name = "module")
-  fun findById(@Argument id: String): Module {
-    logger.info("Getting module by id: $id")
-    return GraphQLValidationUtils.requireEntityExists(moduleService.findById(id), "Module", id)
-  }
+    /**
+     * Find a module by its ID.
+     *
+     * This method retrieves a single module based on the provided ID.
+     * If no module is found with the given ID, an exception is thrown.
+     *
+     * @param id The unique identifier of the module to retrieve.
+     * @return The module with the specified ID.
+     * @throws GraphQLException if no module is found with the given ID.
+     */
+    @QueryMapping(name = "module")
+    fun findById(
+        @Argument id: String,
+    ): com.inso_world.binocular.model.Module {
+        logger.info("Getting module by id: $id")
+        return GraphQLValidationUtils.requireEntityExists(moduleService.findById(id), "Module", id)
+    }
 }
