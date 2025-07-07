@@ -18,17 +18,19 @@ package com.inso_world.binocular.internal
 // helpers directly inline like we're doing here.
 
 import com.sun.jna.Library
+import com.sun.jna.IntegerType
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import com.sun.jna.ptr.ByReference
+import com.sun.jna.Callback
+import com.sun.jna.ptr.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -41,45 +43,30 @@ import java.util.concurrent.atomic.AtomicLong
 open class RustBuffer : Structure() {
     // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
     // When dealing with these fields, make sure to call `toULong()`.
-    @JvmField
-    var capacity: Long = 0
+    @JvmField var capacity: Long = 0
+    @JvmField var len: Long = 0
+    @JvmField var data: Pointer? = null
 
-    @JvmField
-    var len: Long = 0
+    class ByValue: RustBuffer(), Structure.ByValue
+    class ByReference: RustBuffer(), Structure.ByReference
 
-    @JvmField
-    var data: Pointer? = null
-
-    class ByValue :
-        RustBuffer(),
-        Structure.ByValue
-
-    class ByReference :
-        RustBuffer(),
-        Structure.ByReference
-
-    internal fun setValue(other: RustBuffer) {
+   internal fun setValue(other: RustBuffer) {
         capacity = other.capacity
         len = other.len
         data = other.data
     }
 
     companion object {
-        internal fun alloc(size: ULong = 0UL) =
-            uniffiRustCall { status ->
-                // Note: need to convert the size to a `Long` value to make this work with JVM.
-                UniffiLib.INSTANCE.ffi_binocular_ffi_rustbuffer_alloc(size.toLong(), status)
-            }.also {
-                if (it.data == null) {
-                    throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=$size)")
-                }
-            }
+        internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
+            // Note: need to convert the size to a `Long` value to make this work with JVM.
+            UniffiLib.INSTANCE.ffi_binocular_ffi_rustbuffer_alloc(size.toLong(), status)
+        }.also {
+            if(it.data == null) {
+               throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
+           }
+        }
 
-        internal fun create(
-            capacity: ULong,
-            len: ULong,
-            data: Pointer?,
-        ): RustBuffer.ByValue {
+        internal fun create(capacity: ULong, len: ULong, data: Pointer?): RustBuffer.ByValue {
             var buf = RustBuffer.ByValue()
             buf.capacity = capacity.toLong()
             buf.len = len.toLong()
@@ -87,10 +74,9 @@ open class RustBuffer : Structure() {
             return buf
         }
 
-        internal fun free(buf: RustBuffer.ByValue) =
-            uniffiRustCall { status ->
-                UniffiLib.INSTANCE.ffi_binocular_ffi_rustbuffer_free(buf, status)
-            }
+        internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.ffi_binocular_ffi_rustbuffer_free(buf, status)
+        }
     }
 
     @Suppress("TooGenericExceptionThrown")
@@ -142,17 +128,11 @@ class RustBufferByReference : ByReference(16) {
 
 @Structure.FieldOrder("len", "data")
 internal open class ForeignBytes : Structure() {
-    @JvmField
-    var len: Int = 0
+    @JvmField var len: Int = 0
+    @JvmField var data: Pointer? = null
 
-    @JvmField
-    var data: Pointer? = null
-
-    class ByValue :
-        ForeignBytes(),
-        Structure.ByValue
+    class ByValue : ForeignBytes(), Structure.ByValue
 }
-
 /**
  * The FfiConverter interface handles converter types to and from the FFI
  *
@@ -161,7 +141,7 @@ internal open class ForeignBytes : Structure() {
  *
  * @suppress
  */
-internal interface FfiConverter<KotlinType, FfiType> {
+public interface FfiConverter<KotlinType, FfiType> {
     // Convert an FFI type to a Kotlin type
     fun lift(value: FfiType): KotlinType
 
@@ -182,10 +162,7 @@ internal interface FfiConverter<KotlinType, FfiType> {
     fun allocationSize(value: KotlinType): ULong
 
     // Write a Kotlin type to a `ByteBuffer`
-    fun write(
-        value: KotlinType,
-        buf: ByteBuffer,
-    )
+    fun write(value: KotlinType, buf: ByteBuffer)
 
     // Lower a value into a `RustBuffer`
     //
@@ -196,10 +173,9 @@ internal interface FfiConverter<KotlinType, FfiType> {
     fun lowerIntoRustBuffer(value: KotlinType): RustBuffer.ByValue {
         val rbuf = RustBuffer.alloc(allocationSize(value))
         try {
-            val bbuf =
-                rbuf.data!!.getByteBuffer(0, rbuf.capacity).also {
-                    it.order(ByteOrder.BIG_ENDIAN)
-                }
+            val bbuf = rbuf.data!!.getByteBuffer(0, rbuf.capacity).also {
+                it.order(ByteOrder.BIG_ENDIAN)
+            }
             write(value, bbuf)
             rbuf.writeField("len", bbuf.position().toLong())
             return rbuf
@@ -216,11 +192,11 @@ internal interface FfiConverter<KotlinType, FfiType> {
     fun liftFromRustBuffer(rbuf: RustBuffer.ByValue): KotlinType {
         val byteBuf = rbuf.asByteBuffer()!!
         try {
-            val item = read(byteBuf)
-            if (byteBuf.hasRemaining()) {
-                throw RuntimeException("junk remaining in buffer after lifting, something is very wrong!!")
-            }
-            return item
+           val item = read(byteBuf)
+           if (byteBuf.hasRemaining()) {
+               throw RuntimeException("junk remaining in buffer after lifting, something is very wrong!!")
+           }
+           return item
         } finally {
             RustBuffer.free(rbuf)
         }
@@ -232,9 +208,8 @@ internal interface FfiConverter<KotlinType, FfiType> {
  *
  * @suppress
  */
-internal interface FfiConverterRustBuffer<KotlinType> : FfiConverter<KotlinType, RustBuffer.ByValue> {
+public interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue) = liftFromRustBuffer(value)
-
     override fun lower(value: KotlinType) = lowerIntoRustBuffer(value)
 }
 // A handful of classes and functions to support the generated data structures.
@@ -246,27 +221,25 @@ internal const val UNIFFI_CALL_UNEXPECTED_ERROR = 2.toByte()
 
 @Structure.FieldOrder("code", "error_buf")
 internal open class UniffiRustCallStatus : Structure() {
-    @JvmField
-    var code: Byte = 0
+    @JvmField var code: Byte = 0
+    @JvmField var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
 
-    @JvmField
-    var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
+    class ByValue: UniffiRustCallStatus(), Structure.ByValue
 
-    class ByValue :
-        UniffiRustCallStatus(),
-        Structure.ByValue
+    fun isSuccess(): Boolean {
+        return code == UNIFFI_CALL_SUCCESS
+    }
 
-    fun isSuccess(): Boolean = code == UNIFFI_CALL_SUCCESS
+    fun isError(): Boolean {
+        return code == UNIFFI_CALL_ERROR
+    }
 
-    fun isError(): Boolean = code == UNIFFI_CALL_ERROR
-
-    fun isPanic(): Boolean = code == UNIFFI_CALL_UNEXPECTED_ERROR
+    fun isPanic(): Boolean {
+        return code == UNIFFI_CALL_UNEXPECTED_ERROR
+    }
 
     companion object {
-        fun create(
-            code: Byte,
-            errorBuf: RustBuffer.ByValue,
-        ): UniffiRustCallStatus.ByValue {
+        fun create(code: Byte, errorBuf: RustBuffer.ByValue): UniffiRustCallStatus.ByValue {
             val callStatus = UniffiRustCallStatus.ByValue()
             callStatus.code = code
             callStatus.error_buf = errorBuf
@@ -275,9 +248,7 @@ internal open class UniffiRustCallStatus : Structure() {
     }
 }
 
-class InternalException(
-    message: String,
-) : kotlin.Exception(message)
+class InternalException(message: String) : kotlin.Exception(message)
 
 /**
  * Each top-level error class has a companion object that can lift the error from the call status's rust buffer
@@ -285,7 +256,7 @@ class InternalException(
  * @suppress
  */
 interface UniffiRustCallStatusErrorHandler<E> {
-    fun lift(error_buf: RustBuffer.ByValue): E
+    fun lift(error_buf: RustBuffer.ByValue): E;
 }
 
 // Helpers for calling Rust
@@ -293,10 +264,7 @@ interface UniffiRustCallStatusErrorHandler<E> {
 // synchronize itself
 
 // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-private inline fun <U, E : kotlin.Exception> uniffiRustCallWithError(
-    errorHandler: UniffiRustCallStatusErrorHandler<E>,
-    callback: (UniffiRustCallStatus) -> U,
-): U {
+private inline fun <U, E: kotlin.Exception> uniffiRustCallWithError(errorHandler: UniffiRustCallStatusErrorHandler<E>, callback: (UniffiRustCallStatus) -> U): U {
     var status = UniffiRustCallStatus()
     val return_value = callback(status)
     uniffiCheckCallStatus(errorHandler, status)
@@ -304,10 +272,7 @@ private inline fun <U, E : kotlin.Exception> uniffiRustCallWithError(
 }
 
 // Check UniffiRustCallStatus and throw an error if the call wasn't successful
-private fun <E : kotlin.Exception> uniffiCheckCallStatus(
-    errorHandler: UniffiRustCallStatusErrorHandler<E>,
-    status: UniffiRustCallStatus,
-) {
+private fun<E: kotlin.Exception> uniffiCheckCallStatus(errorHandler: UniffiRustCallStatusErrorHandler<E>, status: UniffiRustCallStatus) {
     if (status.isSuccess()) {
         return
     } else if (status.isError()) {
@@ -331,7 +296,7 @@ private fun <E : kotlin.Exception> uniffiCheckCallStatus(
  *
  * @suppress
  */
-object UniffiNullRustCallStatusErrorHandler : UniffiRustCallStatusErrorHandler<InternalException> {
+object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<InternalException> {
     override fun lift(error_buf: RustBuffer.ByValue): InternalException {
         RustBuffer.free(error_buf)
         return InternalException("Unexpected CALL_ERROR")
@@ -339,31 +304,32 @@ object UniffiNullRustCallStatusErrorHandler : UniffiRustCallStatusErrorHandler<I
 }
 
 // Call a rust function that returns a plain value
-private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U =
-    uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback)
+private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U {
+    return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback)
+}
 
-internal inline fun <T> uniffiTraitInterfaceCall(
+internal inline fun<T> uniffiTraitInterfaceCall(
     callStatus: UniffiRustCallStatus,
     makeCall: () -> T,
     writeReturn: (T) -> Unit,
 ) {
     try {
         writeReturn(makeCall())
-    } catch (e: kotlin.Exception) {
+    } catch(e: kotlin.Exception) {
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
         callStatus.error_buf = FfiConverterString.lower(e.toString())
     }
 }
 
-internal inline fun <T, reified E : Throwable> uniffiTraitInterfaceCallWithError(
+internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
     callStatus: UniffiRustCallStatus,
     makeCall: () -> T,
     writeReturn: (T) -> Unit,
-    lowerError: (E) -> RustBuffer.ByValue,
+    lowerError: (E) -> RustBuffer.ByValue
 ) {
     try {
         writeReturn(makeCall())
-    } catch (e: kotlin.Exception) {
+    } catch(e: kotlin.Exception) {
         if (e is E) {
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
@@ -373,15 +339,12 @@ internal inline fun <T, reified E : Throwable> uniffiTraitInterfaceCallWithError
         }
     }
 }
-
 // Map handles to objects
 //
 // This is used pass an opaque 64-bit handle representing a foreign object to the Rust code.
-internal class UniffiHandleMap<T : Any> {
+internal class UniffiHandleMap<T: Any> {
     private val map = ConcurrentHashMap<Long, T>()
-    private val counter =
-        java.util.concurrent.atomic
-            .AtomicLong(0)
+    private val counter = java.util.concurrent.atomic.AtomicLong(0)
 
     val size: Int
         get() = map.size
@@ -394,10 +357,14 @@ internal class UniffiHandleMap<T : Any> {
     }
 
     // Get an object from the handle map
-    fun get(handle: Long): T = map.get(handle) ?: throw InternalException("UniffiHandleMap.get: Invalid handle")
+    fun get(handle: Long): T {
+        return map.get(handle) ?: throw InternalException("UniffiHandleMap.get: Invalid handle")
+    }
 
     // Remove an entry from the handlemap and get the Kotlin object back
-    fun remove(handle: Long): T = map.remove(handle) ?: throw InternalException("UniffiHandleMap: Invalid handle")
+    fun remove(handle: Long): T {
+        return map.remove(handle) ?: throw InternalException("UniffiHandleMap: Invalid handle")
+    }
 }
 
 // Contains loading, initialization code,
@@ -411,25 +378,22 @@ private fun findLibraryName(componentName: String): String {
     return "binocular_ffi"
 }
 
-private inline fun <reified Lib : Library> loadIndirect(componentName: String): Lib =
-    Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
+private inline fun <reified Lib : Library> loadIndirect(
+    componentName: String
+): Lib {
+    return Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
+}
 
 // Define FFI callback types
 internal interface UniffiRustFutureContinuationCallback : com.sun.jna.Callback {
-    fun callback(
-        `data`: Long,
-        `pollResult`: Byte,
-    )
+    fun callback(`data`: Long,`pollResult`: Byte,)
 }
-
 internal interface UniffiForeignFutureFree : com.sun.jna.Callback {
-    fun callback(`handle`: Long)
+    fun callback(`handle`: Long,)
 }
-
 internal interface UniffiCallbackInterfaceFree : com.sun.jna.Callback {
-    fun callback(`handle`: Long)
+    fun callback(`handle`: Long,)
 }
-
 @Structure.FieldOrder("handle", "free")
 internal open class UniffiForeignFuture(
     @JvmField internal var `handle`: Long = 0.toLong(),
@@ -438,15 +402,14 @@ internal open class UniffiForeignFuture(
     class UniffiByValue(
         `handle`: Long = 0.toLong(),
         `free`: UniffiForeignFutureFree? = null,
-    ) : UniffiForeignFuture(`handle`, `free`),
-        Structure.ByValue
+    ): UniffiForeignFuture(`handle`,`free`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFuture) {
+   internal fun uniffiSetValue(other: UniffiForeignFuture) {
         `handle` = other.`handle`
         `free` = other.`free`
     }
-}
 
+}
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructU8(
     @JvmField internal var `returnValue`: Byte = 0.toByte(),
@@ -455,22 +418,17 @@ internal open class UniffiForeignFutureStructU8(
     class UniffiByValue(
         `returnValue`: Byte = 0.toByte(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU8(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructU8(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructU8) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU8) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteU8 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructU8.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU8.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructI8(
     @JvmField internal var `returnValue`: Byte = 0.toByte(),
@@ -479,22 +437,17 @@ internal open class UniffiForeignFutureStructI8(
     class UniffiByValue(
         `returnValue`: Byte = 0.toByte(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI8(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructI8(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructI8) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI8) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteI8 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructI8.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI8.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructU16(
     @JvmField internal var `returnValue`: Short = 0.toShort(),
@@ -503,22 +456,17 @@ internal open class UniffiForeignFutureStructU16(
     class UniffiByValue(
         `returnValue`: Short = 0.toShort(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU16(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructU16(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructU16) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU16) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteU16 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructU16.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU16.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructI16(
     @JvmField internal var `returnValue`: Short = 0.toShort(),
@@ -527,22 +475,17 @@ internal open class UniffiForeignFutureStructI16(
     class UniffiByValue(
         `returnValue`: Short = 0.toShort(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI16(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructI16(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructI16) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI16) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteI16 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructI16.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI16.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructU32(
     @JvmField internal var `returnValue`: Int = 0,
@@ -551,22 +494,17 @@ internal open class UniffiForeignFutureStructU32(
     class UniffiByValue(
         `returnValue`: Int = 0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU32(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructU32(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructU32) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU32) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteU32 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructU32.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU32.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructI32(
     @JvmField internal var `returnValue`: Int = 0,
@@ -575,22 +513,17 @@ internal open class UniffiForeignFutureStructI32(
     class UniffiByValue(
         `returnValue`: Int = 0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI32(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructI32(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructI32) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI32) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteI32 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructI32.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI32.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructU64(
     @JvmField internal var `returnValue`: Long = 0.toLong(),
@@ -599,22 +532,17 @@ internal open class UniffiForeignFutureStructU64(
     class UniffiByValue(
         `returnValue`: Long = 0.toLong(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU64(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructU64(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructU64) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU64) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteU64 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructU64.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU64.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructI64(
     @JvmField internal var `returnValue`: Long = 0.toLong(),
@@ -623,22 +551,17 @@ internal open class UniffiForeignFutureStructI64(
     class UniffiByValue(
         `returnValue`: Long = 0.toLong(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI64(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructI64(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructI64) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI64) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteI64 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructI64.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI64.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructF32(
     @JvmField internal var `returnValue`: Float = 0.0f,
@@ -647,22 +570,17 @@ internal open class UniffiForeignFutureStructF32(
     class UniffiByValue(
         `returnValue`: Float = 0.0f,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructF32(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructF32(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructF32) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructF32) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteF32 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructF32.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF32.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructF64(
     @JvmField internal var `returnValue`: Double = 0.0,
@@ -671,22 +589,17 @@ internal open class UniffiForeignFutureStructF64(
     class UniffiByValue(
         `returnValue`: Double = 0.0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructF64(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructF64(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructF64) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructF64) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteF64 : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructF64.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF64.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructPointer(
     @JvmField internal var `returnValue`: Pointer = Pointer.NULL,
@@ -695,22 +608,17 @@ internal open class UniffiForeignFutureStructPointer(
     class UniffiByValue(
         `returnValue`: Pointer = Pointer.NULL,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructPointer(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructPointer(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructPointer) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructPointer) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompletePointer : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructPointer.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructPointer.UniffiByValue,)
 }
-
 @Structure.FieldOrder("returnValue", "callStatus")
 internal open class UniffiForeignFutureStructRustBuffer(
     @JvmField internal var `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
@@ -719,75 +627,143 @@ internal open class UniffiForeignFutureStructRustBuffer(
     class UniffiByValue(
         `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructRustBuffer(`returnValue`, `callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructRustBuffer(`returnValue`,`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructRustBuffer) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructRustBuffer) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
-}
 
+}
 internal interface UniffiForeignFutureCompleteRustBuffer : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructRustBuffer.UniffiByValue,
-    )
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructRustBuffer.UniffiByValue,)
 }
-
 @Structure.FieldOrder("callStatus")
 internal open class UniffiForeignFutureStructVoid(
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructVoid(`callStatus`),
-        Structure.ByValue
+    ): UniffiForeignFutureStructVoid(`callStatus`,), Structure.ByValue
 
-    internal fun uniffiSetValue(other: UniffiForeignFutureStructVoid) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructVoid) {
         `callStatus` = other.`callStatus`
     }
+
+}
+internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructVoid.UniffiByValue,)
 }
 
-internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
-    fun callback(
-        `callbackData`: Long,
-        `result`: UniffiForeignFutureStructVoid.UniffiByValue,
-    )
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // For large crates we prevent `MethodTooLargeException` (see #2340)
-// N.B. the name of the extension is very misleading, since it is
-// rather `InterfaceTooLargeException`, caused by too many methods
+// N.B. the name of the extension is very misleading, since it is 
+// rather `InterfaceTooLargeException`, caused by too many methods 
 // in the interface for large crates.
 //
 // By splitting the otherwise huge interface into two parts
-// * UniffiLib
+// * UniffiLib 
 // * IntegrityCheckingUniffiLib (this)
 // we allow for ~2x as many methods in the UniffiLib interface.
-//
-// The `ffi_uniffi_contract_version` method and all checksum methods are put
+// 
+// The `ffi_uniffi_contract_version` method and all checksum methods are put 
 // into `IntegrityCheckingUniffiLib` and these methods are called only once,
 // when the library is loaded.
 internal interface IntegrityCheckingUniffiLib : Library {
     // Integrity check functions only
-    fun uniffi_binocular_ffi_checksum_func_blames(): Short
+    fun uniffi_binocular_ffi_checksum_func_blames(
+): Short
+fun uniffi_binocular_ffi_checksum_func_diffs(
+): Short
+fun uniffi_binocular_ffi_checksum_func_find_all_branches(
+): Short
+fun uniffi_binocular_ffi_checksum_func_find_commit(
+): Short
+fun uniffi_binocular_ffi_checksum_func_find_repo(
+): Short
+fun uniffi_binocular_ffi_checksum_func_hello(
+): Short
+fun uniffi_binocular_ffi_checksum_func_traverse(
+): Short
+fun uniffi_binocular_ffi_checksum_func_traverse_branch(
+): Short
+fun ffi_binocular_ffi_uniffi_contract_version(
+): Int
 
-    fun uniffi_binocular_ffi_checksum_func_diffs(): Short
-
-    fun uniffi_binocular_ffi_checksum_func_find_all_branches(): Short
-
-    fun uniffi_binocular_ffi_checksum_func_find_commit(): Short
-
-    fun uniffi_binocular_ffi_checksum_func_find_repo(): Short
-
-    fun uniffi_binocular_ffi_checksum_func_hello(): Short
-
-    fun uniffi_binocular_ffi_checksum_func_traverse(): Short
-
-    fun uniffi_binocular_ffi_checksum_func_traverse_branch(): Short
-
-    fun ffi_binocular_ffi_uniffi_contract_version(): Int
 }
 
 // A JNA Library to expose the extern-C FFI definitions.
@@ -797,8 +773,8 @@ internal interface UniffiLib : Library {
         internal val INSTANCE: UniffiLib by lazy {
             val componentName = "binocular_ffi"
             // For large crates we prevent `MethodTooLargeException` (see #2340)
-            // N.B. the name of the extension is very misleading, since it is
-            // rather `InterfaceTooLargeException`, caused by too many methods
+            // N.B. the name of the extension is very misleading, since it is 
+            // rather `InterfaceTooLargeException`, caused by too many methods 
             // in the interface for large crates.
             //
             // By splitting the otherwise huge interface into two parts
@@ -806,7 +782,7 @@ internal interface UniffiLib : Library {
             // * IntegrityCheckingUniffiLib
             // And all checksum methods are put into `IntegrityCheckingUniffiLib`
             // we allow for ~2x as many methods in the UniffiLib interface.
-            //
+            // 
             // Thus we first load the library with `loadIndirect` as `IntegrityCheckingUniffiLib`
             // so that we can (optionally!) call `uniffiCheckApiChecksums`...
             loadIndirect<IntegrityCheckingUniffiLib>(componentName)
@@ -821,12 +797,12 @@ internal interface UniffiLib : Library {
             // to trigger this issue, the performance impact is negligible, running on
             // a macOS M1 machine the `loadIndirect` call takes ~50ms.
             val lib = loadIndirect<UniffiLib>(componentName)
-            // No need to check the contract version and checksums, since
+            // No need to check the contract version and checksums, since 
             // we already did that with `IntegrityCheckingUniffiLib` above.
             // Loading of library with integrity check done.
             lib
         }
-
+        
         // The Cleaner for the whole library
         internal val CLEANER: UniffiCleaner by lazy {
             UniffiCleaner.create()
@@ -834,281 +810,139 @@ internal interface UniffiLib : Library {
     }
 
     // FFI functions
-    fun uniffi_binocular_ffi_fn_clone_anyhowerror(
-        `ptr`: Pointer,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Pointer
+    fun uniffi_binocular_ffi_fn_clone_anyhowerror(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+): Pointer
+fun uniffi_binocular_ffi_fn_free_anyhowerror(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+fun uniffi_binocular_ffi_fn_func_blames(`brepo`: RustBuffer.ByValue,`defines`: RustBuffer.ByValue,`diffAlgorithm`: RustBuffer.ByValue,`maxThreads`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_diffs(`brepo`: RustBuffer.ByValue,`commitlist`: RustBuffer.ByValue,`maxThreads`: Byte,`skipMerges`: Byte,`diffAlgorithm`: RustBuffer.ByValue,`breadthFirst`: Byte,`follow`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_find_all_branches(`brepo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_find_commit(`brepo`: RustBuffer.ByValue,`hash`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_find_repo(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_hello(uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+fun uniffi_binocular_ffi_fn_func_traverse(`brepo`: RustBuffer.ByValue,`sourceCommit`: RustBuffer.ByValue,`targetCommit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_traverse_branch(`brepo`: RustBuffer.ByValue,`branch`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_binocular_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_binocular_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_binocular_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+fun ffi_binocular_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_binocular_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_u8(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_u8(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+fun ffi_binocular_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_i8(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_i8(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+fun ffi_binocular_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_u16(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_u16(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Short
+fun ffi_binocular_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_i16(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_i16(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Short
+fun ffi_binocular_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_u32(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_u32(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Int
+fun ffi_binocular_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_i32(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_i32(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Int
+fun ffi_binocular_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_u64(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_u64(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+fun ffi_binocular_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_i64(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_i64(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+fun ffi_binocular_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_f32(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_f32(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Float
+fun ffi_binocular_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_f64(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_f64(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Double
+fun ffi_binocular_ffi_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_pointer(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_pointer(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Pointer
+fun ffi_binocular_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_rust_buffer(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_binocular_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_cancel_void(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_free_void(`handle`: Long,
+): Unit
+fun ffi_binocular_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
 
-    fun uniffi_binocular_ffi_fn_free_anyhowerror(
-        `ptr`: Pointer,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Unit
-
-    fun uniffi_binocular_ffi_fn_func_blames(
-        `repo`: RustBuffer.ByValue,
-        `defines`: RustBuffer.ByValue,
-        `diffAlgorithm`: RustBuffer.ByValue,
-        `maxThreads`: Byte,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun uniffi_binocular_ffi_fn_func_diffs(
-        `repo`: RustBuffer.ByValue,
-        `commitlist`: RustBuffer.ByValue,
-        `maxThreads`: Byte,
-        `skipMerges`: Byte,
-        `diffAlgorithm`: RustBuffer.ByValue,
-        `breadthFirst`: Byte,
-        `follow`: Byte,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun uniffi_binocular_ffi_fn_func_find_all_branches(
-        `repo`: RustBuffer.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun uniffi_binocular_ffi_fn_func_find_commit(
-        `repo`: RustBuffer.ByValue,
-        `hash`: RustBuffer.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun uniffi_binocular_ffi_fn_func_find_repo(
-        `path`: RustBuffer.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun uniffi_binocular_ffi_fn_func_hello(uniffi_out_err: UniffiRustCallStatus): Unit
-
-    fun uniffi_binocular_ffi_fn_func_traverse(
-        `repo`: RustBuffer.ByValue,
-        `sourceCommit`: RustBuffer.ByValue,
-        `targetCommit`: RustBuffer.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun uniffi_binocular_ffi_fn_func_traverse_branch(
-        `repo`: RustBuffer.ByValue,
-        `branch`: RustBuffer.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun ffi_binocular_ffi_rustbuffer_alloc(
-        `size`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun ffi_binocular_ffi_rustbuffer_from_bytes(
-        `bytes`: ForeignBytes.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun ffi_binocular_ffi_rustbuffer_free(
-        `buf`: RustBuffer.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Unit
-
-    fun ffi_binocular_ffi_rustbuffer_reserve(
-        `buf`: RustBuffer.ByValue,
-        `additional`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun ffi_binocular_ffi_rust_future_poll_u8(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_u8(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_u8(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_u8(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Byte
-
-    fun ffi_binocular_ffi_rust_future_poll_i8(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_i8(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_i8(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_i8(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Byte
-
-    fun ffi_binocular_ffi_rust_future_poll_u16(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_u16(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_u16(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_u16(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Short
-
-    fun ffi_binocular_ffi_rust_future_poll_i16(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_i16(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_i16(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_i16(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Short
-
-    fun ffi_binocular_ffi_rust_future_poll_u32(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_u32(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_u32(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_u32(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Int
-
-    fun ffi_binocular_ffi_rust_future_poll_i32(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_i32(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_i32(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_i32(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Int
-
-    fun ffi_binocular_ffi_rust_future_poll_u64(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_u64(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_u64(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_u64(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Long
-
-    fun ffi_binocular_ffi_rust_future_poll_i64(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_i64(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_i64(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_i64(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Long
-
-    fun ffi_binocular_ffi_rust_future_poll_f32(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_f32(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_f32(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_f32(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Float
-
-    fun ffi_binocular_ffi_rust_future_poll_f64(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_f64(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_f64(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_f64(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Double
-
-    fun ffi_binocular_ffi_rust_future_poll_pointer(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_pointer(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_pointer(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_pointer(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Pointer
-
-    fun ffi_binocular_ffi_rust_future_poll_rust_buffer(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_rust_buffer(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_rust_buffer(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_rust_buffer(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): RustBuffer.ByValue
-
-    fun ffi_binocular_ffi_rust_future_poll_void(
-        `handle`: Long,
-        `callback`: UniffiRustFutureContinuationCallback,
-        `callbackData`: Long,
-    ): Unit
-
-    fun ffi_binocular_ffi_rust_future_cancel_void(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_free_void(`handle`: Long): Unit
-
-    fun ffi_binocular_ffi_rust_future_complete_void(
-        `handle`: Long,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Unit
 }
 
 private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
@@ -1120,31 +954,30 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
 }
-
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_binocular_ffi_checksum_func_blames() != 40743.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_blames() != 65035.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_diffs() != 7623.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_diffs() != 2376.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_find_all_branches() != 65442.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_find_all_branches() != 50688.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_find_commit() != 34085.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_find_commit() != 472.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_find_repo() != 50824.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_find_repo() != 58199.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_binocular_ffi_checksum_func_hello() != 42727.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_traverse() != 25314.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_traverse() != 10733.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_traverse_branch() != 26510.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_traverse_branch() != 29479.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1158,7 +991,8 @@ public fun uniffiEnsureInitialized() {
 
 // Async support
 
-// internal interface members begin here.
+// Public interface members begin here.
+
 
 // Interface implemented by anything that can contain an object reference.
 //
@@ -1170,7 +1004,6 @@ public fun uniffiEnsureInitialized() {
 // helper method to execute a block and destroy the object at the end.
 interface Disposable {
     fun destroy()
-
     companion object {
         fun destroy(vararg args: Any?) {
             for (arg in args) {
@@ -1184,7 +1017,6 @@ interface Disposable {
                             }
                         }
                     }
-
                     is Map<*, *> -> {
                         for (element in arg.values) {
                             if (element is Disposable) {
@@ -1192,7 +1024,6 @@ interface Disposable {
                             }
                         }
                     }
-
                     is Iterable<*> -> {
                         for (element in arg) {
                             if (element is Disposable) {
@@ -1221,13 +1052,12 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
-/**
+/** 
  * Used to instantiate an interface without an actual pointer, for fakes in tests, mostly.
  *
  * @suppress
  * */
 object NoPointer
-
 /**
  * The cleaner interface for Object finalization code to run.
  * This is the entry point to any implementation that we're using.
@@ -1243,24 +1073,17 @@ interface UniffiCleaner {
         fun clean()
     }
 
-    fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable
+    fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable
 
     companion object
 }
 
 // The fallback Jna cleaner, which is available for both Android, and the JVM.
 private class UniffiJnaCleaner : UniffiCleaner {
-    private val cleaner =
-        com.sun.jna.internal.Cleaner
-            .getCleaner()
+    private val cleaner = com.sun.jna.internal.Cleaner.getCleaner()
 
-    override fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable = UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
 }
 
 private class UniffiJnaCleanable(
@@ -1268,6 +1091,7 @@ private class UniffiJnaCleanable(
 ) : UniffiCleaner.Cleanable {
     override fun clean() = cleanable.clean()
 }
+
 
 // We decide at uniffi binding generation time whether we were
 // using Android or not.
@@ -1287,18 +1111,14 @@ private fun UniffiCleaner.Companion.create(): UniffiCleaner =
     }
 
 private class JavaLangRefCleaner : UniffiCleaner {
-    val cleaner =
-        java.lang.ref.Cleaner
-            .create()
+    val cleaner = java.lang.ref.Cleaner.create()
 
-    override fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable = JavaLangRefCleanable(cleaner.register(value, cleanUpTask))
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        JavaLangRefCleanable(cleaner.register(value, cleanUpTask))
 }
 
 private class JavaLangRefCleanable(
-    val cleanable: java.lang.ref.Cleaner.Cleanable,
+    val cleanable: java.lang.ref.Cleaner.Cleanable
 ) : UniffiCleaner.Cleanable {
     override fun clean() = cleanable.clean()
 }
@@ -1306,19 +1126,22 @@ private class JavaLangRefCleanable(
 /**
  * @suppress
  */
-internal object FfiConverterUByte : FfiConverter<UByte, Byte> {
-    override fun lift(value: Byte): UByte = value.toUByte()
+public object FfiConverterUByte: FfiConverter<UByte, Byte> {
+    override fun lift(value: Byte): UByte {
+        return value.toUByte()
+    }
 
-    override fun read(buf: ByteBuffer): UByte = lift(buf.get())
+    override fun read(buf: ByteBuffer): UByte {
+        return lift(buf.get())
+    }
 
-    override fun lower(value: UByte): Byte = value.toByte()
+    override fun lower(value: UByte): Byte {
+        return value.toByte()
+    }
 
     override fun allocationSize(value: UByte) = 1UL
 
-    override fun write(
-        value: UByte,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: UByte, buf: ByteBuffer) {
         buf.put(value.toByte())
     }
 }
@@ -1326,19 +1149,22 @@ internal object FfiConverterUByte : FfiConverter<UByte, Byte> {
 /**
  * @suppress
  */
-internal object FfiConverterUInt : FfiConverter<UInt, Int> {
-    override fun lift(value: Int): UInt = value.toUInt()
+public object FfiConverterUInt: FfiConverter<UInt, Int> {
+    override fun lift(value: Int): UInt {
+        return value.toUInt()
+    }
 
-    override fun read(buf: ByteBuffer): UInt = lift(buf.getInt())
+    override fun read(buf: ByteBuffer): UInt {
+        return lift(buf.getInt())
+    }
 
-    override fun lower(value: UInt): Int = value.toInt()
+    override fun lower(value: UInt): Int {
+        return value.toInt()
+    }
 
     override fun allocationSize(value: UInt) = 4UL
 
-    override fun write(
-        value: UInt,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: UInt, buf: ByteBuffer) {
         buf.putInt(value.toInt())
     }
 }
@@ -1346,19 +1172,22 @@ internal object FfiConverterUInt : FfiConverter<UInt, Int> {
 /**
  * @suppress
  */
-internal object FfiConverterInt : FfiConverter<Int, Int> {
-    override fun lift(value: Int): Int = value
+public object FfiConverterInt: FfiConverter<Int, Int> {
+    override fun lift(value: Int): Int {
+        return value
+    }
 
-    override fun read(buf: ByteBuffer): Int = buf.getInt()
+    override fun read(buf: ByteBuffer): Int {
+        return buf.getInt()
+    }
 
-    override fun lower(value: Int): Int = value
+    override fun lower(value: Int): Int {
+        return value
+    }
 
     override fun allocationSize(value: Int) = 4UL
 
-    override fun write(
-        value: Int,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Int, buf: ByteBuffer) {
         buf.putInt(value)
     }
 }
@@ -1366,19 +1195,22 @@ internal object FfiConverterInt : FfiConverter<Int, Int> {
 /**
  * @suppress
  */
-internal object FfiConverterLong : FfiConverter<Long, Long> {
-    override fun lift(value: Long): Long = value
+public object FfiConverterLong: FfiConverter<Long, Long> {
+    override fun lift(value: Long): Long {
+        return value
+    }
 
-    override fun read(buf: ByteBuffer): Long = buf.getLong()
+    override fun read(buf: ByteBuffer): Long {
+        return buf.getLong()
+    }
 
-    override fun lower(value: Long): Long = value
+    override fun lower(value: Long): Long {
+        return value
+    }
 
     override fun allocationSize(value: Long) = 8UL
 
-    override fun write(
-        value: Long,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Long, buf: ByteBuffer) {
         buf.putLong(value)
     }
 }
@@ -1386,19 +1218,22 @@ internal object FfiConverterLong : FfiConverter<Long, Long> {
 /**
  * @suppress
  */
-internal object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean = value.toInt() != 0
+public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
+    override fun lift(value: Byte): Boolean {
+        return value.toInt() != 0
+    }
 
-    override fun read(buf: ByteBuffer): Boolean = lift(buf.get())
+    override fun read(buf: ByteBuffer): Boolean {
+        return lift(buf.get())
+    }
 
-    override fun lower(value: Boolean): Byte = if (value) 1.toByte() else 0.toByte()
+    override fun lower(value: Boolean): Byte {
+        return if (value) 1.toByte() else 0.toByte()
+    }
 
     override fun allocationSize(value: Boolean) = 1UL
 
-    override fun write(
-        value: Boolean,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Boolean, buf: ByteBuffer) {
         buf.put(lower(value))
     }
 }
@@ -1406,7 +1241,7 @@ internal object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
 /**
  * @suppress
  */
-internal object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
+public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
     // store our length and avoid writing it out to the buffer.
@@ -1453,15 +1288,13 @@ internal object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
         return sizeForLength + sizeForString
     }
 
-    override fun write(
-        value: String,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: String, buf: ByteBuffer) {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
     }
 }
+
 
 // This template implements a class for working with a Rust struct via a Pointer/Arc<T>
 // to the live Rust struct on the other side of the FFI.
@@ -1560,15 +1393,16 @@ internal object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
 // [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
 //
 
-internal interface AnyhowExceptionInterface {
+
+public interface AnyhowExceptionInterface {
+    
     companion object
 }
 
-internal open class AnyhowException :
-    kotlin.Exception,
-    Disposable,
-    AutoCloseable,
-    AnyhowExceptionInterface {
+
+open class AnyhowException : kotlin.Exception, Disposable, AutoCloseable, AnyhowExceptionInterface {
+
+
     constructor(pointer: Pointer) {
         this.pointer = pointer
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
@@ -1618,7 +1452,7 @@ internal open class AnyhowException :
             if (c == Long.MAX_VALUE) {
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
-        } while (!this.callCounter.compareAndSet(c, c + 1L))
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
         // Now we can safely do the method call without the pointer being freed concurrently.
         try {
             return block(this.uniffiClonePointer())
@@ -1632,9 +1466,7 @@ internal open class AnyhowException :
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(
-        private val pointer: Pointer?,
-    ) : Runnable {
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
@@ -1644,11 +1476,16 @@ internal open class AnyhowException :
         }
     }
 
-    fun uniffiClonePointer(): Pointer =
-        uniffiRustCall { status ->
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
             UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_clone_anyhowerror(pointer!!, status)
         }
+    }
 
+    
+
+    
+    
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<AnyhowException> {
         override fun lift(error_buf: RustBuffer.ByValue): AnyhowException {
             // Due to some mismatches in the ffi converter mechanisms, errors are a RustBuffer.
@@ -1659,15 +1496,21 @@ internal open class AnyhowException :
             return FfiConverterTypeAnyhowError.read(bb)
         }
     }
+    
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeAnyhowError : FfiConverter<AnyhowException, Pointer> {
-    override fun lower(value: AnyhowException): Pointer = value.uniffiClonePointer()
+public object FfiConverterTypeAnyhowError: FfiConverter<AnyhowException, Pointer> {
 
-    override fun lift(value: Pointer): AnyhowException = AnyhowException(value)
+    override fun lower(value: AnyhowException): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): AnyhowException {
+        return AnyhowException(value)
+    }
 
     override fun read(buf: ByteBuffer): AnyhowException {
         // The Rust code always writes pointers as 8 bytes, and will
@@ -1677,169 +1520,169 @@ internal object FfiConverterTypeAnyhowError : FfiConverter<AnyhowException, Poin
 
     override fun allocationSize(value: AnyhowException) = 8UL
 
-    override fun write(
-        value: AnyhowException,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: AnyhowException, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
     }
 }
 
-data class BinocularBlameEntry(
-    var `startInBlamedFile`: kotlin.UInt,
-    var `startInSourceFile`: kotlin.UInt,
-    var `len`: kotlin.UInt,
-    var `commitId`: ObjectId,
+
+
+data class BinocularBlameEntry (
+    var `startInBlamedFile`: kotlin.UInt, 
+    var `startInSourceFile`: kotlin.UInt, 
+    var `len`: kotlin.UInt, 
+    var `commitId`: ObjectId
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularBlameEntry : FfiConverterRustBuffer<BinocularBlameEntry> {
-    override fun read(buf: ByteBuffer): BinocularBlameEntry =
-        BinocularBlameEntry(
+public object FfiConverterTypeBinocularBlameEntry: FfiConverterRustBuffer<BinocularBlameEntry> {
+    override fun read(buf: ByteBuffer): BinocularBlameEntry {
+        return BinocularBlameEntry(
             FfiConverterUInt.read(buf),
             FfiConverterUInt.read(buf),
             FfiConverterUInt.read(buf),
             FfiConverterTypeObjectId.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularBlameEntry) =
-        (
-                FfiConverterUInt.allocationSize(value.`startInBlamedFile`) +
-                        FfiConverterUInt.allocationSize(value.`startInSourceFile`) +
-                        FfiConverterUInt.allocationSize(value.`len`) +
-                        FfiConverterTypeObjectId.allocationSize(value.`commitId`)
-                )
+    override fun allocationSize(value: BinocularBlameEntry) = (
+            FfiConverterUInt.allocationSize(value.`startInBlamedFile`) +
+            FfiConverterUInt.allocationSize(value.`startInSourceFile`) +
+            FfiConverterUInt.allocationSize(value.`len`) +
+            FfiConverterTypeObjectId.allocationSize(value.`commitId`)
+    )
 
-    override fun write(
-        value: BinocularBlameEntry,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterUInt.write(value.`startInBlamedFile`, buf)
-        FfiConverterUInt.write(value.`startInSourceFile`, buf)
-        FfiConverterUInt.write(value.`len`, buf)
-        FfiConverterTypeObjectId.write(value.`commitId`, buf)
+    override fun write(value: BinocularBlameEntry, buf: ByteBuffer) {
+            FfiConverterUInt.write(value.`startInBlamedFile`, buf)
+            FfiConverterUInt.write(value.`startInSourceFile`, buf)
+            FfiConverterUInt.write(value.`len`, buf)
+            FfiConverterTypeObjectId.write(value.`commitId`, buf)
     }
 }
 
-data class BinocularBlameOutcome(
-    var `entries`: List<BinocularBlameEntry>,
-    var `filePath`: kotlin.String,
+
+
+data class BinocularBlameOutcome (
+    var `entries`: List<BinocularBlameEntry>, 
+    var `filePath`: kotlin.String
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularBlameOutcome : FfiConverterRustBuffer<BinocularBlameOutcome> {
-    override fun read(buf: ByteBuffer): BinocularBlameOutcome =
-        BinocularBlameOutcome(
+public object FfiConverterTypeBinocularBlameOutcome: FfiConverterRustBuffer<BinocularBlameOutcome> {
+    override fun read(buf: ByteBuffer): BinocularBlameOutcome {
+        return BinocularBlameOutcome(
             FfiConverterSequenceTypeBinocularBlameEntry.read(buf),
             FfiConverterString.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularBlameOutcome) =
-        (
-                FfiConverterSequenceTypeBinocularBlameEntry.allocationSize(value.`entries`) +
-                        FfiConverterString.allocationSize(value.`filePath`)
-                )
+    override fun allocationSize(value: BinocularBlameOutcome) = (
+            FfiConverterSequenceTypeBinocularBlameEntry.allocationSize(value.`entries`) +
+            FfiConverterString.allocationSize(value.`filePath`)
+    )
 
-    override fun write(
-        value: BinocularBlameOutcome,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterSequenceTypeBinocularBlameEntry.write(value.`entries`, buf)
-        FfiConverterString.write(value.`filePath`, buf)
+    override fun write(value: BinocularBlameOutcome, buf: ByteBuffer) {
+            FfiConverterSequenceTypeBinocularBlameEntry.write(value.`entries`, buf)
+            FfiConverterString.write(value.`filePath`, buf)
     }
 }
 
-internal data class BinocularBlameResult(
-    var `blames`: List<BinocularBlameOutcome>,
-    var `commit`: ObjectId,
+
+
+data class BinocularBlameResult (
+    var `blames`: List<BinocularBlameOutcome>, 
+    var `commit`: ObjectId
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularBlameResult : FfiConverterRustBuffer<BinocularBlameResult> {
-    override fun read(buf: ByteBuffer): BinocularBlameResult =
-        BinocularBlameResult(
+public object FfiConverterTypeBinocularBlameResult: FfiConverterRustBuffer<BinocularBlameResult> {
+    override fun read(buf: ByteBuffer): BinocularBlameResult {
+        return BinocularBlameResult(
             FfiConverterSequenceTypeBinocularBlameOutcome.read(buf),
             FfiConverterTypeObjectId.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularBlameResult) =
-        (
-                FfiConverterSequenceTypeBinocularBlameOutcome.allocationSize(value.`blames`) +
-                        FfiConverterTypeObjectId.allocationSize(value.`commit`)
-                )
+    override fun allocationSize(value: BinocularBlameResult) = (
+            FfiConverterSequenceTypeBinocularBlameOutcome.allocationSize(value.`blames`) +
+            FfiConverterTypeObjectId.allocationSize(value.`commit`)
+    )
 
-    override fun write(
-        value: BinocularBlameResult,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterSequenceTypeBinocularBlameOutcome.write(value.`blames`, buf)
-        FfiConverterTypeObjectId.write(value.`commit`, buf)
+    override fun write(value: BinocularBlameResult, buf: ByteBuffer) {
+            FfiConverterSequenceTypeBinocularBlameOutcome.write(value.`blames`, buf)
+            FfiConverterTypeObjectId.write(value.`commit`, buf)
     }
 }
 
-internal data class BinocularBranch(
-    var `name`: kotlin.String,
-    var `commits`: List<kotlin.String>,
+
+
+data class BinocularBranch (
+    var `name`: kotlin.String, 
+    var `commits`: List<kotlin.String>
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularBranch : FfiConverterRustBuffer<BinocularBranch> {
-    override fun read(buf: ByteBuffer): BinocularBranch =
-        BinocularBranch(
+public object FfiConverterTypeBinocularBranch: FfiConverterRustBuffer<BinocularBranch> {
+    override fun read(buf: ByteBuffer): BinocularBranch {
+        return BinocularBranch(
             FfiConverterString.read(buf),
             FfiConverterSequenceString.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularBranch) =
-        (
-                FfiConverterString.allocationSize(value.`name`) +
-                        FfiConverterSequenceString.allocationSize(value.`commits`)
-                )
+    override fun allocationSize(value: BinocularBranch) = (
+            FfiConverterString.allocationSize(value.`name`) +
+            FfiConverterSequenceString.allocationSize(value.`commits`)
+    )
 
-    override fun write(
-        value: BinocularBranch,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterString.write(value.`name`, buf)
-        FfiConverterSequenceString.write(value.`commits`, buf)
+    override fun write(value: BinocularBranch, buf: ByteBuffer) {
+            FfiConverterString.write(value.`name`, buf)
+            FfiConverterSequenceString.write(value.`commits`, buf)
     }
 }
 
-internal data class BinocularCommitVec(
-    var `commit`: ObjectId,
-    var `message`: kotlin.String,
-    var `committer`: BinocularSig?,
-    var `author`: BinocularSig?,
-    var `branch`: kotlin.String?,
-    var `parents`: List<kotlin.String>,
+
+
+data class BinocularCommitVec (
+    var `commit`: ObjectId, 
+    var `message`: kotlin.String, 
+    var `committer`: BinocularSig?, 
+    var `author`: BinocularSig?, 
+    var `branch`: kotlin.String?, 
+    var `parents`: List<kotlin.String>
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularCommitVec : FfiConverterRustBuffer<BinocularCommitVec> {
-    override fun read(buf: ByteBuffer): BinocularCommitVec =
-        BinocularCommitVec(
+public object FfiConverterTypeBinocularCommitVec: FfiConverterRustBuffer<BinocularCommitVec> {
+    override fun read(buf: ByteBuffer): BinocularCommitVec {
+        return BinocularCommitVec(
             FfiConverterTypeObjectId.read(buf),
             FfiConverterString.read(buf),
             FfiConverterOptionalTypeBinocularSig.read(buf),
@@ -1847,361 +1690,425 @@ internal object FfiConverterTypeBinocularCommitVec : FfiConverterRustBuffer<Bino
             FfiConverterOptionalString.read(buf),
             FfiConverterSequenceString.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularCommitVec) =
-        (
-                FfiConverterTypeObjectId.allocationSize(value.`commit`) +
-                        FfiConverterString.allocationSize(value.`message`) +
-                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
-                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`) +
-                        FfiConverterOptionalString.allocationSize(value.`branch`) +
-                        FfiConverterSequenceString.allocationSize(value.`parents`)
-                )
+    override fun allocationSize(value: BinocularCommitVec) = (
+            FfiConverterTypeObjectId.allocationSize(value.`commit`) +
+            FfiConverterString.allocationSize(value.`message`) +
+            FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
+            FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`) +
+            FfiConverterOptionalString.allocationSize(value.`branch`) +
+            FfiConverterSequenceString.allocationSize(value.`parents`)
+    )
 
-    override fun write(
-        value: BinocularCommitVec,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterTypeObjectId.write(value.`commit`, buf)
-        FfiConverterString.write(value.`message`, buf)
-        FfiConverterOptionalTypeBinocularSig.write(value.`committer`, buf)
-        FfiConverterOptionalTypeBinocularSig.write(value.`author`, buf)
-        FfiConverterOptionalString.write(value.`branch`, buf)
-        FfiConverterSequenceString.write(value.`parents`, buf)
+    override fun write(value: BinocularCommitVec, buf: ByteBuffer) {
+            FfiConverterTypeObjectId.write(value.`commit`, buf)
+            FfiConverterString.write(value.`message`, buf)
+            FfiConverterOptionalTypeBinocularSig.write(value.`committer`, buf)
+            FfiConverterOptionalTypeBinocularSig.write(value.`author`, buf)
+            FfiConverterOptionalString.write(value.`branch`, buf)
+            FfiConverterSequenceString.write(value.`parents`, buf)
     }
 }
 
-internal data class BinocularDiffStats(
-    var `insertions`: kotlin.UInt,
-    var `deletions`: kotlin.UInt,
-    var `kind`: kotlin.String,
+
+
+data class BinocularDiffStats (
+    var `insertions`: kotlin.UInt, 
+    var `deletions`: kotlin.UInt, 
+    var `kind`: kotlin.String
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularDiffStats : FfiConverterRustBuffer<BinocularDiffStats> {
-    override fun read(buf: ByteBuffer): BinocularDiffStats =
-        BinocularDiffStats(
+public object FfiConverterTypeBinocularDiffStats: FfiConverterRustBuffer<BinocularDiffStats> {
+    override fun read(buf: ByteBuffer): BinocularDiffStats {
+        return BinocularDiffStats(
             FfiConverterUInt.read(buf),
             FfiConverterUInt.read(buf),
             FfiConverterString.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularDiffStats) =
-        (
-                FfiConverterUInt.allocationSize(value.`insertions`) +
-                        FfiConverterUInt.allocationSize(value.`deletions`) +
-                        FfiConverterString.allocationSize(value.`kind`)
-                )
+    override fun allocationSize(value: BinocularDiffStats) = (
+            FfiConverterUInt.allocationSize(value.`insertions`) +
+            FfiConverterUInt.allocationSize(value.`deletions`) +
+            FfiConverterString.allocationSize(value.`kind`)
+    )
 
-    override fun write(
-        value: BinocularDiffStats,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterUInt.write(value.`insertions`, buf)
-        FfiConverterUInt.write(value.`deletions`, buf)
-        FfiConverterString.write(value.`kind`, buf)
+    override fun write(value: BinocularDiffStats, buf: ByteBuffer) {
+            FfiConverterUInt.write(value.`insertions`, buf)
+            FfiConverterUInt.write(value.`deletions`, buf)
+            FfiConverterString.write(value.`kind`, buf)
     }
 }
 
-internal data class BinocularDiffVec(
-    var `changeMap`: Map<BString, BinocularDiffStats>,
-    var `commit`: ObjectId,
-    var `parent`: ObjectId?,
-    var `committer`: BinocularSig?,
-    var `author`: BinocularSig?,
+
+
+data class BinocularDiffVec (
+    var `changeMap`: Map<BString, BinocularDiffStats>, 
+    var `commit`: ObjectId, 
+    var `parent`: ObjectId?, 
+    var `committer`: BinocularSig?, 
+    var `author`: BinocularSig?
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularDiffVec : FfiConverterRustBuffer<BinocularDiffVec> {
-    override fun read(buf: ByteBuffer): BinocularDiffVec =
-        BinocularDiffVec(
+public object FfiConverterTypeBinocularDiffVec: FfiConverterRustBuffer<BinocularDiffVec> {
+    override fun read(buf: ByteBuffer): BinocularDiffVec {
+        return BinocularDiffVec(
             FfiConverterMapTypeBStringTypeBinocularDiffStats.read(buf),
             FfiConverterTypeObjectId.read(buf),
             FfiConverterOptionalTypeObjectId.read(buf),
             FfiConverterOptionalTypeBinocularSig.read(buf),
             FfiConverterOptionalTypeBinocularSig.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularDiffVec) =
-        (
-                FfiConverterMapTypeBStringTypeBinocularDiffStats.allocationSize(value.`changeMap`) +
-                        FfiConverterTypeObjectId.allocationSize(value.`commit`) +
-                        FfiConverterOptionalTypeObjectId.allocationSize(value.`parent`) +
-                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
-                        FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`)
-                )
+    override fun allocationSize(value: BinocularDiffVec) = (
+            FfiConverterMapTypeBStringTypeBinocularDiffStats.allocationSize(value.`changeMap`) +
+            FfiConverterTypeObjectId.allocationSize(value.`commit`) +
+            FfiConverterOptionalTypeObjectId.allocationSize(value.`parent`) +
+            FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
+            FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`)
+    )
 
-    override fun write(
-        value: BinocularDiffVec,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterMapTypeBStringTypeBinocularDiffStats.write(value.`changeMap`, buf)
-        FfiConverterTypeObjectId.write(value.`commit`, buf)
-        FfiConverterOptionalTypeObjectId.write(value.`parent`, buf)
-        FfiConverterOptionalTypeBinocularSig.write(value.`committer`, buf)
-        FfiConverterOptionalTypeBinocularSig.write(value.`author`, buf)
+    override fun write(value: BinocularDiffVec, buf: ByteBuffer) {
+            FfiConverterMapTypeBStringTypeBinocularDiffStats.write(value.`changeMap`, buf)
+            FfiConverterTypeObjectId.write(value.`commit`, buf)
+            FfiConverterOptionalTypeObjectId.write(value.`parent`, buf)
+            FfiConverterOptionalTypeBinocularSig.write(value.`committer`, buf)
+            FfiConverterOptionalTypeBinocularSig.write(value.`author`, buf)
     }
 }
 
-internal data class BinocularRepository(
-    var `gitDir`: kotlin.String,
-    var `workTree`: kotlin.String?,
-    var `commonDir`: kotlin.String?,
+
+
+data class BinocularRepository (
+    var `gitDir`: kotlin.String, 
+    var `workTree`: kotlin.String?, 
+    var `origin`: RepositoryRemote?
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularRepository : FfiConverterRustBuffer<BinocularRepository> {
-    override fun read(buf: ByteBuffer): BinocularRepository =
-        BinocularRepository(
+public object FfiConverterTypeBinocularRepository: FfiConverterRustBuffer<BinocularRepository> {
+    override fun read(buf: ByteBuffer): BinocularRepository {
+        return BinocularRepository(
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeRepositoryRemote.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularRepository) =
-        (
-                FfiConverterString.allocationSize(value.`gitDir`) +
-                        FfiConverterOptionalString.allocationSize(value.`workTree`) +
-                        FfiConverterOptionalString.allocationSize(value.`commonDir`)
-                )
+    override fun allocationSize(value: BinocularRepository) = (
+            FfiConverterString.allocationSize(value.`gitDir`) +
+            FfiConverterOptionalString.allocationSize(value.`workTree`) +
+            FfiConverterOptionalTypeRepositoryRemote.allocationSize(value.`origin`)
+    )
 
-    override fun write(
-        value: BinocularRepository,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterString.write(value.`gitDir`, buf)
-        FfiConverterOptionalString.write(value.`workTree`, buf)
-        FfiConverterOptionalString.write(value.`commonDir`, buf)
+    override fun write(value: BinocularRepository, buf: ByteBuffer) {
+            FfiConverterString.write(value.`gitDir`, buf)
+            FfiConverterOptionalString.write(value.`workTree`, buf)
+            FfiConverterOptionalTypeRepositoryRemote.write(value.`origin`, buf)
     }
 }
 
-internal data class BinocularSig(
-    var `name`: BString,
-    var `email`: BString,
-    var `time`: BinocularTime,
+
+
+data class BinocularSig (
+    var `name`: BString, 
+    var `email`: BString, 
+    var `time`: BinocularTime
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularSig : FfiConverterRustBuffer<BinocularSig> {
-    override fun read(buf: ByteBuffer): BinocularSig =
-        BinocularSig(
+public object FfiConverterTypeBinocularSig: FfiConverterRustBuffer<BinocularSig> {
+    override fun read(buf: ByteBuffer): BinocularSig {
+        return BinocularSig(
             FfiConverterTypeBString.read(buf),
             FfiConverterTypeBString.read(buf),
             FfiConverterTypeBinocularTime.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularSig) =
-        (
-                FfiConverterTypeBString.allocationSize(value.`name`) +
-                        FfiConverterTypeBString.allocationSize(value.`email`) +
-                        FfiConverterTypeBinocularTime.allocationSize(value.`time`)
-                )
+    override fun allocationSize(value: BinocularSig) = (
+            FfiConverterTypeBString.allocationSize(value.`name`) +
+            FfiConverterTypeBString.allocationSize(value.`email`) +
+            FfiConverterTypeBinocularTime.allocationSize(value.`time`)
+    )
 
-    override fun write(
-        value: BinocularSig,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterTypeBString.write(value.`name`, buf)
-        FfiConverterTypeBString.write(value.`email`, buf)
-        FfiConverterTypeBinocularTime.write(value.`time`, buf)
+    override fun write(value: BinocularSig, buf: ByteBuffer) {
+            FfiConverterTypeBString.write(value.`name`, buf)
+            FfiConverterTypeBString.write(value.`email`, buf)
+            FfiConverterTypeBinocularTime.write(value.`time`, buf)
     }
 }
 
-internal data class BinocularTime(
+
+
+data class BinocularTime (
     /**
      * The seconds that passed since UNIX epoch. This makes it UTC, or `<seconds>+0000`.
      */
-    var `seconds`: kotlin.Long,
+    var `seconds`: kotlin.Long, 
     /**
      * The time's offset in seconds, which may be negative to match the `sign` field.
      */
-    var `offset`: kotlin.Int,
+    var `offset`: kotlin.Int
 ) {
+    
     companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularTime : FfiConverterRustBuffer<BinocularTime> {
-    override fun read(buf: ByteBuffer): BinocularTime =
-        BinocularTime(
+public object FfiConverterTypeBinocularTime: FfiConverterRustBuffer<BinocularTime> {
+    override fun read(buf: ByteBuffer): BinocularTime {
+        return BinocularTime(
             FfiConverterLong.read(buf),
             FfiConverterInt.read(buf),
         )
+    }
 
-    override fun allocationSize(value: BinocularTime) =
-        (
-                FfiConverterLong.allocationSize(value.`seconds`) +
-                        FfiConverterInt.allocationSize(value.`offset`)
-                )
+    override fun allocationSize(value: BinocularTime) = (
+            FfiConverterLong.allocationSize(value.`seconds`) +
+            FfiConverterInt.allocationSize(value.`offset`)
+    )
 
-    override fun write(
-        value: BinocularTime,
-        buf: ByteBuffer,
-    ) {
-        FfiConverterLong.write(value.`seconds`, buf)
-        FfiConverterInt.write(value.`offset`, buf)
+    override fun write(value: BinocularTime, buf: ByteBuffer) {
+            FfiConverterLong.write(value.`seconds`, buf)
+            FfiConverterInt.write(value.`offset`, buf)
     }
 }
 
-internal sealed class BinocularException : kotlin.Exception() {
-    class InvalidInput(
-        val v1: kotlin.String,
-    ) : BinocularException() {
-        override val message
-            get() = "v1=${v1}"
-    }
 
-    class OperationFailed(
-        val v1: kotlin.String,
-    ) : BinocularException() {
-        override val message
-            get() = "v1=${v1}"
-    }
 
-    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<BinocularException> {
-        override fun lift(error_buf: RustBuffer.ByValue): BinocularException =
-            FfiConverterTypeBinocularError.lift(error_buf)
-    }
+data class RepositoryRemote (
+    var `name`: kotlin.String?, 
+    var `url`: kotlin.String?, 
+    var `path`: kotlin.String?
+) {
+    
+    companion object
 }
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeBinocularError : FfiConverterRustBuffer<BinocularException> {
-    override fun read(buf: ByteBuffer): BinocularException =
-        when (buf.getInt()) {
-            1 ->
-                BinocularException.InvalidInput(
-                    FfiConverterString.read(buf),
-                )
+public object FfiConverterTypeRepositoryRemote: FfiConverterRustBuffer<RepositoryRemote> {
+    override fun read(buf: ByteBuffer): RepositoryRemote {
+        return RepositoryRemote(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
 
-            2 ->
-                BinocularException.OperationFailed(
-                    FfiConverterString.read(buf),
-                )
+    override fun allocationSize(value: RepositoryRemote) = (
+            FfiConverterOptionalString.allocationSize(value.`name`) +
+            FfiConverterOptionalString.allocationSize(value.`url`) +
+            FfiConverterOptionalString.allocationSize(value.`path`)
+    )
 
+    override fun write(value: RepositoryRemote, buf: ByteBuffer) {
+            FfiConverterOptionalString.write(value.`name`, buf)
+            FfiConverterOptionalString.write(value.`url`, buf)
+            FfiConverterOptionalString.write(value.`path`, buf)
+    }
+}
+
+
+
+
+enum class GixDiffAlgorithm {
+    
+    HISTOGRAM,
+    MYERS,
+    MYERS_MINIMAL;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGixDiffAlgorithm: FfiConverterRustBuffer<GixDiffAlgorithm> {
+    override fun read(buf: ByteBuffer) = try {
+        GixDiffAlgorithm.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: GixDiffAlgorithm) = 4UL
+
+    override fun write(value: GixDiffAlgorithm, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class LogLevel {
+    
+    ERROR,
+    WARN,
+    INFO,
+    DEBUG,
+    TRACE;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeLogLevel: FfiConverterRustBuffer<LogLevel> {
+    override fun read(buf: ByteBuffer) = try {
+        LogLevel.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: LogLevel) = 4UL
+
+    override fun write(value: LogLevel, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+
+sealed class UniffiException: kotlin.Exception() {
+    
+    class InvalidInput(
+        
+        val v1: kotlin.String
+        ) : UniffiException() {
+        override val message
+            get() = "v1=${ v1 }"
+    }
+    
+    class OperationFailed(
+        
+        val v1: kotlin.String
+        ) : UniffiException() {
+        override val message
+            get() = "v1=${ v1 }"
+    }
+    
+    class GixDiscoverException(
+        
+        val v1: kotlin.String
+        ) : UniffiException() {
+        override val message
+            get() = "v1=${ v1 }"
+    }
+    
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<UniffiException> {
+        override fun lift(error_buf: RustBuffer.ByValue): UniffiException = FfiConverterTypeUniffiError.lift(error_buf)
+    }
+
+    
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeUniffiError : FfiConverterRustBuffer<UniffiException> {
+    override fun read(buf: ByteBuffer): UniffiException {
+        
+
+        return when(buf.getInt()) {
+            1 -> UniffiException.InvalidInput(
+                FfiConverterString.read(buf),
+                )
+            2 -> UniffiException.OperationFailed(
+                FfiConverterString.read(buf),
+                )
+            3 -> UniffiException.GixDiscoverException(
+                FfiConverterString.read(buf),
+                )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
+    }
 
-    override fun allocationSize(value: BinocularException): ULong =
-        when (value) {
-            is BinocularException.InvalidInput -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4UL +
-                            FfiConverterString.allocationSize(value.v1)
-                    )
-
-            is BinocularException.OperationFailed -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4UL +
-                            FfiConverterString.allocationSize(value.v1)
-                    )
+    override fun allocationSize(value: UniffiException): ULong {
+        return when(value) {
+            is UniffiException.InvalidInput -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
+            is UniffiException.OperationFailed -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
+            is UniffiException.GixDiscoverException -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
         }
+    }
 
-    override fun write(
-        value: BinocularException,
-        buf: ByteBuffer,
-    ) {
-        when (value) {
-            is BinocularException.InvalidInput -> {
+    override fun write(value: UniffiException, buf: ByteBuffer) {
+        when(value) {
+            is UniffiException.InvalidInput -> {
                 buf.putInt(1)
                 FfiConverterString.write(value.v1, buf)
                 Unit
             }
-
-            is BinocularException.OperationFailed -> {
+            is UniffiException.OperationFailed -> {
                 buf.putInt(2)
+                FfiConverterString.write(value.v1, buf)
+                Unit
+            }
+            is UniffiException.GixDiscoverException -> {
+                buf.putInt(3)
                 FfiConverterString.write(value.v1, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
+
 }
 
-enum class GixDiffAlgorithm {
-    HISTOGRAM,
-    MYERS,
-    MYERS_MINIMAL,
-    ;
 
-    companion object
-}
+
 
 /**
  * @suppress
  */
-internal object FfiConverterTypeGixDiffAlgorithm : FfiConverterRustBuffer<GixDiffAlgorithm> {
-    override fun read(buf: ByteBuffer) =
-        try {
-            GixDiffAlgorithm.values()[buf.getInt() - 1]
-        } catch (e: IndexOutOfBoundsException) {
-            throw RuntimeException("invalid enum value, something is very wrong!!", e)
-        }
-
-    override fun allocationSize(value: GixDiffAlgorithm) = 4UL
-
-    override fun write(
-        value: GixDiffAlgorithm,
-        buf: ByteBuffer,
-    ) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-enum class LogLevel {
-    ERROR,
-    WARN,
-    INFO,
-    DEBUG,
-    TRACE,
-    ;
-
-    companion object
-}
-
-/**
- * @suppress
- */
-internal object FfiConverterTypeLogLevel : FfiConverterRustBuffer<LogLevel> {
-    override fun read(buf: ByteBuffer) =
-        try {
-            LogLevel.values()[buf.getInt() - 1]
-        } catch (e: IndexOutOfBoundsException) {
-            throw RuntimeException("invalid enum value, something is very wrong!!", e)
-        }
-
-    override fun allocationSize(value: LogLevel) = 4UL
-
-    override fun write(
-        value: LogLevel,
-        buf: ByteBuffer,
-    ) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-/**
- * @suppress
- */
-internal object FfiConverterOptionalString : FfiConverterRustBuffer<kotlin.String?> {
+public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
     override fun read(buf: ByteBuffer): kotlin.String? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2217,10 +2124,7 @@ internal object FfiConverterOptionalString : FfiConverterRustBuffer<kotlin.Strin
         }
     }
 
-    override fun write(
-        value: kotlin.String?,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: kotlin.String?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -2230,10 +2134,13 @@ internal object FfiConverterOptionalString : FfiConverterRustBuffer<kotlin.Strin
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterOptionalTypeBinocularSig : FfiConverterRustBuffer<BinocularSig?> {
+public object FfiConverterOptionalTypeBinocularSig: FfiConverterRustBuffer<BinocularSig?> {
     override fun read(buf: ByteBuffer): BinocularSig? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2249,10 +2156,7 @@ internal object FfiConverterOptionalTypeBinocularSig : FfiConverterRustBuffer<Bi
         }
     }
 
-    override fun write(
-        value: BinocularSig?,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: BinocularSig?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -2262,10 +2166,45 @@ internal object FfiConverterOptionalTypeBinocularSig : FfiConverterRustBuffer<Bi
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterOptionalTypeGixDiffAlgorithm : FfiConverterRustBuffer<GixDiffAlgorithm?> {
+public object FfiConverterOptionalTypeRepositoryRemote: FfiConverterRustBuffer<RepositoryRemote?> {
+    override fun read(buf: ByteBuffer): RepositoryRemote? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRepositoryRemote.read(buf)
+    }
+
+    override fun allocationSize(value: RepositoryRemote?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRepositoryRemote.allocationSize(value)
+        }
+    }
+
+    override fun write(value: RepositoryRemote?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRepositoryRemote.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeGixDiffAlgorithm: FfiConverterRustBuffer<GixDiffAlgorithm?> {
     override fun read(buf: ByteBuffer): GixDiffAlgorithm? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2281,10 +2220,7 @@ internal object FfiConverterOptionalTypeGixDiffAlgorithm : FfiConverterRustBuffe
         }
     }
 
-    override fun write(
-        value: GixDiffAlgorithm?,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: GixDiffAlgorithm?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -2294,10 +2230,13 @@ internal object FfiConverterOptionalTypeGixDiffAlgorithm : FfiConverterRustBuffe
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterOptionalTypeObjectId : FfiConverterRustBuffer<ObjectId?> {
+public object FfiConverterOptionalTypeObjectId: FfiConverterRustBuffer<ObjectId?> {
     override fun read(buf: ByteBuffer): ObjectId? {
         if (buf.get().toInt() == 0) {
             return null
@@ -2313,10 +2252,7 @@ internal object FfiConverterOptionalTypeObjectId : FfiConverterRustBuffer<Object
         }
     }
 
-    override fun write(
-        value: ObjectId?,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: ObjectId?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -2326,10 +2262,13 @@ internal object FfiConverterOptionalTypeObjectId : FfiConverterRustBuffer<Object
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.String>> {
+public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
     override fun read(buf: ByteBuffer): List<kotlin.String> {
         val len = buf.getInt()
         return List<kotlin.String>(len) {
@@ -2343,10 +2282,7 @@ internal object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<kotlin.String>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<kotlin.String>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterString.write(it, buf)
@@ -2354,10 +2290,13 @@ internal object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterSequenceTypeBinocularBlameEntry : FfiConverterRustBuffer<List<BinocularBlameEntry>> {
+public object FfiConverterSequenceTypeBinocularBlameEntry: FfiConverterRustBuffer<List<BinocularBlameEntry>> {
     override fun read(buf: ByteBuffer): List<BinocularBlameEntry> {
         val len = buf.getInt()
         return List<BinocularBlameEntry>(len) {
@@ -2371,10 +2310,7 @@ internal object FfiConverterSequenceTypeBinocularBlameEntry : FfiConverterRustBu
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<BinocularBlameEntry>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<BinocularBlameEntry>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeBinocularBlameEntry.write(it, buf)
@@ -2382,10 +2318,13 @@ internal object FfiConverterSequenceTypeBinocularBlameEntry : FfiConverterRustBu
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterSequenceTypeBinocularBlameOutcome : FfiConverterRustBuffer<List<BinocularBlameOutcome>> {
+public object FfiConverterSequenceTypeBinocularBlameOutcome: FfiConverterRustBuffer<List<BinocularBlameOutcome>> {
     override fun read(buf: ByteBuffer): List<BinocularBlameOutcome> {
         val len = buf.getInt()
         return List<BinocularBlameOutcome>(len) {
@@ -2399,10 +2338,7 @@ internal object FfiConverterSequenceTypeBinocularBlameOutcome : FfiConverterRust
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<BinocularBlameOutcome>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<BinocularBlameOutcome>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeBinocularBlameOutcome.write(it, buf)
@@ -2410,10 +2346,13 @@ internal object FfiConverterSequenceTypeBinocularBlameOutcome : FfiConverterRust
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterSequenceTypeBinocularBlameResult : FfiConverterRustBuffer<List<BinocularBlameResult>> {
+public object FfiConverterSequenceTypeBinocularBlameResult: FfiConverterRustBuffer<List<BinocularBlameResult>> {
     override fun read(buf: ByteBuffer): List<BinocularBlameResult> {
         val len = buf.getInt()
         return List<BinocularBlameResult>(len) {
@@ -2427,10 +2366,7 @@ internal object FfiConverterSequenceTypeBinocularBlameResult : FfiConverterRustB
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<BinocularBlameResult>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<BinocularBlameResult>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeBinocularBlameResult.write(it, buf)
@@ -2438,10 +2374,13 @@ internal object FfiConverterSequenceTypeBinocularBlameResult : FfiConverterRustB
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterSequenceTypeBinocularBranch : FfiConverterRustBuffer<List<BinocularBranch>> {
+public object FfiConverterSequenceTypeBinocularBranch: FfiConverterRustBuffer<List<BinocularBranch>> {
     override fun read(buf: ByteBuffer): List<BinocularBranch> {
         val len = buf.getInt()
         return List<BinocularBranch>(len) {
@@ -2455,10 +2394,7 @@ internal object FfiConverterSequenceTypeBinocularBranch : FfiConverterRustBuffer
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<BinocularBranch>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<BinocularBranch>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeBinocularBranch.write(it, buf)
@@ -2466,10 +2402,13 @@ internal object FfiConverterSequenceTypeBinocularBranch : FfiConverterRustBuffer
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterSequenceTypeBinocularCommitVec : FfiConverterRustBuffer<List<BinocularCommitVec>> {
+public object FfiConverterSequenceTypeBinocularCommitVec: FfiConverterRustBuffer<List<BinocularCommitVec>> {
     override fun read(buf: ByteBuffer): List<BinocularCommitVec> {
         val len = buf.getInt()
         return List<BinocularCommitVec>(len) {
@@ -2483,10 +2422,7 @@ internal object FfiConverterSequenceTypeBinocularCommitVec : FfiConverterRustBuf
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<BinocularCommitVec>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<BinocularCommitVec>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeBinocularCommitVec.write(it, buf)
@@ -2494,10 +2430,13 @@ internal object FfiConverterSequenceTypeBinocularCommitVec : FfiConverterRustBuf
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterSequenceTypeBinocularDiffVec : FfiConverterRustBuffer<List<BinocularDiffVec>> {
+public object FfiConverterSequenceTypeBinocularDiffVec: FfiConverterRustBuffer<List<BinocularDiffVec>> {
     override fun read(buf: ByteBuffer): List<BinocularDiffVec> {
         val len = buf.getInt()
         return List<BinocularDiffVec>(len) {
@@ -2511,10 +2450,7 @@ internal object FfiConverterSequenceTypeBinocularDiffVec : FfiConverterRustBuffe
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<BinocularDiffVec>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<BinocularDiffVec>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeBinocularDiffVec.write(it, buf)
@@ -2522,11 +2458,13 @@ internal object FfiConverterSequenceTypeBinocularDiffVec : FfiConverterRustBuffe
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterMapTypeBStringTypeBinocularDiffStats :
-    FfiConverterRustBuffer<Map<BString, BinocularDiffStats>> {
+public object FfiConverterMapTypeBStringTypeBinocularDiffStats: FfiConverterRustBuffer<Map<BString, BinocularDiffStats>> {
     override fun read(buf: ByteBuffer): Map<BString, BinocularDiffStats> {
         val len = buf.getInt()
         return buildMap<BString, BinocularDiffStats>(len) {
@@ -2540,19 +2478,14 @@ internal object FfiConverterMapTypeBStringTypeBinocularDiffStats :
 
     override fun allocationSize(value: Map<BString, BinocularDiffStats>): ULong {
         val spaceForMapSize = 4UL
-        val spaceForChildren =
-            value
-                .map { (k, v) ->
-                    FfiConverterTypeBString.allocationSize(k) +
-                            FfiConverterTypeBinocularDiffStats.allocationSize(v)
-                }.sum()
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterTypeBString.allocationSize(k) +
+            FfiConverterTypeBinocularDiffStats.allocationSize(v)
+        }.sum()
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(
-        value: Map<BString, BinocularDiffStats>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Map<BString, BinocularDiffStats>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -2564,10 +2497,13 @@ internal object FfiConverterMapTypeBStringTypeBinocularDiffStats :
     }
 }
 
+
+
+
 /**
  * @suppress
  */
-internal object FfiConverterMapTypeObjectIdSequenceString : FfiConverterRustBuffer<Map<ObjectId, List<kotlin.String>>> {
+public object FfiConverterMapTypeObjectIdSequenceString: FfiConverterRustBuffer<Map<ObjectId, List<kotlin.String>>> {
     override fun read(buf: ByteBuffer): Map<ObjectId, List<kotlin.String>> {
         val len = buf.getInt()
         return buildMap<ObjectId, List<kotlin.String>>(len) {
@@ -2581,19 +2517,14 @@ internal object FfiConverterMapTypeObjectIdSequenceString : FfiConverterRustBuff
 
     override fun allocationSize(value: Map<ObjectId, List<kotlin.String>>): ULong {
         val spaceForMapSize = 4UL
-        val spaceForChildren =
-            value
-                .map { (k, v) ->
-                    FfiConverterTypeObjectId.allocationSize(k) +
-                            FfiConverterSequenceString.allocationSize(v)
-                }.sum()
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterTypeObjectId.allocationSize(k) +
+            FfiConverterSequenceString.allocationSize(v)
+        }.sum()
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(
-        value: Map<ObjectId, List<kotlin.String>>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Map<ObjectId, List<kotlin.String>>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -2605,142 +2536,101 @@ internal object FfiConverterMapTypeObjectIdSequenceString : FfiConverterRustBuff
     }
 }
 
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- * It's also what we have an external type that references a custom type.
- */
-internal typealias BString = kotlin.String
-internal typealias FfiConverterTypeBString = FfiConverterString
+
 
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-internal typealias ObjectId = kotlin.String
-internal typealias FfiConverterTypeObjectId = FfiConverterString
+public typealias BString = kotlin.String
+public typealias FfiConverterTypeBString = FfiConverterString
+
+
 
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-internal typealias ThreadSafeRepository = BinocularRepository
-internal typealias FfiConverterTypeThreadSafeRepository = FfiConverterTypeBinocularRepository
-
-@Throws(AnyhowException::class)
-internal fun `blames`(
-    `repo`: ThreadSafeRepository,
-    `defines`: Map<ObjectId, List<kotlin.String>>,
-    `diffAlgorithm`: GixDiffAlgorithm?,
-    `maxThreads`: kotlin.UByte,
-): List<BinocularBlameResult> =
-    FfiConverterSequenceTypeBinocularBlameResult.lift(
-        uniffiRustCallWithError(AnyhowException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_blames(
-                FfiConverterTypeThreadSafeRepository.lower(`repo`),
-                FfiConverterMapTypeObjectIdSequenceString.lower(`defines`),
-                FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),
-                FfiConverterUByte.lower(`maxThreads`),
-                _status,
-            )
-        },
+public typealias ObjectId = kotlin.String
+public typealias FfiConverterTypeObjectId = FfiConverterString
+    @Throws(AnyhowException::class) fun `blames`(`brepo`: BinocularRepository, `defines`: Map<ObjectId, List<kotlin.String>>, `diffAlgorithm`: GixDiffAlgorithm?, `maxThreads`: kotlin.UByte): List<BinocularBlameResult> {
+            return FfiConverterSequenceTypeBinocularBlameResult.lift(
+    uniffiRustCallWithError(AnyhowException) { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_blames(
+        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterMapTypeObjectIdSequenceString.lower(`defines`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),FfiConverterUByte.lower(`maxThreads`),_status)
+}
     )
-
-@Throws(AnyhowException::class)
-internal fun `diffs`(
-    `repo`: ThreadSafeRepository,
-    `commitlist`: List<kotlin.String>,
-    `maxThreads`: kotlin.UByte,
-    `skipMerges`: kotlin.Boolean,
-    `diffAlgorithm`: GixDiffAlgorithm?,
-    `breadthFirst`: kotlin.Boolean,
-    `follow`: kotlin.Boolean,
-): List<BinocularDiffVec> =
-    FfiConverterSequenceTypeBinocularDiffVec.lift(
-        uniffiRustCallWithError(AnyhowException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_diffs(
-                FfiConverterTypeThreadSafeRepository.lower(`repo`),
-                FfiConverterSequenceString.lower(`commitlist`),
-                FfiConverterUByte.lower(`maxThreads`),
-                FfiConverterBoolean.lower(`skipMerges`),
-                FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),
-                FfiConverterBoolean.lower(`breadthFirst`),
-                FfiConverterBoolean.lower(`follow`),
-                _status,
-            )
-        },
-    )
-
-@Throws(AnyhowException::class)
-internal fun `findAllBranches`(`repo`: ThreadSafeRepository): List<BinocularBranch> =
-    FfiConverterSequenceTypeBinocularBranch.lift(
-        uniffiRustCallWithError(AnyhowException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_all_branches(
-                FfiConverterTypeThreadSafeRepository.lower(
-                    `repo`
-                ), _status
-            )
-        },
-    )
-
-@Throws(AnyhowException::class)
-internal fun `findCommit`(
-    `repo`: ThreadSafeRepository,
-    `hash`: kotlin.String,
-): ObjectId =
-    FfiConverterTypeObjectId.lift(
-        uniffiRustCallWithError(AnyhowException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_commit(
-                FfiConverterTypeThreadSafeRepository.lower(`repo`),
-                FfiConverterString.lower(`hash`),
-                _status,
-            )
-        },
-    )
-
-@Throws(AnyhowException::class)
-internal fun `findRepo`(`path`: kotlin.String): ThreadSafeRepository =
-    FfiConverterTypeThreadSafeRepository.lift(
-        uniffiRustCallWithError(AnyhowException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_repo(FfiConverterString.lower(`path`), _status)
-        },
-    )
-
-internal fun `hello`() =
-    uniffiRustCall { _status ->
-        UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_hello(_status)
     }
+    
 
-@Throws(AnyhowException::class)
-internal fun `traverse`(
-    `repo`: ThreadSafeRepository,
-    `sourceCommit`: ObjectId,
-    `targetCommit`: ObjectId?,
-): List<BinocularCommitVec> =
-    FfiConverterSequenceTypeBinocularCommitVec.lift(
-        uniffiRustCallWithError(AnyhowException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_traverse(
-                FfiConverterTypeThreadSafeRepository.lower(`repo`),
-                FfiConverterTypeObjectId.lower(`sourceCommit`),
-                FfiConverterOptionalTypeObjectId.lower(`targetCommit`),
-                _status,
-            )
-        },
+    @Throws(AnyhowException::class) fun `diffs`(`brepo`: BinocularRepository, `commitlist`: List<kotlin.String>, `maxThreads`: kotlin.UByte, `skipMerges`: kotlin.Boolean, `diffAlgorithm`: GixDiffAlgorithm?, `breadthFirst`: kotlin.Boolean, `follow`: kotlin.Boolean): List<BinocularDiffVec> {
+            return FfiConverterSequenceTypeBinocularDiffVec.lift(
+    uniffiRustCallWithError(AnyhowException) { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_diffs(
+        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterSequenceString.lower(`commitlist`),FfiConverterUByte.lower(`maxThreads`),FfiConverterBoolean.lower(`skipMerges`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),FfiConverterBoolean.lower(`breadthFirst`),FfiConverterBoolean.lower(`follow`),_status)
+}
     )
+    }
+    
 
-@Throws(BinocularException::class)
-internal fun `traverseBranch`(
-    `repo`: ThreadSafeRepository,
-    `branch`: kotlin.String,
-): List<BinocularCommitVec> =
-    FfiConverterSequenceTypeBinocularCommitVec.lift(
-        uniffiRustCallWithError(BinocularException) { _status ->
-            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_traverse_branch(
-                FfiConverterTypeThreadSafeRepository.lower(`repo`),
-                FfiConverterString.lower(`branch`),
-                _status,
-            )
-        },
+    @Throws(AnyhowException::class) fun `findAllBranches`(`brepo`: BinocularRepository): List<BinocularBranch> {
+            return FfiConverterSequenceTypeBinocularBranch.lift(
+    uniffiRustCallWithError(AnyhowException) { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_all_branches(
+        FfiConverterTypeBinocularRepository.lower(`brepo`),_status)
+}
     )
+    }
+    
+
+    @Throws(AnyhowException::class) fun `findCommit`(`brepo`: BinocularRepository, `hash`: kotlin.String): ObjectId {
+            return FfiConverterTypeObjectId.lift(
+    uniffiRustCallWithError(AnyhowException) { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_commit(
+        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterString.lower(`hash`),_status)
+}
+    )
+    }
+    
+
+    @Throws(AnyhowException::class) fun `findRepo`(`path`: kotlin.String): BinocularRepository {
+            return FfiConverterTypeBinocularRepository.lift(
+    uniffiRustCallWithError(AnyhowException) { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_repo(
+        FfiConverterString.lower(`path`),_status)
+}
+    )
+    }
+    
+ fun `hello`()
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_hello(
+        _status)
+}
+    
+    
+
+    @Throws(AnyhowException::class) fun `traverse`(`brepo`: BinocularRepository, `sourceCommit`: ObjectId, `targetCommit`: ObjectId?): List<BinocularCommitVec> {
+            return FfiConverterSequenceTypeBinocularCommitVec.lift(
+    uniffiRustCallWithError(AnyhowException) { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_traverse(
+        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterTypeObjectId.lower(`sourceCommit`),FfiConverterOptionalTypeObjectId.lower(`targetCommit`),_status)
+}
+    )
+    }
+    
+
+    @Throws(UniffiException::class) fun `traverseBranch`(`brepo`: BinocularRepository, `branch`: kotlin.String): List<BinocularCommitVec> {
+            return FfiConverterSequenceTypeBinocularCommitVec.lift(
+    uniffiRustCallWithError(UniffiException) { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_traverse_branch(
+        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterString.lower(`branch`),_status)
+}
+    )
+    }
+    
+
+

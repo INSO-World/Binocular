@@ -2,7 +2,7 @@ package com.inso_world.binocular.ffi.integration
 
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.internal.BinocularException
+import com.inso_world.binocular.internal.UniffiException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -25,8 +25,6 @@ internal class BinocularFfiTest : BaseFixturesIntegrationTest() {
 
         assertAll(
             "Check $paths Repository",
-            { assertThat(repo.commonDir).isNull() },
-            // use Paths.get() here to avoid failing tests on Windows
             {
                 assertThat(Paths.get(repo.gitDir).toString()).isEqualTo(
                     Paths.get("${FIXTURES_PATH}/$paths/.git").toString(),
@@ -34,6 +32,30 @@ internal class BinocularFfiTest : BaseFixturesIntegrationTest() {
             },
             { assertThat(repo.workTree).isNotNull() },
             { assertThat(repo.workTree).isEqualTo("${FIXTURES_PATH}/$paths") },
+        )
+    }
+
+    @Test
+    fun check_simple_repo_remotes() {
+        val repo = ffi.findRepo("${FIXTURES_PATH}/$SIMPLE_REPO")
+
+        assertAll(
+            { assertThat(repo.origin).isNotNull() },
+            { assertThat(repo.origin?.name).isNotNull() },
+            { assertThat(repo.origin?.name).isEqualTo("origin") },
+            { assertThat(repo.origin?.path).isNotNull() },
+            { assertThat(repo.origin?.path).contains("${FIXTURES_PATH}/$SIMPLE_REPO") },
+            { assertThat(repo.origin?.url).isNull() },
+        )
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [OCTO_REPO, ADVANCED_REPO])
+    fun check_octo_advanced_repo_remotes(paths: String) {
+        val repo = ffi.findRepo("${FIXTURES_PATH}/$paths")
+
+        assertAll(
+            { assertThat(repo.origin).isNull() },
         )
     }
 
@@ -149,7 +171,7 @@ internal class BinocularFfiTest : BaseFixturesIntegrationTest() {
     @Test
     fun find_all_commits_non_existing_branch() {
         val repo = ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-        assertThrows<BinocularException.OperationFailed> {
+        assertThrows<UniffiException.OperationFailed> {
             ffi.traverseBranch(repo, "branchName")
         }
     }

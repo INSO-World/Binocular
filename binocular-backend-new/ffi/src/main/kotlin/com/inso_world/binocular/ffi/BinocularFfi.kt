@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi
 
-import com.inso_world.binocular.ffi.exception.BinocularFfiException
+import com.inso_world.binocular.ffi.exception.FfiException
 import com.inso_world.binocular.ffi.pojos.BinocularBranchPojo
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
@@ -24,7 +24,7 @@ class BinocularFfi {
             .hello()
     }
 
-    @Throws(BinocularFfiException::class)
+    @Throws(FfiException::class)
     fun findRepo(path: String): BinocularRepositoryPojo {
         logger.trace("Searching repository... at '$path'")
         return try {
@@ -32,7 +32,7 @@ class BinocularFfi {
                 .findRepo(path)
                 .toPojo()
         } catch (e: AnyhowException) {
-            throw BinocularFfiException(e)
+            throw FfiException(e)
         }
     }
 
