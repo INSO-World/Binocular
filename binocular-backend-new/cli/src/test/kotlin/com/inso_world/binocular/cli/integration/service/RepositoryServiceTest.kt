@@ -12,7 +12,6 @@ import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
-import io.mockk.MockKAnnotations
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 
 internal class RepositoryServiceTest(
@@ -36,7 +36,7 @@ internal class RepositoryServiceTest(
 
     @BeforeEach
     fun setUp() {
-        MockKAnnotations.init(this)
+//        MockKAnnotations.init(this)
 
         val simpleRepo = ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
         ffi.findCommit(simpleRepo, "HEAD")
@@ -224,7 +224,7 @@ internal class RepositoryServiceTest(
 
     @Test
     fun `transformCommits should correctly establish parent-child relationships`() {
-        val repo = Repository(id = -1, name = "foo")
+        val repo = Repository(id = -1, name = "foo", project = simpleProject)
 
         val transformedCommits = repositoryService.transformCommits(repo, simpleRepoVcsCommits)
         val transformedCommitMap = transformedCommits.associateBy { it.sha }
@@ -303,19 +303,22 @@ internal class RepositoryServiceTest(
 internal class RepositoryServiceTestWithSimpleData(
     @Autowired private val repositoryService: RepositoryService,
 ) : BaseServiceTest() {
+    @Autowired
+    private lateinit var transactionTemplate: TransactionTemplate
     private val ffi = BinocularFfi()
 
-    @Test
     @Transactional
+    @Test
     fun `find existing simple repo`() {
         val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
         assertAll(
             { assertThat(repo).isNotNull() },
-            { assertThat(repo!!.id).isNotNull() },
+            { assertThat(repo?.id).isNotNull() },
             { assertEquals(this.simpleRepo, repo) },
-            { assertThat(repo!!.commits).hasSize(14) },
-            { assertThat(repo!!.user).hasSize(3) },
-            { assertThat(repo!!.branches).hasSize(1) },
+            { assertThat(repo?.commits).hasSize(14) },
+            { assertThat(repo?.user).hasSize(3) },
+            { assertThat(repo?.branches).hasSize(1) },
+            { assertThat(repo?.project).isNotNull() },
         )
     }
 
@@ -335,9 +338,15 @@ internal class RepositoryServiceTestWithSimpleData(
                 "${FIXTURES_PATH}/${SIMPLE_REPO}",
                 "HEAD",
                 branch,
+                SIMPLE_PROJECT_NAME,
             )
-        var localRepo = simpleRepoConfig.repo.toVcsRepository().toEntity()
+        var localRepo =
+            {
+                val r = simpleRepoConfig.repo.toVcsRepository().toEntity(simpleRepoConfig.project)
+                r
+            }()
         generateCommits(simpleRepoConfig, localRepo)
+        projectRepository.save(simpleRepoConfig.project).repo = localRepo
         localRepo = this.repositoryRepository.save(localRepo)
 
         val head = this.repositoryService.getHeadCommits(localRepo, branch)
@@ -387,9 +396,8 @@ internal class RepositoryServiceTestWithSimpleData(
             BinocularRepositoryPojo(
                 gitDir = this.simpleRepo.name,
                 workTree = null,
-                commonDir = null,
             ) // workTree & commonDir not relevant here
-        this.repositoryService.addCommits(vcsRepo, listOf(newVcsCommit), "master")
+        this.repositoryService.addCommits(vcsRepo, listOf(newVcsCommit), simpleProject)
 
         val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
@@ -436,9 +444,8 @@ internal class RepositoryServiceTestWithSimpleData(
             BinocularRepositoryPojo(
                 gitDir = this.simpleRepo.name,
                 workTree = null,
-                commonDir = null,
             ) // workTree & commonDir not relevant here
-        this.repositoryService.addCommits(vcsRepo, hashes, "develop")
+        this.repositoryService.addCommits(vcsRepo, hashes, simpleProject)
 
         val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 

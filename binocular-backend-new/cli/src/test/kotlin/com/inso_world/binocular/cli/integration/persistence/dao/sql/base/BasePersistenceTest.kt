@@ -1,67 +1,60 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.entity.Repository
-import com.inso_world.binocular.cli.index.vcs.toVcsRepository
-import com.inso_world.binocular.cli.integration.utils.generateCommits
-import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
-import com.inso_world.binocular.cli.persistence.repository.sql.CommitRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.RepositoryRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.UserRepository
-import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
+import org.junit.jupiter.params.provider.Arguments
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.time.LocalDateTime
+import java.util.stream.Stream
 
 @ExtendWith(SpringExtension::class)
 @DataJpaTest
 @ContextConfiguration(classes = [BinocularCommandLineApplication::class])
 @Import(BinocularCommandLineApplication::class)
 @ComponentScan(basePackages = ["com.inso_world.binocular.cli.persistence.dao.sql"])
-internal class BasePersistenceTest : BaseFixturesIntegrationTest() {
-    @Autowired
-    lateinit var commitRepository: CommitRepository
-
-    @Autowired
-    lateinit var userRepository: UserRepository
-
-    @Autowired
-    internal lateinit var repositoryRepository: RepositoryRepository
-
-    protected lateinit var simpleRepo: Repository
-    protected lateinit var octoRepo: Repository
-
-    @BeforeEach
-    fun setupBase() {
-        val simpleRepoConfig =
-            setupRepoConfig(
-                "${FIXTURES_PATH}/${SIMPLE_REPO}",
-                "HEAD",
+internal class BasePersistenceTest : BaseIntegrationTest() {
+    companion object {
+        @JvmStatic
+        fun provideBlankStrings(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(""), // Empty string
+                Arguments.of("   "), // Spaces only
+                Arguments.of("\t"), // Tab only
+                Arguments.of("\n"), // Newline only
+                Arguments.of(" \t\n "), // Mixed whitespace
+                Arguments.of("\r\n"), // Carriage return + newline
             )
-        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toEntity()
-        generateCommits(simpleRepoConfig, simpleRepo)
-        this.simpleRepo = this.repositoryRepository.save(this.simpleRepo)
 
-        val octoRepoConfig =
-            setupRepoConfig(
-                "${FIXTURES_PATH}/${OCTO_REPO}",
-                "HEAD",
+        @JvmStatic
+        fun provideAllowedStrings(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of("Namé-With-Ünicode-字符-123"),
+                Arguments.of("  Trimmed Name  "),
+                Arguments.of("Name-With_Special@Chars#123"),
+                Arguments.of("A".repeat(255)),
             )
-        this.octoRepo = octoRepoConfig.repo.toVcsRepository().toEntity()
-        generateCommits(octoRepoConfig, octoRepo)
-        this.octoRepo = this.repositoryRepository.save(this.octoRepo)
-    }
 
-    @AfterEach
-    fun cleanup() {
-        repositoryRepository.deleteAll()
-        commitRepository.deleteAll()
-        userRepository.deleteAll()
+        @JvmStatic
+        fun provideAllowedPastOrPresentDateTime(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(LocalDateTime.of(2021, 1, 1, 1, 1, 1, 1)),
+                Arguments.of(LocalDateTime.now()),
+                Arguments.of(LocalDateTime.now().minusSeconds(1)),
+            )
+
+        @JvmStatic
+        fun provideInvalidPastOrPresentDateTime(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(LocalDateTime.now().plusSeconds(10)),
+                Arguments.of(LocalDateTime.now().plusDays(1)),
+                Arguments.of(LocalDateTime.now().plusWeeks(1)),
+                Arguments.of(LocalDateTime.now().plusMonths(1)),
+                Arguments.of(LocalDateTime.now().plusYears(1)),
+            )
     }
 }

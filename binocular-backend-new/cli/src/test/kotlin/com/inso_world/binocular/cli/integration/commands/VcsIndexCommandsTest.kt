@@ -4,6 +4,7 @@ import com.inso_world.binocular.cli.commands.Index
 import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
+import com.inso_world.binocular.cli.integration.commands.base.BaseShellWithDataTest
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import jakarta.transaction.Transactional
@@ -24,7 +25,7 @@ internal class VcsIndexCommandsTest(
 //  @Autowired val client: ShellTestClient,
     @Autowired val repoService: RepositoryService,
     @Autowired val transactionTemplate: TransactionTemplate,
-) : BaseShellTest() {
+) : BaseShellWithDataTest() {
     @ParameterizedTest
     @CsvSource(
         "master,14",
@@ -44,6 +45,7 @@ internal class VcsIndexCommandsTest(
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = branchName,
+            SIMPLE_PROJECT_NAME,
         )
 
 //     you can then assert that the session isComplete() or simply proceed with your DB checks
@@ -68,6 +70,7 @@ internal class VcsIndexCommandsTest(
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = "origin/master",
+            SIMPLE_PROJECT_NAME,
         )
 //    val session = client.interactive().run()
 //
@@ -101,6 +104,7 @@ internal class VcsIndexCommandsTest(
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = "master",
+            SIMPLE_PROJECT_NAME,
         )
 //    await().atLeast(5, TimeUnit.SECONDS).atMost(20, TimeUnit.SECONDS)
 //      .untilAsserted {
@@ -138,6 +142,7 @@ internal class VcsIndexCommandsTest(
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = branchName,
+            SIMPLE_PROJECT_NAME,
         )
 
 //    var repo1: Repository? = null
@@ -167,6 +172,7 @@ internal class VcsIndexCommandsTest(
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = branchName,
+            SIMPLE_PROJECT_NAME,
         )
 
 //    var repo2: Repository? = null
@@ -207,6 +213,7 @@ internal class VcsIndexCommandsTest(
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = "master",
+            SIMPLE_PROJECT_NAME,
         )
         var repo1: Repository? = null
 //    await().atMost(20, TimeUnit.SECONDS).untilAsserted {
@@ -245,9 +252,8 @@ internal class VcsIndexCommandsTest(
                 BinocularRepositoryPojo(
                     gitDir = "$FIXTURES_PATH/$SIMPLE_REPO",
                     workTree = null,
-                    commonDir = null,
                 ) // workTree & commonDir not relevant here
-            this.repoService.addCommits(vcsRepo, listOf(newVcsCommit), "")
+            this.repoService.addCommits(vcsRepo, listOf(newVcsCommit), simpleProject)
 //      newCommit.parents = listOf(head!!)
 //      newCommit.repository = repo1
 //      assertThat(newCommit.committer).isNotNull()

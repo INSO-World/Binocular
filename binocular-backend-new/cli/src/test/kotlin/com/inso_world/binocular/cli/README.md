@@ -3,13 +3,16 @@
 This directory contains all tests for the Binocular CLI application. The tests are organized into two main categories:
 
 ## Unit Tests (`unit/`)
+
 Unit tests are located in the `unit/` directory and focus on testing individual components in isolation. These tests:
+
 - Run quickly
 - Don't require external dependencies
 - Use mocks and stubs where appropriate
 - Test a single unit of functionality
 
 Structure:
+
 ```
 unit/
 ├── mapper/         # Tests for data mappers
@@ -19,13 +22,17 @@ unit/
 ```
 
 ## Integration Tests (`integration/`)
-Integration tests are located in the `integration/` directory and focus on testing how components work together. These tests:
+
+Integration tests are located in the `integration/` directory and focus on testing how components work together. These
+tests:
+
 - May require external dependencies
 - Test multiple components working together
 - May interact with databases or external services
 - Take longer to run
 
 Structure:
+
 ```
 integration/
 ├── api/           # Tests for API integration
@@ -35,7 +42,9 @@ integration/
 ```
 
 ## Test Resources
+
 Test resources are organized in the `resources/` directory:
+
 ```
 resources/
 ├── unit/         # Resources for unit tests
@@ -43,6 +52,7 @@ resources/
 ```
 
 ## Base Test Classes
+
 - `BaseUnitTest.kt`: Base class for unit tests
 - `BaseIntegrationTest.kt`: Base class for integration tests
 - `BaseFixturesIntegrationTest.kt`: Base class for integration tests with fixtures
@@ -50,6 +60,7 @@ resources/
 ## Running Tests
 
 ### Unit Tests
+
 ```bash
 # Run all unit tests
 mvn test
@@ -62,6 +73,7 @@ mvn test -Dtest=YourUnitTest#testMethod
 ```
 
 ### Integration Tests
+
 ```bash
 # Run all integration tests
 mvn verify
@@ -74,6 +86,7 @@ mvn verify -Dtest=YourIntegrationTest#testMethod
 ```
 
 ### Test Coverage
+
 ```bash
 # Generate test coverage report
 mvn verify jacoco:report
@@ -83,6 +96,7 @@ open target/site/jacoco/index.html
 ```
 
 ### Common Maven Test Options
+
 ```bash
 # Skip tests
 mvn clean install -DskipTests
@@ -98,6 +112,7 @@ mvn test -Dtest.timeout=30
 ```
 
 ### Test Profiles
+
 ```bash
 # Run tests with specific profile
 mvn test -P unit-tests

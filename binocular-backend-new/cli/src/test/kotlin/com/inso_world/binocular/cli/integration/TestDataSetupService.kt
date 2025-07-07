@@ -1,17 +1,18 @@
-package com.inso_world.binocular.web
+package com.inso_world.binocular.cli.integration
 
-import com.inso_world.binocular.core.service.*
+import com.inso_world.binocular.core.service.AccountInfrastructurePort
+import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.core.service.BuildInfrastructurePort
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.FileInfrastructurePort
+import com.inso_world.binocular.core.service.IssueInfrastructurePort
+import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
+import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
+import com.inso_world.binocular.core.service.ModuleInfrastructurePort
+import com.inso_world.binocular.core.service.NoteInfrastructurePort
+import com.inso_world.binocular.core.service.UserInfrastructurePort
 import org.springframework.stereotype.Service
 
-/**
- * Service for setting up test data in the database.
- * This service uses only infrastructure ports to create test data,
- * making it completely independent of specific infrastructure implementations.
- *
- * Note: This service only sets up entity data. Relationships between entities
- * are handled by the infrastructure implementation itself based on the entity data
- * and any relationship methods exposed by the infrastructure ports.
- */
 @Service
 internal class TestDataSetupService(
     private val commitRepository: CommitInfrastructurePort,
@@ -51,16 +52,16 @@ internal class TestDataSetupService(
      * are handled by the infrastructure implementation based on the entity data.
      */
     fun setupTestData() {
-        commitRepository.saveAll(TestDataProvider.testCommits)
-        accountRepository.saveAll(TestDataProvider.testAccounts)
-        branchRepository.saveAll(TestDataProvider.testBranches)
-        buildRepository.saveAll(TestDataProvider.testBuilds)
-        fileRepository.saveAll(TestDataProvider.testFiles)
-        issueRepository.saveAll(TestDataProvider.testIssues)
-        mergeRequestRepository.saveAll(TestDataProvider.testMergeRequests)
-        milestoneRepository.saveAll(TestDataProvider.testMilestones)
-        moduleRepository.saveAll(TestDataProvider.testModules)
-        noteRepository.saveAll(TestDataProvider.testNotes)
-        userRepository.saveAll(TestDataProvider.testUsers)
+//        commitRepository.saveAll(TestDataProvider.testCommits)
+//        accountRepository.saveAll(TestDataProvider.testAccounts)
+//        branchRepository.saveAll(TestDataProvider.testBranches)
+//        buildRepository.saveAll(TestDataProvider.testBuilds)
+//        fileRepository.saveAll(TestDataProvider.testFiles)
+//        issueRepository.saveAll(TestDataProvider.testIssues)
+//        mergeRequestRepository.saveAll(TestDataProvider.testMergeRequests)
+//        milestoneRepository.saveAll(TestDataProvider.testMilestones)
+//        moduleRepository.saveAll(TestDataProvider.testModules)
+//        noteRepository.saveAll(TestDataProvider.testNotes)
+//        userRepository.saveAll(TestDataProvider.testUsers)
     }
 }
