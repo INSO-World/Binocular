@@ -11,10 +11,13 @@ import java.util.concurrent.TimeUnit
 
 open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
     companion object {
-        const val FIXTURES_PATH = "./src/test/resources/fixtures"
+        const val FIXTURES_PATH = "src/test/resources/fixtures"
         const val SIMPLE_REPO = "simple"
+        const val SIMPLE_PROJECT_NAME = "simple"
         const val ADVANCED_REPO = "advanced"
+        const val ADVANCED_PROJECT_NAME = "advanced"
         const val OCTO_REPO = "octo"
+        const val OCTO_PROJECT_NAME = "octo"
 
         @JvmStatic
         @BeforeAll
@@ -36,10 +39,9 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
                 } else {
                     builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
                 }
-                //    builder.directory(File(System.getProperty("user.home")))
                 builder.directory(File(FIXTURES_PATH))
                 val process = builder.start()
-                val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println)
+                val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println, path)
                 val executorService = Executors.newFixedThreadPool(1)
                 val future: Future<*> = executorService.submit(streamGobbler)
 
@@ -48,9 +50,14 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
                 assertEquals(0, exitCode)
             }
 
-            createGitRepo(SIMPLE_REPO)
-            createGitRepo(OCTO_REPO)
-            createGitRepo(ADVANCED_REPO)
+            val executorService = Executors.newFixedThreadPool(3)
+            val futures =
+                listOf(
+                    executorService.submit { createGitRepo(SIMPLE_REPO) },
+                    executorService.submit { createGitRepo(OCTO_REPO) },
+                    executorService.submit { createGitRepo(ADVANCED_REPO) },
+                )
+            futures.forEach { it.get() }
         }
     }
 }

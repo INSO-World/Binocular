@@ -8,10 +8,19 @@ import java.util.function.Consumer
 internal class StreamGobbler(
     private var inputStream: InputStream,
     private var consumer: Consumer<String>,
+    private val path: String,
 ) : Runnable {
     override fun run() {
+        val fixedWidth = 12
+        val formattedPath = "[$path]"
+        val paddedPath =
+            if (formattedPath.length > fixedWidth) {
+                formattedPath.take(fixedWidth)
+            } else {
+                formattedPath.padEnd(fixedWidth, ' ')
+            }
         BufferedReader(InputStreamReader(inputStream))
             .lines()
-            .forEach(consumer)
+            .forEach { line -> consumer.accept("$paddedPath\t$line") }
     }
 }
