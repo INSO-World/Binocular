@@ -37,30 +37,150 @@ class DbExportControllerTest : BaseDbTest() {
     val jsonString = mvcResult.response.contentAsString
     val jsonNode: JsonNode = jacksonObjectMapper().readTree(jsonString)
 
+    // assertions to check if all collections have been correctly exported
+    // comparing the attributes of the test data with the data from the export
     assertAll(
+      // accounts
       {
         val accounts = jsonNode["accounts"]
-        assertEquals(testAccounts.size, accounts?.size() ?: 0, "accounts size mismatch")
+        assertEquals(testAccounts.size, accounts.size(), "accounts size mismatch")
+
+        // check if the attributes of the exported accounts match the expected accounts (platform, user, ...)
+        testAccounts.forEachIndexed { index, expected ->
+          val actual = accounts[index]
+
+          //assertEquals(expected.id.toString(), actual.get("_id").asText(), "Account $index mismatch") TODO cut id string for matching
+          assertEquals(expected.platform.toString(), actual.get("platform").asText(), "Account $index platform mismatch: expected ${expected.id}, got ${actual.get("platform").asText()}")
+          assertEquals(expected.login, actual.get("login").asText(), "Account $index login mismatch: expected ${expected.login}, got ${actual.get("login").asText()}")
+          assertEquals(expected.name, actual.get("name").asText(), "Account $index name mismatch: expected ${expected.name}, got ${actual.get("name").asText()}")
+          assertEquals(expected.avatarUrl, actual.get("avatarUrl").asText(), "Account $index avatarUrl mismatch: expected ${expected.avatarUrl}, got ${actual.get("avatarUrl").asText()}")
+          assertEquals(expected.url, actual.get("url").asText(), "Account $index url mismatch: expected ${expected.url}, got ${actual.get("url").asText()}")
+        }
       },
+      // commits
       {
         val commits = jsonNode["commits"]
         assertEquals(testCommits.size, commits?.size() ?: 0, "commits size mismatch")
+
+        testCommits.forEachIndexed { index, expected ->
+          val actual = commits[index]
+
+          // id and date field are currently not yet verified
+          assertEquals(expected.sha, actual.get("sha").asText(), "Commit $index sha mismatch: expected ${expected.sha}, got ${actual.get("sha").asText()}")
+          assertEquals(expected.message, actual.get("message").asText(), "Commit $index message mismatch: expected ${expected.message}, got ${actual.get("message").asText()}")
+          assertEquals(expected.branch, actual.get("branch").asText(), "Commit $index branch mismatch: expected ${expected.branch}, got ${actual.get("branch").asText()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(), "Commit $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+          assertEquals(expected.stats?.additions?.toInt(), actual.get("stats").get("additions").asInt(), "Commit $index additions mismatch: expected ${expected.stats?.additions}, got ${actual.get("stats").get("additions").asInt()}")
+          assertEquals(expected.stats?.deletions?.toInt(), actual.get("stats").get("deletions").asInt(), "Commit $index deletions mismatch: expected ${expected.stats?.deletions}, got ${actual.get("stats").get("deletions").asInt()}")
+        }
       },
+      // branches
       {
         val branches = jsonNode["branches"]
         assertEquals(testBranches.size, branches?.size() ?: 0, "branches size mismatch")
+
+        testBranches.forEachIndexed { index, expected ->
+          val actual = branches[index]
+
+          //assertEquals(expected.id, actual.get("id").asText(), "Branch $index id mismatch: expected ${expected.id}, got ${actual.get("id").asText()}")
+          assertEquals(expected.branch, actual.get("branch").asText(),
+            "Branch $index branches mismatch: expected ${expected.branch}, got ${actual.get("branch").asText()}")
+          assertEquals(expected.active, actual.get("active").asBoolean(),
+            "Branch $index active mismatch: expected ${expected.active}, got ${actual.get("active").asBoolean()}")
+          assertEquals(expected.tracksFileRenames, actual.get("tracksFileRenames").asBoolean(),
+            "Branch $index tracksFileRename mismatch: expected ${expected.tracksFileRenames}, got ${actual.get("tracksFileRenames").asBoolean()}")
+          assertEquals(expected.latestCommit, actual.get("latestCommit").asText(),
+            "Branch $index latestCommit mismatch: expected ${expected.latestCommit}, got ${actual.get("latestCommit").asText()}")
+        }
       },
+      // builds
       {
         val builds = jsonNode["builds"]
         assertEquals(testBuilds.size, builds?.size() ?: 0, "builds size mismatch")
+
+        testBuilds.forEachIndexed { index, expected ->
+          val actual = builds[index]
+
+          //assertEquals(expected.id, actual.get("id").asText(), "Build $index id mismatch: expected ${expected.id}, got ${actual.get("id").asText()}")
+          assertEquals(expected.sha, actual.get("sha").asText(),
+            "Build $index sha mismatch: expected ${expected.sha}, got ${actual.get("sha").asText()}")
+          assertEquals(expected.ref, actual.get("ref").asText(),
+            "Build $index ref mismatch: expected ${expected.ref}, got ${actual.get("ref").asText()}")
+          assertEquals(expected.status, actual.get("status").asText(),
+            "Build $index status mismatch: expected ${expected.status}, got ${actual.get("status").asText()}")
+          assertEquals(expected.tag, actual.get("tag").asText(),
+            "Build $index tag mismatch: expected ${expected.tag}, got ${actual.get("tag").asText()}")
+          assertEquals(expected.user, actual.get("user").asText(),
+            "Build $index user mismatch: expected ${expected.user}, got ${actual.get("user").asText()}")
+          assertEquals(expected.userFullName, actual.get("userFullName").asText(),
+            "Build $index userFullName mismatch: expected ${expected.userFullName}, got ${actual.get("userFullName").asText()}")
+          assertEquals(expected.duration, actual.get("duration").asInt(),
+            "Build $index duration mismatch: expected ${expected.duration}, got ${actual.get("duration").asInt()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(),
+            "Build $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+        }
       },
+      // files
       {
         val files = jsonNode["files"]
         assertEquals(testFiles.size, files?.size() ?: 0, "files size mismatch")
+
+        testFiles.forEachIndexed { index, expected ->
+          val actual = files[index]
+
+          //assertEquals(expected.id, actual.get("id").asText(), "File $index id mismatch: expected ${expected.id}, got ${actual.get("id").asText()}")
+          assertEquals(expected.path, actual.get("path").asText(),
+            "File $index path mismatch: expected ${expected.path}, got ${actual.get("path").asText()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(),
+            "File $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+          assertEquals(expected.maxLength, actual.get("maxLength").asInt(),
+            "File $index maxLength mismatch: expected ${expected.maxLength}, got ${actual.get("maxLength").asInt()}")
+        }
       },
+      // issues
       {
         val issues = jsonNode["issues"]
         assertEquals(testIssues.size, issues?.size() ?: 0, "issues size mismatch")
+
+        testIssues.forEachIndexed { index, expected ->
+          val actual = issues[index]
+
+          // TODO id and iid, attributes of type Date()
+          //assertEquals(expected.iid, actual.get("iid").asInt(),
+          //  "Issue $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}")
+          assertEquals(expected.title, actual.get("title").asText(),
+            "Issue $index title mismatch: expected ${expected.title}, got ${actual.get("title").asText()}")
+          assertEquals(expected.description, actual.get("description").asText(),
+            "Issue $index description mismatch: expected ${expected.description}, got ${actual.get("description").asText()}")
+          assertEquals(expected.state, actual.get("state").asText(),
+            "Issue $index state mismatch: expected ${expected.state}, got ${actual.get("state").asText()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(),
+            "Issue $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+          // date checks still missing
+
+          // verify labels
+          val expectedLabels = expected.labels
+          val actualLabels = actual.get("labels")
+          assertEquals(expectedLabels.size, actualLabels.size(), "Issue $index labels size mismatch")
+
+          expectedLabels.forEachIndexed { labelIndex, expectedLabel ->
+            assertEquals(expectedLabel, actualLabels[labelIndex].asText(),
+              "Issue $index label $labelIndex mismatch: expected $expectedLabel, got ${actualLabels[labelIndex].asText()}")
+          }
+
+          // verify mentions
+          val expectedMentions = expected.mentions
+          val actualMentions = actual.get("mentions")
+          assertEquals(expectedMentions.size, actualMentions.size(), "Issue $index mentions size mismatch")
+
+          expectedMentions.forEachIndexed { mentionIndex, expectedMention ->
+            assertEquals(expectedMention.commit, actualMentions[mentionIndex].get("commit").asText(),
+              "Issue $index mention $mentionIndex commitId mismatch: expected ${expectedMention.commit}, got ${actualMentions[mentionIndex].get("commit").asText()}")
+            assertEquals(expectedMention.closes, actualMentions[mentionIndex].get("closes").asBoolean(),
+              "Issue $index mention $mentionIndex closes mismatch: expected ${expectedMention.closes}, got ${actualMentions[mentionIndex].get("closes").asBoolean()}")
+            // date check currently still missing
+          }
+        }
       },
       {
         val mergeRequests = jsonNode["mergeRequests"]
