@@ -2,8 +2,8 @@ package com.inso_world.binocular.web.graphql.controller
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.TestDataProvider
+import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
  */
 internal class AccountControllerWebTest : BaseIntegrationTest() {
     @Nested
-    internal inner class BasicFunctionality : BaseDbTest() {
+    internal inner class BasicFunctionality : GraphQlControllerTest() {
         @Test
         fun `should return all accounts`() {
             val result: JsonNode =
@@ -182,7 +182,7 @@ internal class AccountControllerWebTest : BaseIntegrationTest() {
     }
 
     @Nested
-    inner class Pagination : BaseDbTest() {
+    inner class Pagination : GraphQlControllerTest() {
         @Test
         fun `should return accounts with pagination`() {
             // Test with page=1, perPage=1 (should return only the first account)
@@ -388,7 +388,7 @@ internal class AccountControllerWebTest : BaseIntegrationTest() {
     }
 
     @Nested
-    inner class ErrorHandling : BaseDbTest() {
+    inner class ErrorHandling : GraphQlControllerTest() {
         @Test
         fun `should throw exception for non-existent account id`() {
             // Test with a non-existent account ID

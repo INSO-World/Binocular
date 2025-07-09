@@ -14,25 +14,15 @@ import com.inso_world.binocular.core.service.NoteInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Profile
-import org.springframework.graphql.test.tester.GraphQlTester
 
 /**
  * Base test class that sets up test data in the database.
  * This class can be extended by test classes that need database test data.
  * It uses the TestDataSetupService to manage test data independently of infrastructure.
  */
-@SpringBootTest(
-    classes = [BinocularWebApplication::class],
-)
-@AutoConfigureGraphQlTester
 @Profile("test")
 internal abstract class BaseDbTest : BaseIntegrationTest() {
-    @Autowired
-    protected lateinit var graphQlTester: GraphQlTester
-
     @Autowired
     protected lateinit var testDataSetupService: TestDataSetupService
 

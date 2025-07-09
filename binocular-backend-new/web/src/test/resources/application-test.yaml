@@ -1,8 +1,6 @@
 spring:
   application:
     name: binocular-test
-  #profiles:
-  #  active: test,nosql,arangodb
   graphql:
     http:
       path: '/graphQl'
