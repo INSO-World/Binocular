@@ -253,13 +253,39 @@ class DbExportControllerTest : BaseDbTest() {
             "Note $index importedFrom mismatch: expected ${expected.importedFrom}, got ${actual.get("importedFrom").asText()}")
         }
       },
+      // users
       {
         val users = jsonNode["users"]
         assertEquals(testUsers.size, users?.size() ?: 0, "users size mismatch")
+
+        testUsers.forEachIndexed { index, expected ->
+          val actual = users[index]
+
+          println(actual)
+
+          // id check still missing
+          assertEquals(expected.gitSignature, actual.get("gitSignature").asText(),
+            "User $index gitSignature mismatch: expected ${expected.gitSignature}, got ${actual.get("gitSignature").asText()}")
+        }
       },
+      // milestones
       {
         val milestones = jsonNode["milestones"]
         assertEquals(testMilestones.size, milestones?.size() ?: 0, "milestones size mismatch")
+
+        testMilestones.forEachIndexed { index, expected ->
+          val actual = milestones[index]
+
+          // id and iid check still missing (also date checks)
+          assertEquals(expected.title, actual.get("title").asText(),
+            "Milestone $index title mismatch: expected ${expected.title}, got ${actual.get("title").asText()}")
+          assertEquals(expected.description, actual.get("description").asText(),
+            "Milestone $index description mismatch: expected ${expected.description}, got ${actual.get("description").asText()}")
+          assertEquals(expected.state, actual.get("state").asText(),
+            "Milestone $index state mismatch: expected ${expected.state}, got ${actual.get("state").asText()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(),
+            "Milestone $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+        }
       }
     )
   }
