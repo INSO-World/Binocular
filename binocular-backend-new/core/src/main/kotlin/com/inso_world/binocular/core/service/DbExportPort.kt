@@ -1,10 +1,10 @@
-package com.inso_world.binocular.web.service
+package com.inso_world.binocular.core.service
 
 /**
  * Service interface for exporting the contents of the database.
  * Provides a method to retrieve and return all data as a structured map.
  */
-interface DbExportService {
+interface DbExportPort {
 
     /**
      * Exports the contents of the database.
