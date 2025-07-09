@@ -14,7 +14,7 @@ interface BinocularInfrastructurePort<T> {
      *
      * @return Page of users
      */
-    fun findAll(): Iterable<T>
+    fun findAll(): Iterable<@Valid T>
 
     /**
      * Find all users with pagination.
@@ -22,7 +22,7 @@ interface BinocularInfrastructurePort<T> {
      * @param pageable Pagination information
      * @return Page of users
      */
-    fun findAll(pageable: Pageable): Page<T>
+    fun findAll(pageable: Pageable): Page<@Valid T>
 
     /**
      * Find a user by ID.
@@ -30,9 +30,17 @@ interface BinocularInfrastructurePort<T> {
      * @param id The ID of the user to find
      * @return The user if found, null otherwise
      */
-    fun findById(id: String): T?
+    fun findById(id: String): @Valid T?
 
     fun save(
+        @Valid entity: T,
+    ): T
+
+    fun update(
+        @Valid entity: T,
+    ): T
+
+    fun updateAndFlush(
         @Valid entity: T,
     ): T
 
@@ -40,6 +48,13 @@ interface BinocularInfrastructurePort<T> {
      * Save multiple entities
      */
     fun saveAll(
-        @Valid entities: Collection<T>,
-    ): Iterable<T>
+        @Valid entities: Collection<@Valid T>,
+    ): Iterable<@Valid T>
+
+    @Deprecated("use deleteById(id: String)")
+    fun delete(
+        @Valid entity: T,
+    )
+
+    fun deleteById(id: String)
 }
