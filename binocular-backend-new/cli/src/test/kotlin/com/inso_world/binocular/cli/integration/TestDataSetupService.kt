@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 internal class TestDataSetupService(
@@ -27,11 +28,13 @@ internal class TestDataSetupService(
      * This method only clears entity data, as relationship data is managed
      * by the infrastructure implementation.
      */
+    @Transactional
     fun clearAllData() {
 //        commitRepository.saveAll(emptyList())
-        projectRepository.findAll().map { projectRepository.delete(it) }
-        repositoryRepository.findAll().map { repositoryRepository.delete(it) }
-        commitRepository.findAll().map { commitRepository.delete(it) }
+        projectRepository.findAll().map { e -> e.id?.let { projectRepository.deleteById(it) } }
+        repositoryRepository.findAll().map { e -> e.id?.let { repositoryRepository.deleteById(it) } }
+        commitRepository.findAll().map { e -> e.id?.let { commitRepository.deleteById(it) } }
+
 //        accountRepository.saveAll(emptyList())
 //        branchRepository.saveAll(emptyList())
 //        buildRepository.saveAll(emptyList())
@@ -42,7 +45,7 @@ internal class TestDataSetupService(
 //        moduleRepository.saveAll(emptyList())
 //        noteRepository.saveAll(emptyList())
 //        userRepository.saveAll(emptyList())
-        userRepository.findAll().map { userRepository.delete(it) }
+//        userRepository.findAll().map { userRepository.delete(it) }
     }
 
     /**

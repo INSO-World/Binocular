@@ -50,7 +50,6 @@ internal class RepositoryDaoTestWithSimpleData(
                     hashes = hashes,
                     project =
                         Project(
-                            id = null,
                             name = SIMPLE_PROJECT_NAME,
                         ),
                 )
@@ -67,7 +66,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @AfterEach
     fun afterEach() {
-        projectDao.delete(this.simpleRepo.project)
+        this.simpleRepo.projectId?.let { projectDao.deleteById(it) }
 //        projectRepository.deleteAll()
 //        repositoryRepository.deleteAll()
 //        commitRepository.deleteAll()

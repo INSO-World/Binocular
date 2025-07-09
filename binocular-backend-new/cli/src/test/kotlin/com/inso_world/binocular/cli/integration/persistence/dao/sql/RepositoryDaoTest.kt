@@ -43,8 +43,8 @@ internal class RepositoryDaoTest(
         fun `repository deletion leaves project intact`() {
             // Given
             val savedProject =
-                projectDao.save(Project(id = null, name = "Surviving Project", description = "Will survive repo deletion"))
-            val repository = Repository(id = null, name = "to-be-deleted-repo", project = savedProject)
+                projectDao.save(Project(name = "Surviving Project", description = "Will survive repo deletion"))
+            val repository = Repository(id = null, name = "to-be-deleted-repo", projectId = savedProject.id)
             val savedRepo = repositoryDao.save(repository)
 
             // When
@@ -63,8 +63,8 @@ internal class RepositoryDaoTest(
         @Test
         fun `repository cannot exist without project`() {
             // Given
-            val savedProject = projectDao.save(Project(id = null, name = "Temporary Project", description = "Will be deleted"))
-            val repository = Repository(id = null, name = "orphaned-repo", project = savedProject)
+            val savedProject = projectDao.save(Project(name = "Temporary Project", description = "Will be deleted"))
+            val repository = Repository(id = null, name = "orphaned-repo", projectId = savedProject.id)
             savedProject.repo = repositoryDao.save(repository)
 
             projectDao.delete(savedProject)
@@ -80,12 +80,12 @@ internal class RepositoryDaoTest(
         fun `multiple repositories cannot reference same project`() {
             // Given
             val savedProject =
-                projectDao.save(Project(id = null, name = "Shared Project", description = "Should only have one repo"))
+                projectDao.save(Project(name = "Shared Project", description = "Should only have one repo"))
 
             // When - First repository should be created successfully
             val firstRepo =
                 transactionTemplate.execute {
-                    val repo = repositoryDao.save(Repository(id = null, name = "first-repo", project = savedProject))
+                    val repo = repositoryDao.save(Repository(id = null, name = "first-repo", projectId = savedProject.id))
                     repo
                 }
 
@@ -98,7 +98,7 @@ internal class RepositoryDaoTest(
 
             // When - Second repository with same project should fail
             assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                repositoryDao.save(Repository(id = null, name = "second-repo", project = savedProject))
+                repositoryDao.save(Repository(id = null, name = "second-repo", projectId = savedProject.id))
             }
             entityManager.clear()
 
@@ -112,11 +112,11 @@ internal class RepositoryDaoTest(
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
         fun `repository with invalid name should fail`(invalidName: String) {
             // When
-            val savedProject = projectDao.save(Project(id = null, name = "Valid Project", description = "Valid project"))
+            val savedProject = projectDao.save(Project(name = "Valid Project", description = "Valid project"))
 
             // Then - This should fail due to validation constraint
             assertThrows<jakarta.validation.ConstraintViolationException> {
-                repositoryDao.save(Repository(id = null, name = invalidName, project = savedProject))
+                repositoryDao.save(Repository(id = null, name = invalidName, projectId = savedProject.id))
             }
             entityManager.clear()
         }
@@ -125,8 +125,8 @@ internal class RepositoryDaoTest(
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedStrings")
         fun `repository with allowed names should be handled`(allowedName: String) {
             // When
-            val savedProject = projectDao.save(Project(id = null, name = "Valid Project", description = "Valid project"))
-            val savedRepo = repositoryDao.save(Repository(id = null, name = allowedName, project = savedProject))
+            val savedProject = projectDao.save(Project(name = "Valid Project", description = "Valid project"))
+            val savedRepo = repositoryDao.save(Repository(id = null, name = allowedName, projectId = savedProject.id))
             savedProject.repo = savedRepo
 
             // Then
@@ -141,8 +141,8 @@ internal class RepositoryDaoTest(
         @Test
         fun `duplicate repository names should fail`() {
             // When
-            val savedProject1 = projectDao.save(Project(id = null, name = "Project 1", description = "First project"))
-            val savedProject2 = projectDao.save(Project(id = null, name = "Project 2", description = "Second project"))
+            val savedProject1 = projectDao.save(Project(name = "Project 1", description = "First project"))
+            val savedProject2 = projectDao.save(Project(name = "Project 2", description = "Second project"))
 //            assertAll(
 //                {
             assertDoesNotThrow {
@@ -150,7 +150,7 @@ internal class RepositoryDaoTest(
                     Repository(
                         id = null,
                         name = "Duplicate Repo",
-                        project = savedProject1,
+                        projectId = savedProject1.id,
                     ),
                 )
             }
@@ -159,7 +159,7 @@ internal class RepositoryDaoTest(
 //                {
             val ex =
                 assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                    repositoryDao.save(Repository(id = null, name = "Duplicate Repo", project = savedProject2))
+                    repositoryDao.save(Repository(id = null, name = "Duplicate Repo", projectId = savedProject2.id))
                 }
 //                },
 //            )

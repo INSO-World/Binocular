@@ -28,7 +28,6 @@ internal fun setupRepoConfig(
     val hashes = ffi.traverseBranch(repo, branch)
     val project =
         Project(
-            id = null,
             name = projectName,
         )
     return RepositoryConfig(
