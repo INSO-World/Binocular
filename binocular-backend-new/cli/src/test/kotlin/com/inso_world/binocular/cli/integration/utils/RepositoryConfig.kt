@@ -1,13 +1,13 @@
 package com.inso_world.binocular.cli.integration.utils
 
-import com.inso_world.binocular.cli.entity.Commit
-import com.inso_world.binocular.cli.entity.Project
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.toDto
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 
 internal data class RepositoryConfig(
     val repo: BinocularRepositoryPojo,
@@ -28,6 +28,7 @@ internal fun setupRepoConfig(
     val hashes = ffi.traverseBranch(repo, branch)
     val project =
         Project(
+            id = null,
             name = projectName,
         )
     return RepositoryConfig(

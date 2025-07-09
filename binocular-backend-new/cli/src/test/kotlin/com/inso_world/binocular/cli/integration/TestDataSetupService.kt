@@ -1,31 +1,26 @@
 package com.inso_world.binocular.cli.integration
 
-import com.inso_world.binocular.core.service.AccountInfrastructurePort
-import com.inso_world.binocular.core.service.BranchInfrastructurePort
-import com.inso_world.binocular.core.service.BuildInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
-import com.inso_world.binocular.core.service.FileInfrastructurePort
-import com.inso_world.binocular.core.service.IssueInfrastructurePort
-import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
-import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
-import com.inso_world.binocular.core.service.ModuleInfrastructurePort
-import com.inso_world.binocular.core.service.NoteInfrastructurePort
+import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import org.springframework.stereotype.Service
 
 @Service
 internal class TestDataSetupService(
+    private val projectRepository: ProjectInfrastructurePort,
     private val commitRepository: CommitInfrastructurePort,
-    private val accountRepository: AccountInfrastructurePort,
-    private val branchRepository: BranchInfrastructurePort,
-    private val buildRepository: BuildInfrastructurePort,
-    private val fileRepository: FileInfrastructurePort,
-    private val issueRepository: IssueInfrastructurePort,
-    private val mergeRequestRepository: MergeRequestInfrastructurePort,
-    private val moduleRepository: ModuleInfrastructurePort,
-    private val noteRepository: NoteInfrastructurePort,
+    private val repositoryRepository: RepositoryInfrastructurePort,
+//    private val accountRepository: AccountInfrastructurePort,
+//    private val branchRepository: BranchInfrastructurePort,
+//    private val buildRepository: BuildInfrastructurePort,
+//    private val fileRepository: FileInfrastructurePort,
+//    private val issueRepository: IssueInfrastructurePort,
+//    private val mergeRequestRepository: MergeRequestInfrastructurePort,
+//    private val moduleRepository: ModuleInfrastructurePort,
+//    private val noteRepository: NoteInfrastructurePort,
     private val userRepository: UserInfrastructurePort,
-    private val milestoneRepository: MilestoneInfrastructurePort,
+//    private val milestoneRepository: MilestoneInfrastructurePort,
 ) {
     /**
      * Clears all test data from the database.
@@ -33,17 +28,21 @@ internal class TestDataSetupService(
      * by the infrastructure implementation.
      */
     fun clearAllData() {
-        commitRepository.saveAll(emptyList())
-        accountRepository.saveAll(emptyList())
-        branchRepository.saveAll(emptyList())
-        buildRepository.saveAll(emptyList())
-        fileRepository.saveAll(emptyList())
-        issueRepository.saveAll(emptyList())
-        mergeRequestRepository.saveAll(emptyList())
-        milestoneRepository.saveAll(emptyList())
-        moduleRepository.saveAll(emptyList())
-        noteRepository.saveAll(emptyList())
-        userRepository.saveAll(emptyList())
+//        commitRepository.saveAll(emptyList())
+        projectRepository.findAll().map { projectRepository.delete(it) }
+        repositoryRepository.findAll().map { repositoryRepository.delete(it) }
+        commitRepository.findAll().map { commitRepository.delete(it) }
+//        accountRepository.saveAll(emptyList())
+//        branchRepository.saveAll(emptyList())
+//        buildRepository.saveAll(emptyList())
+//        fileRepository.saveAll(emptyList())
+//        issueRepository.saveAll(emptyList())
+//        mergeRequestRepository.saveAll(emptyList())
+//        milestoneRepository.saveAll(emptyList())
+//        moduleRepository.saveAll(emptyList())
+//        noteRepository.saveAll(emptyList())
+//        userRepository.saveAll(emptyList())
+        userRepository.findAll().map { userRepository.delete(it) }
     }
 
     /**

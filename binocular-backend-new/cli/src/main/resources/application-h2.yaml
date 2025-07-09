@@ -5,7 +5,8 @@ spring:
     console:
       enabled: true
   datasource:
-    url: jdbc:h2:mem:mydb
+    url: jdbc:h2:mem:binocular
+#    url: jdbc:h2:/tmp/binocular;AUTO_SERVER=TRUE
     username: sa
     password: password
     driverClassName: org.h2.Driver
@@ -14,3 +15,10 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+#logging:
+#  level:
+## https://stackoverflow.com/questions/30890076/spring-boot-show-sql-parameter-binding
+#    org.hibernate.orm.jdbc.bind: trace

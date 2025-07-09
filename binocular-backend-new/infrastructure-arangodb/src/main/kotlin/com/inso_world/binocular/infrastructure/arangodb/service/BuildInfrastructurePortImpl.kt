@@ -63,4 +63,18 @@ class BuildInfrastructurePortImpl : BuildInfrastructurePort {
     override fun save(entity: Build): Build = this.buildDao.save(entity)
 
     override fun saveAll(entities: Collection<Build>): Iterable<Build> = this.buildDao.saveAll(entities)
+
+    override fun delete(entity: Build) = this.buildDao.delete(entity)
+
+    override fun update(entity: Build): Build {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: Build): Build {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

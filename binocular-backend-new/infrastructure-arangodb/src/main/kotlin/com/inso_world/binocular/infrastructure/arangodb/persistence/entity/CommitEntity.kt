@@ -19,7 +19,7 @@ data class CommitEntity(
     @Id var id: String? = null,
     @Field("sha")
     @PersistentIndexed(unique = true)
-    var sha: String? = null,
+    var sha: String,
     var date: Date? = null,
     var message: String? = null,
     var webUrl: String? = null,

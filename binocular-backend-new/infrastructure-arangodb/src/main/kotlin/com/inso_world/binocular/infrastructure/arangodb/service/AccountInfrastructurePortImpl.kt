@@ -18,13 +18,17 @@ import org.springframework.stereotype.Service
 
 @Service
 class AccountInfrastructurePortImpl : AccountInfrastructurePort {
-    @Autowired private lateinit var accountDao: IAccountDao
+    @Autowired
+    private lateinit var accountDao: IAccountDao
 
-    @Autowired private lateinit var issueAccountConnectionRepository: IIssueAccountConnectionDao
+    @Autowired
+    private lateinit var issueAccountConnectionRepository: IIssueAccountConnectionDao
 
-    @Autowired private lateinit var mergeRequestAccountConnectionRepository: IMergeRequestAccountConnectionDao
+    @Autowired
+    private lateinit var mergeRequestAccountConnectionRepository: IMergeRequestAccountConnectionDao
 
-    @Autowired private lateinit var noteAccountConnectionRepository: INoteAccountConnectionDao
+    @Autowired
+    private lateinit var noteAccountConnectionRepository: INoteAccountConnectionDao
     var logger: Logger = LoggerFactory.getLogger(AccountInfrastructurePortImpl::class.java)
 
     override fun findAll(pageable: Pageable): Page<Account> {
@@ -57,4 +61,16 @@ class AccountInfrastructurePortImpl : AccountInfrastructurePort {
     override fun save(entity: Account): Account = this.accountDao.save(entity)
 
     override fun saveAll(entities: Collection<Account>): Iterable<Account> = this.accountDao.saveAll(entities)
+
+    override fun delete(entity: Account) {
+        this.accountDao.delete(entity)
+    }
+
+    override fun update(entity: Account): Account = this.accountDao.update(entity)
+
+    override fun updateAndFlush(entity: Account): Account = this.accountDao.updateAndFlush(entity)
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

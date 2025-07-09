@@ -2,22 +2,16 @@ package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.provider.Arguments
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.stream.Stream
 
-@ExtendWith(SpringExtension::class)
-@DataJpaTest
-@ContextConfiguration(classes = [BinocularCommandLineApplication::class])
-@Import(BinocularCommandLineApplication::class)
-@ComponentScan(basePackages = ["com.inso_world.binocular.cli.persistence.dao.sql"])
-internal class BasePersistenceTest : BaseIntegrationTest() {
+// @ExtendWith(SpringExtension::class)
+@Transactional
+@SpringBootTest(classes = [BinocularCommandLineApplication::class])
+class BasePersistenceTest : BaseIntegrationTest() {
     companion object {
         @JvmStatic
         fun provideBlankStrings(): Stream<Arguments> =

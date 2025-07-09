@@ -65,4 +65,18 @@ class ModuleInfrastructurePortImpl : ModuleInfrastructurePort {
     override fun save(entity: Module): Module = moduleDao.save(entity)
 
     override fun saveAll(entities: Collection<Module>): Iterable<Module> = moduleDao.saveAll(entities)
+
+    override fun delete(entity: Module): Unit = moduleDao.delete(entity)
+
+    override fun update(entity: Module): Module {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: Module): Module {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

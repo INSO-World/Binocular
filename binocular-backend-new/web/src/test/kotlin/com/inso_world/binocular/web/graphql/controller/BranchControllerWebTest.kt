@@ -66,9 +66,9 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
                     },
                     {
                         assertEquals(
-                            expectedBranch.branch,
+                            expectedBranch.name,
                             actualBranch.get("branch").asText(),
-                            "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.get("branch").asText()}",
+                            "Branch name mismatch: expected ${expectedBranch.name}, got ${actualBranch.get("branch").asText()}",
                         )
                     },
                     {
@@ -134,9 +134,9 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedBranch.branch,
+                        expectedBranch.name,
                         result.get("branch").asText(),
-                        "Branch name mismatch: expected ${expectedBranch.branch}, got ${result.get("branch").asText()}",
+                        "Branch name mismatch: expected ${expectedBranch.name}, got ${result.get("branch").asText()}",
                     )
                 },
                 {
@@ -217,9 +217,9 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedBranch.branch,
+                        expectedBranch.name,
                         actualBranch.get("branch").asText(),
-                        "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.get("branch").asText()}",
+                        "Branch name mismatch: expected ${expectedBranch.name}, got ${actualBranch.get("branch").asText()}",
                     )
                 },
                 {
@@ -324,9 +324,9 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedBranch.branch,
+                        expectedBranch.name,
                         actualBranch.get("branch").asText(),
-                        "Branch name mismatch: expected ${expectedBranch.branch}, got ${actualBranch.get("branch").asText()}",
+                        "Branch name mismatch: expected ${expectedBranch.name}, got ${actualBranch.get("branch").asText()}",
                     )
                 },
                 {

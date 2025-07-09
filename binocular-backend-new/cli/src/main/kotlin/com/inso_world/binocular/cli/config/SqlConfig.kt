@@ -18,6 +18,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
     "com.inso_world.binocular.cli.entity",
 )
 @Configuration
-@Profile("sql")
+@Profile("sql", "h2", "postgres")
 @ComponentScan("com.inso_world.binocular.infrastructure.sql")
 class SqlConfig

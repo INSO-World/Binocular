@@ -1,12 +1,13 @@
 package com.inso_world.binocular.cli.service
 
-import com.inso_world.binocular.cli.entity.Branch
-import com.inso_world.binocular.cli.entity.Commit
-import com.inso_world.binocular.cli.entity.Project
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
-import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.IRepositoryDao
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
+import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,7 +19,7 @@ class RepositoryService {
     private val logger: Logger = LoggerFactory.getLogger(RepositoryService::class.java)
 
     @Autowired
-    private lateinit var repositoryDao: IRepositoryDao
+    private lateinit var repositoryDao: RepositoryInfrastructurePort
 
     @Autowired
     private lateinit var commitService: CommitService
@@ -31,7 +32,7 @@ class RepositoryService {
         repo: Repository,
         commits: Iterable<VcsCommit>,
     ): Collection<Commit> {
-        val userCache = repo.user.associateBy { it.email }.toMutableMap()
+        val userCache = repo.user.associateBy { it.gitSignature }.toMutableMap()
         val branchCache = repo.branches.associateBy { it.name }.toMutableMap()
         // commitCache are the commits which exist
         val commitCache: Map<String, Commit> = repo.commits.associateBy { it.sha }
@@ -47,10 +48,17 @@ class RepositoryService {
                                 branchCache.getOrPut(branchName) {
                                     val b = Branch(name = branchName)
                                     repo.addBranch(b)
+//                                    repo.branches.add(b)
+//                                    b.repository = repo
                                     b
                                 }
                             }
                         branchEntity.addCommit(e)
+//                        branchEntity.commits.add(e)
+//                        e.branches.add(branchEntity)
+//
+//                        repo.commits.add(e)
+//                        e.repository = repo
                         repo.addCommit(e)
                         e
                     }()
@@ -114,8 +122,9 @@ class RepositoryService {
         val find = this.findRepo(gitDir)
         if (find == null) {
             logger.info("Repository does not exists, creating new repository")
-            return this.repositoryDao.create(
+            return this.repositoryDao.save(
                 Repository(
+                    id = null,
                     name = normalizePath(gitDir),
                     project = p,
                 ),
@@ -161,4 +170,39 @@ class RepositoryService {
 
         logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${project.name}")
     }
+}
+
+fun Repository.addCommit(commit: Commit) {
+    this.commits.add(commit)
+    commit.repository = this
+}
+
+private fun Repository.addUser(e: User) {
+    this.user.add(e)
+//        e.repository = this
+}
+
+private fun Repository.addBranch(b: Branch) {
+    this.branches.add(b)
+    b.repository = this
+}
+
+private fun Branch.addCommit(e: Commit) {
+    this.commits.add(e)
+    e.branches.add(this)
+}
+
+private fun User.addAuthoredCommit(commit: Commit) {
+    authoredCommits.add(commit)
+    commit.author = this
+}
+
+// private fun User.addProjectMembership(member: ProjectMember) {
+//    memberAliases.add(member)
+//    member.user = this
+// }
+
+private fun User.addCommittedCommit(commit: Commit) {
+    committedCommits.add(commit)
+    commit.committer = this
 }
