@@ -49,12 +49,17 @@ class DbExportControllerTest : BaseDbTest() {
         testAccounts.forEachIndexed { index, expected ->
           val actual = accounts[index]
 
-          //assertEquals(expected.id.toString(), actual.get("_id").asText(), "Account $index mismatch") TODO cut id string for matching
-          assertEquals(expected.platform.toString(), actual.get("platform").asText(), "Account $index platform mismatch: expected ${expected.id}, got ${actual.get("platform").asText()}")
-          assertEquals(expected.login, actual.get("login").asText(), "Account $index login mismatch: expected ${expected.login}, got ${actual.get("login").asText()}")
-          assertEquals(expected.name, actual.get("name").asText(), "Account $index name mismatch: expected ${expected.name}, got ${actual.get("name").asText()}")
-          assertEquals(expected.avatarUrl, actual.get("avatarUrl").asText(), "Account $index avatarUrl mismatch: expected ${expected.avatarUrl}, got ${actual.get("avatarUrl").asText()}")
-          assertEquals(expected.url, actual.get("url").asText(), "Account $index url mismatch: expected ${expected.url}, got ${actual.get("url").asText()}")
+          //assertEquals(expected.id.toString(), actual.get("_id").asText(), "Account $index mismatch")
+          assertEquals(expected.platform.toString(), actual.get("platform").asText(),
+            "Account $index platform mismatch: expected ${expected.id}, got ${actual.get("platform").asText()}")
+          assertEquals(expected.login, actual.get("login").asText(),
+            "Account $index login mismatch: expected ${expected.login}, got ${actual.get("login").asText()}")
+          assertEquals(expected.name, actual.get("name").asText(),
+            "Account $index name mismatch: expected ${expected.name}, got ${actual.get("name").asText()}")
+          assertEquals(expected.avatarUrl, actual.get("avatarUrl").asText(),
+            "Account $index avatarUrl mismatch: expected ${expected.avatarUrl}, got ${actual.get("avatarUrl").asText()}")
+          assertEquals(expected.url, actual.get("url").asText(),
+            "Account $index url mismatch: expected ${expected.url}, got ${actual.get("url").asText()}")
         }
       },
       // commits
@@ -66,12 +71,18 @@ class DbExportControllerTest : BaseDbTest() {
           val actual = commits[index]
 
           // id and date field are currently not yet verified
-          assertEquals(expected.sha, actual.get("sha").asText(), "Commit $index sha mismatch: expected ${expected.sha}, got ${actual.get("sha").asText()}")
-          assertEquals(expected.message, actual.get("message").asText(), "Commit $index message mismatch: expected ${expected.message}, got ${actual.get("message").asText()}")
-          assertEquals(expected.branch, actual.get("branch").asText(), "Commit $index branch mismatch: expected ${expected.branch}, got ${actual.get("branch").asText()}")
-          assertEquals(expected.webUrl, actual.get("webUrl").asText(), "Commit $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
-          assertEquals(expected.stats?.additions?.toInt(), actual.get("stats").get("additions").asInt(), "Commit $index additions mismatch: expected ${expected.stats?.additions}, got ${actual.get("stats").get("additions").asInt()}")
-          assertEquals(expected.stats?.deletions?.toInt(), actual.get("stats").get("deletions").asInt(), "Commit $index deletions mismatch: expected ${expected.stats?.deletions}, got ${actual.get("stats").get("deletions").asInt()}")
+          assertEquals(expected.sha, actual.get("sha").asText(),
+            "Commit $index sha mismatch: expected ${expected.sha}, got ${actual.get("sha").asText()}")
+          assertEquals(expected.message, actual.get("message").asText(),
+            "Commit $index message mismatch: expected ${expected.message}, got ${actual.get("message").asText()}")
+          assertEquals(expected.branch, actual.get("branch").asText(),
+            "Commit $index branch mismatch: expected ${expected.branch}, got ${actual.get("branch").asText()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(),
+            "Commit $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+          assertEquals(expected.stats?.additions?.toInt(), actual.get("stats").get("additions").asInt(),
+            "Commit $index additions mismatch: expected ${expected.stats?.additions}, got ${actual.get("stats").get("additions").asInt()}")
+          assertEquals(expected.stats?.deletions?.toInt(), actual.get("stats").get("deletions").asInt(),
+            "Commit $index deletions mismatch: expected ${expected.stats?.deletions}, got ${actual.get("stats").get("deletions").asInt()}")
         }
       },
       // branches
@@ -145,9 +156,11 @@ class DbExportControllerTest : BaseDbTest() {
         testIssues.forEachIndexed { index, expected ->
           val actual = issues[index]
 
-          // TODO id and iid, attributes of type Date()
+          // TODO id and attributes of type Date()
           //assertEquals(expected.iid, actual.get("iid").asInt(),
           //  "Issue $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}")
+          assertEquals(expected.iid, actual.get("iid").asInt(),
+            "Issue $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}")
           assertEquals(expected.title, actual.get("title").asText(),
             "Issue $index title mismatch: expected ${expected.title}, got ${actual.get("title").asText()}")
           assertEquals(expected.description, actual.get("description").asText(),
@@ -191,10 +204,16 @@ class DbExportControllerTest : BaseDbTest() {
         testMergeRequests.forEachIndexed { index, expected ->
           val actual = mergeRequests[index]
           // id and date verification are missing
-          assertEquals(expected.title, actual.get("title").asText(), "MergeRequest $index title mismatch: expected ${expected.title}, got ${actual.get("title").asText()}")
-          assertEquals(expected.description, actual.get("description").asText(),"MergeRequest $index description mismatch: expected ${expected.description}, got ${actual.get("description").asText()}")
-          assertEquals(expected.state, actual.get("state").asText(),"MergeRequest $index state mismatch: expected ${expected.state}, got ${actual.get("state").asText()}")
-          assertEquals(expected.webUrl, actual.get("webUrl").asText(),"MergeRequest $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+          assertEquals(expected.iid, actual.get("iid").asInt(),
+            "MergeRequest $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}")
+          assertEquals(expected.title, actual.get("title").asText(),
+            "MergeRequest $index title mismatch: expected ${expected.title}, got ${actual.get("title").asText()}")
+          assertEquals(expected.description, actual.get("description").asText(),
+            "MergeRequest $index description mismatch: expected ${expected.description}, got ${actual.get("description").asText()}")
+          assertEquals(expected.state, actual.get("state").asText(),
+            "MergeRequest $index state mismatch: expected ${expected.state}, got ${actual.get("state").asText()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(),
+            "MergeRequest $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
 
           val expectedLabels = expected.labels
           val actualLabels = actual.get("labels")
@@ -261,8 +280,6 @@ class DbExportControllerTest : BaseDbTest() {
         testUsers.forEachIndexed { index, expected ->
           val actual = users[index]
 
-          println(actual)
-
           // id check still missing
           assertEquals(expected.gitSignature, actual.get("gitSignature").asText(),
             "User $index gitSignature mismatch: expected ${expected.gitSignature}, got ${actual.get("gitSignature").asText()}")
@@ -276,7 +293,10 @@ class DbExportControllerTest : BaseDbTest() {
         testMilestones.forEachIndexed { index, expected ->
           val actual = milestones[index]
 
-          // id and iid check still missing (also date checks)
+          // id check still missing (also date checks)
+
+          assertEquals(expected.iid, actual.get("iid").asInt(),
+            "Milestone $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}")
           assertEquals(expected.title, actual.get("title").asText(),
             "Milestone $index title mismatch: expected ${expected.title}, got ${actual.get("title").asText()}")
           assertEquals(expected.description, actual.get("description").asText(),
