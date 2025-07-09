@@ -6,6 +6,7 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
+import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.springframework.data.domain.Pageable
 
@@ -83,4 +84,22 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @return List of child commits
      */
     fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit>
+
+    fun findExistingSha(
+        repo: Repository,
+        shas: List<String>,
+    ): Set<Commit>
+
+    fun findAllByRepo(
+        repo: Repository,
+        pageable: Pageable,
+    ): Iterable<Commit>
+
+    // TODO branch should be required!
+    fun findHeadForBranch(
+        repo: Repository,
+        branch: String,
+    ): Commit?
+
+    fun findAllLeafCommits(repo: Repository): Iterable<Commit>
 }

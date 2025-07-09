@@ -1,5 +1,7 @@
 package com.inso_world.binocular.core.persistence.mapper
 
+import jakarta.validation.Valid
+
 /**
  * Generic interface for mapping between domain models and database entities.
  *
@@ -10,17 +12,17 @@ interface EntityMapper<D, E> {
     /**
      * Converts a domain model to a database entity
      */
-    fun toEntity(domain: D): E
+    fun toEntity(domain: @Valid D): @Valid E
 
     /**
      * Converts a database entity to a domain model
      */
-    fun toDomain(entity: E): D
+    fun toDomain(entity: @Valid E): @Valid D
 
     /**
      * Converts a list of database entities to a list of domain models
      */
-    fun toDomainList(entities: Iterable<E>): List<D> {
-        return entities.map { toDomain(it) }
-    }
+    fun toDomainList(
+        @Valid entities: Iterable<E>,
+    ): @Valid List<D> = entities.map { toDomain(it) }
 }
