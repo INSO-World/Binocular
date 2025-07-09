@@ -61,7 +61,7 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
                 projectName = SIMPLE_PROJECT_NAME,
             )
         this.simpleProject = this.projectRepository.save(simpleRepoConfig.project)
-        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toDomain()
+        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toDomain(this.simpleProject)
         generateCommits(simpleRepoConfig, simpleRepo)
         this.simpleProject.repo = this.simpleRepo
         this.simpleRepo = this.repositoryRepository.save(this.simpleRepo)

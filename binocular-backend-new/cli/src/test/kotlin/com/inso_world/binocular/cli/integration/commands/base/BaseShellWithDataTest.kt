@@ -50,7 +50,6 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
         simpleProject =
             this.projectRepository.save(
                 Project(
-                    id = null,
                     name = SIMPLE_PROJECT_NAME,
                     description = "desc",
                 ),
@@ -58,7 +57,6 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
         advancedProject =
             this.projectRepository.save(
                 Project(
-                    id = null,
                     name = ADVANCED_PROJECT_NAME,
                     description = "desc",
                 ),
@@ -66,7 +64,6 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
         octoProject =
             this.projectRepository.save(
                 Project(
-                    id = null,
                     name = OCTO_PROJECT_NAME,
                     description = "desc",
                 ),

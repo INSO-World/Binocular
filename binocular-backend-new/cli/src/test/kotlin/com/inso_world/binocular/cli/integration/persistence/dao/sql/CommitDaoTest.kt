@@ -55,7 +55,6 @@ internal class CommitDaoTest(
             project =
                 projectDao.save(
                     Project(
-                        id = null,
                         name = "test",
                     ),
                 )
@@ -64,7 +63,7 @@ internal class CommitDaoTest(
                     Repository(
                         id = null,
                         name = "testRepository",
-                        project = project,
+                        projectId = project.id,
                     ),
                 )
         }
@@ -301,7 +300,7 @@ internal class CommitDaoTest(
                 var tmpRepo =
                     localRepo ?: {
                         val r = octoRepoConfig.repo.toVcsRepository().toDomain(octoRepoConfig.project)
-                        r.project.repo = r
+//                        r.project.repo = r
                         projectDao.save(octoRepoConfig.project)
                         r
                     }()
