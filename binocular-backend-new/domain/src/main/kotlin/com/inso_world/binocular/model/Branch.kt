@@ -11,8 +11,6 @@ class Branch(
     val id: String? = null,
     @field:NotBlank
     val name: String,
-//    TODO remove 'branch' in favor of name
-//    val branch: String? = null,
     val active: Boolean = false,
     val tracksFileRenames: Boolean = false,
     val latestCommit: String? = null,
@@ -22,6 +20,9 @@ class Branch(
     @field:NotNull
     val repository: Repository? = null,
 ) {
+    @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
+    val branch: String = name
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -44,7 +44,7 @@ class BranchMapper
                 latestCommit = entity.latestCommit,
                 files =
                     proxyFactory.createLazyList {
-                        (entity.files ?: emptyList()).map { fileEntity ->
+                        (entity.files).map { fileEntity ->
                             fileMapper.toDomain(fileEntity)
                         }
                     },
