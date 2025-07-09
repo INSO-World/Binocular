@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull
  * Domain model for a User, representing a Git user.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
-data class User(
+class User(
     var id: String? = null,
     @field:NotBlank
     val name: String? = null,

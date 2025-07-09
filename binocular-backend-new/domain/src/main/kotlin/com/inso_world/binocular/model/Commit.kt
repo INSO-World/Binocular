@@ -10,34 +10,34 @@ import java.time.LocalDateTime
  * Domain model for a Commit, representing a commit in a Git repository.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
-data class Commit(
-    var id: String? = null,
+class Commit(
+    val id: String? = null,
     @field:NotBlank
     @field:Size(min = 40, max = 40)
     @field:NotNull
-    var sha: String,
+    val sha: String,
     @field:PastOrPresent
-    var authorDateTime: LocalDateTime? = null,
+    val authorDateTime: LocalDateTime? = null,
     @field:PastOrPresent
     @field:NotNull
     val commitDateTime: LocalDateTime? = null,
     @field:NotBlank
-    var message: String? = null,
+    val message: String? = null,
     var author: User? = null,
     var committer: User? = null,
     var repository: Repository? = null,
-    var webUrl: String? = null,
-    var branch: String? = null,
-    var stats: Stats? = null,
+    val webUrl: String? = null,
+    val branch: String? = null,
+    val stats: Stats? = null,
     // Relationships
     val branches: MutableSet<Branch> = mutableSetOf(),
     var parents: List<Commit> = emptyList(),
-    var children: List<Commit> = emptyList(),
-    var builds: List<Build> = emptyList(),
-    var files: List<File> = emptyList(),
-    var modules: List<Module> = emptyList(),
-    var users: List<User> = emptyList(),
-    var issues: List<Issue> = emptyList(),
+    val children: List<Commit> = emptyList(),
+    val builds: List<Build> = emptyList(),
+    val files: List<File> = emptyList(),
+    val modules: List<Module> = emptyList(),
+    val users: List<User> = emptyList(),
+    val issues: List<Issue> = emptyList(),
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
