@@ -1,7 +1,8 @@
-import com.inso_world.binocular.cli.archive.ProjectPojo
-import com.inso_world.binocular.model.Project
-
 // package com.inso_world.binocular.cli.entity
+
+// import com.inso_world.binocular.cli.archive.ProjectPojo
+// import com.inso_world.binocular.model.Project
+
 //
 // import com.inso_world.binocular.cli.archive.ProjectPojo
 // import jakarta.persistence.CascadeType
@@ -78,8 +79,8 @@ import com.inso_world.binocular.model.Project
 //    }
 // }
 //
-fun ProjectPojo.toEntity(name: String): Project =
-    Project(
-        name = name,
-        description = description,
-    )
+// fun ProjectPojo.toEntity(name: String): Project =
+//    Project(
+//        name = name,
+//        description = description,
+//    )
