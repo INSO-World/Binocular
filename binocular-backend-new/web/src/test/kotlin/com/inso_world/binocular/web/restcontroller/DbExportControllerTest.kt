@@ -182,18 +182,79 @@ class DbExportControllerTest : BaseDbTest() {
           }
         }
       },
+      // merge requests
       {
         val mergeRequests = jsonNode["mergeRequests"]
           ?: jsonNode["merge_requests"]
         assertEquals(testMergeRequests.size, mergeRequests?.size() ?: 0, "merge_requests size mismatch")
+
+        testMergeRequests.forEachIndexed { index, expected ->
+          val actual = mergeRequests[index]
+          // id and date verification are missing
+          assertEquals(expected.title, actual.get("title").asText(), "MergeRequest $index title mismatch: expected ${expected.title}, got ${actual.get("title").asText()}")
+          assertEquals(expected.description, actual.get("description").asText(),"MergeRequest $index description mismatch: expected ${expected.description}, got ${actual.get("description").asText()}")
+          assertEquals(expected.state, actual.get("state").asText(),"MergeRequest $index state mismatch: expected ${expected.state}, got ${actual.get("state").asText()}")
+          assertEquals(expected.webUrl, actual.get("webUrl").asText(),"MergeRequest $index webUrl mismatch: expected ${expected.webUrl}, got ${actual.get("webUrl").asText()}")
+
+          val expectedLabels = expected.labels
+          val actualLabels = actual.get("labels")
+          assertEquals(expectedLabels.size, actualLabels.size(), "MergeRequest $index labels size mismatch")
+          expectedLabels.forEachIndexed { labelIndex, expectedLabel ->
+            assertEquals(expectedLabel, actualLabels[labelIndex].asText(),
+              "MergeRequest $index label $labelIndex mismatch: expected $expectedLabel, got ${actualLabels[labelIndex].asText()}")
+          }
+
+          val expectedMentions = expected.mentions
+          val actualMentions = actual.get("mentions")
+          assertEquals(expectedMentions.size, actualMentions.size(), "MergeRequest $index mentions size mismatch")
+          expectedMentions.forEachIndexed { mentionIndex, expectedMention ->
+            assertEquals(expectedMention.commit, actualMentions[mentionIndex].get("commit").asText(),
+              "MergeRequest $index mention $mentionIndex commitId mismatch: expected ${expectedMention.commit}, got ${actualMentions[mentionIndex].get("commit").asText()}")
+            assertEquals(expectedMention.closes, actualMentions[mentionIndex].get("closes").asBoolean(),
+              "MergeRequest $index mention $mentionIndex closes mismatch: expected ${expectedMention.closes}, got ${actualMentions[mentionIndex].get("closes").asBoolean()}")
+            // date check currently still missing
+          }
+        }
       },
+      // modules
       {
         val modules = jsonNode["modules"]
         assertEquals(testModules.size, modules?.size() ?: 0, "modules size mismatch")
+
+        testModules.forEachIndexed { index, expected ->
+          val actual = modules[index]
+
+          // id check missing
+          assertEquals(expected.path, actual.get("path").asText(), "Module $index path mismatch: expected ${expected.path}, got ${actual.get("path").asText()}")
+        }
       },
+      // notes
       {
         val notes = jsonNode["notes"]
         assertEquals(testNotes.size, notes?.size() ?: 0, "notes size mismatch")
+
+        testNotes.forEachIndexed { index, expected ->
+          val actual = notes[index]
+
+          assertEquals(expected.body, actual.get("body").asText(),
+            "Note $index body mismatch: expected ${expected.body}, got ${actual.get("body").asText()}")
+          assertEquals(expected.createdAt, actual.get("created_at").asText(),
+            "Note $index createdAt mismatch: expected ${expected.createdAt}, got ${actual.get("created_at").asText()}")
+          assertEquals(expected.updatedAt, actual.get("updated_at").asText(),
+            "Note $index updatedAt mismatch: expected ${actual.get("updated_at").asText()}, got ${actual.get("updated_at").asText()}")
+          assertEquals(expected.system, actual.get("system").asBoolean(),
+            "Note $index system mismatch: expected ${expected.system}, got ${actual.get("system").asBoolean()}")
+          assertEquals(expected.resolvable, actual.get("resolvable").asBoolean(),
+            "Note $index resolvable mismatch: expected ${expected.resolvable}, got ${actual.get("resolvable").asBoolean()}")
+          assertEquals(expected.confidential, actual.get("confidential").asBoolean(),
+            "Note $index confidential mismatch: expected ${expected.confidential}, got ${actual.get("confidential").asBoolean()}")
+          assertEquals(expected.internal, actual.get("internal").asBoolean(),
+            "Note $index internal mismatch: expected ${expected.internal}, got ${actual.get("internal").asBoolean()}")
+          assertEquals(expected.imported, actual.get("imported").asBoolean(),
+            "Note $index imported mismatch: expected ${expected.imported}, got ${actual.get("imported").asBoolean()}")
+          assertEquals(expected.importedFrom, actual.get("importedFrom").asText(),
+            "Note $index importedFrom mismatch: expected ${expected.importedFrom}, got ${actual.get("importedFrom").asText()}")
+        }
       },
       {
         val users = jsonNode["users"]
