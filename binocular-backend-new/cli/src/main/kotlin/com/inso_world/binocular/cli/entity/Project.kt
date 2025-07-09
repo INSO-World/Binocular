@@ -80,7 +80,6 @@ import com.inso_world.binocular.model.Project
 //
 fun ProjectPojo.toEntity(name: String): Project =
     Project(
-        id = null,
-        description = description,
         name = name,
+        description = description,
     )

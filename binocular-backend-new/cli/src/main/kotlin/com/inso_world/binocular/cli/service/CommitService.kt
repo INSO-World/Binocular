@@ -30,13 +30,12 @@ class CommitService(
                 .map { m -> m.sha }
                 .collect(Collectors.toList())
 
-        TODO()
-//        val existingEntities: Set<Commit> = commitPort.findExistingSha(repo, allShas)
+        val existingEntities: Set<Commit> = commitPort.findExistingSha(repo, allShas)
 
-//        val refIdsToRemove = existingEntities.map { it.sha }.toSet()
-//        val missingShas = minedCommits.filterNot { it.sha in refIdsToRemove }.stream().collect(Collectors.toSet())
+        val refIdsToRemove = existingEntities.map { it.sha }.toSet()
+        val missingShas = minedCommits.filterNot { it.sha in refIdsToRemove }.stream().collect(Collectors.toSet())
 
-//        return Pair(existingEntities.toList(), missingShas.toList())
+        return Pair(existingEntities.toList(), missingShas.toList())
     }
 
     fun findAll(

@@ -126,7 +126,7 @@ class RepositoryService {
                 Repository(
                     id = null,
                     name = normalizePath(gitDir),
-                    project = p,
+                    projectId = p.id,
                 ),
             )
         } else {
@@ -184,11 +184,11 @@ private fun Repository.addUser(e: User) {
 
 private fun Repository.addBranch(b: Branch) {
     this.branches.add(b)
-    b.repository = this
+//    b.repository = this
 }
 
 private fun Branch.addCommit(e: Commit) {
-    this.commits.add(e)
+//    this.commits.add(e)
     e.branches.add(this)
 }
 

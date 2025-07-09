@@ -23,7 +23,6 @@ class ProjectService(
             logger.info("Project '$name' does not exists, creating new project")
             return this.projectDao.save(
                 Project(
-                    id = null,
                     name = name,
                 ),
             )
