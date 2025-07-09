@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.index.vcs
 
-import com.inso_world.binocular.cli.entity.User
 import com.inso_world.binocular.ffi.pojos.BinocularCommitSignaturePojo
+import com.inso_world.binocular.model.User
 
 data class VcsPerson(
     val name: String,
@@ -10,7 +10,7 @@ data class VcsPerson(
     fun toEntity(): User =
         User(
             name = this.name,
-            email = this.email,
+            gitSignature = this.email,
         )
 }
 

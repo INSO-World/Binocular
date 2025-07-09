@@ -39,4 +39,18 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
     override fun save(entity: Branch): Branch = this.branchDao.save(entity)
 
     override fun saveAll(entities: Collection<Branch>): Iterable<Branch> = this.branchDao.saveAll(entities)
+
+    override fun delete(entity: Branch) = this.branchDao.delete(entity)
+
+    override fun update(entity: Branch): Branch {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: Branch): Branch {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

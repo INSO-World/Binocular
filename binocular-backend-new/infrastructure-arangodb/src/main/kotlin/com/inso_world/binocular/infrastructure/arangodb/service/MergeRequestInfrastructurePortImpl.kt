@@ -61,4 +61,18 @@ class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort {
     override fun save(entity: MergeRequest): MergeRequest = this.mergeRequestDao.save(entity)
 
     override fun saveAll(entities: Collection<MergeRequest>): Iterable<MergeRequest> = this.mergeRequestDao.saveAll(entities)
+
+    override fun delete(entity: MergeRequest) = this.mergeRequestDao.delete(entity)
+
+    override fun update(entity: MergeRequest): MergeRequest {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: MergeRequest): MergeRequest {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

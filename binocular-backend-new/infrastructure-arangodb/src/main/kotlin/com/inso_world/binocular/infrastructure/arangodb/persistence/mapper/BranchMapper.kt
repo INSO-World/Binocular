@@ -21,7 +21,7 @@ class BranchMapper
         override fun toEntity(domain: Branch): BranchEntity =
             BranchEntity(
                 id = domain.id,
-                branch = domain.branch,
+                branch = domain.name,
                 active = domain.active,
                 tracksFileRenames = domain.tracksFileRenames,
                 latestCommit = domain.latestCommit,
@@ -38,7 +38,7 @@ class BranchMapper
         override fun toDomain(entity: BranchEntity): Branch =
             Branch(
                 id = entity.id,
-                branch = entity.branch,
+                name = entity.branch ?: "",
                 active = entity.active,
                 tracksFileRenames = entity.tracksFileRenames,
                 latestCommit = entity.latestCommit,

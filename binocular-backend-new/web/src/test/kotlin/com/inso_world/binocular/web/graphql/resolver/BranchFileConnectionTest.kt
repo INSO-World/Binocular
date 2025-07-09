@@ -44,7 +44,7 @@ internal class BranchFileConnectionTest : BaseDbTest() {
             // Verify branch data
             assertAll(
                 { assertEquals(TestDataProvider.testBranches[0].id, result.get("id").asText(), "Branch ID mismatch") },
-                { assertEquals(TestDataProvider.testBranches[0].branch, result.get("branch").asText(), "Branch name mismatch") },
+                { assertEquals(TestDataProvider.testBranches[0].name, result.get("branch").asText(), "Branch name mismatch") },
                 {
                     assertEquals(
                         TestDataProvider.testBranches[0].active,
@@ -108,7 +108,7 @@ internal class BranchFileConnectionTest : BaseDbTest() {
             // Verify branch data
             assertAll(
                 { assertEquals(TestDataProvider.testBranches[1].id, result.get("id").asText(), "Branch ID mismatch") },
-                { assertEquals(TestDataProvider.testBranches[1].branch, result.get("branch").asText(), "Branch name mismatch") },
+                { assertEquals(TestDataProvider.testBranches[1].name, result.get("branch").asText(), "Branch name mismatch") },
             )
 
             // Verify files
@@ -166,7 +166,7 @@ internal class BranchFileConnectionTest : BaseDbTest() {
             val branch = branches.get(0)
             assertAll(
                 { assertEquals(TestDataProvider.testBranches[0].id, branch.get("id").asText(), "Branch ID mismatch") },
-                { assertEquals(TestDataProvider.testBranches[0].branch, branch.get("branch").asText(), "Branch name mismatch") },
+                { assertEquals(TestDataProvider.testBranches[0].name, branch.get("branch").asText(), "Branch name mismatch") },
             )
         }
 

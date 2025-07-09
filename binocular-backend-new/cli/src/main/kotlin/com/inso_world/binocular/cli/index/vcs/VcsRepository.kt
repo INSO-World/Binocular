@@ -1,20 +1,20 @@
 package com.inso_world.binocular.cli.index.vcs
 
-import com.inso_world.binocular.cli.entity.Project
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
+import com.inso_world.binocular.model.Repository
 
 data class VcsRepository(
     val name: String,
 ) {
-    fun toEntity(p: Project): Repository =
+    fun toDomain(): Repository =
         Repository(
+            id = null,
             name = name,
-            project = p,
+//            project = p,
         )
 }
 
-fun BinocularRepositoryPojo.toVcsRepository(): VcsRepository =
+internal fun BinocularRepositoryPojo.toVcsRepository(): VcsRepository =
     VcsRepository(
         name = this.gitDir,
     )

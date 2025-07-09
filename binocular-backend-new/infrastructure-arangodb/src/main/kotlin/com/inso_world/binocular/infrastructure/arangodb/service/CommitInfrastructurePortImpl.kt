@@ -14,12 +14,14 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
+import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import java.time.ZoneOffset
 
 @Service
 internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
@@ -58,7 +60,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         val allCommits = commitDao.findAll(pageable)
         val filteredCommits =
             allCommits.content.filter { commit ->
-                commit.date?.time?.let { commitTime ->
+                commit.commitDateTime?.toEpochSecond(ZoneOffset.UTC)?.let { commitTime ->
                     val afterSince = since == null || commitTime >= since
                     val beforeUntil = until == null || commitTime <= until
                     afterSince && beforeUntil
@@ -113,4 +115,43 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
     override fun save(entity: Commit): Commit = this.commitDao.save(entity)
 
     override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = this.commitDao.saveAll(entities)
+
+    override fun delete(entity: Commit) = this.commitDao.delete(entity)
+
+    override fun update(entity: Commit): Commit {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: Commit): Commit {
+        TODO("Not yet implemented")
+    }
+
+    override fun findExistingSha(
+        repo: Repository,
+        shas: List<String>,
+    ): Set<Commit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findAllByRepo(
+        repo: Repository,
+        pageable: Pageable,
+    ): Iterable<Commit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findHeadForBranch(
+        repo: Repository,
+        branch: String,
+    ): Commit? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findAllLeafCommits(repo: Repository): Iterable<Commit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

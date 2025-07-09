@@ -44,7 +44,7 @@ internal class UserServiceTest(
             { assertThat(users).isNotEmpty() },
             { assertThat(users).hasSize(3) },
             { assertThat(users.map { it.id }).doesNotContainNull() },
-            { assertThat(users.map { it.email }).containsAll(simpleRepoEmails) },
+            { assertThat(users.map { it.gitSignature }).containsAll(simpleRepoEmails) },
         )
     }
 
@@ -59,7 +59,7 @@ internal class UserServiceTest(
             { assertThat(users).isNotEmpty() },
             { assertThat(users).hasSize(count) },
             { assertThat(users.map { it.id }).doesNotContainNull() },
-            { assertThat(users.map { it.email }).containsAll(toFind) },
+            { assertThat(users.map { it.gitSignature }).containsAll(toFind) },
         )
     }
 
@@ -75,8 +75,8 @@ internal class UserServiceTest(
         assertAll(
             { assertThat(users).hasSize(count) },
             { assertThat(users.map { it.id }).doesNotContainNull() },
-            { assertThat(users.map { it.email }).containsAll(existing) },
-            { assertThat(users.map { it.email }).doesNotContainAnyElementsOf(nonExisting) },
+            { assertThat(users.map { it.gitSignature }).containsAll(existing) },
+            { assertThat(users.map { it.gitSignature }).doesNotContainAnyElementsOf(nonExisting) },
         )
     }
 
@@ -92,7 +92,7 @@ internal class UserServiceTest(
         assertAll(
             { assertThat(users).hasSize(1) },
             { assertThat(users.map { it.id }).doesNotContainNull() },
-            { assertThat(users.map { it.email }).containsAll(listOf("alice@example.com")) },
+            { assertThat(users.map { it.gitSignature }).containsAll(listOf("alice@example.com")) },
         )
     }
 

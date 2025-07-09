@@ -61,4 +61,18 @@ class NoteInfrastructurePortImpl : NoteInfrastructurePort {
     override fun save(entity: Note): Note = noteDao.save(entity)
 
     override fun saveAll(entities: Collection<Note>): Iterable<Note> = noteDao.saveAll(entities)
+
+    override fun delete(entity: Note) = noteDao.delete(entity)
+
+    override fun update(entity: Note): Note {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: Note): Note {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

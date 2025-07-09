@@ -73,4 +73,20 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
     override fun save(entity: File): File = this.fileDao.save(entity)
 
     override fun saveAll(entities: Collection<File>): Iterable<File> = this.fileDao.saveAll(entities)
+
+    override fun delete(entity: File) {
+        this.fileDao.delete(entity)
+    }
+
+    override fun update(entity: File): File {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: File): File {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

@@ -1,15 +1,15 @@
 package com.inso_world.binocular.cli.integration.service.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.entity.Project
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
-import com.inso_world.binocular.cli.persistence.repository.sql.ProjectRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.RepositoryRepository
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
@@ -37,14 +37,14 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
 //    internal lateinit var userRepository: UserInfrastructurePort
 //
     @Autowired
-    internal lateinit var repositoryRepository: RepositoryRepository
+    internal lateinit var repositoryRepository: RepositoryInfrastructurePort
 
 //
 //    @Autowired
 //    internal lateinit var branchRepository: BranchRepository
 //
     @Autowired
-    internal lateinit var projectRepository: ProjectRepository
+    internal lateinit var projectRepository: ProjectInfrastructurePort
 
     protected lateinit var simpleRepo: Repository
 
@@ -60,9 +60,9 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
                 "HEAD",
                 projectName = SIMPLE_PROJECT_NAME,
             )
-        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toEntity(simpleRepoConfig.project)
-        generateCommits(simpleRepoConfig, simpleRepo)
         this.simpleProject = this.projectRepository.save(simpleRepoConfig.project)
+        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toDomain()
+        generateCommits(simpleRepoConfig, simpleRepo)
         this.simpleProject.repo = this.simpleRepo
         this.simpleRepo = this.repositoryRepository.save(this.simpleRepo)
     }

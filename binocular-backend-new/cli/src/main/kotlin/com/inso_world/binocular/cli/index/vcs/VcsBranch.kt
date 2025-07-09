@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.index.vcs
 
-import com.inso_world.binocular.cli.entity.Branch
 import com.inso_world.binocular.ffi.pojos.BinocularBranchPojo
+import com.inso_world.binocular.model.Branch
 
 data class VcsBranch(
     val name: String,

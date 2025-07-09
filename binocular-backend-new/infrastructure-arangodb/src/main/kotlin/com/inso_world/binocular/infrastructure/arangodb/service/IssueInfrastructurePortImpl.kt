@@ -75,4 +75,18 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
     override fun save(entity: Issue): Issue = this.issueDao.save(entity)
 
     override fun saveAll(entities: Collection<Issue>): Iterable<Issue> = this.issueDao.saveAll(entities)
+
+    override fun delete(entity: Issue) = this.issueDao.delete(entity)
+
+    override fun update(entity: Issue): Issue {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: Issue): Issue {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

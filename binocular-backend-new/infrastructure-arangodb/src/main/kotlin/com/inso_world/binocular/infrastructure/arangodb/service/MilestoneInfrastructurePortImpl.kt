@@ -52,4 +52,18 @@ class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort {
     override fun save(entity: Milestone): Milestone = this.milestoneDao.save(entity)
 
     override fun saveAll(entities: Collection<Milestone>): Iterable<Milestone> = this.milestoneDao.saveAll(entities)
+
+    override fun delete(entity: Milestone) = this.milestoneDao.delete(entity)
+
+    override fun update(entity: Milestone): Milestone {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateAndFlush(entity: Milestone): Milestone {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteById(id: String) {
+        TODO("Not yet implemented")
+    }
 }

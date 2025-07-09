@@ -1,10 +1,10 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.integration.TestDataSetupService
-import com.inso_world.binocular.cli.persistence.repository.sql.CommitRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.ProjectRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.RepositoryRepository
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.model.Repository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.AfterEach
@@ -12,21 +12,21 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.support.TransactionTemplate
 
-internal class BasePersistenceNoDataTest : BasePersistenceTest() {
+class BasePersistenceNoDataTest : BasePersistenceTest() {
     @PersistenceContext
     internal lateinit var entityManager: EntityManager
 
     @Autowired
-    private lateinit var commitRepository: CommitRepository
+    private lateinit var commitRepository: CommitInfrastructurePort
 
     @Autowired
     private lateinit var testDataSetupService: TestDataSetupService
 
     @Autowired
-    private lateinit var repositoryRepository: RepositoryRepository
+    private lateinit var repositoryRepository: RepositoryInfrastructurePort
 
     @Autowired
-    private lateinit var projectRepository: ProjectRepository
+    private lateinit var projectRepository: ProjectInfrastructurePort
 
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
@@ -45,6 +45,7 @@ internal class BasePersistenceNoDataTest : BasePersistenceTest() {
 //        projectRepository.deleteAll()
 //        repositoryRepository.deleteAll()
 //        commitRepository.deleteAll()
+//        testDataSetupService.clearAllData()
 //        userRepository.deleteAll()
     }
 }

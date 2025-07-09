@@ -1,32 +1,28 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
-import com.inso_world.binocular.cli.persistence.repository.sql.CommitRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.ProjectRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.RepositoryRepository
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.model.Repository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.support.TransactionTemplate
 
-@ExtendWith(SpringExtension::class)
-@DataJpaTest
-@ContextConfiguration(classes = [BinocularCommandLineApplication::class])
-@Import(BinocularCommandLineApplication::class)
-@ComponentScan(basePackages = ["com.inso_world.binocular.cli.persistence.dao.sql"])
-internal class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
+// @ExtendWith(SpringExtension::class)
+// @DataJpaTest
+// @ContextConfiguration(classes = [BinocularCommandLineApplication::class])
+// @Import(BinocularCommandLineApplication::class)
+// @ComponentScan(basePackages = ["com.inso_world.binocular.cli.persistence.dao.sql"])
+@SpringBootTest(classes = [BinocularCommandLineApplication::class])
+class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
 //    @PersistenceContext
 //    protected lateinit var entityManager: EntityManager
 
@@ -34,16 +30,16 @@ internal class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     private lateinit var testDataSetupService: TestDataSetupService
 
     @Autowired
-    lateinit var commitRepository: CommitRepository
+    lateinit var commitRepository: CommitInfrastructurePort
 
 //    @Autowired
 //    lateinit var userRepository: UserRepository
 
     @Autowired
-    internal lateinit var repositoryRepository: RepositoryRepository
+    internal lateinit var repositoryRepository: RepositoryInfrastructurePort
 
     @Autowired
-    private lateinit var projectRepository: ProjectRepository
+    private lateinit var projectRepository: ProjectInfrastructurePort
 
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
@@ -59,7 +55,7 @@ internal class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
                 "HEAD",
                 projectName = SIMPLE_PROJECT_NAME,
             )
-        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toEntity(simpleRepoConfig.project)
+        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toDomain(simpleRepoConfig.project)
         simpleRepoConfig.project.repo = this.simpleRepo
         generateCommits(simpleRepoConfig, simpleRepo)
 //        transactionTemplate.execute {
@@ -73,7 +69,7 @@ internal class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
                 "HEAD",
                 projectName = OCTO_PROJECT_NAME,
             )
-        this.octoRepo = octoRepoConfig.repo.toVcsRepository().toEntity(octoRepoConfig.project)
+        this.octoRepo = octoRepoConfig.repo.toVcsRepository().toDomain(octoRepoConfig.project)
         octoRepoConfig.project.repo = this.octoRepo
         generateCommits(octoRepoConfig, octoRepo)
 //        transactionTemplate.execute {

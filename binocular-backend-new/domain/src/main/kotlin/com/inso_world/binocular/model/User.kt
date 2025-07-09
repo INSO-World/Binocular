@@ -9,11 +9,40 @@ import jakarta.validation.constraints.NotNull
  */
 data class User(
     var id: String? = null,
+    @field:NotBlank
+    val name: String? = null,
     @field:NotNull
     @field:NotBlank
-    var gitSignature: String,
+    val gitSignature: String,
     // Relationships
-    var commits: List<Commit> = emptyList(),
-    var issues: List<Issue> = emptyList(),
-    var files: List<File> = emptyList(),
-)
+    val authoredCommits: MutableSet<Commit> = mutableSetOf(),
+    val committedCommits: MutableSet<Commit> = mutableSetOf(),
+    val issues: List<Issue> = emptyList(),
+    val files: List<File> = emptyList(),
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as User
+
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (gitSignature != other.gitSignature) return false
+        if (authoredCommits != other.authoredCommits) return false
+        if (committedCommits != other.committedCommits) return false
+        if (issues != other.issues) return false
+        if (files != other.files) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id?.hashCode() ?: 0
+        result = 31 * result + (name?.hashCode() ?: 0)
+        result = 31 * result + gitSignature.hashCode()
+        return result
+    }
+
+    override fun toString(): String = "User(id=$id, name=$name, gitSignature='$gitSignature')"
+}

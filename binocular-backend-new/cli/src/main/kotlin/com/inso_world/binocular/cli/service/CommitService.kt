@@ -1,12 +1,11 @@
 package com.inso_world.binocular.cli.service
 
-import com.inso_world.binocular.cli.entity.Commit
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.exception.PersistenceException
 import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
-import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.ICommitDao
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Repository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,7 +16,6 @@ import java.util.stream.Collectors
 
 @Service
 class CommitService(
-    @Autowired private val commitDao: ICommitDao,
     @Autowired private val commitPort: CommitInfrastructurePort,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(CommitService::class.java)
@@ -32,12 +30,13 @@ class CommitService(
                 .map { m -> m.sha }
                 .collect(Collectors.toList())
 
-        val existingEntities: Set<Commit> = commitDao.findExistingSha(repo, allShas)
+        TODO()
+//        val existingEntities: Set<Commit> = commitPort.findExistingSha(repo, allShas)
 
-        val refIdsToRemove = existingEntities.map { it.sha }.toSet()
-        val missingShas = minedCommits.filterNot { it.sha in refIdsToRemove }.stream().collect(Collectors.toSet())
+//        val refIdsToRemove = existingEntities.map { it.sha }.toSet()
+//        val missingShas = minedCommits.filterNot { it.sha in refIdsToRemove }.stream().collect(Collectors.toSet())
 
-        return Pair(existingEntities.toList(), missingShas.toList())
+//        return Pair(existingEntities.toList(), missingShas.toList())
     }
 
     fun findAll(
@@ -52,7 +51,8 @@ class CommitService(
         val pageable: Pageable = PageRequest.of(page - 1, perPage)
 
         try {
-            return commitDao.findAllByRepo(repo, pageable)
+            TODO()
+//            return commitDao.findAllByRepo(repo, pageable)
         } catch (e: PersistenceException) {
             throw ServiceException(e)
         }
@@ -63,6 +63,7 @@ class CommitService(
         branch: String,
     ): Commit? {
         logger.trace("Finding head for branch $branch in repository ${repo.name}...")
-        return this.commitDao.findHeadForBranch(repo, branch)
+        TODO()
+//        return this.commitDao.findHeadForBranch(repo, branch)
     }
 }

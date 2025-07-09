@@ -1,13 +1,13 @@
 package com.inso_world.binocular.cli.integration.commands.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.entity.Project
 import com.inso_world.binocular.cli.integration.TestDataSetupService
-import com.inso_world.binocular.cli.persistence.repository.sql.BranchRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.CommitRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.ProjectRepository
-import com.inso_world.binocular.cli.persistence.repository.sql.RepositoryRepository
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.model.Project
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,19 +27,19 @@ import org.springframework.test.annotation.DirtiesContext
 // @ShellTest
 internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
     @Autowired
-    internal lateinit var commitRepository: CommitRepository
+    internal lateinit var commitRepository: CommitInfrastructurePort
 
     @Autowired
     private lateinit var testDataSetupService: TestDataSetupService
 
     @Autowired
-    internal lateinit var repositoryRepository: RepositoryRepository
+    internal lateinit var repositoryRepository: RepositoryInfrastructurePort
 
     @Autowired
-    internal lateinit var branchRepository: BranchRepository
+    internal lateinit var branchRepository: BranchInfrastructurePort
 
     @Autowired
-    internal lateinit var projectRepository: ProjectRepository
+    internal lateinit var projectRepository: ProjectInfrastructurePort
 
     protected lateinit var simpleProject: Project
     protected lateinit var advancedProject: Project
@@ -50,6 +50,7 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
         simpleProject =
             this.projectRepository.save(
                 Project(
+                    id = null,
                     name = SIMPLE_PROJECT_NAME,
                     description = "desc",
                 ),
@@ -57,6 +58,7 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
         advancedProject =
             this.projectRepository.save(
                 Project(
+                    id = null,
                     name = ADVANCED_PROJECT_NAME,
                     description = "desc",
                 ),
@@ -64,6 +66,7 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
         octoProject =
             this.projectRepository.save(
                 Project(
+                    id = null,
                     name = OCTO_PROJECT_NAME,
                     description = "desc",
                 ),

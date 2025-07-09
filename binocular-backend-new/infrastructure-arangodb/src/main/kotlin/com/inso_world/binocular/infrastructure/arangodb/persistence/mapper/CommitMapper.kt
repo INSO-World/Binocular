@@ -7,6 +7,9 @@ import com.inso_world.binocular.model.Commit
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.util.Date
 
 @Component
 internal class CommitMapper
@@ -26,7 +29,7 @@ internal class CommitMapper
             CommitEntity(
                 id = domain.id,
                 sha = domain.sha,
-                date = domain.date,
+                date = Date.from(domain.commitDateTime?.toInstant(ZoneOffset.UTC)),
                 message = domain.message,
                 webUrl = domain.webUrl,
                 branch = domain.branch,
@@ -45,7 +48,7 @@ internal class CommitMapper
             Commit(
                 id = entity.id,
                 sha = entity.sha,
-                date = entity.date,
+                commitDateTime = entity.date?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneOffset.UTC) },
                 message = entity.message,
                 webUrl = entity.webUrl,
                 branch = entity.branch,

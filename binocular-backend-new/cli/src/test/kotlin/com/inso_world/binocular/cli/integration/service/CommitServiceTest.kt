@@ -1,11 +1,11 @@
 package com.inso_world.binocular.cli.integration.service
 
-import com.inso_world.binocular.cli.entity.Repository
 import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
-import com.inso_world.binocular.cli.persistence.dao.sql.interfaces.ICommitDao
 import com.inso_world.binocular.cli.service.CommitService
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 
 internal class CommitServiceTest private constructor(
     @Autowired private val commitService: CommitService,
-    @Autowired private val commitDao: ICommitDao,
+    @Autowired private val commitDao: CommitInfrastructurePort,
 ) : BaseServiceTest() {
     @BeforeEach
     fun setup() {
