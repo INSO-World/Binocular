@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.restcontroller
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.inso_world.binocular.web.BaseDbTest
+import com.inso_world.binocular.web.TestDataProvider
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
-import kotlin.test.assertEquals
 
 /**
  * Test class for DbExportController.
@@ -19,7 +20,7 @@ import kotlin.test.assertEquals
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class DbExportControllerTest : BaseDbTest() {
+internal class DbExportControllerTest : BaseDbTest() {
 
   @Autowired
   lateinit var mockMvc: MockMvc
@@ -43,10 +44,10 @@ class DbExportControllerTest : BaseDbTest() {
       // accounts
       {
         val accounts = jsonNode["accounts"]
-        assertEquals(testAccounts.size, accounts.size(), "accounts size mismatch")
+        assertEquals(TestDataProvider.testAccounts.size, accounts.size(), "accounts size mismatch")
 
         // check if the attributes of the exported accounts match the expected accounts (platform, user, ...)
-        testAccounts.forEachIndexed { index, expected ->
+        TestDataProvider.testAccounts.forEachIndexed { index, expected ->
           val actual = accounts[index]
 
           //assertEquals(expected.id.toString(), actual.get("_id").asText(), "Account $index mismatch")
@@ -65,9 +66,9 @@ class DbExportControllerTest : BaseDbTest() {
       // commits
       {
         val commits = jsonNode["commits"]
-        assertEquals(testCommits.size, commits?.size() ?: 0, "commits size mismatch")
+        assertEquals(TestDataProvider.testCommits.size, commits?.size() ?: 0, "commits size mismatch")
 
-        testCommits.forEachIndexed { index, expected ->
+        TestDataProvider.testCommits.forEachIndexed { index, expected ->
           val actual = commits[index]
 
           // id and date field are currently not yet verified
@@ -88,9 +89,9 @@ class DbExportControllerTest : BaseDbTest() {
       // branches
       {
         val branches = jsonNode["branches"]
-        assertEquals(testBranches.size, branches?.size() ?: 0, "branches size mismatch")
+        assertEquals(TestDataProvider.testBranches.size, branches?.size() ?: 0, "branches size mismatch")
 
-        testBranches.forEachIndexed { index, expected ->
+        TestDataProvider.testBranches.forEachIndexed { index, expected ->
           val actual = branches[index]
 
           //assertEquals(expected.id, actual.get("id").asText(), "Branch $index id mismatch: expected ${expected.id}, got ${actual.get("id").asText()}")
@@ -107,9 +108,9 @@ class DbExportControllerTest : BaseDbTest() {
       // builds
       {
         val builds = jsonNode["builds"]
-        assertEquals(testBuilds.size, builds?.size() ?: 0, "builds size mismatch")
+        assertEquals(TestDataProvider.testBuilds.size, builds?.size() ?: 0, "builds size mismatch")
 
-        testBuilds.forEachIndexed { index, expected ->
+        TestDataProvider.testBuilds.forEachIndexed { index, expected ->
           val actual = builds[index]
 
           //assertEquals(expected.id, actual.get("id").asText(), "Build $index id mismatch: expected ${expected.id}, got ${actual.get("id").asText()}")
@@ -134,9 +135,9 @@ class DbExportControllerTest : BaseDbTest() {
       // files
       {
         val files = jsonNode["files"]
-        assertEquals(testFiles.size, files?.size() ?: 0, "files size mismatch")
+        assertEquals(TestDataProvider.testFiles.size, files?.size() ?: 0, "files size mismatch")
 
-        testFiles.forEachIndexed { index, expected ->
+        TestDataProvider.testFiles.forEachIndexed { index, expected ->
           val actual = files[index]
 
           //assertEquals(expected.id, actual.get("id").asText(), "File $index id mismatch: expected ${expected.id}, got ${actual.get("id").asText()}")
@@ -151,9 +152,9 @@ class DbExportControllerTest : BaseDbTest() {
       // issues
       {
         val issues = jsonNode["issues"]
-        assertEquals(testIssues.size, issues?.size() ?: 0, "issues size mismatch")
+        assertEquals(TestDataProvider.testIssues.size, issues?.size() ?: 0, "issues size mismatch")
 
-        testIssues.forEachIndexed { index, expected ->
+        TestDataProvider.testIssues.forEachIndexed { index, expected ->
           val actual = issues[index]
 
           // TODO id and attributes of type Date()
@@ -199,9 +200,9 @@ class DbExportControllerTest : BaseDbTest() {
       {
         val mergeRequests = jsonNode["mergeRequests"]
           ?: jsonNode["merge_requests"]
-        assertEquals(testMergeRequests.size, mergeRequests?.size() ?: 0, "merge_requests size mismatch")
+        assertEquals(TestDataProvider.testMergeRequests.size, mergeRequests?.size() ?: 0, "merge_requests size mismatch")
 
-        testMergeRequests.forEachIndexed { index, expected ->
+        TestDataProvider.testMergeRequests.forEachIndexed { index, expected ->
           val actual = mergeRequests[index]
           // id and date verification are missing
           assertEquals(expected.iid, actual.get("iid").asInt(),
@@ -238,9 +239,9 @@ class DbExportControllerTest : BaseDbTest() {
       // modules
       {
         val modules = jsonNode["modules"]
-        assertEquals(testModules.size, modules?.size() ?: 0, "modules size mismatch")
+        assertEquals(TestDataProvider.testModules.size, modules?.size() ?: 0, "modules size mismatch")
 
-        testModules.forEachIndexed { index, expected ->
+        TestDataProvider.testModules.forEachIndexed { index, expected ->
           val actual = modules[index]
 
           // id check missing
@@ -250,9 +251,9 @@ class DbExportControllerTest : BaseDbTest() {
       // notes
       {
         val notes = jsonNode["notes"]
-        assertEquals(testNotes.size, notes?.size() ?: 0, "notes size mismatch")
+        assertEquals(TestDataProvider.testNotes.size, notes?.size() ?: 0, "notes size mismatch")
 
-        testNotes.forEachIndexed { index, expected ->
+        TestDataProvider.testNotes.forEachIndexed { index, expected ->
           val actual = notes[index]
 
           assertEquals(expected.body, actual.get("body").asText(),
@@ -275,9 +276,9 @@ class DbExportControllerTest : BaseDbTest() {
       // users
       {
         val users = jsonNode["users"]
-        assertEquals(testUsers.size, users?.size() ?: 0, "users size mismatch")
+        assertEquals(TestDataProvider.testUsers.size, users?.size() ?: 0, "users size mismatch")
 
-        testUsers.forEachIndexed { index, expected ->
+        TestDataProvider.testUsers.forEachIndexed { index, expected ->
           val actual = users[index]
 
           // id check still missing
@@ -288,9 +289,9 @@ class DbExportControllerTest : BaseDbTest() {
       // milestones
       {
         val milestones = jsonNode["milestones"]
-        assertEquals(testMilestones.size, milestones?.size() ?: 0, "milestones size mismatch")
+        assertEquals(TestDataProvider.testMilestones.size, milestones?.size() ?: 0, "milestones size mismatch")
 
-        testMilestones.forEachIndexed { index, expected ->
+        TestDataProvider.testMilestones.forEachIndexed { index, expected ->
           val actual = milestones[index]
 
           // id check still missing (also date checks)

@@ -1,6 +1,6 @@
 package com.inso_world.binocular.web.controller
 
-import com.inso_world.binocular.web.service.DbExportService
+import com.inso_world.binocular.core.service.DbExportPort
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity
 
 @RestController
 @RequestMapping("/api")
-class DbExportController (private val exportService: DbExportService) {
+class DbExportController (private val exportService: DbExportPort) {
 
   var logger: Logger = LoggerFactory.getLogger(DbExportController::class.java)
 

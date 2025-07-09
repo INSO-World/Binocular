@@ -1,8 +1,8 @@
-package com.inso_world.binocular.web.service.impl
+package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.arangodb.ArangoDBException
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.AdbConfig
-import com.inso_world.binocular.web.service.DbExportService
+import com.inso_world.binocular.core.service.DbExportPort
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.AdbConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service
  */
 @Service
 @Profile("arangodb")
-class DbExportServiceImpl (private val arangoConfig: AdbConfig) : DbExportService {
+class DbExportPortImpl (private val arangoConfig: AdbConfig) : DbExportPort {
 
-  var logger: Logger = LoggerFactory.getLogger(DbExportServiceImpl::class.java)
+  var logger: Logger = LoggerFactory.getLogger(DbExportPortImpl::class.java)
 
   override fun exportDb(): Map<String, Any> {
     logger.trace("Starting the database export...")

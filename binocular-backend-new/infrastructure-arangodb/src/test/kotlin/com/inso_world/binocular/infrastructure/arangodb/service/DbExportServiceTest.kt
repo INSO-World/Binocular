@@ -1,14 +1,15 @@
-package com.inso_world.binocular.web.service
+package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.arangodb.ArangoDB
 import com.arangodb.ArangoDatabase
 import com.arangodb.entity.CollectionEntity
-import com.inso_world.binocular.web.persistence.dao.nosql.arangodb.AdbConfig
-import com.inso_world.binocular.web.service.impl.DbExportServiceImpl
-import io.mockk.*
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.AdbConfig
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
 
 /**
  * Unit tests with mocks that test the functionality of DbExportServiceImpl.
@@ -16,7 +17,7 @@ import kotlin.test.assertEquals
 class DbExportServiceTest {
 
   private val adbConfig = mockk<AdbConfig>()
-  private val service = DbExportServiceImpl(adbConfig)
+  private val service = DbExportPortImpl(adbConfig)
 
   @Test
   fun `should export data from mocked database`() {
@@ -73,7 +74,7 @@ class DbExportServiceTest {
     }
 
     // initialize service
-    val service = DbExportServiceImpl(adbConfig)
+    val service = DbExportPortImpl(adbConfig)
 
     // call the function
     val result = service.exportDb()
@@ -110,7 +111,7 @@ class DbExportServiceTest {
     val result = service.exportDb()
 
     // assert result is an empty map
-    assertEquals(emptyMap(), result)
+    assertEquals(emptyMap<String, Any>(), result)
   }
 
 
