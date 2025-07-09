@@ -60,7 +60,7 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS compile
 
   test-application:
-    name: Test-Application Layers (web, cli)
+    name: Test-Application Layers
     needs: compile
 
     defaults:
@@ -82,10 +82,18 @@ jobs:
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
         module: [ 'web', 'cli' ]
-        profile: [ 'arangodb', 'postgres' ]
+        mvnProfile: [ 'arangodb', 'postgres' ]
+        springProfile: [ 'nosql,arangodb', 'sql,postgres' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
+            mvnProfile: 'arangodb'
+            springProfile: 'nosql,arangodb'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            mvnProfile: 'postgres'
+            springProfile: 'sql,postgres'
+
 
     runs-on: ${{ matrix.os }}
 
@@ -111,7 +119,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -P${{matrix.profile}}
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -P${{matrix.mvnProfile}} -Dspring.profiles.active=test,${{matrix.springProfile}}
 
   test-modules:
     name: Test
