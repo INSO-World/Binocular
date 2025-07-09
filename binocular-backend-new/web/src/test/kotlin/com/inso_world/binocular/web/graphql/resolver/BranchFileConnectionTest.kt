@@ -1,17 +1,17 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.TestDataProvider
+import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 /**
  * Test class for verifying the BranchFileConnection edge relationship.
- * This class extends BaseDbTest to leverage the test data setup.
+ * This class extends GraphQlControllerTest to leverage the test data setup.
  */
-internal class BranchFileConnectionTest : BaseDbTest() {
+internal class BranchFileConnectionTest : GraphQlControllerTest() {
     @Nested
     inner class BranchToFileRelationship {
         @Test

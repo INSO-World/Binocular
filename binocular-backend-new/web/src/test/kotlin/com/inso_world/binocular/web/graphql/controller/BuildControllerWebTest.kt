@@ -2,8 +2,8 @@ package com.inso_world.binocular.web.graphql.controller
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.TestDataProvider
+import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
  */
 internal class BuildControllerWebTest : BaseIntegrationTest() {
     @Nested
-    inner class BasicFunctionality : BaseDbTest() {
+    inner class BasicFunctionality : GraphQlControllerTest() {
         @Test
         fun `should return all builds`() {
             val result: JsonNode =
@@ -208,7 +208,7 @@ internal class BuildControllerWebTest : BaseIntegrationTest() {
     }
 
     @Nested
-    inner class Pagination : BaseDbTest() {
+    inner class Pagination : GraphQlControllerTest() {
         @Test
         fun `should return builds with pagination`() {
             val result: JsonNode =
@@ -369,7 +369,7 @@ internal class BuildControllerWebTest : BaseIntegrationTest() {
     }
 
     @Nested
-    inner class ErrorHandling : BaseDbTest() {
+    inner class ErrorHandling : GraphQlControllerTest() {
         @Test
         fun `should throw exception for non-existent build id`() {
             val nonExistentId = "999"

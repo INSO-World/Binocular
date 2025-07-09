@@ -3,8 +3,8 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Platform
-import com.inso_world.binocular.web.BaseDbTest
 import com.inso_world.binocular.web.TestDataProvider
+import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * Test class for verifying the Account resolver functionality.
  * This class extends BaseDbTest to leverage the test data setup.
  */
-internal class AccountResolverTest : BaseDbTest() {
+internal class AccountResolverTest : GraphQlControllerTest() {
     @Autowired
     private lateinit var accountResolver: AccountResolver
 
