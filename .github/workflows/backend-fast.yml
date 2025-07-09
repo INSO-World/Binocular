@@ -82,7 +82,7 @@ jobs:
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
         module: [ 'web', 'cli' ]
-#        mvnProfile: [ 'arangodb', 'postgres' ]
+        mvnProfile: [ 'arangodb', 'postgres' ]
 #        springProfile: [ 'nosql,arangodb', 'sql,postgres' ]
         include:
           - os: ubuntu-latest
