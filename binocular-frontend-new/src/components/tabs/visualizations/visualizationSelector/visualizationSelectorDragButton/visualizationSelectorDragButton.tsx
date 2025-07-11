@@ -5,8 +5,8 @@ import { VisualizationPlugin } from '../../../../../plugins/interfaces/visualiza
 import { AppDispatch, RootState, useAppDispatch } from '../../../../../redux';
 import { useSelector } from 'react-redux';
 import { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType.ts';
-import { showDialog } from '../../../../informationDialog/dialogHelper.ts';
-import HelpIcon from '../../../../../assets/help_white.svg';
+import HelpIcon from '../../../../../assets/help_blue.svg';
+import { showInfoTooltipp } from '../../../../infoTooltipp/infoTooltippHelper.ts';
 function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<unknown, unknown>; showHelp: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
@@ -42,16 +42,16 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
           }),
         );
       }}>
-      <div>
+      <div className={'relative'}>
         <img draggable={'false'} src={props.plugin.images.thumbnail} alt={props.plugin.name} />
         <span>{props.plugin.name}</span>
         {props.plugin.metadata.description && props.showHelp && (
           <button
-            className="btn btn-accent btn-circle btn-xs"
+            className={visualizationSelectorStyles.visualizationHelpButton}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              showDialog(props.plugin.name, props.plugin.metadata.description ?? '');
+              showInfoTooltipp(e.clientX, e.clientY, { headline: props.plugin.name, text: props.plugin.metadata.description ?? '' });
             }}>
             <img draggable={'false'} src={HelpIcon} alt={props.plugin.name} />
           </button>

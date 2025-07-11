@@ -134,6 +134,9 @@ const DashboardItem = memo(function DashboardItem(props: {
             store.dispatch({ type: 'RESIZE' });
           }
           break;
+        case 'RESIZE':
+          store.dispatch({ type: 'RESIZE' });
+          break;
       }
     }
   });

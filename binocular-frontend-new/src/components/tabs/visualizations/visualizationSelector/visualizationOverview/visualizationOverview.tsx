@@ -11,14 +11,15 @@ function VisualizationOverview() {
     <dialog
       id={'visualizationOverview'}
       className={visualizationOverviewStyles.visualizationOverview}
-      onMouseLeave={() => {
+      onMouseMove={() => {
         (document.getElementById('visualizationOverview') as HTMLDialogElement).close();
       }}
       onChange={(e) => e.preventDefault()}>
       <div
         id={'visualizationOverviewPositionController'}
-        onMouseLeave={() => {
-          (document.getElementById('visualizationOverview') as HTMLDialogElement).close();
+        onMouseMove={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
         }}
         onDragLeave={() => {
           (document.getElementById('visualizationOverview') as HTMLDialogElement).close();
