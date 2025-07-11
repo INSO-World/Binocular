@@ -7,7 +7,7 @@ import { ParametersType } from '../../../types/parameters/parametersType.ts';
 import { ChartData, Palette } from '../../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
 import { FileListElementType } from '../../../types/data/fileListType.ts';
 
-export interface Properties<SettingsType, DataType> {
+export interface VisualizationPluginProperties<SettingsType, DataType> {
   settings: SettingsType; // Interface for settings defines which settings are transported
   // between the settingsComponent and Chart Component
   dataConnection: DataPlugin; // Data connection of the type DataPlugin provided by Binocular.
@@ -16,7 +16,7 @@ export interface Properties<SettingsType, DataType> {
   // !!
   dataConverter?: (
     data: DataType[],
-    props: Properties<SettingsType, DataType>,
+    props: VisualizationPluginProperties<SettingsType, DataType>,
   ) => { chartData: ChartData[]; scale: number[]; palette: Palette };
   authorList: AuthorType[]; //list of Users set by Binocular
   fileList: FileListElementType[]; //list of Users set by Binocular

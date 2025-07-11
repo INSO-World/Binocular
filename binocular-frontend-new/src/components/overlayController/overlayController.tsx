@@ -7,6 +7,8 @@ import ContextMenu from '../contextMenu/contextMenu.tsx';
 import LoadingLocalDatabaseOverlay from './overlays/loadingLocalDatabaseOverlay/loadingLocalDatabaseOverlay.tsx';
 import FileTreeElementInfoDialog from '../tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx';
 import SetupDialog from '../setupDialog/setupDialog.tsx';
+import VisualizationOverview from '../tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverview.tsx';
+import InfoTooltipp from '../infoTooltipp/infoTooltipp.tsx';
 
 function OverlayController() {
   return (
@@ -18,8 +20,10 @@ function OverlayController() {
       <NotificationController></NotificationController>
       <EditAuthorDialog></EditAuthorDialog>
       <FileTreeElementInfoDialog></FileTreeElementInfoDialog>
-      <ContextMenu></ContextMenu>
+      <VisualizationOverview></VisualizationOverview>
       <LoadingLocalDatabaseOverlay></LoadingLocalDatabaseOverlay>
+      <ContextMenu></ContextMenu>
+      <InfoTooltipp></InfoTooltipp>
     </>
   );
 }

@@ -1,6 +1,6 @@
 @import "../../variables.scss";
 
-.contextMenu{
+.infoTooltipp{
   background: transparent;
   width: 100vw;
   max-width: 100vw;
@@ -11,16 +11,16 @@
   overflow: hidden;
 }
 
-.contextMenu::backdrop{
+.infoTooltipp::backdrop{
   background: transparent;
 }
 
-.contextMenu>div{
+.infoTooltipp>div{
   position: absolute;
   top:100px;
 }
 
-.contextMenu>div>ul{
+.infoTooltipp>div>div{
   @apply menu;
   @apply bg-base-100;
   @apply rounded;

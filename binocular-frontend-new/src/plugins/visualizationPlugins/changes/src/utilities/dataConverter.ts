@@ -3,8 +3,8 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
-import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { SettingsType } from '../settings/settings.tsx';
+import { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 interface CommitChartData {
   date: number;
@@ -17,7 +17,7 @@ interface Palette {
 
 export function convertToChartData(
   commits: DataPluginCommit[],
-  props: Properties<SettingsType, DataPluginCommit>,
+  props: VisualizationPluginProperties<SettingsType, DataPluginCommit>,
 ): {
   chartData: CommitChartData[];
   scale: number[];

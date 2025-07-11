@@ -134,6 +134,9 @@ const DashboardItem = memo(function DashboardItem(props: {
             store.dispatch({ type: 'RESIZE' });
           }
           break;
+        case 'RESIZE':
+          store.dispatch({ type: 'RESIZE' });
+          break;
       }
     }
   });
@@ -284,60 +287,64 @@ const DashboardItem = memo(function DashboardItem(props: {
               console.log('Start dragging dashboard item ' + props.item.pluginName);
               props.setDragResizeItem(props.item.id, DragResizeMode.drag);
             }}>
-            <span>{props.item.pluginName}</span>
-            {selectedDataPlugin && (
-              <span>
-                ({selectedDataPlugin.name} #{selectedDataPlugin.id})
-              </span>
-            )}
-            <button
-              className={dashboardItemStyles.settingsButton}
-              ref={settingsButtonRef}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (settingsRef.current) {
-                  settingsRef.current.style.display = 'block';
-                }
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.deleteButton}
-              ref={deleteButtonRef}
-              style={{ display: 'none' }}
-              onClick={(event) => {
-                event.stopPropagation();
-                props.deleteItem(props.item.id);
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.helpButton}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (helpRef.current) {
-                  helpRef.current.style.display = 'block';
-                }
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.popoutButton}
-              onClick={(event) => {
-                event.stopPropagation();
-                dispatch(increasePopupCount());
-                setPoppedOut(true);
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            {plugin.capabilities.export && (
+            <div className={dashboardItemStyles.dashboardItemInteractionBarLeft}>
+              <span>{props.item.pluginName}</span>
+              {selectedDataPlugin && (
+                <span>
+                  ({selectedDataPlugin.name} #{selectedDataPlugin.id})
+                </span>
+              )}
+            </div>
+            <div className={dashboardItemStyles.dashboardItemInteractionBarRight}>
+              {plugin.capabilities.export && (
+                <button
+                  className={dashboardItemStyles.exportButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    dispatch(setExportType(ExportType.image));
+                    dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
+                    dispatch(setExportName(`${plugin.name}Export`));
+                    (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
+                  }}
+                  onMouseDown={(event) => event.stopPropagation()}></button>
+              )}
               <button
-                className={dashboardItemStyles.exportButton}
+                className={dashboardItemStyles.popoutButton}
                 onClick={(event) => {
                   event.stopPropagation();
-                  dispatch(setExportType(ExportType.image));
-                  dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
-                  dispatch(setExportName(`${plugin.name}Export`));
-                  (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
+                  dispatch(increasePopupCount());
+                  setPoppedOut(true);
                 }}
                 onMouseDown={(event) => event.stopPropagation()}></button>
-            )}
+              <button
+                className={dashboardItemStyles.helpButton}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (helpRef.current) {
+                    helpRef.current.style.display = 'block';
+                  }
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+              <button
+                className={dashboardItemStyles.deleteButton}
+                ref={deleteButtonRef}
+                style={{ display: 'none' }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  props.deleteItem(props.item.id);
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+              <button
+                className={dashboardItemStyles.settingsButton}
+                ref={settingsButtonRef}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (settingsRef.current) {
+                    settingsRef.current.style.display = 'block';
+                  }
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+            </div>
           </div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarTop}
