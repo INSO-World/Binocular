@@ -67,7 +67,7 @@ module.exports = new gql.GraphQLObjectType({
         },
       },
       author: {
-        type: require('./gitHubUser.js'),
+        type: require('./account.js'),
         description: 'The github author of this issue',
         resolve(issue /*, args*/) {
           return db
@@ -85,7 +85,7 @@ module.exports = new gql.GraphQLObjectType({
         },
       },
       assignee: {
-        type: require('./gitHubUser.js'),
+        type: require('./account.js'),
         description: 'The assignee of this issue',
         resolve(issue /*, args*/) {
           return db
@@ -103,7 +103,7 @@ module.exports = new gql.GraphQLObjectType({
         },
       },
       assignees: {
-        type: new gql.GraphQLList(require('./gitHubUser.js')),
+        type: new gql.GraphQLList(require('./account.js')),
         description: 'All the assignees of this issue',
         resolve(issue /*, args*/) {
           return db

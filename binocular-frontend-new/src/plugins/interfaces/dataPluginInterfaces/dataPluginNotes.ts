@@ -1,6 +1,6 @@
-import { DataPluginGitUser } from './dataPluginGitUser.ts';
-import { DataPluginIssue } from './dataPluginIssue.ts';
-import { DataPluginMergeRequest } from './DataPluginMergeRequest.ts';
+import { DataPluginAccount } from './dataPluginAccounts.ts';
+import { DataPluginIssue } from './dataPluginIssues.ts';
+import { DataPluginMergeRequest } from './dataPluginMergeRequests.ts';
 
 export interface DataPluginNotes {
   getAll: (from: string, to: string) => Promise<DataPluginNote[]>;
@@ -12,5 +12,5 @@ export interface DataPluginNote {
   issue: DataPluginIssue | null;
   mergeRequest: DataPluginMergeRequest | null;
   body: string;
-  author: DataPluginGitUser;
+  author: DataPluginAccount;
 }

@@ -5,6 +5,8 @@ const arangodb = require('@arangodb');
 const db = arangodb.db;
 const aql = arangodb.aql;
 const commitsToUsers = db._collection('commits-users');
+const accounts = db._collection('accounts');
+const accountsToUsers = db._collection('accounts-users')
 const paginated = require('./paginated.js');
 
 module.exports = new gql.GraphQLObjectType({
@@ -47,6 +49,20 @@ module.exports = new gql.GraphQLObjectType({
             .toArray();
         },
       }),
+      account: {
+        type: require('./account.js'),
+        description: 'The GitHub account details related to this user',
+        resolve: function (accounts, args) {
+          return db
+            ._query(
+              aql`
+                FOR account 
+                IN 
+                INBOUND ${accounts} ${accountsToUsers}
+                RETURN account`
+            ).next();
+        },
+      },
     };
   },
 });

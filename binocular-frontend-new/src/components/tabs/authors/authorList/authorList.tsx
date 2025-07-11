@@ -23,6 +23,10 @@ import { AuthorType } from '../../../../types/data/authorType.ts';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
 import { DataPluginUser } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import { DataPluginAccount } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
+import { accountsSlice, setAccountList, setAccountsDataPluginId } from '../../../../redux/reducer/data/accountsReducer.ts';
+import Config from '../../../../config.ts';
+import { AccountType } from '../../../../types/data/accountType.ts';
 
 function AuthorList(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -35,9 +39,49 @@ function AuthorList(props: { orientation?: string }) {
 
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
+  function refreshAccounts(dP: DatabaseSettingsDataPluginType) {
+    if (dP && dP.id !== undefined) {
+      console.log(`REFRESH ACCOUNTS (${dP.name} #${dP.id})`);
+      DataPluginStorage.getDataPlugin(dP)
+        .then((dataPlugin) => {
+          if (dataPlugin) {
+            dataPlugin.accounts
+              .getAll()
+              .then((accounts: DataPluginAccount[]) => {
+                dispatch(
+                  setAccountList({
+                    dataPluginId: dP.id !== undefined ? dP.id : -1,
+                    accounts: accounts.map((author) => {
+                      return {
+                        localId: 0, // real id gets set in reducer
+                        id: author.id,
+                        name: author.name,
+                        platform: author.platform,
+                        user: author.user,
+                      };
+                    }),
+                  }),
+                );
+              })
+              .catch((e) => console.log('Error loading Accounts from selected data source! ' + e));
+          }
+        })
+        .catch((e) => console.log(e));
+    } else {
+      if (configuredDataPlugins.length > 0) {
+        dispatch(setAccountsDataPluginId(configuredDataPlugins[0].id));
+      }
+    }
+  }
+
   function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
     if (dP && dP.id !== undefined) {
       console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
+      const stored = localStorage.getItem(`${accountsSlice.name}StateV${Config.localStorageVersion}`);
+      let accounts: AccountType[];
+      if (stored) {
+        accounts = JSON.parse(stored).accountLists[dP.id];
+      }
       DataPluginStorage.getDataPlugin(dP)
         .then((dataPlugin) => {
           if (dataPlugin) {
@@ -49,8 +93,36 @@ function AuthorList(props: { orientation?: string }) {
                   setAuthorList({
                     dataPluginId: dP.id !== undefined ? dP.id : -1,
                     authors: users.map((user, i) => {
+                      if (user.account !== null) {
+                        const account = accounts.find((acc) => acc.id === user.account?.id);
+                        return {
+                          // mapping could be done in helper function?
+                          user: {
+                            account:
+                              account === undefined
+                                ? null
+                                : {
+                                    user: null,
+                                    id: account.id,
+                                    localId: account.localId,
+                                    name: account.name,
+                                    platform: account.platform,
+                                  },
+                            id: user.id,
+                            gitSignature: user.gitSignature,
+                          },
+                          id: 0, // real id gets set in reducer
+                          parent: -1,
+                          color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
+                          selected: true,
+                        };
+                      }
                       return {
-                        user: user,
+                        user: {
+                          account: null,
+                          id: user.id,
+                          gitSignature: user.gitSignature,
+                        },
                         id: 0, // real id gets set in reducer
                         parent: -1,
                         color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
@@ -60,7 +132,7 @@ function AuthorList(props: { orientation?: string }) {
                   }),
                 );
               })
-              .catch(() => console.log('Error loading Users from selected data source!'));
+              .catch((e) => console.log('Error loading Users from selected data source! ' + e));
           }
         })
         .catch((e) => console.log(e));
@@ -78,7 +150,9 @@ function AuthorList(props: { orientation?: string }) {
     configuredDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
       if (authorsDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
         dispatch(setAuthorsDataPluginId(dP.id));
+        dispatch(setAccountsDataPluginId(dP.id));
       }
+      refreshAccounts(dP);
       refreshAuthors(dP);
     });
   }, [configuredDataPlugins]);
@@ -92,6 +166,7 @@ function AuthorList(props: { orientation?: string }) {
       if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
         if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === authorsDataPluginId) {
           const dP = configuredDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
+          refreshAccounts(dP);
           refreshAuthors(dP);
         }
       }

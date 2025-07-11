@@ -23,6 +23,12 @@ export default class Users implements DataPluginUsers {
               data {
                 id
                 gitSignature
+                account {
+                  platform
+                  name
+                  id
+                  login
+                }
               }
             }
           }

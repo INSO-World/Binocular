@@ -288,8 +288,6 @@ export async function findAllNotes(database: PouchDB.Database, relations: PouchD
       preprocessNotes(n, noteUserConnections[index], noteIssueConnections, noteMRConnections, users, mergeRequests, issues),
     ),
   );
-
-  console.log(notes);
   return notes;
 }
 
@@ -318,7 +316,6 @@ function preprocessNotes(
   };
   const noteMRRelation = binarySearch(noteMRConnections, note._id, 'to');
   if (noteMRRelation !== null) {
-    console.log(noteMRRelation);
     const mergeRequest = binarySearch(mergeRequests, noteMRRelation.from, '_id');
     return _.assign(note, { mergeRequest: mergeRequest });
   } else {
@@ -330,6 +327,54 @@ function preprocessNotes(
   }
   return _.assign(note, { manualRun: true });
 }
+
+// ###################### USERS ######################
+
+export async function findAllUsers(database: PouchDB.Database, relations: PouchDB.Database) {
+  const users = await findAll(database, 'users');
+  const accounts = (await findAll(database, 'accounts')).docs;
+  const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'to');
+
+  users.docs = await Promise.all(users.docs.map((u) => preprocessUser(u, accountsUsersConnection, accounts)));
+  return users;
+}
+
+function preprocessUser(user: JSONObject, accountsUsersConnection: JSONObject[], accounts: JSONObject[]) {
+  const accountUserRelation = binarySearch(accountsUsersConnection, user._id, 'from');
+  if (accountUserRelation === null) {
+    return _.assign(user, { manualRun: true });
+  }
+  const account = binarySearch(accounts, accountUserRelation.from, '_id');
+  if (account === null) {
+    return _.assign(user, { manualRun: true });
+  }
+  return _.assign(user, { account: account });
+}
+
+// ###################### ACCOUNTS ######################
+
+export async function findAllAccounts(database: PouchDB.Database, relations: PouchDB.Database) {
+  const users = (await findAll(database, 'users')).docs;
+  const accounts = await findAll(database, 'accounts');
+  const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'to');
+
+  accounts.docs = await Promise.all(accounts.docs.map((u) => preprocessAccount(u, accountsUsersConnection, users)));
+  return accounts;
+}
+
+function preprocessAccount(account: JSONObject, accountsUsersConnection: JSONObject[], users: JSONObject[]) {
+  const accountUserRelation = binarySearch(accountsUsersConnection, account._id, 'to');
+  if (accountUserRelation === null) {
+    return _.assign(account, { manualRun: true });
+  }
+  const user = binarySearch(users, accountUserRelation.to, '_id');
+  if (user === null) {
+    return _.assign(user, { manualRun: true });
+  }
+  return _.assign(account, { user: user });
+}
+
+
 
 // ###################### OTHER ######################
 

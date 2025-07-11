@@ -9,6 +9,7 @@ import { clearSprintStorage, importSprintStorage } from '../../../redux/reducer/
 import { clearTabsStorage, importTabsStorage } from '../../../redux/reducer/general/tabsReducer.ts';
 import Config from '../../../config.ts';
 import { useState } from 'react';
+import { clearAccountsStorage, importAccountsStorage } from '../../../redux/reducer/data/accountsReducer.ts';
 
 function GeneralSettings() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -39,6 +40,7 @@ function GeneralSettings() {
           <button
             className={'btn btn-outline'}
             onClick={() => {
+              dispatch(clearAccountsStorage());
               dispatch(clearAuthorsStorage());
               dispatch(clearDashboardStorage());
               dispatch(clearParametersStorage());
@@ -84,6 +86,7 @@ function GeneralSettings() {
                       try {
                         const importJSON: { storageVersion: number; storageState: RootState } = JSON.parse(e.target.result as string);
                         if (importJSON.storageVersion === Config.localStorageVersion) {
+                          dispatch(importAccountsStorage(importJSON.storageState.accounts));
                           dispatch(importAuthorsStorage(importJSON.storageState.authors));
                           dispatch(importDashboardStorage(importJSON.storageState.dashboard));
                           dispatch(importParametersStorage(importJSON.storageState.parameters));

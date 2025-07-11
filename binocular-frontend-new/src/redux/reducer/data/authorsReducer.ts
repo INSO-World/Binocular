@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AuthorType } from '../../../types/data/authorType.ts';
 import Config from '../../../config.ts';
+import { AccountType } from '../../../types/data/accountType.ts';
 
 export interface AuthorsInitialState {
   authorLists: { [id: number]: AuthorType[] };
@@ -112,6 +113,28 @@ export const authorsSlice = createSlice({
       state = action.payload;
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
+    assignAccount: (state, action: PayloadAction<{ account: AccountType; author: number }>) => {
+      state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
+        if (a.id === action.payload.author && a.user.account !== undefined) {
+          a.user.account = action.payload.account;
+        }
+        if (Number(a.user.account?.id) === Number(action.payload.account.id) && Number(a.id) !== Number(action.payload.author)) {
+          a.user.account = null;
+        }
+        return a;
+      });
+      localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    resetAccount: (state) => {
+      state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
+        if (a.id == state.authorToEdit.id) {
+          a.user.account = null;
+        }
+        return a;
+      });
+
+      localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
   },
 });
 
@@ -127,5 +150,7 @@ export const {
   setAuthorsDataPluginId,
   clearAuthorsStorage,
   importAuthorsStorage,
+  assignAccount,
+  resetAccount,
 } = authorsSlice.actions;
 export default authorsSlice.reducer;

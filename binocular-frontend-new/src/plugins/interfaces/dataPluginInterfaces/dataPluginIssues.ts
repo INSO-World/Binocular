@@ -1,5 +1,5 @@
-import { DataPluginGitUser } from './dataPluginGitUser.ts';
-import { DataPluginNote } from './dataPluginNote.ts';
+import { DataPluginAccount } from './dataPluginAccounts.ts';
+import { DataPluginNote } from './dataPluginNotes.ts';
 
 export interface DataPluginIssues {
   getAll: (from: string, to: string) => Promise<DataPluginIssue[]>;
@@ -14,8 +14,8 @@ export interface DataPluginIssue {
   webUrl: string;
   createdAt: string;
   closedAt: string | null;
-  author: DataPluginGitUser;
-  assignee: DataPluginGitUser | null;
-  assignees: DataPluginGitUser[];
+  author: DataPluginAccount;
+  assignee: DataPluginAccount | null;
+  assignees: DataPluginAccount[];
   notes: DataPluginNote[];
 }

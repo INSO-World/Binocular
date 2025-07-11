@@ -105,7 +105,7 @@ export default class Commits implements DataPluginCommits {
             shortSha: '',
             messageHeader: commit.messageHeadline,
             message: commit.message,
-            user: { id: commit.author.user.id, gitSignature: commit.author.user.login },
+            user: { id: commit.author.user.id, gitSignature: commit.author.user.login, account: null },
             branch: '',
             date: commit.committedDate,
             parents: commit.parents.nodes.map((parent) => parent.oid),

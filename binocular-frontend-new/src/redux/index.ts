@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 
 import DashboardReducer from './reducer/general/dashboardReducer.ts';
 import AuthorsReducer from './reducer/data/authorsReducer.ts';
+import AccountsReducer from './reducer/data/accountsReducer.ts';
 import SettingsReducer from './reducer/settings/settingsReducer.ts';
 import ParametersReducer from './reducer/parameters/parametersReducer.ts';
 import SprintsReducer from './reducer/data/sprintsReducer.ts';
@@ -21,6 +22,7 @@ export const store = configureStore({
   reducer: {
     dashboard: DashboardReducer,
     authors: AuthorsReducer,
+    accounts: AccountsReducer,
     files: FilesReducer,
     settings: SettingsReducer,
     export: ExportReducer,

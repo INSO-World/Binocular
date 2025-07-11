@@ -15,7 +15,7 @@ module.exports = new gql.GraphQLObjectType({
   fields() {
     return {
       author: {
-        type: require('./gitHubUser.js'),
+        type: require('./account.js'),
         description: 'The github author of this issue',
         resolve(note /*, args*/) {
           return db

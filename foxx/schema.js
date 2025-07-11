@@ -15,6 +15,7 @@ const Sort = require('./types/Sort.js');
 
 const commits = db._collection('commits');
 const files = db._collection('files');
+const accounts = db._collection('accounts');
 const users = db._collection('users');
 const modules = db._collection('modules');
 const issues = db._collection('issues');
@@ -161,11 +162,15 @@ const queryType = new gql.GraphQLObjectType({
       }),
       builds: paginated({
         type: require('./types/build.js'),
-        args: { since: { type: Timestamp }, until: { type: Timestamp } },
+        args: {
+          since: { type: Timestamp },
+          until: { type: Timestamp },
+          sort: { type: Sort },
+        },
         query: (root, args, limit) => {
           return aql`
           FOR build IN ${builds}
-            SORT build.createdAt ASC
+            SORT build.createdAt ${args.sort}
             ${args.since ? queryHelpers.addDateFilterAQL('build.createdAt', '>=', args.since) : aql``}
             ${args.until ? queryHelpers.addDateFilterAQL('build.createdAt', '<=', args.until) : aql``}
             ${limit}
@@ -297,6 +302,15 @@ const queryType = new gql.GraphQLObjectType({
             ${limit}
             RETURN note`;
         }
+      }),
+      accounts: paginated({
+        type: require('./types/account.js'),
+        query: (root, args, limit) => aql`
+          FOR account
+            IN
+            ${accounts}
+            ${limit}
+              RETURN account`,
       }),
     };
   },
