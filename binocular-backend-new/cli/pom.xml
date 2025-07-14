@@ -67,20 +67,6 @@
             <artifactId>domain</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.inso-world.binocular</groupId>
-            <artifactId>infrastructure-sql</artifactId>
-            <version>${project.version}</version>
-            <!--            <optional>true</optional>-->
-        </dependency>
-        <dependency>
-            <groupId>com.inso-world.binocular</groupId>
-            <artifactId>infrastructure-sql</artifactId>
-            <version>${project.version}</version>
-            <classifier>test</classifier>
-            <scope>test</scope>
-            <!--            <optional>true</optional>-->
-        </dependency>
         <!--Non binocular below -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

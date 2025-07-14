@@ -119,7 +119,13 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -P${{matrix.mvnProfile}} -Dspring.profiles.active=test,${{matrix.springProfile}}
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report --pl ${{ matrix.module }} -am -P${{matrix.mvnProfile}} -Dspring.profiles.active=test,${{matrix.springProfile}}
+
+      - name: Upload surefire report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-report
+          path: ${{ matrix.module }}/target/reports/
 
   test-modules:
     name: Test
@@ -171,4 +177,10 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report --pl ${{ matrix.module }} -am
+
+      - name: Upload surefire report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-report
+          path: ${{ matrix.module }}/target/reports/
