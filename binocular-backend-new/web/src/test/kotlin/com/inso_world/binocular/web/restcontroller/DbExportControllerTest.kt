@@ -2,7 +2,7 @@ package com.inso_world.binocular.web.restcontroller
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.inso_world.binocular.web.TestDataProvider
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.restcontroller.base.RestControllerTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
