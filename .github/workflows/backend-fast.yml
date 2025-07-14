@@ -126,6 +126,7 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.module }}-report
@@ -188,6 +189,7 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.module }}-report
