@@ -1,7 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.inso_world.binocular.web.TestDataProvider
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested

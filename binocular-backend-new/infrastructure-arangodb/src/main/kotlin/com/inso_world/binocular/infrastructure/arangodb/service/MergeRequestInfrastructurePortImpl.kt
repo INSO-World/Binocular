@@ -75,4 +75,8 @@ class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort {
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
+
+    override fun deleteAll() {
+        this.mergeRequestDao.deleteAll()
+    }
 }

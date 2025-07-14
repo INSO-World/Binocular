@@ -53,4 +53,8 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
+
+    override fun deleteAll() {
+        this.branchDao.deleteAll()
+    }
 }
