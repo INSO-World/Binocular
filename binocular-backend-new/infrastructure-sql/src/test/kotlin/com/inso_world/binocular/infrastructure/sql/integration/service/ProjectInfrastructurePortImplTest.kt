@@ -106,7 +106,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
             Commit(
                 sha = "1234567890123456789012345678901234567890",
                 message = "test commit",
-                commitDateTime = LocalDateTime.now(),
+                commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
                 repositoryId = repository.id,
             )
         repository.commits.add(cmt)
