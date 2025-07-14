@@ -1,6 +1,9 @@
 package com.inso_world.binocular.web
 
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.core.service.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
@@ -14,6 +17,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 internal class TestDataSetupService(
+    @Autowired private val infrastructureDataSetup: InfrastructureDataSetup,
+//    private val testDataProvider: TestDataProvider,
     private val commitRepository: CommitInfrastructurePort,
     private val accountRepository: AccountInfrastructurePort,
     private val branchRepository: BranchInfrastructurePort,
@@ -32,17 +37,19 @@ internal class TestDataSetupService(
      * by the infrastructure implementation.
      */
     fun clearAllData() {
-        commitRepository.saveAll(emptyList())
-        accountRepository.saveAll(emptyList())
-        branchRepository.saveAll(emptyList())
-        buildRepository.saveAll(emptyList())
-        fileRepository.saveAll(emptyList())
-        issueRepository.saveAll(emptyList())
-        mergeRequestRepository.saveAll(emptyList())
-        milestoneRepository.saveAll(emptyList())
-        moduleRepository.saveAll(emptyList())
-        noteRepository.saveAll(emptyList())
-        userRepository.saveAll(emptyList())
+        infrastructureDataSetup.teardown()
+
+        commitRepository.deleteAll()
+        accountRepository.deleteAll()
+        branchRepository.deleteAll()
+        buildRepository.deleteAll()
+        fileRepository.deleteAll()
+        issueRepository.deleteAll()
+        mergeRequestRepository.deleteAll()
+        milestoneRepository.deleteAll()
+        moduleRepository.deleteAll()
+        noteRepository.deleteAll()
+        userRepository.deleteAll()
     }
 
     /**
@@ -62,5 +69,6 @@ internal class TestDataSetupService(
         moduleRepository.saveAll(TestDataProvider.testModules)
         noteRepository.saveAll(TestDataProvider.testNotes)
         userRepository.saveAll(TestDataProvider.testUsers)
+        infrastructureDataSetup.setup()
     }
 }

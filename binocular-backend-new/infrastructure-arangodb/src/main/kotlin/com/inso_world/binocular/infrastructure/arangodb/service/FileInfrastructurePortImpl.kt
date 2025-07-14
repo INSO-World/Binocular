@@ -89,4 +89,8 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
+
+    override fun deleteAll() {
+        this.fileDao.deleteAll()
+    }
 }

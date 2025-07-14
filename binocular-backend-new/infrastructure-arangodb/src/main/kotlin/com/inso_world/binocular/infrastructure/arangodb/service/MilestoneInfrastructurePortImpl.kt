@@ -66,4 +66,8 @@ class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort {
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
+
+    override fun deleteAll() {
+        this.milestoneDao.deleteAll()
+    }
 }

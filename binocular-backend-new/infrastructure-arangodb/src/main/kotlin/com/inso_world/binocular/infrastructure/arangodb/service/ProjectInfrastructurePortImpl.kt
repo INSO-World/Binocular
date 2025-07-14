@@ -51,4 +51,8 @@ class ProjectInfrastructurePortImpl : ProjectInfrastructurePort {
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
+
+    override fun deleteAll() {
+        TODO("Not yet implemented")
+    }
 }

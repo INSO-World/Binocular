@@ -2,9 +2,10 @@ package com.inso_world.binocular.web.graphql.controller
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import com.inso_world.binocular.web.TestDataProvider
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 

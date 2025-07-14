@@ -75,4 +75,8 @@ class NoteInfrastructurePortImpl : NoteInfrastructurePort {
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
+
+    override fun deleteAll() {
+        this.noteDao.deleteAll()
+    }
 }

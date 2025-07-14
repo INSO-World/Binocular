@@ -57,7 +57,5 @@ interface BinocularInfrastructurePort<T> {
 
     fun deleteById(id: String)
 
-    fun deleteAll() {
-        TODO()
-    }
+    fun deleteAll()
 }

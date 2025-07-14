@@ -1,4 +1,4 @@
-package com.inso_world.binocular.web
+package com.inso_world.binocular.core.integration.base
 
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
@@ -9,7 +9,6 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Mention
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
-import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Platform
 import com.inso_world.binocular.model.Stats
@@ -53,6 +52,7 @@ object TestDataProvider {
                 null,
                 null,
                 null,
+                repositoryId = null,
                 "https://example.com/commit/abc123",
                 "main",
                 Stats(10, 5),
@@ -66,6 +66,7 @@ object TestDataProvider {
                 null,
                 null,
                 null,
+                repositoryId = null,
                 "https://example.com/commit/def456",
                 "main",
                 Stats(7, 3),
@@ -204,8 +205,10 @@ object TestDataProvider {
 
     val testModules =
         listOf(
-            Module("1", "src/main/kotlin/com/example/core"),
-            Module("2", "src/main/kotlin/com/example/api"),
+            com.inso_world.binocular.model
+                .Module("1", "src/main/kotlin/com/example/core"),
+            com.inso_world.binocular.model
+                .Module("2", "src/main/kotlin/com/example/api"),
         )
 
     val testNotes =

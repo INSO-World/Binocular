@@ -154,4 +154,8 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
+
+    override fun deleteAll() {
+        this.commitDao.deleteAll()
+    }
 }
