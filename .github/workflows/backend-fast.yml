@@ -82,17 +82,17 @@ jobs:
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
         module: [ 'web', 'cli' ]
-        mvnProfile: [ 'arangodb', 'postgres' ]
+        mvnProfile: [ 'arangodb', 'h2' ]
 #        springProfile: [ 'nosql,arangodb', 'sql,postgres' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
             mvnProfile: 'arangodb'
-            springProfile: 'nosql,arangodb'
+            springProfile: 'test,nosql,arangodb'
           - os: ubuntu-latest
             architecture: 'x64'
-            mvnProfile: 'postgres'
-            springProfile: 'sql,postgres'
+            mvnProfile: 'h2' # currently doing nothing
+            springProfile: 'test,sql,h2'
 
 
     runs-on: ${{ matrix.os }}
@@ -119,11 +119,11 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -Dspring.profiles.active=${{matrix.springProfile}}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=${{matrix.springProfile}}
 
       - name: Upload surefire report
         if: always()
@@ -134,7 +134,7 @@ jobs:
 
   test-modules:
     name: Test
-    needs: compile
+#    needs: compile
 
     defaults:
       run:
@@ -158,6 +158,27 @@ jobs:
         include:
           - os: ubuntu-latest
             architecture: 'x64'
+            module: 'domain'
+            springProfile: 'test'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'ffi'
+            springProfile: 'test'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'core'
+            springProfile: 'test'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'infrastructure-arangodb'
+            mvnProfile: 'arangodb'
+            springProfile: 'test,nosql,arangodb'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'infrastructure-sql'
+            mvnProfile: 'h2'
+            springProfile: 'test,sql,h2'
+
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -182,11 +203,11 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -Dspring.profiles.active=${{matrix.springProfile}} -P${{matrix.mavenProfile}}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=${{matrix.springProfile}} -P${{matrix.mavenProfile}}
 
       - name: Upload surefire report
         if: always()
