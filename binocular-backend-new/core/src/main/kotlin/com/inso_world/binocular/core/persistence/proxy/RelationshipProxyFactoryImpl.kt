@@ -10,16 +10,15 @@ import java.util.AbstractList
  */
 @Component
 class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
-
     /**
      * Creates a lazy-loaded list that only loads its contents when accessed.
      *
      * @param loader A function that loads the list contents when needed
      * @return A proxy list that delegates to the loaded list when accessed
      */
-    override fun <T> createLazyList(loader: () -> List<T>): List<T> {
-        return LazyList(loader)
-    }
+    override fun <T> createLazyList(loader: () -> List<T>): List<T> = LazyList(loader)
+
+    override fun <T> createLazySet(loader: () -> MutableSet<T>): MutableSet<T> = HashSet(loader())
 
     /**
      * Creates a lazy-loaded list that only loads its contents when accessed,
@@ -29,8 +28,66 @@ class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
      * @param mapper A function that maps an entity to a domain object
      * @return A proxy list that delegates to the loaded and mapped list when accessed
      */
-    override fun <E, D> createLazyMappedList(loader: () -> List<E>, mapper: (E) -> D): List<D> {
-        return LazyList { loader().map(mapper) }
+    override fun <E, D> createLazyMappedList(
+        loader: () -> List<E>,
+        mapper: (E) -> D,
+    ): List<D> = LazyList { loader().map(mapper) }
+
+    /**
+     * Creates a lazy-loaded reference that only loads its value when accessed.
+     *
+     * @param loader A function that loads the value when needed
+     * @return A proxy reference that delegates to the loaded value when accessed
+     */
+    override fun <T : Any> createLazyReference(loader: () -> T): LazyReference<T> = LazyReferenceImpl(loader)
+
+    private class LazySet<T>(
+        private val loader: () -> Set<T>,
+    ) : Set<T> {
+        @Volatile
+        private var initialized = false
+        private lateinit var target: Set<T>
+
+        /**
+         * Initializes the list by calling the loader function if not already initialized.
+         * This method is synchronized to ensure the loader is called only once.
+         */
+        private fun initialize() {
+            if (!initialized) {
+                synchronized(this) {
+                    if (!initialized) {
+                        target = loader()
+                        initialized = true
+                    }
+                }
+            }
+        }
+
+        override fun contains(element: T): Boolean {
+            initialize()
+            return target.contains(element)
+        }
+
+        override fun containsAll(elements: Collection<T>): Boolean {
+            initialize()
+            return target.containsAll(elements)
+        }
+
+        override fun isEmpty(): Boolean {
+            initialize()
+            return target.isEmpty()
+        }
+
+        override fun iterator(): Iterator<T> {
+            initialize()
+            return target.iterator()
+        }
+
+        override val size: Int
+            get() {
+                initialize()
+                return target.size
+            }
     }
 
     /**
@@ -39,7 +96,9 @@ class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
      *
      * @param loader A function that loads the list contents when needed
      */
-    private class LazyList<T>(private val loader: () -> List<T>) : AbstractList<T>() {
+    private class LazyList<T>(
+        private val loader: () -> List<T>,
+    ) : AbstractList<T>() {
         @Volatile
         private var initialized = false
         private lateinit var target: List<T>
@@ -105,12 +164,38 @@ class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
                     private val wrapped = target.iterator()
 
                     override fun hasNext(): Boolean = wrapped.hasNext()
+
                     override fun next(): T = wrapped.next()
-                    override fun remove() {
-                        throw UnsupportedOperationException("Cannot modify a read-only list")
+
+                    override fun remove(): Unit = throw UnsupportedOperationException("Cannot modify a read-only list")
+                }
+            }
+        }
+    }
+
+    /**
+     * A reference implementation that lazily loads its value only when accessed.
+     * This class is thread-safe and ensures the loader function is called only once.
+     *
+     * @param loader A function that loads the value when needed
+     */
+    private class LazyReferenceImpl<T : Any>(
+        private val loader: () -> T,
+    ) : LazyReference<T> {
+        @Volatile
+        private var initialized = false
+        private lateinit var target: T
+
+        override fun get(): T {
+            if (!initialized) {
+                synchronized(this) {
+                    if (!initialized) {
+                        target = loader()
+                        initialized = true
                     }
                 }
             }
+            return target
         }
     }
 }
