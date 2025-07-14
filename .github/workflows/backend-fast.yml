@@ -130,7 +130,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.module }}-report
-          path: ${{ matrix.module }}/target/reports/
+          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-modules:
     name: Test
