@@ -88,7 +88,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
     fun findExistingSha(
         repo: Repository,
         shas: List<String>,
-    ): Set<Commit>
+    ): Iterable<Commit>
 
     fun findAllByRepo(
         repo: Repository,

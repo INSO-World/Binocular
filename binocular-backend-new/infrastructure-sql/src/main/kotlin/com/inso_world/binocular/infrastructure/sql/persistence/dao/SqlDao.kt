@@ -5,7 +5,6 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IDao
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
@@ -51,9 +50,7 @@ class SqlDao<T, I : Serializable> : IDao<T, I> {
 
     override fun findAllAsStream(): Stream<T> = entityManager.createQuery("SELECT e FROM ${clazz.name} e", clazz).resultStream
 
-    override fun create(
-        @Valid entity: T,
-    ): T {
+    override fun create(entity: T): T {
         entityManager.persist(entity)
         return entity
     }
@@ -78,12 +75,13 @@ class SqlDao<T, I : Serializable> : IDao<T, I> {
     /**
      * Delete all entities
      */
+//    @Transactional
     override fun deleteAll() {
         val entities =
             entityManager
                 .createQuery("SELECT e FROM ${clazz.name} e", clazz)
                 .resultList
-        entities.forEach { entityManager.remove(it) }
+        entities.forEach { delete(it) }
     }
 
     /**

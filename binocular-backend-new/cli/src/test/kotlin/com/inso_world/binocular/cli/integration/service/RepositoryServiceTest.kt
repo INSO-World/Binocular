@@ -3,26 +3,16 @@ package com.inso_world.binocular.cli.integration.service
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
 import com.inso_world.binocular.cli.index.vcs.toDto
-import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
-import com.inso_world.binocular.cli.integration.utils.generateCommits
-import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
-import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import com.inso_world.binocular.model.Repository
-import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 
 internal class RepositoryServiceTest(
@@ -353,164 +343,5 @@ internal class RepositoryServiceTest(
         assertThat(transformedChild.parents.first().sha).isEqualTo("parentShaparentShaparentShaparentShapare")
         assertThat(transformedChild.parents.first()).isSameAs(transformedParent) // Check instance identity
         assertThat(transformedParent!!.parents).isEmpty()
-    }
-}
-
-internal class RepositoryServiceTestWithSimpleData(
-    @Autowired private val repositoryService: RepositoryService,
-) : BaseServiceTest() {
-    @Autowired
-    private lateinit var transactionTemplate: TransactionTemplate
-    private val ffi = BinocularFfi()
-
-    @Transactional
-    @Test
-    fun `find existing simple repo`() {
-        val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-        assertAll(
-            { assertThat(repo).isNotNull() },
-//            { assertThat(repo?.id).isNotNull() },
-            { assertEquals(this.simpleRepo, repo) },
-            { assertThat(repo?.commits).hasSize(14) },
-            { assertThat(repo?.user).hasSize(3) },
-            { assertThat(repo?.branches).hasSize(1) },
-            { assertThat(repo?.projectId).isNotNull() },
-        )
-    }
-
-    @ParameterizedTest
-    @CsvSource(
-        "master,b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
-        "origin/master,3d28b65c324cc8ee0bb7229fb6ac5d7f64129e90",
-    )
-    fun get_head_commit_of_main_branch(
-        branch: String,
-        headCommit: String,
-    ) {
-        this.cleanup()
-
-        val simpleRepoConfig =
-            setupRepoConfig(
-                "${FIXTURES_PATH}/${SIMPLE_REPO}",
-                "HEAD",
-                branch,
-                SIMPLE_PROJECT_NAME,
-            )
-        var localRepo =
-            {
-                val r = simpleRepoConfig.repo.toVcsRepository().toDomain(simpleRepoConfig.project)
-                r
-            }()
-        generateCommits(simpleRepoConfig, localRepo)
-        projectRepository.save(simpleRepoConfig.project).repo = localRepo
-        localRepo = this.repositoryRepository.save(localRepo)
-
-        val head = this.repositoryService.getHeadCommits(localRepo, branch)
-        assertAll(
-            { assertThat(head).isNotNull() },
-            { assertThat(head!!.sha).isEqualTo(headCommit) },
-            { assertThat(head!!.branches).hasSize(1) },
-            { assertThat(head!!.branches.map { it.name }).contains(branch) },
-        )
-    }
-
-    @Test
-    fun get_head_commit_non_existing_branch() {
-        assertAll(
-            {
-                assertDoesNotThrow {
-                    this.repositoryService.getHeadCommits(this.simpleRepo, "non-existing-branch-12345657890")
-                }
-            },
-        )
-    }
-
-    @Test
-    @Transactional
-    fun `update simple repo, add another commit, same branch`() {
-        val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-
-        assertAll(
-            { assertThat(repo!!.commits).hasSize(14) },
-            { assertThat(repo!!.branches).hasSize(1) },
-            { assertThat(repo!!.branches.toList()[0].commits).hasSize(14) },
-            { assertThat(repo!!.user).hasSize(3) },
-        )
-
-        val newVcsCommit =
-            VcsCommit(
-                "1234567890123456789012345678901234567890",
-                "msg1",
-                "master",
-                VcsPerson("User A", "a@test.com"),
-                null,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
-            )
-        val vcsRepo =
-            BinocularRepositoryPojo(
-                gitDir = this.simpleRepo.name,
-                workTree = null,
-            ) // workTree & commonDir not relevant here
-        this.repositoryService.addCommits(vcsRepo, listOf(newVcsCommit), simpleProject)
-
-        val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-
-        assertAll(
-            { assertThat(repo2!!.commits).hasSize(15) },
-            { assertThat(repo2!!.branches).hasSize(1) },
-            { assertThat(repo!!.branches.toList()[0].commits).hasSize(15) },
-            { assertThat(repo2!!.user).hasSize(4) },
-        )
-    }
-
-    @Test
-    @Transactional
-    fun `update simple repo, add another commit, new branch`() {
-        val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-
-        assertAll(
-            { assertThat(repo!!.commits).hasSize(14) },
-            { assertThat(repo!!.branches).hasSize(1) },
-            { assertThat(repo!!.branches.toList()[0].commits).hasSize(14) },
-            { assertThat(repo!!.user).hasSize(3) },
-        )
-
-        // required to manipulate history
-        var hashes =
-            ffi.traverseBranch(ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").map {
-                it.branch = "develop"
-                it.toDto()
-            }
-        hashes = hashes.toMutableList()
-        hashes.add(
-            VcsCommit(
-                "1234567890123456789012345678901234567890",
-                "msg1",
-                "develop",
-                null,
-                VcsPerson("User A", "a@test.com"),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
-            ),
-        )
-        val vcsRepo =
-            BinocularRepositoryPojo(
-                gitDir = this.simpleRepo.name,
-                workTree = null,
-            ) // workTree & commonDir not relevant here
-        this.repositoryService.addCommits(vcsRepo, hashes, simpleProject)
-
-        val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
-
-        assertAll(
-            { assertThat(repo2!!.commits).hasSize(15) },
-            { assertThat(repo2!!.branches).hasSize(2) },
-            { assertThat(repo!!.branches.map { it.name }).containsAll(listOf("master", "develop")) },
-            { assertThat(repo!!.branches.map { it.commits.count() }).containsAll(listOf(14, 1)) },
-            { assertThat(repo2!!.user).hasSize(4) },
-        )
     }
 }

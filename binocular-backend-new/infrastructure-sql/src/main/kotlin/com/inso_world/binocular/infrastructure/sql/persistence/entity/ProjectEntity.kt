@@ -36,7 +36,7 @@ internal data class ProjectEntity(
 //    ) var mergeRequests: MutableSet<MergeRequest> = mutableSetOf(),
     @OneToOne(
         fetch = FetchType.LAZY,
-        cascade = [CascadeType.REMOVE],
+        cascade = [CascadeType.REMOVE, CascadeType.PERSIST],
         optional = true,
         mappedBy = "project",
     ) var repo: RepositoryEntity? = null,
@@ -59,7 +59,7 @@ internal data class ProjectEntity(
 
         other as ProjectEntity
 
-        if (id != other.id) return false
+//        if (id != other.id) return false
         if (name != other.name) return false
         if (description != other.description) return false
         if (repo != other.repo) return false

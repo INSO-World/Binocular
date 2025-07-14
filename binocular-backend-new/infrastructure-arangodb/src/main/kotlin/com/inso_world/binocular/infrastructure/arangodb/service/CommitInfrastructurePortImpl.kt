@@ -137,7 +137,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         repo: Repository,
         pageable: Pageable,
     ): Iterable<Commit> {
-        TODO("Not yet implemented")
+        this.commitDao.f
     }
 
     override fun findHeadForBranch(

@@ -66,6 +66,7 @@ internal class CommitDaoTest(
                         projectId = project.id,
                     ),
                 )
+            project = projectDao.update(project)
         }
 
         @ParameterizedTest
@@ -89,7 +90,7 @@ internal class CommitDaoTest(
                         ),
                     )
                 }
-            assertThat(exception.message).contains("propertyPath=sha")
+            assertThat(exception.message).contains("save.domain.sha")
             entityManager.clear()
         }
 
@@ -104,10 +105,11 @@ internal class CommitDaoTest(
                             message = "msg",
                             commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                             authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                            repositoryId = "asdf",
                         ),
                     )
                 }
-            assertThat(exception.message).contains("propertyPath=sha")
+            assertThat(exception.message).contains("save.domain.sha")
             entityManager.clear()
         }
 
@@ -124,7 +126,7 @@ internal class CommitDaoTest(
                         ),
                     )
                 }
-            assertThat(exception.message).contains("propertyPath=message")
+            assertThat(exception.message).contains("save.domain.message")
             entityManager.clear()
         }
 
@@ -139,7 +141,7 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = validCommitTime,
                     authorDateTime = null,
-                    repository = project.repo,
+                    repositoryId = project.repo?.id,
                 )
             project.repo?.addCommit(cmt)
             assertDoesNotThrow {
@@ -158,7 +160,7 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     authorDateTime = validAuthorTime,
-                    repository = project.repo,
+                    repositoryId = project.repo?.id,
                 )
             project.repo?.addCommit(cmt)
             assertDoesNotThrow {
@@ -177,14 +179,14 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = invalidCommitTime,
                     authorDateTime = null,
-                    repository = project.repo,
+                    repositoryId = project.repo?.id,
                 )
             project.repo?.addCommit(cmt)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitDao.save(cmt)
                 }
-            assertThat(exception.message).contains("propertyPath=commitDateTime")
+            assertThat(exception.message).contains("save.domain.commitDateTime")
             entityManager.clear()
         }
 
@@ -199,14 +201,14 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     authorDateTime = invalidAuthorTime,
-                    repository = project.repo,
+                    repositoryId = project.repo?.id,
                 )
             project.repo?.addCommit(cmt)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitDao.save(cmt)
                 }
-            assertThat(exception.message).contains("propertyPath=authorDateTime")
+            assertThat(exception.message).contains("save.domain.authorDateTime")
             entityManager.clear()
         }
     }
@@ -222,9 +224,9 @@ internal class CommitDaoTest(
                 )
             assertAll(
                 { assertThat(masterLeaf).isNotNull() },
-//                { assertThat(masterLeaf!!.repository!!.id).isEqualTo(this.simpleRepo.id) },
-//                { assertThat(masterLeaf!!.id).isNotNull() },
-                { assertThat(masterLeaf!!.sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") },
+                { assertThat(masterLeaf?.repository?.id).isEqualTo(this.simpleRepo.id) },
+                { assertThat(masterLeaf?.id).isNotNull() },
+                { assertThat(masterLeaf?.sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") },
             )
         }
 
@@ -264,11 +266,11 @@ internal class CommitDaoTest(
             assertAll(
                 { assertThat(masterLeaf).isNotNull() },
 //                { assertThat(masterLeaf!!.repository!!.id).isEqualTo(this.octoRepo.id) },
-                { assertThat(masterLeaf!!.id).isNotNull() },
-                { assertThat(masterLeaf!!.sha).isEqualTo("4dedc3c738eee6b69c43cde7d89f146912532cff") },
-                { assertThat(masterLeaf!!.parents).hasSize(4) },
+                { assertThat(masterLeaf?.id).isNotNull() },
+                { assertThat(masterLeaf?.sha).isEqualTo("4dedc3c738eee6b69c43cde7d89f146912532cff") },
+                { assertThat(masterLeaf?.parents).hasSize(4) },
                 {
-                    assertThat(masterLeaf!!.parents.map { it.sha }).containsAll(
+                    assertThat(masterLeaf?.parents?.map { it.sha }).containsAll(
                         listOf(
                             "f556329d268afeb5e5298e37fd8bfb5ef2058a9d",
                             "42fbbe93509ed894cbbd61e4dbc07a440720c491",
@@ -277,8 +279,8 @@ internal class CommitDaoTest(
                         ),
                     )
                 },
-                { assertThat(masterLeaf!!.branches).hasSize(1) },
-                { assertThat(masterLeaf!!.branches.toList()[0].name).isEqualTo("master") },
+                { assertThat(masterLeaf?.branches).hasSize(1) },
+                { assertThat(masterLeaf?.branches?.toList()[0]?.name).isEqualTo("master") },
             )
         }
 
@@ -299,13 +301,13 @@ internal class CommitDaoTest(
                     )
                 var tmpRepo =
                     localRepo ?: {
-                        val r = octoRepoConfig.repo.toVcsRepository().toDomain(octoRepoConfig.project)
-//                        r.project.repo = r
-                        projectDao.save(octoRepoConfig.project)
-                        r
+                        val r = octoRepoConfig.repo.toVcsRepository().toDomain()
+                        r.project = octoRepoConfig.project
+                        octoRepoConfig.project.repo = r
+                        projectDao.save(octoRepoConfig.project).repo ?: throw IllegalStateException("project not found")
                     }()
                 generateCommits(octoRepoConfig, tmpRepo)
-                tmpRepo = this.repositoryRepository.save(tmpRepo)
+                tmpRepo = this.repositoryRepository.update(tmpRepo)
                 return tmpRepo
             }
 

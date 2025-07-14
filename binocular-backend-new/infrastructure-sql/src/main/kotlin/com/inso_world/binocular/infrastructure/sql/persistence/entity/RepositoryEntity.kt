@@ -10,6 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
+import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
 import java.util.Objects
@@ -25,13 +26,18 @@ internal data class RepositoryEntity(
     val name: String,
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     var commits: MutableSet<CommitEntity> = mutableSetOf(),
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = UserEntity::class, cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(
+        fetch = FetchType.LAZY,
+        targetEntity = UserEntity::class,
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+    )
     val user: MutableSet<UserEntity> = mutableSetOf(),
 //    @OneToMany(fetch = FetchType.LAZY, targetEntity = BranchEntity::class, cascade = [CascadeType.ALL], orphanRemoval = true)
 //    var branches: MutableSet<BranchEntity> = mutableSetOf(),
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "fk_project", referencedColumnName = "id")
-    val project: ProjectEntity,
+    var project: ProjectEntity,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -39,7 +45,7 @@ internal data class RepositoryEntity(
 
         other as RepositoryEntity
 
-        if (id != other.id) return false
+//        if (id != other.id) return false
         if (name != other.name) return false
         if (commits != other.commits) return false
         if (user != other.user) return false
@@ -51,4 +57,9 @@ internal data class RepositoryEntity(
     override fun hashCode(): Int = Objects.hash(id, name)
 
     override fun toString(): String = "RepositoryEntity(id=$id, name='$name')"
+
+    @PreRemove
+    fun preRemove() {
+        project.repo = null
+    }
 }

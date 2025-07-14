@@ -6,6 +6,7 @@ import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Project
@@ -30,21 +31,22 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
     @Autowired
     private lateinit var testDataSetupService: TestDataSetupService
 
-//    @Autowired
-//    internal lateinit var commitRepository: CommitRepository
-//
+    @Autowired
+    internal lateinit var commitRepository: CommitInfrastructurePort
+
+    //
 //    @Autowired
 //    internal lateinit var userRepository: UserInfrastructurePort
 //
     @Autowired
     internal lateinit var repositoryRepository: RepositoryInfrastructurePort
 
-//
+    //
 //    @Autowired
 //    internal lateinit var branchRepository: BranchRepository
 //
     @Autowired
-    internal lateinit var projectRepository: ProjectInfrastructurePort
+    private lateinit var projectRepository: ProjectInfrastructurePort
 
     protected lateinit var simpleRepo: Repository
 
@@ -60,11 +62,18 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
                 "HEAD",
                 projectName = SIMPLE_PROJECT_NAME,
             )
-        this.simpleProject = this.projectRepository.save(simpleRepoConfig.project)
-        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toDomain(this.simpleProject)
-        generateCommits(simpleRepoConfig, simpleRepo)
-        this.simpleProject.repo = this.simpleRepo
-        this.simpleRepo = this.repositoryRepository.save(this.simpleRepo)
+        val repo = simpleRepoConfig.repo.toVcsRepository().toDomain()
+//        this.simpleProject = this.projectRepository.save(simpleRepoConfig.project)
+//        this.simpleRepo = this.repositoryRepository.save(simpleRepoConfig.repo.toVcsRepository().toDomain(this.simpleProject))
+//        simpleRepoConfig.project.repo = this.simpleRepo
+        repo.project = simpleRepoConfig.project
+        repo.project?.repo = repo
+        generateCommits(simpleRepoConfig, repo)
+//        this.simpleProject.repo = this.simpleRepo
+//        simpleRepoConfig.project.repo = repo
+        this.simpleProject = projectRepository.save(repo.project!!)
+        this.simpleRepo =
+            this.simpleProject.repo ?: throw IllegalStateException("Repository must be present at this state")
     }
 
     @AfterEach

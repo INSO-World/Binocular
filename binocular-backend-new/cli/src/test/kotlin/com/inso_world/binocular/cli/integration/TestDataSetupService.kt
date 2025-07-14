@@ -31,9 +31,16 @@ internal class TestDataSetupService(
     @Transactional
     fun clearAllData() {
 //        commitRepository.saveAll(emptyList())
-        projectRepository.findAll().map { e -> e.id?.let { projectRepository.deleteById(it) } }
-        repositoryRepository.findAll().map { e -> e.id?.let { repositoryRepository.deleteById(it) } }
-        commitRepository.findAll().map { e -> e.id?.let { commitRepository.deleteById(it) } }
+//        projectRepository.findAll().map { projectRepository.delete(it) }
+        projectRepository.deleteAll()
+        repositoryRepository.deleteAll()
+        commitRepository.deleteAll()
+//            .findAll().map { commitRepository.delete(it) }
+
+        //        commitRepository.findAll().map { commitRepository.delete(it) }
+//        commitRepository.findAll().map { e -> e.id?.let { commitRepository.deleteById(it) } }
+
+        //        projectRepository.findAll().map { e -> e.id?.let { projectRepository.deleteById(it) } }
 
 //        accountRepository.saveAll(emptyList())
 //        branchRepository.saveAll(emptyList())

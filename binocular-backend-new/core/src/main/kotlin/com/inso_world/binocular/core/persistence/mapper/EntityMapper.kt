@@ -12,12 +12,16 @@ interface EntityMapper<D, E> {
     /**
      * Converts a domain model to a database entity
      */
-    fun toEntity(domain: @Valid D): @Valid E
+    fun toEntity(
+        @Valid domain: D,
+    ): @Valid E
 
     /**
      * Converts a database entity to a domain model
      */
-    fun toDomain(entity: @Valid E): @Valid D
+    fun toDomain(
+        @Valid entity: E,
+    ): @Valid D
 
     /**
      * Converts a list of database entities to a list of domain models

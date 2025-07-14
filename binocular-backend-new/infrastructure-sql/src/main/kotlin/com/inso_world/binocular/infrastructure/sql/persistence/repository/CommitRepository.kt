@@ -48,4 +48,10 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long> {
     fun findAllLeafCommits(
         @Param("repoId") repoId: Long,
     ): Iterable<CommitEntity>
+
+    @Suppress("ktlint:standard:function-naming")
+    fun findByRepository_IdAndSha(
+        repoId: Long,
+        sha: String,
+    ): CommitEntity?
 }
