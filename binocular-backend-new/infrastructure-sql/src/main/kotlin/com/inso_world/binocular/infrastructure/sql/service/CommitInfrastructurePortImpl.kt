@@ -1,5 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.exception.BinocularInfrastructureException
+import com.inso_world.binocular.core.persistence.exception.PersistenceException
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.ICommitDao
@@ -21,8 +23,9 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+// @Validated
 @Service
-internal class CommitInfrastructurePort(
+internal class CommitInfrastructurePortImpl(
     @Autowired private val commitDao: ICommitDao,
     @Autowired private val commitMapper: CommitMapper,
     @Lazy private val repoMapper: RepositoryMapper,
@@ -35,6 +38,11 @@ internal class CommitInfrastructurePort(
         super.dao = commitDao
         super.mapper = commitMapper
     }
+
+    override fun create(domain: Commit): Commit =
+        this.dao.create(commitMapper.toEntity(domain, mutableMapOf())).let {
+            commitMapper.toDomain(it)
+        }
 
     override fun findAll(
         pageable: Pageable,
@@ -75,19 +83,24 @@ internal class CommitInfrastructurePort(
     override fun findExistingSha(
         repo: Repository,
         shas: List<String>,
-    ): Set<Commit> =
+    ): Iterable<Commit> =
         this.commitDao
             .findExistingSha(
                 this.repoMapper.toEntity(repo),
                 shas,
             ).map { this.commitMapper.toDomain(it) }
-            .toSet()
+//            .toSet()
 
     override fun findAllByRepo(
         repo: Repository,
         pageable: Pageable,
     ): Iterable<Commit> {
-        TODO("Not yet implemented")
+        val repoEntity = repoMapper.toEntity(repo)
+        return try {
+            this.commitDao.findAllByRepo(repoEntity, pageable).map { this.commitMapper.toDomain(it) }
+        } catch (e: PersistenceException) {
+            throw BinocularInfrastructureException(e)
+        }
     }
 
     override fun findHeadForBranch(
@@ -98,11 +111,11 @@ internal class CommitInfrastructurePort(
             .findHeadForBranch(
                 this.repoMapper.toEntity(repo),
                 branch,
-            )?.let { this.commitMapper.toDomain(it) }
+            )?.let { this.commitMapper.toDomain(it, mutableMapOf()) }
 
     override fun findAllLeafCommits(repo: Repository): Iterable<Commit> =
         this.commitDao
             .findAllLeafCommits(
                 this.repoMapper.toEntity(repo),
-            ).map { this.commitMapper.toDomain(it) }
+            ).map { this.commitMapper.toDomain(it, mutableMapOf()) }
 }

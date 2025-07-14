@@ -59,19 +59,17 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @BeforeEach
     fun beforeEach() {
-        val p = projectDao.save(simpleRepoConfig.project)
-        p.repo = simpleRepoConfig.repo.toVcsRepository().toDomain(p)
-        this.simpleRepo = this.repositoryDao.save(p.repo!!)
+        val repo = simpleRepoConfig.repo.toVcsRepository().toDomain()
+        repo.project = simpleRepoConfig.project
+        simpleRepoConfig.project.repo = repo
+        val project = projectDao.save(simpleRepoConfig.project)
+        project.repo?.let { this.simpleRepo = it }
+            ?: throw IllegalStateException("Repo for project ${simpleRepoConfig.project.name} not found")
     }
 
     @AfterEach
     fun afterEach() {
         this.simpleRepo.projectId?.let { projectDao.deleteById(it) }
-//        projectRepository.deleteAll()
-//        repositoryRepository.deleteAll()
-//        commitRepository.deleteAll()
-//        userRepository.deleteAll()
-//        entityManager.close()
     }
 
     @Test
@@ -94,7 +92,7 @@ internal class RepositoryDaoTestWithSimpleData(
         val created = this.repositoryDao.findAll().toList()[0]
 
         assertAll(
-//            { assertThat(created.id).isNotNull() },
+            { assertThat(created.id).isNotNull() },
             { assertThat(created.name).isEqualTo("${FIXTURES_PATH}/${SIMPLE_REPO}/.git") },
         )
     }
@@ -104,7 +102,7 @@ internal class RepositoryDaoTestWithSimpleData(
         val simple = this.repositoryDao.findById(simpleRepo.id!!)!!
 
         assertAll(
-//            { assertThat(simple.id).isNotNull() },
+            { assertThat(simple.id).isNotNull() },
             { assertThat(simple.name).isEqualTo("${FIXTURES_PATH}/${SIMPLE_REPO}/.git") },
         )
     }
@@ -119,12 +117,12 @@ internal class RepositoryDaoTestWithSimpleData(
         val commits = generateCommits(simpleRepoConfig, simpleRepo)
 
         simpleRepo.commits.addAll(commits)
-        val saved = this.repositoryDao.updateAndFlush(simpleRepo)
-        val commitRepoIds = saved.commits.map { it.repository?.id }
+        val saved = this.repositoryDao.update(simpleRepo)
+        val commitRepoIds = saved.commits.mapNotNull { it.repositoryId }
         val userRepoIds =
             listOf(
-                saved.commits.map { it.committer },
-                saved.commits.map { it.author },
+                saved.commits.mapNotNull { it.committer },
+                saved.commits.mapNotNull { it.author },
             ).flatten()
 
         assertAll(
@@ -134,7 +132,7 @@ internal class RepositoryDaoTestWithSimpleData(
             { assertThat(userRepoIds).isNotEmpty() },
             { assertThat(userRepoIds).hasSize(28) },
             { assertThat(userRepoIds).doesNotContainNull() },
-//            { assertThat(saved.id).isNotNull() },
+            { assertThat(saved.id).isNotNull() },
             { assertThat(saved.commits).isNotEmpty() },
             { assertThat(saved.commits).hasSize(14) },
         )

@@ -11,10 +11,12 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
@@ -56,6 +58,7 @@ internal data class CommitEntity(
     )
     val branches: MutableSet<BranchEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @field:NotNull
     var repository: RepositoryEntity? = null,
 ) {
     //    @OneToOne(mappedBy = "commit", cascade = [CascadeType.ALL], orphanRemoval = true)
@@ -169,4 +172,9 @@ internal data class CommitEntity(
     }
 
     override fun hashCode(): Int = Objects.hash(id, sha, date, message, webUrl)
+
+    @PreRemove
+    fun preRemove() {
+        this.repository = null
+    }
 }

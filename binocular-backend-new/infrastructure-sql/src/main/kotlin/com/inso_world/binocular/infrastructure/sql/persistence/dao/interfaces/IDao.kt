@@ -6,22 +6,22 @@ import org.springframework.data.domain.Pageable
 import java.io.Serializable
 import java.util.stream.Stream
 
-interface IDao<T, I : Serializable> {
-    fun findById(id: I): T?
+internal interface IDao<T, I : Serializable> {
+    fun findById(id: I): @Valid T?
 
     fun create(
         @Valid entity: T,
-    ): T
+    ): @Valid T
 
-    fun findAll(): Iterable<T>
+    fun findAll(): Iterable<@Valid T>
 
     fun findAllAsStream(): Stream<T>
 
-    fun findAll(pageable: Pageable): Page<T>
+    fun findAll(pageable: Pageable): Page<@Valid T>
 
     fun update(
         @Valid entity: T,
-    ): T
+    ): @Valid T
 
     fun delete(
         @Valid entity: T,
@@ -31,7 +31,7 @@ interface IDao<T, I : Serializable> {
 
     fun updateAndFlush(
         @Valid entity: T,
-    ): T
+    ): @Valid T
 
     /**
      * Delete all entities
@@ -41,13 +41,15 @@ interface IDao<T, I : Serializable> {
     /**
      * Save an entity (create or update)
      */
-    @Deprecated("should be replaced with create")
-    fun save(entity: @Valid T): @Valid T
+    @Deprecated("should be replaced with create", ReplaceWith("create"))
+    fun save(
+        @Valid entity: T,
+    ): @Valid T
 
     /**
      * Save multiple entities
      */
     fun saveAll(
-        @Valid entities: Collection<T>,
-    ): Iterable<T>
+        @Valid entities: Collection<@Valid T>,
+    ): Iterable<@Valid T>
 }

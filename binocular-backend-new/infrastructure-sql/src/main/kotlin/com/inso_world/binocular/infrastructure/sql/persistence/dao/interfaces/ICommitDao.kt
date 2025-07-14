@@ -8,7 +8,7 @@ internal interface ICommitDao : IDao<CommitEntity, Long> {
     fun findExistingSha(
         repo: RepositoryEntity,
         shas: List<String>,
-    ): Set<CommitEntity>
+    ): Iterable<CommitEntity>
 
     fun findAllByRepo(
         repo: RepositoryEntity,
@@ -22,4 +22,9 @@ internal interface ICommitDao : IDao<CommitEntity, Long> {
     ): CommitEntity?
 
     fun findAllLeafCommits(repo: RepositoryEntity): Iterable<CommitEntity>
+
+    fun findBySha(
+        repo: RepositoryEntity,
+        sha: String,
+    ): CommitEntity?
 }

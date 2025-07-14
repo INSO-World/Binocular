@@ -1,8 +1,8 @@
 package com.inso_world.binocular.cli.service
 
-import com.inso_world.binocular.cli.exception.PersistenceException
 import com.inso_world.binocular.cli.exception.ServiceException
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
+import com.inso_world.binocular.core.exception.BinocularInfrastructureException
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
@@ -30,7 +30,7 @@ class CommitService(
                 .map { m -> m.sha }
                 .collect(Collectors.toList())
 
-        val existingEntities: Set<Commit> = commitPort.findExistingSha(repo, allShas)
+        val existingEntities: Set<Commit> = commitPort.findExistingSha(repo, allShas).toSet()
 
         val refIdsToRemove = existingEntities.map { it.sha }.toSet()
         val missingShas = minedCommits.filterNot { it.sha in refIdsToRemove }.stream().collect(Collectors.toSet())
@@ -50,9 +50,8 @@ class CommitService(
         val pageable: Pageable = PageRequest.of(page - 1, perPage)
 
         try {
-            TODO()
-//            return commitDao.findAllByRepo(repo, pageable)
-        } catch (e: PersistenceException) {
+            return commitPort.findAllByRepo(repo, pageable)
+        } catch (e: BinocularInfrastructureException) {
             throw ServiceException(e)
         }
     }
@@ -62,7 +61,6 @@ class CommitService(
         branch: String,
     ): Commit? {
         logger.trace("Finding head for branch $branch in repository ${repo.name}...")
-        TODO()
-//        return this.commitDao.findHeadForBranch(repo, branch)
+        return commitPort.findHeadForBranch(repo, branch)
     }
 }

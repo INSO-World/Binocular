@@ -53,13 +53,13 @@ internal class VcsIndexCommandsTest(
         val repo = transactionTemplate.execute { this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO") }
         assertAll(
             { assertThat(repo).isNotNull() },
-//            { assertThat(repo!!.id).isNotNull() },
-            { assertThat(repo!!.branches).isNotEmpty() },
-            { assertThat(repo!!.branches).hasSize(1) },
-            { assertThat(repo!!.branches.map { it.name }).contains(branchName) },
-            { assertThat(repo!!.commits).isNotEmpty() },
-            { assertThat(repo!!.commits).hasSize(noOfCommits) },
-            { assertThat(repo!!.user).hasSize(3) },
+//            { assertThat(repo?.id).isNotNull() },
+            { assertThat(repo?.branches).isNotEmpty() },
+            { assertThat(repo?.branches).hasSize(1) },
+            { assertThat(repo?.branches?.map { it.name }).contains(branchName) },
+            { assertThat(repo?.commits).isNotEmpty() },
+            { assertThat(repo?.commits).hasSize(noOfCommits) },
+            { assertThat(repo?.user).hasSize(3) },
         )
 //      }
 //    }
@@ -86,13 +86,13 @@ internal class VcsIndexCommandsTest(
 
             assertAll(
                 { assertThat(repo1).isNotNull() },
-//                { assertThat(repo1!!.id).isNotNull() },
-                { assertThat(repo1!!.branches).isNotEmpty() },
-                { assertThat(repo1!!.branches).hasSize(1) },
-                { assertThat(repo1!!.branches.map { it.name }).contains("origin/master") },
-                { assertThat(repo1!!.commits).isNotEmpty() },
-                { assertThat(repo1!!.commits).hasSize(13) },
-                { assertThat(repo1!!.user).hasSize(3) },
+//                { assertThat(repo1?.id).isNotNull() },
+                { assertThat(repo1?.branches).isNotEmpty() },
+                { assertThat(repo1?.branches).hasSize(1) },
+                { assertThat(repo1?.branches?.map { it.name }).contains("origin/master") },
+                { assertThat(repo1?.commits).isNotEmpty() },
+                { assertThat(repo1?.commits).hasSize(13) },
+                { assertThat(repo1?.user).hasSize(3) },
             )
         }
 //    }
@@ -113,13 +113,13 @@ internal class VcsIndexCommandsTest(
 
             assertAll(
                 { assertThat(repo2).isNotNull() },
-//                { assertThat(repo2!!.id).isNotNull() },
-                { assertThat(repo2!!.branches).isNotEmpty() },
-                { assertThat(repo2!!.branches).hasSize(2) },
-                { assertThat(repo2!!.branches.map { it.name }).containsAll(listOf("origin/master", "master")) },
-                { assertThat(repo2!!.commits).isNotEmpty() },
-                { assertThat(repo2!!.commits).hasSize(14) },
-                { assertThat(repo2!!.user).hasSize(3) },
+//                { assertThat(repo2?.id).isNotNull() },
+                { assertThat(repo2?.branches).isNotEmpty() },
+                { assertThat(repo2?.branches).hasSize(2) },
+                { assertThat(repo2?.branches?.map { it.name }).containsAll(listOf("origin/master", "master")) },
+                { assertThat(repo2?.commits).isNotEmpty() },
+                { assertThat(repo2?.commits).hasSize(14) },
+                { assertThat(repo2?.user).hasSize(3) },
             )
         }
 //      }
@@ -152,13 +152,13 @@ internal class VcsIndexCommandsTest(
                 val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
                 assertAll(
                     { assertThat(repo).isNotNull() },
-//                    { assertThat(repo!!.id).isNotNull() },
-                    { assertThat(repo!!.branches).isNotEmpty() },
-                    { assertThat(repo!!.branches).hasSize(1) },
-                    { assertThat(repo!!.branches.map { it.name }).contains(branchName) },
-                    { assertThat(repo!!.commits).isNotEmpty() },
-                    { assertThat(repo!!.commits).hasSize(numberOfCommits) },
-                    { assertThat(repo!!.user).hasSize(3) },
+//                    { assertThat(repo?.id).isNotNull() },
+                    { assertThat(repo?.branches).isNotEmpty() },
+                    { assertThat(repo?.branches).hasSize(1) },
+                    { assertThat(repo?.branches?.map { it.name }).contains(branchName) },
+                    { assertThat(repo?.commits).isNotEmpty() },
+                    { assertThat(repo?.commits).hasSize(numberOfCommits) },
+                    { assertThat(repo?.user).hasSize(3) },
                 )
 //      repo1 = repo
                 repo
@@ -183,13 +183,13 @@ internal class VcsIndexCommandsTest(
 
                 assertAll(
                     { assertThat(repo).isNotNull() },
-//                    { assertThat(repo!!.id).isNotNull() },
-                    { assertThat(repo!!.branches).isNotEmpty() },
-                    { assertThat(repo!!.branches).hasSize(1) },
-                    { assertThat(repo!!.branches.map { it.name }).contains(branchName) },
-                    { assertThat(repo!!.commits).isNotEmpty() },
-                    { assertThat(repo!!.commits).hasSize(numberOfCommits) },
-                    { assertThat(repo!!.user).hasSize(3) },
+//                    { assertThat(repo?.id).isNotNull() },
+                    { assertThat(repo?.branches).isNotEmpty() },
+                    { assertThat(repo?.branches).hasSize(1) },
+                    { assertThat(repo?.branches?.map { it.name }).contains(branchName) },
+                    { assertThat(repo?.commits).isNotEmpty() },
+                    { assertThat(repo?.commits).hasSize(numberOfCommits) },
+                    { assertThat(repo?.user).hasSize(3) },
                 )
                 repo
             }
@@ -221,13 +221,13 @@ internal class VcsIndexCommandsTest(
             val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
             assertAll(
                 { assertThat(repo).isNotNull() },
-//                { assertThat(repo!!.id).isNotNull() },
-                { assertThat(repo!!.branches).isNotEmpty() },
-                { assertThat(repo!!.branches).hasSize(1) },
-                { assertThat(repo!!.branches.map { it.name }).contains("master") },
-                { assertThat(repo!!.commits).isNotEmpty() },
-                { assertThat(repo!!.commits).hasSize(14) },
-                { assertThat(repo!!.user).hasSize(3) },
+//                { assertThat(repo?.id).isNotNull() },
+                { assertThat(repo?.branches).isNotEmpty() },
+                { assertThat(repo?.branches).hasSize(1) },
+                { assertThat(repo?.branches?.map { it.name }).contains("master") },
+                { assertThat(repo?.commits).isNotEmpty() },
+                { assertThat(repo?.commits).hasSize(14) },
+                { assertThat(repo?.user).hasSize(3) },
             )
             repo1 = repo
 //      }

@@ -33,16 +33,16 @@ interface BinocularInfrastructurePort<T> {
     fun findById(id: String): @Valid T?
 
     fun save(
-        @Valid entity: T,
-    ): T
+        @Valid domain: T,
+    ): @Valid T
 
     fun update(
-        @Valid entity: T,
-    ): T
+        @Valid domain: T,
+    ): @Valid T
 
     fun updateAndFlush(
-        @Valid entity: T,
-    ): T
+        @Valid domain: T,
+    ): @Valid T
 
     /**
      * Save multiple entities
@@ -51,10 +51,13 @@ interface BinocularInfrastructurePort<T> {
         @Valid entities: Collection<@Valid T>,
     ): Iterable<@Valid T>
 
-    @Deprecated("use deleteById(id: String)")
     fun delete(
-        @Valid entity: T,
+        @Valid domain: T,
     )
 
     fun deleteById(id: String)
+
+    fun deleteAll() {
+        TODO()
+    }
 }

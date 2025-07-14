@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.validation.constraints.NotBlank
 
 /**
  * SQL-specific User entity.
@@ -17,6 +18,7 @@ internal data class UserEntity(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
     @Column(name = "git_signature")
+    @field:NotBlank
     var gitSignature: String,
 ) {
     //    @ManyToMany(mappedBy = "users")

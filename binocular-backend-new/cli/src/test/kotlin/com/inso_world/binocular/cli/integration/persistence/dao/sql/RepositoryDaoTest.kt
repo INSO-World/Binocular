@@ -44,8 +44,11 @@ internal class RepositoryDaoTest(
             // Given
             val savedProject =
                 projectDao.save(Project(name = "Surviving Project", description = "Will survive repo deletion"))
-            val repository = Repository(id = null, name = "to-be-deleted-repo", projectId = savedProject.id)
-            val savedRepo = repositoryDao.save(repository)
+            val savedRepo =
+                repositoryDao.save(Repository(id = null, name = "to-be-deleted-repo", projectId = savedProject.id))
+            // updated dependencies, as not managed by JPA
+            savedProject.repo = savedRepo
+            projectDao.update(savedProject)
 
             // When
             repositoryDao.delete(savedRepo)
@@ -54,8 +57,8 @@ internal class RepositoryDaoTest(
             assertAll(
                 { assertThat(repositoryDao.findAll()).isEmpty() },
                 { assertThat(projectDao.findAll()).hasSize(1) },
-//                { assertThat(projectDao.findById(savedProject.id!!)).isNotNull() },
-//                { assertThat(projectDao.findById(savedProject.id!!)?.repo).isNull() },
+                { assertThat(projectDao.findById(savedProject.id!!)).isNotNull() },
+                { assertThat(projectDao.findById(savedProject.id!!)?.repo).isNull() },
             )
         }
 
@@ -66,6 +69,8 @@ internal class RepositoryDaoTest(
             val savedProject = projectDao.save(Project(name = "Temporary Project", description = "Will be deleted"))
             val repository = Repository(id = null, name = "orphaned-repo", projectId = savedProject.id)
             savedProject.repo = repositoryDao.save(repository)
+            // updated dependencies, as not managed by JPA
+            projectDao.update(savedProject)
 
             projectDao.delete(savedProject)
 
@@ -85,7 +90,8 @@ internal class RepositoryDaoTest(
             // When - First repository should be created successfully
             val firstRepo =
                 transactionTemplate.execute {
-                    val repo = repositoryDao.save(Repository(id = null, name = "first-repo", projectId = savedProject.id))
+                    val repo =
+                        repositoryDao.save(Repository(id = null, name = "first-repo", projectId = savedProject.id))
                     repo
                 }
 
@@ -128,11 +134,12 @@ internal class RepositoryDaoTest(
             val savedProject = projectDao.save(Project(name = "Valid Project", description = "Valid project"))
             val savedRepo = repositoryDao.save(Repository(id = null, name = allowedName, projectId = savedProject.id))
             savedProject.repo = savedRepo
+            projectDao.update(savedProject)
 
             // Then
             assertAll(
                 { assertThat(savedRepo.name).isEqualTo(allowedName) },
-//                { assertThat(savedRepo.project.id).isEqualTo(savedProject.id) },
+                { assertThat(savedRepo.projectId).isEqualTo(savedProject.id) },
                 { assertThat(projectDao.findAll()).hasSize(1) },
                 { assertThat(repositoryDao.findAll()).hasSize(1) },
             )

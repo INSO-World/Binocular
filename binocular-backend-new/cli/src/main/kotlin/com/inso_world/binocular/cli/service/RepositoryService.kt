@@ -174,21 +174,21 @@ class RepositoryService {
 
 fun Repository.addCommit(commit: Commit) {
     this.commits.add(commit)
-    commit.repository = this
+    commit.repositoryId = this.id
 }
 
 private fun Repository.addUser(e: User) {
     this.user.add(e)
-//        e.repository = this
+//    e.repository = this
 }
 
 private fun Repository.addBranch(b: Branch) {
     this.branches.add(b)
-//    b.repository = this
+    b.repositoryId = this.id
 }
 
 private fun Branch.addCommit(e: Commit) {
-//    this.commits.add(e)
+    this.commitShas.add(e.sha)
     e.branches.add(this)
 }
 

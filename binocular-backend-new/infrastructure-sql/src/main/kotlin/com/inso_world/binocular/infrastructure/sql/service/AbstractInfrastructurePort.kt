@@ -10,21 +10,22 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.validation.annotation.Validated
 import java.io.Serializable
 import java.util.stream.Stream
 import kotlin.reflect.KClass
 
-abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Serializable>(
+@Validated
+internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Serializable>(
     private val idKClass: KClass<I>,
-) : IDao<D, I>,
-    BinocularInfrastructurePort<D> {
+) : BinocularInfrastructurePort<D> {
     @Autowired
     protected lateinit var entityManager: EntityManager
 
     protected lateinit var mapper: EntityMapper<D, E>
     protected lateinit var dao: IDao<E, I>
 
-    override fun findById(id: I): D? =
+    fun findById(id: I): D? =
         dao.findById(id)?.let {
             mapper.toDomain(it)
         }
@@ -32,7 +33,7 @@ abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Serializable>(
     override fun findById(id: String): D? = this.findById(read(id))
 
     @Transactional
-    override fun create(entity: D): D = this.dao.create(mapper.toEntity(entity)).let { mapper.toDomain(it) }
+    fun create(domain: D): D = this.dao.create(mapper.toEntity(domain)).let { mapper.toDomain(it) }
 
     override fun findAll(): Iterable<D> = this.dao.findAll().map { mapper.toDomain(it) }
 
@@ -41,18 +42,13 @@ abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Serializable>(
 //        return this.dao.findAll(pageable).map {  }
     }
 
-    override fun findAllAsStream(): Stream<D> = this.dao.findAllAsStream().map { mapper.toDomain(it) }
+    fun findAllAsStream(): Stream<D> = this.dao.findAllAsStream().map { mapper.toDomain(it) }
 
-    override fun update(entity: D): D = this.dao.update(mapper.toEntity(entity)).let { mapper.toDomain(it) }
+    override fun update(domain: D): D = this.dao.update(mapper.toEntity(domain)).let { mapper.toDomain(it) }
 
-    override fun delete(entity: D) {
-//        this.dao.delete(mapper.toEntity(entity))
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: I) {
-//        this.dao.deleteById(id)
-        TODO("Not yet implemented")
+    override fun delete(domain: D) {
+        val mappedEntity = mapper.toEntity(domain)
+        this.dao.delete(mappedEntity)
     }
 
     override fun deleteById(id: String) {
@@ -60,16 +56,17 @@ abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Serializable>(
         this.dao.deleteById(value)
     }
 
-    override fun updateAndFlush(entity: D): D = this.dao.updateAndFlush(mapper.toEntity(entity)).let { mapper.toDomain(it) }
+    override fun updateAndFlush(domain: D): D = this.dao.updateAndFlush(mapper.toEntity(domain)).let { mapper.toDomain(it) }
 
     override fun deleteAll() {
         this.dao.deleteAll()
     }
 
     @Deprecated("to be deleted")
-    override fun save(entity: D): D {
+    @Transactional
+    override fun save(domain: D): D {
         try {
-            return this.dao.create(mapper.toEntity(entity)).let { mapper.toDomain(it) }
+            return create(domain)
         } catch (ex: DataIntegrityViolationException) {
             val cause = ex.cause
             if (cause is ConstraintViolationException) {

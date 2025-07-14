@@ -9,7 +9,7 @@ import com.inso_world.binocular.model.Note
 import org.springframework.stereotype.Service
 
 @Service
-class MergeRequestInfrastructurePortImpl :
+internal class MergeRequestInfrastructurePortImpl :
     AbstractInfrastructurePort<MergeRequest, MergeRequestEntity, Long>(Long::class),
     MergeRequestInfrastructurePort {
     override fun findAccountsByMergeRequestId(mergeRequestId: String): List<Account> {

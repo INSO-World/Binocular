@@ -30,7 +30,7 @@ data class VcsCommit(
             author = this.author?.toEntity(),
             parents = emptyList(), // Will be set later in transformCommits
             branches = mutableSetOf(), // Will be set later in transformCommits
-            repository = null, // Will be set later in transformCommits
+            repositoryId = null, // Will be set later in transformCommits
         )
 }
 

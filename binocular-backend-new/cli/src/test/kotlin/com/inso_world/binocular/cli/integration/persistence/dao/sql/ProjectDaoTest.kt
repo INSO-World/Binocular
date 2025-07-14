@@ -72,12 +72,13 @@ internal class ProjectDaoTest(
             // Given
             val savedProject =
                 projectDao.save(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
-            val repository = Repository(id = null, name = "cascading-repo", projectId = savedProject.id)
-            savedProject.repo = repositoryDao.save(repository)
+            savedProject.repo =
+                repositoryDao.save(Repository(id = null, name = "cascading-repo", projectId = savedProject.id))
+            // updated dependencies, as not managed by JPA
+            projectDao.update(savedProject)
 
             // When
-            savedProject.id?.let { projectDao.deleteById(it) }
-                ?: throw IllegalStateException("Project id must not be null at this state")
+            projectDao.delete(savedProject)
 
             // Then
             assertAll(
@@ -129,7 +130,7 @@ internal class ProjectDaoTest(
             // Then
             assertAll(
                 { assertThat(savedProject.name).isEqualTo(allowedName) },
-//                { assertThat(savedRepo.project.id).isEqualTo(savedProject.id) },
+                { assertThat(savedRepo.projectId).isEqualTo(savedProject.id) },
                 { assertThat(projectDao.findAll()).hasSize(1) },
                 { assertThat(repositoryDao.findAll()).hasSize(1) },
             )

@@ -3,12 +3,14 @@ package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.TestDataSetupService
+import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -49,33 +51,36 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
 
     @BeforeEach
     fun setupBase() {
-        val simpleRepoConfig =
+        fun prepare(repoConfig: RepositoryConfig): Project {
+            repoConfig.project.repo = repoConfig.repo.toVcsRepository().toDomain()
+            repoConfig.project.repo?.project = repoConfig.project
+            repoConfig.project.repo?.let { generateCommits(repoConfig, it) } ?: throw IllegalStateException(
+                "Repository must not be null at this point",
+            )
+            return projectRepository.save(repoConfig.project)
+        }
+
+        prepare(
             setupRepoConfig(
                 "${FIXTURES_PATH}/${SIMPLE_REPO}",
                 "HEAD",
                 projectName = SIMPLE_PROJECT_NAME,
-            )
-        this.simpleRepo = simpleRepoConfig.repo.toVcsRepository().toDomain(simpleRepoConfig.project)
-        simpleRepoConfig.project.repo = this.simpleRepo
-        generateCommits(simpleRepoConfig, simpleRepo)
-//        transactionTemplate.execute {
-        projectRepository.save(simpleRepoConfig.project)
-        this.simpleRepo = this.repositoryRepository.save(this.simpleRepo)
-//        }
+            ),
+        ).also { savedProject ->
+            savedProject.repo?.let { this.simpleRepo = it }
+                ?: throw IllegalStateException("Repository must not be null after save")
+        }
 
-        val octoRepoConfig =
+        prepare(
             setupRepoConfig(
                 "${FIXTURES_PATH}/${OCTO_REPO}",
                 "HEAD",
                 projectName = OCTO_PROJECT_NAME,
-            )
-        this.octoRepo = octoRepoConfig.repo.toVcsRepository().toDomain(octoRepoConfig.project)
-        octoRepoConfig.project.repo = this.octoRepo
-        generateCommits(octoRepoConfig, octoRepo)
-//        transactionTemplate.execute {
-        projectRepository.save(octoRepoConfig.project)
-        this.octoRepo = this.repositoryRepository.save(this.octoRepo)
-//        }
+            ),
+        ).also { savedProject ->
+            savedProject.repo?.let { this.octoRepo = it }
+                ?: throw IllegalStateException("Repository must not be null after save")
+        }
     }
 
     @AfterEach
