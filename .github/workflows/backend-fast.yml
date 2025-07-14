@@ -184,6 +184,13 @@ jobs:
       - name: Run tests for module ${{ matrix.module }}
         run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
 
-      - name: Publish Test Report for ${{ matrix.module }}
-        if: success() || failure()
-        uses: scacap/action-surefire-report@v1
+      - name: Surefire report for module ${{ matrix.module }}
+        if: always()
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
+
+      - name: Upload surefire report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-report
+          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
