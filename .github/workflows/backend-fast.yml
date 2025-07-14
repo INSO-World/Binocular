@@ -61,7 +61,7 @@ jobs:
 
   test-application-h2:
     name: Test-Application Layers w/ H2
-#    needs: compile
+    needs: compile
 
     defaults:
       run:
@@ -108,12 +108,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.module }}-report
+          name: ${{ matrix.module }}-report-h2
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-application-arangodb:
     name: Test-Application Layers w/ ArangoDB
-#    needs: compile
+    needs: compile
 
     defaults:
       run:
@@ -168,12 +168,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.module }}-report
+          name: ${{ matrix.module }}-report-arangodb
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-modules:
     name: Test
-#    needs: compile
+    needs: compile
 
     defaults:
       run:
