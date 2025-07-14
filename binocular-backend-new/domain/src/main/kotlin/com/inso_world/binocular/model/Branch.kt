@@ -16,9 +16,9 @@ class Branch(
     val latestCommit: String? = null,
     // Relationships
     val files: List<File> = emptyList(),
-    val commits: MutableSet<Commit> = mutableSetOf(),
+    val commitShas: MutableSet<String> = mutableSetOf(),
     @field:NotNull
-    val repository: Repository? = null,
+    var repositoryId: String? = null,
 ) {
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
     val branch: String = name
@@ -35,8 +35,8 @@ class Branch(
         if (name != other.name) return false
         if (latestCommit != other.latestCommit) return false
         if (files != other.files) return false
-        if (commits != other.commits) return false
-        if (repository != other.repository) return false
+        if (commitShas != other.commitShas) return false
+        if (repositoryId != other.repositoryId) return false
 
         return true
     }
