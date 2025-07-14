@@ -122,6 +122,7 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
 
       - name: Surefire report for module ${{ matrix.module }}
+        if: always()
         run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
@@ -183,6 +184,7 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am
 
       - name: Surefire report for module ${{ matrix.module }}
+        if: always()
         run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
