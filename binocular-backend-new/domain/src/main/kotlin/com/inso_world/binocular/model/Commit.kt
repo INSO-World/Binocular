@@ -1,5 +1,7 @@
 package com.inso_world.binocular.model
 
+import com.inso_world.binocular.model.validation.CommitValidation
+import com.inso_world.binocular.model.validation.NoCommitCycle
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
@@ -10,7 +12,9 @@ import java.time.LocalDateTime
  * Domain model for a Commit, representing a commit in a Git repository.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
-class Commit(
+@CommitValidation
+@NoCommitCycle
+data class Commit(
     val id: String? = null,
     @field:NotBlank
     @field:Size(min = 40, max = 40)
@@ -25,7 +29,9 @@ class Commit(
     val message: String? = null,
     var author: User? = null,
     var committer: User? = null,
-    var repository: Repository? = null,
+    var repository: Repository? = null, // TODO remove
+//    @field:NotNull // TODO conditional validation, only when coming out of infra
+    var repositoryId: String? = null,
     val webUrl: String? = null,
     val branch: String? = null,
     val stats: Stats? = null,
@@ -52,7 +58,7 @@ class Commit(
         if (message != other.message) return false
         if (author != other.author) return false
         if (committer != other.committer) return false
-        if (repository != other.repository) return false
+        if (repositoryId != other.repositoryId) return false
         if (webUrl != other.webUrl) return false
         if (branch != other.branch) return false
         if (stats != other.stats) return false
@@ -81,7 +87,7 @@ class Commit(
     }
 
     override fun toString(): String =
-        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, branch=$branch, stats=$stats, author=$author, committer=$committer)"
+        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, branch=$branch, stats=$stats, author=$author, committer=$committer, repositoryId=$repositoryId)"
 }
 
 data class Stats(
