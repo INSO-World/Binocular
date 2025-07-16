@@ -744,9 +744,8 @@ export default class Commits implements DataPluginCommits {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
-    return {
+    return Promise.resolve({
       sha: sha,
       shortSha: '00001',
       files: { data: [] },
@@ -761,7 +760,7 @@ export default class Commits implements DataPluginCommits {
       parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
       webUrl: 'www.github.com',
       stats: { additions: 5, deletions: 0 },
-    };
+    });
   }
 
   public async getDateOfFirstCommit() {
