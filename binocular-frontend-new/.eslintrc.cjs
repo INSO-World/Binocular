@@ -29,7 +29,14 @@ module.exports = {
         printWidth: 140,
         jsxBracketSameLine: true
       },
-      ]
+    ],
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        args: 'all',
+        argsIgnorePattern: '^_',
+      }
+    ],
   },
   parserOptions: {
     ecmaVersion: 'latest',

@@ -1,6 +1,10 @@
 import { GraphQL, traversePages } from './utils';
 import { gql } from '@apollo/client';
-import { DataPluginCommit, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import {
+  DataPluginCommit,
+  DataPluginCommits,
+  DataPluginFileOwnership,
+} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
   private graphQl;
@@ -92,21 +96,27 @@ export default class Commits implements DataPluginCommits {
       })
       .then((res) => res.data.commits)
       .then((commits) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        commits.data.map((c: { sha: string; date: string; parents: string[]; files: { data: any[] } }) => {
-          return {
-            sha: c.sha,
-            date: c.date,
-            parents: c.parents,
-            files: c.files.data.map((fileData) => {
-              return {
-                path: fileData.file.path,
-                action: fileData.action,
-                ownership: fileData.ownership,
-              };
-            }),
-          };
-        }),
+        commits.data.map(
+          (c: {
+            sha: string;
+            date: string;
+            parents: string[];
+            files: { data: { action: string; file: { path: string }; ownership: DataPluginFileOwnership }[] };
+          }) => {
+            return {
+              sha: c.sha,
+              date: c.date,
+              parents: c.parents,
+              files: c.files.data.map((fileData) => {
+                return {
+                  path: fileData.file.path,
+                  action: fileData.action,
+                  ownership: fileData.ownership,
+                };
+              }),
+            };
+          },
+        ),
       );
   }
 

@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { ReactElement } from 'react';
 import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
 import { useSelector } from 'react-redux';
