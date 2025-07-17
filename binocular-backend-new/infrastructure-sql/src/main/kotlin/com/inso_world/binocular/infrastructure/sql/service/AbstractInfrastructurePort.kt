@@ -1,10 +1,9 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
-import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.model.Page
-import com.inso_world.binocular.core.service.BinocularInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IDao
 import jakarta.persistence.EntityManager
+import jakarta.validation.Valid
 import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
@@ -18,55 +17,60 @@ import kotlin.reflect.KClass
 @Validated
 internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Serializable>(
     private val idKClass: KClass<I>,
-) : BinocularInfrastructurePort<D> {
+) {
     @Autowired
-    protected lateinit var entityManager: EntityManager
+    internal lateinit var entityManager: EntityManager
 
-    protected lateinit var mapper: EntityMapper<D, E>
-    protected lateinit var dao: IDao<E, I>
+    internal lateinit var dao: IDao<E, I>
 
-    fun findById(id: I): D? =
-        dao.findById(id)?.let {
-            mapper.toDomain(it)
-        }
+    @Transactional(readOnly = true)
+    internal fun findById(id: I): E? = dao.findById(id)
 
-    override fun findById(id: String): D? = this.findById(read(id))
+    @Transactional(readOnly = true)
+    internal fun findAllEntities(): Iterable<E> = this.dao.findAll()
+
+    @Transactional(readOnly = true)
+    internal fun findAllEntities(pageable: Pageable): Page<E> {
+        TODO("Not yet implemented")
+    }
+
+    @Transactional(readOnly = true)
+    internal fun findAllAsStream(): Stream<E> = this.dao.findAllAsStream()
 
     @Transactional
-    fun create(domain: D): D = this.dao.create(mapper.toEntity(domain)).let { mapper.toDomain(it) }
+    internal fun updateEntity(
+        @Valid value: E,
+    ): E = this.dao.update(value)
 
-    override fun findAll(): Iterable<D> = this.dao.findAll().map { mapper.toDomain(it) }
-
-    override fun findAll(pageable: Pageable): Page<D> {
-        TODO("Not yet implemented")
-//        return this.dao.findAll(pageable).map {  }
+    @Transactional
+    internal fun delete(
+        @Valid value: E,
+    ) {
+        this.dao.delete(value)
     }
 
-    fun findAllAsStream(): Stream<D> = this.dao.findAllAsStream().map { mapper.toDomain(it) }
-
-    override fun update(domain: D): D = this.dao.update(mapper.toEntity(domain)).let { mapper.toDomain(it) }
-
-    override fun delete(domain: D) {
-        val mappedEntity = mapper.toEntity(domain)
-        this.dao.delete(mappedEntity)
-    }
-
-    override fun deleteById(id: String) {
+    @Transactional
+    internal fun deleteByEntityId(id: String) {
         val value = read(id)
         this.dao.deleteById(value)
     }
 
-    override fun updateAndFlush(domain: D): D = this.dao.updateAndFlush(mapper.toEntity(domain)).let { mapper.toDomain(it) }
+    @Transactional
+    internal fun updateAndFlush(
+        @Valid value: E,
+    ): E = this.dao.updateAndFlush(value)
 
-    override fun deleteAll() {
+    @Transactional
+    internal fun deleteAllEntities() {
         this.dao.deleteAll()
     }
 
-    @Deprecated("to be deleted")
     @Transactional
-    override fun save(domain: D): D {
+    internal fun create(
+        @Valid value: E,
+    ): E {
         try {
-            return create(domain)
+            return this.dao.create(value)
         } catch (ex: DataIntegrityViolationException) {
             val cause = ex.cause
             if (cause is ConstraintViolationException) {
@@ -76,9 +80,10 @@ internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Seriali
         }
     }
 
-    override fun saveAll(entities: Collection<D>): Iterable<D> {
-        val mapped = entities.map { this.mapper.toEntity(it) }.toList()
-        return this.dao.saveAll(mapped).map { this.mapper.toDomain(it) }
+    @Transactional
+    internal fun saveAll(values: Collection<@Valid E>): Iterable<E> {
+        TODO("Not yet implemented")
+//        return this.dao.saveAll(entities)
     }
 
     private fun read(value: String): I {

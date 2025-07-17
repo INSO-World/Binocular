@@ -1,5 +1,6 @@
 package com.inso_world.binocular.model
 
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
@@ -9,17 +10,45 @@ import jakarta.validation.constraints.NotNull
  */
 class User(
     var id: String? = null,
-    @field:NotBlank
-    val name: String? = null,
+    @field:NotBlank val name: String? = null,
+    @field:Email
+    var email: String? = null,
+//    var repositoryId: String? = null,
     @field:NotNull
-    @field:NotBlank
-    val gitSignature: String,
+    var repository: Repository? = null,
     // Relationships
-    val authoredCommits: MutableSet<Commit> = mutableSetOf(),
-    val committedCommits: MutableSet<Commit> = mutableSetOf(),
+    var committedCommits: MutableSet<Commit> = mutableSetOf(),
+    var authoredCommits: MutableSet<Commit> = mutableSetOf(),
     val issues: List<Issue> = emptyList(),
     val files: List<File> = emptyList(),
 ) {
+    fun uniqueKey(): String {
+        if (repository == null) {
+            throw IllegalStateException("cannot generate unique key for User when repository is null")
+        }
+        return "${repository?.name},$email"
+    }
+
+    fun addAuthoredCommit(commit: Commit) {
+        authoredCommits.add(commit)
+        commit.author = this
+    }
+
+//
+//    fun addProjectMembership(member: ProjectMember) {
+//        memberAliases.add(member)
+//        member.user = this
+//    }
+//
+    fun addCommittedCommit(commit: Commit) {
+        committedCommits.add(commit)
+        commit.committer = this
+    }
+
+    @Deprecated("do not use")
+    val gitSignature: String
+        get() = "$name <$email>"
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -44,5 +73,5 @@ class User(
         return result
     }
 
-    override fun toString(): String = "User(id=$id, name=$name, gitSignature='$gitSignature')"
+    override fun toString(): String = "User(id=$id, name=$name, gitSignature=$gitSignature, repositoryId=${repository?.id})"
 }

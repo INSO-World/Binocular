@@ -1,8 +1,10 @@
 package com.inso_world.binocular.infrastructure.sql.integration
 
+import com.inso_world.binocular.infrastructure.sql.service.BranchInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.ProjectInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.RepositoryInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.sql.service.UserInfrastructurePortImpl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,14 +14,14 @@ internal class SqlInfrastructureTestDataSetupService(
     private val commitRepository: CommitInfrastructurePortImpl,
     private val repositoryRepository: RepositoryInfrastructurePortImpl,
 //    private val accountRepository: AccountInfrastructurePort,
-//    private val branchRepository: BranchInfrastructurePort,
+    private val branchPort: BranchInfrastructurePortImpl,
 //    private val buildRepository: BuildInfrastructurePort,
 //    private val fileRepository: FileInfrastructurePort,
 //    private val issueRepository: IssueInfrastructurePort,
 //    private val mergeRequestRepository: MergeRequestInfrastructurePort,
 //    private val moduleRepository: ModuleInfrastructurePort,
 //    private val noteRepository: NoteInfrastructurePort,
-//    private val userRepository: UserInfrastructurePort,
+    private val userRepository: UserInfrastructurePortImpl,
 //    private val milestoneRepository: MilestoneInfrastructurePort,
 ) {
     /**
@@ -29,17 +31,11 @@ internal class SqlInfrastructureTestDataSetupService(
      */
     @Transactional
     fun clearAllData() {
-//        commitRepository.saveAll(emptyList())
-//        projectRepository.findAll().map { projectRepository.delete(it) }
         projectRepository.deleteAll()
         repositoryRepository.deleteAll()
+        userRepository.deleteAll()
+        branchPort.deleteAll()
         commitRepository.deleteAll()
-//            .findAll().map { commitRepository.delete(it) }
-
-        //        commitRepository.findAll().map { commitRepository.delete(it) }
-//        commitRepository.findAll().map { e -> e.id?.let { commitRepository.deleteById(it) } }
-
-        //        projectRepository.findAll().map { e -> e.id?.let { projectRepository.deleteById(it) } }
 
 //        accountRepository.saveAll(emptyList())
 //        branchRepository.saveAll(emptyList())

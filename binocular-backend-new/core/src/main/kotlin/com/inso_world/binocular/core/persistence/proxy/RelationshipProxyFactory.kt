@@ -18,7 +18,14 @@ interface RelationshipProxyFactory {
      */
     fun <T> createLazyList(loader: () -> List<T>): List<T>
 
-    fun <T> createLazySet(loader: () -> MutableSet<T>): MutableSet<T>
+    fun <T> createLazySet(loader: () -> Iterable<T>): Set<T>
+
+    fun <T> createLazyMutableSet(
+        loader: () -> Iterable<T>,
+        postProcessing: (LazyMutableSet<T>) -> Unit = {},
+    ): MutableSet<T>
+
+    fun <T> createLazyMutableSet(loader: () -> Iterable<T>): MutableSet<T>
 
     /**
      * Creates a lazy-loaded list that only loads its contents when accessed,

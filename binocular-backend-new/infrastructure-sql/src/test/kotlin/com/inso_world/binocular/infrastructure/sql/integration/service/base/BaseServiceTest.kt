@@ -3,6 +3,8 @@ package com.inso_world.binocular.infrastructure.sql.integration.service.base
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import com.inso_world.binocular.infrastructure.sql.TestApplication
 import com.inso_world.binocular.infrastructure.sql.integration.SqlInfrastructureTestDataSetupService
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.transaction.support.TransactionTemplate
 
 @SpringBootTest(
     classes = [TestApplication::class],
@@ -18,6 +21,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 internal open class BaseServiceTest : BaseIntegrationTest() {
+    @Autowired
+    private lateinit var transactionTemplate: TransactionTemplate
+
+    @PersistenceContext
+    private lateinit var entityManager: EntityManager
+
     @Autowired
     private lateinit var testDataSetupService: SqlInfrastructureTestDataSetupService
 //    protected lateinit var project: Project
@@ -40,6 +49,10 @@ internal open class BaseServiceTest : BaseIntegrationTest() {
 
     @AfterEach
     internal fun tearDown() {
-        testDataSetupService.clearAllData()
+        transactionTemplate.execute {
+            entityManager.flush()
+            entityManager.clear()
+            testDataSetupService.clearAllData()
+        }
     }
 }

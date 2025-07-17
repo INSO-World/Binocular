@@ -1,28 +1,49 @@
 package com.inso_world.binocular.model.validation
 
-import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Repository
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 
-class CommitValidator : ConstraintValidator<CommitValidation, Commit> {
+class CommitValidator : ConstraintValidator<CommitValidation, Repository> {
     override fun isValid(
-        commit: Commit?,
+        repository: Repository,
         context: ConstraintValidatorContext,
     ): Boolean {
-        if (commit == null) return true
+        val checks =
+            repository.commits
+                .mapIndexed { index, commit ->
+                    val repositoryId = commit.repositoryId
+                    val repositoryActualId = repository.id
 
-        val repositoryId = commit.repositoryId
-        val repository = commit.repository
+                    when {
+                        repositoryActualId == null -> {
+                            if (repositoryId != null) {
+                                context.disableDefaultConstraintViolation()
+                                context
+                                    .buildConstraintViolationWithTemplate(
+                                        "Repository ID of Commit=${commit.sha} is null, but commit has a repositoryId=$repositoryActualId.",
+                                    ).addPropertyNode("commits")
+                                    .addPropertyNode("repositoryId")
+                                    .inIterable()
+                                    .addConstraintViolation()
+                                return@mapIndexed false
+                            }
+                        }
 
-        // If repository is null, we can't validate the relationship
-        // In this case, we'll assume it's valid (repository might be set later)
-        if (repository == null) return true
-
-        val repositoryActualId = repository.id
-
-        return when {
-            repositoryActualId == null -> repositoryId == null
-            else -> repositoryId == repositoryActualId
-        }
+                        repositoryId != repositoryActualId -> {
+                            context.disableDefaultConstraintViolation()
+                            context
+                                .buildConstraintViolationWithTemplate(
+                                    "Commit repositoryId=$repositoryId does not match repository.id=$repositoryActualId.",
+                                ).addPropertyNode("commits")
+                                .addPropertyNode("repositoryId")
+                                .inIterable()
+                                .addConstraintViolation()
+                            return@mapIndexed false
+                        }
+                    }
+                    true
+                }
+        return checks.all { it }
     }
 }

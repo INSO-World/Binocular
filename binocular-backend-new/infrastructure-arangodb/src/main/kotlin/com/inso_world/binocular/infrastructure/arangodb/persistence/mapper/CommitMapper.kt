@@ -54,7 +54,7 @@ internal class CommitMapper
                 branch = entity.branch,
                 stats = entity.stats,
                 parents =
-                    proxyFactory.createLazyList {
+                    proxyFactory.createLazyMutableSet {
                         (entity.parents).map { parentEntity ->
                             toDomain(parentEntity)
                         }

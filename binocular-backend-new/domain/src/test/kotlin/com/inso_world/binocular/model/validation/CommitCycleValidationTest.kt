@@ -1,13 +1,14 @@
 package com.inso_world.binocular.model.validation
 
+import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import jakarta.validation.Validation
+import jakarta.validation.Validator
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import jakarta.validation.Validation
-import jakarta.validation.Validator
-import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import java.time.LocalDateTime
 
 class CommitCycleValidationTest {
@@ -15,196 +16,262 @@ class CommitCycleValidationTest {
 
     @BeforeEach
     fun setUp() {
-        val validatorFactory = Validation.byDefaultProvider()
-            .configure()
-            .messageInterpolator(ParameterMessageInterpolator())
-            .buildValidatorFactory()
+        val validatorFactory =
+            Validation
+                .byDefaultProvider()
+                .configure()
+                .messageInterpolator(ParameterMessageInterpolator())
+                .buildValidatorFactory()
         validator = validatorFactory.validator
     }
 
     @Test
     fun `should pass validation for commit with no parents`() {
-        val commit = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Initial commit"
-        )
+        val commit =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Initial commit",
+                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+            )
         val violations = validator.validate(commit)
         assertAll(
-            { assertThat(violations).isEmpty() }
+            { assertThat(violations).isEmpty() },
         )
     }
 
     @Test
     fun `should pass validation for commit with linear ancestry`() {
-        val parent = Commit(
-            sha = "b".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Parent commit"
-        )
-        val commit = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Child commit",
-            parents = listOf(parent)
-        )
+        val parent =
+            Commit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Parent commit",
+            )
+        val commit =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Child commit",
+                parents = mutableSetOf(parent),
+                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+            )
         val violations = validator.validate(commit)
         assertAll(
-            { assertThat(violations).isEmpty() }
+            { assertThat(violations).isEmpty() },
         )
     }
 
     @Test
     fun `should pass validation for commit with merge ancestry`() {
-        val parent1 = Commit(
-            sha = "b".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Parent1 commit"
-        )
-        val parent2 = Commit(
-            sha = "c".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Parent2 commit"
-        )
-        val commit = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Merge commit",
-            parents = listOf(parent1, parent2)
-        )
+        val parent1 =
+            Commit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Parent1 commit",
+            )
+        val parent2 =
+            Commit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Parent2 commit",
+            )
+        val commit =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Merge commit",
+                parents = mutableSetOf(parent1, parent2),
+                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+            )
         val violations = validator.validate(commit)
         assertAll(
-            { assertThat(violations).isEmpty() }
+            { assertThat(violations).isEmpty() },
         )
     }
 
     @Test
     fun `should fail validation for direct cycle`() {
-        val commit = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Cyclic commit"
-        )
+        val commit =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Cyclic commit",
+                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+            )
         // Direct cycle: commit is its own parent
-        commit.parents = listOf(commit)
-        val violations = validator.validate(commit)
-        assertAll(
-            { assertThat(violations).isNotEmpty() },
-            { assertThat(violations.first().message).contains("cycle") }
-        )
+        commit.parents = mutableSetOf(commit)
+        val violation =
+            run {
+                val violations = validator.validate(commit)
+                assertThat(violations).hasSize(1)
+                violations.toList()[0]
+            }
+        assertThat(violation.message).contains("${"a".repeat(40)} -> ${"a".repeat(40)}")
     }
 
     @Test
     fun `should fail validation for indirect cycle`() {
-        val commitA = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "A"
-        )
-        val commitB = Commit(
-            sha = "b".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "B"
-        )
-        val commitC = Commit(
-            sha = "c".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "C"
-        )
+        val branch = Branch(name = "b")
+        val commitA =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "A",
+                branches = mutableSetOf(branch),
+            )
+        val commitB =
+            Commit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "B",
+                branches = mutableSetOf(branch),
+            )
+        val commitC =
+            Commit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "C",
+                branches = mutableSetOf(branch),
+            )
+        branch.commitShas.add(commitA.sha)
+        branch.commitShas.add(commitB.sha)
+        branch.commitShas.add(commitC.sha)
         // A -> B -> C -> A
-        commitA.parents = listOf(commitB)
-        commitB.parents = listOf(commitC)
-        commitC.parents = listOf(commitA)
-        val violations = validator.validate(commitA)
-        assertAll(
-            { assertThat(violations).isNotEmpty() },
-            { assertThat(violations.first().message).contains("cycle") }
-        )
+        commitA.parents = mutableSetOf(commitB)
+        commitB.parents = mutableSetOf(commitC)
+        commitC.parents = mutableSetOf(commitA)
+        val violation =
+            run {
+                val violations = validator.validate(commitA)
+                assertThat(violations).hasSize(1)
+                violations.toList()[0]
+            }
+        assertThat(violation.message).contains("${"a".repeat(40)} -> ${"b".repeat(40)} -> ${"c".repeat(40)} -> ${"a".repeat(40)}")
     }
 
     @Test
     fun `should fail validation for deep nested cycle at level 3`() {
-        val commitA = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "A"
-        )
-        val commitB = Commit(
-            sha = "b".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "B"
-        )
-        val commitC = Commit(
-            sha = "c".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "C"
-        )
-        val commitD = Commit(
-            sha = "d".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "D"
-        )
+        val branch = Branch(name = "b")
+        val commitA =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "A",
+                branches = mutableSetOf(branch),
+            )
+        val commitB =
+            Commit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "B",
+                branches = mutableSetOf(branch),
+            )
+        val commitC =
+            Commit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "C",
+                branches = mutableSetOf(branch),
+            )
+        val commitD =
+            Commit(
+                sha = "d".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "D",
+                branches = mutableSetOf(branch),
+            )
         // A -> B -> C -> D -> B (cycle at level 3)
-        commitA.parents = listOf(commitB)
-        commitB.parents = listOf(commitC)
-        commitC.parents = listOf(commitD)
-        commitD.parents = listOf(commitB)
-        val violations = validator.validate(commitA)
+        commitA.parents = mutableSetOf(commitB)
+        commitB.parents = mutableSetOf(commitC)
+        commitC.parents = mutableSetOf(commitD)
+        commitD.parents = mutableSetOf(commitB)
+        branch.commitShas.add(commitA.sha)
+        branch.commitShas.add(commitB.sha)
+        branch.commitShas.add(commitC.sha)
+        branch.commitShas.add(commitD.sha)
+        val violation =
+            run {
+                val violations = validator.validate(commitA)
+                assertThat(violations).hasSize(1)
+                violations.toList()[0]
+            }
         assertAll(
-            { assertThat(violations).isNotEmpty() },
-            { assertThat(violations.first().message).contains("cycle") }
+            {
+                assertThat(
+                    violation.message,
+                ).contains("${"b".repeat(40)} -> ${"c".repeat(40)} -> ${"d".repeat(40)} -> ${"b".repeat(40)}")
+            },
         )
     }
 
     @Test
     fun `should pass validation for commit with multiple parents and no cycles`() {
-        val parent1 = Commit(
-            sha = "b".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Parent1 commit"
-        )
-        val parent2 = Commit(
-            sha = "c".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Parent2 commit"
-        )
-        val commit = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "Merge commit",
-            parents = listOf(parent1, parent2)
-        )
+        val parent1 =
+            Commit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Parent1 commit",
+            )
+        val parent2 =
+            Commit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Parent2 commit",
+            )
+        val commit =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "Merge commit",
+                parents = mutableSetOf(parent1, parent2),
+                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("b".repeat(40), "c".repeat(40), "a".repeat(40)))),
+            )
         val violations = validator.validate(commit)
         assertAll(
-            { assertThat(violations).isEmpty() }
+            { assertThat(violations).isEmpty() },
         )
     }
 
     @Test
     fun `should fail validation for cycles in multiple parents`() {
-        val commitA = Commit(
-            sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "A"
-        )
-        val commitB = Commit(
-            sha = "b".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "B"
-        )
-        val commitC = Commit(
-            sha = "c".repeat(40),
-            commitDateTime = LocalDateTime.now(),
-            message = "C"
-        )
+        val branch = Branch(name = "b")
+        val commitA =
+            Commit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "A",
+                branches = mutableSetOf(branch),
+            )
+        val commitB =
+            Commit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "B",
+                branches = mutableSetOf(branch),
+            )
+        val commitC =
+            Commit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.now(),
+                message = "C",
+                branches = mutableSetOf(branch),
+            )
+        branch.commitShas.add(commitA.sha)
+        branch.commitShas.add(commitB.sha)
+        branch.commitShas.add(commitC.sha)
         // A -> B, A -> C, B -> C, C -> A (cycle through both parents)
-        commitA.parents = listOf(commitB, commitC)
-        commitB.parents = listOf(commitC)
-        commitC.parents = listOf(commitA)
-        val violations = validator.validate(commitA)
-        assertAll(
-            { assertThat(violations).isNotEmpty() },
-            { assertThat(violations.first().message).contains("cycle") }
-        )
+        commitA.parents = mutableSetOf(commitB, commitC)
+        commitB.parents = mutableSetOf(commitC)
+        commitC.parents = mutableSetOf(commitA)
+        val violation =
+            run {
+                val violations = validator.validate(commitA)
+                assertThat(violations).hasSize(1)
+                violations.toList()[0]
+            }
+        assertThat(
+            violation.message,
+        ).contains("${"a".repeat(40)} -> ${"b".repeat(40)} -> ${"c".repeat(40)} -> ${"a".repeat(40)}")
     }
-} 
+}

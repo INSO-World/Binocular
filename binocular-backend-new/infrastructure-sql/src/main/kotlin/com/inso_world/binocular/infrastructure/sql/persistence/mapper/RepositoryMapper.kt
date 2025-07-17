@@ -1,87 +1,92 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.mapper
 
-import com.inso_world.binocular.core.exception.BinocularValidationException
-import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
-import jakarta.validation.Validator
+import com.inso_world.binocular.model.User
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
-import org.springframework.validation.annotation.Validated
 
 @Component
-@Validated
 internal class RepositoryMapper
     @Autowired
     constructor(
         private val proxyFactory: RelationshipProxyFactory,
         @Lazy private val commitMapper: CommitMapper,
-        @Lazy private val projectMapper: ProjectMapper,
-        private val validator: Validator,
-    ) : EntityMapper<Repository, RepositoryEntity> {
-        @PersistenceContext
-        private lateinit var entityManager: EntityManager
+        @Lazy private val branchMapper: BranchMapper,
+        @Lazy private val userMapper: UserMapper,
+    ) {
+        private val logger: Logger = LoggerFactory.getLogger(RepositoryMapper::class.java)
 
-        override fun toEntity(domain: Repository): RepositoryEntity {
-            val e =
-                RepositoryEntity(
-                    id = domain.id?.toLong(),
-                    name = domain.name,
-                    project = ProjectEntity(id = domain.projectId?.toLong(), name = ""),
-                )
+        fun toEntity(
+            domain: Repository,
+            project: ProjectEntity,
+            commitContext: MutableMap<String, CommitEntity> = mutableMapOf(),
+            branchContext: MutableMap<String, BranchEntity> = mutableMapOf(),
+            userContext: MutableMap<String, UserEntity> = mutableMapOf(),
+        ): RepositoryEntity {
+            logger.debug("toEntity({})", domain)
 
-            e.commits =
-                proxyFactory.createLazySet {
-                    val context: MutableMap<String, CommitEntity> = mutableMapOf()
-                    (domain.commits)
-                        .map { it ->
-                            val c = commitMapper.toEntity(it, context)
-                            setRepositoryToCommits(e, c)
-                            c
-                        }.toMutableSet()
+            val entity by lazy {
+                val e =
+                    RepositoryEntity(
+                        id = domain.id?.toLong(),
+                        name = domain.name,
+                        project = project,
+                    )
+                domain.commits.forEach { it ->
+                    commitMapper.toEntity(it, e, commitContext, branchContext, userContext)
                 }
 
-            e.project.repo = e
-            val violations = validator.validate(e)
-            if (violations.isNotEmpty()) throw BinocularValidationException(violations.toString())
+                domain.branches.forEach { it ->
+                    branchMapper.toEntity(it, e, commitContext, branchContext)
+                }
 
-            return e
+                domain.user.forEach { it ->
+                    userMapper.toEntity(it, e, commitContext, userContext)
+                }
+
+                e.project.repo = e
+
+                return@lazy e
+            }
+
+            return entity
         }
 
-        fun setRepositoryToCommits(
-            repository: RepositoryEntity,
-            cmt: CommitEntity,
-        ) {
-            cmt.repository = repository
-            cmt.parents.map { setRepositoryToCommits(repository, it) }
-        }
-
-        override fun toDomain(entity: RepositoryEntity): Repository {
+        fun toDomain(
+            entity: RepositoryEntity,
+            commitContext: MutableMap<String, Commit>,
+            branchContext: MutableMap<String, Branch>,
+            userContext: MutableMap<String, User>,
+        ): Repository {
             val id = entity.id ?: throw IllegalStateException("Entity ID cannot be null")
 
-            val r =
+            val domain =
                 Repository(
                     id = id.toString(),
                     name = entity.name,
                     projectId = entity.project.id?.toString(),
                 )
 
-            val commits by lazy {
-                entity.commits
-                    .map { it ->
-                        commitMapper.toDomain(it, mutableMapOf())
-                    }.toMutableSet()
-            }
-            r.commits = commits
+            entity.commits
+                .forEach { it ->
+                    commitMapper.toDomain(it, domain, commitContext, branchContext, userContext)
+                }
 
-            val violations = validator.validate(r)
-            if (violations.isNotEmpty()) throw BinocularValidationException(violations.toString())
-            return r
+            entity.branches.forEach { branchMapper.toDomain(it, domain, commitContext, branchContext) }
+
+            entity.user.forEach { userMapper.toDomain(it, domain, userContext, commitContext, branchContext) }
+
+            return domain
         }
     }
