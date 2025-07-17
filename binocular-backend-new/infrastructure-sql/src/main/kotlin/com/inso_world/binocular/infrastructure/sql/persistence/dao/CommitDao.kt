@@ -8,13 +8,11 @@ import com.inso_world.binocular.infrastructure.sql.persistence.repository.Commit
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
-import org.springframework.validation.annotation.Validated
 
 /**
  * SQL implementation of ICommitDao.
  */
 @Repository
-@Validated
 internal class CommitDao(
     @Autowired
     private val repo: CommitRepository,
@@ -25,55 +23,55 @@ internal class CommitDao(
         this.setRepository(repo)
     }
 
-    override fun create(entity: CommitEntity): CommitEntity {
-        val toSave =
-            getManagedEntity(entity) ?: entity
+//    override fun create(entity: CommitEntity): CommitEntity {
+//        val toSave =
+//            getManagedEntity(entity) ?: entity
+//
+//        val managedRepo =
+//            toSave.repository?.let {
+//                entityManager.find(
+//                    it.javaClass,
+//                    it.id,
+//                )
+//            } ?: throw IllegalArgumentException("RepositoryEntity not found")
+//        toSave.repository = managedRepo
+//        if (!entityManager.contains(toSave)) {
+//            managedRepo.commits.add(toSave)
+//        }
+//        val managedParents =
+//            toSave.parents
+//                .map { parentEntity ->
+//                    getManagedEntity(parentEntity) ?: parentEntity
+//                }.map { parentEntity ->
+//                    parentEntity.repository = managedRepo
+//                    managedRepo.commits.add(parentEntity)
+//                    parentEntity
+//                }
+//        toSave.parents = managedParents
+//
+//        val managedProject =
+//            entityManager.find(
+//                managedRepo.project.javaClass,
+//                managedRepo.project.id,
+//            )
+//        managedRepo.project = managedProject
+//
+//        return super.create(toSave)
+//    }
 
-        val managedRepo =
-            toSave.repository?.let {
-                entityManager.find(
-                    it.javaClass,
-                    it.id,
-                )
-            } ?: throw IllegalArgumentException("RepositoryEntity not found")
-        toSave.repository = managedRepo
-        if (!entityManager.contains(toSave)) {
-            managedRepo.commits.add(toSave)
-        }
-        val managedParents =
-            toSave.parents
-                .map { parentEntity ->
-                    getManagedEntity(parentEntity) ?: parentEntity
-                }.map { parentEntity ->
-                    parentEntity.repository = managedRepo
-                    managedRepo.commits.add(parentEntity)
-                    parentEntity
-                }
-        toSave.parents = managedParents
-
-        val managedProject =
-            entityManager.find(
-                managedRepo.project.javaClass,
-                managedRepo.project.id,
-            )
-        managedRepo.project = managedProject
-
-        return super.create(toSave)
-    }
-
-//  TODO proper managed entity, missing parents here
-    fun getManagedEntity(entity: CommitEntity): CommitEntity? {
-        val managed =
-            entity.id?.let {
-                entityManager.find(CommitEntity::class.java, it)
-            } ?: entity.repository?.let { repo ->
-                findBySha(repo, entity.sha)
-            }
-
-//        man
-
-        return managed ?: entity
-    }
+// //  TODO proper managed entity, missing parents here
+//    fun getManagedEntity(entity: CommitEntity): CommitEntity? {
+//        val managed =
+//            entity.id?.let {
+//                entityManager.find(CommitEntity::class.java, it)
+//            } ?: entity.repository?.let { repo ->
+//                findBySha(repo, entity.sha)
+//            }
+//
+// //        man
+//
+//        return managed ?: entity
+//    }
 
     override fun findExistingSha(
         repo: RepositoryEntity,

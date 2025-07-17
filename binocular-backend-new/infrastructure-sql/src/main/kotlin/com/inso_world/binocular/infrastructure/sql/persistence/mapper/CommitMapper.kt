@@ -1,137 +1,123 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.mapper
 
-import com.inso_world.binocular.core.exception.BinocularValidationException
-import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
 import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
-import jakarta.validation.Valid
-import jakarta.validation.Validator
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
-import org.springframework.validation.annotation.Validated
+import org.springframework.transaction.support.TransactionTemplate
 
-@Validated
 @Component
 internal class CommitMapper
     @Autowired
     constructor(
         private val proxyFactory: RelationshipProxyFactory,
-//        @Lazy private val buildMapper: BuildMapper,
-//        @Lazy private val fileMapper: FileMapper,
-//        @Lazy private val moduleMapper: ModuleMapper,
-//        @Lazy private val userMapper: UserMapper,
-        @Lazy private val repositoryMapper: RepositoryMapper,
-        private val validator: Validator,
-    ) : EntityMapper<Commit, CommitEntity> {
-        @PersistenceContext
+        private val branchMapper: BranchMapper,
+        @Lazy private val userMapper: UserMapper,
+    ) {
+        private val logger: Logger = LoggerFactory.getLogger(CommitMapper::class.java)
+
+        @Autowired
+        @Lazy
+        private lateinit var transactionTemplate: TransactionTemplate
+
+        @Autowired
+        @Lazy
         private lateinit var entityManager: EntityManager
-
-//        private val context: MutableMap<String, CommitEntity> = mutableMapOf()
-
-        @Deprecated(
-            "do not use this method",
-            ReplaceWith(
-                "toEntity(\n" +
-                    "            domain: Commit,\n" +
-                    "            context: MutableMap<String, CommitEntity>,\n" +
-                    "        )",
-            ),
-        )
-        override fun toEntity(domain: Commit): @Valid CommitEntity = toEntity(domain, mutableMapOf())
 
         /**
          * Converts a domain Commit to a SQL CommitEntity
          */
         fun toEntity(
-            @Valid domain: Commit,
-            context: MutableMap<String, CommitEntity>,
+            domain: Commit,
+            repository: RepositoryEntity,
+            commitContext: MutableMap<String, CommitEntity>,
+            branchContext: MutableMap<String, BranchEntity>,
+            userContext: MutableMap<String, UserEntity>,
         ): CommitEntity {
-//            { // TODO: conditional check for e.g. repositoryId, going in is ok null, not out
-//                val violations = validator.validate(domain)
-//                if (violations.isNotEmpty()) {
-//                    throw BinocularValidationException(violations.toString())
-//                }
-//            }()
-
-            if (context.containsKey(domain.sha)) {
-                return context[domain.sha]!!
+            commitContext[domain.sha]?.let {
+                logger.trace("Commit-Cache hit for sha:${domain.sha}")
+                return it
             }
 
-            val repo =
-                RepositoryEntity(
-                    id = domain.repositoryId?.toLong(),
-                    name = "",
-                    project = ProjectEntity(name = ""),
-                )
-
-            val entity =
-                CommitEntity(
-                    id = domain.id?.toLong(),
-                    sha = domain.sha,
-                    date = domain.commitDateTime,
-                    message = domain.message,
-                    webUrl = domain.webUrl,
-                    branch = domain.branch,
-                    parents =
-                        proxyFactory.createLazyMappedList(
-                            { domain.parents },
-                            { it ->
-                                context.getOrPut(it.sha) {
-                                    val e = toEntity(it, context)
-                                    e.repository = repo
-                                    e
-                                }
+            val entity by lazy {
+                val e =
+                    CommitEntity(
+                        id = domain.id?.toLong(),
+                        sha = domain.sha,
+                        commitDateTime = domain.commitDateTime,
+                        authorDateTime = domain.authorDateTime,
+                        message = domain.message,
+                        webUrl = domain.webUrl,
+                        branch = domain.branch,
+                        repository = repository,
+                        parents =
+                            proxyFactory.createLazyMutableSet {
+                                domain.parents
+                                    .map {
+                                        commitContext
+                                            .getOrPut(it.sha) {
+                                                toEntity(it, repository, commitContext, branchContext, userContext)
+                                            }
+                                    }
                             },
-                        ),
-                    //                        proxyFactory
-//                            .createLazySet {
-//                                domain.parents
-//                                    .map { parent ->
-//                                        val c = context.getOrPut(parent.sha) { toEntity(parent, context) }
-// //                                        val c = toEntity(parent, context)
-//                                        c
-//                                    }.toMutableSet()
-//                            }.toMutableList(),
-                    repository = repo,
-                    // Note: Relationships are not directly mapped in SQL entity
+                        branches = mutableSetOf(),
+                    )
+                return@lazy e
+            }
+
+            commitContext[domain.sha] = entity
+            entity.branches =
+                proxyFactory.createLazyMutableSet(
+                    {
+                        domain.branches
+                            .map {
+                                branchMapper.toEntity(
+                                    it,
+                                    repository,
+                                    commitContext,
+                                    branchContext,
+                                )
+                            }
+                    },
+                    { it ->
+                        it.forEach { b -> b.commits.add(entity) }
+                    },
                 )
-            context[entity.sha] = entity
-            val violations = validator.validate(entity)
-            if (violations.isNotEmpty()) throw BinocularValidationException(violations.toString())
+            entity.committer =
+                domain.committer?.let { user ->
+                    userMapper.toEntity(user, repository, commitContext, userContext)
+                }
+            entity.author =
+                domain.author?.let { user ->
+                    userMapper.toEntity(user, repository, commitContext, userContext)
+                }
+
+            repository.commits.add(entity)
+            repository.commits.addAll(entity.parents)
 
             return entity
         }
 
-//        fun toEntity(
-//            domain: CommitEntity,
-//            context: MutableMap<String, CommitEntity> = mutableMapOf(),
-//        ): CommitEntity {
-//            if (context.containsKey(domain.sha)) {
-//                return context[domain.sha]!!
-//            }
-//        }
-
-        /**
-         * Converts a SQL CommitEntity to a domain Commit
-         *
-         * Uses lazy loading proxies for relationships, which will only be loaded
-         * when accessed. This provides a consistent API regardless of the database
-         * implementation and avoids the N+1 query problem.
-         */
-        override fun toDomain(entity: CommitEntity): Commit = toDomain(entity, mutableMapOf())
-
         fun toDomain(
             entity: CommitEntity,
-            context: MutableMap<String, Commit>,
+            repository: Repository,
+            commitContext: MutableMap<String, Commit>,
+            branchContext: MutableMap<String, Branch>,
+            userContext: MutableMap<String, User>,
         ): Commit {
-            if (context.containsKey(entity.sha)) {
-                return context[entity.sha]!!
+            if (commitContext.containsKey(entity.sha)) {
+                return commitContext[entity.sha]!!
             }
 
             val id = entity.id ?: throw IllegalStateException("Entity ID cannot be null")
@@ -140,84 +126,105 @@ internal class CommitMapper
                 Commit(
                     id = id.toString(),
                     sha = entity.sha,
-//                date = entity.date?.let { d -> d.toInstant(ZoneOffset.UTC).let { Date.from(it) } },
-                    commitDateTime = entity.date,
+                    commitDateTime = entity.commitDateTime,
+                    authorDateTime = entity.authorDateTime,
                     message = entity.message,
                     webUrl = entity.webUrl,
                     branch = entity.branch,
-//                stats = entity.getStats(),
-                    repositoryId = entity.repository?.id?.toString(),
-                    // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
+                    repositoryId = repository.id,
                     parents =
-                        proxyFactory.createLazyMappedList(
-                            { entity.parents },
-                            { it ->
-                                val d =
-                                    context.getOrPut(it.sha) {
-                                        val e = toDomain(it, context)
-                                        e
+                        proxyFactory
+                            .createLazyMutableSet(
+                                {
+                                    transactionTemplate.execute {
+                                        // Reload the entity in a new session
+                                        val freshEntity = entityManager.find(CommitEntity::class.java, entity.id)
+                                        // Now the collection is attached to this session
+                                        freshEntity.parents.map { it ->
+                                            return@map commitContext.getOrPut(it.sha) {
+                                                val e = toDomain(it, repository, commitContext, branchContext, userContext)
+                                                e
+                                            }
+                                        }
+                                    } ?: throw IllegalStateException("transaction should load parent entities")
+                                },
+                                { it ->
+                                    it.forEach { p ->
+                                        p.repositoryId = repository.id
+                                        p.parents.forEach { pp -> pp.repositoryId = repository.id }
                                     }
-                                it.repository?.id?.toString().let { id ->
-                                    setRepositoryToCommits(id, d)
-                                }
-                                d
-                            },
-                        ),
-//                children =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.childCommits },
-//                        { toDomain(it) },
-//                    ),
-//                builds =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.builds },
-//                        { buildMapper.toDomain(it) },
-//                    ),
-//                files =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.files },
-//                        { fileMapper.toDomain(it) },
-//                    ),
-//                modules =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.modules },
-//                        { moduleMapper.toDomain(it) },
-//                    ),
-//                users =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.users },
-//                        { userMapper.toDomain(it) },
-//                    ),
-//                issues =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.issues },
-//                        { issueMapper.toDomain(it) },
-//                    ),
+                                },
+                            ),
                 )
 
-            context[domain.sha] = domain
-            val violations = validator.validate(domain)
-            if (violations.isNotEmpty()) throw BinocularValidationException(violations.toString())
-            return domain
-        }
+            commitContext[domain.sha] = domain
 
-        fun setRepositoryToCommits(
-            repositoryId: String?,
-            cmt: Commit,
-            visited: MutableSet<String> = mutableSetOf(),
-        ) {
-            if (!visited.add(cmt.sha)) return // already visited, avoid infinite recursion
+            // Move the entire mapping of entity.branches to domain objects inside the transaction
+            domain.branches =
+                proxyFactory
+                    .createLazyMutableSet(
+                        {
+                            val loadedBranches =
+                                transactionTemplate.execute {
+                                    // Reload the entity in a new session
+                                    val freshEntity = entityManager.find(CommitEntity::class.java, entity.id)
+                                    // Now the collection is attached to this session
+                                    freshEntity.branches.map {
+                                        branchMapper.toDomain(
+                                            it,
+                                            repository,
+                                            commitContext,
+                                            branchContext,
+                                        )
+                                    }
+                                } ?: throw IllegalStateException("transaction should load branch entities")
 
-            if (cmt.repositoryId == null) {
-                cmt.repositoryId = repositoryId
-            } else if (cmt.repositoryId != null && cmt.repositoryId != repositoryId) {
-                throw IllegalArgumentException("cmt.repositoryId=${cmt.repositoryId} must be the same as the repositoryId=$repositoryId")
-            }
-
-            cmt.parents.forEach { parent ->
-                if (parent.repositoryId == null) {
-                    setRepositoryToCommits(repositoryId, parent, visited)
+                            // Lazy validation: only when branches are loaded
+                            require(loadedBranches.isNotEmpty()) { "Branches of Commit ${domain.sha} must not be empty" }
+                            loadedBranches
+                        },
+                        { it ->
+                            // Lazy validation: only when branches are loaded
+                            require(it.isNotEmpty()) { "Branches of Commit ${domain.sha} must not be empty" }
+                            it.forEach { b -> b.commitShas.add(entity.sha) }
+//                                TODO not working as expected, would need refresh of entity again
+//                            transactionTemplate.execute { t ->
+//                                require(it.size == entity.branches.size) {
+//                                    "Branches of Commit ${domain.sha} do not match the entity size: actual ${it.size}, expected ${entity.branches.size}"
+//                                }
+//                            }
+                        },
+                    )
+            domain.committer =
+                entity.committer?.let { user ->
+                    userContext.getOrPut(user.uniqueKey()) {
+                        userMapper.toDomain(
+                            user,
+                            repository,
+                            userContext,
+                            commitContext,
+                            branchContext,
+                        )
+                    }
                 }
-            }
+            domain.committer?.addCommittedCommit(domain)
+            domain.author =
+                entity.author?.let { user ->
+                    userContext.getOrPut(user.uniqueKey()) {
+                        userMapper.toDomain(
+                            user,
+                            repository,
+                            userContext,
+                            commitContext,
+                            branchContext,
+                        )
+                    }
+                }
+            domain.author?.addAuthoredCommit(domain)
+
+            repository.commits.add(domain)
+            repository.commits.addAll(domain.parents)
+
+            return domain
         }
     }

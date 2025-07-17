@@ -31,8 +31,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                project = project,
-                projectId = null,
+                projectId = project.id,
             )
 
         // When
@@ -50,12 +49,12 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                project = project,
                 projectId = "some-id",
             )
+        project.repo = repository
 
         // When
-        val violations = validator.validate(repository)
+        val violations = validator.validate(project)
 
         // Then
         assertThat(violations).isNotEmpty()
@@ -70,8 +69,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                project = project,
-                projectId = "project-123",
+                projectId = project.id,
             )
 
         // When
@@ -89,12 +87,12 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                project = project,
                 projectId = "different-id",
             )
+        project.repo = repository
 
         // When
-        val violations = validator.validate(repository)
+        val violations = validator.validate(project)
 
         // Then
         assertThat(violations).isNotEmpty()
@@ -108,8 +106,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                project = null,
-                projectId = "some-id",
+                projectId = null,
             )
 
         // When

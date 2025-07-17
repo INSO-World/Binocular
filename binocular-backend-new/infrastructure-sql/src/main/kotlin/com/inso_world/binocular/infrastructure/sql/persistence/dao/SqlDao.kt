@@ -8,14 +8,11 @@ import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
-import org.springframework.validation.annotation.Validated
 import java.io.Serializable
 import java.util.stream.Stream
 
-// TODO make internal
-@Validated
 @Repository
-class SqlDao<T, I : Serializable> : IDao<T, I> {
+internal class SqlDao<T, I : Serializable> : IDao<T, I> {
     private lateinit var clazz: Class<T>
     private lateinit var repository: JpaRepository<T, I>
 
@@ -100,4 +97,8 @@ class SqlDao<T, I : Serializable> : IDao<T, I> {
      * Save multiple entities
      */
     override fun saveAll(entities: Collection<T>): Iterable<T> = entities.map { save(it) }
+
+    override fun flush() {
+        entityManager.flush()
+    }
 }

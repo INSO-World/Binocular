@@ -9,6 +9,7 @@ import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.springframework.data.domain.Pageable
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Interface for CommitService.
@@ -23,6 +24,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param until Optional timestamp to filter commits (only include commits before this timestamp)
      * @return Page of commits
      */
+    @Transactional(readOnly = true)
     fun findAll(
         pageable: Pageable,
         since: Long?,
@@ -35,6 +37,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param commitId The ID of the commit
      * @return List of builds associated with the commit
      */
+    @Transactional(readOnly = true)
     fun findBuildsByCommitId(commitId: String): List<Build>
 
     /**
@@ -43,6 +46,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param commitId The ID of the commit
      * @return List of files associated with the commit
      */
+    @Transactional(readOnly = true)
     fun findFilesByCommitId(commitId: String): List<File>
 
     /**
@@ -51,6 +55,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param commitId The ID of the commit
      * @return List of modules associated with the commit
      */
+    @Transactional(readOnly = true)
     fun findModulesByCommitId(commitId: String): List<Module>
 
     /**
@@ -59,6 +64,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param commitId The ID of the commit
      * @return List of users associated with the commit
      */
+    @Transactional(readOnly = true)
     fun findUsersByCommitId(commitId: String): List<User>
 
     /**
@@ -67,6 +73,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param commitId The ID of the commit
      * @return List of issues associated with the commit
      */
+    @Transactional(readOnly = true)
     fun findIssuesByCommitId(commitId: String): List<Issue>
 
     /**
@@ -75,6 +82,7 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param childCommitId The ID of the child commit
      * @return List of parent commits
      */
+    @Transactional(readOnly = true)
     fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit>
 
     /**
@@ -83,23 +91,28 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @param parentCommitId The ID of the parent commit
      * @return List of child commits
      */
+    @Transactional(readOnly = true)
     fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit>
 
+    @Transactional(readOnly = true)
     fun findExistingSha(
         repo: Repository,
         shas: List<String>,
     ): Iterable<Commit>
 
+    @Transactional(readOnly = true)
     fun findAllByRepo(
         repo: Repository,
         pageable: Pageable,
     ): Iterable<Commit>
 
     // TODO branch should be required!
+    @Transactional(readOnly = true)
     fun findHeadForBranch(
         repo: Repository,
         branch: String,
     ): Commit?
 
+    @Transactional(readOnly = true)
     fun findAllLeafCommits(repo: Repository): Iterable<Commit>
 }

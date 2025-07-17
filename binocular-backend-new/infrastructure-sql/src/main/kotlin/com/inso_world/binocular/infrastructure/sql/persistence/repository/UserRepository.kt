@@ -7,5 +7,5 @@ import java.util.stream.Stream
 
 @Repository
 internal interface UserRepository : JpaRepository<UserEntity, Long> {
-    fun findAllByGitSignatureIn(emails: Collection<String>): Stream<UserEntity>
+    fun findAllByEmailIn(emails: Collection<String>): Stream<UserEntity>
 }

@@ -7,7 +7,6 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.PreRemove
@@ -33,10 +32,10 @@ internal data class RepositoryEntity(
         orphanRemoval = true,
     )
     val user: MutableSet<UserEntity> = mutableSetOf(),
-//    @OneToMany(fetch = FetchType.LAZY, targetEntity = BranchEntity::class, cascade = [CascadeType.ALL], orphanRemoval = true)
-//    var branches: MutableSet<BranchEntity> = mutableSetOf(),
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "fk_project", referencedColumnName = "id")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = BranchEntity::class, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var branches: MutableSet<BranchEntity> = mutableSetOf(),
+    //    @JoinColumn(name = "fk_project", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.LAZY, optional = false, mappedBy = "repo")
     var project: ProjectEntity,
 ) {
     override fun equals(other: Any?): Boolean {

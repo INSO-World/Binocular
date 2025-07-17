@@ -1,6 +1,6 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.model.validation.CommitValidation
+import com.inso_world.binocular.model.validation.FromInfrastructure
 import com.inso_world.binocular.model.validation.NoCommitCycle
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -12,13 +12,10 @@ import java.time.LocalDateTime
  * Domain model for a Commit, representing a commit in a Git repository.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
-@CommitValidation
 @NoCommitCycle
 data class Commit(
     val id: String? = null,
-    @field:NotBlank
     @field:Size(min = 40, max = 40)
-    @field:NotNull
     val sha: String,
     @field:PastOrPresent
     val authorDateTime: LocalDateTime? = null,
@@ -29,22 +26,36 @@ data class Commit(
     val message: String? = null,
     var author: User? = null,
     var committer: User? = null,
-    var repository: Repository? = null, // TODO remove
-//    @field:NotNull // TODO conditional validation, only when coming out of infra
+//    var repository: Repository? = null, // TODO remove
+    @field:NotNull(
+        groups = [FromInfrastructure::class],
+        message = "repositoryId must not be null when returning from infrastructure layer",
+    )
     var repositoryId: String? = null,
     val webUrl: String? = null,
+    @Deprecated("do not use")
     val branch: String? = null,
     val stats: Stats? = null,
     // Relationships
-    val branches: MutableSet<Branch> = mutableSetOf(),
-    var parents: List<Commit> = emptyList(),
+    var branches: MutableSet<Branch> = mutableSetOf(),
+    var parents: MutableSet<Commit> = mutableSetOf(),
+//    old stuff
     val children: List<Commit> = emptyList(),
     val builds: List<Build> = emptyList(),
     val files: List<File> = emptyList(),
     val modules: List<Module> = emptyList(),
-    val users: List<User> = emptyList(),
     val issues: List<Issue> = emptyList(),
-) {
+) : Cloneable {
+    @Deprecated("Do not use")
+    val users: List<User>
+        get() =
+            mutableListOf<User>()
+                .let { lst ->
+                    author?.let { lst.add(it) }
+                    committer?.let { lst.add(it) }
+                    lst
+                }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

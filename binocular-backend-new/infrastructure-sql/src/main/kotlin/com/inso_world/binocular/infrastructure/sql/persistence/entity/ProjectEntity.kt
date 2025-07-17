@@ -7,6 +7,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
@@ -38,8 +39,10 @@ internal data class ProjectEntity(
         fetch = FetchType.LAZY,
         cascade = [CascadeType.REMOVE, CascadeType.PERSIST],
         optional = true,
-        mappedBy = "project",
-    ) var repo: RepositoryEntity? = null,
+//        mappedBy = "project",
+    )
+    @JoinColumn(name = "fk_repository", referencedColumnName = "id") // FK in projects table
+    var repo: RepositoryEntity? = null,
 ) {
     //    fun addMember(pm: ProjectMember) {
 //        this.members.add(pm)
@@ -51,7 +54,7 @@ internal data class ProjectEntity(
 //        e.project = this
 //    }
 
-    override fun toString(): String = "Project(id=$id, name=$name, description=$description)"
+    override fun toString(): String = "Project(id=$id, name=$name, description=$description, repo=$repo)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

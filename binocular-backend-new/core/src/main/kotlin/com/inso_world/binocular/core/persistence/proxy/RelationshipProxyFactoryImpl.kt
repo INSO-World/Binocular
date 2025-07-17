@@ -18,7 +18,14 @@ class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
      */
     override fun <T> createLazyList(loader: () -> List<T>): List<T> = LazyList(loader)
 
-    override fun <T> createLazySet(loader: () -> MutableSet<T>): MutableSet<T> = HashSet(loader())
+    override fun <T> createLazySet(loader: () -> Iterable<T>): Set<T> = LazySet(loader)
+
+    override fun <T> createLazyMutableSet(loader: () -> Iterable<T>): MutableSet<T> = LazyMutableSet(loader) {}
+
+    override fun <T> createLazyMutableSet(
+        loader: () -> Iterable<T>,
+        postProcessing: (LazyMutableSet<T>) -> Unit,
+    ): MutableSet<T> = LazyMutableSet(loader, postProcessing)
 
     /**
      * Creates a lazy-loaded list that only loads its contents when accessed,
@@ -42,7 +49,7 @@ class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
     override fun <T : Any> createLazyReference(loader: () -> T): LazyReference<T> = LazyReferenceImpl(loader)
 
     private class LazySet<T>(
-        private val loader: () -> Set<T>,
+        private val loader: () -> Iterable<T>,
     ) : Set<T> {
         @Volatile
         private var initialized = false
@@ -56,7 +63,7 @@ class RelationshipProxyFactoryImpl : RelationshipProxyFactory {
             if (!initialized) {
                 synchronized(this) {
                     if (!initialized) {
-                        target = loader()
+                        target = loader().toSet()
                         initialized = true
                     }
                 }

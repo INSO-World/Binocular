@@ -1,13 +1,16 @@
 package com.inso_world.binocular.model
 
+import com.inso_world.binocular.model.validation.FromInfrastructure
 import jakarta.validation.constraints.NotBlank
-import org.jetbrains.annotations.NotNull
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 /**
  * Domain model for a Branch, representing a branch in a Git repository.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
-class Branch(
+data class Branch(
     val id: String? = null,
     @field:NotBlank
     val name: String,
@@ -16,8 +19,12 @@ class Branch(
     val latestCommit: String? = null,
     // Relationships
     val files: List<File> = emptyList(),
-    val commitShas: MutableSet<String> = mutableSetOf(),
-    @field:NotNull
+    @field:NotEmpty
+    val commitShas: MutableSet<
+        @Size(min = 40, max = 40)
+        String,
+    > = mutableSetOf(),
+    @field:NotNull(groups = [FromInfrastructure::class])
     var repositoryId: String? = null,
 ) {
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
