@@ -4,7 +4,6 @@ import { getSVGData } from './utilities/utilities.ts';
 import Settings, { DefaultSettings } from './settings/settings.tsx';
 import { getDataSlice } from './reducer';
 import Saga from './saga';
-
 export default function createVisualizationPlugin<SettingsType extends DefaultSettings, DataType>(
   component: VisualizationPlugin<SettingsType, DataType>,
 ): VisualizationPlugin<SettingsType, DataType> {
@@ -34,6 +33,7 @@ export default function createVisualizationPlugin<SettingsType extends DefaultSe
     images: {
       thumbnail: component.images.thumbnail,
     },
+    metadata: component.metadata,
     reducer: getDataSlice(component.name).reducer,
     saga: Saga,
   };

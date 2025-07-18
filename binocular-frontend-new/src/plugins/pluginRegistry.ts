@@ -20,6 +20,8 @@ import TimeSpent from './visualizationPlugins/timeSpent';
 import { DataPluginTimeSpent } from './interfaces/dataPluginInterfaces/dataPluginTimeSpent.ts';
 import { DataPluginBuild } from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import CodeOwnership from './visualizationPlugins/code-ownership';
+import FileChanges from './visualizationPlugins/fileChanges';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
@@ -32,13 +34,16 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   builds,
   changes,
   timeSpent,
+  CodeOwnership,
+  FileChanges,
   ExampleStats,
   ExampleVisualization,
   ExampleComplex,
 ];
 
+
 //Order = priority used when nothing selected by the user.
-export const dataPlugins = [MockData, BinocularBackend, PouchDb, Github];
+export const dataPlugins = [BinocularBackend, PouchDb, MockData, Github];
 
 // Separate Export for PouchDB Plugin to streamline Database loading
 export const PouchDB = new PouchDb();

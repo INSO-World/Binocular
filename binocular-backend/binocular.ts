@@ -390,6 +390,12 @@ function runBackend() {
         return !provider || !provider.isStopping();
       });
 
+      // export db if required
+      if (context.argv.export) {
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
+        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
+      }
+
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
         return;
@@ -397,10 +403,6 @@ function runBackend() {
 
       await Issue.deduceUsers();
       createManualIssueReferences(config.get('issueReferences'));
-      if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
-        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
-      }
 
       //now that the indexers have finished, we have VCS, ITS and CI data and can connect them.
       // for that purpose, references between e.g. issues and commits have been stored in the collections.

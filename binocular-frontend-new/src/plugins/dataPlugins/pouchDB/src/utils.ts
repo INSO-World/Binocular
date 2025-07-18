@@ -2,6 +2,7 @@ import PouchDB from 'pouchdb-browser';
 import PouchDBFind from 'pouchdb-find';
 import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 import _ from 'lodash';
+import { DataPluginFileOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
@@ -146,7 +147,6 @@ export async function findAllCommits(database: PouchDB.Database, relations: Pouc
   const allCommits = sortByAttributeString(commits.docs, '_id');
   const commitUserConnections = sortByAttributeString((await findCommitUserConnections(relations)).docs, 'from');
   const commitCommitConnections = sortByAttributeString((await findCommitCommitConnections(relations)).docs, 'from');
-
   const userObjects = (await findAll(database, 'users')).docs;
   const users: JSONObject = {};
   userObjects.map((s) => {
@@ -220,6 +220,70 @@ function preprocessCommit(
     return commit;
   }
   return _.assign(commit, { user: { gitSignature: author, id: commitUserRelation.to } });
+}
+
+function preprocessCommitWithOwnership(
+  commit: JSONObject,
+  allCommits: JSONObject[],
+  commitCommit: JSONObject[],
+  users: JSONObject,
+  allFiles: JSONObject[],
+  commitFiles: JSONObject[],
+  commitFileUsers: JSONObject[],
+) {
+  //add parents: first get the ids of the parents using the commits-commits connection, then find the actual commits to get the hashes
+  const parents: string[] = [];
+  binarySearchArray(commitCommit, commit._id, 'from').forEach((r) => {
+    const parent = binarySearch(allCommits, r.to, '_id');
+    if (parent !== null) {
+      parents.push(<string>parent.sha);
+    }
+  });
+  //add ownership data for each file using the commits-file connection and for every individual author using the commits-file-user connection
+  const files: {
+    path: string;
+    action: string;
+    ownership: DataPluginFileOwnership[];
+  }[] = [];
+  binarySearchArray(commitFiles, commit._id, 'from').forEach((cf) => {
+    const file = binarySearch(allFiles, cf.to, '_id');
+    //action field might not be needed
+    const fileEntry: { path: string; action: string; ownership: DataPluginFileOwnership[] } = {
+      path: <string>file?.path,
+      action: <string>cf.action,
+      ownership: [],
+    };
+    binarySearchArray(commitFileUsers, cf._id, 'from').forEach((cfu) => {
+      fileEntry.ownership.push(<DataPluginFileOwnership>{ user: users[<string>cfu.to], hunks: cfu.hunks });
+    });
+    files.push(fileEntry);
+  });
+
+  return { sha: commit.sha, date: commit.date, parents: parents, files: files };
+}
+
+export async function findOwnershipData(database: PouchDB.Database, relations: PouchDB.Database) {
+  const commits = await findAll(database, 'commits');
+  const allCommits = sortByAttributeString(commits.docs, '_id');
+  const commitCommitConnections = sortByAttributeString((await findCommitCommitConnections(relations)).docs, 'from');
+  const userObjects = (await findAll(database, 'users')).docs;
+  const commitFileConnections = sortByAttributeString((await findFileCommitConnections(relations)).docs, 'from');
+  const commitFileUserConnections = sortByAttributeString((await findFileCommitUserConnections(relations)).docs, 'from');
+  const users: JSONObject = {};
+  const files = (await findAll(database, 'files')).docs;
+  userObjects.map((s) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    users[s._id] = s.gitSignature;
+  });
+
+  commits.docs = await Promise.all(
+    commits.docs.map((c) =>
+      preprocessCommitWithOwnership(c, allCommits, commitCommitConnections, users, files, commitFileConnections, commitFileUserConnections),
+    ),
+  );
+
+  return commits;
 }
 
 // ###################### BUILDS ######################
@@ -481,7 +545,8 @@ export function findFileCommitUserConnections(relations: PouchDB.Database) {
   return findAll(relations, 'commits-files-users');
 }
 
-export function findBranch(database: PouchDB.Database, branch: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function findBranch(database: PouchDB.Database, branch: string): Promise<any> {
   return database.find({
     selector: {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -7,6 +7,7 @@ import { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.
 import { DataPluginIssues } from './dataPluginInterfaces/dataPluginIssues.ts';
 import { DataPluginNotes } from './dataPluginInterfaces/dataPluginNotes.ts';
 import { DataPluginAccounts } from './dataPluginInterfaces/dataPluginAccounts.ts';
+import { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
 
 export interface DataPlugin {
   name: string;
@@ -19,6 +20,7 @@ export interface DataPlugin {
   users: DataPluginUsers;
   accounts: DataPluginAccounts;
   files: DataPluginFiles;
+  branches?: DataPluginBranches;
   capabilities: string[];
   experimental: boolean;
   requirements: { apiKey: boolean; endpoint: boolean; file: boolean; progressUpdate: boolean };

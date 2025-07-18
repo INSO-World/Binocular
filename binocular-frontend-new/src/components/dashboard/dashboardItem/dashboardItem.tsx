@@ -13,7 +13,7 @@ import { parametersInitialState } from '../../../redux/reducer/parameters/parame
 import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
 import { ExportType, setExportName, setExportSVGData, setExportType } from '../../../redux/reducer/export/exportReducer.ts';
 import ReduxSubAppStoreWrapper from '../reduxSubAppStoreWrapper/reduxSubAppStoreWrapper.tsx';
-import { configureStore, Store } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, Store } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import { createLogger } from 'redux-logger';
 import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
@@ -22,6 +22,8 @@ import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 
 import { store as globalStore } from '../../../redux';
+import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
+import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -108,8 +110,8 @@ const DashboardItem = memo(function DashboardItem(props: {
   if (dataPlugin) {
     const sagaMiddleware = createSagaMiddleware();
     store = configureStore({
-      reducer: plugin.reducer,
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger),
+      reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
     });
     sagaMiddleware.run(() => plugin.saga(dataPlugin, plugin.name, plugin.dataConnectionName));
   } else {
@@ -117,12 +119,24 @@ const DashboardItem = memo(function DashboardItem(props: {
   }
 
   globalStore.subscribe(() => {
-    if (store !== undefined && selectedDataPlugin && doAutomaticUpdate) {
-      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
-        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
-          console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
-          store.dispatch({ type: 'REFRESH' });
-        }
+    if (store !== undefined) {
+      switch (globalStore.getState().actions.lastAction) {
+        case 'REFRESH_PLUGIN':
+          if (selectedDataPlugin && doAutomaticUpdate) {
+            if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
+              console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
+              store.dispatch({ type: 'REFRESH' });
+            }
+          }
+          break;
+        case 'RESIZE_DASHBOARD_ITEM':
+          if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+            store.dispatch({ type: 'RESIZE' });
+          }
+          break;
+        case 'RESIZE':
+          store.dispatch({ type: 'RESIZE' });
+          break;
       }
     }
   });
@@ -190,7 +204,10 @@ const DashboardItem = memo(function DashboardItem(props: {
                 </button>
               </div>
               {dataPlugin && store ? (
-                <DashboardItemPopout name={plugin.name} onClosing={() => setPoppedOut(false)}>
+                <DashboardItemPopout
+                  name={plugin.name}
+                  onClosing={() => setPoppedOut(false)}
+                  onResize={() => store?.dispatch({ type: 'RESIZE' })}>
                   <ReduxSubAppStoreWrapper store={store}>
                     {plugin.chartComponent !== undefined ? (
                       <plugin.chartComponent
@@ -270,60 +287,64 @@ const DashboardItem = memo(function DashboardItem(props: {
               console.log('Start dragging dashboard item ' + props.item.pluginName);
               props.setDragResizeItem(props.item.id, DragResizeMode.drag);
             }}>
-            <span>{props.item.pluginName}</span>
-            {selectedDataPlugin && (
-              <span>
-                ({selectedDataPlugin.name} #{selectedDataPlugin.id})
-              </span>
-            )}
-            <button
-              className={dashboardItemStyles.settingsButton}
-              ref={settingsButtonRef}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (settingsRef.current) {
-                  settingsRef.current.style.display = 'block';
-                }
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.deleteButton}
-              ref={deleteButtonRef}
-              style={{ display: 'none' }}
-              onClick={(event) => {
-                event.stopPropagation();
-                props.deleteItem(props.item.id);
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.helpButton}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (helpRef.current) {
-                  helpRef.current.style.display = 'block';
-                }
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.popoutButton}
-              onClick={(event) => {
-                event.stopPropagation();
-                dispatch(increasePopupCount());
-                setPoppedOut(true);
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            {plugin.capabilities.export && (
+            <div className={dashboardItemStyles.dashboardItemInteractionBarLeft}>
+              <span>{props.item.pluginName}</span>
+              {selectedDataPlugin && (
+                <span>
+                  ({selectedDataPlugin.name} #{selectedDataPlugin.id})
+                </span>
+              )}
+            </div>
+            <div className={dashboardItemStyles.dashboardItemInteractionBarRight}>
+              {plugin.capabilities.export && (
+                <button
+                  className={dashboardItemStyles.exportButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    dispatch(setExportType(ExportType.image));
+                    dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
+                    dispatch(setExportName(`${plugin.name}Export`));
+                    (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
+                  }}
+                  onMouseDown={(event) => event.stopPropagation()}></button>
+              )}
               <button
-                className={dashboardItemStyles.exportButton}
+                className={dashboardItemStyles.popoutButton}
                 onClick={(event) => {
                   event.stopPropagation();
-                  dispatch(setExportType(ExportType.image));
-                  dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
-                  dispatch(setExportName(`${plugin.name}Export`));
-                  (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
+                  dispatch(increasePopupCount());
+                  setPoppedOut(true);
                 }}
                 onMouseDown={(event) => event.stopPropagation()}></button>
-            )}
+              <button
+                className={dashboardItemStyles.helpButton}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (helpRef.current) {
+                    helpRef.current.style.display = 'block';
+                  }
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+              <button
+                className={dashboardItemStyles.deleteButton}
+                ref={deleteButtonRef}
+                style={{ display: 'none' }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  props.deleteItem(props.item.id);
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+              <button
+                className={dashboardItemStyles.settingsButton}
+                ref={settingsButtonRef}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (settingsRef.current) {
+                    settingsRef.current.style.display = 'block';
+                  }
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+            </div>
           </div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarTop}

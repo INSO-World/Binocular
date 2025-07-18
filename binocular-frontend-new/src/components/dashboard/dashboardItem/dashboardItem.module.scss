@@ -22,6 +22,9 @@ $dashboardItemResizeBarThickness: 3px;
 
 .dashboardItemInteractionBar{
   position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   @apply bg-base-100;
   box-shadow: $shadow-default;
   user-select: none;
@@ -30,16 +33,44 @@ $dashboardItemResizeBarThickness: 3px;
   width: 100%;
 }
 
-.dashboardItemInteractionBar>span{
-  margin-left: .5rem;
-  float: left;
+.dashboardItemInteractionBarLeft{
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  justify-content: start;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  height: 100%;
 }
 
-.dashboardItemInteractionBar>button{
-  margin-right: .5rem;
+.dashboardItemInteractionBarLeft::after{
+  content: "";
+  display: block;
+  position: absolute;
+  height: $dashboardItemInteractionBarThickness;
+  width: $dashboardItemInteractionBarThickness;
+  right: 0;
+  background: linear-gradient(to right, transparent, oklch(var(--b1)));
+}
+
+
+.dashboardItemInteractionBarRight{
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: end;
+  flex-wrap: nowrap;
+  gap: .25rem;
+}
+
+.dashboardItemInteractionBarRight>button{
   width: $dashboardItemInteractionBarThickness;
   height: $dashboardItemInteractionBarThickness;
-  float: right;
+}
+
+.dashboardItemInteractionBarLeft>span{
+  margin-left: .5rem;
+  text-wrap: nowrap;
 }
 
 .dashboardItemResizeBarTop{

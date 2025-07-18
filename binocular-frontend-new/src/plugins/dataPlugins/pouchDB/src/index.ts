@@ -9,6 +9,7 @@ import Builds from './collections/builds.ts';
 import Notes from './collections/notes.ts';
 import Issues from './collections/issues.ts';
 import Accounts from './collections/accounts.ts';
+import Branches from './collections/branches.ts';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
@@ -28,6 +29,7 @@ class PouchDb implements DataPlugin {
   public accounts;
   public general;
   public files;
+  public branches;
   public notes;
   public issues;
 
@@ -43,6 +45,7 @@ class PouchDb implements DataPlugin {
     this.general = new General();
     this.files = new Files(undefined);
     this.database = new Database();
+    this.branches = new Branches(undefined);
   }
 
   public async init(_apiKey: string | undefined, _endpoint: string | undefined, file: FileConfig | undefined) {
@@ -56,6 +59,7 @@ class PouchDb implements DataPlugin {
       this.accounts = new Accounts(this.database);
       this.general = new General();
       this.files = new Files(this.database);
+      this.branches = new Branches(this.database);
     }
   }
 

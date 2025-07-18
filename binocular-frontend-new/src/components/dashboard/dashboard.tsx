@@ -113,12 +113,6 @@ function Dashboard() {
     }
   }, [placeableItem]);
 
-  useEffect(() => {
-    if (dashboardRef.current !== null) {
-      setCellSize(dashboardRef.current.offsetWidth / columnCount);
-    }
-  }, [columnCount, gridSize]);
-
   function positionDashboardItem() {
     if (movingItem.current.x !== undefined && movingItem.current.y !== undefined) {
       if (targetX < 0 || targetY < 0 || targetX + targetWidth > columnCount || targetY + targetHeight > rowCount) {
@@ -217,6 +211,7 @@ function Dashboard() {
                 dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
               }),
             );
+            dispatch({ type: 'RESIZE_DASHBOARD_ITEM', payload: { dashboardItemId: movingItem.current.id } });
           } else {
             dispatch(
               addNotification({
@@ -233,6 +228,32 @@ function Dashboard() {
     }
     clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
   }
+
+  // Dashboard Resizing
+  useEffect(() => {
+    if (dashboardRef.current !== null) {
+      setCellSize(dashboardRef.current.offsetWidth / columnCount);
+    }
+  }, [columnCount, gridSize]);
+
+  const resizeObserver = new ResizeObserver(() => {
+    if (dashboardRef.current) {
+      setCellSize(dashboardRef.current.offsetWidth / columnCount);
+      dispatch({ type: 'RESIZE' });
+    }
+  });
+
+  useEffect(() => {
+    if (dashboardRef.current) {
+      resizeObserver.observe(dashboardRef.current);
+      return () => {
+        if (dashboardRef.current) {
+          resizeObserver.unobserve(dashboardRef.current);
+          resizeObserver.disconnect();
+        }
+      };
+    }
+  }, [dashboardRef, resizeObserver]);
 
   return (
     <>

@@ -48,6 +48,7 @@ export default {
           "base-100": "#111",
           "base-200": "#222",
           "base-300": "#333",
+          "base-content": "#fff",
           "success":"#229e37",
           "error":"#c90a00",
           "warning":"#ffcc00",
