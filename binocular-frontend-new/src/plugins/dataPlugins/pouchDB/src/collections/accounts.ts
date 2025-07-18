@@ -22,4 +22,19 @@ export default class Accounts implements DataPluginAccounts {
       });
     }
   }
+
+  public async saveAccountUserRelation(relation: DataPluginAccount) {
+    if (this.database && this.database.documentStore) {
+      try {
+        const response = await this.database.documentStore.put(relation);
+        console.log(`Account-User Relation saved: ${JSON.stringify(response)}`);
+        return response;
+      } catch (error) {
+        console.error('Error saving account-user relation:', error);
+        throw error;
+      }
+    } else {
+      throw new Error('Database not initialized');
+    }
+  }
 }

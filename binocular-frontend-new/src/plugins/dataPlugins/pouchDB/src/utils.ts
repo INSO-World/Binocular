@@ -404,15 +404,15 @@ export async function findAllUsers(database: PouchDB.Database, relations: PouchD
 }
 
 function preprocessUser(user: JSONObject, accountsUsersConnection: JSONObject[], accounts: JSONObject[]) {
-  const accountUserRelation = binarySearch(accountsUsersConnection, user._id, 'from');
+  const accountUserRelation = binarySearch(accountsUsersConnection, user._id, 'to');
   if (accountUserRelation === null) {
-    return _.assign(user, { manualRun: true });
+    return _.assign(user, { id: user._id, manualRun: true });
   }
   const account = binarySearch(accounts, accountUserRelation.from, '_id');
   if (account === null) {
-    return _.assign(user, { manualRun: true });
+    return _.assign(user, { id: user._id, manualRun: true });
   }
-  return _.assign(user, { account: account });
+  return _.assign(user, { id: user._id, account: account });
 }
 
 // ###################### ACCOUNTS ######################
@@ -420,25 +420,28 @@ function preprocessUser(user: JSONObject, accountsUsersConnection: JSONObject[],
 export async function findAllAccounts(database: PouchDB.Database, relations: PouchDB.Database) {
   const users = (await findAll(database, 'users')).docs;
   const accounts = await findAll(database, 'accounts');
-  const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'to');
+  const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'from');
 
   accounts.docs = await Promise.all(accounts.docs.map((u) => preprocessAccount(u, accountsUsersConnection, users)));
+  console.log(accounts);
   return accounts;
 }
 
 function preprocessAccount(account: JSONObject, accountsUsersConnection: JSONObject[], users: JSONObject[]) {
-  const accountUserRelation = binarySearch(accountsUsersConnection, account._id, 'to');
+  const accountUserRelation = binarySearch(accountsUsersConnection, account._id, 'from');
+  // If user.name is null but user.login exists, set name = login
+  if (account.name == null && account.login != null) {
+    account.name = account.login;
+  }
   if (accountUserRelation === null) {
-    return _.assign(account, { manualRun: true });
+    return _.assign(account, { id: account._id, manualRun: true });
   }
   const user = binarySearch(users, accountUserRelation.to, '_id');
   if (user === null) {
-    return _.assign(user, { manualRun: true });
+    return _.assign(account, { id: account._id, manualRun: true });
   }
-  return _.assign(account, { user: user });
+  return _.assign(account, { id: account._id, user: user });
 }
-
-
 
 // ###################### OTHER ######################
 

@@ -100,6 +100,7 @@ function GeneralSettings() {
                         try {
                           const importJSON: { storageVersion: number; storageState: RootState } = JSON.parse(e.target.result as string);
                           if (importJSON.storageVersion === Config.localStorageVersion) {
+                            dispatch(importAccountsStorage(importJSON.storageState.accounts));
                             dispatch(importAuthorsStorage(importJSON.storageState.authors));
                             dispatch(importDashboardStorage(importJSON.storageState.dashboard));
                             dispatch(importParametersStorage(importJSON.storageState.parameters));

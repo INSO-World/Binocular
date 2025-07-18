@@ -4,9 +4,7 @@ import _ from 'lodash';
 import { Entry } from './Model.ts';
 
 export async function findBestUserMatch(author: AccountUser) {
-  console.log(author);
   const user = await User.findAll();
-  console.log(user);
   const bestMatch = user.reduce((best: any, userEntry) => {
     if (userEntry === null) {
       return;

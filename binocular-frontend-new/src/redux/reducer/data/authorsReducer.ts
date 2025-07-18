@@ -33,11 +33,13 @@ export const authorsSlice = createSlice({
       let authorList = state.authorLists[action.payload.dataPluginId] || [];
 
       if (authorList.length !== action.payload.authors.length) {
+        // remove old authors that are not in the new list
         authorList.forEach((author: AuthorType) => {
           if (!action.payload.authors.find((a: AuthorType) => a.user.id === author.user.id)) {
             authorList = authorList.filter((a: AuthorType) => a.user.id !== author.user.id);
           }
         });
+        // add new authors that are not in the list
         action.payload.authors.forEach((author) => {
           if (!authorList.find((a: AuthorType) => a.user.id === author.user.id)) {
             author.id = authorList.length + 1;
@@ -123,6 +125,7 @@ export const authorsSlice = createSlice({
         }
         return a;
       });
+
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     resetAccount: (state) => {
@@ -137,7 +140,23 @@ export const authorsSlice = createSlice({
     },
   },
 });
-
+/* TODO test before use
+function updateAuthorStorage(account: DataPluginAccount) {
+  //   correct dP
+  DataPluginStorage.getDataPlugin(dP)
+    .then((dataPlugin) => {
+      if (dataPlugin) {
+        dataPlugin.accounts
+          .saveAccountUserRelation(account)
+          .then(() => {
+            console.log('Account relation saved successfully');
+          })
+          .catch((e) => console.log('Error loading Accounts from selected data source! ' + e));
+      }
+    })
+    .catch((e) => console.log(e));
+}
+*/
 export const {
   setAuthorList,
   setDragging,

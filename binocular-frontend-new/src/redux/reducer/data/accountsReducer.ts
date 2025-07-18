@@ -27,11 +27,13 @@ export const accountsSlice = createSlice({
     setAccountList: (state, action: PayloadAction<{ dataPluginId: number; accounts: AccountType[] }>) => {
       let accountList = state.accountLists[action.payload.dataPluginId] || [];
       if (accountList.length !== action.payload.accounts.length) {
+        // remove old accounts that are not in the new list
         accountList.forEach((account: AccountType) => {
           if (!action.payload.accounts.find((a: AccountType) => a.id === account.id)) {
             accountList = accountList.filter((a: AccountType) => a.id !== account.id);
           }
         });
+        // add new accounts that are not in the list
         action.payload.accounts.forEach((account) => {
           if (!accountList.find((a: AccountType) => a.id === account.id)) {
             account.localId = accountList.length + 1;

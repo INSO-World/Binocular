@@ -39,39 +39,51 @@ function AuthorList(props: { orientation?: string }) {
 
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
-  function refreshAccounts(dP: DatabaseSettingsDataPluginType) {
-    if (dP && dP.id !== undefined) {
-      console.log(`REFRESH ACCOUNTS (${dP.name} #${dP.id})`);
-      DataPluginStorage.getDataPlugin(dP)
-        .then((dataPlugin) => {
-          if (dataPlugin) {
-            dataPlugin.accounts
-              .getAll()
-              .then((accounts: DataPluginAccount[]) => {
-                dispatch(
-                  setAccountList({
-                    dataPluginId: dP.id !== undefined ? dP.id : -1,
-                    accounts: accounts.map((author) => {
-                      return {
-                        localId: 0, // real id gets set in reducer
-                        id: author.id,
-                        name: author.name,
-                        platform: author.platform,
-                        user: author.user,
-                      };
+  function refreshAccounts(dP: DatabaseSettingsDataPluginType): Promise<void> {
+    return new Promise((resolve) => {
+      if (dP && dP.id !== undefined) {
+        console.log(`REFRESH ACCOUNTS (${dP.name} #${dP.id})`);
+        DataPluginStorage.getDataPlugin(dP)
+          .then((dataPlugin) => {
+            if (dataPlugin) {
+              dataPlugin.accounts
+                .getAll()
+                .then((accounts: DataPluginAccount[]) => {
+                  dispatch(
+                    setAccountList({
+                      dataPluginId: dP.id !== undefined ? dP.id : -1,
+                      accounts: accounts.map((account) => {
+                        return {
+                          localId: 0, // real id gets set in reducer
+                          id: account.id,
+                          name: account.name,
+                          platform: account.platform,
+                          user: null, // is not set, because it is not needed in the accounts list
+                        };
+                      }),
                     }),
-                  }),
-                );
-              })
-              .catch((e) => console.log('Error loading Accounts from selected data source! ' + e));
-          }
-        })
-        .catch((e) => console.log(e));
-    } else {
-      if (configuredDataPlugins.length > 0) {
-        dispatch(setAccountsDataPluginId(configuredDataPlugins[0].id));
+                  );
+                  resolve();
+                })
+                .catch((e) => {
+                  console.log('Error loading Accounts from selected data source! ' + e);
+                  resolve();
+                });
+            } else {
+              resolve();
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+            resolve();
+          });
+      } else {
+        if (configuredDataPlugins.length > 0) {
+          dispatch(setAccountsDataPluginId(configuredDataPlugins[0].id));
+        }
+        resolve();
       }
-    }
+    });
   }
 
   function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
@@ -93,7 +105,7 @@ function AuthorList(props: { orientation?: string }) {
                   setAuthorList({
                     dataPluginId: dP.id !== undefined ? dP.id : -1,
                     authors: users.map((user, i) => {
-                      if (user.account !== null) {
+                      if (user.account !== null && user.account !== undefined) {
                         const account = accounts.find((acc) => acc.id === user.account?.id);
                         return {
                           // mapping could be done in helper function?
@@ -143,18 +155,22 @@ function AuthorList(props: { orientation?: string }) {
     }
   }
 
+  // order is needed to ensure that the authors are loaded with assigned accounts
   useEffect(() => {
-    if (configuredDataPlugins.length === 0) {
-      dispatch(setAuthorsDataPluginId(undefined));
-    }
-    configuredDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
-      if (authorsDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
-        dispatch(setAuthorsDataPluginId(dP.id));
-        dispatch(setAccountsDataPluginId(dP.id));
+    const runRefresh = async () => {
+      if (configuredDataPlugins.length === 0) {
+        dispatch(setAuthorsDataPluginId(undefined));
       }
-      refreshAccounts(dP);
-      refreshAuthors(dP);
-    });
+      for (const dP of configuredDataPlugins) {
+        if (authorsDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
+          dispatch(setAuthorsDataPluginId(dP.id));
+          dispatch(setAccountsDataPluginId(dP.id));
+        }
+        await refreshAccounts(dP);
+        refreshAuthors(dP);
+      }
+    };
+    void runRefresh();
   }, [configuredDataPlugins]);
 
   useEffect(() => {
@@ -166,8 +182,9 @@ function AuthorList(props: { orientation?: string }) {
       if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
         if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === authorsDataPluginId) {
           const dP = configuredDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
-          refreshAccounts(dP);
-          refreshAuthors(dP);
+          void refreshAccounts(dP).then(() => {
+            refreshAuthors(dP);
+          });
         }
       }
     }

@@ -17,16 +17,16 @@ import {
 import Changes from './visualizationPlugins/changes';
 import Builds from './visualizationPlugins/builds';
 import TimeSpent from './visualizationPlugins/timeSpent';
-import { DataPluginTimeSpent } from './interfaces/dataPluginInterfaces/dataPluginTimeSpent.ts';
-import { DataPluginBuild } from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
-import { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import CodeOwnership from './visualizationPlugins/code-ownership';
 import FileChanges from './visualizationPlugins/fileChanges';
+import { DataPluginBuild } from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { DataPluginNote } from './interfaces/dataPluginInterfaces/dataPluginNotes.ts';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
-const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginTimeSpent>(TimeSpent);
+const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginNote>(TimeSpent);
 
 //The implicit type here has to be any because every Visualization plugin has a different settings type implied
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,7 +40,6 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   ExampleVisualization,
   ExampleComplex,
 ];
-
 
 //Order = priority used when nothing selected by the user.
 export const dataPlugins = [BinocularBackend, PouchDb, MockData, Github];
