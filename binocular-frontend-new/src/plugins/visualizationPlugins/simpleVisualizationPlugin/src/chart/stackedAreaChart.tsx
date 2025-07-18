@@ -60,11 +60,8 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
         xScale.domain([xMin || 0, xMax || 0]);
       } else {
         xScale.domain([xScale.invert(extent[0]), xScale.invert(extent[1])]);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        svgElement.select('.brush').call(brush.move, null);
+
+        svgElement.select<SVGGElement>('.brush').call(brush.move.bind(this), null);
       }
       // d3/typescript sometimes does weird things and throws an error where no error is.
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
