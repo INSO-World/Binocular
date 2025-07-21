@@ -98,11 +98,11 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Run tests for module ${{ matrix.module }}
-        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,sql,h2 -Ph2
+        run: mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,sql,h2 -Psql
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,sql,h2 -Ph2
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,sql,h2 -Psql
 
       - name: Upload surefire report
         if: always()
