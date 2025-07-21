@@ -72,7 +72,7 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
 
     override fun findAll(): Iterable<Issue> = this.issueDao.findAll()
 
-    override fun save(entity: Issue): Issue = this.issueDao.save(entity)
+    override fun create(entity: Issue): Issue = this.issueDao.save(entity)
 
     override fun saveAll(entities: Collection<Issue>): Iterable<Issue> = this.issueDao.saveAll(entities)
 

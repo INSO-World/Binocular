@@ -36,4 +36,18 @@ data class UserEntity(
         direction = Relations.Direction.INBOUND,
     )
     var files: List<FileEntity> = emptyList(),
-)
+) {
+    val name: String
+        get() {
+            val nameRegex = Regex("""^(.+?)\s*<""")
+            return nameRegex.find(gitSignature)?.groupValues?.get(1)
+                ?: throw IllegalArgumentException("could not extract email from gitSignature")
+        }
+
+    val email: String
+        get() {
+            val emailRegex = Regex("""<([^>]+)>$""")
+            return emailRegex.find(gitSignature)?.groupValues?.get(1)
+                ?: throw IllegalArgumentException("could not extract email from gitSignature")
+        }
+}

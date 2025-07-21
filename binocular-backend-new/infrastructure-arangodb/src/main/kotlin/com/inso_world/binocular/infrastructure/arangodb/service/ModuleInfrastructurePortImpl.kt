@@ -62,7 +62,7 @@ class ModuleInfrastructurePortImpl : ModuleInfrastructurePort {
 
     override fun findAll(): Iterable<Module> = moduleDao.findAll()
 
-    override fun save(entity: Module): Module = moduleDao.save(entity)
+    override fun create(entity: Module): Module = moduleDao.save(entity)
 
     override fun saveAll(entities: Collection<Module>): Iterable<Module> = moduleDao.saveAll(entities)
 

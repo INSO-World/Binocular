@@ -13,7 +13,6 @@ class User(
     @field:NotBlank val name: String? = null,
     @field:Email
     var email: String? = null,
-//    var repositoryId: String? = null,
     @field:NotNull
     var repository: Repository? = null,
     // Relationships
@@ -22,6 +21,10 @@ class User(
     val issues: List<Issue> = emptyList(),
     val files: List<File> = emptyList(),
 ) {
+    @Deprecated("do not use, just for compatibility")
+    val gitSignature: String
+        get() = "$name <$email>"
+
     fun uniqueKey(): String {
         if (repository == null) {
             throw IllegalStateException("cannot generate unique key for User when repository is null")
@@ -44,10 +47,6 @@ class User(
         committedCommits.add(commit)
         commit.committer = this
     }
-
-    @Deprecated("do not use")
-    val gitSignature: String
-        get() = "$name <$email>"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

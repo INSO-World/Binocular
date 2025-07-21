@@ -10,7 +10,7 @@ data class VcsPerson(
     fun toEntity(): User =
         User(
             name = this.name,
-            gitSignature = this.email,
+            email = this.email,
         )
 }
 

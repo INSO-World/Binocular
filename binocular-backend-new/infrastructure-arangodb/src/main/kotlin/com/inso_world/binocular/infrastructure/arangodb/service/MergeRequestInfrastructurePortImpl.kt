@@ -58,7 +58,7 @@ class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort {
 
     override fun findAll(): Iterable<MergeRequest> = this.mergeRequestDao.findAll()
 
-    override fun save(entity: MergeRequest): MergeRequest = this.mergeRequestDao.save(entity)
+    override fun create(entity: MergeRequest): MergeRequest = this.mergeRequestDao.save(entity)
 
     override fun saveAll(entities: Collection<MergeRequest>): Iterable<MergeRequest> = this.mergeRequestDao.saveAll(entities)
 

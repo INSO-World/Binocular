@@ -104,7 +104,7 @@
             </dependencies>
         </profile>
         <profile>
-            <id>postgres</id>
+            <id>sql</id>
             <dependencies>
                 <dependency>
                     <groupId>com.inso-world.binocular</groupId>

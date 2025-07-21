@@ -40,7 +40,8 @@ class UserMapper
         override fun toDomain(entity: UserEntity): User =
             User(
                 id = entity.id,
-                gitSignature = entity.gitSignature,
+                name = entity.name,
+                email = entity.email,
                 committedCommits = mutableSetOf<Commit>(),
 //                TODO
 //                    proxyFactory.createLazyList {
@@ -50,13 +51,13 @@ class UserMapper
 //                    },
                 issues =
                     proxyFactory.createLazyList {
-                        (entity.issues ?: emptyList()).map { issueEntity ->
+                        entity.issues.map { issueEntity ->
                             issueMapper.toDomain(issueEntity)
                         }
                     },
                 files =
                     proxyFactory.createLazyList {
-                        (entity.files ?: emptyList()).map { fileEntity ->
+                        entity.files.map { fileEntity ->
                             fileMapper.toDomain(fileEntity)
                         }
                     },

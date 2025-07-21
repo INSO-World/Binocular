@@ -60,7 +60,7 @@ class BuildInfrastructurePortImpl : BuildInfrastructurePort {
 
     override fun findAll(): Iterable<Build> = this.buildDao.findAll()
 
-    override fun save(entity: Build): Build = this.buildDao.save(entity)
+    override fun create(entity: Build): Build = this.buildDao.save(entity)
 
     override fun saveAll(entities: Collection<Build>): Iterable<Build> = this.buildDao.saveAll(entities)
 

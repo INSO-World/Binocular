@@ -36,7 +36,7 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
 
     override fun findAll(): Iterable<Branch> = this.branchDao.findAll()
 
-    override fun save(entity: Branch): Branch = this.branchDao.save(entity)
+    override fun create(entity: Branch): Branch = this.branchDao.save(entity)
 
     override fun saveAll(entities: Collection<Branch>): Iterable<Branch> = this.branchDao.saveAll(entities)
 
