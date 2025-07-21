@@ -83,12 +83,13 @@ internal class CommitMapper
                             moduleMapper.toDomain(moduleEntity)
                         }
                     },
-                users =
-                    proxyFactory.createLazyList {
-                        (entity.users).map { userEntity ->
-                            userMapper.toDomain(userEntity)
-                        }
-                    },
+//                TODO this should be fixed by author and committer
+//                users =
+//                    proxyFactory.createLazyList {
+//                        (entity.users).map { userEntity ->
+//                            userMapper.toDomain(userEntity)
+//                        }
+//                    },
                 issues =
                     proxyFactory.createLazyList {
                         (entity.issues).map { issueEntity ->

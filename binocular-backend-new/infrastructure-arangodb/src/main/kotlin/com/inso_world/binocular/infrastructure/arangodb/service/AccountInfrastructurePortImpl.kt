@@ -58,7 +58,7 @@ class AccountInfrastructurePortImpl : AccountInfrastructurePort {
 
     override fun findAll(): Iterable<Account> = accountDao.findAll()
 
-    override fun save(entity: Account): Account = this.accountDao.save(entity)
+    override fun create(entity: Account): Account = this.accountDao.save(entity)
 
     override fun saveAll(entities: Collection<Account>): Iterable<Account> = this.accountDao.saveAll(entities)
 

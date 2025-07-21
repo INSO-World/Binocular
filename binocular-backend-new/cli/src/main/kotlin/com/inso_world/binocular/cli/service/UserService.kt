@@ -2,7 +2,6 @@ package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.model.User
-import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,18 +21,9 @@ class UserService(
 //        return userSerivce.saveAll(users)
 //    }
 
-    @Transactional
     fun findAllUsersByEmails(emails: Collection<String>): Collection<User> {
         logger.trace("Finding users with emails {}", emails)
 
-        return userPort.findAll().filter { emails.contains(it.gitSignature) }.map { it ->
-            User(
-                name = it.name,
-                gitSignature = it.gitSignature,
-            )
-        }
-
-//        return userDao.findAllByEmail(emails).collect(Collectors.toSet())
-//        return userSerivce.findAll().filter { it.gitSignature.in }
+        return userPort.findAll().filter { emails.contains(it.email) }
     }
 }

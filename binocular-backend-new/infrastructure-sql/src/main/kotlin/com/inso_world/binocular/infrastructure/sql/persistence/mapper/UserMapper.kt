@@ -8,14 +8,12 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
-import jakarta.persistence.EntityManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 import org.springframework.transaction.support.TransactionTemplate
-import kotlin.collections.set
 
 @Component
 internal class UserMapper
@@ -26,16 +24,12 @@ internal class UserMapper
         private val logger: Logger = LoggerFactory.getLogger(UserMapper::class.java)
 
         @Autowired
-        @org.springframework.context.annotation.Lazy
+        @Lazy
         private lateinit var transactionTemplate: TransactionTemplate
 
         @Autowired
         @Lazy
         private lateinit var commitMapper: CommitMapper
-
-        @Autowired
-        @Lazy
-        private lateinit var entityManager: EntityManager
 
         /**
          * Converts a domain User to a SQL UserEntity
@@ -150,38 +144,36 @@ internal class UserMapper
             userContext[userContextKey] = domain
 
             domain.committedCommits =
-                proxyFactory.createLazyMutableSet {
-                    val commits =
-                        transactionTemplate.execute {
-                            // Reload the entity in a new session
-                            val freshEntity = entityManager.find(UserEntity::class.java, entity.id)
-//
-                            freshEntity.committedCommits.map {
-                                commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
-                            }
-                        } ?: throw IllegalStateException("transaction should load branch entities")
-
-                    // Lazy validation: only when branches are loaded
-//                require(commits.isNotEmpty()) { "SHAs of Branch ${entity.name} must not be empty" }
-                    commits
-                }
+                proxyFactory.createLazyMutableSet(
+                    {
+//                        transactionTemplate.execute {
+                        entity.committedCommits.map {
+                            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
+                        }
+//                        } ?: throw IllegalStateException("transaction should load branch committedCommits")
+                    },
+                    {
+                        require(it.size == entity.committedCommits.size) {
+                            "entity.committedCommits: Expected size of ${entity.committedCommits.size} does not match ${it.size}"
+                        }
+                    },
+                )
 
             domain.authoredCommits =
-                proxyFactory.createLazyMutableSet {
-                    val commits =
-                        transactionTemplate.execute {
-                            // Reload the entity in a new session
-                            val freshEntity = entityManager.find(UserEntity::class.java, entity.id)
-//
-                            freshEntity.authoredCommits.map {
-                                commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
-                            }
-                        } ?: throw IllegalStateException("transaction should load branch entities")
-
-                    // Lazy validation: only when branches are loaded
-//                require(commits.isNotEmpty()) { "SHAs of Branch ${entity.name} must not be empty" }
-                    commits
-                }
+                proxyFactory.createLazyMutableSet(
+                    {
+//                        transactionTemplate.execute {
+                        entity.authoredCommits.map {
+                            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
+                        }
+//                        } ?: throw IllegalStateException("transaction should load authoredCommits entities")
+                    },
+                    {
+                        require(it.size == entity.authoredCommits.size) {
+                            "entity.committedCommits: Expected size of ${entity.authoredCommits.size} does not match ${it.size}"
+                        }
+                    },
+                )
 
             repository.user.add(domain)
 

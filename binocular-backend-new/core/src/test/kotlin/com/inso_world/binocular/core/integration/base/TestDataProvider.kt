@@ -239,8 +239,8 @@ object TestDataProvider {
 
     val testUsers =
         listOf(
-            User("1", "John Doe", "John Doe <john.doe@example.com>"),
-            User("2", "Jane Smith", "Jane Smith <jane.smith@example.com>"),
+            User("1", "John Doe", "john.doe@example.com"),
+            User("2", "Jane Smith", "jane.smith@example.com"),
         )
 
     val testMilestones =

@@ -21,7 +21,7 @@ class ProjectService(
         val find = this.findByName(name)
         if (find == null) {
             logger.info("Project '$name' does not exists, creating new project")
-            return this.projectDao.save(
+            return this.projectDao.create(
                 Project(
                     name = name,
                 ),

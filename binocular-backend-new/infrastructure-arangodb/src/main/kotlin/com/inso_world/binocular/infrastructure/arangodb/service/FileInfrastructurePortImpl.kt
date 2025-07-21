@@ -70,7 +70,7 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
 
     override fun findAll(): Iterable<File> = fileDao.findAll()
 
-    override fun save(entity: File): File = this.fileDao.save(entity)
+    override fun create(entity: File): File = this.fileDao.save(entity)
 
     override fun saveAll(entities: Collection<File>): Iterable<File> = this.fileDao.saveAll(entities)
 

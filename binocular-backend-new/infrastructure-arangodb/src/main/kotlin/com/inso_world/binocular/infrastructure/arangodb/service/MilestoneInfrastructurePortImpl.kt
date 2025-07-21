@@ -49,7 +49,7 @@ class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort {
 
     override fun findAll(): Iterable<Milestone> = this.milestoneDao.findAll()
 
-    override fun save(entity: Milestone): Milestone = this.milestoneDao.save(entity)
+    override fun create(entity: Milestone): Milestone = this.milestoneDao.save(entity)
 
     override fun saveAll(entities: Collection<Milestone>): Iterable<Milestone> = this.milestoneDao.saveAll(entities)
 

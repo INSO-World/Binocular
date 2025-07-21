@@ -112,7 +112,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     override fun findAll(): Iterable<Commit> = this.commitDao.findAll()
 
-    override fun save(entity: Commit): Commit = this.commitDao.save(entity)
+    override fun create(entity: Commit): Commit = this.commitDao.save(entity)
 
     override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = this.commitDao.saveAll(entities)
 

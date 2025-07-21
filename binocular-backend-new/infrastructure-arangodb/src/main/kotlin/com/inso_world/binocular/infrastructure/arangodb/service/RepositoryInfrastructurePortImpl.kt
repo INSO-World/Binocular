@@ -24,7 +24,7 @@ class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun save(entity: Repository): Repository {
+    override fun create(entity: Repository): Repository {
         TODO("Not yet implemented")
     }
 

@@ -19,7 +19,7 @@ class RepositoryService {
     private val logger: Logger = LoggerFactory.getLogger(RepositoryService::class.java)
 
     @Autowired
-    private lateinit var repositoryDao: RepositoryInfrastructurePort
+    private lateinit var repositoryPort: RepositoryInfrastructurePort
 
     @Autowired
     private lateinit var commitService: CommitService
@@ -32,7 +32,7 @@ class RepositoryService {
         repo: Repository,
         commits: Iterable<VcsCommit>,
     ): Collection<Commit> {
-        val userCache = repo.user.associateBy { it.gitSignature }.toMutableMap()
+        val userCache = repo.user.associateBy { it.email }.toMutableMap()
         val branchCache = repo.branches.associateBy { it.name }.toMutableMap()
         // commitCache are the commits which exist
         val commitCache: Map<String, Commit> = repo.commits.associateBy { it.sha }
@@ -42,14 +42,12 @@ class RepositoryService {
             commits.associate {
                 it.sha to
                     {
-                        val e = it.toEntity()
+                        val e = it.toDomain()
                         val branchEntity =
                             it.branch.let { branchName ->
                                 branchCache.getOrPut(branchName) {
                                     val b = Branch(name = branchName)
                                     repo.addBranch(b)
-//                                    repo.branches.add(b)
-//                                    b.repository = repo
                                     b
                                 }
                             }
@@ -98,7 +96,7 @@ class RepositoryService {
                 } ?: emptyList()
 
             // Set the parents on the entity
-            commit.parents = parentCommits
+            commit.parents = parentCommits.toMutableSet()
         }
 
         return commitMap.values.toList()
@@ -106,7 +104,7 @@ class RepositoryService {
 
     private fun normalizePath(path: String): String = if (path.endsWith(".git")) path else "$path/.git"
 
-    fun findRepo(gitDir: String): Repository? = this.repositoryDao.findByName(normalizePath(gitDir))
+    fun findRepo(gitDir: String): Repository? = this.repositoryPort.findByName(normalizePath(gitDir))
 
     private fun findRepo(vcsRepo: BinocularRepositoryPojo): Repository? = this.findRepo(vcsRepo.gitDir)
 
@@ -114,7 +112,7 @@ class RepositoryService {
 //    return this.repositoryDao.findByNameWithRelations(normalizePath(gitDir))
 //  }
 
-    @Transactional
+//    @Transactional
     fun getOrCreate(
         gitDir: String,
         p: Project,
@@ -122,7 +120,7 @@ class RepositoryService {
         val find = this.findRepo(gitDir)
         if (find == null) {
             logger.info("Repository does not exists, creating new repository")
-            return this.repositoryDao.save(
+            return this.repositoryPort.create(
                 Repository(
                     id = null,
                     name = normalizePath(gitDir),
@@ -148,9 +146,9 @@ class RepositoryService {
         return this.branchService.findBranch(repository, branchName)
     }
 
-    fun save(repo: Repository): Repository = this.repositoryDao.update(repo)
+    fun update(repo: Repository): Repository = this.repositoryPort.update(repo)
 
-    @Transactional
+//    @Transactional
     fun addCommits(
         vcsRepo: BinocularRepositoryPojo,
         commitDtos: Collection<VcsCommit>,
@@ -166,7 +164,7 @@ class RepositoryService {
         // these commits are new so always added, also to an existing branch
         this.transformCommits(repo, existingCommitEntities.second)
 
-        this.repositoryDao.updateAndFlush(repo)
+        project.repo = this.repositoryPort.update(repo)
 
         logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${project.name}")
     }
@@ -179,7 +177,7 @@ fun Repository.addCommit(commit: Commit) {
 
 private fun Repository.addUser(e: User) {
     this.user.add(e)
-//    e.repository = this
+    e.repository = this
 }
 
 private fun Repository.addBranch(b: Branch) {
@@ -192,17 +190,7 @@ private fun Branch.addCommit(e: Commit) {
     e.branches.add(this)
 }
 
-private fun User.addAuthoredCommit(commit: Commit) {
-    authoredCommits.add(commit)
-    commit.author = this
-}
-
 // private fun User.addProjectMembership(member: ProjectMember) {
 //    memberAliases.add(member)
 //    member.user = this
 // }
-
-private fun User.addCommittedCommit(commit: Commit) {
-    committedCommits.add(commit)
-    commit.committer = this
-}

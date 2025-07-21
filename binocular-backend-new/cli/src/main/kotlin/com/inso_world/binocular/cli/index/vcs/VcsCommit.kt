@@ -20,7 +20,7 @@ data class VcsCommit(
     override fun toString(): String =
         "VcsCommit(sha='$sha', message='$message', branch=$branch, parents=$parents, commitTime=$commitTime, authorTime=$authorTime)"
 
-    fun toEntity(): Commit =
+    fun toDomain(): Commit =
         Commit(
             sha = this.sha,
             message = this.message,
@@ -28,7 +28,7 @@ data class VcsCommit(
             authorDateTime = this.authorTime,
             committer = this.committer?.toEntity(),
             author = this.author?.toEntity(),
-            parents = emptyList(), // Will be set later in transformCommits
+            parents = mutableSetOf(), // Will be set later in transformCommits
             branches = mutableSetOf(), // Will be set later in transformCommits
             repositoryId = null, // Will be set later in transformCommits
         )

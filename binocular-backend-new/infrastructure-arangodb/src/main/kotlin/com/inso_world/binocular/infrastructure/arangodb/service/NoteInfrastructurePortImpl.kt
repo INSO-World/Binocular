@@ -58,7 +58,7 @@ class NoteInfrastructurePortImpl : NoteInfrastructurePort {
 
     override fun findAll(): Iterable<Note> = noteDao.findAll()
 
-    override fun save(entity: Note): Note = noteDao.save(entity)
+    override fun create(entity: Note): Note = noteDao.save(entity)
 
     override fun saveAll(entities: Collection<Note>): Iterable<Note> = noteDao.saveAll(entities)
 

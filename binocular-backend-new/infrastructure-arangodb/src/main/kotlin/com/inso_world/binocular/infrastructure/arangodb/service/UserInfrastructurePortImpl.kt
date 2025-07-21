@@ -62,7 +62,7 @@ class UserInfrastructurePortImpl : UserInfrastructurePort {
 
     override fun findAll(): Iterable<User> = this.userDao.findAll()
 
-    override fun save(entity: User): User = userDao.create(entity)
+    override fun create(entity: User): User = userDao.create(entity)
 
     override fun saveAll(entities: Collection<User>): Iterable<User> = userDao.saveAll(entities)
 
