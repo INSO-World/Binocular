@@ -12,7 +12,7 @@ import org.springframework.data.annotation.Id
  */
 @Edge(value = "branches-files")
 data class BranchFileConnectionEntity(
-  @Id var id: String? = null,
-  @From var from: BranchEntity,
-  @To var to: FileEntity
+    @Id var id: String? = null,
+    @From var from: BranchEntity,
+    @To var to: FileEntity,
 )

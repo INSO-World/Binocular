@@ -15,5 +15,5 @@ data class CommitFileConnectionEntity(
     @Id var id: String? = null,
     @From var from: CommitEntity,
     @To var to: FileEntity,
-    var lineCount: Int? = null
+    var lineCount: Int? = null,
 )

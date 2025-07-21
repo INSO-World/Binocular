@@ -26,9 +26,8 @@ class NoCommitCycleValidator : ConstraintValidator<NoCommitCycle, Commit> {
             context.disableDefaultConstraintViolation()
             context
                 .buildConstraintViolationWithTemplate(
-                    "Commit cycle detected: " + cyclePath.joinToString(" -> ")
-                )
-                .addConstraintViolation()
+                    "Commit cycle detected: " + cyclePath.joinToString(" -> "),
+                ).addConstraintViolation()
             return true
         }
         path.add(sha)

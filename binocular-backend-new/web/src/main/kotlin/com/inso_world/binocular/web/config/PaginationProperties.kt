@@ -14,12 +14,12 @@ class PaginationProperties {
      * Default page number (1-based) when not specified.
      */
     var defaultPage = 1
-    
+
     /**
      * Default number of items per page when not specified.
      */
     var defaultSize = 20
-    
+
     /**
      * Maximum allowed number of items per page.
      */

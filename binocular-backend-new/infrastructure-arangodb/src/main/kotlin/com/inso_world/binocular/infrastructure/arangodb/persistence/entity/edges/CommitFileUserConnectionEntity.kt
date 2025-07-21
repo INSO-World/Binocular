@@ -12,7 +12,7 @@ import org.springframework.data.annotation.Id
  */
 @Edge(value = "commit-files-users")
 data class CommitFileUserConnectionEntity(
-  @Id var id: String? = null,
-  @From var from: FileEntity,
-  @To var to: UserEntity
+    @Id var id: String? = null,
+    @From var from: FileEntity,
+    @To var to: UserEntity,
 )

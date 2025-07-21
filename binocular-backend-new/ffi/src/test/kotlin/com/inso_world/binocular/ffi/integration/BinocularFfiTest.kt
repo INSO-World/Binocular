@@ -85,8 +85,10 @@ internal class BinocularFfiTest : BaseFixturesIntegrationTest() {
         "$SIMPLE_REPO,HEAD,14",
         "$SIMPLE_REPO,b51199ab8b83e31f64b631e42b2ee0b1c7e3259a,14",
         "$SIMPLE_REPO,3d28b65c324cc8ee0bb7229fb6ac5d7f64129e90,13",
-        "$SIMPLE_REPO,2403472fd3b2c4487f66961929f1e5895c5013e1,9", // git rev-list --topo-order 2403472fd3b2c4487f66961929f1e5895c5013e1 | wc -l
-        "$SIMPLE_REPO,48a384a6a9188f376835005cd10fd97542e69bf7,1", // git rev-list --topo-order 2403472fd3b2c4487f66961929f1e5895c5013e1 | wc -l
+        // git rev-list --topo-order 2403472fd3b2c4487f66961929f1e5895c5013e1 | wc -l
+        "$SIMPLE_REPO,2403472fd3b2c4487f66961929f1e5895c5013e1,9",
+        // git rev-list --topo-order 48a384a6a9188f376835005cd10fd97542e69bf7 | wc -l
+        "$SIMPLE_REPO,48a384a6a9188f376835005cd10fd97542e69bf7,1",
         // OCTO
         "$OCTO_REPO,HEAD,19",
         "$OCTO_REPO,4dedc3c738eee6b69c43cde7d89f146912532cff,19", // HEAD

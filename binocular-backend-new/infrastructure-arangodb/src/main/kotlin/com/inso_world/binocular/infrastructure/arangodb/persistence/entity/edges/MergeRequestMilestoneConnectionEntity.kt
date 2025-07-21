@@ -14,5 +14,5 @@ import org.springframework.data.annotation.Id
 data class MergeRequestMilestoneConnectionEntity(
     @Id var id: String? = null,
     @From var from: MergeRequestEntity,
-    @To var to: MilestoneEntity
+    @To var to: MilestoneEntity,
 )

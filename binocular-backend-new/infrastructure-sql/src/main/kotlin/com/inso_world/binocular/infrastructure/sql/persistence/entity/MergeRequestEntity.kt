@@ -106,7 +106,5 @@ data class MergeRequestEntity(
         return true
     }
 
-    override fun hashCode(): Int {
-        return Objects.hash(id, iid, title, description, createdAt, closedAt, updatedAt, state, webUrl)
-    }
+    override fun hashCode(): Int = Objects.hash(id, iid, title, description, createdAt, closedAt, updatedAt, state, webUrl)
 }
