@@ -39,7 +39,7 @@ internal class ProjectDaoTest(
             val project = Project(name = "Standalone Project", description = "Project without repo")
 
             // When
-            val savedProject = projectDao.save(project)
+            val savedProject = projectDao.create(project)
 
             // Then
             assertAll(
@@ -53,9 +53,9 @@ internal class ProjectDaoTest(
         @Test
         fun `project can exist with repository`() {
             // When
-            val savedProject = projectDao.save(Project(name = "Project With Repo", description = "Project with repo"))
+            val savedProject = projectDao.create(Project(name = "Project With Repo", description = "Project with repo"))
             savedProject.repo =
-                repositoryDao.save(Repository(id = null, name = "test-repo", projectId = savedProject.id))
+                repositoryDao.create(Repository(id = null, name = "test-repo", projectId = savedProject.id))
 
             // Then
             assertAll(
@@ -71,9 +71,9 @@ internal class ProjectDaoTest(
         fun `project deletion cascades to repository`() {
             // Given
             val savedProject =
-                projectDao.save(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
+                projectDao.create(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
             savedProject.repo =
-                repositoryDao.save(Repository(id = null, name = "cascading-repo", projectId = savedProject.id))
+                repositoryDao.create(Repository(id = null, name = "cascading-repo", projectId = savedProject.id))
             // updated dependencies, as not managed by JPA
             projectDao.update(savedProject)
 
@@ -90,9 +90,9 @@ internal class ProjectDaoTest(
         @Test
         fun `project with null description can have repository`() {
             // When
-            val savedProject = projectDao.save(Project(name = "Null Desc Project"))
+            val savedProject = projectDao.create(Project(name = "Null Desc Project"))
             val savedRepo =
-                repositoryDao.save(Repository(id = null, name = "null-desc-repo", projectId = savedProject.id))
+                repositoryDao.create(Repository(id = null, name = "null-desc-repo", projectId = savedProject.id))
             savedProject.repo = savedRepo
 
             // Then
@@ -113,7 +113,7 @@ internal class ProjectDaoTest(
             // When & Then - This should fail due to validation constraint
             // Note: This test documents expected behavior for invalid data
             assertThrows<jakarta.validation.ConstraintViolationException> {
-                projectDao.save(project)
+                projectDao.create(project)
             }
             entityManager.clear()
         }
@@ -122,9 +122,9 @@ internal class ProjectDaoTest(
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedStrings")
         fun `project with allowed names should be handled`(allowedName: String) {
             // When
-            val savedProject = projectDao.save(Project(name = allowedName, description = "Long name project"))
+            val savedProject = projectDao.create(Project(name = allowedName, description = "Long name project"))
             val savedRepo =
-                repositoryDao.save(Repository(id = null, name = "long-name-repo", projectId = savedProject.id))
+                repositoryDao.create(Repository(id = null, name = "long-name-repo", projectId = savedProject.id))
             savedProject.repo = savedRepo
 
             // Then
@@ -141,7 +141,7 @@ internal class ProjectDaoTest(
             assertAll(
                 {
                     assertDoesNotThrow {
-                        projectDao.save(
+                        projectDao.create(
                             Project(
                                 name = "Duplicate Name",
                                 description = "First project",
@@ -151,7 +151,7 @@ internal class ProjectDaoTest(
                 },
                 {
                     assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                        projectDao.save(
+                        projectDao.create(
                             Project(
                                 name = "Duplicate Name",
                                 description = "Second project",

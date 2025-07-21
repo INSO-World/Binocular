@@ -8,9 +8,6 @@ import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.FIXTURES_PATH
-import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.SIMPLE_PROJECT_NAME
-import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.SIMPLE_REPO
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.ffi.BinocularFfi
@@ -57,7 +54,7 @@ internal class RepositoryServiceTestWithSimpleData(
         "master,b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
         "origin/master,3d28b65c324cc8ee0bb7229fb6ac5d7f64129e90",
     )
-    fun get_head_commit_of_main_branch(
+    fun `get head commit of main branch`(
         branch: String,
         headCommit: String,
     ) {
@@ -79,13 +76,13 @@ internal class RepositoryServiceTestWithSimpleData(
 //            }()
             {
                 val r = simpleRepoConfig.repo.toVcsRepository().toDomain()
-                r.project = simpleRepoConfig.project
+                r.projectId = simpleRepoConfig.project.id
                 simpleRepoConfig.project.repo = r
                 r
             }()
 
         generateCommits(simpleRepoConfig, localRepo)
-        localRepo = projectPort.save(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
+        localRepo = projectPort.create(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
         // = localRepo
 //        localRepo = this.repositoryRepository.save(localRepo)
 
@@ -99,7 +96,7 @@ internal class RepositoryServiceTestWithSimpleData(
     }
 
     @Test
-    fun get_head_commit_non_existing_branch() {
+    fun `get head commit non existing branch`() {
         assertAll(
             {
                 assertDoesNotThrow {
@@ -144,7 +141,7 @@ internal class RepositoryServiceTestWithSimpleData(
         assertAll(
             { assertThat(repo2?.commits).hasSize(15) },
             { assertThat(repo2?.branches).hasSize(1) },
-            { assertThat(repo?.branches?.toList()[0]?.commitShas).hasSize(15) },
+            { assertThat(repo2?.branches?.toList()[0]?.commitShas).hasSize(15) },
             { assertThat(repo2?.user).hasSize(4) },
         )
     }
@@ -173,8 +170,8 @@ internal class RepositoryServiceTestWithSimpleData(
                 "1234567890123456789012345678901234567890",
                 "msg1",
                 "develop",
-                null,
-                VcsPerson("User A", "a@test.com"),
+                VcsPerson("User C", "committer@test.com"),
+                VcsPerson("User A", "author@test.com"),
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
@@ -190,11 +187,12 @@ internal class RepositoryServiceTestWithSimpleData(
         val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
         assertAll(
+            "repo2",
             { assertThat(repo2?.commits).hasSize(15) },
             { assertThat(repo2?.branches).hasSize(2) },
-            { assertThat(repo?.branches?.map { it.name }).containsAll(listOf("master", "develop")) },
-            { assertThat(repo?.branches?.map { it.commitShas.count() }).containsAll(listOf(14, 1)) },
-            { assertThat(repo2?.user).hasSize(4) },
+            { assertThat(repo2?.user).hasSize(5) },
+            { assertThat(repo2?.branches?.map { it.commitShas.count() }).containsAll(listOf(14, 1)) },
+            { assertThat(repo2?.branches?.map { it.name }).containsAll(listOf("master", "develop")) },
         )
     }
 }

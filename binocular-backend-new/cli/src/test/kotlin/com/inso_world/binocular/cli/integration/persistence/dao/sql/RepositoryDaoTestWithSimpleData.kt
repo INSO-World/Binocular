@@ -24,10 +24,10 @@ import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class RepositoryDaoTestWithSimpleData(
-    @Autowired val repositoryDao: RepositoryInfrastructurePort,
-    @Autowired val commitDao: CommitInfrastructurePort,
-    @Autowired val userDao: UserInfrastructurePort,
-    @Autowired val branchDao: BranchInfrastructurePort,
+    @Autowired val repositoryPort: RepositoryInfrastructurePort,
+    @Autowired val commitPort: CommitInfrastructurePort,
+    @Autowired val userPort: UserInfrastructurePort,
+    @Autowired val branchPort: BranchInfrastructurePort,
 ) : BasePersistenceNoDataTest() {
     @Autowired
     private lateinit var projectDao: ProjectInfrastructurePort
@@ -60,9 +60,9 @@ internal class RepositoryDaoTestWithSimpleData(
     @BeforeEach
     fun beforeEach() {
         val repo = simpleRepoConfig.repo.toVcsRepository().toDomain()
-        repo.project = simpleRepoConfig.project
+        repo.projectId = simpleRepoConfig.project.id
         simpleRepoConfig.project.repo = repo
-        val project = projectDao.save(simpleRepoConfig.project)
+        val project = projectDao.create(simpleRepoConfig.project)
         project.repo?.let { this.simpleRepo = it }
             ?: throw IllegalStateException("Repo for project ${simpleRepoConfig.project.name} not found")
     }
@@ -79,7 +79,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @Test
     fun check_created_exists() {
-        val created = this.repositoryDao.findAll()
+        val created = this.repositoryPort.findAll()
 
         assertAll(
             { assertThat(created).isNotEmpty() },
@@ -89,7 +89,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @Test
     fun check_simple_repository_properties() {
-        val created = this.repositoryDao.findAll().toList()[0]
+        val created = this.repositoryPort.findAll().toList()[0]
 
         assertAll(
             { assertThat(created.id).isNotNull() },
@@ -99,7 +99,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @Test
     fun find_simple_repository() {
-        val simple = this.repositoryDao.findById(simpleRepo.id!!)!!
+        val simple = this.repositoryPort.findById(simpleRepo.id!!)!!
 
         assertAll(
             { assertThat(simple.id).isNotNull() },
@@ -117,7 +117,7 @@ internal class RepositoryDaoTestWithSimpleData(
         val commits = generateCommits(simpleRepoConfig, simpleRepo)
 
         simpleRepo.commits.addAll(commits)
-        val saved = this.repositoryDao.update(simpleRepo)
+        val saved = this.repositoryPort.update(simpleRepo)
         val commitRepoIds = saved.commits.mapNotNull { it.repositoryId }
         val userRepoIds =
             listOf(
@@ -126,12 +126,19 @@ internal class RepositoryDaoTestWithSimpleData(
             ).flatten()
 
         assertAll(
+            "commitRepoIds",
             { assertThat(commitRepoIds).isNotEmpty() },
             { assertThat(commitRepoIds).doesNotContainNull() },
             { assertThat(commitRepoIds).allMatch { it == saved.id } },
+        )
+        assertAll(
+            "userRepoIds",
             { assertThat(userRepoIds).isNotEmpty() },
             { assertThat(userRepoIds).hasSize(28) },
             { assertThat(userRepoIds).doesNotContainNull() },
+        )
+        assertAll(
+            "saved.id",
             { assertThat(saved.id).isNotNull() },
             { assertThat(saved.commits).isNotEmpty() },
             { assertThat(saved.commits).hasSize(14) },
@@ -142,29 +149,30 @@ internal class RepositoryDaoTestWithSimpleData(
     fun delete_repository() {
         val commits = generateCommits(simpleRepoConfig, simpleRepo)
         simpleRepo.commits.addAll(commits)
-        val saved = this.repositoryDao.update(simpleRepo)
-        this.repositoryDao.delete(saved)
+        val saved = this.repositoryPort.update(simpleRepo)
+        this.repositoryPort.delete(saved)
 
         assertAll(
-            { assertThat(this.repositoryDao.findAll()).isEmpty() },
-            { assertThat(this.commitDao.findAll()).isEmpty() },
-            { assertThat(this.userDao.findAll()).isEmpty() },
+            { assertThat(this.repositoryPort.findAll()).isEmpty() },
+            { assertThat(this.commitPort.findAll()).isEmpty() },
+            { assertThat(this.userPort.findAll()).isEmpty() },
             { assertThat(this.projectDao.findAll()).hasSize(1) },
         )
     }
 
     @Test
-    fun save_full_repository() {
+    fun `save valid repository`() {
         val commits = generateCommits(simpleRepoConfig, simpleRepo)
 
         simpleRepo.commits.addAll(commits)
-        this.repositoryDao.update(simpleRepo)
+        this.repositoryPort.update(simpleRepo)
 
         assertAll(
-            { assertThat(this.repositoryDao.findAll()).hasSize(1) },
-            { assertThat(this.commitDao.findAll()).hasSize(14) },
-            { assertThat(this.userDao.findAll()).hasSize(3) },
-            { assertThat(this.branchDao.findAll()).hasSize(1) },
+            "check database numbers",
+            { assertThat(this.repositoryPort.findAll()).hasSize(1) },
+            { assertThat(this.commitPort.findAll()).hasSize(14) },
+            { assertThat(this.userPort.findAll()).hasSize(3) },
+            { assertThat(this.branchPort.findAll()).hasSize(1) },
         )
     }
 }

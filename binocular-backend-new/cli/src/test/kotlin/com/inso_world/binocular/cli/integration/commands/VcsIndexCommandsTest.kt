@@ -7,7 +7,8 @@ import com.inso_world.binocular.cli.integration.commands.base.BaseShellWithDataT
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import com.inso_world.binocular.model.Repository
-import jakarta.transaction.Transactional
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
@@ -19,13 +20,15 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
-@Transactional
 internal class VcsIndexCommandsTest(
     @Autowired val idxClient: Index,
 //  @Autowired val client: ShellTestClient,
     @Autowired val repoService: RepositoryService,
     @Autowired val transactionTemplate: TransactionTemplate,
 ) : BaseShellWithDataTest() {
+    @PersistenceContext
+    lateinit var entityManager: EntityManager
+
     @ParameterizedTest
     @CsvSource(
         "master,14",
@@ -198,7 +201,7 @@ internal class VcsIndexCommandsTest(
             assertAll(
                 { assertThat(repo1).isNotNull() },
                 { assertThat(repo2).isNotNull() },
-                { assertThat(repo1).usingRecursiveAssertion().isEqualTo(repo2) },
+                { assertThat(repo1).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(repo2) },
             )
         }
     }
@@ -217,18 +220,22 @@ internal class VcsIndexCommandsTest(
         )
         var repo1: Repository? = null
 //    await().atMost(20, TimeUnit.SECONDS).untilAsserted {
-        transactionTemplate.execute {
+        run {
             val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+            assertThat(repo).isNotNull()
             assertAll(
-                { assertThat(repo).isNotNull() },
-//                { assertThat(repo?.id).isNotNull() },
+                "branches",
                 { assertThat(repo?.branches).isNotEmpty() },
                 { assertThat(repo?.branches).hasSize(1) },
                 { assertThat(repo?.branches?.map { it.name }).contains("master") },
+                { assertThat(repo?.branches?.flatMap { it.commitShas }).hasSize(14) },
+            )
+            assertAll(
+                "commits",
                 { assertThat(repo?.commits).isNotEmpty() },
                 { assertThat(repo?.commits).hasSize(14) },
-                { assertThat(repo?.user).hasSize(3) },
             )
+            assertThat(repo?.user).hasSize(3)
             repo1 = repo
 //      }
         }
@@ -247,36 +254,33 @@ internal class VcsIndexCommandsTest(
 //    // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
         repo1!!.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
 
-        transactionTemplate.execute {
+        run {
             val vcsRepo =
                 BinocularRepositoryPojo(
                     gitDir = "$FIXTURES_PATH/$SIMPLE_REPO",
                     workTree = null,
                 ) // workTree & commonDir not relevant here
             this.repoService.addCommits(vcsRepo, listOf(newVcsCommit), simpleProject)
-//      newCommit.parents = listOf(head!!)
-//      newCommit.repository = repo1
-//      assertThat(newCommit.committer).isNotNull()
-//      assertThat(newCommit.author).isNull()
-//      newCommit.committer!!.repository = repo1
-//      repo1!!.user.add(newCommit.committer!!)
-//
-//      repo1!!.commits.add(newCommit)
-            this.repoService.save(repo1!!)
-        }
 
-        transactionTemplate.execute {
             val repo2 = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+            assertThat(repo2).isNotNull()
+            assertThat(repo2!!.id).isNotNull()
             assertAll(
-                { assertThat(repo2).isNotNull() },
-//                { assertThat(repo2!!.id).isNotNull() },
-                { assertThat(repo2!!.branches).isNotEmpty() },
-                { assertThat(repo2!!.branches).hasSize(1) },
-                { assertThat(repo2!!.branches.map { it.name }).contains("master") },
-                { assertThat(repo2!!.commits).isNotEmpty() },
-                { assertThat(repo2!!.commits).hasSize(15) }, // new commit (new head)
-                { assertThat(repo2!!.user).hasSize(4) }, // new user a@test.com
+                "branches",
+                { assertThat(repo2.branches).hasSize(1) },
+                { assertThat(repo2.branches.map { it.name }).contains("master") },
+                { assertThat(repo2.branches.flatMap { it.commitShas }).hasSize(15) },
             )
+            assertAll(
+                "commits",
+                { assertThat(repo2.commits).isNotEmpty() },
+                { assertThat(repo2.commits).hasSize(15) }, // new commit (new head)
+            )
+            assertAll(
+                "user",
+                { assertThat(repo2.user).hasSize(4) },
+                { assertThat(repo2.user.map { it.email }).contains("a@test.com") },
+            ) // new user a@test.com
         }
     }
 }
