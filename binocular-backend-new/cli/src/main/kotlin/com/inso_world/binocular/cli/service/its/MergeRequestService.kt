@@ -9,5 +9,5 @@ import org.springframework.stereotype.Service
 class MergeRequestService(
     @Autowired private val dao: MergeRequestInfrastructurePort,
 ) {
-    fun getOrCreate(e: MergeRequest): MergeRequest = e.id?.let { this.dao.findById(it) } ?: this.dao.save(e)
+    fun getOrCreate(e: MergeRequest): MergeRequest = e.id?.let { this.dao.findById(it) } ?: this.dao.create(e)
 }

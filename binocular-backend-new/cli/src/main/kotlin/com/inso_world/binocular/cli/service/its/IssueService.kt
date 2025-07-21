@@ -12,5 +12,5 @@ class IssueService(
     fun getOrCreate(e: Issue): Issue =
         e.id?.let { id ->
             this.issueDao.findById(id)
-        } ?: this.issueDao.save(e)
+        } ?: this.issueDao.create(e)
 }
