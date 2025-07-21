@@ -23,8 +23,7 @@ internal class CommitServiceTest private constructor(
     }
 
     @Test
-    @Transactional(readOnly = true)
-    fun checkSaveAll() {
+    fun `load all commits from database, expect all to be found`() {
         val allCommits = commitDao.findAll()
 
         assertAll(
@@ -36,7 +35,7 @@ internal class CommitServiceTest private constructor(
 
     @Test
     @Transactional
-    fun checkIfExactlyOneRootCommitExists() {
+    fun `check if exactly one root commit exists`() {
         val root = commitDao.findAll().filter { it.parents.isEmpty() }
         assertAll(
             "Check if exactly one root commit exists",
@@ -134,7 +133,7 @@ internal class CommitServiceTest private constructor(
     }
 
     @Test
-    fun find_all_commits_for_simple_repository() {
+    fun `find all commits_for_simple_repository`() {
         val simpleRepoCommits = this.commitService.findAll(this.simpleRepo)
 
         assertAll(
@@ -144,7 +143,7 @@ internal class CommitServiceTest private constructor(
     }
 
     @Test
-    fun find_all_commits_invalid_repo() {
+    fun `find_all_commits_invalid_repo`() {
         assertThrows<ServiceException> {
             this.commitService.findAll(Repository(id = null, name = "invalid", projectId = simpleProject.id))
         }

@@ -21,8 +21,8 @@ import org.springframework.transaction.support.TransactionTemplate
 
 @Transactional
 internal class RepositoryDaoTest(
-    @Autowired val repositoryDao: RepositoryInfrastructurePort,
-    @Autowired val projectDao: ProjectInfrastructurePort,
+    @Autowired val repositoryPort: RepositoryInfrastructurePort,
+    @Autowired val projectPort: ProjectInfrastructurePort,
 ) : BasePersistenceNoDataTest() {
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
@@ -35,7 +35,7 @@ internal class RepositoryDaoTest(
 
         @Test
         fun non_saved_should_return_no_repositories() {
-            val repos = repositoryDao.findAll()
+            val repos = repositoryPort.findAll()
             assertThat(repos).isEmpty()
         }
 
@@ -43,22 +43,22 @@ internal class RepositoryDaoTest(
         fun `repository deletion leaves project intact`() {
             // Given
             val savedProject =
-                projectDao.save(Project(name = "Surviving Project", description = "Will survive repo deletion"))
+                projectPort.create(Project(name = "Surviving Project", description = "Will survive repo deletion"))
             val savedRepo =
-                repositoryDao.save(Repository(id = null, name = "to-be-deleted-repo", projectId = savedProject.id))
+                repositoryPort.create(Repository(id = null, name = "to-be-deleted-repo", projectId = savedProject.id))
             // updated dependencies, as not managed by JPA
             savedProject.repo = savedRepo
-            projectDao.update(savedProject)
+            projectPort.update(savedProject)
 
             // When
-            repositoryDao.delete(savedRepo)
+            repositoryPort.delete(savedRepo)
 
             // Then
             assertAll(
-                { assertThat(repositoryDao.findAll()).isEmpty() },
-                { assertThat(projectDao.findAll()).hasSize(1) },
-                { assertThat(projectDao.findById(savedProject.id!!)).isNotNull() },
-                { assertThat(projectDao.findById(savedProject.id!!)?.repo).isNull() },
+                { assertThat(repositoryPort.findAll()).isEmpty() },
+                { assertThat(projectPort.findAll()).hasSize(1) },
+                { assertThat(projectPort.findById(savedProject.id!!)).isNotNull() },
+                { assertThat(projectPort.findById(savedProject.id!!)?.repo).isNull() },
             )
         }
 
@@ -66,18 +66,23 @@ internal class RepositoryDaoTest(
         @Test
         fun `repository cannot exist without project`() {
             // Given
-            val savedProject = projectDao.save(Project(name = "Temporary Project", description = "Will be deleted"))
+            val savedProject = projectPort.create(Project(name = "Temporary Project", description = "Will be deleted"))
             val repository = Repository(id = null, name = "orphaned-repo", projectId = savedProject.id)
-            savedProject.repo = repositoryDao.save(repository)
+            savedProject.repo = repositoryPort.create(repository)
             // updated dependencies, as not managed by JPA
-            projectDao.update(savedProject)
+            projectPort.update(savedProject)
 
-            projectDao.delete(savedProject)
+            assertAll(
+                { assertThat(projectPort.findAll()).hasSize(1) },
+                { assertThat(repositoryPort.findAll()).hasSize(1) },
+            )
+
+            projectPort.delete(savedProject)
 
             // Verify both are deleted due to cascade
             assertAll(
-                { assertThat(projectDao.findAll()).isEmpty() },
-                { assertThat(repositoryDao.findAll()).isEmpty() },
+                { assertThat(projectPort.findAll()).isEmpty() },
+                { assertThat(repositoryPort.findAll()).isEmpty() },
             )
         }
 
@@ -85,31 +90,31 @@ internal class RepositoryDaoTest(
         fun `multiple repositories cannot reference same project`() {
             // Given
             val savedProject =
-                projectDao.save(Project(name = "Shared Project", description = "Should only have one repo"))
+                projectPort.create(Project(name = "Shared Project", description = "Should only have one repo"))
 
             // When - First repository should be created successfully
             val firstRepo =
-                transactionTemplate.execute {
-                    val repo =
-                        repositoryDao.save(Repository(id = null, name = "first-repo", projectId = savedProject.id))
-                    repo
-                }
+                repositoryPort.create(Repository(id = null, name = "first-repo", projectId = savedProject.id))
 
+            entityManager.flush()
+            entityManager.clear()
             // Then - Verify first repository was created
             assertAll(
                 { assertThat(firstRepo).isNotNull() },
 //                { assertThat(firstRepo?.id).isNotNull() },
-                { assertThat(repositoryDao.findAll()).hasSize(1) },
+                { assertThat(repositoryPort.findAll()).hasSize(1) },
             )
 
             // When - Second repository with same project should fail
-            assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                repositoryDao.save(Repository(id = null, name = "second-repo", projectId = savedProject.id))
-            }
-            entityManager.clear()
+            val ex =
+                assertThrows<java.lang.IllegalArgumentException> {
+                    transactionTemplate.execute {
+                        repositoryPort.create(Repository(id = null, name = "second-repo", projectId = savedProject.id))
+                    }
+                }
 
             // Then - Verify only one repository still exists
-            assertThat(repositoryDao.findAll()).hasSize(1)
+            assertThat(repositoryPort.findAll()).hasSize(1)
         }
 
         // Mutation Tests - Testing edge cases and boundary conditions
@@ -118,42 +123,43 @@ internal class RepositoryDaoTest(
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
         fun `repository with invalid name should fail`(invalidName: String) {
             // When
-            val savedProject = projectDao.save(Project(name = "Valid Project", description = "Valid project"))
+            val savedProject = projectPort.create(Project(name = "Valid Project", description = "Valid project"))
 
             // Then - This should fail due to validation constraint
             assertThrows<jakarta.validation.ConstraintViolationException> {
-                repositoryDao.save(Repository(id = null, name = invalidName, projectId = savedProject.id))
+                transactionTemplate.execute {
+                    repositoryPort.create(Repository(id = null, name = invalidName, projectId = savedProject.id))
+                }
             }
-            entityManager.clear()
         }
 
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedStrings")
         fun `repository with allowed names should be handled`(allowedName: String) {
             // When
-            val savedProject = projectDao.save(Project(name = "Valid Project", description = "Valid project"))
-            val savedRepo = repositoryDao.save(Repository(id = null, name = allowedName, projectId = savedProject.id))
+            val savedProject = projectPort.create(Project(name = "Valid Project", description = "Valid project"))
+            val savedRepo =
+                repositoryPort.create(Repository(id = null, name = allowedName, projectId = savedProject.id))
             savedProject.repo = savedRepo
-            projectDao.update(savedProject)
+            projectPort.update(savedProject)
 
             // Then
             assertAll(
                 { assertThat(savedRepo.name).isEqualTo(allowedName) },
                 { assertThat(savedRepo.projectId).isEqualTo(savedProject.id) },
-                { assertThat(projectDao.findAll()).hasSize(1) },
-                { assertThat(repositoryDao.findAll()).hasSize(1) },
+                { assertThat(projectPort.findAll()).hasSize(1) },
+                { assertThat(repositoryPort.findAll()).hasSize(1) },
             )
         }
 
         @Test
         fun `duplicate repository names should fail`() {
             // When
-            val savedProject1 = projectDao.save(Project(name = "Project 1", description = "First project"))
-            val savedProject2 = projectDao.save(Project(name = "Project 2", description = "Second project"))
-//            assertAll(
-//                {
+            val savedProject1 = projectPort.create(Project(name = "Project 1", description = "First project"))
+            val savedProject2 = projectPort.create(Project(name = "Project 2", description = "Second project"))
+
             assertDoesNotThrow {
-                repositoryDao.save(
+                repositoryPort.create(
                     Repository(
                         id = null,
                         name = "Duplicate Repo",
@@ -161,15 +167,16 @@ internal class RepositoryDaoTest(
                     ),
                 )
             }
-//                },
+            entityManager.flush()
+            entityManager.clear()
+
             // Then - This should fail due to unique constraint
-//                {
             val ex =
                 assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                    repositoryDao.save(Repository(id = null, name = "Duplicate Repo", projectId = savedProject2.id))
+                    transactionTemplate.execute {
+                        repositoryPort.create(Repository(id = null, name = "Duplicate Repo", projectId = savedProject2.id))
+                    }
                 }
-//                },
-//            )
             entityManager.clear()
         }
     }
@@ -178,7 +185,7 @@ internal class RepositoryDaoTest(
     inner class FilledDatabase : BasePersistenceWithDataTest() {
         @Test
         fun `all saved, should return all repositories`() {
-            val repos = repositoryDao.findAll()
+            val repos = repositoryPort.findAll()
             assertAll(
                 { assertThat(repos).isNotEmpty() },
                 { assertThat(repos).hasSize(2) },
@@ -187,7 +194,7 @@ internal class RepositoryDaoTest(
 
         @Test
         fun `all saved, should return all projects`() {
-            val projects = projectDao.findAll()
+            val projects = projectPort.findAll()
             assertAll(
                 { assertThat(projects).isNotEmpty() },
                 { assertThat(projects).hasSize(2) },

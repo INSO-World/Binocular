@@ -48,21 +48,21 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
     @BeforeEach
     internal fun setUp() {
         simpleProject =
-            this.projectRepository.save(
+            this.projectRepository.create(
                 Project(
                     name = SIMPLE_PROJECT_NAME,
                     description = "desc",
                 ),
             )
         advancedProject =
-            this.projectRepository.save(
+            this.projectRepository.create(
                 Project(
                     name = ADVANCED_PROJECT_NAME,
                     description = "desc",
                 ),
             )
         octoProject =
-            this.projectRepository.save(
+            this.projectRepository.create(
                 Project(
                     name = OCTO_PROJECT_NAME,
                     description = "desc",

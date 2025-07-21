@@ -1,9 +1,13 @@
 package com.inso_world.binocular.cli.integration
 
+import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
+import jakarta.persistence.EntityManager
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,7 +17,7 @@ internal class TestDataSetupService(
     private val commitRepository: CommitInfrastructurePort,
     private val repositoryRepository: RepositoryInfrastructurePort,
 //    private val accountRepository: AccountInfrastructurePort,
-//    private val branchRepository: BranchInfrastructurePort,
+    private val branchPort: BranchInfrastructurePort,
 //    private val buildRepository: BuildInfrastructurePort,
 //    private val fileRepository: FileInfrastructurePort,
 //    private val issueRepository: IssueInfrastructurePort,
@@ -23,6 +27,10 @@ internal class TestDataSetupService(
     private val userRepository: UserInfrastructurePort,
 //    private val milestoneRepository: MilestoneInfrastructurePort,
 ) {
+    @Autowired
+    @Lazy
+    private lateinit var entityManager: EntityManager
+
     /**
      * Clears all test data from the database.
      * This method only clears entity data, as relationship data is managed
@@ -30,18 +38,12 @@ internal class TestDataSetupService(
      */
     @Transactional
     fun clearAllData() {
-//        commitRepository.saveAll(emptyList())
-//        projectRepository.findAll().map { projectRepository.delete(it) }
+        entityManager.flush()
+        entityManager.clear()
         projectRepository.deleteAll()
         repositoryRepository.deleteAll()
+        branchPort.deleteAll()
         commitRepository.deleteAll()
-//            .findAll().map { commitRepository.delete(it) }
-
-        //        commitRepository.findAll().map { commitRepository.delete(it) }
-//        commitRepository.findAll().map { e -> e.id?.let { commitRepository.deleteById(it) } }
-
-        //        projectRepository.findAll().map { e -> e.id?.let { projectRepository.deleteById(it) } }
-
 //        accountRepository.saveAll(emptyList())
 //        branchRepository.saveAll(emptyList())
 //        buildRepository.saveAll(emptyList())

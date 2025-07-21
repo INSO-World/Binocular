@@ -7,7 +7,7 @@ import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
-import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Project
@@ -32,16 +32,16 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     private lateinit var testDataSetupService: TestDataSetupService
 
     @Autowired
-    lateinit var commitRepository: CommitInfrastructurePort
+    lateinit var branchPort: BranchInfrastructurePort
 
 //    @Autowired
 //    lateinit var userRepository: UserRepository
 
     @Autowired
-    internal lateinit var repositoryRepository: RepositoryInfrastructurePort
+    internal lateinit var repositoryPort: RepositoryInfrastructurePort
 
     @Autowired
-    private lateinit var projectRepository: ProjectInfrastructurePort
+    private lateinit var projectPort: ProjectInfrastructurePort
 
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
@@ -53,11 +53,11 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     fun setupBase() {
         fun prepare(repoConfig: RepositoryConfig): Project {
             repoConfig.project.repo = repoConfig.repo.toVcsRepository().toDomain()
-            repoConfig.project.repo?.project = repoConfig.project
+            repoConfig.project.repo?.projectId = repoConfig.project.id
             repoConfig.project.repo?.let { generateCommits(repoConfig, it) } ?: throw IllegalStateException(
                 "Repository must not be null at this point",
             )
-            return projectRepository.save(repoConfig.project)
+            return projectPort.create(repoConfig.project)
         }
 
         prepare(

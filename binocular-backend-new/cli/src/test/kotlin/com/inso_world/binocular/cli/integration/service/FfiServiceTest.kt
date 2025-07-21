@@ -16,7 +16,7 @@ internal class FfiServiceTest(
 ) : BaseServiceTest() {
     @ParameterizedTest
     @MethodSource("find_all_branches_data")
-    fun find_all_branches_all_repos(
+    fun `find all branches all repos`(
         path: String,
         localBranches: Collection<String>,
         remoteBranches: Collection<String>,

@@ -224,7 +224,7 @@ internal class RepositoryServiceTest(
         assertThat(commit.committer).isNotNull
         assertThat(commit.author).isNotNull
         assertThat(commit.committer).isSameAs(commit.author) // Should be the same User entity instance
-        assertThat(commit.committer!!.gitSignature).isEqualTo("shared@test.com")
+        assertThat(commit.committer!!.email).isEqualTo("shared@test.com")
     }
 
     @Test
@@ -245,14 +245,14 @@ internal class RepositoryServiceTest(
                     // Check committer details and user caching
                     originalVcsCommit.committer?.let {
                         assertThat(commit.committer).isNotNull
-                        assertThat(commit.committer!!.gitSignature).isEqualTo(it.email)
+                        assertThat(commit.committer!!.email).isEqualTo(it.email)
                         assertThat(commit.committer!!.name).isEqualTo(it.name)
                     }
 
                     // Check author details and user caching
                     originalVcsCommit.author?.let {
                         assertThat(commit.author).isNotNull
-                        assertThat(commit.author!!.gitSignature).isEqualTo(it.email)
+                        assertThat(commit.author!!.email).isEqualTo(it.email)
                         assertThat(commit.author!!.name).isEqualTo(it.name)
                     }
                 }
@@ -288,13 +288,13 @@ internal class RepositoryServiceTest(
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, simpleRepoVcsCommits)
         val allUsers = transformedCommits.flatMap { listOfNotNull(it.committer, it.author) }.filterNotNull()
 
-        val uniqueUsersByEmail = allUsers.distinctBy { it.gitSignature }
+        val uniqueUsersByEmail = allUsers.distinctBy { it.email }
 
         assertThat(allUsers.size).isGreaterThanOrEqualTo(uniqueUsersByEmail.size)
 
         // Check that for each unique email, all User objects with that email are the same instance
         uniqueUsersByEmail.forEach { uniqueUser ->
-            allUsers.filter { it.gitSignature == uniqueUser.gitSignature }.forEach { userInstance ->
+            allUsers.filter { it.email == uniqueUser.email }.forEach { userInstance ->
                 assertThat(userInstance).isSameAs(uniqueUser)
             }
         }
