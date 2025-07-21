@@ -5,7 +5,6 @@ package com.inso_world.binocular.core.service
  * Provides a method to retrieve and return all data as a structured map.
  */
 interface DbExportPort {
-
     /**
      * Exports the contents of the database.
      *

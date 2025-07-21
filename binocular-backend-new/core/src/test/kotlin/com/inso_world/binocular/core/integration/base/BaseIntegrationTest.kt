@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Tag
  * Provides common functionality and configuration for integration tests.
  * Uses Spring's test context framework for integration testing.
  */
-// @ExtendWith(SpringExtension::class)
 @Tag("integration")
 abstract class BaseIntegrationTest {
     // Add common setup and utilities for integration tests here

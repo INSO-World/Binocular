@@ -14,5 +14,5 @@ import org.springframework.data.annotation.Id
 data class IssueCommitConnectionEntity(
     @Id var id: String? = null,
     @From var from: IssueEntity,
-    @To var to: CommitEntity
+    @To var to: CommitEntity,
 )

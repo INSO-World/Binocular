@@ -14,5 +14,5 @@ import org.springframework.data.annotation.Id
 data class MergeRequestNoteConnectionEntity(
     @Id var id: String? = null,
     @From var from: MergeRequestEntity,
-    @To var to: NoteEntity
+    @To var to: NoteEntity,
 )

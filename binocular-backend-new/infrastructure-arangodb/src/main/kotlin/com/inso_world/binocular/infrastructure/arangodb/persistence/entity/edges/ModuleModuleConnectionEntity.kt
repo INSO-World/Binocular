@@ -13,5 +13,5 @@ import org.springframework.data.annotation.Id
 data class ModuleModuleConnectionEntity(
     @Id var id: String? = null,
     @From var from: ModuleEntity,
-    @To var to: ModuleEntity
+    @To var to: ModuleEntity,
 )

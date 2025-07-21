@@ -13,5 +13,5 @@ import org.springframework.data.annotation.Id
 data class BranchFileFileConnectionEntity(
     @Id var id: String? = null,
     @From var from: FileEntity,
-    @To var to: FileEntity
+    @To var to: FileEntity,
 )
