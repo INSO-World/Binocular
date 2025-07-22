@@ -1,9 +1,9 @@
-import Builds from './visualizationPlugins/builds';
+import Builds from "./visualizationPlugins/builds";
 
-import MockData from './dataPlugins/mockData';
-import BinocularBackend from './dataPlugins/binocularBackend';
-import Github from './dataPlugins/github';
-import PouchDb from './dataPlugins/pouchDB';
+import MockData from "./dataPlugins/mockData";
+import BinocularBackend from "./dataPlugins/binocularBackend";
+import Github from "./dataPlugins/github";
+import PouchDb from "./dataPlugins/pouchDB";
 
 import { VisualizationPlugin } from './interfaces/visualizationPlugin.ts';
 import Changes from './visualizationPlugins/changes';
