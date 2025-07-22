@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -58,6 +59,10 @@ class UserInfrastructurePortImpl : UserInfrastructurePort {
     override fun findFilesByUserId(userId: String): List<File> {
         logger.trace("Getting files for user: $userId")
         return commitFileUserConnectionRepository.findFilesByUser(userId)
+    }
+
+    override fun findAll(repository: Repository): Iterable<User> {
+        TODO("Not yet implemented")
     }
 
     override fun findAll(): Iterable<User> = this.userDao.findAll()

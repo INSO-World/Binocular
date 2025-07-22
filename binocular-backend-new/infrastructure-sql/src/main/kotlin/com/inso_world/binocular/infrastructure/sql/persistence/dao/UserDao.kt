@@ -1,9 +1,11 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IUserDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
 import java.util.stream.Stream
 
@@ -18,5 +20,20 @@ internal class UserDao(
         this.setRepository(repo)
     }
 
+    private object UserSpecification {
+        fun hasRepository(repository: com.inso_world.binocular.model.Repository): Specification<UserEntity> =
+            Specification { root, query, cb ->
+                cb.equal(
+                    root.get<RepositoryEntity>("repository").get<String>("name"),
+                    repository.name,
+                )
+            }
+    }
+
     override fun findAllByGitSignatureIn(emails: Collection<String>): Stream<UserEntity> = repo.findAllByEmailIn(emails)
+
+    override fun findAll(repository: com.inso_world.binocular.model.Repository): Iterable<UserEntity> =
+        this.repo.findAll(
+            Specification.allOf(UserSpecification.hasRepository(repository)),
+        )
 }

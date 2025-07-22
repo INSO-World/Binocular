@@ -173,9 +173,7 @@ internal class RepositoryDaoTest(
             // Then - This should fail due to unique constraint
             val ex =
                 assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                    transactionTemplate.execute {
-                        repositoryPort.create(Repository(id = null, name = "Duplicate Repo", projectId = savedProject2.id))
-                    }
+                    repositoryPort.create(Repository(id = null, name = "Duplicate Repo", projectId = savedProject2.id))
                 }
             entityManager.clear()
         }

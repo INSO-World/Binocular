@@ -6,6 +6,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Repository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,5 +57,9 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
 
     override fun deleteAll() {
         this.branchDao.deleteAll()
+    }
+
+    override fun findAll(repository: Repository): Iterable<Branch> {
+        TODO("Not yet implemented")
     }
 }

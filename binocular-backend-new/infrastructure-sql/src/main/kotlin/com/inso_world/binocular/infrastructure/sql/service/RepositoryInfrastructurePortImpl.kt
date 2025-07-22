@@ -13,6 +13,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.sql.persistence.mapper.UserMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
@@ -22,6 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
@@ -43,6 +45,10 @@ internal class RepositoryInfrastructurePortImpl :
     @Autowired
     @Lazy
     private lateinit var branchMapper: BranchMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var userMapper: UserMapper
 
     @Autowired
     private lateinit var repositoryDao: RepositoryDao
@@ -109,7 +115,13 @@ internal class RepositoryInfrastructurePortImpl :
                 value,
                 project,
             )
-        val newEntity = super.create(mapped)
+        val newEntity =
+            try {
+                super.create(mapped)
+            } catch (e: DataIntegrityViolationException) {
+                logger.error(e.message)
+                throw e
+            }
 
         val commitContext = mutableMapOf<String, Commit>()
         val branchContext = mutableMapOf<String, Branch>()
@@ -125,6 +137,7 @@ internal class RepositoryInfrastructurePortImpl :
         val entity =
             project.repo
                 ?: throw IllegalStateException("On updating Repository, it is required to be set to project already")
+        logger.debug("Repository Entity found")
 
         run {
             // Synchronize commits: remove those not in value.commits
@@ -209,12 +222,6 @@ internal class RepositoryInfrastructurePortImpl :
         val mapped =
             this.repositoryDao.findByName(name = value.name)
                 ?: throw NotFoundException("Repository ${value.name} not found")
-
-//        val mapped =
-//            this.repositoryMapper.toEntity(
-//                domain,
-//                project,
-//            )
         this.repositoryDao.delete(mapped)
     }
 
@@ -225,4 +232,39 @@ internal class RepositoryInfrastructurePortImpl :
     override fun deleteAll() {
         this.repositoryDao.deleteAll()
     }
+
+//    override fun findAllUser(repository: Repository): Iterable<User> {
+//        val commitContext = mutableMapOf<String, Commit>()
+//        val branchContext = mutableMapOf<String, Branch>()
+//        val userContext = mutableMapOf<String, User>()
+//
+//        val entities = this.repositoryDao.findAllUser(repository.name)
+//
+//        return entities.map {
+//            userMapper.toDomain(it, repository, userContext, commitContext, branchContext)
+//        }
+//    }
+//
+//    override fun findAllCommits(repository: Repository): Iterable<Commit> {
+//        val commitContext = mutableMapOf<String, Commit>()
+//        val branchContext = mutableMapOf<String, Branch>()
+//        val userContext = mutableMapOf<String, User>()
+//
+//        val entities = this.repositoryDao.findAllCommits(repository.name)
+//
+//        return entities.map {
+//            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
+//        }
+//    }
+//
+//    override fun findAllBranches(repository: Repository): Iterable<Branch> {
+//        val commitContext = mutableMapOf<String, Commit>()
+//        val branchContext = mutableMapOf<String, Branch>()
+//
+//        val entities = this.repositoryDao.findAllBranches(repository.name)
+//
+//        return entities.map {
+//            branchMapper.toDomain(it, repository, commitContext, branchContext)
+//        }
+//    }
 }

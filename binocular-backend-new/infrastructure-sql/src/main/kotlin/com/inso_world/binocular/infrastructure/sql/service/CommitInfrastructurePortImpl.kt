@@ -96,7 +96,7 @@ internal class CommitInfrastructurePortImpl(
                 )
             }
         return this.commitDao.create(mapped).let {
-            entityManager.flush()
+            commitDao.flush()
             val commitContext: MutableMap<String, Commit> = mutableMapOf()
             val branchContext: MutableMap<String, Branch> = mutableMapOf()
             val userContext: MutableMap<String, User> = mutableMapOf()
@@ -371,6 +371,14 @@ internal class CommitInfrastructurePortImpl(
         } catch (e: PersistenceException) {
             throw BinocularInfrastructureException(e)
         }
+    }
+
+    override fun findAll(repo: Repository): Iterable<Commit> {
+        val commitContext = mutableMapOf<String, Commit>()
+        val branchContext = mutableMapOf<String, Branch>()
+        val userContext = mutableMapOf<String, User>()
+
+        return this.commitDao.findAll(repo).map { this.commitMapper.toDomain(it, repo, commitContext, branchContext, userContext) }
     }
 
     override fun findHeadForBranch(

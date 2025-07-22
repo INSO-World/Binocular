@@ -106,6 +106,9 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
         pageable: Pageable,
     ): Iterable<Commit>
 
+    @Transactional(readOnly = true)
+    fun findAll(repo: Repository): Iterable<Commit>
+
     // TODO branch should be required!
     @Transactional(readOnly = true)
     fun findHeadForBranch(

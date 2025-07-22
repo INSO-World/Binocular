@@ -36,7 +36,7 @@ internal data class UserEntity(
     @OneToMany(fetch = FetchType.LAZY, targetEntity = CommitEntity::class, cascade = [CascadeType.ALL])
     var authoredCommits: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "repository_id", nullable = false)
+    @JoinColumn(name = "repository_id", nullable = false, updatable = false)
     var repository: RepositoryEntity? = null,
 ) {
     fun uniqueKey(): String {

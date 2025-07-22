@@ -207,7 +207,6 @@ internal class CommitMapper
                         )
                     }
                 }
-            domain.committer?.addCommittedCommit(domain)
             domain.author =
                 entity.author?.let { user ->
                     userContext.getOrPut(user.uniqueKey()) {
@@ -220,10 +219,6 @@ internal class CommitMapper
                         )
                     }
                 }
-            domain.author?.addAuthoredCommit(domain)
-
-            repository.commits.add(domain)
-            repository.commits.addAll(domain.parents)
 
             return domain
         }

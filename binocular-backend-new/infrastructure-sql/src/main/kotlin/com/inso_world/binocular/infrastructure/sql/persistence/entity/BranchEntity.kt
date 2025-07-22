@@ -35,7 +35,7 @@ internal data class BranchEntity(
     @ManyToMany(mappedBy = "branches", fetch = FetchType.LAZY, cascade = [])
     var commits: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "repository_id", nullable = false)
+    @JoinColumn(name = "repository_id", nullable = false, updatable = false)
     var repository: RepositoryEntity? = null,
 ) {
     override fun equals(other: Any?): Boolean {

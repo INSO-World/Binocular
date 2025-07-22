@@ -158,4 +158,8 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
     override fun deleteAll() {
         this.commitDao.deleteAll()
     }
+
+    override fun findAll(repo: Repository): Iterable<Commit> {
+        TODO("Not yet implemented")
+    }
 }

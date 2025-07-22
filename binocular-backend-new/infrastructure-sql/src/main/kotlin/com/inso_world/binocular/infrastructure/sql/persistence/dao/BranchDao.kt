@@ -6,6 +6,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEnti
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.BranchRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
 
 /**
@@ -21,15 +22,14 @@ internal class BranchDao(
         this.setRepository(repo)
     }
 
-    fun getManagedEntity(entity: BranchEntity): BranchEntity? {
-        val managed =
-            entity.id?.let {
-                entityManager.find(BranchEntity::class.java, it)
-            } ?: entity.repository?.let { repo ->
-                findByName(repo, entity.name)
+    private object BranchSpecification {
+        fun hasRepository(repository: com.inso_world.binocular.model.Repository): Specification<BranchEntity> =
+            Specification { root, query, cb ->
+                cb.equal(
+                    root.get<RepositoryEntity>("repository").get<String>("name"),
+                    repository.name,
+                )
             }
-
-        return managed ?: entity
     }
 
     fun findByName(
@@ -40,5 +40,8 @@ internal class BranchDao(
         return this.repo.findByRepository_IdAndName(repo.id, name)
     }
 
-    fun findAllByRepository(repo: RepositoryEntity): Collection<BranchEntity> = this.repo.findAllByRepository(repo)
+    override fun findAll(repository: com.inso_world.binocular.model.Repository): Iterable<BranchEntity> =
+        this.repo.findAll(
+            Specification.allOf(BranchSpecification.hasRepository(repository)),
+        )
 }
