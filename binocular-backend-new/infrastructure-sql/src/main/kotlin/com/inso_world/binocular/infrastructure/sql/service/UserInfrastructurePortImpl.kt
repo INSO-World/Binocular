@@ -94,6 +94,16 @@ internal class UserInfrastructurePortImpl(
         }
     }
 
+    override fun findAll(repository: Repository): Iterable<User> {
+        val commitContext = mutableMapOf<String, Commit>()
+        val branchContext = mutableMapOf<String, Branch>()
+        val userContext = mutableMapOf<String, User>()
+
+        return this.userDao.findAll(repository).map {
+            userMapper.toDomain(it, repository, userContext, commitContext, branchContext)
+        }
+    }
+
     override fun findAll(pageable: Pageable): Page<User> {
         TODO("Not yet implemented")
     }

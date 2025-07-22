@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.integration.service
 
+import com.inso_world.binocular.core.persistence.exception.PersistenceException
 import com.inso_world.binocular.infrastructure.sql.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.service.BranchInfrastructurePortImpl
@@ -16,6 +17,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import jakarta.validation.ConstraintViolationException
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.exception.GenericJDBCException
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -28,6 +30,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.dao.DataAccessException
+import org.springframework.dao.DataIntegrityViolationException
 import java.time.LocalDateTime
 import java.util.stream.Stream
 
@@ -434,7 +438,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
         fun `save multiple commits with cycle, expect ValidationException`(commitList: List<Commit>) {
             val repositoryDao = mockk<RepositoryDao>()
 
-            assertThrows<jakarta.validation.ConstraintViolationException> {
+            assertThrows<DataAccessException> {
                 commitList.forEach { cmt ->
                     cmt.repositoryId = repository.id
                     cmt.parents.forEach { c -> c.repositoryId = repository.id }

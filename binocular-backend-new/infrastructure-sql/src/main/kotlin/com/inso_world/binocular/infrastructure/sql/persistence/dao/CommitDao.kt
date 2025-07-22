@@ -5,8 +5,10 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IC
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.CommitRepository
+import jakarta.persistence.criteria.JoinType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
 
 /**
@@ -23,62 +25,36 @@ internal class CommitDao(
         this.setRepository(repo)
     }
 
-//    override fun create(entity: CommitEntity): CommitEntity {
-//        val toSave =
-//            getManagedEntity(entity) ?: entity
-//
-//        val managedRepo =
-//            toSave.repository?.let {
-//                entityManager.find(
-//                    it.javaClass,
-//                    it.id,
-//                )
-//            } ?: throw IllegalArgumentException("RepositoryEntity not found")
-//        toSave.repository = managedRepo
-//        if (!entityManager.contains(toSave)) {
-//            managedRepo.commits.add(toSave)
-//        }
-//        val managedParents =
-//            toSave.parents
-//                .map { parentEntity ->
-//                    getManagedEntity(parentEntity) ?: parentEntity
-//                }.map { parentEntity ->
-//                    parentEntity.repository = managedRepo
-//                    managedRepo.commits.add(parentEntity)
-//                    parentEntity
-//                }
-//        toSave.parents = managedParents
-//
-//        val managedProject =
-//            entityManager.find(
-//                managedRepo.project.javaClass,
-//                managedRepo.project.id,
-//            )
-//        managedRepo.project = managedProject
-//
-//        return super.create(toSave)
-//    }
+    private object CommitEntitySpecification {
+        fun hasRepositoryId(repoId: Long): Specification<CommitEntity> =
+            Specification { root, query, cb ->
+                if (query?.resultType != Long::class.java) {
+                    root.fetch<CommitEntity, Any>("committer", JoinType.LEFT)
+                    root.fetch<CommitEntity, Any>("author", JoinType.LEFT)
+                }
+                cb.equal(root.get<RepositoryEntity>("repository").get<Long>("id"), repoId)
+            }
 
-// //  TODO proper managed entity, missing parents here
-//    fun getManagedEntity(entity: CommitEntity): CommitEntity? {
-//        val managed =
-//            entity.id?.let {
-//                entityManager.find(CommitEntity::class.java, it)
-//            } ?: entity.repository?.let { repo ->
-//                findBySha(repo, entity.sha)
-//            }
-//
-// //        man
-//
-//        return managed ?: entity
-//    }
+        fun hasShaIn(shas: List<String>): Specification<CommitEntity> =
+            Specification { root, _, cb ->
+                root.get<String>("sha").`in`(shas)
+            }
+    }
 
     override fun findExistingSha(
         repo: RepositoryEntity,
         shas: List<String>,
-    ): Set<CommitEntity> {
+    ): Iterable<CommitEntity> {
         if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findAllByRepository_IdAndShaIn(repo.id!!, shas)
+        val shas =
+            this.repo.findAll(
+                Specification.allOf(
+                    CommitEntitySpecification
+                        .hasRepositoryId(repo.id)
+                        .and(CommitEntitySpecification.hasShaIn(shas)),
+                ),
+            )
+        return shas
     }
 
     override fun findAllByRepo(
@@ -108,5 +84,13 @@ internal class CommitDao(
     ): CommitEntity? {
         if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
         return this.repo.findByRepository_IdAndSha(repo.id, sha)
+    }
+
+    override fun findAll(repo: com.inso_world.binocular.model.Repository): Iterable<CommitEntity> {
+        val rid = repo.id
+        if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
+        return this.repo.findAll(
+            Specification.allOf(CommitEntitySpecification.hasRepositoryId(rid.toLong())),
+        )
     }
 }

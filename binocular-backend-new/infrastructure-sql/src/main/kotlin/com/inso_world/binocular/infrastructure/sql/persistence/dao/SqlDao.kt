@@ -72,13 +72,14 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
     /**
      * Delete all entities
      */
-//    @Transactional
     override fun deleteAll() {
-        val entities =
-            entityManager
-                .createQuery("SELECT e FROM ${clazz.name} e", clazz)
-                .resultList
-        entities.forEach { delete(it) }
+//        val entities =
+//            entityManager
+//                .createQuery("SELECT e FROM ${clazz.name} e", clazz)
+//                .resultList
+//        entities.forEach { delete(it) }
+        this.repository.deleteAll()
+//        entityManager.createQuery("DELETE FROM ${clazz.name}").executeUpdate()
     }
 
     /**

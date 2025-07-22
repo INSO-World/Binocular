@@ -79,6 +79,16 @@ internal class BranchInfrastructurePortImpl(
         }
     }
 
+    override fun findAll(repository: Repository): Iterable<Branch> {
+        val commitContext = mutableMapOf<String, Commit>()
+        val branchContext = mutableMapOf<String, Branch>()
+        val userContext = mutableMapOf<String, User>()
+
+        return branchDao.findAll(repository).map { b ->
+            branchMapper.toDomain(b, repository, commitContext, branchContext)
+        }
+    }
+
     override fun findAll(pageable: Pageable): Page<Branch> {
         TODO("Not yet implemented")
     }

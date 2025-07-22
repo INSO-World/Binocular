@@ -40,6 +40,10 @@ class BasePersistenceNoDataTest : BasePersistenceTest() {
 
     @AfterEach
     fun cleanup() {
+        transactionTemplate.execute {
+            entityManager.flush()
+            entityManager.clear()
+        }
         testDataSetupService.clearAllData()
 //        entityManager.clear()
 //        projectRepository.deleteAll()

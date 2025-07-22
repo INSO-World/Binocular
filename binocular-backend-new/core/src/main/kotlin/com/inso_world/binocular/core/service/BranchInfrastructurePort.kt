@@ -2,6 +2,7 @@ package com.inso_world.binocular.core.service
 
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Repository
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -17,4 +18,7 @@ interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch> {
      */
     @Transactional(readOnly = true)
     fun findFilesByBranchId(branchId: String): List<File>
+
+    @Transactional(readOnly = true)
+    fun findAll(repository: Repository): Iterable<Branch>
 }

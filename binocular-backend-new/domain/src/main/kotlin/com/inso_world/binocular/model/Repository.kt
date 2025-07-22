@@ -14,7 +14,7 @@ class Repository(
     val name: String,
     @field:Valid
     var commits: MutableSet<Commit> = mutableSetOf(),
-    val user: MutableSet<User> = mutableSetOf(),
+    var user: MutableSet<User> = mutableSetOf(),
     @field:Valid
     var branches: MutableSet<Branch> = mutableSetOf(),
     //    @field:NotNull // TODO conditional validation, only when coming out of infra

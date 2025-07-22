@@ -42,7 +42,6 @@ internal class BranchMapper
         ): BranchEntity {
             val branchContextKey = "${repo.name},${domain.name}"
             branchContext[branchContextKey]?.let {
-                logger.debug("Branch-Cache hit: '$branchContextKey'")
                 return it
             }
 
@@ -132,8 +131,6 @@ internal class BranchMapper
                     repositoryId = repository.id,
                 )
             branchContext[branchContextKey] = domain
-
-            repository.branches.add(domain)
 
             return domain
         }

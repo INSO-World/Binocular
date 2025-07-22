@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces
 
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.model.Repository
 import org.springframework.data.domain.Pageable
 
 internal interface ICommitDao : IDao<CommitEntity, Long> {
@@ -14,6 +15,8 @@ internal interface ICommitDao : IDao<CommitEntity, Long> {
         repo: RepositoryEntity,
         pageable: Pageable,
     ): Iterable<CommitEntity>
+
+    fun findAll(repo: Repository): Iterable<CommitEntity>
 
     // TODO branch should be required!
     fun findHeadForBranch(

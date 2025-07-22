@@ -8,6 +8,7 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import jakarta.persistence.EntityManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,6 +23,10 @@ internal class UserMapper
         private val proxyFactory: RelationshipProxyFactory,
     ) {
         private val logger: Logger = LoggerFactory.getLogger(UserMapper::class.java)
+
+        @Autowired
+        @Lazy
+        private lateinit var entityManager: EntityManager
 
         @Autowired
         @Lazy
@@ -42,7 +47,7 @@ internal class UserMapper
         ): UserEntity {
             val userContextKey = "${repo.name},${domain.email}"
             userContext[userContextKey]?.let {
-                logger.debug("User-Cache hit: '$userContextKey'")
+//                logger.debug("User-Cache hit: '$userContextKey'")
                 return it
             }
 
@@ -146,36 +151,41 @@ internal class UserMapper
             domain.committedCommits =
                 proxyFactory.createLazyMutableSet(
                     {
-//                        transactionTemplate.execute {
-                        entity.committedCommits.map {
-                            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
-                        }
-//                        } ?: throw IllegalStateException("transaction should load branch committedCommits")
+                        transactionTemplate.execute {
+                            // Reload the entity in a new session
+                            val freshEntity = entityManager.find(UserEntity::class.java, entity.id)
+                            // Now the collection is attached to this session
+                            freshEntity.committedCommits.map {
+                                commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
+                            }
+                        } ?: throw IllegalStateException("transaction should load branch committedCommits")
                     },
                     {
-                        require(it.size == entity.committedCommits.size) {
-                            "entity.committedCommits: Expected size of ${entity.committedCommits.size} does not match ${it.size}"
-                        }
+//                        it.forEach { u -> u.committer = u }
+//                        require(it.size == entity.committedCommits.size) {
+//                            "entity.committedCommits: Expected size of ${entity.committedCommits.size} does not match ${it.size}"
+//                        }
                     },
                 )
 
             domain.authoredCommits =
                 proxyFactory.createLazyMutableSet(
                     {
-//                        transactionTemplate.execute {
-                        entity.authoredCommits.map {
-                            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
-                        }
-//                        } ?: throw IllegalStateException("transaction should load authoredCommits entities")
+                        transactionTemplate.execute {
+                            // Reload the entity in a new session
+                            val freshEntity = entityManager.find(UserEntity::class.java, entity.id)
+                            // Now the collection is attached to this session
+                            freshEntity.authoredCommits.map {
+                                commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
+                            }
+                        } ?: throw IllegalStateException("transaction should load authoredCommits entities")
                     },
                     {
-                        require(it.size == entity.authoredCommits.size) {
-                            "entity.committedCommits: Expected size of ${entity.authoredCommits.size} does not match ${it.size}"
-                        }
+//                        require(it.size == entity.authoredCommits.size) {
+//                            "entity.committedCommits: Expected size of ${entity.authoredCommits.size} does not match ${it.size}"
+//                        }
                     },
                 )
-
-            repository.user.add(domain)
 
             return domain
         }

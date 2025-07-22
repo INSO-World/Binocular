@@ -1,6 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/binocular-test
+    username: ${DATABASE_USER:binocular}
+    password: ${DATABASE_PW:binocular}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  jpa:
+    show-sql: true
 logging:
   level:
     #    org.hibernate.orm.jdbc.bind: trace
     com:
       inso_world:
         binocular: debug
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+#        sql: DEBUG
+        orm:
+          jdbc:
+            bind: TRACE

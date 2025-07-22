@@ -25,6 +25,7 @@ class VcsService(
         branch: String,
         project: Project,
     ) {
+        logger.trace(">>> indexRepository({}, {}, {})", repoPath, branch, project)
         val vcsRepo =
             try {
                 this.ffiService.findRepo(repoPath)
@@ -33,19 +34,9 @@ class VcsService(
             }
         logger.info("Found repository: ${vcsRepo.gitDir}")
 
-        //    val repo: Repository = transactionTemplate.execute { repoService.getOrCreate(vcsRepo.gitDir) } as Repository
-        //    logger.info("Searching commits for branch '$branchName'")
-        //
-        //    val branchEntity = this.repoService.findBranch(repo, branchName)
-        //    val branchName = branchEntity?.name ?: branchName
-        //
         val vcsCommits = this.ffiService.traverseAllOnBranch(vcsRepo, branch).map(BinocularCommitPojo::toDto)
         logger.debug("Existing commits: ${vcsCommits.count()} commit(s) found on branch $branch")
-        //
-        // //    val commitEntities = this.repoService.transformCommits(repo, vcsCommits)
-        //    transactionTemplate.execute {
         this.repoService.addCommits(vcsRepo, vcsCommits, project)
-        logger.debug("Commits added to database.")
-        //    }
+        logger.trace("<<< indexRepository({}, {}, {})", repoPath, branch, project)
     }
 }

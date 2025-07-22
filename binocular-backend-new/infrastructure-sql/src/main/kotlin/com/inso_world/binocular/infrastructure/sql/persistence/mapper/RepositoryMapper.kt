@@ -10,11 +10,13 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import jakarta.persistence.EntityManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import org.springframework.transaction.support.TransactionTemplate
 
 @Component
 internal class RepositoryMapper
@@ -25,6 +27,14 @@ internal class RepositoryMapper
         @Lazy private val branchMapper: BranchMapper,
         @Lazy private val userMapper: UserMapper,
     ) {
+        @Autowired
+        @Lazy
+        private lateinit var entityManager: EntityManager
+
+        @Autowired
+        @Lazy
+        private lateinit var transactionTemplate: TransactionTemplate
+
         private val logger: Logger = LoggerFactory.getLogger(RepositoryMapper::class.java)
 
         fun toEntity(
@@ -78,14 +88,56 @@ internal class RepositoryMapper
                     projectId = entity.project.id?.toString(),
                 )
 
-            entity.commits
-                .forEach { it ->
-                    commitMapper.toDomain(it, domain, commitContext, branchContext, userContext)
-                }
+            domain.commits =
+                proxyFactory.createLazyMutableSet({
+                    transactionTemplate.execute {
+                        // Reload the entity in a new session
+                        val freshEntity = entityManager.find(RepositoryEntity::class.java, entity.id)
+                        // Now the collection is attached to this session
+                        freshEntity.commits.map {
+                            commitMapper.toDomain(
+                                it,
+                                domain,
+                                commitContext,
+                                branchContext,
+                                userContext,
+                            )
+                        }
+                    } ?: throw IllegalStateException("transaction should load repository.commits")
+                }, {})
 
-            entity.branches.forEach { branchMapper.toDomain(it, domain, commitContext, branchContext) }
+            domain.branches =
+                proxyFactory.createLazyMutableSet({
+                    transactionTemplate.execute {
+                        // Reload the entity in a new session
+                        val freshEntity = entityManager.find(RepositoryEntity::class.java, entity.id)
+                        // Now the collection is attached to this session
+                        freshEntity.branches.map { branchMapper.toDomain(it, domain, commitContext, branchContext) }
+                    } ?: throw IllegalStateException("transaction should load repository.branches")
+                }, {})
 
-            entity.user.forEach { userMapper.toDomain(it, domain, userContext, commitContext, branchContext) }
+            domain.user =
+                proxyFactory
+                    .createLazyMutableSet(
+                        {
+                            transactionTemplate.execute {
+                                // Reload the entity in a new session
+                                val freshEntity = entityManager.find(RepositoryEntity::class.java, entity.id)
+                                // Now the collection is attached to this session
+                                freshEntity.user.map {
+                                    userMapper.toDomain(
+                                        it,
+                                        domain,
+                                        userContext,
+                                        commitContext,
+                                        branchContext,
+                                    )
+                                }
+                            } ?: throw IllegalStateException("transaction should load repository.user")
+                        },
+                        {
+                        },
+                    )
 
             return domain
         }

@@ -1,14 +1,16 @@
 package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
+import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
-import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,20 +24,30 @@ class RepositoryService {
     private lateinit var repositoryPort: RepositoryInfrastructurePort
 
     @Autowired
+    private lateinit var userPort: UserInfrastructurePort
+
+    @Autowired
     private lateinit var commitService: CommitService
 
     @Autowired
-    private lateinit var branchService: BranchService
+    lateinit var commitPort: CommitInfrastructurePort
 
-    @Transactional
+    @Autowired
+    private lateinit var branchPort: BranchInfrastructurePort
+
     internal fun transformCommits(
         repo: Repository,
         commits: Iterable<VcsCommit>,
     ): Collection<Commit> {
-        val userCache = repo.user.associateBy { it.email }.toMutableMap()
-        val branchCache = repo.branches.associateBy { it.name }.toMutableMap()
-        // commitCache are the commits which exist
-        val commitCache: Map<String, Commit> = repo.commits.associateBy { it.sha }
+        logger.trace(">>> transformCommits({})", repo)
+//        probably N+1 here!
+        val userCache =
+            userPort.findAll(repo).associateBy { it.email }.toMutableMap()
+//            repo.user.associateBy { it.email }.toMutableMap()
+        val branchCache = branchPort.findAll(repo).associateBy { it.name }.toMutableMap()
+//            repo.branches.associateBy { it.name }.toMutableMap()
+        val commitCache: Map<String, Commit> = commitPort.findAll(repo).associateBy { it.sha }
+//        repo.commits.associateBy { it.sha }
 
         // Create a map of SHA to Commit entities for quick lookups
         val commitMap =
@@ -52,11 +64,7 @@ class RepositoryService {
                                 }
                             }
                         branchEntity.addCommit(e)
-//                        branchEntity.commits.add(e)
-//                        e.branches.add(branchEntity)
-//
-//                        repo.commits.add(e)
-//                        e.repository = repo
+
                         repo.addCommit(e)
                         e
                     }()
@@ -99,6 +107,7 @@ class RepositoryService {
             commit.parents = parentCommits.toMutableSet()
         }
 
+        logger.trace("<<< transformCommits({})", repo)
         return commitMap.values.toList()
     }
 
@@ -108,11 +117,6 @@ class RepositoryService {
 
     private fun findRepo(vcsRepo: BinocularRepositoryPojo): Repository? = this.findRepo(vcsRepo.gitDir)
 
-//  fun findRepoWithRelations(gitDir: String): Repository? {
-//    return this.repositoryDao.findByNameWithRelations(normalizePath(gitDir))
-//  }
-
-//    @Transactional
     fun getOrCreate(
         gitDir: String,
         p: Project,
@@ -143,12 +147,13 @@ class RepositoryService {
         branchName: String,
     ): Branch? {
         // Delegate the logic to the new BranchService
-        return this.branchService.findBranch(repository, branchName)
+//        return this.branchPort.fin(repository, branchName)
+        TODO()
     }
 
     fun update(repo: Repository): Repository = this.repositoryPort.update(repo)
 
-//    @Transactional
+    //    @Transactional
     fun addCommits(
         vcsRepo: BinocularRepositoryPojo,
         commitDtos: Collection<VcsCommit>,
@@ -161,12 +166,18 @@ class RepositoryService {
         logger.debug("Existing commits: ${existingCommitEntities.first.count()}")
         logger.trace("New commits to add: ${existingCommitEntities.second.count()}")
 
-        // these commits are new so always added, also to an existing branch
-        this.transformCommits(repo, existingCommitEntities.second)
+        if (existingCommitEntities.second.count() != 0) {
+            // these commits are new so always added, also to an existing branch
+            this.transformCommits(repo, existingCommitEntities.second)
 
-        project.repo = this.repositoryPort.update(repo)
+            logger.debug("Commit transformation finished")
 
-        logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${project.name}")
+            project.repo = this.repositoryPort.update(repo)
+
+            logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${project.name}")
+        } else {
+            logger.info("No new commits were found, skipping update")
+        }
     }
 }
 

@@ -18,8 +18,8 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 
 internal class ProjectDaoTest(
-    @Autowired val repositoryDao: RepositoryInfrastructurePort,
-    @Autowired val projectDao: ProjectInfrastructurePort,
+    @Autowired val repositoryInfrastructurePort: RepositoryInfrastructurePort,
+    @Autowired val projectInfrastructurePort: ProjectInfrastructurePort,
 ) : BasePersistenceTest() {
     @Nested
     inner class CleanDatabase : BasePersistenceNoDataTest() {
@@ -29,7 +29,7 @@ internal class ProjectDaoTest(
 
         @Test
         fun non_saved_should_return_no_projects() {
-            val repos = projectDao.findAll()
+            val repos = projectInfrastructurePort.findAll()
             assertThat(repos).isEmpty()
         }
 
@@ -39,31 +39,31 @@ internal class ProjectDaoTest(
             val project = Project(name = "Standalone Project", description = "Project without repo")
 
             // When
-            val savedProject = projectDao.create(project)
+            val savedProject = projectInfrastructurePort.create(project)
 
             // Then
             assertAll(
 //                { assertThat(savedProject.id).isNotNull() },
                 { assertThat(savedProject.repo).isNull() },
-                { assertThat(projectDao.findAll()).hasSize(1) },
-                { assertThat(repositoryDao.findAll()).isEmpty() },
+                { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
+                { assertThat(repositoryInfrastructurePort.findAll()).isEmpty() },
             )
         }
 
         @Test
         fun `project can exist with repository`() {
             // When
-            val savedProject = projectDao.create(Project(name = "Project With Repo", description = "Project with repo"))
+            val savedProject = projectInfrastructurePort.create(Project(name = "Project With Repo", description = "Project with repo"))
             savedProject.repo =
-                repositoryDao.create(Repository(id = null, name = "test-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "test-repo", projectId = savedProject.id))
 
             // Then
             assertAll(
 //                { assertThat(savedProject.id).isNotNull() },
 //                { assertThat(savedProject.repo?.id).isNotNull() },
 //                { assertThat(savedProject.repo?.project?.id).isEqualTo(savedProject.id) },
-                { assertThat(projectDao.findAll()).hasSize(1) },
-                { assertThat(repositoryDao.findAll()).hasSize(1) },
+                { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
+                { assertThat(repositoryInfrastructurePort.findAll()).hasSize(1) },
             )
         }
 
@@ -71,36 +71,36 @@ internal class ProjectDaoTest(
         fun `project deletion cascades to repository`() {
             // Given
             val savedProject =
-                projectDao.create(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
+                projectInfrastructurePort.create(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
             savedProject.repo =
-                repositoryDao.create(Repository(id = null, name = "cascading-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "cascading-repo", projectId = savedProject.id))
             // updated dependencies, as not managed by JPA
-            projectDao.update(savedProject)
+            projectInfrastructurePort.update(savedProject)
 
             // When
-            projectDao.delete(savedProject)
+            projectInfrastructurePort.delete(savedProject)
 
             // Then
             assertAll(
-                { assertThat(projectDao.findAll()).isEmpty() },
-                { assertThat(repositoryDao.findAll()).isEmpty() },
+                { assertThat(projectInfrastructurePort.findAll()).isEmpty() },
+                { assertThat(repositoryInfrastructurePort.findAll()).isEmpty() },
             )
         }
 
         @Test
         fun `project with null description can have repository`() {
             // When
-            val savedProject = projectDao.create(Project(name = "Null Desc Project"))
+            val savedProject = projectInfrastructurePort.create(Project(name = "Null Desc Project"))
             val savedRepo =
-                repositoryDao.create(Repository(id = null, name = "null-desc-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "null-desc-repo", projectId = savedProject.id))
             savedProject.repo = savedRepo
 
             // Then
             assertAll(
                 { assertThat(savedProject.description).isNull() },
 //                { assertThat(savedRepo.project.id).isEqualTo(savedProject.id) },
-                { assertThat(projectDao.findAll()).hasSize(1) },
-                { assertThat(repositoryDao.findAll()).hasSize(1) },
+                { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
+                { assertThat(repositoryInfrastructurePort.findAll()).hasSize(1) },
             )
         }
 
@@ -113,7 +113,7 @@ internal class ProjectDaoTest(
             // When & Then - This should fail due to validation constraint
             // Note: This test documents expected behavior for invalid data
             assertThrows<jakarta.validation.ConstraintViolationException> {
-                projectDao.create(project)
+                projectInfrastructurePort.create(project)
             }
             entityManager.clear()
         }
@@ -122,44 +122,41 @@ internal class ProjectDaoTest(
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedStrings")
         fun `project with allowed names should be handled`(allowedName: String) {
             // When
-            val savedProject = projectDao.create(Project(name = allowedName, description = "Long name project"))
+            val savedProject = projectInfrastructurePort.create(Project(name = allowedName, description = "Long name project"))
             val savedRepo =
-                repositoryDao.create(Repository(id = null, name = "long-name-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "long-name-repo", projectId = savedProject.id))
             savedProject.repo = savedRepo
 
             // Then
             assertAll(
                 { assertThat(savedProject.name).isEqualTo(allowedName) },
                 { assertThat(savedRepo.projectId).isEqualTo(savedProject.id) },
-                { assertThat(projectDao.findAll()).hasSize(1) },
-                { assertThat(repositoryDao.findAll()).hasSize(1) },
+                { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
+                { assertThat(repositoryInfrastructurePort.findAll()).hasSize(1) },
             )
         }
 
         @Test
         fun `duplicate project names should fail`() {
-            assertAll(
-                {
-                    assertDoesNotThrow {
-                        projectDao.create(
-                            Project(
-                                name = "Duplicate Name",
-                                description = "First project",
-                            ),
-                        )
-                    }
-                },
-                {
-                    assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                        projectDao.create(
-                            Project(
-                                name = "Duplicate Name",
-                                description = "Second project",
-                            ),
-                        )
-                    }
-                },
-            )
+
+            assertDoesNotThrow {
+                projectInfrastructurePort.create(
+                    Project(
+                        name = "Duplicate Name",
+                        description = "First project",
+                    ),
+                )
+            }
+
+            assertThrows<org.hibernate.exception.ConstraintViolationException> {
+                projectInfrastructurePort.create(
+                    Project(
+                        name = "Duplicate Name",
+                        description = "Second project",
+                    ),
+                )
+            }
+
             entityManager.clear()
         }
     }
