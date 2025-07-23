@@ -16,7 +16,7 @@ import java.util.Objects
 @Entity
 @Table(name = "projects")
 internal data class ProjectEntity(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long? = null,
+    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE) var id: Long? = null,
     @Column(nullable = false, unique = true) @field:NotBlank val name: String,
     @Column(nullable = true, unique = false) val description: String? = null,
 //    @ManyToMany(mappedBy = "projects", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])

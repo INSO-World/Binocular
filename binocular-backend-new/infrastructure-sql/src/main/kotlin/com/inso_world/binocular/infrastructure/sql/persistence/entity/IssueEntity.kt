@@ -21,7 +21,7 @@ import java.util.Objects
 @Table(name = "issues")
 internal data class IssueEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
     var iid: Int? = null,
     var title: String? = null,

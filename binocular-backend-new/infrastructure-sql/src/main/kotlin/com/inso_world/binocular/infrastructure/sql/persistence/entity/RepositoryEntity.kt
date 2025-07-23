@@ -19,7 +19,7 @@ import java.util.Objects
 @Table(name = "repositories")
 internal data class RepositoryEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     val id: Long? = null,
     @Column(unique = true, nullable = false)
     @field:NotBlank

@@ -34,7 +34,7 @@ import java.util.Objects
 )
 internal data class CommitEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
     @Column(unique = true, updatable = false)
     @field:Size(min = 40, max = 40)

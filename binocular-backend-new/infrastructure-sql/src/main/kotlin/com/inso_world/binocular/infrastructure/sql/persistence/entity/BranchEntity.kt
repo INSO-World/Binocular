@@ -27,7 +27,7 @@ import java.util.Objects
 )
 internal data class BranchEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
     @Column(nullable = false)
     val name: String,

@@ -11,7 +11,7 @@
 // @Table(name = "mentions")
 // data class MentionEntity(
 //    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
 //    var id: Long? = null,
 //    var commit: String? = null,
 //    @Column(name = "created_at")

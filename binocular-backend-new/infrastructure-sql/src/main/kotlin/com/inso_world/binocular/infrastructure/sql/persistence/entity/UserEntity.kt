@@ -25,7 +25,7 @@ import jakarta.persistence.UniqueConstraint
 )
 internal data class UserEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
     @Column(nullable = false)
     var name: String? = null,
