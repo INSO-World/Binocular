@@ -17,7 +17,7 @@
 // @Table(name = "stats")
 // class StatsEntity {
 //    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
 //    var id: Long? = null
 //
 //    var additions: Long = 0L

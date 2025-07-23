@@ -16,7 +16,7 @@
 // @Table(name = "labels")
 // data class LabelEntity(
 //    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
 //    var id: Long? = null,
 //    var value: String,
 //    @ManyToOne(fetch = FetchType.LAZY)
