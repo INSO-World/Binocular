@@ -13,11 +13,11 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 internal class TestDataSetupService(
-    private val projectRepository: ProjectInfrastructurePort,
-    private val commitRepository: CommitInfrastructurePort,
-    private val repositoryRepository: RepositoryInfrastructurePort,
+    private val projectInfrastructurePort: ProjectInfrastructurePort,
+    private val commitInfrastructurePort: CommitInfrastructurePort,
+    private val repositoryInfrastructurePort: RepositoryInfrastructurePort,
 //    private val accountRepository: AccountInfrastructurePort,
-    private val branchPort: BranchInfrastructurePort,
+    private val branchInfrastructurePort: BranchInfrastructurePort,
 //    private val buildRepository: BuildInfrastructurePort,
 //    private val fileRepository: FileInfrastructurePort,
 //    private val issueRepository: IssueInfrastructurePort,
@@ -40,10 +40,10 @@ internal class TestDataSetupService(
     fun clearAllData() {
         entityManager.flush()
         entityManager.clear()
-        projectRepository.deleteAll()
-        repositoryRepository.deleteAll()
-        branchPort.deleteAll()
-        commitRepository.deleteAll()
+        projectInfrastructurePort.deleteAll()
+        repositoryInfrastructurePort.deleteAll()
+        branchInfrastructurePort.deleteAll()
+        commitInfrastructurePort.deleteAll()
 //        accountRepository.saveAll(emptyList())
 //        branchRepository.saveAll(emptyList())
 //        buildRepository.saveAll(emptyList())
