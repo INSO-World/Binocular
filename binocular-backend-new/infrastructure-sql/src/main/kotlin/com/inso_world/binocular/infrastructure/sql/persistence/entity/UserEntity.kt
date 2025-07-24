@@ -10,6 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 
@@ -38,10 +39,16 @@ internal data class UserEntity(
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
     var repository: RepositoryEntity? = null,
-) {
-    fun uniqueKey(): String {
+) : AbstractEntity() {
+    override fun uniqueKey(): String {
         val repo = this.repository ?: throw IllegalStateException("RepositoryEntity required for uniqueKey")
         return "${repo.name},$email"
+    }
+
+    @PreRemove
+    fun preRemove() {
+//        this.repository?.user?.remove(this)
+//        this.repository = null
     }
 
     fun addCommittedCommit(commit: CommitEntity) {
@@ -53,4 +60,22 @@ internal data class UserEntity(
         authoredCommits.add(commit)
         commit.author = this
     }
+
+    override fun toString(): String = super.toString()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as UserEntity
+
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (email != other.email) return false
+//        if (repository?.uniqueKey() != other.repository?.uniqueKey()) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int = super.hashCode()
 }
