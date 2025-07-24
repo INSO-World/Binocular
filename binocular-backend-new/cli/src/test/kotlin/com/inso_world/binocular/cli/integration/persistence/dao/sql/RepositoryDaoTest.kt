@@ -16,6 +16,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -45,7 +46,7 @@ internal class RepositoryDaoTest(
             val savedProject =
                 projectPort.create(Project(name = "Surviving Project", description = "Will survive repo deletion"))
             val savedRepo =
-                repositoryPort.create(Repository(id = null, name = "to-be-deleted-repo", projectId = savedProject.id))
+                repositoryPort.create(Repository(id = null, name = "to-be-deleted-repo", project = savedProject))
             // updated dependencies, as not managed by JPA
             savedProject.repo = savedRepo
             projectPort.update(savedProject)
@@ -67,7 +68,7 @@ internal class RepositoryDaoTest(
         fun `repository cannot exist without project`() {
             // Given
             val savedProject = projectPort.create(Project(name = "Temporary Project", description = "Will be deleted"))
-            val repository = Repository(id = null, name = "orphaned-repo", projectId = savedProject.id)
+            val repository = Repository(id = null, name = "orphaned-repo", project = savedProject)
             savedProject.repo = repositoryPort.create(repository)
             // updated dependencies, as not managed by JPA
             projectPort.update(savedProject)
@@ -94,7 +95,7 @@ internal class RepositoryDaoTest(
 
             // When - First repository should be created successfully
             val firstRepo =
-                repositoryPort.create(Repository(id = null, name = "first-repo", projectId = savedProject.id))
+                repositoryPort.create(Repository(id = null, name = "first-repo", project = savedProject))
 
             entityManager.flush()
             entityManager.clear()
@@ -109,7 +110,7 @@ internal class RepositoryDaoTest(
             val ex =
                 assertThrows<java.lang.IllegalArgumentException> {
                     transactionTemplate.execute {
-                        repositoryPort.create(Repository(id = null, name = "second-repo", projectId = savedProject.id))
+                        repositoryPort.create(Repository(id = null, name = "second-repo", project = savedProject))
                     }
                 }
 
@@ -128,7 +129,7 @@ internal class RepositoryDaoTest(
             // Then - This should fail due to validation constraint
             assertThrows<jakarta.validation.ConstraintViolationException> {
                 transactionTemplate.execute {
-                    repositoryPort.create(Repository(id = null, name = invalidName, projectId = savedProject.id))
+                    repositoryPort.create(Repository(id = null, name = invalidName, project = savedProject))
                 }
             }
         }
@@ -139,14 +140,15 @@ internal class RepositoryDaoTest(
             // When
             val savedProject = projectPort.create(Project(name = "Valid Project", description = "Valid project"))
             val savedRepo =
-                repositoryPort.create(Repository(id = null, name = allowedName, projectId = savedProject.id))
+                repositoryPort.create(Repository(id = null, name = allowedName, project = savedProject))
             savedProject.repo = savedRepo
             projectPort.update(savedProject)
 
             // Then
             assertAll(
                 { assertThat(savedRepo.name).isEqualTo(allowedName) },
-                { assertThat(savedRepo.projectId).isEqualTo(savedProject.id) },
+                { assertThat(savedRepo.project).isNotNull() },
+                { assertThat(savedRepo.project?.id).isEqualTo(savedProject.id) },
                 { assertThat(projectPort.findAll()).hasSize(1) },
                 { assertThat(repositoryPort.findAll()).hasSize(1) },
             )
@@ -163,7 +165,7 @@ internal class RepositoryDaoTest(
                     Repository(
                         id = null,
                         name = "Duplicate Repo",
-                        projectId = savedProject1.id,
+                        project = savedProject1,
                     ),
                 )
             }
@@ -172,9 +174,10 @@ internal class RepositoryDaoTest(
 
             // Then - This should fail due to unique constraint
             val ex =
-                assertThrows<org.hibernate.exception.ConstraintViolationException> {
-                    repositoryPort.create(Repository(id = null, name = "Duplicate Repo", projectId = savedProject2.id))
+                assertThrows<DataIntegrityViolationException> {
+                    repositoryPort.create(Repository(id = null, name = "Duplicate Repo", project = savedProject2))
                 }
+            assertThat(repositoryPort.findAll()).hasSize(1)
             entityManager.clear()
         }
     }

@@ -154,7 +154,7 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
             Repository(
                 id = "1",
                 name = "test r",
-                projectId = dummyProject.id,
+                project = dummyProject,
             )
         val dummyBranch =
             Branch(
@@ -190,7 +190,7 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
             Repository(
                 id = "1",
                 name = "test r",
-                projectId = dummyProject.id,
+                project = dummyProject,
             )
         val dummyBranch =
             Branch(
@@ -226,7 +226,7 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
             Repository(
                 id = "1",
                 name = "test r",
-                projectId = dummyProject.id,
+                project = dummyProject,
             )
         val dummyBranch =
             Branch(

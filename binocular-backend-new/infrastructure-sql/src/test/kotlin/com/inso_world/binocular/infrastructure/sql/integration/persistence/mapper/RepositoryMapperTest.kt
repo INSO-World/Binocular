@@ -5,6 +5,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEnt
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -198,7 +199,11 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             Repository(
                 id = "10",
                 name = "TestRepo",
-                projectId = projectEntity.id?.toString(),
+                project = Project(
+                    id = projectEntity.id?.toString(),
+                    name = projectEntity.name,
+                    description = projectEntity.description,
+                )
             )
 
         // Map to entity
@@ -221,7 +226,11 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             Repository(
                 id = "10",
                 name = "TestRepo",
-                projectId = projectEntity.id?.toString(),
+                project = Project(
+                    id = projectEntity.id?.toString(),
+                    name = projectEntity.name,
+                    description = projectEntity.description,
+                )
             )
         val commitList =
             listOf(
@@ -305,7 +314,11 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             Repository(
                 id = "10",
                 name = "TestRepo",
-                projectId = projectEntity.id?.toString(),
+                project = Project(
+                    id = projectEntity.id?.toString(),
+                    name = projectEntity.name,
+                    description = projectEntity.description,
+                )
             )
         commitList.forEach {
             it.repositoryId = domain.id
@@ -357,7 +370,11 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             Repository(
                 id = "10",
                 name = "TestRepo",
-                projectId = projectEntity.id?.toString(),
+                project = Project(
+                    id = projectEntity.id?.toString(),
+                    name = projectEntity.name,
+                    description = projectEntity.description,
+                )
             )
         val commit =
             Commit(

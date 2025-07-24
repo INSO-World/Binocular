@@ -18,7 +18,7 @@ class RepositoryValidator : ConstraintValidator<RepositoryValidation, Project> {
         // In this case, we'll assume it's valid (project might be set later)
         if (repository == null) return true
 
-        val projectActualId = repository.projectId
+        val projectActualId = repository.project?.id
 
         return when {
             projectActualId == null -> projectId == null

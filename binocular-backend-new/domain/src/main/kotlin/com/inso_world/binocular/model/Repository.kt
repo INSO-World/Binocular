@@ -3,6 +3,7 @@ package com.inso_world.binocular.model
 import com.inso_world.binocular.model.validation.CommitValidation
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,8 +18,8 @@ class Repository(
     var user: MutableSet<User> = mutableSetOf(),
     @field:Valid
     var branches: MutableSet<Branch> = mutableSetOf(),
-    //    @field:NotNull // TODO conditional validation, only when coming out of infra
-    var projectId: String? = null,
+    @field:NotNull // TODO conditional validation, only when coming out of infra
+    var project: Project? = null,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
 

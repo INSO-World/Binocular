@@ -262,7 +262,7 @@ internal class RepositoryServiceTest(
 
     @Test
     fun `transformCommits should correctly establish parent-child relationships`() {
-        val repo = Repository(id = null, name = "foo", projectId = simpleProject.id)
+        val repo = Repository(id = null, name = "foo", project = simpleProject)
 
         val transformedCommits = repositoryService.transformCommits(repo, simpleRepoVcsCommits)
         val transformedCommitMap = transformedCommits.associateBy { it.sha }

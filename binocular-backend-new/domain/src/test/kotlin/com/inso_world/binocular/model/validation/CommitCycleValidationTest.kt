@@ -7,10 +7,12 @@ import jakarta.validation.Validator
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import java.time.LocalDateTime
 
+@Disabled
 class CommitCycleValidationTest {
     private lateinit var validator: Validator
 

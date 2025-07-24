@@ -4,9 +4,7 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IDao
 import jakarta.persistence.EntityManager
 import jakarta.validation.Valid
-import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
@@ -68,17 +66,7 @@ internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Seriali
     @Transactional
     internal fun create(
         @Valid value: E,
-    ): E {
-        try {
-            return this.dao.create(value)
-        } catch (ex: DataIntegrityViolationException) {
-            val cause = ex.cause
-            if (cause is ConstraintViolationException) {
-                throw cause
-            }
-            throw ex
-        }
-    }
+    ): E = this.dao.create(value)
 
     @Transactional
     internal fun saveAll(values: Collection<@Valid E>): Iterable<E> {

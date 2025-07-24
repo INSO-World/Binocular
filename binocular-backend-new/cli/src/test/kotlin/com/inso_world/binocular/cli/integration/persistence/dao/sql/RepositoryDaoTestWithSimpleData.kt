@@ -5,6 +5,7 @@ import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceNoDataTest
 import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
 import com.inso_world.binocular.cli.integration.utils.generateCommits
+import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.FIXTURES_PATH
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.SIMPLE_PROJECT_NAME
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.SIMPLE_REPO
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 
 internal class RepositoryDaoTestWithSimpleData(
     @Autowired val repositoryPort: RepositoryInfrastructurePort,
@@ -31,6 +33,9 @@ internal class RepositoryDaoTestWithSimpleData(
 ) : BasePersistenceNoDataTest() {
     @Autowired
     private lateinit var projectDao: ProjectInfrastructurePort
+
+    @Autowired @Lazy
+    private lateinit var repoService: RepositoryService
 
     companion object {
         internal lateinit var simpleRepoConfig: RepositoryConfig
@@ -60,7 +65,7 @@ internal class RepositoryDaoTestWithSimpleData(
     @BeforeEach
     fun beforeEach() {
         val repo = simpleRepoConfig.repo.toVcsRepository().toDomain()
-        repo.projectId = simpleRepoConfig.project.id
+        repo.project = simpleRepoConfig.project
         simpleRepoConfig.project.repo = repo
         val project = projectDao.create(simpleRepoConfig.project)
         project.repo?.let { this.simpleRepo = it }
@@ -69,7 +74,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @AfterEach
     fun afterEach() {
-        this.simpleRepo.projectId?.let { projectDao.deleteById(it) }
+        this.simpleRepo.project?.id?.let { projectDao.deleteById(it) }
     }
 
     @Test
@@ -114,7 +119,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @Test
     fun add_all_commits_to_repository() {
-        val commits = generateCommits(simpleRepoConfig, simpleRepo)
+        val commits = generateCommits(repoService,simpleRepoConfig, simpleRepo)
 
         simpleRepo.commits.addAll(commits)
         val saved = this.repositoryPort.update(simpleRepo)
@@ -147,7 +152,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @Test
     fun delete_repository() {
-        val commits = generateCommits(simpleRepoConfig, simpleRepo)
+        val commits = generateCommits(repoService,simpleRepoConfig, simpleRepo)
         simpleRepo.commits.addAll(commits)
         val saved = this.repositoryPort.update(simpleRepo)
         this.repositoryPort.delete(saved)
@@ -162,7 +167,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
     @Test
     fun `save valid repository`() {
-        val commits = generateCommits(simpleRepoConfig, simpleRepo)
+        val commits = generateCommits(repoService,simpleRepoConfig, simpleRepo)
 
         simpleRepo.commits.addAll(commits)
         this.repositoryPort.update(simpleRepo)

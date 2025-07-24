@@ -97,7 +97,7 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
     /**
      * Save multiple entities
      */
-    override fun saveAll(entities: Collection<T>): Iterable<T> = entities.map { save(it) }
+    override fun saveAll(entities: Collection<T>): Iterable<T> = this.repository.saveAll(entities)
 
     override fun flush() {
         entityManager.flush()

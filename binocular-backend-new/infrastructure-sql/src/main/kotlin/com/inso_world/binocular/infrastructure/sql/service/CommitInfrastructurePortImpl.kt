@@ -14,6 +14,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEnti
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.UserMapper
 import com.inso_world.binocular.model.Branch
@@ -25,7 +26,6 @@ import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
-import jakarta.validation.Validator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,7 +49,7 @@ internal class CommitInfrastructurePortImpl(
 
     @Autowired
     @Lazy
-    private lateinit var validator: Validator
+    private lateinit var projectMapper: ProjectMapper
 
     @Autowired
     @Lazy
@@ -101,9 +101,18 @@ internal class CommitInfrastructurePortImpl(
             val branchContext: MutableMap<String, Branch> = mutableMapOf()
             val userContext: MutableMap<String, User> = mutableMapOf()
 
+            val project =
+                projectMapper.toDomain(
+                    repository.project,
+                    commitContext,
+                    branchContext,
+                    userContext,
+                )
+
             val repoModel =
                 repositoryMapper.toDomain(
                     it.repository ?: throw NotFoundException("Repository must not be null after saving commit"),
+                    project,
                     commitContext,
                     branchContext,
                     userContext,
@@ -126,9 +135,21 @@ internal class CommitInfrastructurePortImpl(
         val userContext: MutableMap<String, User> = mutableMapOf()
 
         return this.commitDao.findAll().map { c ->
+            val repoEntity = c.repository ?: throw IllegalStateException("Repository of a Commit cannot be null")
+            if (repoEntity.id == null) {
+                throw IllegalStateException("Id of an existing repo cannot be null")
+            }
             val repo =
-                repoContext.getOrPut(c.repository?.id!!) {
-                    val repo = this.repositoryMapper.toDomain(c.repository!!, commitContext, branchContext, userContext)
+                repoContext.getOrPut(repoEntity.id) {
+                    val project =
+                        projectMapper.toDomain(
+                            repoEntity.project,
+                            commitContext,
+                            branchContext,
+                            userContext,
+                        )
+
+                    val repo = this.repositoryMapper.toDomain(repoEntity, project, commitContext, branchContext, userContext)
 
                     commitContext.putAll(
                         repo.commits.associateBy { it.sha },
@@ -158,7 +179,15 @@ internal class CommitInfrastructurePortImpl(
 
             val repository =
                 it.repository?.let { r ->
-                    repositoryMapper.toDomain(r, commitContext, branchContext, userContext)
+                    val project =
+                        projectMapper.toDomain(
+                            r.project,
+                            commitContext,
+                            branchContext,
+                            userContext,
+                        )
+
+                    repositoryMapper.toDomain(r, project, commitContext, branchContext, userContext)
                 }
             if (repository == null) {
                 throw IllegalStateException("Repository cannot be null when finding commit by ID")
@@ -254,7 +283,16 @@ internal class CommitInfrastructurePortImpl(
                 val commitContext = mutableMapOf<String, Commit>()
                 val branchContext = mutableMapOf<String, Branch>()
                 val userContext = mutableMapOf<String, User>()
-                val repository = repositoryMapper.toDomain(repository, commitContext, branchContext, userContext)
+
+                val project =
+                    projectMapper.toDomain(
+                        repository.project,
+                        commitContext,
+                        branchContext,
+                        userContext,
+                    )
+
+                val repository = repositoryMapper.toDomain(repository, project, commitContext, branchContext, userContext)
                 commitContext.putAll(repository.commits.associateBy { c -> c.sha })
                 branchContext.putAll(
                     repository.branches.associateBy { b -> "${repository.name},${b.name}" },
@@ -341,7 +379,15 @@ internal class CommitInfrastructurePortImpl(
         val branchContext = mutableMapOf<String, Branch>()
         val userContext = mutableMapOf<String, User>()
 
-        val repoModel = repositoryMapper.toDomain(repoEntity, commitContext, branchContext, userContext)
+        val project =
+            projectMapper.toDomain(
+                repoEntity.project,
+                commitContext,
+                branchContext,
+                userContext,
+            )
+
+        val repoModel = repositoryMapper.toDomain(repoEntity, project, commitContext, branchContext, userContext)
 
         return this.commitDao
             .findExistingSha(repoEntity, shas)
@@ -361,7 +407,15 @@ internal class CommitInfrastructurePortImpl(
         val branchContext = mutableMapOf<String, Branch>()
         val userContext = mutableMapOf<String, User>()
 
-        val repoModel = repositoryMapper.toDomain(repoEntity, commitContext, branchContext, userContext)
+        val project =
+            projectMapper.toDomain(
+                repoEntity.project,
+                commitContext,
+                branchContext,
+                userContext,
+            )
+
+        val repoModel = repositoryMapper.toDomain(repoEntity, project, commitContext, branchContext, userContext)
         return try {
             this.commitDao
                 .findAllByRepo(
@@ -378,7 +432,9 @@ internal class CommitInfrastructurePortImpl(
         val branchContext = mutableMapOf<String, Branch>()
         val userContext = mutableMapOf<String, User>()
 
-        return this.commitDao.findAll(repo).map { this.commitMapper.toDomain(it, repo, commitContext, branchContext, userContext) }
+        return this.commitDao
+            .findAll(repo)
+            .map { this.commitMapper.toDomain(it, repo, commitContext, branchContext, userContext) }
     }
 
     override fun findHeadForBranch(
@@ -392,7 +448,15 @@ internal class CommitInfrastructurePortImpl(
         val branchContext = mutableMapOf<String, Branch>()
         val userContext = mutableMapOf<String, User>()
 
-        val repoModel = repositoryMapper.toDomain(repoEntity, commitContext, branchContext, userContext)
+        val project =
+            projectMapper.toDomain(
+                repoEntity.project,
+                commitContext,
+                branchContext,
+                userContext,
+            )
+
+        val repoModel = repositoryMapper.toDomain(repoEntity, project, commitContext, branchContext, userContext)
         return this.commitDao
             .findHeadForBranch(
                 repoEntity,
@@ -408,7 +472,15 @@ internal class CommitInfrastructurePortImpl(
         val branchContext = mutableMapOf<String, Branch>()
         val userContext = mutableMapOf<String, User>()
 
-        val repoModel = repositoryMapper.toDomain(repoEntity, commitContext, branchContext, userContext)
+        val project =
+            projectMapper.toDomain(
+                repoEntity.project,
+                commitContext,
+                branchContext,
+                userContext,
+            )
+
+        val repoModel = repositoryMapper.toDomain(repoEntity, project, commitContext, branchContext, userContext)
         return this.commitDao
             .findAllLeafCommits(
                 repoEntity,

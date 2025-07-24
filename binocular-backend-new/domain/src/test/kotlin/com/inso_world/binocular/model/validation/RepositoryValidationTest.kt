@@ -31,7 +31,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                projectId = project.id,
+                project = Project(id = null, name = "test-project-2"),
             )
 
         // When
@@ -49,7 +49,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                projectId = "some-id",
+                project = Project(id = "some-id", name = "test-project"),
             )
         project.repo = repository
 
@@ -69,7 +69,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                projectId = project.id,
+                project = Project(id = "project-123", name = "test-project"),
             )
 
         // When
@@ -87,7 +87,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                projectId = "different-id",
+                project = Project(id = "different-id", name = "test-project"),
             )
         project.repo = repository
 
@@ -106,7 +106,7 @@ class RepositoryValidationTest {
             Repository(
                 id = null,
                 name = "test-repo",
-                projectId = null,
+                project = Project(id = null, name = "test-project"),
             )
 
         // When

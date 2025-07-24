@@ -4,12 +4,14 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IUserDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.UserMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
@@ -37,6 +39,10 @@ internal class UserInfrastructurePortImpl(
     @Autowired
     @Lazy
     private lateinit var repositoryMapper: RepositoryMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var projectMapper: ProjectMapper
 
     @PostConstruct
     fun init() {
@@ -84,11 +90,30 @@ internal class UserInfrastructurePortImpl(
         val commitContext = mutableMapOf<String, Commit>()
         val branchContext = mutableMapOf<String, Branch>()
         val userContext = mutableMapOf<String, User>()
+        val projectContext = mutableMapOf<String, Project>()
 
         return super<AbstractInfrastructurePort>.findAllEntities().map { u ->
+            val repoEntity = u.repository
+            if (repoEntity == null) {
+                throw IllegalStateException("Repository cannot be null")
+            }
+            val project =
+                projectContext.getOrPut(repoEntity.project.uniqueKey()) {
+                    projectMapper.toDomain(
+                        repoEntity.project,
+                        commitContext,
+                        branchContext,
+                        userContext,
+                    )
+                }
+
+            if (repoEntity.id == null) {
+                throw IllegalStateException("Id of repository cannot be null")
+            }
+
             val repo =
-                context.getOrPut(u.repository?.id!!) {
-                    this.repositoryMapper.toDomain(u.repository!!, commitContext, branchContext, userContext)
+                context.getOrPut(repoEntity.id) {
+                    this.repositoryMapper.toDomain(repoEntity, project, commitContext, branchContext, userContext)
                 }
             userMapper.toDomain(u, repo, userContext, commitContext, branchContext)
         }
