@@ -1,4 +1,4 @@
-package com.inso_world.binocular.infrastructure.sql.persistence.mapper
+package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
