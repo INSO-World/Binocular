@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.BranchMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import io.mockk.every
 import io.mockk.mockk
@@ -44,6 +45,11 @@ internal class BranchMapperTest : BaseMapperTest() {
                 name = "TestProject",
                 description = "A test project",
             )
+        val projectModel = Project(
+            id = projectEntity.id?.toString(),
+            name = projectEntity.name,
+            description = projectEntity.description
+        )
 
         this.repositoryEntity =
             RepositoryEntity(
@@ -56,7 +62,7 @@ internal class BranchMapperTest : BaseMapperTest() {
             Repository(
                 id = this.repositoryEntity.id.toString(),
                 name = this.repositoryEntity.name,
-                projectId = this.repositoryEntity.id.toString(),
+                project = projectModel,
             )
 
         this.validator = Validation.buildDefaultValidatorFactory().validator

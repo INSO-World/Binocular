@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.mapper.BranchMapp
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.CommitMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import io.mockk.every
 import io.mockk.mockk
@@ -52,9 +53,11 @@ internal class CommitMapperTest : BaseMapperTest() {
             Repository(
                 id = this.repositoryEntity.id?.toString(),
                 name = this.repositoryEntity.name,
-                projectId =
-                    this.repositoryEntity.project.id
-                        ?.toString(),
+                project = Project(
+                    id = this.repositoryEntity.project.id?.toString(),
+                    name = this.repositoryEntity.project.name,
+                    description = this.repositoryEntity.project.description,
+                ),
             )
 
         this.commitEntityA =

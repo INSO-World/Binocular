@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IBranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.BranchMapper
+import com.inso_world.binocular.infrastructure.sql.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -30,6 +31,10 @@ internal class BranchInfrastructurePortImpl(
     @Autowired
     @Lazy
     private lateinit var repositoryMapper: RepositoryMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var projectMapper: ProjectMapper
 
     @PostConstruct
     fun init() {
@@ -73,7 +78,16 @@ internal class BranchInfrastructurePortImpl(
         return super<AbstractInfrastructurePort>.findAllEntities().map { b ->
             val repo =
                 context.getOrPut(b.repository?.id!!) {
-                    this.repositoryMapper.toDomain(b.repository!!, commitContext, branchContext, userContext)
+                    val repo = b.repository ?: throw IllegalStateException("Repository of a Branch cannot be null")
+                    val project =
+                        projectMapper.toDomain(
+                            repo.project,
+                            commitContext,
+                            branchContext,
+                            userContext,
+                        )
+
+                    this.repositoryMapper.toDomain(repo, project, commitContext, branchContext, userContext)
                 }
             branchMapper.toDomain(b, repo, commitContext, branchContext)
         }

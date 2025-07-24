@@ -6,6 +6,7 @@ import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
+import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -16,15 +17,14 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Lazy
 import org.springframework.transaction.support.TransactionTemplate
 
-// @ExtendWith(SpringExtension::class)
-// @DataJpaTest
-// @ContextConfiguration(classes = [BinocularCommandLineApplication::class])
-// @Import(BinocularCommandLineApplication::class)
-// @ComponentScan(basePackages = ["com.inso_world.binocular.cli.persistence.dao.sql"])
 @SpringBootTest(classes = [BinocularCommandLineApplication::class])
 class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
+    @Autowired @Lazy
+    private lateinit var repoService: RepositoryService
+
 //    @PersistenceContext
 //    protected lateinit var entityManager: EntityManager
 
@@ -53,11 +53,14 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     fun setupBase() {
         fun prepare(repoConfig: RepositoryConfig): Project {
             repoConfig.project.repo = repoConfig.repo.toVcsRepository().toDomain()
-            repoConfig.project.repo?.projectId = repoConfig.project.id
-            repoConfig.project.repo?.let { generateCommits(repoConfig, it) } ?: throw IllegalStateException(
+            repoConfig.project.repo?.project = repoConfig.project
+
+            val project = projectPort.create(repoConfig.project)
+
+            project.repo?.let { generateCommits(repoService,repoConfig, it) } ?: throw IllegalStateException(
                 "Repository must not be null at this point",
             )
-            return projectPort.create(repoConfig.project)
+            return projectPort.update(project)
         }
 
         prepare(

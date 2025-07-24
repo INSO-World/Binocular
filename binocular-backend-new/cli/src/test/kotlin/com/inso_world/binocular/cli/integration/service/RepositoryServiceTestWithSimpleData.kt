@@ -45,7 +45,8 @@ internal class RepositoryServiceTestWithSimpleData(
             { assertThat(repo?.commits).hasSize(14) },
             { assertThat(repo?.user).hasSize(3) },
             { assertThat(repo?.branches).hasSize(1) },
-            { assertThat(repo?.projectId).isNotNull() },
+            { assertThat(repo?.project).isNotNull() },
+            { assertThat(repo?.project?.id).isNotNull() },
         )
     }
 
@@ -76,12 +77,12 @@ internal class RepositoryServiceTestWithSimpleData(
 //            }()
             {
                 val r = simpleRepoConfig.repo.toVcsRepository().toDomain()
-                r.projectId = simpleRepoConfig.project.id
+                r.project = simpleRepoConfig.project
                 simpleRepoConfig.project.repo = r
                 r
             }()
 
-        generateCommits(simpleRepoConfig, localRepo)
+        generateCommits(repositoryService,simpleRepoConfig, localRepo)
         localRepo = projectPort.create(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
         // = localRepo
 //        localRepo = this.repositoryRepository.save(localRepo)

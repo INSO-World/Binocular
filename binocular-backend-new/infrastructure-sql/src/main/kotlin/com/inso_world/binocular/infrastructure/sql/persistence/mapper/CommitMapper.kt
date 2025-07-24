@@ -51,9 +51,10 @@ internal class CommitMapper
             }
 
             val entity by lazy {
+                val entityId = domain.id?.toLong()
                 val e =
                     CommitEntity(
-                        id = domain.id?.toLong(),
+                        id = entityId,
                         sha = domain.sha,
                         commitDateTime = domain.commitDateTime,
                         authorDateTime = domain.authorDateTime,
@@ -61,16 +62,7 @@ internal class CommitMapper
                         webUrl = domain.webUrl,
                         branch = domain.branch,
                         repository = repository,
-                        parents =
-                            proxyFactory.createLazyMutableSet {
-                                domain.parents
-                                    .map {
-                                        commitContext
-                                            .getOrPut(it.sha) {
-                                                toEntity(it, repository, commitContext, branchContext, userContext)
-                                            }
-                                    }
-                            },
+                        parents = mutableSetOf(),
                         branches = mutableSetOf(),
                     )
                 return@lazy e
@@ -94,6 +86,16 @@ internal class CommitMapper
                         it.forEach { b -> b.commits.add(entity) }
                     },
                 )
+            entity.parents =
+                proxyFactory.createLazyMutableSet {
+                    domain.parents
+                        .map {
+                            commitContext
+                                .getOrPut(it.sha) {
+                                    toEntity(it, repository, commitContext, branchContext, userContext)
+                                }
+                        }
+                }
             entity.committer =
                 domain.committer?.let { user ->
                     userMapper.toEntity(user, repository, commitContext, userContext)

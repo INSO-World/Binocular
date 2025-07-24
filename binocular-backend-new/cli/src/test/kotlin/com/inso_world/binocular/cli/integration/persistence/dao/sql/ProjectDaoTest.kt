@@ -16,6 +16,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.dao.DataIntegrityViolationException
 
 internal class ProjectDaoTest(
     @Autowired val repositoryInfrastructurePort: RepositoryInfrastructurePort,
@@ -55,7 +56,7 @@ internal class ProjectDaoTest(
             // When
             val savedProject = projectInfrastructurePort.create(Project(name = "Project With Repo", description = "Project with repo"))
             savedProject.repo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "test-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "test-repo", project = savedProject))
 
             // Then
             assertAll(
@@ -73,7 +74,7 @@ internal class ProjectDaoTest(
             val savedProject =
                 projectInfrastructurePort.create(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
             savedProject.repo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "cascading-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "cascading-repo", project = savedProject))
             // updated dependencies, as not managed by JPA
             projectInfrastructurePort.update(savedProject)
 
@@ -92,7 +93,7 @@ internal class ProjectDaoTest(
             // When
             val savedProject = projectInfrastructurePort.create(Project(name = "Null Desc Project"))
             val savedRepo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "null-desc-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "null-desc-repo", project = savedProject))
             savedProject.repo = savedRepo
 
             // Then
@@ -124,13 +125,16 @@ internal class ProjectDaoTest(
             // When
             val savedProject = projectInfrastructurePort.create(Project(name = allowedName, description = "Long name project"))
             val savedRepo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "long-name-repo", projectId = savedProject.id))
+                repositoryInfrastructurePort.create(Repository(id = null, name = "long-name-repo", project = savedProject))
             savedProject.repo = savedRepo
 
             // Then
-            assertAll(
+            assertAll("check entities",
                 { assertThat(savedProject.name).isEqualTo(allowedName) },
-                { assertThat(savedRepo.projectId).isEqualTo(savedProject.id) },
+                { assertThat(savedRepo.project).isNotNull },
+                { assertThat(savedRepo.project?.id).isEqualTo(savedProject.id) },
+            )
+            assertAll("check database numbers",
                 { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
                 { assertThat(repositoryInfrastructurePort.findAll()).hasSize(1) },
             )
@@ -148,7 +152,7 @@ internal class ProjectDaoTest(
                 )
             }
 
-            assertThrows<org.hibernate.exception.ConstraintViolationException> {
+            assertThrows<DataIntegrityViolationException> {
                 projectInfrastructurePort.create(
                     Project(
                         name = "Duplicate Name",
@@ -156,6 +160,7 @@ internal class ProjectDaoTest(
                     ),
                 )
             }
+            assertThat(projectInfrastructurePort.findAll()).hasSize(1)
 
             entityManager.clear()
         }

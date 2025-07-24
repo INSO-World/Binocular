@@ -75,6 +75,7 @@ internal class RepositoryMapper
 
         fun toDomain(
             entity: RepositoryEntity,
+            project: Project?,
             commitContext: MutableMap<String, Commit>,
             branchContext: MutableMap<String, Branch>,
             userContext: MutableMap<String, User>,
@@ -85,7 +86,7 @@ internal class RepositoryMapper
                 Repository(
                     id = id.toString(),
                     name = entity.name,
-                    projectId = entity.project.id?.toString(),
+                    project = project,
                 )
 
             domain.commits =

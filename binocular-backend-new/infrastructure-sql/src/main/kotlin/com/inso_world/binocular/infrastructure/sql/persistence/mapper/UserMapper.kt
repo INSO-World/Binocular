@@ -72,7 +72,7 @@ internal class UserMapper
                                     .map {
                                         val cmt =
                                             commitContext[it.sha]
-                                                ?: throw IllegalStateException("Commit sha $it not found in context")
+                                                ?: throw IllegalStateException("$it not found in context")
                                         cmt
                                     }
                             commitEntities

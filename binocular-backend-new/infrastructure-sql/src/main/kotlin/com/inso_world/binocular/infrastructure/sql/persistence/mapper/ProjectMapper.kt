@@ -53,7 +53,7 @@ internal class ProjectMapper
             val repo by lazy {
                 entity.repo?.let { r ->
                     r.id?.let {
-                        repoMapper.toDomain(r, commitContext, branchContext, userContext)
+                        repoMapper.toDomain(r, p, commitContext, branchContext, userContext)
                     }
                 }
             }

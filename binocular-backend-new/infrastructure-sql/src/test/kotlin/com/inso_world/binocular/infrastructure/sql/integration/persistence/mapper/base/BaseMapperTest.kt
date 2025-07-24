@@ -8,6 +8,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEnt
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDateTime
@@ -73,7 +74,11 @@ internal object MapperTestData {
         Repository(
             id = this.repositoryEntity.id.toString(),
             name = this.repositoryEntity.name,
-            projectId = this.repositoryEntity.id.toString(),
+            project = Project(
+                id = projectEntity.id?.toString(),
+                name = projectEntity.name,
+                description = projectEntity.description,
+            )
         )
 
     val branchDomain =

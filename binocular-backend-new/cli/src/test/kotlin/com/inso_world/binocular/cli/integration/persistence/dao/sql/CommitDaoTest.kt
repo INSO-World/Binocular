@@ -6,6 +6,7 @@ import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePer
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceWithDataTest
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
+import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.cli.service.addCommit
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -27,6 +28,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import java.time.LocalDateTime
 import java.util.stream.Stream
 
@@ -35,6 +37,9 @@ internal class CommitDaoTest(
 ) : BasePersistenceTest() {
     @Autowired
     private lateinit var projectDao: ProjectInfrastructurePort
+
+    @Autowired @Lazy
+    private lateinit var repoService: RepositoryService
 
     @Autowired
     private lateinit var repositoryDao: RepositoryInfrastructurePort
@@ -65,7 +70,7 @@ internal class CommitDaoTest(
                     Repository(
                         id = null,
                         name = "testRepository",
-                        projectId = project.id,
+                        project = project,
                     ),
                 )
             project = projectDao.update(project)
@@ -337,11 +342,11 @@ internal class CommitDaoTest(
                 var tmpRepo =
                     localRepo ?: run {
                         val r = octoRepoConfig.repo.toVcsRepository().toDomain()
-                        r.projectId = octoRepoConfig.project.id
+                        r.project = octoRepoConfig.project
                         octoRepoConfig.project.repo = r
                         projectDao.create(octoRepoConfig.project).repo ?: throw IllegalStateException("project not found")
                     }
-                generateCommits(octoRepoConfig, tmpRepo)
+                generateCommits(repoService,octoRepoConfig, tmpRepo)
                 tmpRepo = this.repositoryPort.update(tmpRepo)
                 return tmpRepo
             }

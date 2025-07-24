@@ -26,6 +26,8 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import com.inso_world.binocular.core.exception.BinocularValidationException
+import org.junit.jupiter.api.assertThrows
 
 internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
     @Autowired
@@ -76,7 +78,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     val repository =
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         )
                     val user =
                         User(
@@ -85,7 +87,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                             repository = repository,
                         )
 
-                    repository.projectId = repositoryProject.id
+                    repository.project = repositoryProject
                     val branch =
                         Branch(
                             name = "test branch",
@@ -144,7 +146,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val repository =
                 Repository(
                     name = "test repository",
-                    projectId = repositoryProject.id,
+                    project = repositoryProject,
                 )
 
             repositoryProject.repo = repository
@@ -166,7 +168,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val repository =
                 Repository(
                     name = "test repository",
-                    projectId = repositoryProject.id,
+                    project = repositoryProject,
                 )
 
             val user =
@@ -176,7 +178,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repository = repository,
                 )
 
-            repository.projectId = repositoryProject.id
+            repository.project = repositoryProject
             val branch =
                 Branch(
                     name = "test branch",
@@ -249,7 +251,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -260,7 +262,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 { assertThat(commitPort.findAll()).hasSize(0) },
                 { assertThat(branchPort.findAll()).hasSize(0) },
             )
-            repository.projectId = repositoryProject.id
+            repository.project = repositoryProject
 
             val branch =
                 Branch(
@@ -341,7 +343,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -419,7 +421,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -495,7 +497,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -596,7 +598,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -716,7 +718,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -847,7 +849,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -953,7 +955,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repositoryPort.create(
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         ),
                     )
                 }
@@ -1061,7 +1063,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     val repository =
                         Repository(
                             name = "test repository",
-                            projectId = repositoryProject.id,
+                            project = repositoryProject,
                         )
                     val user =
                         User(

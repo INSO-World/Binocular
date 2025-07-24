@@ -5,6 +5,7 @@ import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
+import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Lazy
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
@@ -31,6 +33,10 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
 
     @Autowired
     internal lateinit var commitPort: CommitInfrastructurePort
+
+    @Autowired
+    @Lazy
+    private lateinit var repoService: RepositoryService
 
     //
 //    @Autowired
@@ -61,9 +67,9 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
                 projectName = SIMPLE_PROJECT_NAME,
             )
         val repo = simpleRepoConfig.repo.toVcsRepository().toDomain()
-        repo.projectId = simpleRepoConfig.project.id
+        repo.project = simpleRepoConfig.project
         simpleRepoConfig.project.repo = repo
-        generateCommits(simpleRepoConfig, repo)
+        generateCommits(repoService, simpleRepoConfig, repo)
         this.simpleProject = projectPort.create(simpleRepoConfig.project)
         this.simpleRepo =
             this.simpleProject.repo ?: throw IllegalStateException("Repository must be present at this state")

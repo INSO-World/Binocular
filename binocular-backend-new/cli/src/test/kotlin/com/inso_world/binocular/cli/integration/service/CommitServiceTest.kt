@@ -145,7 +145,7 @@ internal class CommitServiceTest private constructor(
     @Test
     fun `find_all_commits_invalid_repo`() {
         assertThrows<ServiceException> {
-            this.commitService.findAll(Repository(id = null, name = "invalid", projectId = simpleProject.id))
+            this.commitService.findAll(Repository(id = null, name = "invalid", project = simpleProject))
         }
     }
 }

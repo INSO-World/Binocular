@@ -2,6 +2,7 @@ package com.inso_world.binocular.model.validation
 
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.Validation
 import jakarta.validation.Validator
@@ -90,7 +91,7 @@ class CommitValidationTest {
                 repositoryId = "some-id",
                 branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
             )
-        val repository = Repository(id = null, name = "test-repo", commits = mutableSetOf(commit))
+        val repository = Repository(id = null, name = "test-repo", commits = mutableSetOf(commit), project = Project(name = "test"))
 
         // When
         val violations = validator.validate(repository)
@@ -142,7 +143,7 @@ class CommitValidationTest {
                 repositoryId = "different-id",
                 branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
             )
-        val repository = Repository(id = "repo-123", name = "test-repo", commits = mutableSetOf(commit))
+        val repository = Repository(id = "repo-123", name = "test-repo", commits = mutableSetOf(commit), project = Project(name = "test"))
 
         // When
         val violations = validator.validate(repository)
