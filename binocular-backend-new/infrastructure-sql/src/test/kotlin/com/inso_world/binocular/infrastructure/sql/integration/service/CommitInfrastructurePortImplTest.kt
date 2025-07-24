@@ -112,12 +112,13 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                 )
 
             return Stream.of(
-                // one commit, self referencing
+                // 1, one commit, self referencing
                 Arguments.of(
                     listOf(
                         commit1.copy().apply { parents = mutableSetOf(commit1) },
                     ),
                 ),
+//                2
                 Arguments.of(
                     listOf(
                         commit1.copy().apply {
@@ -126,6 +127,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         },
                     ),
                 ),
+//                3
                 Arguments.of(
                     listOf(
                         commit1.copy().apply {
@@ -134,6 +136,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         },
                     ),
                 ),
+//                4
                 Arguments.of(
                     listOf(
                         commit1.copy().apply {
@@ -142,6 +145,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         },
                     ),
                 ),
+//                5
                 Arguments.of(
                     listOf(
                         commit1.copy().apply {
@@ -151,6 +155,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         commit3,
                     ),
                 ),
+//                6
                 Arguments.of(
                     listOf(
                         commit3,
@@ -216,17 +221,20 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
             }
 
             return Stream.of(
+//                1
                 Arguments.of(
                     listOf(
                         commit1(),
                     ),
                 ),
+//                2
                 Arguments.of(
                     listOf(
                         commit1().apply { parents = mutableSetOf() },
                         commit2().apply { parents = mutableSetOf() },
                     ),
                 ),
+//                3
                 Arguments.of(
                     listOf(
                         commit1().copy().apply { parents = mutableSetOf() },
@@ -234,28 +242,28 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         commit3().copy().apply { parents = mutableSetOf() },
                     ),
                 ),
-                // two commits, with relationship
+                // 4, two commits, with relationship
                 Arguments.of(
                     listOf(
                         commit1().copy().apply { parents = mutableSetOf(commit2()) },
                     ),
                 ),
-                // second commit without extra
+                // 5, second commit without extra
                 Arguments.of(
                     listOf(
                         commit1().copy().apply { parents = mutableSetOf(commit2()) },
                         commit3(),
                     ),
                 ),
-                // two commits, with relationship, with extra
+                // 6, two commits, with relationship, with extra
                 Arguments.of(
-                    {
+                    run {
                         val p = commit2()
                         listOf(
                             commit1().copy().apply { parents = mutableSetOf(p) },
                             p,
                         )
-                    }(),
+                    },
                 ),
             )
         }
@@ -438,7 +446,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
         fun `save multiple commits with cycle, expect ValidationException`(commitList: List<Commit>) {
             val repositoryDao = mockk<RepositoryDao>()
 
-            assertThrows<DataAccessException> {
+            val ex = assertThrows<DataAccessException> {
                 commitList.forEach { cmt ->
                     cmt.repositoryId = repository.id
                     cmt.parents.forEach { c -> c.repositoryId = repository.id }
