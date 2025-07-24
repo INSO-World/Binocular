@@ -1,4 +1,4 @@
-package com.inso_world.binocular.infrastructure.sql.persistence.mapper
+package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
@@ -8,6 +8,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.persistence.EntityManager
@@ -53,17 +54,23 @@ internal class RepositoryMapper
                         name = domain.name,
                         project = project,
                     )
-                domain.commits.forEach { it ->
-                    commitMapper.toEntity(it, e, commitContext, branchContext, userContext)
-                }
+//                e.commits =
+                domain.commits
+                    .map { it ->
+                        commitMapper.toEntity(it, e, commitContext, branchContext, userContext)
+                    }.toMutableSet()
 
-                domain.branches.forEach { it ->
-                    branchMapper.toEntity(it, e, commitContext, branchContext)
-                }
+//                e.branches =
+                domain.branches
+                    .map { it ->
+                        branchMapper.toEntity(it, e, commitContext, branchContext)
+                    }.toMutableSet()
 
-                domain.user.forEach { it ->
-                    userMapper.toEntity(it, e, commitContext, userContext)
-                }
+//                e.user =
+                domain.user
+                    .map { it ->
+                        userMapper.toEntity(it, e, commitContext, userContext)
+                    }.toMutableSet()
 
                 e.project.repo = e
 

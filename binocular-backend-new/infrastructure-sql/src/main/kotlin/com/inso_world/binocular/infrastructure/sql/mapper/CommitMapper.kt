@@ -1,4 +1,4 @@
-package com.inso_world.binocular.infrastructure.sql.persistence.mapper
+package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
@@ -95,6 +95,19 @@ internal class CommitMapper
                                     toEntity(it, repository, commitContext, branchContext, userContext)
                                 }
                         }
+//                        .map { parent ->
+//                            repository.commits.add(parent)
+//
+//                            CommitParentLink(
+//                                id =
+//                                    NodeLinkId(
+//                                        parentId = parent.id,
+//                                        childId = entity.id,
+//                                    ),
+//                                child = entity,
+//                                parent = parent,
+//                            )
+//                        }
                 }
             entity.committer =
                 domain.committer?.let { user ->
@@ -199,27 +212,38 @@ internal class CommitMapper
                     )
             domain.committer =
                 entity.committer?.let { user ->
+//                    val proxyFactory = ProxyFactory()
+//                    proxyFactory.targetClass = User::class.java
+//                    proxyFactory.isProxyTargetClass = true
+//                    proxyFactory.addAdvice(
+//                        MethodInterceptor { invocation: MethodInvocation ->
+//                            transactionTemplate.execute {
+//                                val freshEntity = entityManager.find(UserEntity::class.java, entity.id)
+//                                val target =
                     userContext.getOrPut(user.uniqueKey()) {
-                        userMapper.toDomain(
-                            user,
-                            repository,
-                            userContext,
-                            commitContext,
-                            branchContext,
-                        )
+                        userMapper.toDomain(user, repository, userContext, commitContext, branchContext)
                     }
+//                                invocation.method.invoke(target, *(invocation.arguments ?: emptyArray()))
+//                            }
+//                        },
+//                    )
+//                    proxyFactory.proxy as User
                 }
             domain.author =
                 entity.author?.let { user ->
+//                    val proxyFactory = ProxyFactory()
+//                    proxyFactory.targetClass = User::class.java
+//                    proxyFactory.isProxyTargetClass = true
+//                    proxyFactory.addAdvice(
+//                        MethodInterceptor { invocation: MethodInvocation ->
+//                            val target =
                     userContext.getOrPut(user.uniqueKey()) {
-                        userMapper.toDomain(
-                            user,
-                            repository,
-                            userContext,
-                            commitContext,
-                            branchContext,
-                        )
+                        userMapper.toDomain(user, repository, userContext, commitContext, branchContext)
                     }
+//                            invocation.method.invoke(target, *(invocation.arguments ?: emptyArray()))
+//                        },
+//                    )
+//                    proxyFactory.proxy as User
                 }
 
             return domain

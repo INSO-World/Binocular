@@ -2,11 +2,11 @@ package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IBranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.mapper.BranchMapper
-import com.inso_world.binocular.infrastructure.sql.persistence.mapper.ProjectMapper
-import com.inso_world.binocular.infrastructure.sql.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
