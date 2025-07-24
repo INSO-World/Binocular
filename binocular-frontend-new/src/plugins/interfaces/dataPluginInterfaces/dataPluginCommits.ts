@@ -1,10 +1,15 @@
+import { DataPluginFileInCommit } from './dataPluginFiles.ts';
 import { DataPluginUser } from './dataPluginUsers.ts';
-import {DataPluginFile} from "./dataPluginFiles.ts";
 
 export interface DataPluginCommits {
   getAll: (from: string, to: string) => Promise<DataPluginCommit[]>;
   getCommitsWithBuilds: (from: string, to: string) => Promise<DataPluginCommitBuild[]>;
-  getCommitsWithFiles: (from: string, to: string) => Promise<DataPluginCommitFile[]>;
+  getCommitsWithFiles: (from: string, to: string) => Promise<DataPluginCommit[]>;
+  getOwnershipDataForCommits: () => Promise<DataPluginOwnership[]>;
+  getCommitDataForSha: (sha: string) => Promise<DataPluginCommit | undefined>;
+  getByFile: (file: string) => Promise<DataPluginCommit[]>;
+  getDateOfFirstCommit: () => Promise<string>;
+  getDateOfLastCommit: () => Promise<string>;
 }
 
 export interface DataPluginCommit {
@@ -18,6 +23,33 @@ export interface DataPluginCommit {
   parents: string[];
   webUrl: string;
   stats: DataPluginStats;
+  files: DataPluginCommitFilesData;
+}
+
+export interface DataPluginCommitFilesData {
+  data: DataPluginFileInCommit[];
+}
+
+export interface DataPluginOwnership {
+  sha: string;
+  date: string;
+  parents: string[];
+  files: {
+    path: string;
+    action: string;
+    ownership: DataPluginFileOwnership[];
+  }[];
+}
+
+export interface DataPluginFileOwnership {
+  user: string;
+  hunks: {
+    originalCommit: string;
+    lines: {
+      from: number;
+      to: number;
+    }[];
+  }[];
 }
 
 export interface DataPluginStats {
@@ -38,13 +70,6 @@ export interface DataPluginCommitBuild extends DataPluginCommit {
       status: string;
       stage: string;
     }[];
-  }[];
-}
-
-export interface DataPluginCommitFile extends DataPluginCommit {
-  files: {
-    action: string;
-    file: DataPluginFile;
   }[];
 }
 

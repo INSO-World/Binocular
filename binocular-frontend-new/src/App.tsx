@@ -45,6 +45,9 @@ function App() {
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
   const [authorsDataPlugin, setAuthorsDataPlugin] = useState();
 
+  const settingsInitialized = useSelector((state: RootState) => state.settings.initialized);
+  const dashboardInitialized = useSelector((state: RootState) => state.dashboard.initialized);
+
   useEffect(() => {
     setAuthorsDataPlugin(
       authorsDataPluginId !== undefined
@@ -75,6 +78,13 @@ function App() {
       });
     // #v-endif
   }, []);
+
+  useEffect(() => {
+    const setupDialog: HTMLDialogElement = document.getElementById('setupDialog') as HTMLDialogElement;
+    if (!setupDialog.open && (!settingsInitialized || !dashboardInitialized)) {
+      setupDialog.showModal();
+    }
+  }, [settingsInitialized, dashboardInitialized]);
 
   return (
     <>

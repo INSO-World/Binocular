@@ -4,6 +4,7 @@ import Users from './users.ts';
 import General from './general.ts';
 import Files from './files.ts';
 import Builds from './builds.ts';
+import Branches from './branches.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';
@@ -21,6 +22,7 @@ class MockData implements DataPlugin {
   public users;
   public general;
   public files;
+  public branches;
 
   constructor() {
     this.commits = new Commits();
@@ -28,6 +30,7 @@ class MockData implements DataPlugin {
     this.users = new Users();
     this.general = new General();
     this.files = new Files();
+    this.branches = new Branches();
   }
 
   public async init() {}

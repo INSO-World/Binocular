@@ -21,6 +21,9 @@
     @apply text-accent;
     @apply underline;
   }
+  p {
+    @apply mb-1;
+  }
 }
 @tailwind components;
 @tailwind utilities;

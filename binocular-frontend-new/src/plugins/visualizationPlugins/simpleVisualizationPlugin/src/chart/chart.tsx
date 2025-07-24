@@ -2,9 +2,9 @@ import { StackedAreaChart } from './stackedAreaChart.tsx';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
-import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
 import { DefaultSettings } from '../settings/settings.tsx';
 import { handelPopoutResizing } from '../../../../utils/resizing.ts';
+import { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 export interface ChartData {
   date: number;
@@ -15,7 +15,7 @@ export interface Palette {
   [signature: string]: { main: string; secondary: string };
 }
 
-function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties<SettingsType, DataType>) {
+function Chart<SettingsType extends DefaultSettings, DataType>(props: VisualizationPluginProperties<SettingsType, DataType>) {
   /*
    * Creating Dispatch and Root State for interaction with the reducer State
    */
@@ -61,11 +61,15 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
 
   // Effect on data change
   useEffect(() => {
-    if (props.dataConverter) {
-      const { chartData, scale, palette } = props.dataConverter(data, props);
-      setChartData(chartData);
-      setChartScale(scale);
-      setChartPalette(palette);
+    try {
+      if (props.dataConverter) {
+        const { chartData, scale, palette } = props.dataConverter(data, props);
+        setChartData(chartData);
+        setChartScale(scale);
+        setChartPalette(palette);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }, [data, props]);
 
@@ -90,17 +94,20 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
             <span className="loading loading-spinner loading-lg text-accent"></span>
           </div>
         )}
-        {dataState === DataState.COMPLETE && (
-          <StackedAreaChart
-            data={chartData}
-            scale={chartScale}
-            palette={chartPalette}
-            sprintList={props.sprintList}
-            width={chartWidth}
-            height={chartHeight}
-            settings={props.settings}
-          />
-        )}
+        {dataState === DataState.COMPLETE &&
+          (chartData.length !== 0 ? (
+            <StackedAreaChart
+              data={chartData}
+              scale={chartScale}
+              palette={chartPalette}
+              sprintList={props.sprintList}
+              width={chartWidth}
+              height={chartHeight}
+              settings={props.settings}
+            />
+          ) : (
+            <div>No Data matching the selected Parameters!</div>
+          ))}
       </div>
     </>
   );

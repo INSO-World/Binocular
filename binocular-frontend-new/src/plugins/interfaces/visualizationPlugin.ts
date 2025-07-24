@@ -1,18 +1,19 @@
 import { ReactNode, RefObject } from 'react';
 import { DataPlugin } from './dataPlugin.ts';
 import { Reducer } from '@reduxjs/toolkit';
-import { Properties } from './visualizationPluginInterfaces/properties.ts';
 import { ChartData, Palette } from '../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
+import { VisualizationPluginProperties } from './visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import { VisualizationPluginMetadata } from './visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
 export interface VisualizationPlugin<SettingsType, DataType> {
   name: string;
-  chartComponent?: (props: Properties<SettingsType, DataType>) => ReactNode;
+  chartComponent?: (props: VisualizationPluginProperties<SettingsType, DataType>) => ReactNode;
   settingsComponent: (props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) => ReactNode;
   helpComponent: () => ReactNode;
   dataConnectionName?: string; //
   dataConverter?: (
     data: DataType[],
-    props: Properties<SettingsType, DataType>,
+    props: VisualizationPluginProperties<SettingsType, DataType>,
   ) => { chartData: ChartData[]; scale: number[]; palette: Palette };
   defaultSettings: unknown;
   export: {
@@ -27,6 +28,7 @@ export interface VisualizationPlugin<SettingsType, DataType> {
     // media a visualization provides for Binocular
     thumbnail: string;
   };
+  metadata: VisualizationPluginMetadata;
   reducer: Reducer;
   saga: (dataConnection: DataPlugin, name?: string, dataConnectionName?: string) => Generator;
 }

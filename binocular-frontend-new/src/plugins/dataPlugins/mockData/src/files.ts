@@ -1,4 +1,4 @@
-import { DataPluginFile, DataPluginFiles } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { DataPluginFile, DataPluginFiles, PreviousFilePaths } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default class Files implements DataPluginFiles {
   constructor() {}
@@ -24,5 +24,13 @@ export default class Files implements DataPluginFiles {
       ];
       resolve(files);
     });
+  }
+
+  getFilenamesForBranch(_branchName: string): Promise<string[]> {
+    return Promise.resolve(['index.js', 'src/app.js', 'src/app.css']);
+  }
+
+  getPreviousFilenamesForFilesOnBranch(_branchName: string): Promise<PreviousFilePaths[]> {
+    return Promise.resolve([]);
   }
 }

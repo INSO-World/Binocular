@@ -6,6 +6,7 @@ import distinctColors from 'distinct-colors';
 
 export interface SettingsInitialState {
   general: GeneralSettingsType;
+  initialized: boolean;
   database: DatabaseSettingsType;
   localDatabaseLoadingState: LocalDatabaseLoadingState;
 }
@@ -19,6 +20,7 @@ const initialState: SettingsInitialState = {
   general: {
     gridSize: SettingsGeneralGridSize.medium,
   },
+  initialized: false,
   database: {
     currID: 0,
     dataPlugins: [],
@@ -46,11 +48,15 @@ export const settingsSlice = createSlice({
       if (action.payload.id === undefined) {
         const colors = distinctColors({ count: 100 });
         action.payload.isDefault = state.database.dataPlugins.length === 0;
+
         state.database.currID++;
         if (action.payload.color === '#000') {
           action.payload.color = colors[state.database.currID].hex() + '22';
         }
         action.payload.id = state.database.currID;
+        if (action.payload.isDefault) {
+          state.database.defaultDataPluginItemId = action.payload.id;
+        }
         state.database.dataPlugins.push(action.payload);
         console.log(`Inserted dataPlugin ${action.payload.id}`);
       } else {
@@ -62,6 +68,9 @@ export const settingsSlice = createSlice({
           }
           return dp;
         });
+        if (action.payload.isDefault) {
+          state.database.defaultDataPluginItemId = action.payload.id;
+        }
         if (!found) {
           state.database.dataPlugins.push(action.payload);
           console.log(`Inserted dataPlugin ${action.payload.id}`);
@@ -69,6 +78,7 @@ export const settingsSlice = createSlice({
           console.log(`Updated dataPlugin ${action.payload.id}`);
         }
       }
+      state.initialized = true;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     removeDataPlugin: (state, action: PayloadAction<number>) => {
@@ -80,6 +90,7 @@ export const settingsSlice = createSlice({
         dP.isDefault = dP.id === action.payload;
         return dP;
       });
+      state.defaultDataPluginItemId = action.payload;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     clearSettingsStorage: () => {
