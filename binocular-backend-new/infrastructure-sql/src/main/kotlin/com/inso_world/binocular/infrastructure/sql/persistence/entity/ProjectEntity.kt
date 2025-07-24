@@ -11,7 +11,6 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
-import java.util.Objects
 
 @Entity
 @Table(name = "projects")
@@ -39,11 +38,11 @@ internal data class ProjectEntity(
         fetch = FetchType.LAZY,
         cascade = [CascadeType.REMOVE, CascadeType.PERSIST],
         optional = true,
-//        mappedBy = "project",
+        mappedBy = "project",
     )
-    @JoinColumn(name = "fk_repository", referencedColumnName = "id") // FK in projects table
+    @JoinColumn(name = "fk_repository", referencedColumnName = "id")
     var repo: RepositoryEntity? = null,
-) {
+) : AbstractEntity() {
     //    fun addMember(pm: ProjectMember) {
 //        this.members.add(pm)
 //        pm.projects.add(this)
@@ -65,14 +64,16 @@ internal data class ProjectEntity(
 //        if (id != other.id) return false
         if (name != other.name) return false
         if (description != other.description) return false
-        if (repo != other.repo) return false
+//        if (repo?.id != other.repo?.id) return false
 
         return true
     }
 
-    override fun hashCode(): Int = Objects.hash(id, name, description, repo)
+    override fun hashCode(): Int = super.hashCode()
 
-//    fun addMergeRequest(it: MergeRequest) {
+    override fun uniqueKey(): String = this.name
+
+    //    fun addMergeRequest(it: MergeRequest) {
 //        this.mergeRequests.add(it)
 //        it.project = this
 //    }

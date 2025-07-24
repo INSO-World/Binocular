@@ -10,9 +10,9 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import java.util.Objects
 
 /**
  * SQL-specific Branch entity.
@@ -31,13 +31,18 @@ internal data class BranchEntity(
     var id: Long? = null,
     @Column(nullable = false)
     val name: String,
-//    @field:NotEmpty // TODO add
     @ManyToMany(mappedBy = "branches", fetch = FetchType.LAZY, cascade = [])
     var commits: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
     var repository: RepositoryEntity? = null,
-) {
+) : AbstractEntity() {
+    @PreRemove
+    fun preRemove() {
+//        this.repository?.branches?.remove(this)
+//        this.repository = null
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -46,17 +51,16 @@ internal data class BranchEntity(
 
         if (id != other.id) return false
         if (name != other.name) return false
-        if (commits != other.commits) return false
-        if (repository != other.repository) return false
+//        if (repository?.uniqueKey() != other.repository?.uniqueKey()) return false
 
         return true
     }
 
-    override fun hashCode(): Int = Objects.hash(id, name, commits, repository)
+    override fun hashCode(): Int = super.hashCode()
 
-    override fun toString(): String = "BranchEntity(id=$id, name='$name', commits=$commits)"
+    override fun toString(): String = "BranchEntity(id=$id, name='$name', commits=${commits.map { it.sha }})"
 
-    fun uniqueKey(): String {
+    override fun uniqueKey(): String {
         val repo = this.repository ?: throw IllegalStateException("RepositoryEntity required for uniqueKey")
         return "${repo.name},$name"
     }

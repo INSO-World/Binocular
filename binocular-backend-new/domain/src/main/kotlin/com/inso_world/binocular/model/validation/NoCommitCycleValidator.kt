@@ -3,8 +3,6 @@ package com.inso_world.binocular.model.validation
 import com.inso_world.binocular.model.Commit
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
-import org.jgrapht.Graph
-import org.jgrapht.graph.DefaultEdge
 
 class NoCommitCycleValidator : ConstraintValidator<NoCommitCycle, Commit> {
     override fun isValid(
@@ -22,9 +20,7 @@ class NoCommitCycleValidator : ConstraintValidator<NoCommitCycle, Commit> {
         commit: Commit,
         path: MutableList<String>,
         context: ConstraintValidatorContext,
-        graph: Graph<String, DefaultEdge>,
     ): Boolean {
-        graph.addVertex(commit.sha)
 //        val sha = commit.sha
 //        val index = path.indexOf(sha)
 //        if (index != -1) {
@@ -38,13 +34,6 @@ class NoCommitCycleValidator : ConstraintValidator<NoCommitCycle, Commit> {
 //            return true
 //        }
 //        path.add(sha)
-        for (parent in commit.parents) {
-            graph.addVertex(parent.sha)
-            graph.addEdge(commit.sha, parent.sha)
-            if (hasCycleBySha(parent, path, context, graph)) {
-                return true
-            }
-        }
 //        path.removeAt(path.size - 1)
         return false
     }

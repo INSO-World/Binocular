@@ -13,7 +13,6 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
-import java.util.Objects
 
 @Entity(name = "repository")
 @Table(name = "repositories")
@@ -38,7 +37,7 @@ internal data class RepositoryEntity(
         orphanRemoval = true,
         mappedBy = "repository",
     )
-    val user: MutableSet<UserEntity> = mutableSetOf(),
+    var user: MutableSet<UserEntity> = mutableSetOf(),
     @OneToMany(
         fetch = FetchType.LAZY,
         targetEntity = BranchEntity::class,
@@ -47,26 +46,31 @@ internal data class RepositoryEntity(
         mappedBy = "repository",
     )
     var branches: MutableSet<BranchEntity> = mutableSetOf(),
-    @OneToOne(fetch = FetchType.LAZY, optional = false, mappedBy = "repo")
-    @JoinColumn(name = "fk_project", referencedColumnName = "id", updatable = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "fk_project", referencedColumnName = "id", updatable = false, nullable = false)
     var project: ProjectEntity,
-) {
+) : AbstractEntity() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
         other as RepositoryEntity
 
-//        if (id != other.id) return false
+        if (id != other.id) return false
         if (name != other.name) return false
-        if (commits != other.commits) return false
-        if (user != other.user) return false
-        if (project != other.project) return false
+//        if (commits != other.commits) return false
+//        if (user != other.user) return false
+//        if (project.uniqueKey() != other.project.uniqueKey()) return false
 
         return true
     }
 
-    override fun hashCode(): Int = Objects.hash(id, name)
+    override fun uniqueKey(): String {
+        val project = this.project
+        return "${project.name},$name"
+    }
+
+    override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String = "RepositoryEntity(id=$id, name='$name')"
 

@@ -16,10 +16,7 @@ import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
-import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Size
-import org.springframework.context.annotation.Lazy
 import java.time.LocalDateTime
 import java.util.Objects
 
@@ -39,10 +36,9 @@ internal data class CommitEntity(
     @Column(unique = true, updatable = false)
     @field:Size(min = 40, max = 40)
     var sha: String,
-    @field:PastOrPresent
+    @Column(name = "author_dt")
     val authorDateTime: LocalDateTime? = null,
-    @field:PastOrPresent
-    @field:NotNull
+    @Column(name = "commit_dt")
     val commitDateTime: LocalDateTime? = null,
     @Column(columnDefinition = "TEXT")
     @field:NotBlank
@@ -51,16 +47,16 @@ internal data class CommitEntity(
     var webUrl: String? = null,
     @Deprecated("do not use")
     var branch: String? = null,
-    @ManyToMany(targetEntity = CommitEntity::class, cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "commit_parents",
-        joinColumns = [JoinColumn(name = "commit_id", nullable = false)],
-        inverseJoinColumns = [JoinColumn(name = "parent_id", nullable = true)],
-        uniqueConstraints = [
-            UniqueConstraint(columnNames = ["commit_id", "parent_id"]),
-        ],
+        joinColumns = [JoinColumn(name = "child_id")],
+        inverseJoinColumns = [JoinColumn(name = "parent_id")],
+        uniqueConstraints = [UniqueConstraint(columnNames = ["child_id", "parent_id"])],
     )
     var parents: MutableSet<CommitEntity> = mutableSetOf(),
+    @ManyToMany(mappedBy = "parents", fetch = FetchType.LAZY)
+    var children: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToMany(targetEntity = BranchEntity::class, fetch = FetchType.LAZY, cascade = [])
     @JoinTable(
         name = "commit_branches",
@@ -78,12 +74,12 @@ internal data class CommitEntity(
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
     var repository: RepositoryEntity? = null,
-) {
-    fun uniqueKey(): String = this.sha
+) : AbstractEntity() {
+    override fun uniqueKey(): String = this.sha
 
     override fun equals(other: Any?): Boolean = other is CommitEntity && this.sha == other.sha
 
-    override fun hashCode(): Int = Objects.hash(id, sha, commitDateTime, authorDateTime, message, webUrl)
+    override fun hashCode(): Int = Objects.hashCode(sha)
 
     @PreRemove
     fun preRemove() {
@@ -99,8 +95,14 @@ internal data class CommitEntity(
         this.branches.forEach { branch ->
             branch.commits.remove(this)
         }
+
+        // Clear parent/child relationships
+        this.parents.clear()
+        this.children.forEach { child ->
+            child.parents.remove(this)
+        }
     }
 
     override fun toString(): String =
-        "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl)"
+        "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository?.name})"
 }
