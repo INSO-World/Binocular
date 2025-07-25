@@ -1,5 +1,5 @@
 import { GraphQL, traversePages } from '../utils.ts';
-import { DataPluginIssues, DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import { gql } from '@apollo/client';
 
 export default class Issues implements DataPluginIssues {

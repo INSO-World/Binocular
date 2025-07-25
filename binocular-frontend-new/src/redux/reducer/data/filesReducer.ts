@@ -43,24 +43,29 @@ export const filesSlice = createSlice({
       state.dataPluginId = action.payload;
       localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
-    updateFileListElement: (state, action: PayloadAction<FileTreeElementType>) => {
+    updateFileListElement: (state, action: PayloadAction<FileTreeElementType & { update?: boolean }>) => {
       const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId], action.payload);
-      state.fileLists[state.dataPluginId] = state.fileLists[state.dataPluginId].map((f: FileListElementType) => {
-        if (updatedPaths.includes(f.element.path)) {
-          f.checked = action.payload.checked;
-        }
-        return f;
-      });
+      if (action.payload.update) {
+        state.fileLists[state.dataPluginId] = state.fileLists[state.dataPluginId].map((f: FileListElementType) => {
+          if (updatedPaths.includes(f.element.path)) {
+            f.checked = action.payload.checked;
+          }
+          return f;
+        });
+      }
       localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     showFileTreeElementInfo: (state, action: PayloadAction<FileTreeElementType>) => {
       (document.getElementById('fileTreeElementInfoDialog') as HTMLDialogElement).showModal();
       state.selectedFileTreeElement = action.payload;
     },
+    clearFileStorage: () => {
+      localStorage.removeItem(`${filesSlice.name}StateV${Config.localStorageVersion}`);
+    },
   },
 });
 
-export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo } = filesSlice.actions;
+export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo, clearFileStorage } = filesSlice.actions;
 export default filesSlice.reducer;
 
 function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {

@@ -4,9 +4,7 @@ import _ from 'lodash';
 import { Entry } from './Model.ts';
 
 export async function findBestUserMatch(author: AccountUser) {
-  console.log(author);
   const user = await User.findAll();
-  console.log(user);
   const bestMatch = user.reduce((best: any, userEntry) => {
     if (userEntry === null) {
       return;
@@ -45,7 +43,10 @@ export async function findBestUserMatchLeve(author: AccountUser) {
   let highestScore = 0;
 
   for (const user of users) {
-    if (user === null) {
+    if (user === null || user.data.gitSignature === null) {
+      return;
+    }
+    if (author === null || author.name === null) {
       return;
     }
     const distance = levenshteinDistance(author.name || author.login, user.data.gitSignature);

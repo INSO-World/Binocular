@@ -8,10 +8,9 @@ const commitsToUsers = db._collection('commits-users');
 const accountsToUsers = db._collection('accounts-users')
 const paginated = require('./paginated.js');
 
-// TODO rename to Account
 module.exports = new gql.GraphQLObjectType({
-  name: 'GitHubUser',
-  description: 'A GithubUser',
+  name: 'Account',
+  description: 'A GitAccount',
   fields() {
     return {
       id: {

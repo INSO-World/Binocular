@@ -1,4 +1,4 @@
-import { DataPluginNote, DataPluginNotes } from '../../../../interfaces/dataPluginInterfaces/dataPluginNote.ts';
+import { DataPluginNote, DataPluginNotes } from '../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
 
 export default class Notes implements DataPluginNotes {
   constructor() {}
@@ -23,9 +23,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -36,9 +38,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -57,9 +61,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -70,9 +76,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -91,9 +99,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -104,9 +114,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -125,9 +137,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -138,9 +152,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -159,9 +175,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -172,9 +190,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -193,9 +213,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -206,9 +228,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -227,9 +251,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -240,9 +266,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -261,9 +289,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -274,9 +304,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -295,9 +327,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -308,9 +342,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -329,9 +365,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -342,9 +380,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -363,9 +403,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -376,9 +418,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -397,9 +441,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -410,9 +456,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -431,9 +479,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -444,9 +494,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -465,9 +517,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -478,9 +532,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -499,9 +555,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -512,9 +570,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -533,9 +593,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -546,9 +608,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -567,9 +631,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -580,9 +646,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -601,9 +669,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -614,9 +684,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
         },
@@ -635,9 +707,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -648,9 +722,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },
@@ -669,9 +745,11 @@ export default class Notes implements DataPluginNotes {
             author: {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '2',
                 gitSignature: 'tester2@github.com',
+                account: null,
               },
             },
             assignee: null,
@@ -682,9 +760,11 @@ export default class Notes implements DataPluginNotes {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '1',
               gitSignature: 'tester@github.com',
+              account: null,
             },
           },
         },

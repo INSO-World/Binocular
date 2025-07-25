@@ -2,12 +2,13 @@ import moment from 'moment/moment';
 import chroma from 'chroma-js';
 import _ from 'lodash';
 import { SettingsType } from '../settings/settings.tsx';
-import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
-import { DataPluginNote } from '../../../../interfaces/dataPluginInterfaces/dataPluginNote.ts';
-import { DataPluginMergeRequest } from '../../../../interfaces/dataPluginInterfaces/DataPluginMergeRequest.ts';
-import { DataPluginGitUser } from '../../../../interfaces/dataPluginInterfaces/dataPluginGitUser.ts';
-import { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssue.ts';
+import { DataPluginNote } from '../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
+import { DataPluginMergeRequest } from '../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
+import { DataPluginAccount } from '../../../../interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
+import { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import distinctColors from 'distinct-colors';
+import { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import { AuthorType } from '../../../../../types/data/authorType.ts';
 
 interface TimeSpentChartData {
   date: number;
@@ -15,11 +16,11 @@ interface TimeSpentChartData {
 }
 
 interface TimeTrackingData {
-  author: DataPluginGitUser;
+  author: DataPluginAccount;
   timeSpent: number;
   createdAt: string;
-  issue: DataPluginIssue;
-  mergeRequest: DataPluginMergeRequest;
+  issue: DataPluginIssue | null;
+  mergeRequest: DataPluginMergeRequest | null;
 }
 
 interface IssueAndMR {
@@ -34,7 +35,7 @@ interface Palette {
 
 export function convertToChartData(
   notes: DataPluginNote[],
-  props: Properties<SettingsType, DataPluginNote>,
+  props: VisualizationPluginProperties<SettingsType, DataPluginNote>,
 ): {
   chartData: TimeSpentChartData[];
   scale: number[];
@@ -66,7 +67,7 @@ export function convertToChartData(
   return returnValue;
 }
 function getDataByIssue(
-  props: Properties<SettingsType, DataPluginNote>,
+  props: VisualizationPluginProperties<SettingsType, DataPluginNote>,
   firstTimestamp: string,
   lastTimestamp: string,
   sortedData: TimeTrackingData[],
@@ -105,15 +106,15 @@ function getDataByIssue(
       let issueOrMR: IssueAndMR;
       if (sortedData[i].issue) {
         issueOrMR = {
-          id: sortedData[i].issue.id,
-          title: '#' + sortedData[i].issue.iid + ': ' + sortedData[i].issue.title,
+          id: sortedData[i].issue?.id + '',
+          title: '#' + sortedData[i].issue?.iid + ': ' + sortedData[i].issue?.title,
           color: { main: '', secondary: '' },
         };
         !issuesAndMRs.some((item) => item.id === issueOrMR.id) && issuesAndMRs.push(issueOrMR);
-      } else if (sortedData[i].mergeRequest) {
+      } else if (sortedData[i].mergeRequest !== null) {
         issueOrMR = {
-          id: sortedData[i].mergeRequest.id,
-          title: '!' + sortedData[i].mergeRequest.iid + ': ' + sortedData[i].mergeRequest.title,
+          id: sortedData[i].mergeRequest?.id + '',
+          title: '!' + sortedData[i].mergeRequest?.iid + ': ' + sortedData[i].mergeRequest?.title,
           color: { main: '', secondary: '' },
         };
         !issuesAndMRs.some((item) => item.id === issueOrMR.id) && issuesAndMRs.push(issueOrMR);
@@ -148,7 +149,7 @@ function getDataByIssue(
   data.forEach((object) => {
     //commit has structure {date, statsByAuthor: {}} (see next line)}
     const obj: TimeSpentChartData = { date: object.date };
-    if (props.settings.splitAdditionsDeletions) {
+    if (props.settings.splitSpentRemoved) {
       for (const issueOrMR of issuesAndMRs) {
         palette['(Spent) ' + issueOrMR.title] = {
           main: chroma(issueOrMR.color.main).hex(),
@@ -174,7 +175,7 @@ function getDataByIssue(
 
     issuesAndMRs.forEach((issueOrMR) => {
       const name = issueOrMR.title;
-      if (props.settings.splitAdditionsDeletions) {
+      if (props.settings.splitSpentRemoved) {
         if (issueOrMR.id in object.statsBySortingObject) {
           //Insert number of changes with the issueOrMR name as key,
           //statsBySortingObject has structure {{sortingObject: {spent, removed}}, ...}
@@ -230,7 +231,7 @@ function getDataByIssue(
 }
 
 function getDataByAuthor(
-  props: Properties<SettingsType, DataPluginNote>,
+  props: VisualizationPluginProperties<SettingsType, DataPluginNote>,
   firstTimestamp: string,
   lastTimestamp: string,
   sortedData: TimeTrackingData[],
@@ -266,25 +267,28 @@ function getDataByAuthor(
       //Iterate through commits that fall into this time bucket
       let spent = 0;
       let removed = 0;
-      const author = sortedData[i].author.user.id;
-      if (sortedData[i].timeSpent > 0) {
-        spent = sortedData[i].timeSpent;
-      } else if (sortedData[i].timeSpent < 0) {
-        removed = sortedData[i].timeSpent;
-      }
-      if (totalNotesPerAuthor[author] === undefined) {
-        totalNotesPerAuthor[author] = 0;
-      }
-      totalNotesPerAuthor[author] += 1;
 
-      if (author in obj.statsBySortingObject) {
-        obj.statsBySortingObject[author] = {
-          spent: obj.statsBySortingObject[author].spent + spent,
-          removed: obj.statsBySortingObject[author].removed + removed,
-        };
-      } else {
-        //Else create new values
-        obj.statsBySortingObject[author] = { spent: spent, removed: removed };
+      if (sortedData[i].author.user !== null) {
+        const author = sortedData[i].author.user!.id;
+        if (sortedData[i].timeSpent > 0) {
+          spent = sortedData[i].timeSpent;
+        } else if (sortedData[i].timeSpent < 0) {
+          removed = sortedData[i].timeSpent;
+        }
+        if (totalNotesPerAuthor[author] === undefined) {
+          totalNotesPerAuthor[author] = 0;
+        }
+        totalNotesPerAuthor[author] += 1;
+
+        if (author in obj.statsBySortingObject) {
+          obj.statsBySortingObject[author] = {
+            spent: obj.statsBySortingObject[author].spent + spent,
+            removed: obj.statsBySortingObject[author].removed + removed,
+          };
+        } else {
+          //Else create new values
+          obj.statsBySortingObject[author] = { spent: spent, removed: removed };
+        }
       }
     }
     data.push(obj);
@@ -294,7 +298,7 @@ function getDataByAuthor(
   data.forEach((object) => {
     //commit has structure {date, statsByAuthor: {}} (see next line)}
     const obj: TimeSpentChartData = { date: object.date };
-    if (props.settings.splitAdditionsDeletions) {
+    if (props.settings.splitSpentRemoved) {
       for (const author of props.authorList) {
         palette['(Spent) ' + (author.displayName || author.user.gitSignature)] = {
           main: chroma(author.color.main).hex(),
@@ -318,15 +322,15 @@ function getDataByAuthor(
       obj['others'] = 0;
     }
 
-    props.authorList.forEach((author) => {
+    props.authorList.forEach((author: AuthorType) => {
       if (!author.selected) return;
       const name =
         author.parent === -1
           ? author.displayName || author.user.gitSignature
           : author.parent === 0
             ? 'others'
-            : props.authorList.filter((a) => a.id === author.parent)[0].user.gitSignature;
-      if (props.settings.splitAdditionsDeletions) {
+            : props.authorList.filter((a: AuthorType) => a.id === author.parent)[0].user.gitSignature;
+      if (props.settings.splitSpentRemoved) {
         if (author.user.id in object.statsBySortingObject) {
           //Insert number of changes with the author name as key,
           //statsBySortingObject has structure {{authorName: {spent, removed}}, ...}
@@ -450,10 +454,6 @@ function convertTime(timeString: string) {
     }
   });
   return time;
-}
-
-export function convertToTimeString(hours: any) {
-  return parseInt(hours) + 'h ' + Math.round(((60 * (hours % 1) + Number.EPSILON) * 100) / 100) + 'min';
 }
 
 function getGranularity(resolution: string): { unit: string; interval: moment.Duration } {

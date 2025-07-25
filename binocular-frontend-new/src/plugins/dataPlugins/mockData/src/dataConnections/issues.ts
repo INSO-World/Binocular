@@ -1,4 +1,4 @@
-import { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssue.ts';
+import { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 
 export default class Issues implements DataPluginIssues {
   constructor() {}
@@ -20,26 +20,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -56,9 +62,11 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '2',
             name: 'Tester 2',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: null,
@@ -76,26 +84,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -112,26 +126,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -148,26 +168,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -184,26 +210,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '2',
             name: 'Tester 2',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -220,26 +252,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -256,26 +294,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '2',
             name: 'Tester 2',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '2',
             name: 'Tester 2',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -292,26 +336,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '2',
             name: 'Tester 2',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '2',
             name: 'Tester 2',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],
@@ -328,26 +378,32 @@ export default class Issues implements DataPluginIssues {
           author: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignee: {
             id: '1',
             name: 'Tester 1',
+            platform: 'GitHub',
             user: {
               id: '2',
               gitSignature: 'tester2@github.com',
+              account: null,
             },
           },
           assignees: [
             {
               id: '1',
               name: 'Tester 1',
+              platform: 'GitHub',
               user: {
                 id: '1',
                 gitSignature: 'tester@github.com',
+                account: null,
               },
             },
           ],

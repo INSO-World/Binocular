@@ -10,10 +10,12 @@ export default class Users implements DataPluginUsers {
         {
           id: '1',
           gitSignature: 'tester@github.com',
+          account: null,
         },
         {
           id: '2',
           gitSignature: 'tester2@github.com',
+          account: null,
         },
       ];
       resolve(users);

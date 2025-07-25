@@ -1,4 +1,10 @@
 projects:
-  frontend:
+  binocular:
     schema: http://localhost:48763/graphQl
+    documents: frontend/**/*.{graphql,js,ts}
+  github:
+    schema:
+      - https://api.github.com/graphql:
+          headers:
+            Authorization: "Bearer GITHUB_TOKEN"
     documents: frontend/**/*.{graphql,js,ts}

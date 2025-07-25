@@ -1,4 +1,4 @@
-import { DataPluginNote, DataPluginNotes } from '../../../../interfaces/dataPluginInterfaces/dataPluginNote.ts';
+import { DataPluginNote, DataPluginNotes } from '../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
 import Database from '../database';
 import { findAllNotes } from '../utils.ts';
 

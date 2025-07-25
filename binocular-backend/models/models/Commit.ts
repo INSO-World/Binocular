@@ -258,6 +258,7 @@ class Commit extends Model<CommitDataType> {
               deletionsForFile += oldLines;
               return {
                 webUrl: urlProvider ? urlProvider.getHunkUrl(currentOid, filepath, newLines, oldLines) : null,
+                path: filepath,
                 newLines: newLines,
                 newStart: newStart,
                 oldLines: oldLines,

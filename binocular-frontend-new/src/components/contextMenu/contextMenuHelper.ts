@@ -8,16 +8,16 @@ export function showContextMenu(x: number, y: number, options: ContextMenuOption
   (document.getElementById('contextMenu') as HTMLDialogElement).showModal();
   if (y >= window.innerHeight / 2) {
     (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `auto`;
-    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.bottom = `${window.innerHeight - y}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.bottom = `${window.innerHeight - y - 10}px`;
   } else {
-    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `${y}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `${y - 10}px`;
     (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.bottom = `auto`;
   }
   if (x >= window.innerWidth / 2) {
     (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `auto`;
-    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.right = `${window.innerWidth - x}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.right = `${window.innerWidth - x - 10}px`;
   } else {
-    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `${x}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `${x - 10}px`;
     (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.right = `auto`;
   }
 

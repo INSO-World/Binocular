@@ -2,6 +2,8 @@ import Changes from './visualizationPlugins/changes';
 import Builds from './visualizationPlugins/builds';
 import Issues from './visualizationPlugins/issues';
 import TimeSpent from './visualizationPlugins/timeSpent';
+import CodeOwnership from './visualizationPlugins/code-ownership';
+import FileChanges from './visualizationPlugins/fileChanges';
 
 import ExampleComplex from './visualizationPlugins/exampleComplex';
 import ExampleStats from './visualizationPlugins/exampleStats';
@@ -11,6 +13,7 @@ import { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCo
 import { DataPluginBuild } from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { DataPluginIssue } from './interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import { DataPluginTimeSpent } from './interfaces/dataPluginInterfaces/dataPluginTimeSpent.ts';
+import { DataPluginNote } from './interfaces/dataPluginInterfaces/dataPluginNotes.ts';
 
 import MockData from './dataPlugins/mockData';
 import BinocularBackend from './dataPlugins/binocularBackend';
@@ -29,7 +32,7 @@ import {
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
 const issues = createVisualizationPlugin<BuildSettings, DataPluginIssue>(Issues);
-const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginTimeSpent>(TimeSpent);
+const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginNote>(TimeSpent);
 
 //The implicit type here has to be any because every Visualization plugin has a different settings type implied
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,13 +41,15 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   builds,
   issues,
   timeSpent,
+  CodeOwnership,
+  FileChanges,
   ExampleStats,
   ExampleVisualization,
   ExampleComplex,
 ];
 
 //Order = priority used when nothing selected by the user.
-export const dataPlugins = [MockData, BinocularBackend, PouchDb, Github];
+export const dataPlugins = [BinocularBackend, PouchDb, MockData, Github];
 
 // Separate Export for PouchDB Plugin to streamline Database loading
 export const PouchDB = new PouchDb();
