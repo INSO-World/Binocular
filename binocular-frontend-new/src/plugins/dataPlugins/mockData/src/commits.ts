@@ -4,12 +4,13 @@ import {
   DataPluginCommitBuild,
   DataPluginOwnership,
   DataPluginCommitFilesData,
-} from "../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts";
-import Builds from "./builds.ts";
-import { DataPluginFileInCommit } from "../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts";
+} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import Builds from './builds.ts';
+import { DataPluginFileInCommit } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default class Commits implements DataPluginCommits {
   private builds: Builds;
+
   constructor() {
     this.builds = new Builds();
   }
@@ -19,180 +20,180 @@ export default class Commits implements DataPluginCommits {
     return new Promise<DataPluginCommit[]>((resolve) => {
       const commits: DataPluginCommit[] = [
         {
-          sha: "0000000001",
-          shortSha: "00001",
+          sha: '0000000001',
+          shortSha: '00001',
           files: { data: [] },
-          messageHeader: "Commit 1",
-          message: "This is the first Commit",
+          messageHeader: 'Commit 1',
+          message: 'This is the first Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-06-01T12:00:00.000Z", // Matches build id 1
+          branch: 'main',
+          date: '2024-06-01T12:00:00.000Z', // Matches build id 1
           parents: [],
-          webUrl: "www.github.com",
+          webUrl: 'www.github.com',
           stats: { additions: 5, deletions: 0 },
         },
         {
-          sha: "0000000002",
-          shortSha: "00002",
+          sha: '0000000002',
+          shortSha: '00002',
           files: { data: [] },
-          messageHeader: "Commit 2",
-          message: "This is the second Commit",
+          messageHeader: 'Commit 2',
+          message: 'This is the second Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-06-02T12:00:00.000Z", // Matches build id 2
-          parents: ["0000000001"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-06-02T12:00:00.000Z', // Matches build id 2
+          parents: ['0000000001'],
+          webUrl: 'www.github.com',
           stats: { additions: 10, deletions: 20 },
         },
         {
-          sha: "0000000003",
-          shortSha: "00003",
+          sha: '0000000003',
+          shortSha: '00003',
           files: { data: [] },
-          messageHeader: "Commit 3",
-          message: "This is the third Commit",
+          messageHeader: 'Commit 3',
+          message: 'This is the third Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-06-10T12:00:00.000Z", // Matches build id 3
-          parents: ["0000000002"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-06-10T12:00:00.000Z', // Matches build id 3
+          parents: ['0000000002'],
+          webUrl: 'www.github.com',
           stats: { additions: 2, deletions: 5 },
         },
         {
-          sha: "0000000004",
-          shortSha: "00004",
+          sha: '0000000004',
+          shortSha: '00004',
           files: { data: [] },
-          messageHeader: "Commit 4",
-          message: "This is the fourth Commit",
+          messageHeader: 'Commit 4',
+          message: 'This is the fourth Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-06-11T12:00:00.000Z", // Matches build id 4
-          parents: ["0000000003"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-06-11T12:00:00.000Z', // Matches build id 4
+          parents: ['0000000003'],
+          webUrl: 'www.github.com',
           stats: { additions: 20, deletions: 0 },
         },
         {
-          sha: "0000000005",
-          shortSha: "00005",
+          sha: '0000000005',
+          shortSha: '00005',
           files: { data: [] },
-          messageHeader: "Commit 5",
-          message: "This is the fifth Commit",
+          messageHeader: 'Commit 5',
+          message: 'This is the fifth Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-07-10T12:00:00.000Z", // Matches build id 5
-          parents: ["0000000004"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-07-10T12:00:00.000Z', // Matches build id 5
+          parents: ['0000000004'],
+          webUrl: 'www.github.com',
           stats: { additions: 6, deletions: 10 },
         },
         {
-          sha: "0000000006",
-          shortSha: "00006",
+          sha: '0000000006',
+          shortSha: '00006',
           files: { data: [] },
-          messageHeader: "Commit 6",
-          message: "This is the sixth Commit",
+          messageHeader: 'Commit 6',
+          message: 'This is the sixth Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-07-11T12:00:00.000Z", // Matches build id 6 and 7
-          parents: ["0000000005"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-07-11T12:00:00.000Z', // Matches build id 6 and 7
+          parents: ['0000000005'],
+          webUrl: 'www.github.com',
           stats: { additions: 15, deletions: 3 },
         },
         {
-          sha: "0000000007",
-          shortSha: "00007",
+          sha: '0000000007',
+          shortSha: '00007',
           files: { data: [] },
-          messageHeader: "Commit 7",
-          message: "This is the seventh Commit",
+          messageHeader: 'Commit 7',
+          message: 'This is the seventh Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-07-12T12:00:00.000Z", // Matches build id 11
-          parents: ["0000000006"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-07-12T12:00:00.000Z', // Matches build id 11
+          parents: ['0000000006'],
+          webUrl: 'www.github.com',
           stats: { additions: 8, deletions: 4 },
         },
         {
-          sha: "0000000008",
-          shortSha: "00008",
+          sha: '0000000008',
+          shortSha: '00008',
           files: { data: [] },
-          messageHeader: "Commit 8",
-          message: "This is the eighth Commit",
+          messageHeader: 'Commit 8',
+          message: 'This is the eighth Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-08-11T12:00:00.000Z", // Matches build id 8, 9, and 10
-          parents: ["0000000007"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-08-11T12:00:00.000Z', // Matches build id 8, 9, and 10
+          parents: ['0000000007'],
+          webUrl: 'www.github.com',
           stats: { additions: 12, deletions: 7 },
         },
         {
-          sha: "0000000009",
-          shortSha: "00009",
+          sha: '0000000009',
+          shortSha: '00009',
           files: { data: [] },
-          messageHeader: "Commit 9",
-          message: "This is the ninth Commit",
+          messageHeader: 'Commit 9',
+          message: 'This is the ninth Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-08-13T12:00:00.000Z", // Matches build id 12
-          parents: ["0000000008"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-08-13T12:00:00.000Z', // Matches build id 12
+          parents: ['0000000008'],
+          webUrl: 'www.github.com',
           stats: { additions: 5, deletions: 2 },
         },
         {
-          sha: "0000000010",
-          shortSha: "00010",
+          sha: '0000000010',
+          shortSha: '00010',
           files: { data: [] },
-          messageHeader: "Commit 10",
-          message: "This is the tenth Commit",
+          messageHeader: 'Commit 10',
+          message: 'This is the tenth Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-08-14T12:00:00.000Z", // Matches build id 13
-          parents: ["0000000009"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-08-14T12:00:00.000Z', // Matches build id 13
+          parents: ['0000000009'],
+          webUrl: 'www.github.com',
           stats: { additions: 9, deletions: 1 },
         },
         // Additional commit that doesn't match any build
         {
-          sha: "0000000011",
-          shortSha: "00011",
+          sha: '0000000011',
+          shortSha: '00011',
           files: { data: [] },
-          messageHeader: "Commit 11",
-          message: "This is the eleventh Commit",
+          messageHeader: 'Commit 11',
+          message: 'This is the eleventh Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-08-20T12:00:00.000Z", // No matching build
-          parents: ["0000000010"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-08-20T12:00:00.000Z', // No matching build
+          parents: ['0000000010'],
+          webUrl: 'www.github.com',
           stats: { additions: 3, deletions: 3 },
         },
       ];
@@ -204,20 +205,19 @@ export default class Commits implements DataPluginCommits {
     return new Promise<DataPluginOwnership[]>((resolve) => {
       const commits: DataPluginOwnership[] = [
         {
-          sha: "61ad1d652fdc287fac6bebe2f47618e8b503404e",
-          date: "2024-11-22T11:03:56.000Z",
+          sha: '61ad1d652fdc287fac6bebe2f47618e8b503404e',
+          date: '2024-11-22T11:03:56.000Z',
           parents: [],
           files: [
             {
-              path: "index.js",
-              action: "modified",
+              path: 'index.js',
+              action: 'modified',
               ownership: [
                 {
-                  user: "tester@github.com",
+                  user: 'tester@github.com',
                   hunks: [
                     {
-                      originalCommit:
-                        "0f8698d63dc6cf3cf8738a9265ee0696d4455b4e",
+                      originalCommit: '0f8698d63dc6cf3cf8738a9265ee0696d4455b4e',
                       lines: [
                         {
                           from: 3,
@@ -226,8 +226,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "6bd222e5ecf9c39205d8a93584bc0cf6c1d27602",
+                      originalCommit: '6bd222e5ecf9c39205d8a93584bc0cf6c1d27602',
                       lines: [
                         {
                           from: 22,
@@ -236,8 +235,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "95adf1175cd63b419dcf8f4a42a6b0eb74edb35b",
+                      originalCommit: '95adf1175cd63b419dcf8f4a42a6b0eb74edb35b',
                       lines: [
                         {
                           from: 42,
@@ -250,8 +248,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "81c28029f8cf1f9b73cef85a60972a6b10636d1f",
+                      originalCommit: '81c28029f8cf1f9b73cef85a60972a6b10636d1f',
                       lines: [
                         {
                           from: 46,
@@ -260,8 +257,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "cfd794804950fa431ad5922c1a185875a288ba32",
+                      originalCommit: 'cfd794804950fa431ad5922c1a185875a288ba32',
                       lines: [
                         {
                           from: 52,
@@ -274,8 +270,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "7a1a2cffe8bff6dbffff1e35bdc2a2219aad5e47",
+                      originalCommit: '7a1a2cffe8bff6dbffff1e35bdc2a2219aad5e47',
                       lines: [
                         {
                           from: 55,
@@ -288,8 +283,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "cacd3718f698ae470203b9015e1158b62d9ed846",
+                      originalCommit: 'cacd3718f698ae470203b9015e1158b62d9ed846',
                       lines: [
                         {
                           from: 95,
@@ -300,11 +294,10 @@ export default class Commits implements DataPluginCommits {
                   ],
                 },
                 {
-                  user: "tester2@github.com",
+                  user: 'tester2@github.com',
                   hunks: [
                     {
-                      originalCommit:
-                        "a66566b0e160c058128802d07d45371950ad26d9",
+                      originalCommit: 'a66566b0e160c058128802d07d45371950ad26d9',
                       lines: [
                         {
                           from: 1,
@@ -313,8 +306,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "9272651e0d1868cfc643bfd2c54fc6b43d33495e",
+                      originalCommit: '9272651e0d1868cfc643bfd2c54fc6b43d33495e',
                       lines: [
                         {
                           from: 4,
@@ -323,8 +315,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "e0fa0e34119f784c5844ceca0c6200fefdbf5420",
+                      originalCommit: 'e0fa0e34119f784c5844ceca0c6200fefdbf5420',
                       lines: [
                         {
                           from: 6,
@@ -333,8 +324,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "2abc639a12d71c78394a51cf5362490eddacd4dc",
+                      originalCommit: '2abc639a12d71c78394a51cf5362490eddacd4dc',
                       lines: [
                         {
                           from: 11,
@@ -351,8 +341,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "03f1b9416dfe52d27f3c30fe9793181f52c32d3d",
+                      originalCommit: '03f1b9416dfe52d27f3c30fe9793181f52c32d3d',
                       lines: [
                         {
                           from: 13,
@@ -365,8 +354,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "851e80158cd8a522db1e042e15341d0672e05aed",
+                      originalCommit: '851e80158cd8a522db1e042e15341d0672e05aed',
                       lines: [
                         {
                           from: 19,
@@ -375,8 +363,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "53a18f299e4d7358254db1e853df6dcad79272b4",
+                      originalCommit: '53a18f299e4d7358254db1e853df6dcad79272b4',
                       lines: [
                         {
                           from: 20,
@@ -385,8 +372,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "bd0b24fb1e2b2c156b509cfd51b366a2c1e33828",
+                      originalCommit: 'bd0b24fb1e2b2c156b509cfd51b366a2c1e33828',
                       lines: [
                         {
                           from: 21,
@@ -395,8 +381,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "178d92d98e858e017cf9f69ad214a20c73f82dd7",
+                      originalCommit: '178d92d98e858e017cf9f69ad214a20c73f82dd7',
                       lines: [
                         {
                           from: 141,
@@ -413,8 +398,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "c00312d7b361fff171311a18a0df0963cbfe5769",
+                      originalCommit: 'c00312d7b361fff171311a18a0df0963cbfe5769',
                       lines: [
                         {
                           from: 158,
@@ -423,8 +407,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "f43e1fbc3e7df9f182a63702876cce9213c4da5d",
+                      originalCommit: 'f43e1fbc3e7df9f182a63702876cce9213c4da5d',
                       lines: [
                         {
                           from: 165,
@@ -441,8 +424,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "5189091e321fc8d5423ab06f0c4fc1202662206b",
+                      originalCommit: '5189091e321fc8d5423ab06f0c4fc1202662206b',
                       lines: [
                         {
                           from: 169,
@@ -465,20 +447,19 @@ export default class Commits implements DataPluginCommits {
           ],
         },
         {
-          sha: "5f13d85a7c3a2e62711e5e78f79f04854ecc5907",
-          date: "2024-11-25T15:05:10.000Z",
-          parents: ["61ad1d652fdc287fac6bebe2f47618e8b503404e"],
+          sha: '5f13d85a7c3a2e62711e5e78f79f04854ecc5907',
+          date: '2024-11-25T15:05:10.000Z',
+          parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
           files: [
             {
-              path: "index.js",
-              action: "modified",
+              path: 'index.js',
+              action: 'modified',
               ownership: [
                 {
-                  user: "tester@github.com",
+                  user: 'tester@github.com',
                   hunks: [
                     {
-                      originalCommit:
-                        "2fdcb8cfa4acacc31ad81c25a83ea08233c154bb",
+                      originalCommit: '2fdcb8cfa4acacc31ad81c25a83ea08233c154bb',
                       lines: [
                         {
                           from: 168,
@@ -489,11 +470,10 @@ export default class Commits implements DataPluginCommits {
                   ],
                 },
                 {
-                  user: "tester2@github.com",
+                  user: 'tester2@github.com',
                   hunks: [
                     {
-                      originalCommit:
-                        "5f13d85a7c3a2e62711e5e78f79f04854ecc5907",
+                      originalCommit: '5f13d85a7c3a2e62711e5e78f79f04854ecc5907',
                       lines: [
                         {
                           from: 24,
@@ -502,8 +482,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "fae71bc4ee0ed6bb7cd82b1b6925689c5b2132e3",
+                      originalCommit: 'fae71bc4ee0ed6bb7cd82b1b6925689c5b2132e3',
                       lines: [
                         {
                           from: 28,
@@ -520,15 +499,14 @@ export default class Commits implements DataPluginCommits {
               ],
             },
             {
-              path: "src/app.js",
-              action: "modified",
+              path: 'src/app.js',
+              action: 'modified',
               ownership: [
                 {
-                  user: "tester2@github.com",
+                  user: 'tester2@github.com',
                   hunks: [
                     {
-                      originalCommit:
-                        "5f13d85a7c3a2e62711e5e78f79f04854ecc5907",
+                      originalCommit: '5f13d85a7c3a2e62711e5e78f79f04854ecc5907',
                       lines: [
                         {
                           from: 134,
@@ -571,11 +549,10 @@ export default class Commits implements DataPluginCommits {
                   ],
                 },
                 {
-                  user: "tester@github.com",
+                  user: 'tester@github.com',
                   hunks: [
                     {
-                      originalCommit:
-                        "96532f5ee7afeeb9117138bb60c99541bd797491",
+                      originalCommit: '96532f5ee7afeeb9117138bb60c99541bd797491',
                       lines: [
                         {
                           from: 1,
@@ -608,8 +585,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "dd03c754af55a7cc1ffc9b1d60bcdab706cdf5e8",
+                      originalCommit: 'dd03c754af55a7cc1ffc9b1d60bcdab706cdf5e8',
                       lines: [
                         {
                           from: 2,
@@ -654,8 +630,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "99acffef1b2694ad556e250e6edd228a5e7f7f0f",
+                      originalCommit: '99acffef1b2694ad556e250e6edd228a5e7f7f0f',
                       lines: [
                         {
                           from: 3,
@@ -692,8 +667,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "b94fb06a9345cf133b5e16ec9543df16250d6968",
+                      originalCommit: 'b94fb06a9345cf133b5e16ec9543df16250d6968',
                       lines: [
                         {
                           from: 5,
@@ -714,8 +688,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "55a7f044e43c24efab5610f8289350a2d92a221f",
+                      originalCommit: '55a7f044e43c24efab5610f8289350a2d92a221f',
                       lines: [
                         {
                           from: 28,
@@ -744,15 +717,14 @@ export default class Commits implements DataPluginCommits {
               ],
             },
             {
-              path: "src/app.css",
-              action: "modified",
+              path: 'src/app.css',
+              action: 'modified',
               ownership: [
                 {
-                  user: "tester2@github.com",
+                  user: 'tester2@github.com',
                   hunks: [
                     {
-                      originalCommit:
-                        "fae71bc4ee0ed6bb7cd82b1b6925689c5b2132e3",
+                      originalCommit: 'fae71bc4ee0ed6bb7cd82b1b6925689c5b2132e3',
                       lines: [
                         {
                           from: 1,
@@ -769,8 +741,7 @@ export default class Commits implements DataPluginCommits {
                       ],
                     },
                     {
-                      originalCommit:
-                        "5f13d85a7c3a2e62711e5e78f79f04854ecc5907",
+                      originalCommit: '5f13d85a7c3a2e62711e5e78f79f04854ecc5907',
                       lines: [
                         {
                           from: 4,
@@ -798,83 +769,83 @@ export default class Commits implements DataPluginCommits {
     return new Promise<DataPluginCommit[]>((resolve) => {
       const commits: DataPluginCommit[] = [
         {
-          sha: "0000000001",
-          shortSha: "00001",
+          sha: '0000000001',
+          shortSha: '00001',
           files: { data: [] },
-          messageHeader: "Commit 1",
-          message: "This is the first Commit",
+          messageHeader: 'Commit 1',
+          message: 'This is the first Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-06-01T12:00:00.000Z",
+          branch: 'main',
+          date: '2024-06-01T12:00:00.000Z',
           parents: [],
-          webUrl: "www.github.com",
+          webUrl: 'www.github.com',
           stats: { additions: 5, deletions: 0 },
         },
         {
-          sha: "0000000002",
-          shortSha: "00002",
+          sha: '0000000002',
+          shortSha: '00002',
           files: { data: [] },
-          messageHeader: "Commit 2",
-          message: "This is the second Commit",
+          messageHeader: 'Commit 2',
+          message: 'This is the second Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-06-02T12:00:00.000Z",
-          parents: ["0000000001"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-06-02T12:00:00.000Z',
+          parents: ['0000000001'],
+          webUrl: 'www.github.com',
           stats: { additions: 10, deletions: 20 },
         },
         {
-          sha: "0000000003",
-          shortSha: "00003",
+          sha: '0000000003',
+          shortSha: '00003',
           files: { data: [] },
-          messageHeader: "Commit 3",
-          message: "This is the third Commit",
+          messageHeader: 'Commit 3',
+          message: 'This is the third Commit',
           user: {
-            id: "2",
-            gitSignature: "tester2@github.com",
+            id: '2',
+            gitSignature: 'tester2@github.com',
           },
-          branch: "main",
-          date: "2024-06-03T12:00:00.000Z",
-          parents: ["0000000002"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-06-03T12:00:00.000Z',
+          parents: ['0000000002'],
+          webUrl: 'www.github.com',
           stats: { additions: 2, deletions: 5 },
         },
         {
-          sha: "0000000004",
-          shortSha: "00004",
+          sha: '0000000004',
+          shortSha: '00004',
           files: { data: [] },
-          messageHeader: "Commit 4",
-          message: "This is the fourth Commit",
+          messageHeader: 'Commit 4',
+          message: 'This is the fourth Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-06-04T12:00:00.000Z",
-          parents: ["0000000003"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-06-04T12:00:00.000Z',
+          parents: ['0000000003'],
+          webUrl: 'www.github.com',
           stats: { additions: 20, deletions: 0 },
         },
         {
-          sha: "0000000005",
-          shortSha: "00005",
+          sha: '0000000005',
+          shortSha: '00005',
           files: { data: [] },
-          messageHeader: "Commit 5",
-          message: "This is the fifth Commit",
+          messageHeader: 'Commit 5',
+          message: 'This is the fifth Commit',
           user: {
-            id: "1",
-            gitSignature: "tester@github.com",
+            id: '1',
+            gitSignature: 'tester@github.com',
           },
-          branch: "main",
-          date: "2024-06-05T12:00:00.000Z",
-          parents: ["0000000004"],
-          webUrl: "www.github.com",
+          branch: 'main',
+          date: '2024-06-05T12:00:00.000Z',
+          parents: ['0000000004'],
+          webUrl: 'www.github.com',
           stats: { additions: 6, deletions: 10 },
         },
       ];
@@ -885,18 +856,18 @@ export default class Commits implements DataPluginCommits {
   public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
     return Promise.resolve({
       sha: sha,
-      shortSha: "00001",
+      shortSha: '00001',
       files: { data: [] },
-      messageHeader: "Commit 1",
-      message: "This is the first Commit",
+      messageHeader: 'Commit 1',
+      message: 'This is the first Commit',
       user: {
-        id: "1",
-        gitSignature: "tester@github.com",
+        id: '1',
+        gitSignature: 'tester@github.com',
       },
-      branch: "main",
-      date: "2024-11-25T15:05:10.000Z",
-      parents: ["61ad1d652fdc287fac6bebe2f47618e8b503404e"],
-      webUrl: "www.github.com",
+      branch: 'main',
+      date: '2024-11-25T15:05:10.000Z',
+      parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
+      webUrl: 'www.github.com',
       stats: { additions: 5, deletions: 0 },
     });
   }
@@ -904,21 +875,18 @@ export default class Commits implements DataPluginCommits {
   public async getDateOfFirstCommit() {
     console.log(`Getting Date of First Commit`);
     return new Promise<string>((resolve) => {
-      resolve("2024-06-01T12:00:00.000Z");
+      resolve('2024-06-01T12:00:00.000Z');
     });
   }
 
   public async getDateOfLastCommit() {
     console.log(`Getting Date of Last Commit`);
     return new Promise<string>((resolve) => {
-      resolve("2024-06-05T12:00:00.000Z");
+      resolve('2024-06-05T12:00:00.000Z');
     });
   }
 
-  public async getCommitsWithBuilds(
-    from: string,
-    to: string,
-  ): Promise<DataPluginCommitBuild[]> {
+  public async getCommitsWithBuilds(from: string, to: string): Promise<DataPluginCommitBuild[]> {
     console.log(`Getting CommitsBuilds from ${from} to ${to}`);
     // Get all commits and builds
     const commits = await this.getAll(from, to);
@@ -929,9 +897,7 @@ export default class Commits implements DataPluginCommits {
 
     // For each commit, find a matching build based on timestamp
     for (const commit of commits) {
-      const matchingBuild = builds.find(
-        (build) => build.committedAt === commit.date,
-      );
+      const matchingBuild = builds.find((build) => build.committedAt === commit.date);
       // Only include commits that have a matching build
       if (matchingBuild) {
         const commitBuild: DataPluginCommitBuild = {
@@ -960,10 +926,7 @@ export default class Commits implements DataPluginCommits {
     return commitsBuilds;
   }
 
-  public async getCommitsWithFiles(
-    from: string,
-    to: string,
-  ): Promise<DataPluginCommit[]> {
+  public async getCommitsWithFiles(from: string, to: string): Promise<DataPluginCommit[]> {
     console.log(`Getting CommitsWithFiles from ${from} to ${to}`);
 
     // Get all commits
@@ -993,13 +956,9 @@ export default class Commits implements DataPluginCommits {
     });
 
     // Filter to only include commits with files
-    const filteredCommits = commitsWithFiles.filter(
-      (commit) => commit.files.data.length > 0,
-    );
+    const filteredCommits = commitsWithFiles.filter((commit) => commit.files.data.length > 0);
 
     // Sort by date in descending order
-    return filteredCommits.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
+    return filteredCommits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 }
