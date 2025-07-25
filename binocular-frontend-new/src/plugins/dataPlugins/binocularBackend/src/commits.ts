@@ -343,11 +343,11 @@ export default class Commits implements DataPluginCommits {
       return resp.data.commits;
     };
 
-    let commitFileList: DataPluginCommit[] = [];
+    const commitFileList: DataPluginCommit[] = [];
 
-    await traversePages(getCommitsFilesPage(from, to), (commit: any) => {
+    await traversePages(getCommitsFilesPage(from, to), (commit: unknown) => {
       // Create a copy of the commit
-      let tempCommitFile: DataPluginCommit = { ...commit };
+      const tempCommitFile: DataPluginCommit = { ...commit };
 
       // Properly structure the files property according to the interface
       tempCommitFile.files = {
