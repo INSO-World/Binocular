@@ -54,7 +54,11 @@ public class PreventCyclesTrigger implements Trigger {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Array pathArray = rs.getArray(1);
-                    Long[] path = (Long[]) pathArray.getArray();
+                    Object[] pathObjects = (Object[]) pathArray.getArray();
+                    Long[] path = new Long[pathObjects.length];
+                    for (int i = 0; i < pathObjects.length; i++) {
+                        path[i] = ((Number) pathObjects[i]).longValue();
+                    }
                     StringBuilder cycleStr = new StringBuilder();
                     for (int i = 0; i < path.length; i++) {
                         if (i > 0) cycleStr.append(" → ");

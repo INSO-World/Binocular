@@ -3,6 +3,8 @@ package com.inso_world.binocular.infrastructure.sql.integration.persistence.mapp
 import com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper.base.BaseMapperTest
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project

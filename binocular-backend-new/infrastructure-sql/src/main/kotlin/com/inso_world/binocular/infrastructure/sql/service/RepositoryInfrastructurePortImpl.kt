@@ -7,7 +7,8 @@ import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.CommitDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
@@ -15,11 +16,8 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEnti
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
-import com.inso_world.binocular.model.Branch
-import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -52,8 +50,7 @@ internal class RepositoryInfrastructurePortImpl :
     private lateinit var branchMapper: BranchMapper
 
     @Autowired
-    @Lazy
-    private lateinit var userMapper: UserMapper
+    private lateinit var ctx: MappingContext
 
     @Autowired
     private lateinit var repositoryDao: RepositoryDao
@@ -71,27 +68,19 @@ internal class RepositoryInfrastructurePortImpl :
 //        super.mapper = repositoryMapper
     }
 
+    @MappingSession
     override fun findByName(name: String): Repository? =
         this.repositoryDao.findByName(name)?.let {
-            val commitContext = mutableMapOf<String, Commit>()
-            val branchContext = mutableMapOf<String, Branch>()
-            val userContext = mutableMapOf<String, User>()
-
             val project =
                 projectMapper.toDomain(
                     it.project,
-                    commitContext,
-                    branchContext,
-                    userContext,
                 )
 
-            this.repositoryMapper.toDomain(it, project, commitContext, branchContext, userContext)
+            this.repositoryMapper.toDomain(it, project)
         }
 
+    @MappingSession
     override fun findAll(): Iterable<Repository> {
-        val commitContext = mutableMapOf<String, Commit>()
-        val branchContext = mutableMapOf<String, Branch>()
-        val userContext = mutableMapOf<String, User>()
         val projectContext = mutableMapOf<String, Project>()
 
         return findAllEntities().map {
@@ -99,13 +88,10 @@ internal class RepositoryInfrastructurePortImpl :
                 projectContext.getOrPut(it.project.uniqueKey()) {
                     projectMapper.toDomain(
                         it.project,
-                        commitContext,
-                        branchContext,
-                        userContext,
                     )
                 }
 
-            this.repositoryMapper.toDomain(it, project, commitContext, branchContext, userContext)
+            this.repositoryMapper.toDomain(it, project)
         }
     }
 
@@ -116,23 +102,18 @@ internal class RepositoryInfrastructurePortImpl :
 //        }
     }
 
+    @MappingSession
     override fun findById(id: String): Repository? =
         this.repositoryDao.findById(id.toLong())?.let {
-            val commitContext = mutableMapOf<String, Commit>()
-            val branchContext = mutableMapOf<String, Branch>()
-            val userContext = mutableMapOf<String, User>()
-
             val project =
                 projectMapper.toDomain(
                     it.project,
-                    commitContext,
-                    branchContext,
-                    userContext,
                 )
 
-            this.repositoryMapper.toDomain(it, project, commitContext, branchContext, userContext)
+            this.repositoryMapper.toDomain(it, project)
         }
 
+    @MappingSession
     override fun create(value: Repository): Repository {
         val projectId =
             value.project?.id?.toLong() ?: throw IllegalArgumentException("project.id of Repository must not be null")
@@ -158,22 +139,16 @@ internal class RepositoryInfrastructurePortImpl :
         return super.create(mapped).let { newEntity ->
             repositoryDao.flush()
 
-            val commitContext = mutableMapOf<String, Commit>()
-            val branchContext = mutableMapOf<String, Branch>()
-            val userContext = mutableMapOf<String, User>()
-
             val project =
                 projectMapper.toDomain(
                     newEntity.project,
-                    commitContext,
-                    branchContext,
-                    userContext,
                 )
 
-            return@let repositoryMapper.toDomain(newEntity, project, commitContext, branchContext, userContext)
+            return@let repositoryMapper.toDomain(newEntity, project)
         }
     }
 
+    @MappingSession
     override fun update(value: Repository): Repository {
         val projectId =
             value.project?.id?.toLong() ?: throw IllegalArgumentException("project.id of Repository must not be null")
@@ -182,6 +157,12 @@ internal class RepositoryInfrastructurePortImpl :
             project.repo
                 ?: throw IllegalStateException("On updating Repository, it is required to be set to project already")
         logger.debug("Repository Entity found")
+
+        //                TODO N+1 here
+        ctx.entity.commit.putAll(entity.commits.associateBy(CommitEntity::uniqueKey))
+        ctx.entity.branch.putAll(entity.branches.associateBy(BranchEntity::uniqueKey))
+        ctx.entity.user.putAll(entity.user.associateBy(UserEntity::uniqueKey))
+        logger.trace("Entity context built")
 
         run {
             // Synchronize commits: remove those not in value.commits
@@ -203,32 +184,27 @@ internal class RepositoryInfrastructurePortImpl :
         logger.trace("User synchronized")
 
         // Rebuild context after removals
-        val commitContext: MutableMap<String, CommitEntity> = entity.commits.associateBy { it.sha }.toMutableMap()
-        val branchContext: MutableMap<String, BranchEntity> =
-            entity.branches.associateBy { it.uniqueKey() }.toMutableMap()
-        val userContext: MutableMap<String, UserEntity> =
-            entity.user.associateBy { it.uniqueKey() }.toMutableMap()
-        logger.trace("Context built")
 
         // Add or update commits
         value.commits.forEach {
-            if (!commitContext.containsKey(it.sha)) {
-                val commitEntity = commitMapper.toEntity(it, entity, commitContext, branchContext, userContext)
+            if (!ctx.entity.commit.containsKey(it.sha)) {
+                val commitEntity = commitMapper.toEntity(it, entity)
                 entity.commits.add(commitEntity)
-                commitContext[it.sha] = commitEntity
+//                commitContext[it.sha] = commitEntity
+                ctx.entity.commit.computeIfAbsent(it.sha) { commitEntity }
             }
         }
         logger.trace("Commits updated")
         // Ensure all commits referenced by branches are present
         value.branches.forEach { branch ->
             branch.commitShas.forEach { sha ->
-                if (!commitContext.containsKey(sha)) {
+                if (!ctx.entity.commit.containsKey(sha)) {
                     val commit = value.commits.find { it.sha == sha }
                     if (commit != null) {
                         val commitEntity =
-                            commitMapper.toEntity(commit, entity, commitContext, branchContext, userContext)
+                            commitMapper.toEntity(commit, entity)
                         entity.commits.add(commitEntity)
-                        commitContext[sha] = commitEntity
+                        ctx.entity.commit.computeIfAbsent(sha) { commitEntity }
                     } else {
                         throw IllegalStateException("Branch references commit sha $sha not present in value.commits")
                     }
@@ -239,38 +215,36 @@ internal class RepositoryInfrastructurePortImpl :
         // Add or update branches
         value.branches.forEach {
             val key = "${entity.name},${it.name}"
-            if (!branchContext.containsKey(key)) {
-                val newBranch = branchMapper.toEntity(it, entity, commitContext, branchContext)
+            if (!ctx.entity.branch.containsKey(key)) {
+                val newBranch = branchMapper.toEntity(it, entity)
                 entity.branches.add(newBranch)
-                branchContext[key] = newBranch
+                ctx.entity.branch.computeIfAbsent(key) { newBranch }
             }
         }
         logger.trace("Branches updated [2/2]")
 
-        val updated = this.repositoryDao.update(entity)
+        val updated =
+            run {
+                val updated = this.repositoryDao.update(entity)
+                this.repositoryDao.flush()
+                return@run updated
+            }
 
         logger.trace("Update executed")
 
-        this.repositoryDao.flush()
         return run {
-//            entityManager.refresh(updated)
+//            TODO triggers many SELECT statements
+            entityManager.refresh(updated)
             logger.trace("Entity refreshed")
-            val commitContext = mutableMapOf<String, Commit>()
-            val branchContext = mutableMapOf<String, Branch>()
-            val userContext = mutableMapOf<String, User>()
-
             logger.trace("Domain context built")
 
             val project =
                 projectMapper.toDomain(
                     updated.project,
-                    commitContext,
-                    branchContext,
-                    userContext,
                 )
             logger.trace("Domain project built")
 
-            val domain = repositoryMapper.toDomain(updated, project, commitContext, branchContext, userContext)
+            val domain = repositoryMapper.toDomain(updated, project)
             logger.trace("Domain object built")
             return@run domain
         }

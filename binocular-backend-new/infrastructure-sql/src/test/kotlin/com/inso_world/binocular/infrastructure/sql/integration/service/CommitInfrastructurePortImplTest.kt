@@ -1,7 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.integration.service
 
-import com.inso_world.binocular.core.persistence.exception.PersistenceException
 import com.inso_world.binocular.infrastructure.sql.integration.service.base.BaseServiceTest
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.service.BranchInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructurePortImpl
@@ -17,7 +17,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import jakarta.validation.ConstraintViolationException
 import org.assertj.core.api.Assertions.assertThat
-import org.hibernate.exception.GenericJDBCException
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -31,7 +30,6 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataAccessException
-import org.springframework.dao.DataIntegrityViolationException
 import java.time.LocalDateTime
 import java.util.stream.Stream
 
@@ -78,51 +76,51 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
     companion object {
         @JvmStatic
         fun provideCyclicCommits(): Stream<Arguments> {
-            val user =
+            fun user() =
                 User(
                     name = "test",
                     email = "test@example.com",
                 )
-            val commit1 =
+            fun commit1() =
                 Commit(
                     sha = "1234567890123456789012345678901234567890",
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
                     repositoryId = null,
                     parents = mutableSetOf(),
-                    committer = user,
+                    committer = user(),
                 )
-            val commit2 =
+            fun commit2() =
                 Commit(
                     sha = "fedcbafedcbafedcbafedcbafedcbafedcbafedc",
                     message = "yet another commit",
                     commitDateTime = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
                     repositoryId = null,
                     parents = mutableSetOf(),
-                    committer = user,
+                    committer = user(),
                 )
-            val commit3 =
+            fun commit3() =
                 Commit(
                     sha = "0987654321098765432109876543210987654321",
                     message = "commit number three",
                     commitDateTime = LocalDateTime.of(2022, 1, 1, 0, 0, 0),
                     repositoryId = null,
                     parents = mutableSetOf(),
-                    committer = user,
+                    committer = user(),
                 )
 
             return Stream.of(
                 // 1, one commit, self referencing
                 Arguments.of(
                     listOf(
-                        commit1.copy().apply { parents = mutableSetOf(commit1) },
+                        commit1().copy().apply { parents = mutableSetOf(commit1()) },
                     ),
                 ),
 //                2
                 Arguments.of(
                     listOf(
-                        commit1.copy().apply {
-                            val prnt = commit2.copy().apply { parents = mutableSetOf(commit2) }
+                        commit1().copy().apply {
+                            val prnt = commit2().copy().apply { parents = mutableSetOf(commit2()) }
                             parents = mutableSetOf(prnt)
                         },
                     ),
@@ -130,8 +128,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
 //                3
                 Arguments.of(
                     listOf(
-                        commit1.copy().apply {
-                            val prnt = commit2.copy().apply { parents = mutableSetOf(commit1) }
+                        commit1().copy().apply {
+                            val prnt = commit2().copy().apply { parents = mutableSetOf(commit1()) }
                             parents = mutableSetOf(prnt)
                         },
                     ),
@@ -139,8 +137,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
 //                4
                 Arguments.of(
                     listOf(
-                        commit1.copy().apply {
-                            val prnt = commit2.copy().apply { parents = mutableSetOf(commit1, commit3) }
+                        commit1().copy().apply {
+                            val prnt = commit2().copy().apply { parents = mutableSetOf(commit1(), commit3()) }
                             parents = mutableSetOf(prnt)
                         },
                     ),
@@ -148,19 +146,19 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
 //                5
                 Arguments.of(
                     listOf(
-                        commit1.copy().apply {
-                            val prnt = commit2.apply { parents = mutableSetOf(commit2) }
+                        commit1().copy().apply {
+                            val prnt = commit2().apply { parents = mutableSetOf(commit2()) }
                             parents = mutableSetOf(prnt)
                         },
-                        commit3,
+                        commit3(),
                     ),
                 ),
-//                6
+//                6, same as 5 but reversed order
                 Arguments.of(
                     listOf(
-                        commit3,
-                        commit1.copy().apply {
-                            val prnt = commit2.apply { parents = mutableSetOf(commit2) }
+                        commit3(),
+                        commit1().copy().apply {
+                            val prnt = commit2().apply { parents = mutableSetOf(commit2()) }
                             parents = mutableSetOf(prnt)
                         },
                     ),
@@ -439,21 +437,47 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
 
     @Nested
     inner class SaveOperation : BaseServiceTest() {
+        @Autowired
+        private lateinit var ctx: MappingContext
+//
+//        @BeforeEach
+//        fun setup() {
+//            mappingScope.clear()
+//        }
+
         @ParameterizedTest
         @MethodSource(
             "com.inso_world.binocular.infrastructure.sql.integration.service.CommitInfrastructurePortImplTest#provideCyclicCommits",
         )
         fun `save multiple commits with cycle, expect ValidationException`(commitList: List<Commit>) {
+            var branch = Branch(
+                name = "test branch"
+            )
+
             val repositoryDao = mockk<RepositoryDao>()
 
             val ex = assertThrows<DataAccessException> {
                 commitList.forEach { cmt ->
                     cmt.repositoryId = repository.id
-                    cmt.parents.forEach { c -> c.repositoryId = repository.id }
+                    cmt.parents.forEach { c ->
+                        c.repositoryId = repository.id
+
+                        branch.commitShas.add(c.sha)
+                        c.branches.add(branch)
+
+                        c.committer?.committedCommits?.add(c)
+                    }
+
+                    branch.commitShas.add(cmt.sha)
+                    cmt.branches.add(branch)
+
+                    cmt.committer?.committedCommits?.add(cmt)
+
                     repository.commits.add(cmt)
-                    commitPort.create(cmt)
+                    branch = commitPort.create(cmt).branches.toList()[0]
                 }
             }
+            assertThat(ex.message).contains("Cyclic dependency detected")
             verify(exactly = 0) { repositoryDao.create(any()) }
         }
 

@@ -5,13 +5,12 @@ import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IBranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.model.Branch
-import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -69,11 +68,9 @@ internal class BranchInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findAll(): Iterable<Branch> {
         val context: MutableMap<Long, Repository> = mutableMapOf()
-        val commitContext = mutableMapOf<String, Commit>()
-        val branchContext = mutableMapOf<String, Branch>()
-        val userContext = mutableMapOf<String, User>()
 
         return super<AbstractInfrastructurePort>.findAllEntities().map { b ->
             val repo =
@@ -82,26 +79,19 @@ internal class BranchInfrastructurePortImpl(
                     val project =
                         projectMapper.toDomain(
                             repo.project,
-                            commitContext,
-                            branchContext,
-                            userContext,
                         )
 
-                    this.repositoryMapper.toDomain(repo, project, commitContext, branchContext, userContext)
+                    this.repositoryMapper.toDomain(repo, project)
                 }
-            branchMapper.toDomain(b, repo, commitContext, branchContext)
+            branchMapper.toDomain(b, repo)
         }
     }
 
-    override fun findAll(repository: Repository): Iterable<Branch> {
-        val commitContext = mutableMapOf<String, Commit>()
-        val branchContext = mutableMapOf<String, Branch>()
-        val userContext = mutableMapOf<String, User>()
-
-        return branchDao.findAll(repository).map { b ->
-            branchMapper.toDomain(b, repository, commitContext, branchContext)
+    @MappingSession
+    override fun findAll(repository: Repository): Iterable<Branch> =
+        branchDao.findAll(repository).map { b ->
+            branchMapper.toDomain(b, repository)
         }
-    }
 
     override fun findAll(pageable: Pageable): Page<Branch> {
         TODO("Not yet implemented")

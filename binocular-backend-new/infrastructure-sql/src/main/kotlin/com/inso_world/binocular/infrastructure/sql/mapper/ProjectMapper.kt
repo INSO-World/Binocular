@@ -2,11 +2,8 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.model.Branch
-import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -36,12 +33,7 @@ internal class ProjectMapper
             return p
         }
 
-        fun toDomain(
-            entity: ProjectEntity,
-            commitContext: MutableMap<String, Commit>,
-            branchContext: MutableMap<String, Branch>,
-            userContext: MutableMap<String, User>,
-        ): Project {
+        fun toDomain(entity: ProjectEntity): Project {
             val id = entity.id ?: throw IllegalStateException("Entity ID cannot be null")
 
             val p =
@@ -53,7 +45,7 @@ internal class ProjectMapper
             val repo by lazy {
                 entity.repo?.let { r ->
                     r.id?.let {
-                        repoMapper.toDomain(r, p, commitContext, branchContext, userContext)
+                        repoMapper.toDomain(r, p)
                     }
                 }
             }
