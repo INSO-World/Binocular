@@ -4,12 +4,15 @@ import Users from './users.ts';
 import General from './general.ts';
 import Files from './files.ts';
 import Builds from './builds.ts';
+import Issues from './issues.ts';
+import Notes from './notes.ts';
+import Accounts from './accounts.ts';
 import Branches from './branches.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';
   public description = 'Mocked Data for testing purposes.';
-  public capabilities = ['authors', 'commits', 'files'];
+  public capabilities = ['authors', 'commits', 'files', 'issues', 'builds'];
   public experimental = false;
   public requirements = {
     apiKey: false,
@@ -20,17 +23,23 @@ class MockData implements DataPlugin {
   public commits;
   public builds;
   public users;
+  public accounts;
   public general;
   public files;
   public branches;
+  public issues;
+  public notes;
 
   constructor() {
     this.commits = new Commits();
     this.builds = new Builds();
     this.users = new Users();
+    this.accounts = new Accounts();
     this.general = new General();
     this.files = new Files();
     this.branches = new Branches();
+    this.issues = new Issues();
+    this.notes = new Notes();
   }
 
   public async init() {}

@@ -13,15 +13,15 @@ export default class Commits implements DataPluginCommits {
     this.graphQl = new GraphQL(endpoint);
   }
 
-  public async getAll(from: string, to: string) {
+  public async getAll(from: string, to: string, sort: string = 'ASC') {
     console.log(`Getting Commits from ${from} to ${to}`);
     try {
       const commitList: DataPluginCommit[] = [];
-      const getCommitsPage = (from?: string, to?: string) => async (page: number, perPage: number) => {
+      const getCommitsPage = (from?: string, to?: string, sort?: string) => async (page: number, perPage: number) => {
         const resp = await this.graphQl.client.query({
           query: gql`
-            query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp) {
-              commits(page: $page, perPage: $perPage, since: $since, until: $until) {
+            query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp, $sort: Sort) {
+              commits(page: $page, perPage: $perPage, since: $since, until: $until, sort: $sort) {
                 count
                 page
                 perPage
@@ -46,15 +46,15 @@ export default class Commits implements DataPluginCommits {
               }
             }
           `,
-          variables: { page, perPage, from, to },
+          variables: { page, perPage, from, to, sort },
         });
         return resp.data.commits;
       };
-      await traversePages(getCommitsPage(from, to), (commit: DataPluginCommit) => {
+
+      await traversePages(getCommitsPage(from, to, sort), (commit: DataPluginCommit) => {
         commitList.push(commit);
       });
-      const allCommits = commitList.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
-      return allCommits.filter((c) => new Date(c.date) >= new Date(from) && new Date(c.date) <= new Date(to));
+      return commitList;
     } catch (e) {
       console.log(e);
       return [];
@@ -178,8 +178,7 @@ export default class Commits implements DataPluginCommits {
     await traversePages(getCommitsPage(file), (data: { commit: DataPluginCommit }) => {
       commitList.push(data.commit);
     });
-    const allCommits = commitList.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
-    return allCommits;
+    return commitList.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
   }
 
   public async getDateOfFirstCommit() {

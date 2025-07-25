@@ -26,7 +26,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-06-01T12:00:00.000Z',
           status: 'failed',
           updatedAt: '2024-06-01T12:00:00.000Z',
-          user: { id: '1', gitSignature: 'Tester tester@email' },
+          user: { id: '1', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -48,7 +48,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-06-02T12:00:00.000Z',
           status: 'success',
           updatedAt: '2024-06-02T12:00:00.000Z',
-          user: { id: '1', gitSignature: 'Tester tester@email' },
+          user: { id: '1', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -70,7 +70,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-06-10T12:00:00.000Z',
           status: 'success',
           updatedAt: '2024-06-10T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -92,7 +92,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-06-11T12:00:00.000Z',
           status: 'success',
           updatedAt: '2024-06-11T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -114,7 +114,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-07-10T12:00:00.000Z',
           status: 'success',
           updatedAt: '2024-07-10T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -136,7 +136,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-07-11T12:00:00.000Z',
           status: 'failed',
           updatedAt: '2024-07-11T12:00:00.000Z',
-          user: { id: '0', gitSignature: 'Tester tester@email' },
+          user: { id: '0', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -158,7 +158,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-07-11T12:00:00.000Z',
           status: 'failed',
           updatedAt: '2024-07-11T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -180,7 +180,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-08-11T12:00:00.000Z',
           status: 'failed',
           updatedAt: '2024-08-11T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -202,7 +202,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-08-11T12:00:00.000Z',
           status: 'success',
           updatedAt: '2024-08-11T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -224,7 +224,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-08-11T12:00:00.000Z',
           status: 'success',
           updatedAt: '2024-08-11T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -246,7 +246,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-07-12T12:00:00.000Z',
           status: 'cancelled',
           updatedAt: '2024-07-12T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -268,7 +268,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-08-13T12:00:00.000Z',
           status: 'cancelled',
           updatedAt: '2024-08-13T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
         {
@@ -290,7 +290,7 @@ export default class Builds implements DataPluginBuilds {
           startedAt: '2024-08-14T12:00:00.000Z',
           status: 'cancelled',
           updatedAt: '2024-08-14T12:00:00.000Z',
-          user: { id: '2', gitSignature: 'Tester tester@email' },
+          user: { id: '2', gitSignature: 'Tester tester@email', account: null },
           userFullName: 'Tester',
         },
       ];
