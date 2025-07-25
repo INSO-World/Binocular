@@ -72,4 +72,3 @@ export interface DataPluginCommitBuild extends DataPluginCommit {
     }[];
   }[];
 }
-

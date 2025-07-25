@@ -5,12 +5,12 @@ export interface VisualizationPluginMetadata {
 }
 
 export enum VisualizationPluginMetadataCategory {
-  Commits = "Commits",
-  Issues = "Issues",
-  Builds = "Builds",
-  Files = "Files",
-  Ownership = "Ownership",
-  Examples = "Examples",
-  Unknown = "Unknown",
-  Expertise = "Expertise",
+  Commits = 'Commits',
+  Issues = 'Issues',
+  Builds = 'Builds',
+  Files = 'Files',
+  Ownership = 'Ownership',
+  Examples = 'Examples',
+  Unknown = 'Unknown',
+  Expertise = 'Expertise',
 }

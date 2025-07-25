@@ -1,6 +1,13 @@
-'use-strict';
+'use strict';
 
-const HatchPattern = (color : any, id: string) => (
+import React from 'react';
+
+interface HatchPatternProps {
+  color: string;
+  id: string;
+}
+
+const HatchPattern: React.FC<HatchPatternProps> = ({ color, id }) => (
   <pattern id={id} patternUnits="userSpaceOnUse" width="4" height="4">
     <path
       d="M-1,1 l2,-2

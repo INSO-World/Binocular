@@ -1,7 +1,6 @@
 import { DataPluginFile, DataPluginFiles } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import { GraphQL, traversePages } from './utils.ts';
 import { gql } from '@apollo/client';
-import {DataPluginCommitFile} from "../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts";
 
 export default class Files implements DataPluginFiles {
   private graphQl;

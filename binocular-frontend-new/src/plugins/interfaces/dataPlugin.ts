@@ -3,7 +3,6 @@ import { DataPluginCommits } from './dataPluginInterfaces/dataPluginCommits.ts';
 import { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
 import { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
 import { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
-import { DataPluginCommitsBuilds } from './dataPluginInterfaces/dataPluginCommitsBuilds.ts';
 import { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
 import { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
 

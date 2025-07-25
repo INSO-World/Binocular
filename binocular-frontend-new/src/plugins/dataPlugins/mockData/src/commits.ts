@@ -2,8 +2,7 @@ import {
   DataPluginCommit,
   DataPluginCommits,
   DataPluginCommitBuild,
-  DataPluginOwnership,
-  DataPluginCommitFilesData,
+  DataPluginOwnership
 } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import Builds from './builds.ts';
 import { DataPluginFileInCommit } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
