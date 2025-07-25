@@ -1,13 +1,13 @@
-import Commits from './dataConnections/commits.ts';
+import Commits from './collections/commits.ts';
 import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
-import Users from './dataConnections/users.ts';
-import General from './dataConnections/general.ts';
-import Files from './dataConnections/files.ts';
-import Builds from './dataConnections/builds.ts';
-import Issues from './dataConnections/issues.ts';
-import Notes from './dataConnections/notes.ts';
-import Accounts from './dataConnections/accounts.ts';
-import Branches from './dataConnections/branches.ts';
+import Users from './collections/users.ts';
+import General from './collections/general.ts';
+import Files from './collections/files.ts';
+import Builds from './collections/builds.ts';
+import Issues from './collections/issues.ts';
+import Notes from './collections/notes.ts';
+import Accounts from './collections/accounts.ts';
+import Branches from './collections/branches.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';

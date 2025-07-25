@@ -1,15 +1,15 @@
-import Commits from './dataConnections/commits.ts';
+import Commits from './collections/commits.ts';
 import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
-import General from './dataConnections/general.ts';
-import Files from './dataConnections/files.ts';
-import Users from './dataConnections/users.ts';
+import General from './collections/general.ts';
+import Files from './collections/files.ts';
+import Users from './collections/users.ts';
 import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
-import Builds from './dataConnections/builds.ts';
-import Branches from './dataConnections/branches.ts';
-import Issues from './dataConnections/issues.ts';
-import Notes from './dataConnections/notes.ts';
-import Accounts from './dataConnections/accounts.ts';
+import Builds from './collections/builds.ts';
+import Branches from './collections/branches.ts';
+import Issues from './collections/issues.ts';
+import Notes from './collections/notes.ts';
+import Accounts from './collections/accounts.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';

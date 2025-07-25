@@ -1,10 +1,10 @@
-import { GraphQL, traversePages } from './utils';
+import { GraphQL, traversePages } from '../utils';
 import { gql } from '@apollo/client';
 import {
   DataPluginCommit,
   DataPluginCommits,
   DataPluginFileOwnership,
-} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
   private graphQl;
