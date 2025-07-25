@@ -1,10 +1,10 @@
-export interface SettingsType {
+import { DefaultSettings } from '../../../simpleVisualizationPlugin/src/settings/settings';
+
+export interface BuildSettings extends DefaultSettings {
   splitBuildsPerAuthor: boolean;
-  visualizationStyle: string;
-  showSprints: boolean;
 }
 
-function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) {
+function Settings(props: { settings: BuildSettings; setSettings: (newSettings: BuildSettings) => void }) {
   return (
     <>
       <div>

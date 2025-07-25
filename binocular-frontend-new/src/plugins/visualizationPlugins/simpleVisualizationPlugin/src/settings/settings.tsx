@@ -3,19 +3,6 @@ export interface DefaultSettings {
   showSprints: boolean;
 }
 
-export interface BuildSettings extends DefaultSettings {
-  splitBuildsPerAuthor: boolean;
-}
-
-export interface ChangesSettings extends DefaultSettings {
-  splitAdditionsDeletions: boolean;
-}
-
-export interface TimeSpentSettings extends DefaultSettings {
-  splitByIssue: boolean;
-  splitSpentRemoved: boolean;
-}
-
 // TODO this function is currently ignored, generalization should be done for the basic settings as well
 function Settings(props: { settings: DefaultSettings; setSettings: (newSettings: DefaultSettings) => void }) {
   return (
