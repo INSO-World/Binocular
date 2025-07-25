@@ -1,4 +1,4 @@
-import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
   constructor() {}
@@ -678,7 +678,6 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000002',
           shortSha: '00002',
-          files: { data: [] },
           messageHeader: 'Commit 2',
           message: 'This is the second Commit',
           user: {
@@ -694,7 +693,6 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000003',
           shortSha: '00003',
-          files: { data: [] },
           messageHeader: 'Commit 3',
           message: 'This is the third Commit',
           user: {
@@ -710,7 +708,6 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000004',
           shortSha: '00004',
-          files: { data: [] },
           messageHeader: 'Commit 4',
           message: 'This is the fourth Commit',
           user: {
@@ -726,7 +723,6 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000005',
           shortSha: '00005',
-          files: { data: [] },
           messageHeader: 'Commit 5',
           message: 'This is the fifth Commit',
           user: {
@@ -741,39 +737,6 @@ export default class Commits implements DataPluginCommits {
         },
       ];
       resolve(commits);
-    });
-  }
-
-  public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
-    return Promise.resolve({
-      sha: sha,
-      shortSha: '00001',
-      files: { data: [] },
-      messageHeader: 'Commit 1',
-      message: 'This is the first Commit',
-      user: {
-        id: '1',
-        gitSignature: 'tester@github.com',
-      },
-      branch: 'main',
-      date: '2024-11-25T15:05:10.000Z',
-      parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
-      webUrl: 'www.github.com',
-      stats: { additions: 5, deletions: 0 },
-    });
-  }
-
-  public async getDateOfFirstCommit() {
-    console.log(`Getting Date of First Commit`);
-    return new Promise<string>((resolve) => {
-      resolve('2024-06-01T12:00:00.000Z');
-    });
-  }
-
-  public async getDateOfLastCommit() {
-    console.log(`Getting Date of Last Commit`);
-    return new Promise<string>((resolve) => {
-      resolve('2024-06-05T12:00:00.000Z');
     });
   }
 }

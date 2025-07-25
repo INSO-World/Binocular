@@ -49,6 +49,14 @@ module.exports = new gql.GraphQLObjectType({
         type: Timestamp,
         description: 'Close date of the issue',
       },
+      updatedAt: {
+        type: Timestamp,
+        description: 'Last Updated date of the issue',
+      },
+      labels: {
+        type: new gql.GraphQLList(gql.GraphQLString),
+        description: 'The assigned labels of the issue',
+      },
       creator: {
         type: require('./user.js'),
         description: 'The creator of this issue',

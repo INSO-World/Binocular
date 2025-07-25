@@ -1,4 +1,4 @@
-import { DataPluginNote, DataPluginNotes } from '../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
+import { DataPluginNote, DataPluginNotes } from '../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
 
 export default class Notes implements DataPluginNotes {
   constructor() {}

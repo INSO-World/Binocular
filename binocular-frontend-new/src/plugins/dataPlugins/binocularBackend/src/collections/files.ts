@@ -1,5 +1,5 @@
-import { DataPluginFile, DataPluginFiles } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
-import { GraphQL, traversePages } from './utils.ts';
+import { DataPluginFile, DataPluginFiles } from '../../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { GraphQL, traversePages } from '../utils.ts';
 import { gql } from '@apollo/client';
 
 export default class Files implements DataPluginFiles {

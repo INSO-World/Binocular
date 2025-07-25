@@ -1,24 +1,24 @@
 import { DefaultSettings } from '../../../simpleVisualizationPlugin/src/settings/settings';
 
-export interface TimeSpentSettings extends DefaultSettings {
-  splitTimePerIssue: boolean;
-  splitSpentRemoved: boolean;
+export interface IssueSettings extends DefaultSettings {
+  splitIssuesPerAuthor: boolean;
+  breakdown: boolean;
 }
 
-function Settings(props: { settings: TimeSpentSettings; setSettings: (newSettings: TimeSpentSettings) => void }) {
+function Settings(props: { settings: IssueSettings; setSettings: (newSettings: IssueSettings) => void }) {
   return (
     <>
       <div>
         <label className="label cursor-pointer">
-          <span className="label-text">Split Time per Issue:</span>
+          <span className="label-text">Split Issues per Assignee:</span>
           <input
             type="checkbox"
             className="toggle toggle-accent toggle-sm"
-            defaultChecked={props.settings.splitTimePerIssue}
+            defaultChecked={props.settings.splitIssuesPerAuthor}
             onChange={(event) =>
               props.setSettings({
-                splitTimePerIssue: event.target.checked,
-                splitSpentRemoved: props.settings.splitSpentRemoved,
+                splitIssuesPerAuthor: event.target.checked,
+                breakdown: props.settings.breakdown,
                 visualizationStyle: props.settings.visualizationStyle,
                 showSprints: props.settings.showSprints,
               })
@@ -26,15 +26,15 @@ function Settings(props: { settings: TimeSpentSettings; setSettings: (newSetting
           />
         </label>
         <label className="label cursor-pointer">
-          <span className="label-text">Split Spent and Removed:</span>
+          <span className="label-text">Breakdown (Total Open Issues):</span>
           <input
             type="checkbox"
             className="toggle toggle-accent toggle-sm"
-            defaultChecked={props.settings.splitSpentRemoved}
+            defaultChecked={props.settings.breakdown}
             onChange={(event) =>
               props.setSettings({
-                splitTimePerIssue: props.settings.splitTimePerIssue,
-                splitSpentRemoved: event.target.checked,
+                splitIssuesPerAuthor: props.settings.splitIssuesPerAuthor,
+                breakdown: event.target.checked,
                 visualizationStyle: props.settings.visualizationStyle,
                 showSprints: props.settings.showSprints,
               })
@@ -48,11 +48,11 @@ function Settings(props: { settings: TimeSpentSettings; setSettings: (newSetting
           <select
             className="select select-bordered select-sm"
             defaultValue={props.settings.visualizationStyle}
-            onChange={(event) =>
+            onChange={(e) =>
               props.setSettings({
-                splitTimePerIssue: props.settings.splitTimePerIssue,
-                splitSpentRemoved: props.settings.splitSpentRemoved,
-                visualizationStyle: event.target.value,
+                splitIssuesPerAuthor: props.settings.splitIssuesPerAuthor,
+                breakdown: props.settings.breakdown,
+                visualizationStyle: e.target.value,
                 showSprints: props.settings.showSprints,
               })
             }>
@@ -69,8 +69,8 @@ function Settings(props: { settings: TimeSpentSettings; setSettings: (newSetting
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
-                splitTimePerIssue: props.settings.splitTimePerIssue,
-                splitSpentRemoved: props.settings.splitSpentRemoved,
+                splitIssuesPerAuthor: props.settings.splitIssuesPerAuthor,
+                breakdown: props.settings.breakdown,
                 visualizationStyle: props.settings.visualizationStyle,
                 showSprints: event.target.checked,
               })

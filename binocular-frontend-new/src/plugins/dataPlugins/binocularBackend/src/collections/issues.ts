@@ -1,5 +1,5 @@
-import { GraphQL, traversePages } from './utils.ts';
-import { DataPluginIssue, DataPluginIssues } from '../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import { GraphQL, traversePages } from '../utils.ts';
+import { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import { gql } from '@apollo/client';
 
 export default class Issues implements DataPluginIssues {
@@ -27,17 +27,30 @@ export default class Issues implements DataPluginIssues {
                 webUrl
                 createdAt
                 closedAt
+                updatedAt
                 author {
                   login
                   name
+                  user {
+                    gitSignature
+                    id
+                  }
                 }
                 assignee {
                   login
                   name
+                  user {
+                    gitSignature
+                    id
+                  }
                 }
                 assignees {
                   login
                   name
+                  user {
+                    gitSignature
+                    id
+                  }
                 }
                 notes {
                   author {

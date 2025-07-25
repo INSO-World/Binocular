@@ -1,4 +1,4 @@
-import { DataPluginIssue, DataPluginIssues } from '../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 
 export default class Issues implements DataPluginIssues {
   constructor() {}

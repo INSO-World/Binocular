@@ -104,6 +104,27 @@ export const authorsSlice = createSlice({
       });
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
+    switchAllAuthorSelection: (state) => {
+      state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
+        a.selected = !a.selected;
+        return a;
+      });
+      localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    checkAllAuthors: (state) => {
+      state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
+        a.selected = true;
+        return a;
+      });
+      localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    uncheckAllAuthors: (state) => {
+      state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
+        a.selected = false;
+        return a;
+      });
+      localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
     setAuthorsDataPluginId: (state, action: PayloadAction<number | undefined>) => {
       state.dataPluginId = action.payload;
       localStorage.setItem(`${authorsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
@@ -166,6 +187,9 @@ export const {
   editAuthor,
   saveAuthor,
   switchAuthorSelection,
+  switchAllAuthorSelection,
+  checkAllAuthors,
+  uncheckAllAuthors,
   setAuthorsDataPluginId,
   clearAuthorsStorage,
   importAuthorsStorage,
