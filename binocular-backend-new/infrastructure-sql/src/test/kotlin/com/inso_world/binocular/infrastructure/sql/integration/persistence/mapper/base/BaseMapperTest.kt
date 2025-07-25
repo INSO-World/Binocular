@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.sql.integration.persistence.mapp
 
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import com.inso_world.binocular.infrastructure.sql.TestApplication
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingScope
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
@@ -10,13 +11,29 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDateTime
 
 @SpringBootTest(
     classes = [TestApplication::class],
 )
-internal class BaseMapperTest : BaseIntegrationTest()
+internal class BaseMapperTest : BaseIntegrationTest() {
+    @Autowired
+    private lateinit var mappingScope: MappingScope
+
+    @BeforeEach
+    fun openSession() {
+        mappingScope.startSession()
+    }
+
+    @AfterEach
+    fun closeSession() {
+        mappingScope.endSession()
+    }
+}
 
 internal object MapperTestData {
     val projectEntity =

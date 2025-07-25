@@ -7,6 +7,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEnt
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -171,7 +172,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
             val entity =
                 assertDoesNotThrow {
-                    commitMapper.toEntity(commitDomainA, repositoryEntity, mutableMapOf(), mutableMapOf(), mutableMapOf())
+                    commitMapper.toEntity(commitDomainA, repositoryEntity)
                 }
 
             assertAll(
@@ -238,7 +239,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
             val entity =
                 assertDoesNotThrow {
-                    commitMapper.toEntity(commitWithParent, repositoryEntity, mutableMapOf(), mutableMapOf(), mutableMapOf())
+                    commitMapper.toEntity(commitWithParent, repositoryEntity)
                 }
 
             assertThat(entity.id).isEqualTo(commitEntityA.id)
@@ -320,7 +321,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
             val domain =
                 assertDoesNotThrow {
-                    commitMapper.toDomain(commitEntityA, repositoryDomain, mutableMapOf(), mutableMapOf(), mutableMapOf())
+                    commitMapper.toDomain(commitEntityA, repositoryDomain)
                 }
 
             assertThat(domain.repositoryId).isEqualTo(commitEntityA.id.toString())
@@ -369,7 +370,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
             val domain =
                 assertDoesNotThrow {
-                    commitMapper.toDomain(commitEntityA, repositoryDomain, mutableMapOf(), mutableMapOf(), mutableMapOf())
+                    commitMapper.toDomain(commitEntityA, repositoryDomain)
                 }
 
             assertThat(domain.parents).hasSize(1)
@@ -387,7 +388,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
             val domainA =
                 assertDoesNotThrow {
-                    commitMapper.toDomain(commitEntityA, repositoryDomain, mutableMapOf(), mutableMapOf(), mutableMapOf())
+                    commitMapper.toDomain(commitEntityA, repositoryDomain)
                 }
 
             assertThat(domainA.branches).hasSize(1)
@@ -399,7 +400,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
             val domainB =
                 assertDoesNotThrow {
-                    commitMapper.toDomain(commitEntityB, repositoryDomain, mutableMapOf(), mutableMapOf(), mutableMapOf())
+                    commitMapper.toDomain(commitEntityB, repositoryDomain)
                 }
 
             assertThat(domainB.branches).hasSize(1)

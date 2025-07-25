@@ -76,7 +76,7 @@ internal class BranchMapperTest : BaseMapperTest() {
                 repositoryId = this.repositoryEntity.id?.toString(),
             )
 
-        val entity = this.branchMapper.toEntity(branch, this.repositoryEntity, mutableMapOf(), mutableMapOf())
+        val entity = this.branchMapper.toEntity(branch, this.repositoryEntity)
 
         assertThat(entity.repository).isNotNull()
         assertAll(
@@ -127,10 +127,6 @@ internal class BranchMapperTest : BaseMapperTest() {
                 this.branchMapper.toEntity(
                     branch,
                     this.repositoryEntity,
-                    this.repositoryEntity.commits.associateBy { it.sha },
-                    this.repositoryEntity.branches
-                        .associateBy { it.uniqueKey() }
-                        .toMutableMap(),
                 )
             }
 
@@ -188,7 +184,7 @@ internal class BranchMapperTest : BaseMapperTest() {
 
             every { entityManagerMock.find(BranchEntity::class.java, branch.id) } returns branch
 
-            val entity = branchMapper.toDomain(branch, repositoryModel, mutableMapOf(), mutableMapOf())
+            val entity = branchMapper.toDomain(branch, repositoryModel)
 
             assertAll(
                 { assertThat(entity.id).isEqualTo(branch.id.toString()) },

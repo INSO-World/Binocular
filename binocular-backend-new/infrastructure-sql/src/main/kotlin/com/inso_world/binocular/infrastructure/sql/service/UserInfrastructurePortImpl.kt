@@ -5,9 +5,9 @@ import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IUserDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
-import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
@@ -85,11 +85,9 @@ internal class UserInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findAll(): Iterable<User> {
         val context: MutableMap<Long, Repository> = mutableMapOf()
-        val commitContext = mutableMapOf<String, Commit>()
-        val branchContext = mutableMapOf<String, Branch>()
-        val userContext = mutableMapOf<String, User>()
         val projectContext = mutableMapOf<String, Project>()
 
         return super<AbstractInfrastructurePort>.findAllEntities().map { u ->
@@ -101,9 +99,6 @@ internal class UserInfrastructurePortImpl(
                 projectContext.getOrPut(repoEntity.project.uniqueKey()) {
                     projectMapper.toDomain(
                         repoEntity.project,
-                        commitContext,
-                        branchContext,
-                        userContext,
                     )
                 }
 
@@ -113,21 +108,17 @@ internal class UserInfrastructurePortImpl(
 
             val repo =
                 context.getOrPut(repoEntity.id) {
-                    this.repositoryMapper.toDomain(repoEntity, project, commitContext, branchContext, userContext)
+                    this.repositoryMapper.toDomain(repoEntity, project)
                 }
-            userMapper.toDomain(u, repo, userContext, commitContext, branchContext)
+            userMapper.toDomain(u, repo)
         }
     }
 
-    override fun findAll(repository: Repository): Iterable<User> {
-        val commitContext = mutableMapOf<String, Commit>()
-        val branchContext = mutableMapOf<String, Branch>()
-        val userContext = mutableMapOf<String, User>()
-
-        return this.userDao.findAll(repository).map {
-            userMapper.toDomain(it, repository, userContext, commitContext, branchContext)
+    @MappingSession
+    override fun findAll(repository: Repository): Iterable<User> =
+        this.userDao.findAll(repository).map {
+            userMapper.toDomain(it, repository)
         }
-    }
 
     override fun findAll(pageable: Pageable): Page<User> {
         TODO("Not yet implemented")
