@@ -10,18 +10,22 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ProjectService(
-    @Autowired private val projectDao: ProjectInfrastructurePort,
+    @Autowired private val projectInfrastructurePort: ProjectInfrastructurePort,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ProjectService::class.java)
 
-    fun findByName(name: String): Project? = projectDao.findByName(name)
+    fun findByName(name: String): Project? = projectInfrastructurePort.findByName(name)
+
+    fun deleteAll() {
+        this.projectInfrastructurePort.deleteAll()
+    }
 
     @Transactional
     fun getOrCreateProject(name: String): Project {
         val find = this.findByName(name)
         if (find == null) {
             logger.info("Project '$name' does not exists, creating new project")
-            return this.projectDao.create(
+            return this.projectInfrastructurePort.create(
                 Project(
                     name = name,
                 ),

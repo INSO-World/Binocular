@@ -69,10 +69,15 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
         val repo = simpleRepoConfig.repo.toVcsRepository().toDomain()
         repo.project = simpleRepoConfig.project
         simpleRepoConfig.project.repo = repo
-        generateCommits(repoService, simpleRepoConfig, repo)
         this.simpleProject = projectPort.create(simpleRepoConfig.project)
-        this.simpleRepo =
-            this.simpleProject.repo ?: throw IllegalStateException("Repository must be present at this state")
+        this.simpleRepo = run {
+            val repo =
+                this.simpleProject.repo ?: throw IllegalStateException("Repository must be present at this state")
+            generateCommits(repoService, simpleRepoConfig, repo)
+            return@run repositoryPort.update(repo)
+        }
+        this.simpleProject.repo = this.simpleRepo
+        this.simpleRepo.project = this.simpleProject
     }
 
     @AfterEach

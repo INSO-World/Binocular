@@ -2,12 +2,12 @@ package com.inso_world.binocular.cli.integration.service
 
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
-import com.inso_world.binocular.cli.index.vcs.toDto
+import com.inso_world.binocular.cli.index.vcs.toDtos
+import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
-import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,6 +19,8 @@ internal class RepositoryServiceTest(
     @Autowired
     private val repositoryService: RepositoryService,
 ) : BaseServiceTest() {
+    @Autowired
+    private lateinit var testDataSetupService: TestDataSetupService
     private lateinit var simpleRepoVcsCommits: List<VcsCommit>
     private lateinit var octoRepoVcsCommits: List<VcsCommit>
     private lateinit var advancedRepoVcsCommits: List<VcsCommit>
@@ -30,15 +32,15 @@ internal class RepositoryServiceTest(
 
         val simpleRepo = ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
         ffi.findCommit(simpleRepo, "HEAD")
-        simpleRepoVcsCommits = ffi.traverseBranch(simpleRepo, "master").map(BinocularCommitPojo::toDto)
+        simpleRepoVcsCommits = ffi.traverseBranch(simpleRepo, "master").toDtos()
 
         val octoRepo = ffi.findRepo("${FIXTURES_PATH}/${OCTO_REPO}")
         ffi.findCommit(octoRepo, "HEAD")
-        octoRepoVcsCommits = ffi.traverseBranch(octoRepo, "master").map(BinocularCommitPojo::toDto)
+        octoRepoVcsCommits = ffi.traverseBranch(octoRepo, "master").toDtos()
 
         val advancedRepo = ffi.findRepo("${FIXTURES_PATH}/${ADVANCED_REPO}")
         ffi.findCommit(advancedRepo, "HEAD")
-        advancedRepoVcsCommits = ffi.traverseBranch(advancedRepo, "master").map(BinocularCommitPojo::toDto)
+        advancedRepoVcsCommits = ffi.traverseBranch(advancedRepo, "master").toDtos()
     }
 
     @Test
@@ -68,7 +70,7 @@ internal class RepositoryServiceTest(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    emptyList(),
+                    setOf(),
                 ), // Empty parents list
             )
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
@@ -99,7 +101,15 @@ internal class RepositoryServiceTest(
                     LocalDateTime.now(),
                     LocalDateTime.now(),
                 ),
-                VcsCommit("sha3sha3sha3sha3sha3sha3sha3sha3sha3sha3", "msg3", "null", null, null, LocalDateTime.now(), LocalDateTime.now()),
+                VcsCommit(
+                    "sha3sha3sha3sha3sha3sha3sha3sha3sha3sha3",
+                    "msg3",
+                    "null",
+                    null,
+                    null,
+                    LocalDateTime.now(),
+                    LocalDateTime.now()
+                ),
             )
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
 
@@ -115,7 +125,15 @@ internal class RepositoryServiceTest(
     fun `transformCommits with diamond parent-child structure`() {
         val user = VcsPerson("User", "user@test.com")
         val c1 =
-            VcsCommit("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1", "m1", "null", user, user, LocalDateTime.now(), LocalDateTime.now())
+            VcsCommit(
+                "c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1",
+                "m1",
+                "null",
+                user,
+                user,
+                LocalDateTime.now(),
+                LocalDateTime.now()
+            )
         val c2 =
             VcsCommit(
                 "c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2",
@@ -125,7 +143,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                listOf("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"),
+                setOf(c1),
             )
         val c3 =
             VcsCommit(
@@ -136,7 +154,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                listOf("c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1"),
+                setOf(c1),
             )
         val c4 =
             VcsCommit(
@@ -147,7 +165,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                listOf("c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2", "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"),
+                setOf(c2, c3)
             )
         val vcsCommits = listOf(c1, c2, c3, c4)
 
@@ -169,7 +187,10 @@ internal class RepositoryServiceTest(
             commitMap["c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4"]!!.parents.map {
                 it.sha
             },
-        ).containsExactlyInAnyOrder("c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2", "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3")
+        ).containsExactlyInAnyOrder(
+            "c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2",
+            "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+        )
 
         // Check object identity for parents
         assertThat(
@@ -198,7 +219,17 @@ internal class RepositoryServiceTest(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    listOf("nonExistentSha"),
+                    setOf(
+                        VcsCommit(
+                            sha = "nonExistentSha",
+                            message = "msg2",
+                            branch = "null2",
+                            committer = VcsPerson("User B", "b@test.com"),
+                            author = null,
+                            commitTime = LocalDateTime.now(),
+                            authorTime = LocalDateTime.now(),
+                        )
+                    ),
                 ),
             )
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
@@ -262,16 +293,22 @@ internal class RepositoryServiceTest(
 
     @Test
     fun `transformCommits should correctly establish parent-child relationships`() {
-        val repo = Repository(id = null, name = "foo", project = simpleProject)
+        testDataSetupService.clearAllData()
 
-        val transformedCommits = repositoryService.transformCommits(repo, simpleRepoVcsCommits)
+        assertAll(
+            "check database numbers",
+            { assertThat(commitPort.findAll()).hasSize(0) },
+            { assertThat(repositoryPort.findAll()).hasSize(0) },
+        )
+
+        val transformedCommits = repositoryService.transformCommits(this.simpleRepo, simpleRepoVcsCommits)
         val transformedCommitMap = transformedCommits.associateBy { it.sha }
 
-        simpleRepoVcsCommits.forEach { vcsCommit ->
+        transformedCommits.forEach { vcsCommit ->
             val transformedCommit = transformedCommitMap[vcsCommit.sha]
-            assertThat(transformedCommit).isNotNull
+            assertThat(transformedCommit).isNotNull()
 
-            val expectedParentShas = vcsCommit.parents
+            val expectedParentShas = vcsCommit.parents.map { it.sha }
             assertThat(transformedCommit!!.parents.map { it.sha }).containsExactlyInAnyOrderElementsOf(
                 expectedParentShas,
             )
@@ -280,6 +317,11 @@ internal class RepositoryServiceTest(
             transformedCommit.parents.forEach { parentCommit ->
                 assertThat(transformedCommitMap[parentCommit.sha]).isSameAs(parentCommit)
             }
+        }
+        run {
+            val root = transformedCommits.find { it.sha == "48a384a6a9188f376835005cd10fd97542e69bf7" }
+            assertThat(root).isNotNull()
+            assertThat(root?.parents).isEmpty()
         }
     }
 
@@ -326,7 +368,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                listOf("parentShaparentShaparentShaparentShapare"),
+                setOf(parent),
             )
 
         // Order: child first, then parent

@@ -40,14 +40,20 @@ class RepositoryService {
         commits: Iterable<VcsCommit>,
     ): Collection<Commit> {
         logger.trace(">>> transformCommits({})", repo)
-//        probably N+1 here!
+
+        repo.user = userPort.findAll(repo).toMutableSet()
+        repo.branches = branchPort.findAll(repo).toMutableSet()
+        repo.commits = commitPort.findAll(repo).toMutableSet()
+
         val userCache =
-            userPort.findAll(repo).associateBy { it.email }.toMutableMap()
-//            repo.user.associateBy { it.email }.toMutableMap()
-        val branchCache = branchPort.findAll(repo).associateBy { it.name }.toMutableMap()
-//            repo.branches.associateBy { it.name }.toMutableMap()
-        val commitCache: Map<String, Commit> = commitPort.findAll(repo).associateBy { it.sha }
-//        repo.commits.associateBy { it.sha }
+//            userPort.findAll(repo).associateBy { it.email }.toMutableMap()
+            repo.user.associateBy { it.email }.toMutableMap()
+        val branchCache =
+//            branchPort.findAll(repo).associateBy { it.name }.toMutableMap()
+            repo.branches.associateBy { it.name }.toMutableMap()
+        val commitCache: Map<String, Commit> =
+//            commitPort.findAll(repo).associateBy { it.sha }
+            repo.commits.associateBy { it.sha }
 
         // Create a map of SHA to Commit entities for quick lookups
         val commitMap =
@@ -99,8 +105,8 @@ class RepositoryService {
 
             // Get the parent commits from the map and set them
             val parentCommits =
-                vcsCommit?.parents?.mapNotNull { parentSha ->
-                    commitCache[parentSha] ?: commitMap[parentSha]
+                vcsCommit?.parents?.mapNotNull { parent ->
+                    commitCache[parent.sha] ?: commitMap[parent.sha]
                 } ?: emptyList()
 
             // Set the parents on the entity
@@ -128,7 +134,7 @@ class RepositoryService {
                 Repository(
                     id = null,
                     name = normalizePath(gitDir),
-                    projectId = p.id,
+                    project = p,
                 ),
             )
         } else {

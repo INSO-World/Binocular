@@ -8,7 +8,7 @@ data class BinocularCommitPojo(
     var committer: BinocularCommitSignaturePojo?,
     var author: BinocularCommitSignaturePojo?,
     var branch: String?,
-    var parents: List<String>,
+    var parents: MutableSet<BinocularCommitPojo>,
 )
 
 internal fun BinocularCommitVec.toPojo(): BinocularCommitPojo =
@@ -18,5 +18,5 @@ internal fun BinocularCommitVec.toPojo(): BinocularCommitPojo =
         committer = committer?.toPojo(),
         author = author?.toPojo(),
         branch = branch,
-        parents = parents,
+        parents = mutableSetOf(),
     )

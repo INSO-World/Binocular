@@ -39,10 +39,30 @@ class BinocularFfi {
     fun traverseBranch(
         repo: BinocularRepositoryPojo,
         branchName: String,
-    ): List<BinocularCommitPojo> =
-        com.inso_world.binocular.internal
-            .traverseBranch(repo.toFfi(), branchName)
-            .map { it.toPojo() }
+    ): List<BinocularCommitPojo> {
+        val commitVec =
+            com.inso_world.binocular.internal
+                .traverseBranch(repo.toFfi(), branchName)
+
+        // First, create all pojos and a map from commit hash to pojo
+        val pojos = commitVec.map { it.toPojo() }
+        val pojoMap = pojos.associateBy { it.commit }
+
+        // Now, set the parents for each pojo
+        commitVec.forEach { cmt ->
+            val pojo = pojoMap[cmt.commit]
+            if (pojo != null) {
+                cmt.parents.forEach { parentHash ->
+                    val parentPojo = pojoMap[parentHash]
+                    if (parentPojo != null) {
+                        pojo.parents.add(parentPojo)
+                    }
+                }
+            }
+        }
+
+        return pojos
+    }
 
     fun findAllBranches(repo: BinocularRepositoryPojo): List<BinocularBranchPojo> =
         com.inso_world.binocular.internal

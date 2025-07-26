@@ -39,8 +39,8 @@ data class Commit(
     // Relationships
     var branches: MutableSet<Branch> = mutableSetOf(),
     var parents: MutableSet<Commit> = mutableSetOf(),
+    var children: MutableSet<Commit> = mutableSetOf(),
 //    old stuff
-    val children: List<Commit> = emptyList(),
     val builds: List<Build> = emptyList(),
     val files: List<File> = emptyList(),
     val modules: List<Module> = emptyList(),
@@ -58,7 +58,8 @@ data class Commit(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other == null) return false
+        if (!other.javaClass.simpleName.startsWith(this.javaClass.simpleName)) return false
 
         other as Commit
 
@@ -67,11 +68,8 @@ data class Commit(
         if (authorDateTime != other.authorDateTime) return false
         if (commitDateTime != other.commitDateTime) return false
         if (message != other.message) return false
-        if (author != other.author) return false
-        if (committer != other.committer) return false
         if (repositoryId != other.repositoryId) return false
         if (webUrl != other.webUrl) return false
-        if (branch != other.branch) return false
         if (stats != other.stats) return false
         if (branches != other.branches) return false
         if (parents != other.parents) return false
@@ -79,7 +77,6 @@ data class Commit(
         if (builds != other.builds) return false
         if (files != other.files) return false
         if (modules != other.modules) return false
-        if (users != other.users) return false
         if (issues != other.issues) return false
 
         return true
@@ -98,7 +95,7 @@ data class Commit(
     }
 
     override fun toString(): String =
-        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, branch=$branch, stats=$stats, author=$author, committer=$committer, repositoryId=$repositoryId)"
+        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, author=${author?.name}, committer=${committer?.name}, repositoryId=$repositoryId)"
 }
 
 data class Stats(

@@ -2,7 +2,7 @@ package com.inso_world.binocular.cli.integration.service
 
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
-import com.inso_world.binocular.cli.index.vcs.toDto
+import com.inso_world.binocular.cli.index.vcs.toDtos
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.integration.utils.generateCommits
@@ -82,8 +82,9 @@ internal class RepositoryServiceTestWithSimpleData(
                 r
             }()
 
-        generateCommits(repositoryService,simpleRepoConfig, localRepo)
-        localRepo = projectPort.create(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
+        generateCommits(repositoryService, simpleRepoConfig, localRepo)
+        localRepo =
+            projectPort.create(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
         // = localRepo
 //        localRepo = this.repositoryRepository.save(localRepo)
 
@@ -119,17 +120,30 @@ internal class RepositoryServiceTestWithSimpleData(
             { assertThat(repo?.user).hasSize(3) },
         )
 
+
         val newVcsCommit =
-            VcsCommit(
-                "1234567890123456789012345678901234567890",
-                "msg1",
-                "master",
-                VcsPerson("User A", "a@test.com"),
-                null,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
-            )
+            run {
+                val parent = VcsCommit(
+                    "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
+                    "msg1",
+                    "master",
+                    VcsPerson("User A", "a@test.com"),
+                    null,
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
+                    setOf(),
+                )
+                return@run VcsCommit(
+                    "1234567890123456789012345678901234567890",
+                    "msg1",
+                    "master",
+                    VcsPerson("User A", "a@test.com"),
+                    null,
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
+                    setOf(parent),
+                )
+            }
         val vcsRepo =
             BinocularRepositoryPojo(
                 gitDir = this.simpleRepo.name,
@@ -161,11 +175,15 @@ internal class RepositoryServiceTestWithSimpleData(
 
         // required to manipulate history
         var hashes =
-            ffi.traverseBranch(ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").map {
-                it.branch = "develop"
-                it.toDto()
+            ffi.traverseBranch(ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").toDtos()
+            hashes.map {
+                val branchField = VcsCommit::class.java.getDeclaredField("parents")
+                branchField.isAccessible = true
+                branchField.set(it, "develop")
             }
         hashes = hashes.toMutableList()
+        val parent = hashes.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+            ?: throw IllegalStateException("must find parent here")
         hashes.add(
             VcsCommit(
                 "1234567890123456789012345678901234567890",
@@ -175,7 +193,7 @@ internal class RepositoryServiceTestWithSimpleData(
                 VcsPerson("User A", "author@test.com"),
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
+                setOf(parent),
             ),
         )
         val vcsRepo =

@@ -81,6 +81,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     name = "test",
                     email = "test@example.com",
                 )
+
             fun commit1() =
                 Commit(
                     sha = "1234567890123456789012345678901234567890",
@@ -90,6 +91,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     parents = mutableSetOf(),
                     committer = user(),
                 )
+
             fun commit2() =
                 Commit(
                     sha = "fedcbafedcbafedcbafedcbafedcbafedcbafedc",
@@ -99,6 +101,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     parents = mutableSetOf(),
                     committer = user(),
                 )
+
             fun commit3() =
                 Commit(
                     sha = "0987654321098765432109876543210987654321",
@@ -112,56 +115,118 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
             return Stream.of(
                 // 1, one commit, self referencing
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply { parents = mutableSetOf(commit1()) },
-                    ),
+                    run {
+                        val c1 = commit1()
+                        c1.parents.add(c1)
+                        listOf(
+                            c1
+                        )
+                    }
                 ),
 //                2
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply {
-                            val prnt = commit2().copy().apply { parents = mutableSetOf(commit2()) }
-                            parents = mutableSetOf(prnt)
-                        },
-                    ),
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+                        c1.parents.add(c2)
+                        c2.parents.add(c2)
+
+                        listOf(c1)
+                    }
                 ),
 //                3
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply {
-                            val prnt = commit2().copy().apply { parents = mutableSetOf(commit1()) }
-                            parents = mutableSetOf(prnt)
-                        },
-                    ),
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+
+                        c1.parents.add(c2)
+                        c2.parents.add(c1)
+
+                        listOf(c1)
+                    }
                 ),
 //                4
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply {
-                            val prnt = commit2().copy().apply { parents = mutableSetOf(commit1(), commit3()) }
-                            parents = mutableSetOf(prnt)
-                        },
-                    ),
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+                        val c3 = commit3()
+
+                        c1.parents.add(c2)
+                        c2.parents.add(c3)
+                        c2.parents.add(c1)
+
+                        listOf(c1)
+                    }
                 ),
 //                5
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply {
-                            val prnt = commit2().apply { parents = mutableSetOf(commit2()) }
-                            parents = mutableSetOf(prnt)
-                        },
-                        commit3(),
-                    ),
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+                        val c3 = commit3()
+
+                        c1.parents.add(c2)
+                        c2.parents.add(c2)
+
+                        listOf(c1, c3)
+                    }
                 ),
 //                6, same as 5 but reversed order
                 Arguments.of(
-                    listOf(
-                        commit3(),
-                        commit1().copy().apply {
-                            val prnt = commit2().apply { parents = mutableSetOf(commit2()) }
-                            parents = mutableSetOf(prnt)
-                        },
-                    ),
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+                        val c3 = commit3()
+
+                        c1.parents.add(c2)
+                        c2.parents.add(c2)
+
+                        listOf(c3, c1)
+                    }
+                ),
+//                7, just save middle commit c2
+                Arguments.of(
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+                        val c3 = commit3()
+
+                        c1.parents.add(c2)
+                        c2.parents.add(c3)
+                        c3.parents.add(c1)
+
+                        listOf(c2)
+                    }
+                ),
+//                8, just save first commit c1
+                Arguments.of(
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+                        val c3 = commit3()
+
+                        c1.parents.add(c2)
+                        c2.parents.add(c3)
+                        c3.parents.add(c1)
+
+                        listOf(c1)
+                    }
+                ),
+//                9, just save last commit c1
+                Arguments.of(
+                    run {
+                        val c1 = commit1()
+                        val c2 = commit2()
+                        val c3 = commit3()
+
+                        c1.parents.add(c2)
+                        c2.parents.add(c3)
+                        c3.parents.add(c1)
+
+                        listOf(c3)
+                    }
                 ),
             )
         }
@@ -174,7 +239,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     email = "user@example.com",
                 )
 
-            fun commit1(): Commit {
+            fun commit1_pc(): Commit {
                 val cmt =
                     Commit(
                         sha = "A".repeat(40),
@@ -188,7 +253,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                 return cmt
             }
 
-            fun commit2(): Commit {
+            fun commit2_pc(): Commit {
                 val cmt =
                     Commit(
                         sha = "B".repeat(40),
@@ -203,7 +268,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                 return cmt
             }
 
-            fun commit3(): Commit {
+            fun commit3_pc(): Commit {
                 val cmt =
                     Commit(
                         sha = "C".repeat(40),
@@ -222,46 +287,115 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
 //                1
                 Arguments.of(
                     listOf(
-                        commit1(),
+                        commit1_pc(),
                     ),
                 ),
 //                2
                 Arguments.of(
-                    listOf(
-                        commit1().apply { parents = mutableSetOf() },
-                        commit2().apply { parents = mutableSetOf() },
-                    ),
+                    run {
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+                        listOf(
+                            c1, c2
+                        )
+                    }
                 ),
 //                3
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply { parents = mutableSetOf() },
-                        commit2().copy().apply { parents = mutableSetOf() },
-                        commit3().copy().apply { parents = mutableSetOf() },
-                    ),
+                    run {
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+                        val c3 = commit3_pc()
+
+                        listOf(
+                            c1, c2, c3
+                        )
+                    }
                 ),
                 // 4, two commits, with relationship
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply { parents = mutableSetOf(commit2()) },
-                    ),
+                    run {
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+
+                        c1.parents.add(c2)
+
+                        listOf(
+//                            intentionally missing c2 here
+                            c1
+                        )
+                    }
                 ),
                 // 5, second commit without extra
                 Arguments.of(
-                    listOf(
-                        commit1().copy().apply { parents = mutableSetOf(commit2()) },
-                        commit3(),
-                    ),
+                    run {
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+                        val c3 = commit3_pc()
+
+                        c1.parents.add(c2)
+
+                        listOf(
+//                            intentionally missing c2 here
+                            c1, c3
+                        )
+                    }
                 ),
                 // 6, two commits, with relationship, with extra
                 Arguments.of(
                     run {
-                        val p = commit2()
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+                        c1.parents.add(c2)
+
                         listOf(
-                            commit1().copy().apply { parents = mutableSetOf(p) },
-                            p,
+                            c1, c2
                         )
                     },
+                ),
+//                7, octopus merge
+                Arguments.of(
+                    run {
+                        val c1 = commit1_pc()
+                        c1.parents.add(commit2_pc())
+                        c1.parents.add(commit3_pc())
+
+                        listOf(c1)
+                    }
+                ),
+//                8, octopus merge
+                Arguments.of(
+                    run {
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+                        val c3 = commit3_pc()
+
+                        c1.parents.add(c3)
+                        c1.parents.add(c2)
+
+                        c3.parents.add(c2)
+                        listOf(
+                            c1, c2, c3
+                        )
+                    }
+                ),
+//                9, octopus merge
+                Arguments.of(
+                    run {
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+                        val c3 = commit3_pc()
+
+                        c1.parents.add(c2)
+                        c1.parents.add(c3)
+
+//                        vice versa to 7
+                        c2.parents.add(c3)
+
+                        listOf(
+                            c1, c2, c3
+                        )
+                    }
                 ),
             )
         }

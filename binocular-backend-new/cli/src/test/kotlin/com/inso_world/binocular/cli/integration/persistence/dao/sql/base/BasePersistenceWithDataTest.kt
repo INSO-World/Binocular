@@ -18,9 +18,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Lazy
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.transaction.support.TransactionTemplate
 
 @SpringBootTest(classes = [BinocularCommandLineApplication::class])
+@DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     @Autowired @Lazy
     private lateinit var repoService: RepositoryService

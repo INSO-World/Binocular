@@ -65,7 +65,7 @@ internal class CommitServiceTest private constructor(
                 author = null,
                 commitTime = null,
                 authorTime = null,
-                parents = listOf(),
+                parents = setOf(),
             )
         val existing = commitService.checkExisting(this.simpleRepo, listOf(exitingHeadCommits))
 
@@ -87,7 +87,7 @@ internal class CommitServiceTest private constructor(
                 author = null,
                 commitTime = null,
                 authorTime = null,
-                parents = listOf(),
+                parents = setOf(),
             )
         val headOfSimpleRepo =
             VcsCommit(
@@ -98,7 +98,7 @@ internal class CommitServiceTest private constructor(
                 author = null,
                 commitTime = null,
                 authorTime = null,
-                parents = listOf(),
+                parents = setOf(),
             )
         val existing = commitService.checkExisting(this.simpleRepo, listOf(headOfSimpleRepo, headOfOctoRepo))
 
@@ -121,7 +121,7 @@ internal class CommitServiceTest private constructor(
                 author = null,
                 commitTime = null,
                 authorTime = null,
-                parents = listOf(),
+                parents = setOf(),
             )
         val existing = commitService.checkExisting(this.simpleRepo, listOf(exitingHeadCommits))
 
