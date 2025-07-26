@@ -2,8 +2,7 @@ package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.cli.exception.CliException
 import com.inso_world.binocular.cli.exception.ServiceException
-import com.inso_world.binocular.cli.index.vcs.toDto
-import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
+import com.inso_world.binocular.cli.index.vcs.toDtos
 import com.inso_world.binocular.model.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,8 +33,14 @@ class VcsService(
             }
         logger.info("Found repository: ${vcsRepo.gitDir}")
 
-        val vcsCommits = this.ffiService.traverseAllOnBranch(vcsRepo, branch).map(BinocularCommitPojo::toDto)
-        logger.debug("Existing commits: ${vcsCommits.count()} commit(s) found on branch $branch")
+        val vcsCommits = this.ffiService.traverseAllOnBranch(vcsRepo, branch).toDtos()
+
+        val shas = vcsCommits.map { it.sha }
+        val parentShas = vcsCommits.flatMap { it.parents }
+
+        logger.debug(
+            "Existing commits: ${shas.count()}+${ parentShas.count() }=${(shas + parentShas).distinct().count()} commit(s) found on branch $branch",
+        )
         this.repoService.addCommits(vcsRepo, vcsCommits, project)
         logger.trace("<<< indexRepository({}, {}, {})", repoPath, branch, project)
     }

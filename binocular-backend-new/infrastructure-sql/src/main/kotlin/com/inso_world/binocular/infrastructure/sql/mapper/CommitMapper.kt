@@ -70,6 +70,7 @@ internal class CommitMapper {
                     branch = domain.branch,
                     repository = repository,
                     parents = mutableSetOf(),
+                    children = mutableSetOf(),
                     branches = mutableSetOf(),
                 )
             return@lazy e
@@ -90,8 +91,8 @@ internal class CommitMapper {
                 },
             )
         entity.parents =
-            proxyFactory.createLazyMutableSet {
-                domain.parents
+            run {
+                return@run domain.parents
                     .map { parent ->
                         run {
                             val existingEntity = ctx.entity.commit[parent.sha]
@@ -103,8 +104,29 @@ internal class CommitMapper {
                             // this avoids concurrent modification in the context
                             val newEntity = toEntity(parent, repository)
                             ctx.entity.commit.computeIfAbsent(parent.sha) { newEntity }
+                            return@map ctx.entity.commit[parent.sha]
+                                ?: throw IllegalStateException("Parent commit must be mapped here")
                         }
-                    }
+                    }.toMutableSet()
+            }
+        entity.children =
+            run {
+                return@run domain.children
+                    .map { child ->
+                        run {
+                            val existingEntity = ctx.entity.commit[child.sha]
+                            if (existingEntity != null) {
+                                return@map existingEntity
+                            }
+                        }
+                        run {
+                            // this avoids concurrent modification in the context
+                            val newEntity = toEntity(child, repository)
+                            ctx.entity.commit.computeIfAbsent(child.sha) { newEntity }
+                            return@map ctx.entity.commit[child.sha]
+                                ?: throw IllegalStateException("Child commit must be mapped here")
+                        }
+                    }.toMutableSet()
             }
         entity.committer =
             domain.committer?.let { user ->
@@ -161,7 +183,8 @@ internal class CommitMapper {
                                 run {
                                     val domain = toDomain(it, repository)
                                     ctx.domain.commit.computeIfAbsent(it.sha) { domain }
-                                    return@map domain
+                                    return@map ctx.domain.commit[it.sha]
+                                        ?: throw IllegalStateException("Parent commit must be mapped here")
                                 }
                             }
                         loadedParents.toMutableSet()
@@ -173,6 +196,7 @@ internal class CommitMapper {
 //                                    p.parents.forEach { pp -> pp.repositoryId = repository.id }
 //                                }
                     },
+//                        ),
 //                        ),
             )
 
@@ -226,6 +250,39 @@ internal class CommitMapper {
 
         // The domain object is only put into the context when it's fully created and its lazy collections are being initialized
         ctx.domain.commit.computeIfAbsent(domain.sha) { domain } // Removed this line
+
+        domain.children =
+//                    proxyFactory
+//                        .createLazyMutableSet(
+            run {
+//                                transactionTemplate.execute {
+//                                     Reload the entity in a new session
+                val freshEntity = entityManager.find(CommitEntity::class.java, entity.id)
+                // Now the collection is attached to this session
+                val loadedChildren =
+                    freshEntity.children.map { it ->
+                        run {
+                            val domain = ctx.domain.commit[it.sha]
+                            if (domain != null) {
+                                return@map domain
+                            }
+                        }
+                        run {
+                            val domain = toDomain(it, repository)
+                            ctx.domain.commit.computeIfAbsent(it.sha) { domain }
+                            return@map ctx.domain.commit[it.sha]
+                                ?: throw IllegalStateException("Child commit must be mapped here")
+                        }
+                    }
+                loadedChildren.toMutableSet()
+//                                } ?: throw IllegalStateException("transaction should load parent entities")
+//                            },
+//                            { it ->
+//                                it.forEach { p ->
+//                                    p.repositoryId = repository.id
+//                                    p.parents.forEach { pp -> pp.repositoryId = repository.id }
+//                                }
+            }
 
         return domain
     }

@@ -10,13 +10,16 @@ import com.inso_world.binocular.model.Repository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.support.TransactionTemplate
+import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
@@ -29,13 +32,37 @@ internal class VcsIndexCommandsTest(
     @PersistenceContext
     lateinit var entityManager: EntityManager
 
+    @Nested
+    inner class OctoRepo {
+        @Test
+        fun `index branch master`() {
+            assertDoesNotThrow {
+                idxClient.commits(
+                    repoPath = "$FIXTURES_PATH/$OCTO_REPO",
+                    branchName = "master",
+                    OCTO_PROJECT_NAME,
+                )
+            }
+            val repo = repoService.findRepo("$FIXTURES_PATH/$OCTO_REPO") ?: throw IllegalStateException("repo cannot be null here")
+            assertAll("check numbers",
+                { assertThat(repo).isNotNull() },
+                { assertThat(repo.branches).isNotEmpty() },
+                { assertThat(repo.branches).hasSize(1) },
+                { assertThat(repo.branches.map { it.name }).containsOnly("master") },
+                { assertThat(repo.commits).isNotEmpty() },
+                { assertThat(repo.commits).hasSize(19) },
+                { assertThat(repo.user).hasSize(3) },
+            )
+        }
+    }
+
     @ParameterizedTest
     @CsvSource(
         "master,14",
         "origin/master,13",
     )
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
-    fun `index commits -b master - simple repo`(
+    fun `SIMPLE_REPO, index commits -b master`(
         branchName: String,
         noOfCommits: Int,
     ) {
@@ -241,16 +268,28 @@ internal class VcsIndexCommandsTest(
         }
 
         val newVcsCommit =
-            VcsCommit(
-                "123456789_123456789_123456789_123456789_",
-                "msg1",
-                "master",
-                VcsPerson("User A", "a@test.com"),
-                null,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                listOf("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a"),
-            ) // .toEntity()
+            run {
+                val parent = VcsCommit(
+                    "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
+                    "parent",
+                    "master",
+                    VcsPerson("User B", "b@test.com"),
+                    null,
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
+                    setOf(),
+                )
+                return@run VcsCommit(
+                    "123456789_123456789_123456789_123456789_",
+                    "msg1",
+                    "master",
+                    VcsPerson("User A", "a@test.com"),
+                    null,
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
+                    setOf(parent),
+                )
+            }
 //    // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
         repo1!!.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
 

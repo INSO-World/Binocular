@@ -1,6 +1,6 @@
 package com.inso_world.binocular.cli.integration.utils
 
-import com.inso_world.binocular.cli.index.vcs.toDto
+import com.inso_world.binocular.cli.index.vcs.toDtos
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.ffi.BinocularFfi
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
@@ -39,13 +39,11 @@ internal fun setupRepoConfig(
 }
 
 internal fun generateCommits(
+    svc: RepositoryService,
     repoConfig: RepositoryConfig,
     concreteRepo: Repository,
 ): List<Commit> =
-    RepositoryService()
-        .transformCommits(
-            concreteRepo,
-            repoConfig.hashes.map {
-                it.toDto()
-            },
-        ).toList()
+    svc.transformCommits(
+        concreteRepo,
+        repoConfig.hashes.toDtos()
+    ).toList()
