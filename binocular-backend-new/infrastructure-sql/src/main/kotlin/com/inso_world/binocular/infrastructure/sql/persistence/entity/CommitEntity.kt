@@ -88,6 +88,21 @@ internal data class CommitEntity(
         return sha != null && sha == other.sha
     }
 
+    fun addParent(parent: CommitEntity) {
+        this.parents.add(parent)
+        parent.children.add(this)
+    }
+
+    fun addChild(child: CommitEntity) {
+        this.children.add(child)
+        child.parents.add(this)
+    }
+
+    fun addBranch(branch: BranchEntity) {
+        this.branches.add(branch)
+        branch.commits.add(this)
+    }
+
     override fun hashCode(): Int = Objects.hashCode(sha)
 
     @PreRemove

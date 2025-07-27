@@ -1,10 +1,8 @@
 package com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper
 
 import com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper.base.BaseMapperTest
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -323,11 +321,15 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                 )
             )
         commitList.forEach {
+            // wire up author, committer
+            it.author?.authoredCommits?.add(it)
+            it.committer?.committedCommits?.add(it)
             it.repositoryId = domain.id
             domain.branches.addAll(it.branches)
             it.parents.forEach { parent ->
                 parent.repositoryId = domain.id
                 parent.branches.addAll(it.branches)
+                parent.children.add(it)
             }
         }
 
@@ -343,26 +345,27 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             { assertThat(entity.commits).hasSize(noOfUniqueCommits) },
             { assertThat(entity.branches).hasSize(1) },
             {
-//                TODO use commitList?
-                val uniqueCommits = (domain.commits + domain.commits.flatMap { it.parents }).distinctBy { it.sha }
-                assertThat(entity.commits)
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .ignoringFields(
-                        "id",
-                        "repository",
-                        "repositoryId",
-                        "branches",
-                        "parents.id",
-                        "parents.repository",
-                        "parents.repositoryId",
-                        "parents.branches",
-                    ).isEqualTo(uniqueCommits)
-            },
-            {
                 assertThat(entity.commits.map { it.repository?.id }).containsOnly(domain.id?.toLong())
             },
         )
+        (domain.commits + domain.commits.flatMap { it.parents }).forEach { domainCmt ->
+            val entityCmt =
+                entity.commits.find { it.sha == domainCmt.sha } ?: throw IllegalStateException("must find commit here")
+            assertThat(entityCmt)
+                .usingRecursiveComparison()
+                .ignoringCollectionOrder()
+                .ignoringFieldsMatchingRegexes(
+                    ".*id",
+                    ".*repositoryId",
+                    ".*repository",
+                    ".*children",
+                    ".*commits",
+                    ".*commitShas"
+                )
+                .isEqualTo(domainCmt)
+            assertThat(entityCmt.branches.flatMap { it.commits.map { c -> c.sha } })
+                .containsAll(domainCmt.branches.flatMap { it.commitShas })
+        }
     }
 
     @Test

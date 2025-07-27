@@ -67,7 +67,6 @@ internal class BranchMapper {
                 val commitEntities =
                     domain.commitShas.map {
                         val cmt =
-//                                    commitContext[it]
                             ctx.entity.commit[it]
                                 ?: throw IllegalStateException("Commit sha $it not found in context")
                         cmt

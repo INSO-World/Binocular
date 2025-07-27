@@ -102,10 +102,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         )
                     user.addCommittedCommit(cmt)
 
-                    branch.commitShas.add(cmt.sha)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
+                    branch.addCommit(cmt)
+                    repository.addBranch(branch)
+                    repository.addCommit(cmt)
+                    repository.addUser(user)
 
                     assertAll(
                         "check model",
@@ -180,14 +180,14 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                             committer = user,
                             parents = mutableSetOf(parent)
                         )
-                    parent.children.add(cmt)
+                    parent.addChild(cmt)
                     user.addCommittedCommit(cmt)
                     user.addCommittedCommit(parent)
 
-                    branch.commitShas.add(cmt.sha)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
+                    branch.addCommit(cmt)
+                    repository.addBranch(branch)
+                    repository.addCommit(cmt)
+                    repository.addUser(user)
 
                     assertAll(
                         "check model",
@@ -278,16 +278,16 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                             committer = user,
                             parents = mutableSetOf(parent1, parent2)
                         )
-                    parent1.children.add(cmt)
-                    parent2.children.add(cmt)
+                    parent1.addChild(cmt)
+                    parent2.addChild(cmt)
                     user.addCommittedCommit(cmt)
                     user.addCommittedCommit(parent1)
                     user.addCommittedCommit(parent2)
 
-                    branch.commitShas.add(cmt.sha)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
+                    branch.addCommit(cmt)
+                    repository.addBranch(branch)
+                    repository.addCommit(cmt)
+                    repository.addUser(user)
 
                     assertAll(
                         "check model",
@@ -403,13 +403,13 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             user.addCommittedCommit(cmtA)
             user.addCommittedCommit(cmtB)
 
-            branch.commitShas.add(cmtA.sha)
-            branch.commitShas.add(cmtB.sha)
+            branch.addCommit(cmtA)
+            branch.addCommit(cmtB)
 
-            repository.branches.add(branch)
-            repository.commits.add(cmtA)
-            repository.commits.add(cmtB)
-            repository.user.add(user)
+            repository.addBranch(branch)
+            repository.addCommit(cmtA)
+            repository.addCommit(cmtB)
+            repository.addUser(user)
 
             assertAll(
                 "check model",
@@ -494,13 +494,13 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             user.addCommittedCommit(cmtA)
             user.addCommittedCommit(cmtB)
 
-            branch.commitShas.add(cmtA.sha)
-            branch.commitShas.add(cmtB.sha)
+            branch.addCommit(cmtA)
+            branch.addCommit(cmtB)
 
-            repository.branches.add(branch)
-            repository.commits.add(cmtA)
-            repository.commits.add(cmtB)
-            repository.user.add(user)
+            repository.addBranch(branch)
+            repository.addCommit(cmtA)
+            repository.addCommit(cmtB)
+            repository.addUser(user)
 
             assertAll(
                 "check model",
@@ -576,10 +576,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     repository = repository,
                 )
             user.addCommittedCommit(cmt)
-            branch.commitShas.add(cmt.sha)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-            repository.user.add(user)
+            branch.addCommit(cmt)
+            repository.addBranch(branch)
+            repository.addCommit(cmt)
+            repository.addUser(user)
 
             assertAll(
                 "Check model",
@@ -656,7 +656,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     branches = mutableSetOf(branch),
                     parents = mutableSetOf(parent)
                 )
-//            parent.children.add(cmt)
+//            parent.addChild(cmt)
             val user =
                 User(
                     name = "test",
@@ -665,12 +665,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 )
             user.addCommittedCommit(cmt)
             user.addCommittedCommit(parent)
-            branch.commitShas.add(cmt.sha)
-//            branch.commitShas.add(parent.sha)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-//            repository.commits.add(parent)
-            repository.user.add(user)
+            branch.addCommit(cmt)
+            repository.addBranch(branch)
+            repository.addCommit(cmt)
+            repository.addUser(user)
 
             assertAll(
                 "Check model",
@@ -775,10 +773,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             user.addCommittedCommit(cmt)
             user.addCommittedCommit(parent1)
             user.addCommittedCommit(parent2)
-            branch.commitShas.add(cmt.sha)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-            repository.user.add(user)
+            branch.addCommit(cmt)
+            repository.addBranch(branch)
+            repository.addCommit(cmt)
+            repository.addUser(user)
 
             assertAll(
                 "Check model",
@@ -860,10 +858,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     branches = mutableSetOf(branch),
                 )
             user.addCommittedCommit(cmt)
-            branch.commitShas.add(cmt.sha)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-            repository.user.add(user)
+            branch.addCommit(cmt)
+            repository.addBranch(branch)
+            repository.addCommit(cmt)
+            repository.addUser(user)
 
             assertDoesNotThrow {
                 repositoryPort.update(repository)
@@ -938,10 +936,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repository = repository,
                     )
                 user.addCommittedCommit(cmt)
-                branch.commitShas.add(cmt.sha)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
+                branch.addCommit(cmt)
+                repository.addBranch(branch)
+                repository.addCommit(cmt)
+                repository.addUser(user)
 
                 assertDoesNotThrow {
                     repositoryPort.update(repository)
@@ -972,10 +970,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repository = repository,
                     )
                 user.addCommittedCommit(cmt)
-                branch.commitShas.add(cmt.sha)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
+                branch.addCommit(cmt)
+                repository.addBranch(branch)
+                repository.addCommit(cmt)
+                repository.addUser(user)
 
                 val updatedEntity =
                     assertDoesNotThrow {
@@ -1039,10 +1037,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repository = repository,
                     )
                 user.addCommittedCommit(cmt)
-                branch.commitShas.add(cmt.sha)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
+                branch.addCommit(cmt)
+                repository.addBranch(branch)
+                repository.addCommit(cmt)
+                repository.addUser(user)
 
                 val updatedEntity =
                     assertDoesNotThrow {
@@ -1086,10 +1084,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repository = repository,
                     )
                 user.addCommittedCommit(cmt)
-                branch.commitShas.add(cmt.sha)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
+                branch.addCommit(cmt)
+                repository.addBranch(branch)
+                repository.addCommit(cmt)
+                repository.addUser(user)
 
                 val updatedEntity =
                     assertDoesNotThrow {
@@ -1160,11 +1158,11 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repositoryId = repository.id,
                     )
 
-                cmt.branches.add(branch)
-                branch.commitShas.add(cmt.sha)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
+                cmt.addBranch(branch)
+                branch.addCommit(cmt)
+                repository.addBranch(branch)
+                repository.addCommit(cmt)
+                repository.addUser(user)
 
                 assertAll(
                     "check model",
@@ -1203,10 +1201,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repositoryId = repository.id,
                     )
 
-                cmt.branches.add(branch)
-                branch.commitShas.add(cmt.sha)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
+                cmt.addBranch(branch)
+                branch.addCommit(cmt)
+                repository.addBranch(branch)
+                repository.addCommit(cmt)
 
                 assertAll(
                     "check model",
@@ -1286,15 +1284,14 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
                         repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
                 user.addCommittedCommit(cmt)
                 assertAll(
                     "Adding new commit",
-                    { assertTrue(branch.commitShas.add(cmt.sha)) },
-                    { assertTrue(repository.branches.add(branch)) },
-                    { assertTrue(repository.commits.add(cmt)) },
-                    { assertTrue(repository.user.add(user)) },
+                    { assertTrue(branch.addCommit(cmt)) },
+                    { assertTrue(repository.addBranch(branch)) },
+                    { assertTrue(repository.addCommit(cmt)) },
+                    { assertTrue(repository.addUser(user)) },
                 )
 
                 assertDoesNotThrow {
@@ -1324,10 +1321,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 user.addCommittedCommit(cmt)
                 assertAll(
                     "Add same commit again, same hashCode",
-                    { assertFalse(branch.commitShas.add(cmt.sha)) }, // sha already in
-                    { assertFalse(repository.branches.add(branch)) }, // branch already in
-                    { assertFalse(repository.commits.add(cmt)) }, // cmt is in based on hashCode
-                    { assertFalse(repository.user.add(user)) }, // user is in based on hashCode
+                    { assertFalse(branch.addCommit(cmt)) }, // sha already in
+                    { assertFalse(repository.addBranch(branch)) }, // branch already in
+                    { assertFalse(repository.addCommit(cmt)) }, // cmt is in based on hashCode
+                    { assertFalse(repository.addUser(user)) }, // user is in based on hashCode
                 )
                 assertThat(repository.commits).hasSize(1)
                 assertThat(repository.user).hasSize(1)
@@ -1386,7 +1383,6 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
                         repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
                 val user =
                     User(
@@ -1398,10 +1394,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
                 assertAll(
                     "Adding new commit",
-                    { assertTrue(branch.commitShas.add(cmt.sha)) },
-                    { assertTrue(repository.branches.add(branch)) },
-                    { assertTrue(repository.commits.add(cmt)) },
-                    { assertTrue(repository.user.add(user)) },
+                    { assertTrue(branch.addCommit(cmt)) },
+                    { assertTrue(repository.addBranch(branch)) },
+                    { assertTrue(repository.addCommit(cmt)) },
+                    { assertTrue(repository.addUser(user)) },
                 )
 
                 val savedRepo =
@@ -1437,9 +1433,9 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     )
                 assertAll(
                     "Add same commit again, same hashCode",
-                    { assertFalse(branch.commitShas.add(cmt.sha)) }, // sha already in
-                    { assertFalse(repository.branches.add(branch)) }, // branch already in
-                    { assertTrue(repository.commits.add(cmt)) }, // cmt is NOT in based on hashCode, changed message
+                    { assertFalse(branch.addCommit(cmt)) }, // sha already in
+                    { assertFalse(repository.addBranch(branch)) }, // branch already in
+                    { assertTrue(repository.addCommit(cmt)) }, // cmt is NOT in based on hashCode, changed message
                 )
                 assertThat(repository.commits).hasSize(2)
 
@@ -1503,12 +1499,12 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     user.addCommittedCommit(cmtA)
                     user.addCommittedCommit(cmtB)
 
-                    branch.commitShas.add(cmtA.sha)
-                    branch.commitShas.add(cmtB.sha)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmtA)
-                    repository.commits.add(cmtB)
-                    repository.user.add(user)
+                    branch.addCommit(cmtA)
+                    branch.addCommit(cmtB)
+                    repository.addBranch(branch)
+                    repository.addCommit(cmtA)
+                    repository.addCommit(cmtB)
+                    repository.addUser(user)
 
                     assertAll(
                         "check model",

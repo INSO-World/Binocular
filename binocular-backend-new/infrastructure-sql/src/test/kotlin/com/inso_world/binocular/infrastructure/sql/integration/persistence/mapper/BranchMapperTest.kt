@@ -2,12 +2,12 @@ package com.inso_world.binocular.infrastructure.sql.integration.persistence.mapp
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper.base.BaseMapperTest
+import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -19,7 +19,6 @@ import jakarta.validation.Validation
 import jakarta.validation.Validator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -91,7 +90,6 @@ internal class BranchMapperTest : BaseMapperTest() {
     }
 
     @Test
-    @Disabled("something wrong in the setup with ctx, investigate later")
     fun `branchMapper toEntity, with commit`() {
         val commit =
             Commit(
@@ -118,15 +116,10 @@ internal class BranchMapperTest : BaseMapperTest() {
                 repository = this.repositoryEntity,
                 branches = mutableSetOf(),
             )
-        val branchEntity =
-            BranchEntity(
-                name = branch.name,
-                commits = mutableSetOf(commitEntity),
-                repository = this.repositoryEntity,
-            )
-        commitEntity.branches.add(branchEntity)
         this.repositoryEntity.commits.add(commitEntity)
-        this.repositoryEntity.branches.add(branchEntity)
+
+//        setup ctx
+        ctx.entity.commit[commit.sha] = commitEntity
 
         val entity =
             assertDoesNotThrow {

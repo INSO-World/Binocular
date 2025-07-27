@@ -53,6 +53,24 @@ data class Commit(
                     lst
                 }
 
+    fun addParent(parent: Commit): Boolean {
+        val a = this.parents.add(parent)
+        val b = parent.children.add(this)
+        return a && b
+    }
+
+    fun addChild(child: Commit): Boolean {
+        val a = this.children.add(child)
+        val b = child.parents.add(this)
+        return a && b
+    }
+
+    fun addBranch(branch: Branch): Boolean {
+        val a = this.branches.add(branch)
+        val b = branch.commitShas.add(sha)
+        return a && b
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null) return false
