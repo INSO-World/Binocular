@@ -10,12 +10,12 @@ import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
+import jakarta.persistence.Lob
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 import java.util.Objects
@@ -35,13 +35,13 @@ internal data class CommitEntity(
     var id: Long? = null,
     @Column(unique = true, updatable = false)
     @field:Size(min = 40, max = 40)
-    var sha: String,
+    val sha: String,
     @Column(name = "author_dt")
     val authorDateTime: LocalDateTime? = null,
     @Column(name = "commit_dt")
     val commitDateTime: LocalDateTime? = null,
     @Column(columnDefinition = "TEXT")
-    @field:NotBlank
+    @Lob
     var message: String? = null,
     @Column(name = "web_url")
     var webUrl: String? = null,
@@ -53,6 +53,11 @@ internal data class CommitEntity(
         joinColumns = [JoinColumn(name = "child_id")],
         inverseJoinColumns = [JoinColumn(name = "parent_id")],
         uniqueConstraints = [UniqueConstraint(columnNames = ["child_id", "parent_id"])],
+        indexes = [
+            Index(name = "child_idx", columnList = "child_id"),
+            Index(name = "parent_idx", columnList = "parent_id"),
+            Index(name = "combined_idx", columnList = "child_id,parent_id"),
+        ],
     )
     var parents: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToMany(mappedBy = "parents", fetch = FetchType.LAZY)
@@ -77,7 +82,11 @@ internal data class CommitEntity(
 ) : AbstractEntity() {
     override fun uniqueKey(): String = this.sha
 
-    override fun equals(other: Any?): Boolean = other is CommitEntity && this.sha == other.sha
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CommitEntity) return false
+        return sha != null && sha == other.sha
+    }
 
     override fun hashCode(): Int = Objects.hashCode(sha)
 
