@@ -158,7 +158,7 @@ internal class UserMapper {
                     // Now the collection is attached to this session
                     freshEntity.committedCommits
                         .map {
-                            commitMapper.toDomain(it, repository)
+                            ctx.domain.commit[it.sha] ?: throw IllegalStateException("Commit ${it.sha} was not mapped")
                         }.toMutableSet()
                 } ?: throw IllegalStateException("transaction should load branch committedCommits")
             }
@@ -179,7 +179,7 @@ internal class UserMapper {
                     // Now the collection is attached to this session
                     freshEntity.authoredCommits
                         .map {
-                            commitMapper.toDomain(it, repository)
+                            ctx.domain.commit[it.sha] ?: throw IllegalStateException("Commit ${it.sha} was not mapped")
                         }.toMutableSet()
                 } ?: throw IllegalStateException("transaction should load authoredCommits entities")
             }

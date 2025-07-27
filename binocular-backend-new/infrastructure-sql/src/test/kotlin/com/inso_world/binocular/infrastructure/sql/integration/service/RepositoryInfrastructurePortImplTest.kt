@@ -327,7 +327,8 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 .isEqualTo(savedRepo.commits.find { it.sha == "c".repeat(40) })
 //            check relationship of child
             run {
-                val child = savedRepo.commits.find { it.sha == "c".repeat(40) } ?: throw IllegalStateException("child must be found here")
+                val child = savedRepo.commits.find { it.sha == "c".repeat(40) }
+                    ?: throw IllegalStateException("child must be found here")
 
                 assertThat(child.parents).hasSize(2)
                 assertThat(child.children).isEmpty()
@@ -655,6 +656,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     branches = mutableSetOf(branch),
                     parents = mutableSetOf(parent)
                 )
+//            parent.children.add(cmt)
             val user =
                 User(
                     name = "test",
@@ -664,13 +666,15 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             user.addCommittedCommit(cmt)
             user.addCommittedCommit(parent)
             branch.commitShas.add(cmt.sha)
+//            branch.commitShas.add(parent.sha)
             repository.branches.add(branch)
             repository.commits.add(cmt)
+//            repository.commits.add(parent)
             repository.user.add(user)
 
             assertAll(
                 "Check model",
-                {assertThat(cmt.parents).hasSize(1)},
+                { assertThat(cmt.parents).hasSize(1) },
                 { assertThat(branch.commitShas).hasSize(1) },
                 { assertThat(repository.branches).hasSize(1) },
                 { assertThat(repository.commits).hasSize(1) },
@@ -684,12 +688,18 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             assertAll(
                 "Check updated entity",
                 { assertThat(updatedEntity.commits).hasSize(2) },
-                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.parents).hasSize(1) },
-                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.children).isEmpty() },
-                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.children).hasSize(1) },
-                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.parents).isEmpty() },
                 { assertThat(updatedEntity.branches).hasSize(1) },
                 { assertThat(updatedEntity.user).hasSize(1) },
+            )
+            assertAll(
+                "check child",
+                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.parents).hasSize(1) },
+                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.children).isEmpty() },
+            )
+            assertAll(
+                "check parent",
+                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.children).hasSize(1) },
+                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.parents).isEmpty() },
             )
 
             assertAll(
@@ -772,7 +782,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
             assertAll(
                 "Check model",
-                {assertThat(cmt.parents).hasSize(2)},
+                { assertThat(cmt.parents).hasSize(2) },
                 { assertThat(branch.commitShas).hasSize(1) },
                 { assertThat(repository.branches).hasSize(1) },
                 { assertThat(repository.commits).hasSize(1) },
@@ -1211,7 +1221,6 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     assertDoesNotThrow {
                         repositoryPort.update(repository)
                     }
-                transactionTemplate.execute { entityManager.flush() }
                 assertAll(
                     "check updated entity",
                     { assertThat(updatedEntity.branches).hasSize(2) },
@@ -1370,7 +1379,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     name = "test branch 1",
                     repositoryId = repository.id,
                 )
-            run {
+            val savedRepo = run {
                 val cmt =
                     Commit(
                         sha = "1234567890123456789012345678901234567890",
@@ -1413,6 +1422,8 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     .usingRecursiveComparison()
                     .ignoringCollectionOrder()
                     .isEqualTo(savedRepo)
+
+                return@run savedRepo
             }
 
             run {
@@ -1432,9 +1443,9 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 )
                 assertThat(repository.commits).hasSize(2)
 
-                val savedRepo =
+                val updatedRepo =
                     assertDoesNotThrow {
-                        repositoryPort.update(repository)
+                        repositoryPort.update(savedRepo)
                     }
 
                 assertAll(
@@ -1448,7 +1459,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertThat(repositoryPort.findAll().toList()[0])
                     .usingRecursiveComparison()
                     .ignoringCollectionOrder()
-                    .isEqualTo(savedRepo)
+                    .isEqualTo(updatedRepo)
             }
         }
 

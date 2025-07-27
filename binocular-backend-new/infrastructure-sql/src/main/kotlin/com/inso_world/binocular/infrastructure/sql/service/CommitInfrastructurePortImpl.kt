@@ -127,35 +127,17 @@ internal class CommitInfrastructurePortImpl
         override fun findAll(): Iterable<Commit> {
             val repoContext: MutableMap<Long, Repository> = mutableMapOf()
 
-            return this.commitDao.findAll().map { c ->
-                val repoEntity = c.repository ?: throw IllegalStateException("Repository of a Commit cannot be null")
-                if (repoEntity.id == null) {
-                    throw IllegalStateException("Id of an existing repo cannot be null")
+            val values = this.commitDao.findAll()
+            return values
+                .associateBy { it.repository }
+                .flatMap { (k, v) ->
+                    if (k == null) throw IllegalStateException("Cannot map project without repository")
+                    val project =
+                        projectMapper.toDomain(
+                            k.project,
+                        )
+                    return@flatMap project.repo?.commits ?: emptySet()
                 }
-                val repo =
-                    repoContext.computeIfAbsent(repoEntity.id) {
-                        val project =
-                            projectMapper.toDomain(
-                                repoEntity.project,
-                            )
-
-                        val repo =
-                            this.repositoryMapper.toDomain(repoEntity, project)
-
-                        ctx.domain.commit.putAll(
-                            repo.commits.associateBy { it.sha },
-                        )
-                        ctx.domain.branch.putAll(
-                            repo.branches.associateBy { "${repo.name},${it.name}" },
-                        )
-                        ctx.domain.user.putAll(
-                            repo.user.associateBy(User::uniqueKey),
-                        )
-                        return@computeIfAbsent repo
-                    }
-
-                this.commitMapper.toDomain(c, repo)
-            }
         }
 
         override fun findAll(pageable: Pageable): Page<Commit> {
@@ -271,7 +253,7 @@ internal class CommitInfrastructurePortImpl
                 }
         }
 
-//        @MappingSession
+        //        @MappingSession
         override fun updateAndFlush(value: Commit): Commit {
             val updated = update(value)
             this.commitDao.flush()

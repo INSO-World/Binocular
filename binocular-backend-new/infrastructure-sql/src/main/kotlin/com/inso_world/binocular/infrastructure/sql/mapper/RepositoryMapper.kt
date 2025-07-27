@@ -1,6 +1,8 @@
 package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
+import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Project
@@ -27,6 +29,9 @@ internal class RepositoryMapper
         private lateinit var entityManager: EntityManager
 
         @Autowired
+        private lateinit var ctx: MappingContext
+
+        @Autowired
         @Lazy
         private lateinit var transactionTemplate: TransactionTemplate
 
@@ -46,10 +51,10 @@ internal class RepositoryMapper
                         project = project,
                     )
 //                e.commits =
-                domain.commits
-                    .map { it ->
-                        commitMapper.toEntity(it, e)
-                    }.toMutableSet()
+                e.commits = commitMapper.toEntityGraph(domain.commits + domain.commits.flatMap { it.parents }, e)
+//                    .map { it ->
+//                        commitMapper.toEntity(it, e)
+//                    }.toMutableSet()
 
 //                e.branches =
                 domain.branches
@@ -82,54 +87,32 @@ internal class RepositoryMapper
                     id = id.toString(),
                     name = entity.name,
                     project = project,
+                    commits = mutableSetOf(),
+                    branches = mutableSetOf(),
+                    user = mutableSetOf(),
                 )
 
-            domain.commits =
-//                proxyFactory.createLazyMutableSet({
+            // load the *entire* set of CommitEntity once
+            val allCommits: Set<CommitEntity> =
                 transactionTemplate.execute {
-                    // Reload the entity in a new session
-                    val freshEntity = entityManager.find(RepositoryEntity::class.java, entity.id)
-                    // Now the collection is attached to this session
-                    freshEntity.commits
-                        .map {
-                            commitMapper.toDomain(
-                                it,
-                                domain,
-                            )
-                        }.toMutableSet()
-                } ?: throw IllegalStateException("transaction should load repository.commits")
-//                }, {})
+                    val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
+                    fresh.commits
+                } ?: throw IllegalStateException("Cannot load the entire set of CommitEntity once")
 
+            // now map them in one go
+            domain.commits = commitMapper.toDomainGraph(allCommits, domain).toMutableSet()
+
+            // do similar bulk‑mapping for branches and user
             domain.branches =
-//                proxyFactory.createLazyMutableSet({
                 transactionTemplate.execute {
-                    // Reload the entity in a new session
-                    val freshEntity = entityManager.find(RepositoryEntity::class.java, entity.id)
-                    // Now the collection is attached to this session
-                    freshEntity.branches.map { branchMapper.toDomain(it, domain) }.toMutableSet()
-                } ?: throw IllegalStateException("transaction should load repository.branches")
-//                }, {})
+                    val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
+                    fresh.branches.map { branchMapper.toDomain(it, domain) }.toMutableSet()
+                } ?: throw IllegalStateException("Cannot bulk-map branches")
 
-            domain.user =
-//                proxyFactory
-//                    .createLazyMutableSet(
-//                        {
-                transactionTemplate.execute {
-                    // Reload the entity in a new session
-                    val freshEntity = entityManager.find(RepositoryEntity::class.java, entity.id)
-                    // Now the collection is attached to this session
-                    freshEntity.user
-                        .map {
-                            userMapper.toDomain(
-                                it,
-                                domain,
-                            )
-                        }.toMutableSet()
-                } ?: throw IllegalStateException("transaction should load repository.user")
-//                        },
-//                        {
-//                        },
-//                    )
+            domain.user = transactionTemplate.execute {
+                val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
+                fresh.user.map { userMapper.toDomain(it, domain) }.toMutableSet()
+            } ?: throw IllegalStateException("Cannot bulk-map branches")
 
             return domain
         }

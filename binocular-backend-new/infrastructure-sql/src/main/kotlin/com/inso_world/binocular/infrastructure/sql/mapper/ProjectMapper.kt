@@ -42,15 +42,13 @@ internal class ProjectMapper
                     name = entity.name,
                     description = entity.description,
                 )
-            val repo by lazy {
+
+            p.repo =
                 entity.repo?.let { r ->
                     r.id?.let {
                         repoMapper.toDomain(r, p)
                     }
                 }
-            }
-
-            p.repo = repo
             return p
         }
     }

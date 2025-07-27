@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import java.util.Objects
 
 /**
  * Domain model for a Branch, representing a branch in a Git repository.
@@ -41,7 +42,7 @@ data class Branch(
         if (id != other.id) return false
         if (name != other.name) return false
         if (latestCommit != other.latestCommit) return false
-        if (files != other.files) return false
+//        if (files != other.files) return false
         if (commitShas != other.commitShas) return false
         if (repositoryId != other.repositoryId) return false
 
@@ -49,14 +50,14 @@ data class Branch(
     }
 
     override fun hashCode(): Int {
-        var result = active.hashCode()
-        result = 31 * result + tracksFileRenames.hashCode()
-        result = 31 * result + (id?.hashCode() ?: 0)
-        result = 31 * result + name.hashCode()
-        result = 31 * result + (latestCommit?.hashCode() ?: 0)
+        var result = Objects.hashCode(active)
+        result = 31 * result + Objects.hashCode(tracksFileRenames)
+        result = 31 * result + Objects.hashCode(id)
+        result = 31 * result + Objects.hashCode(name)
+        result = 31 * result + Objects.hashCode(latestCommit)
         return result
     }
 
     override fun toString(): String =
-        "Branch(id=$id, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit)"
+        "Branch(id=$id, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=$commitShas, repositoryId=$repositoryId)"
 }

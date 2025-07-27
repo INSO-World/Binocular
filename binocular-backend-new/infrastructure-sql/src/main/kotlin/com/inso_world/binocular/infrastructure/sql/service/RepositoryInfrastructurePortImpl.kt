@@ -158,12 +158,6 @@ internal class RepositoryInfrastructurePortImpl :
                 ?: throw IllegalStateException("On updating Repository, it is required to be set to project already")
         logger.debug("Repository Entity found")
 
-        //                TODO N+1 here
-        ctx.entity.commit.putAll(entity.commits.associateBy(CommitEntity::uniqueKey))
-        ctx.entity.branch.putAll(entity.branches.associateBy(BranchEntity::uniqueKey))
-        ctx.entity.user.putAll(entity.user.associateBy(UserEntity::uniqueKey))
-        logger.trace("Entity context built")
-
         run {
             // Synchronize commits: remove those not in value.commits
             val valueCommitShas = value.commits.map { it.sha }.toSet()
@@ -183,35 +177,17 @@ internal class RepositoryInfrastructurePortImpl :
         }
         logger.trace("User synchronized")
 
-        // Rebuild context after removals
+        // build context after changes are synced
+        // TODO N+1 here
+        ctx.entity.commit.putAll(entity.commits.associateBy(CommitEntity::uniqueKey))
+        ctx.entity.branch.putAll(entity.branches.associateBy(BranchEntity::uniqueKey))
+        ctx.entity.user.putAll(entity.user.associateBy(UserEntity::uniqueKey))
+        logger.trace("Entity context built")
 
-        // Add or update commits
-        value.commits.forEach {
-            if (!ctx.entity.commit.containsKey(it.sha)) {
-                val commitEntity = commitMapper.toEntity(it, entity)
-                entity.commits.add(commitEntity)
-//                commitContext[it.sha] = commitEntity
-                ctx.entity.commit.computeIfAbsent(it.sha) { commitEntity }
-            }
-        }
+        entity.commits.addAll(
+            commitMapper.toEntityGraph(value.commits + value.commits.flatMap { it.parents }, entity),
+        )
         logger.trace("Commits updated")
-        // Ensure all commits referenced by branches are present
-        value.branches.forEach { branch ->
-            branch.commitShas.forEach { sha ->
-                if (!ctx.entity.commit.containsKey(sha)) {
-                    val commit = value.commits.find { it.sha == sha }
-                    if (commit != null) {
-                        val commitEntity =
-                            commitMapper.toEntity(commit, entity)
-                        entity.commits.add(commitEntity)
-                        ctx.entity.commit.computeIfAbsent(sha) { commitEntity }
-                    } else {
-                        throw IllegalStateException("Branch references commit sha $sha not present in value.commits")
-                    }
-                }
-            }
-        }
-        logger.trace("Branches updated [1/2]")
         // Add or update branches
         value.branches.forEach {
             val key = "${entity.name},${it.name}"
@@ -221,30 +197,26 @@ internal class RepositoryInfrastructurePortImpl :
                 ctx.entity.branch.computeIfAbsent(key) { newBranch }
             }
         }
-        logger.trace("Branches updated [2/2]")
+        logger.trace("Branches updated")
 
-        val updated =
-            run {
-                val updated = this.repositoryDao.update(entity)
-                this.repositoryDao.flush()
-                return@run updated
-            }
+        val updated = repositoryDao.update(entity).also { repositoryDao.flush() }
 
         logger.trace("Update executed")
 
         return run {
-//            TODO triggers many SELECT statements
-            entityManager.refresh(updated)
+            // Instead of refresh + lazy‐walk, grab a fully fetched instance:
+            val fullyLoaded =
+                repositoryDao
+                    .findByIdWithAllRelations(updated.id!!)
+                    ?: throw NotFoundException("Repository ${updated.id} disappeared")
+
             logger.trace("Entity refreshed")
             logger.trace("Domain context built")
 
-            val project =
-                projectMapper.toDomain(
-                    updated.project,
-                )
+            val project = projectMapper.toDomain(fullyLoaded.project)
             logger.trace("Domain project built")
 
-            val domain = repositoryMapper.toDomain(updated, project)
+            val domain = repositoryMapper.toDomain(fullyLoaded, project)
             logger.trace("Domain object built")
             return@run domain
         }

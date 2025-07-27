@@ -14,7 +14,7 @@ import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
 
-@Entity(name = "repository")
+@Entity
 @Table(name = "repositories")
 internal data class RepositoryEntity(
     @Id
