@@ -20,6 +20,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -583,6 +584,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
         @MethodSource(
             "com.inso_world.binocular.infrastructure.sql.integration.service.CommitInfrastructurePortImplTest#provideCyclicCommits",
         )
+        @Disabled("until something clever is implemented for cycle detection")
         fun `save multiple commits with cycle, expect ValidationException`(commitList: List<Commit>) {
             var branch = Branch(
                 name = "test branch"

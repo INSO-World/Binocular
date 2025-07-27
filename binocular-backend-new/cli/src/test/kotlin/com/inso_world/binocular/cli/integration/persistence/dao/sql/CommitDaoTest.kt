@@ -139,7 +139,7 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
-        @Disabled
+        @Disabled("can probably be deleted")
         fun `commit with invalid message should fail`(invalidMessage: String) {
             // Then - This should fail due to validation constraint
             val exception =

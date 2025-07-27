@@ -2,6 +2,8 @@ package com.inso_world.binocular.model.validation
 
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 import jakarta.validation.Validation
 import jakarta.validation.Validator
 import org.assertj.core.api.Assertions.assertThat
@@ -154,7 +156,12 @@ class CommitCycleValidationTest {
 
     @Test
     fun `should fail validation for deep nested cycle at level 3`() {
+        val repository = Repository(
+            name = "test repo",
+            project = Project(name = "test project")
+        )
         val branch = Branch(name = "b")
+        repository.branches.add(branch)
         val commitA =
             Commit(
                 sha = "a".repeat(40),
@@ -162,6 +169,7 @@ class CommitCycleValidationTest {
                 message = "A",
                 branches = mutableSetOf(branch),
             )
+        repository.commits.add(commitA)
         val commitB =
             Commit(
                 sha = "b".repeat(40),
@@ -169,6 +177,7 @@ class CommitCycleValidationTest {
                 message = "B",
                 branches = mutableSetOf(branch),
             )
+        repository.commits.add(commitB)
         val commitC =
             Commit(
                 sha = "c".repeat(40),
@@ -176,6 +185,7 @@ class CommitCycleValidationTest {
                 message = "C",
                 branches = mutableSetOf(branch),
             )
+        repository.commits.add(commitC)
         val commitD =
             Commit(
                 sha = "d".repeat(40),
@@ -183,6 +193,7 @@ class CommitCycleValidationTest {
                 message = "D",
                 branches = mutableSetOf(branch),
             )
+        repository.commits.add(commitD)
         // A -> B -> C -> D -> B (cycle at level 3)
         commitA.parents = mutableSetOf(commitB)
         commitB.parents = mutableSetOf(commitC)
@@ -194,7 +205,7 @@ class CommitCycleValidationTest {
         branch.commitShas.add(commitD.sha)
         val violation =
             run {
-                val violations = validator.validate(commitA)
+                val violations = validator.validate(repository)
                 assertThat(violations).hasSize(1)
                 violations.toList()[0]
             }

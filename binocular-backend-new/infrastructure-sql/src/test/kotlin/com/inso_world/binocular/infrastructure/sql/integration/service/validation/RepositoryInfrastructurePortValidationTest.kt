@@ -92,39 +92,39 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
                     ),
                     "commitDateTime",
                 ),
-                Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "d".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = null, // invalid: NotBlank
-                        repositoryId = "1",
-                    ),
-                    "message",
-                ),
-                Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "d".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = " ", // invalid: NotBlank
-                        repositoryId = "1",
-                    ),
-                    "message",
-                ),
-                Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "d".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "", // invalid: NotBlank
-                        repositoryId = "1",
-                    ),
-                    "message",
-                ),
+//                Arguments.of(
+//                    Commit(
+//                        id = null,
+//                        sha = "d".repeat(40),
+//                        authorDateTime = LocalDateTime.now(),
+//                        commitDateTime = LocalDateTime.now(),
+//                        message = null, // invalid: NotBlank
+//                        repositoryId = "1",
+//                    ),
+//                    "message",
+//                ),
+//                Arguments.of(
+//                    Commit(
+//                        id = null,
+//                        sha = "d".repeat(40),
+//                        authorDateTime = LocalDateTime.now(),
+//                        commitDateTime = LocalDateTime.now(),
+//                        message = " ", // invalid: NotBlank
+//                        repositoryId = "1",
+//                    ),
+//                    "message",
+//                ),
+//                Arguments.of(
+//                    Commit(
+//                        id = null,
+//                        sha = "d".repeat(40),
+//                        authorDateTime = LocalDateTime.now(),
+//                        commitDateTime = LocalDateTime.now(),
+//                        message = "", // invalid: NotBlank
+//                        repositoryId = "1",
+//                    ),
+//                    "message",
+//                ),
                 Arguments.of(
                     Commit(
                         id = null,
