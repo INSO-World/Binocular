@@ -70,7 +70,7 @@ internal class RepositoryServiceTest(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    setOf(),
+                    mutableSetOf(),
                 ), // Empty parents list
             )
         val transformedCommits = repositoryService.transformCommits(this.simpleRepo, vcsCommits)
@@ -143,7 +143,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                setOf(c1),
+                mutableSetOf(c1),
             )
         val c3 =
             VcsCommit(
@@ -154,7 +154,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                setOf(c1),
+                mutableSetOf(c1),
             )
         val c4 =
             VcsCommit(
@@ -165,7 +165,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                setOf(c2, c3)
+                mutableSetOf(c2, c3)
             )
         val vcsCommits = listOf(c1, c2, c3, c4)
 
@@ -219,7 +219,7 @@ internal class RepositoryServiceTest(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    setOf(
+                    mutableSetOf(
                         VcsCommit(
                             sha = "nonExistentSha",
                             message = "msg2",
@@ -368,7 +368,7 @@ internal class RepositoryServiceTest(
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                setOf(parent),
+                mutableSetOf(parent),
             )
 
         // Order: child first, then parent

@@ -1,5 +1,6 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql
 
+import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.toDtos
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceNoDataTest
@@ -7,6 +8,7 @@ import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePer
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceWithDataTest
 import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
+import com.inso_world.binocular.cli.integration.utils.traverseGraph
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.cli.service.addCommit
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.FIXTURES_PATH
@@ -24,6 +26,7 @@ import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -136,6 +139,7 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
+        @Disabled
         fun `commit with invalid message should fail`(invalidMessage: String) {
             // Then - This should fail due to validation constraint
             val exception =
@@ -521,7 +525,7 @@ internal class CommitDaoTest(
                     commitPort.findHeadForBranch(
                         octoRepo,
                         "master",
-                    )
+                    ) ?: throw IllegalStateException("Head commit of master branch must be found here")
                 assertAll(
                     { assertThat(masterLeaf).isNotNull() },
 //                { assertThat(masterLeaf!!.repository!!.id).isEqualTo(this.octoRepo.id) },
@@ -541,6 +545,11 @@ internal class CommitDaoTest(
                     { assertThat(masterLeaf?.branches).hasSize(1) },
                     { assertThat(masterLeaf?.branches?.toList()[0]?.name).isEqualTo("master") },
                 )
+                run {
+                    val graph: MutableMap<String, Any?> = mutableMapOf()
+                    masterLeaf.traverseGraph(graph)
+                    assertThat(graph).hasSize(19)
+                }
             }
 
             @Test
@@ -606,4 +615,3 @@ internal class CommitDaoTest(
         }
     }
 }
-

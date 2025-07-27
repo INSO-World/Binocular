@@ -60,7 +60,7 @@ internal class CommitMapper
                         }
                     },
                 children =
-                    proxyFactory.createLazyList {
+                    proxyFactory.createLazyMutableSet {
                         (entity.children).map { childEntity ->
                             toDomain(childEntity)
                         }

@@ -75,18 +75,15 @@ internal class RepositoryServiceTestWithSimpleData(
 //                simpleRepoConfig.project.repo = r
 //                projectPort.save(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
 //            }()
-            {
+            run {
                 val r = simpleRepoConfig.repo.toVcsRepository().toDomain()
                 r.project = simpleRepoConfig.project
                 simpleRepoConfig.project.repo = r
-                r
-            }()
+                projectPort.create(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
+            }
 
         generateCommits(repositoryService, simpleRepoConfig, localRepo)
-        localRepo =
-            projectPort.create(simpleRepoConfig.project).repo ?: throw IllegalStateException("project not found")
-        // = localRepo
-//        localRepo = this.repositoryRepository.save(localRepo)
+        localRepo = repositoryService.update(localRepo)
 
         val head = this.repositoryService.getHeadCommits(localRepo, branch)
         assertAll(
@@ -131,7 +128,7 @@ internal class RepositoryServiceTestWithSimpleData(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    setOf(),
+                    mutableSetOf(),
                 )
                 return@run VcsCommit(
                     "1234567890123456789012345678901234567890",
@@ -141,7 +138,7 @@ internal class RepositoryServiceTestWithSimpleData(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    setOf(parent),
+                    mutableSetOf(parent),
                 )
             }
         val vcsRepo =
@@ -177,7 +174,7 @@ internal class RepositoryServiceTestWithSimpleData(
         var hashes =
             ffi.traverseBranch(ffi.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}"), "master").toDtos()
             hashes.map {
-                val branchField = VcsCommit::class.java.getDeclaredField("parents")
+                val branchField = VcsCommit::class.java.getDeclaredField("branch")
                 branchField.isAccessible = true
                 branchField.set(it, "develop")
             }
@@ -193,7 +190,7 @@ internal class RepositoryServiceTestWithSimpleData(
                 VcsPerson("User A", "author@test.com"),
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                setOf(parent),
+                mutableSetOf(parent),
             ),
         )
         val vcsRepo =

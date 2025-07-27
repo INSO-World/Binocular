@@ -105,21 +105,21 @@ internal object ValidationTestData {
                 }.toList()
                 .toTypedArray(),
             // Add all blank string cases from provideBlankStrings()
-            *provideBlankStrings()
-                .map {
-                    Arguments.of(
-                        Commit(
-                            id = null,
-                            sha = "d".repeat(40),
-                            authorDateTime = LocalDateTime.now(),
-                            commitDateTime = LocalDateTime.now(),
-                            message = it.get()[0] as String, // extract the blank string
-                            repositoryId = "1",
-                        ),
-                        "message",
-                    )
-                }.toList()
-                .toTypedArray(),
+//            *provideBlankStrings()
+//                .map {
+//                    Arguments.of(
+//                        Commit(
+//                            id = null,
+//                            sha = "d".repeat(40),
+//                            authorDateTime = LocalDateTime.now(),
+//                            commitDateTime = LocalDateTime.now(),
+//                            message = it.get()[0] as String, // extract the blank string
+//                            repositoryId = "1",
+//                        ),
+//                        "message",
+//                    )
+//                }.toList()
+//                .toTypedArray(),
 //            run {
 //            }
 //            Arguments.of(

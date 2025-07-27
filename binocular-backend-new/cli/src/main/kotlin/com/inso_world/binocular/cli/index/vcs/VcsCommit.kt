@@ -2,10 +2,11 @@ package com.inso_world.binocular.cli.index.vcs
 
 import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import com.inso_world.binocular.model.Commit
-import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.util.Base64
+import java.util.Objects
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 
 data class VcsCommit(
     val sha: String,
@@ -15,10 +16,12 @@ data class VcsCommit(
     val author: VcsPerson?,
     val commitTime: LocalDateTime?,
     val authorTime: LocalDateTime?,
-    val parents: Set<VcsCommit> = setOf(),
+    val parents: MutableSet<VcsCommit> = mutableSetOf(),
 ) {
     override fun toString(): String =
-        "VcsCommit(sha='$sha', message='$message', branch=$branch, parents=$parents, commitTime=$commitTime, authorTime=$authorTime)"
+        "VcsCommit(sha='$sha', message='$message', branch=$branch, parents=${parents.map {
+            it.sha
+        }}, commitTime=$commitTime, authorTime=$authorTime)"
 
     fun toDomain(): Commit =
         Commit(
@@ -32,38 +35,50 @@ data class VcsCommit(
             branches = mutableSetOf(), // Will be set later in transformCommits
             repositoryId = null, // Will be set later in transformCommits
         )
+
+    override fun hashCode(): Int = Objects.hash(sha, message, branch, commitTime, authorTime)
 }
 
 fun List<BinocularCommitPojo>.toDtos(): List<VcsCommit> {
-    // First, create all VcsCommit objects with empty parents
-    val vcsCommits =
-        this.map { pojo ->
+    val commitCache = ConcurrentHashMap<String, VcsCommit>()
+
+    // First pass: Create VcsCommit objects without parents
+    parallelStream().forEach { pojo ->
+        commitCache.computeIfAbsent(pojo.commit) { sha ->
             VcsCommit(
-                sha = pojo.commit,
-                message = Base64.getDecoder().decode(pojo.message).toString(StandardCharsets.UTF_8),
-                branch = pojo.branch!!, // TODO avoid non null check
-                commitTime =
-                    pojo.committer?.let { ct ->
-                        LocalDateTime.ofEpochSecond(ct.time.seconds, 0, ZoneOffset.UTC)
-                    },
-                authorTime =
-                    pojo.author?.let { ct ->
-                        LocalDateTime.ofEpochSecond(ct.time.seconds, 0, ZoneOffset.UTC)
-                    },
-                parents = emptySet(), // Will be set in the next step
-                committer = pojo.committer?.toVcsPerson(),
-                author = pojo.author?.toVcsPerson(),
+                sha = sha,
+                message = pojo.message,
+                branch = pojo.branch ?: "",
+                committer = pojo.committer?.let { VcsPerson(it.name, it.email) },
+                author = pojo.author?.let { VcsPerson(it.name, it.email) },
+                commitTime = pojo.committer?.time?.let { t -> LocalDateTime.ofEpochSecond(t.seconds, abs(t.offset), ZoneOffset.UTC) },
+                authorTime = pojo.author?.time?.let { t -> LocalDateTime.ofEpochSecond(t.seconds, abs(t.offset), ZoneOffset.UTC) },
+                parents = mutableSetOf(), // Will be populated in second pass
             )
         }
-    val vcsMap = vcsCommits.associateBy { it.sha }
-    // Now, set the parents for each VcsCommit
-    this.forEachIndexed { idx, pojo ->
-        val vcs = vcsCommits[idx]
-        val parentVcs = pojo.parents.mapNotNull { parentPojo -> vcsMap[parentPojo.commit] }.toSet()
-        // Use reflection to set the parents property (since it's a val)
-        val parentsField = VcsCommit::class.java.getDeclaredField("parents")
-        parentsField.isAccessible = true
-        parentsField.set(vcs, parentVcs)
     }
-    return vcsCommits
+
+    // Second pass: Set up parent relationships using cached objects
+    parallelStream().forEach { pojo ->
+        val commit = commitCache[pojo.commit]!!
+        val parentCommits =
+            pojo.parents
+                .mapNotNull { parent ->
+                    commitCache[parent.commit]
+                }.toSet()
+
+        commit.parents.addAll(parentCommits)
+    }
+
+    return parallelStream().map { pojo -> commitCache[pojo.commit]!! }.toList()
+}
+
+fun traverseGraph(
+    cmt: VcsCommit,
+    visited: MutableSet<String> = mutableSetOf(),
+): List<String> {
+    if (!visited.add(cmt.sha)) {
+        return emptyList() // Skip if we've already visited this commit
+    }
+    return listOf(cmt.sha) + cmt.parents.flatMap { traverseGraph(it, visited) }
 }
