@@ -29,9 +29,6 @@ internal class VcsIndexCommandsTest(
     @Autowired val repoService: RepositoryService,
     @Autowired val transactionTemplate: TransactionTemplate,
 ) : BaseShellWithDataTest() {
-    @PersistenceContext
-    lateinit var entityManager: EntityManager
-
     @Nested
     inner class OctoRepo {
         @Test
@@ -277,7 +274,7 @@ internal class VcsIndexCommandsTest(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    setOf(),
+                    mutableSetOf(),
                 )
                 return@run VcsCommit(
                     "123456789_123456789_123456789_123456789_",
@@ -287,7 +284,7 @@ internal class VcsIndexCommandsTest(
                     null,
                     LocalDateTime.now(),
                     LocalDateTime.now(),
-                    setOf(parent),
+                    mutableSetOf(parent),
                 )
             }
 //    // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")

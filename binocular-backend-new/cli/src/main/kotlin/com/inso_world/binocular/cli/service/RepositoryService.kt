@@ -177,6 +177,8 @@ class RepositoryService {
             this.transformCommits(repo, existingCommitEntities.second)
 
             logger.debug("Commit transformation finished")
+            logger.debug("${repo.commits.count { it.message?.isEmpty() == true }} Commits have empty messages")
+            logger.trace("Empty message commits: {}", repo.commits.filter { it.message?.isEmpty() == true }.map { it.sha })
 
             project.repo = this.repositoryPort.update(repo)
 

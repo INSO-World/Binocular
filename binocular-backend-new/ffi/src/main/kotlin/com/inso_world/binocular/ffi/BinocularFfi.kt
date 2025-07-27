@@ -49,7 +49,7 @@ class BinocularFfi {
         val pojoMap = pojos.associateBy { it.commit }
 
         // Now, set the parents for each pojo
-        commitVec.forEach { cmt ->
+        commitVec.parallelStream().forEach { cmt ->
             val pojo = pojoMap[cmt.commit]
             if (pojo != null) {
                 cmt.parents.forEach { parentHash ->

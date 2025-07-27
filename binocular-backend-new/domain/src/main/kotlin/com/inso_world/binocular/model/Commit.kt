@@ -1,8 +1,6 @@
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.validation.FromInfrastructure
-import com.inso_world.binocular.model.validation.NoCommitCycle
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Size
@@ -12,7 +10,6 @@ import java.time.LocalDateTime
  * Domain model for a Commit, representing a commit in a Git repository.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
-@NoCommitCycle
 data class Commit(
     val id: String? = null,
     @field:Size(min = 40, max = 40)
@@ -22,7 +19,7 @@ data class Commit(
     @field:PastOrPresent
     @field:NotNull
     val commitDateTime: LocalDateTime? = null,
-    @field:NotBlank
+//    @field:NotBlank // commits may have not message
     val message: String? = null,
     var author: User? = null,
     var committer: User? = null,
