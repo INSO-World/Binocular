@@ -1,19 +1,18 @@
 package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
+import com.inso_world.binocular.infrastructure.sql.exception.IllegalMappingStateException
 import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingScope
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
-import jakarta.persistence.EntityManager
+import jakarta.validation.constraints.NotEmpty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
-import org.springframework.transaction.support.TransactionTemplate
 
 @Component
 internal class CommitMapper {
@@ -21,9 +20,6 @@ internal class CommitMapper {
 
     @Autowired
     private lateinit var ctx: MappingContext
-
-    @Autowired
-    private lateinit var mappingScope: MappingScope
 
     @Autowired
     @Lazy
@@ -37,210 +33,46 @@ internal class CommitMapper {
     @Lazy
     private lateinit var branchMapper: BranchMapper
 
-    @Autowired
-    @Lazy
-    private lateinit var transactionTemplate: TransactionTemplate
-
-    @Autowired
-    @Lazy
-    private lateinit var entityManager: EntityManager
-
     /**
      * Converts a domain Commit to a SQL CommitEntity
      */
-    @Deprecated("use toEntityGraph")
     fun toEntity(
         root: Commit,
         repository: RepositoryEntity,
     ): CommitEntity {
-        // --- PHASE 1: discover & create all nodes, _and_ build domainBySha for O(1) lookup ---
-        val domainBySha = mutableMapOf<String, Commit>()
-        val queue = ArrayDeque<Commit>()
-        queue += root
-
-        while (queue.isNotEmpty()) {
-            val domain = queue.removeFirst()
-
-            // skip if we’ve already seen this SHA
-            if (domainBySha.putIfAbsent(domain.sha, domain) != null) {
-                continue
-            }
-
-            // instantiate the entity (no relations yet)
-            val entity =
-                CommitEntity(
-                    id = domain.id?.toLong(),
-                    sha = domain.sha,
-                    commitDateTime = domain.commitDateTime,
-                    authorDateTime = domain.authorDateTime,
-                    message = domain.message,
-                    webUrl = domain.webUrl,
-                    branch = domain.branch,
-                    repository = repository,
-                    parents = mutableSetOf(),
-                    children = mutableSetOf(),
-                    branches = mutableSetOf(),
-                    committer = null,
-                    author = null,
-                )
-
-            // register in the identity map
-            ctx.entity.commit[domain.sha] = entity
-
-            // schedule neighbors
-            queue += domain.parents
-            queue += domain.children
-        }
-
-        // local helper — now an O(1) hash lookup
-        fun findDomainBySha(sha: String): Commit? = domainBySha[sha]
-
-        // --- PHASE 2: wire up all relationships ---
-
-        // 2a) parents & children
-        ctx.entity.commit.values.forEach { entity ->
-            val dom =
-                findDomainBySha(entity.sha)
-                    ?: throw IllegalStateException("Missing domain for sha=${entity.sha}")
-
-            entity.parents.addAll(
-                dom.parents.map { parentDom ->
-                    val parentEntity = ctx.entity.commit[parentDom.sha]!!
-                    parentEntity.children.add(entity)
-                    parentEntity
-                },
-            )
-            entity.children.addAll(
-                dom.children.map { childDom ->
-                    val childEntity = ctx.entity.commit[childDom.sha]!!
-                    childEntity.parents.add(entity)
-                    childEntity
-                },
-            )
-        }
-
-        // 2b) branches, committer, author
-        ctx.entity.commit.values.forEach { entity ->
-            val dom = findDomainBySha(entity.sha)!!
-
-            entity.branches.addAll(
-                dom.branches.map {
-                    branchMapper.toEntity(it, repository).also { b -> b.commits.add(entity) }
-                },
-            )
-            entity.committer =
-                dom.committer?.let {
-                    userMapper.toEntity(it, repository).also { u -> u.committedCommits.add(entity) }
-                }
-            entity.author =
-                dom.author?.let {
-                    userMapper.toEntity(it, repository).also { u -> u.authoredCommits.add(entity) }
-                }
-        }
-
-        // 2c) finally, populate repository.commits
-        repository.commits.addAll(ctx.entity.commit.values)
+        toEntityGraph(setOf(root), repository)
 
         // return the root node
         return ctx.entity.commit[root.sha]
-            ?: throw IllegalStateException("Root was not mapped")
+            ?: throw IllegalMappingStateException("Root was not mapped")
     }
 
-    @Deprecated("use toDomainGraph")
     fun toDomain(
         root: CommitEntity,
         repository: Repository,
     ): Commit {
-        if (ctx.domain.commit.contains(root.sha)) {
-            return ctx.domain.commit[root.sha]!!
-        }
-        // --- PHASE 1: discover & create all nodes, _and_ build domainBySha for O(1) lookup ---
-        val entityBySha = mutableMapOf<String, CommitEntity>()
-        val queue = ArrayDeque<CommitEntity>()
-        queue += root
-
-        while (queue.isNotEmpty()) {
-            val entity = queue.removeFirst()
-
-            // skip if we’ve already seen this SHA
-            if (entityBySha.putIfAbsent(entity.sha, entity) != null) {
-                continue
-            }
-
-            // instantiate the entity (no relations yet)
-            val domain =
-                Commit(
-                    id = entity.id?.toString(),
-                    sha = entity.sha,
-                    commitDateTime = entity.commitDateTime,
-                    authorDateTime = entity.authorDateTime,
-                    message = entity.message,
-                    webUrl = entity.webUrl,
-                    branch = entity.branch,
-                    repositoryId = repository.id,
-                    parents = mutableSetOf(),
-                    children = mutableSetOf(),
-                    branches = mutableSetOf(),
-                    committer = null,
-                    author = null,
-                )
-
-            // register in the identity map
-            ctx.domain.commit[domain.sha] = domain
-
-            // schedule neighbors
-            queue += entity.parents
-            queue += entity.children
-        }
-
-        // local helper — now an O(1) hash lookup
-        fun findDomainBySha(sha: String): CommitEntity? = entityBySha[sha]
-
-        // --- PHASE 2: wire up all relationships ---
-
-        // 2a) parents & children
-        ctx.domain.commit.values.forEach { entity ->
-            val dom =
-                findDomainBySha(entity.sha)
-                    ?: throw IllegalStateException("Missing domain for sha=${entity.sha}")
-
-            entity.parents.addAll(
-                dom.parents.map { parentDom -> ctx.domain.commit[parentDom.sha]!! },
-            )
-            entity.children.addAll(
-                dom.children.map { childDom -> ctx.domain.commit[childDom.sha]!! },
-            )
-        }
-
-        // 2b) branches, committer, author
-        ctx.domain.commit.values.forEach { entity ->
-            val dom = findDomainBySha(entity.sha)!!
-
-            entity.branches.addAll(
-                dom.branches.map { branchMapper.toDomain(it, repository) },
-            )
-            entity.committer = dom.committer?.let { userMapper.toDomain(it, repository) }
-            entity.author = dom.author?.let { userMapper.toDomain(it, repository) }
-        }
-
-        // 2c) finally, populate repository.commits
-        repository.commits.addAll(ctx.domain.commit.values)
+        toDomainGraph(setOf(root), repository)
 
         // return the root node
         return ctx.domain.commit[root.sha]
-            ?: throw IllegalStateException("Root was not mapped")
+            ?: throw IllegalMappingStateException("Root was not mapped")
     }
 
     fun toEntityGraph(
-        domains: Collection<Commit>,
+        @NotEmpty domains: Collection<Commit>,
         repository: RepositoryEntity,
     ): MutableSet<CommitEntity> {
-        // 1) build a sha→entity map (we assume entities already contains *all* commits)
-        val domainBySha = domains.associateBy { it.sha }
+        // --- PHASE 1: discover & create all CommitEntity instances ---
+
+        val domainBySha = domains.associateBy { it.sha }.toMutableMap()
+        // we'll do a simple BFS (or DFS) from the root Commit
+        val queue = ArrayDeque(domains)
 
         // 2) instantiate *all* domain nodes, register in identity map
-//        val entityBySha = mutableMapOf<String, CommitEntity>()
-        for ((sha, dom) in domainBySha) {
+        while (queue.isNotEmpty()) {
+            val dom = queue.removeFirst()
+            domainBySha.computeIfAbsent(dom.sha) { dom }
+            val sha = dom.sha
             if (ctx.entity.commit.containsKey(sha)) {
                 continue
             }
@@ -260,11 +92,20 @@ internal class CommitMapper {
                     committer = null,
                     author = null,
                 )
-//            entityBySha[sha] = ent
+
+            // 1b) register it in our identity–map
             ctx.entity.commit[sha] = ent
+
+            // 1c) schedule its neighbours
+            queue += dom.parents
+            queue += dom.children
         }
+        // now every CommitEntity is sitting in ctx.entity.commit
+
+        // 2) wire up user
         for ((sha, dom) in domainBySha) {
-            val ent = ctx.entity.commit[sha] ?: throw IllegalStateException("Commit domain must be mapped to map user")
+            val ent =
+                ctx.entity.commit[sha] ?: throw IllegalMappingStateException("Parent $sha must be present when wire up user")
             ent.committer =
                 dom.committer?.let {
                     userMapper.toEntity(
@@ -279,18 +120,22 @@ internal class CommitMapper {
         // 3) wire up parent/child links in one sweep
         for ((sha, dom) in domainBySha) {
             val ent = ctx.entity.commit[sha]!!
-//            ent.parents.addAll(dom.parents.map { parent -> entityBySha[parent.sha]!! })
-//            ent.children.addAll(dom.children.map { child -> entityBySha[child.sha]!! })
             ent.parents.addAll(
                 dom.parents.map { parentDom ->
-                    val parentEntity = ctx.entity.commit[parentDom.sha]!!
+                    val parentEntity =
+                        ctx.entity.commit[parentDom.sha] ?: throw IllegalMappingStateException(
+                            "Parent ${parentDom.sha} must be present when wire up parent",
+                        )
                     parentEntity.children.add(ent)
                     parentEntity
                 },
             )
             ent.children.addAll(
                 dom.children.map { childDom ->
-                    val childEntity = ctx.entity.commit[childDom.sha]!!
+                    val childEntity =
+                        ctx.entity.commit[childDom.sha] ?: throw IllegalMappingStateException(
+                            "Child ${childDom.sha} must be present when wire up child",
+                        )
                     childEntity.parents.add(ent)
                     childEntity
                 },
@@ -299,26 +144,32 @@ internal class CommitMapper {
 
         // 4) wire up branches
         for ((sha, dom) in domainBySha) {
-            val ent = ctx.entity.commit[sha]!!
+            val ent =
+                ctx.entity.commit[sha] ?: throw IllegalMappingStateException(
+                    "Commit $sha must be present wiring up branches",
+                )
             ent.branches.addAll(
                 dom.branches.map { branchMapper.toEntity(it, repository).also { b -> b.commits.add(ent) } },
             )
         }
 
-        return ctx.entity.commit.values
-            .toMutableSet()
+        repository.commits.addAll(ctx.entity.commit.values)
+
+        return repository.commits
     }
 
     fun toDomainGraph(
-        entities: Collection<CommitEntity>,
+        @NotEmpty entities: Collection<CommitEntity>,
         repository: Repository,
     ): Set<Commit> {
         // 1) build a sha→entity map (we assume entities already contains *all* commits)
         val entityBySha = entities.associateBy { it.sha }
 
         // 2) instantiate *all* domain nodes, register in identity map
-        val domainBySha = mutableMapOf<String, Commit>()
         for ((sha, ent) in entityBySha) {
+            if (ctx.domain.commit.containsKey(sha)) {
+                continue
+            }
             val dom =
                 Commit(
                     id = ent.id!!.toString(),
@@ -335,30 +186,43 @@ internal class CommitMapper {
                     committer = null,
                     author = null,
                 )
-            domainBySha[sha] = dom
             ctx.domain.commit[sha] = dom
         }
         for ((sha, ent) in entityBySha) {
-            val dom = domainBySha[sha] ?: throw IllegalStateException("Commit domain must be mapped to map user")
+            val dom = ctx.domain.commit[sha] ?: throw IllegalMappingStateException("Commit domain must be mapped to map user")
             dom.committer = ent.committer?.let { userMapper.toDomain(it, repository) }
             dom.author = ent.author?.let { userMapper.toDomain(it, repository) }
         }
 
         // 3) wire up parent/child links in one sweep
         for ((sha, ent) in entityBySha) {
-            val dom = domainBySha[sha]!!
-            dom.parents.addAll(ent.parents.map { parent -> domainBySha[parent.sha]!! })
-            dom.children.addAll(ent.children.map { child -> domainBySha[child.sha]!! })
+            val dom = ctx.domain.commit[sha]!!
+            dom.parents.addAll(
+                ent.parents.map { parentDom ->
+                    val parentEntity = ctx.domain.commit[parentDom.sha]!!
+                    parentEntity.children.add(dom)
+                    parentEntity
+                },
+            )
+            dom.children.addAll(
+                ent.children.map { childDom ->
+                    val childEntity = ctx.domain.commit[childDom.sha]!!
+                    childEntity.parents.add(dom)
+                    childEntity
+                },
+            )
         }
 
         // 4) wire up branches
         for ((sha, ent) in entityBySha) {
-            val dom = domainBySha[sha]!!
+            val dom = ctx.domain.commit[sha]!!
             dom.branches.addAll(
                 ent.branches.map { branchMapper.toDomain(it, repository).also { b -> b.commitShas.add(ent.sha) } },
             )
         }
 
-        return domainBySha.values.toMutableSet()
+        repository.commits.addAll(ctx.domain.commit.values)
+
+        return repository.commits
     }
 }

@@ -10,7 +10,6 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -188,28 +187,3 @@ class RepositoryService {
         }
     }
 }
-
-fun Repository.addCommit(commit: Commit) {
-    this.commits.add(commit)
-    commit.repositoryId = this.id
-}
-
-private fun Repository.addUser(e: User) {
-    this.user.add(e)
-    e.repository = this
-}
-
-private fun Repository.addBranch(b: Branch) {
-    this.branches.add(b)
-    b.repositoryId = this.id
-}
-
-private fun Branch.addCommit(e: Commit) {
-    this.commitShas.add(e.sha)
-    e.branches.add(this)
-}
-
-// private fun User.addProjectMembership(member: ProjectMember) {
-//    memberAliases.add(member)
-//    member.user = this
-// }

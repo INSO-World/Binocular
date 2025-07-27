@@ -129,10 +129,10 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                     branches = mutableSetOf(branch),
                 )
             user.addCommittedCommit(cmt)
-            repository.user.add(user)
-            branch.commitShas.add(cmt.sha)
-            repository.commits.add(cmt)
-            repository.branches.add(branch)
+            repository.addUser(user)
+            branch.addCommit(cmt)
+            repository.addCommit(cmt)
+            repository.addBranch(branch)
 
             val repositoryProject =
                 projectPort.create(
@@ -302,10 +302,10 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                         branches = mutableSetOf(branch),
                     )
                 user.addCommittedCommit(cmt)
-                existingProject.repo?.user?.add(user)
-                branch.commitShas.add(cmt.sha)
-                existingProject.repo?.commits?.add(cmt)
-                existingProject.repo?.branches?.add(branch)
+                existingProject.repo?.addUser(user)
+                branch.addCommit(cmt)
+                existingProject.repo?.addCommit(cmt)
+                existingProject.repo?.addBranch(branch)
                 assertAll(
                     "check model",
                     { assertThat(existingProject.repo).isNotNull() },

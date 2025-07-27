@@ -22,7 +22,7 @@ internal data class RepositoryEntity(
     val id: Long? = null,
     @Column(unique = true, nullable = false)
     @field:NotBlank
-    val name: String,
+    var name: String,
     @OneToMany(
         fetch = FetchType.LAZY,
         cascade = [CascadeType.ALL],
@@ -63,6 +63,30 @@ internal data class RepositoryEntity(
 //        if (project.uniqueKey() != other.project.uniqueKey()) return false
 
         return true
+    }
+
+    fun addBranch(branch: BranchEntity): Boolean {
+        if (branch.repository != this) {
+            throw IllegalArgumentException("Trying to add a branch where branch.repository != this")
+        }
+
+        return this.branches.add(branch)
+    }
+
+    fun addCommit(commit: CommitEntity): Boolean {
+        if (commit.repository != this) {
+            throw IllegalArgumentException("Trying to add a commit where commit.repository != this")
+        }
+
+        return this.commits.add(commit)
+    }
+
+    fun addUser(user: UserEntity): Boolean {
+        if (user.repository != this) {
+            throw IllegalArgumentException("Trying to add a user where user.repository != this")
+        }
+
+        return this.user.add(user)
     }
 
     override fun uniqueKey(): String {

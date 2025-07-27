@@ -49,7 +49,7 @@ internal class UserMapper {
     ): UserEntity {
         val userContextKey = "${repo.name},${domain.email}"
         ctx.entity.user[userContextKey]?.let {
-//                logger.debug("User-Cache hit: '$userContextKey'")
+            logger.trace("toEntity: User-Cache hit: '$userContextKey'")
             return it
         }
 

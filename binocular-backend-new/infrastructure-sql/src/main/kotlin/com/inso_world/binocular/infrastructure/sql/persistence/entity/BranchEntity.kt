@@ -43,6 +43,11 @@ internal data class BranchEntity(
 //        this.repository = null
     }
 
+    fun addCommit(commit: CommitEntity) {
+        this.commits.add(commit)
+        commit.branches.add(this)
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

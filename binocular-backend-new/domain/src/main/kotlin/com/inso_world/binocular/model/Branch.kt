@@ -31,6 +31,12 @@ data class Branch(
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
     val branch: String = name
 
+    fun addCommit(commit: Commit): Boolean {
+        val a = this.commitShas.add(commit.sha)
+        val b = commit.branches.add(this)
+        return a && b
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

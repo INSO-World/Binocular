@@ -25,6 +25,30 @@ class Repository(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
 
+    fun addBranch(branch: Branch): Boolean {
+        val a = this.branches.add(branch)
+        if (a) {
+            branch.repositoryId = this.id
+        }
+        return a
+    }
+
+    fun addCommit(commit: Commit): Boolean {
+        val a = this.commits.add(commit)
+        if (a) {
+            commit.repositoryId = this.id
+        }
+        return a
+    }
+
+    fun addUser(user: User): Boolean {
+        val a = this.user.add(user)
+        if (a) {
+            user.repository = this
+        }
+        return a
+    }
+
     override fun toString(): String = "Repository(id=$id, name='$name')"
 
     fun removeCommitBySha(
