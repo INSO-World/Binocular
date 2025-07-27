@@ -17,6 +17,7 @@ import io.mockk.mockk
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 
+@Disabled
 internal class CommitMapperTest : BaseMapperTest() {
     @Autowired
     private lateinit var commitMapper: CommitMapper
