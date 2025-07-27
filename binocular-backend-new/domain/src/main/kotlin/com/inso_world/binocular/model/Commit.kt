@@ -56,7 +56,6 @@ data class Commit(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null) return false
-        if (!other.javaClass.simpleName.startsWith(this.javaClass.simpleName)) return false
 
         other as Commit
 
@@ -68,13 +67,13 @@ data class Commit(
         if (repositoryId != other.repositoryId) return false
         if (webUrl != other.webUrl) return false
         if (stats != other.stats) return false
-        if (branches != other.branches) return false
-        if (parents != other.parents) return false
-        if (children != other.children) return false
-        if (builds != other.builds) return false
-        if (files != other.files) return false
-        if (modules != other.modules) return false
-        if (issues != other.issues) return false
+//        if (branches != other.branches) return false
+//        if (parents != other.parents) return false
+//        if (children != other.children) return false
+//        if (builds != other.builds) return false
+//        if (files != other.files) return false
+//        if (modules != other.modules) return false
+//        if (issues != other.issues) return false
 
         return true
     }

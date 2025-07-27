@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import java.util.Objects
 
 /**
  * SQL-specific User entity.
@@ -77,5 +78,10 @@ internal data class UserEntity(
         return true
     }
 
-    override fun hashCode(): Int = super.hashCode()
+    override fun hashCode(): Int {
+        var result = Objects.hashCode(id)
+        result = 31 * result + Objects.hashCode(name)
+        result = 31 * result + Objects.hashCode(email)
+        return result
+    }
 }
