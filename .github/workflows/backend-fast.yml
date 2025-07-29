@@ -57,7 +57,7 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS validate
 
       - name: Compile with Maven
-        run: mvn $MAVEN_CLI_OPTS compile
+        run: mvn $MAVEN_CLI_OPTS clean compile
 
       - name: Install with Maven
         run: mvn $MAVEN_CLI_OPTS install -DskipTests
