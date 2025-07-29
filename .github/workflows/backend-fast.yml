@@ -103,12 +103,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          CMD="mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install"
-          if [ -n "${{ matrix.mvnProfile }}" ]; then
-            CMD="$CMD -P${{ matrix.mvnProfile }}"
-          fi
-          echo "Running: $CMD"
-          eval $CMD
+          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install -Psql
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
@@ -175,12 +170,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          CMD="mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install"
-          if [ -n "${{ matrix.mvnProfile }}" ]; then
-            CMD="$CMD -P${{ matrix.mvnProfile }}"
-          fi
-          echo "Running: $CMD"
-          eval $CMD
+          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install -Parangodb
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
