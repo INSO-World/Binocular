@@ -245,7 +245,8 @@ jobs:
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -am -Dspring.profiles.active=${{ matrix.springProfile }}"
+          mvn clean install --pl ${{ matrix.module }} -am -DskipTests
+          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=${{ matrix.springProfile }}"
           if [ -n "${{ matrix.mvnProfile }}" ]; then
             CMD="$CMD -P${{ matrix.mvnProfile }}"
           fi
