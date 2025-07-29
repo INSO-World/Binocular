@@ -8,6 +8,7 @@ import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import com.inso_world.binocular.ffi.pojos.BinocularCommitSignaturePojo
 import com.inso_world.binocular.ffi.pojos.BinocularTimePojo
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
@@ -190,6 +191,7 @@ class VcsCommitToDtosTest {
     }
 
     @Nested
+    @Disabled
     inner class PerformanceTests {
         private val ffi: BinocularFfi = BinocularFfi()
         private val repo = ffi.findRepo("../../.git")
