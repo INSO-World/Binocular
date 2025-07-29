@@ -4,7 +4,7 @@ import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingScope
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Repository
 import jakarta.persistence.EntityManager
@@ -18,6 +18,9 @@ import org.springframework.transaction.support.TransactionTemplate
 @Component
 internal class BranchMapper {
     private val logger: Logger = LoggerFactory.getLogger(BranchMapper::class.java)
+
+    @Autowired
+    private lateinit var commitMapper: CommitMapper
 
     @Autowired
     private lateinit var proxyFactory: RelationshipProxyFactory
@@ -39,47 +42,23 @@ internal class BranchMapper {
     /**
      * Converts a domain Branch to a SQL BranchEntity
      */
-    fun toEntity(
-        domain: Branch,
-        repo: RepositoryEntity,
-    ): BranchEntity {
-        val branchContextKey = "${repo.name},${domain.name}"
+    fun toEntity(domain: Branch): BranchEntity {
+        val branchContextKey = domain.uniqueKey()
         ctx.entity.branch[branchContextKey]?.let {
             return it
         }
 
-        val entity =
-            BranchEntity(
-                id = domain.id?.toLong(),
-                name = domain.name,
-//                active = domain.active,
-//                tracksFileRenames = domain.tracksFileRenames,
-//                latestCommit = domain.latestCommit,
-                repository = repo,
-                // Note: Relationships are not directly mapped in SQL entity
-            )
-//            branchContext[branchContextKey] = entity
+        val entity = domain.toEntity()
         ctx.entity.branch.computeIfAbsent(branchContextKey) { entity }
 
-        entity.commits =
-//            proxyFactory.createLazyMutableSet(
-            run {
-                val commitEntities =
-                    domain.commitShas.map {
-                        val cmt =
-                            ctx.entity.commit[it]
-                                ?: throw IllegalStateException("Commit sha $it not found in context")
-                        cmt
-                    }
-                commitEntities.forEach { c -> c.branches.add(entity) }
-                commitEntities.toMutableSet()
-//                },
-//                { it ->
-//                    require(it.size == domain.commitShas.size, { "Some SHAs are missing for branch" })
-//                    it.forEach { c -> c.branches.add(entity) }
+        // Commit is a child of Branch, hence it is mapped here
+        domain.commits
+            .map {
+                ctx.entity.commit[it.sha]
+                    ?: throw IllegalStateException("Commit sha $it not found in context")
+            }.forEach {
+                entity.addCommit(it)
             }
-//            )
-        repo.branches.add(entity)
 
         return entity
     }
@@ -91,49 +70,41 @@ internal class BranchMapper {
      * when accessed. This provides a consistent API regardless of the database
      * implementation and avoids the N+1 query problem.
      */
-    fun toDomain(
+    fun toDomain(entity: BranchEntity): Branch {
+        val branchContextKey = entity.uniqueKey()
+        ctx.domain.branch[branchContextKey]?.let { return it }
+
+        val domain = entity.toDomain()
+
+        // Commit is a child of Branch, hence it is mapped here
+        commitMapper.toDomainGraph(entity.commits.asSequence()).map {
+            //  add all parents also to the branch (git behavior of git rev-list --count <rev>)
+            (setOf(it) + it.parents).forEach { relative -> domain.addCommit(relative) }
+//            domain.addCommit(it)
+        }
+
+        ctx.domain.branch.computeIfAbsent(branchContextKey) { domain }
+
+        return domain
+    }
+
+    fun toDomainFull(
         entity: BranchEntity,
         repository: Repository,
     ): Branch {
         val branchContextKey = entity.uniqueKey()
         ctx.domain.branch[branchContextKey]?.let { return it }
 
-        val domain =
-            Branch(
-                id = entity.id?.toString(),
-                name = entity.name,
-//                active = entity.active,
-//                tracksFileRenames = entity.tracksFileRenames,
-//                latestCommit = entity.latestCommit,
-                // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
-//                files =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.files },
-//                        { fileMapper.toDomain(it) },
-//                    ),
-                commitShas =
-//                    proxyFactory.createLazyMutableSet(
-                    run {
-                        transactionTemplate.execute {
-                            // Reload the entity in a new session
-                            val freshEntity = entityManager.find(BranchEntity::class.java, entity.id)
-                            // Now the collection is attached to this session
-                            freshEntity.commits.map { it.sha }.toMutableSet()
-                        } ?: throw IllegalStateException("transaction should load branch entities")
-                    },
-//                        { shas ->
-//                            // Lazy validation: only when branches are loaded
-//                            require(shas.isNotEmpty()) { "SHAs of Branch ${entity.name} must not be empty" }
-// //                                TODO not working as expected, would need refresh of entity again
-// //                                transactionTemplate.execute {
-// //                                    require(
-// //                                        shas.size == entity.commits.size,
-// //                                    ) { "SHAs of Branch ${entity.name} must match the original size of entity" }
-// //                                }
-//                        },
-//                    ),
-                repositoryId = repository.id,
-            )
+        val domain = entity.toDomain()
+
+        // Commit is a child of Branch, hence it is mapped here
+        commitMapper.toDomainFull(entity.commits, repository).map {
+            //  add all parents also to the branch (git behavior of git rev-list --count <rev>)
+            (setOf(it) + it.parents).forEach { relative -> domain.addCommit(relative) }
+        }
+
+        repository.addBranch(domain)
+
         ctx.domain.branch.computeIfAbsent(branchContextKey) { domain }
 
         return domain

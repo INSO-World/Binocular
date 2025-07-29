@@ -3,6 +3,7 @@ spring:
     active: test,h2
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: true
   jpa:
     hibernate:
       ddl-auto: none

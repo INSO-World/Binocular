@@ -160,10 +160,10 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyBranch =
             Branch(
                 name = "branch",
-                repositoryId = dummyRepo.id.toString(),
+                repository = dummyRepo.toDomain(null),
             )
         invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commitShas.add(invalidCommit.sha)
+        dummyBranch.commits.add(invalidCommit)
 
         val e =
             assertThrows<jakarta.validation.ConstraintViolationException> {
@@ -192,10 +192,10 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyBranch =
             Branch(
                 name = "branch",
-                repositoryId = dummyRepo.id.toString(),
+                repository = dummyRepo.toDomain(null),
             )
         invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commitShas.add(invalidCommit.sha)
+        dummyBranch.commits.add(invalidCommit)
 
         val e =
             assertThrows<jakarta.validation.ConstraintViolationException> {
@@ -224,10 +224,10 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyBranch =
             Branch(
                 name = "branch",
-                repositoryId = dummyRepo.id.toString(),
+                repository = dummyRepo.toDomain(null),
             )
         invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commitShas.add(invalidCommit.sha)
+        dummyBranch.commits.add(invalidCommit)
 
         val e =
             assertThrows<jakarta.validation.ConstraintViolationException> {

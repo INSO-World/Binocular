@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
+import com.inso_world.binocular.core.persistence.exception.PersistenceException
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IUserDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
@@ -21,7 +22,7 @@ internal class UserDao(
     }
 
     private object UserSpecification {
-        fun hasRepository(repository: com.inso_world.binocular.model.Repository): Specification<UserEntity> =
+        fun hasRepository(repository: RepositoryEntity): Specification<UserEntity> =
             Specification { root, query, cb ->
                 cb.equal(
                     root.get<RepositoryEntity>("repository").get<String>("name"),
@@ -32,8 +33,14 @@ internal class UserDao(
 
     override fun findAllByGitSignatureIn(emails: Collection<String>): Stream<UserEntity> = repo.findAllByEmailIn(emails)
 
-    override fun findAll(repository: com.inso_world.binocular.model.Repository): Iterable<UserEntity> =
+    override fun findAll(repository: RepositoryEntity): Iterable<UserEntity> =
         this.repo.findAll(
             Specification.allOf(UserSpecification.hasRepository(repository)),
         )
+
+    override fun findAllAsStream(repository: com.inso_world.binocular.model.Repository): Stream<UserEntity> {
+        val rid = repository.id
+        if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
+        return this.repo.findAllByRepository_Id(rid.toLong())
+    }
 }

@@ -3,10 +3,7 @@ binocular:
     path: "/Users/rise/Repositories/test_repositories/Binocular"
 spring:
   profiles:
-    active: arangodb
-  main:
-    web-application-type: none
-#    banner-mode: off
+    active: sql,postgres
   application:
     name: binocular-cli
   shell:

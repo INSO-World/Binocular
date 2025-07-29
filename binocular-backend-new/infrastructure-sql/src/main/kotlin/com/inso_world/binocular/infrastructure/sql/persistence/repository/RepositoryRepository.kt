@@ -12,15 +12,15 @@ import org.springframework.stereotype.Repository
 internal interface RepositoryRepository : JpaRepository<RepositoryEntity, Long>, JpaSpecificationExecutor<RepositoryEntity> {
     fun findByName(name: String): RepositoryEntity?
 
-    @EntityGraph(
-        attributePaths = [
-//            "commits",
-//            "commits.parents",
-//            "commits.children",
-            "branches",
-            "user"
-        ]
-    )
+//    @EntityGraph(
+//        attributePaths = [
+////            "commits",
+////            "commits.parents",
+////            "commits.children",
+//            "branches",
+//            "user"
+//        ]
+//    )
     @Query("select r from RepositoryEntity r where r.id = :id")
     fun findByIdWithAllRelations(@Param("id") id: Long): RepositoryEntity?
 }

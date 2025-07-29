@@ -46,10 +46,12 @@ class CommitValidationTest {
         val dummyBranch =
             Branch(
                 name = "branch",
-                repositoryId = "1",
+                repository = Repository(
+                    name = "test repo"
+                )
             )
         invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commitShas.add(invalidCommit.sha)
+        dummyBranch.commits.add(invalidCommit)
 
         val violation =
             run {
@@ -70,7 +72,7 @@ class CommitValidationTest {
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
                 repositoryId = repository.id,
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
 
         // When
@@ -89,7 +91,7 @@ class CommitValidationTest {
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
                 repositoryId = "some-id",
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
         val repository = Repository(id = null, name = "test-repo", commits = mutableSetOf(commit), project = Project(name = "test"))
 
@@ -122,7 +124,7 @@ class CommitValidationTest {
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
                 repositoryId = repository.id,
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
 
         // When
@@ -141,7 +143,7 @@ class CommitValidationTest {
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
                 repositoryId = "different-id",
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
         val repository = Repository(id = "repo-123", name = "test-repo", commits = mutableSetOf(commit), project = Project(name = "test"))
 
@@ -169,7 +171,7 @@ class CommitValidationTest {
                 sha = "a".repeat(40),
                 commitDateTime = LocalDateTime.now(),
                 repositoryId = null,
-                branches = mutableSetOf(Branch(name = "b", commitShas = mutableSetOf("a".repeat(40)))),
+                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
 
         // When

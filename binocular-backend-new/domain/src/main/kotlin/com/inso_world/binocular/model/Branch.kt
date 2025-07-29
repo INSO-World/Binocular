@@ -1,10 +1,8 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.model.validation.FromInfrastructure
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
-import jakarta.validation.constraints.Size
 import java.util.Objects
 
 /**
@@ -21,20 +19,31 @@ data class Branch(
     // Relationships
     val files: List<File> = emptyList(),
     @field:NotEmpty
-    val commitShas: MutableSet<
-        @Size(min = 40, max = 40)
-        String,
-    > = mutableSetOf(),
-    @field:NotNull(groups = [FromInfrastructure::class])
-    var repositoryId: String? = null,
+    val commits: MutableSet<Commit> = mutableSetOf(),
+    @field:NotNull
+    var repository: Repository? = null,
 ) {
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
     val branch: String = name
 
+    fun uniqueKey(): String {
+        val repo = repository
+        if (repo == null) {
+            throw IllegalStateException("Cannot generate unique key for $javaClass when repository is null")
+        }
+        return "${repo.name},$name"
+    }
+
     fun addCommit(commit: Commit): Boolean {
-        val a = this.commitShas.add(commit.sha)
+        val a = this.commits.add(commit)
+        val c =
+            if (commit.parents.isNotEmpty()) {
+                this.commits.addAll(commit.parents)
+            } else {
+                true
+            }
         val b = commit.branches.add(this)
-        return a && b
+        return a && b && c
     }
 
     override fun equals(other: Any?): Boolean {
@@ -48,9 +57,6 @@ data class Branch(
         if (id != other.id) return false
         if (name != other.name) return false
         if (latestCommit != other.latestCommit) return false
-//        if (files != other.files) return false
-        if (commitShas != other.commitShas) return false
-        if (repositoryId != other.repositoryId) return false
 
         return true
     }
@@ -65,5 +71,7 @@ data class Branch(
     }
 
     override fun toString(): String =
-        "Branch(id=$id, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=$commitShas, repositoryId=$repositoryId)"
+        "Branch(id=$id, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=${commits.map {
+            it.sha
+        }}, repositoryId=${repository?.id})"
 }

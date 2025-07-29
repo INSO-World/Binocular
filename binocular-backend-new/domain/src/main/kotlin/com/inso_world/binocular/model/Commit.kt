@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Domain model for a Commit, representing a commit in a Git repository.
@@ -35,8 +36,8 @@ data class Commit(
     val stats: Stats? = null,
     // Relationships
     var branches: MutableSet<Branch> = mutableSetOf(),
-    var parents: MutableSet<Commit> = mutableSetOf(),
-    var children: MutableSet<Commit> = mutableSetOf(),
+    var parents: MutableSet<Commit> = ConcurrentHashMap.newKeySet(),
+    var children: MutableSet<Commit> = ConcurrentHashMap.newKeySet(),
 //    old stuff
     val builds: List<Build> = emptyList(),
     val files: List<File> = emptyList(),
@@ -67,8 +68,34 @@ data class Commit(
 
     fun addBranch(branch: Branch): Boolean {
         val a = this.branches.add(branch)
-        val b = branch.commitShas.add(sha)
+        val b = branch.commits.add(this)
         return a && b
+    }
+
+//    TODO refactor as setter
+    fun addCommitter(user: User): Boolean {
+        if (user == this.committer) {
+            return false
+        }
+        if (this.committer != null) {
+            throw IllegalArgumentException("Committer already set for Commit $sha: $committer")
+        }
+        this.committer = user
+        val a = this.committer!!.committedCommits.add(this)
+        return a
+    }
+
+    //    TODO refactor as setter
+    fun addAuthor(user: User): Boolean {
+        if (user == this.author) {
+            return false
+        }
+        if (this.author != null) {
+            throw IllegalArgumentException("Author already set for Commit $sha: $author")
+        }
+        this.author = user
+        val a = this.author!!.authoredCommits.add(this)
+        return a
     }
 
     override fun equals(other: Any?): Boolean {

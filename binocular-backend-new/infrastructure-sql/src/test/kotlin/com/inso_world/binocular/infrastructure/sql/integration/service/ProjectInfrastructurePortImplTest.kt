@@ -118,7 +118,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val cmt =
                 Commit(
@@ -291,7 +291,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                 val branch =
                     Branch(
                         name = "test branch",
-                        repositoryId = existingProject.repo?.id,
+                        repository = existingProject.repo,
                     )
                 val cmt =
                     Commit(

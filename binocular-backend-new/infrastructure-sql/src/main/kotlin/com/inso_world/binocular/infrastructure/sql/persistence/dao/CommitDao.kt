@@ -7,9 +7,9 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.CommitRepository
 import jakarta.persistence.criteria.JoinType
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
+import java.util.stream.Stream
 
 /**
  * SQL implementation of ICommitDao.
@@ -42,55 +42,51 @@ internal class CommitDao(
     }
 
     override fun findExistingSha(
-        repo: RepositoryEntity,
+        repository: com.inso_world.binocular.model.Repository,
         shas: List<String>,
     ): Iterable<CommitEntity> {
-        if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
+        val rid = repository.id
+        if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
         val shas =
             this.repo.findAll(
                 Specification.allOf(
                     CommitEntitySpecification
-                        .hasRepositoryId(repo.id)
+                        .hasRepositoryId(rid.toLong())
                         .and(CommitEntitySpecification.hasShaIn(shas)),
                 ),
             )
         return shas
     }
 
-    override fun findAllByRepo(
-        repo: RepositoryEntity,
-        pageable: Pageable,
-    ): Iterable<CommitEntity> {
-        if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findAllByRepository_Id(repo.id)
-    }
-
     override fun findHeadForBranch(
-        repo: RepositoryEntity,
+        repository: com.inso_world.binocular.model.Repository,
         branch: String,
     ): CommitEntity? {
-        if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findLeafCommitsByRepository(repo.id, branch)
+        val rid = repository.id
+        if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
+        return this.repo.findLeafCommitsByRepository(rid.toLong(), branch)
     }
 
-    override fun findAllLeafCommits(repo: RepositoryEntity): Iterable<CommitEntity> {
-        if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findAllLeafCommits(repo.id)
+    override fun findAllLeafCommits(repository: com.inso_world.binocular.model.Repository): Iterable<CommitEntity> {
+        val rid = repository.id
+        if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
+        return this.repo.findAllLeafCommits(rid.toLong())
     }
 
     override fun findBySha(
-        repo: RepositoryEntity,
+        repository: RepositoryEntity,
         sha: String,
     ): CommitEntity? {
-        if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findByRepository_IdAndSha(repo.id, sha)
+        val rid = repository.id
+        if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
+        return this.repo.findByRepository_IdAndSha(rid, sha)
     }
 
-    override fun findAll(repo: com.inso_world.binocular.model.Repository): Iterable<CommitEntity> {
-        val rid = repo.id
+    override fun findAll(repository: com.inso_world.binocular.model.Repository): Stream<CommitEntity> {
+        val rid = repository.id
         if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findAll(
-            Specification.allOf(CommitEntitySpecification.hasRepositoryId(rid.toLong())),
-        )
+        return this.repo.findAllByRepository_Id(rid.toLong())
     }
+
+    override fun findAllAsStream(): Stream<CommitEntity> = repo.findAllAsStream()
 }

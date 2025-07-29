@@ -29,6 +29,85 @@ internal class VcsIndexCommandsTest(
     @Autowired val repoService: RepositoryService,
     @Autowired val transactionTemplate: TransactionTemplate,
 ) : BaseShellWithDataTest() {
+
+    @Nested
+    inner class BinocularRepo {
+        @Test
+        fun `index branch origin-feature-5`() {
+            idxClient.commits(
+                repoPath = "../../",
+                branchName = "origin/feature/5",
+                "Binocular",
+            )
+        }
+
+        @Test
+        fun `index branch origin-feature-6`() {
+            idxClient.commits(
+                repoPath = "../../",
+                branchName = "origin/feature/6",
+                "Binocular",
+            )
+        }
+
+        @Test
+        fun `index branch origin-feature-6 and then origin-feature-5`() {
+            val path = "../../"
+            idxClient.commits(
+                repoPath = path,
+                branchName = "origin/feature/6",
+                "Binocular",
+            )
+//            assertThat(repoService.f?.commits).hasSize(207)
+            assertDoesNotThrow {
+                idxClient.commits(
+                    repoPath = path,
+                    branchName = "origin/feature/5",
+                    "Binocular",
+                )
+            }
+//            assertThat(repoService.findRepo(path)?.commits).hasSize(219)
+        }
+
+        @Test
+        fun `index branch origin-feature-6 and then again`() {
+            val path = "../../"
+            idxClient.commits(
+                repoPath = path,
+                branchName = "origin/feature/6",
+                "Binocular",
+            )
+//            assertThat(repoService.f?.commits).hasSize(207)
+            assertDoesNotThrow {
+                idxClient.commits(
+                    repoPath = path,
+                    branchName = "origin/feature/6",
+                    "Binocular",
+                )
+            }
+//            assertThat(repoService.findRepo(path)?.commits).hasSize(219)
+        }
+
+        @Test
+        fun `index branch origin-feature-6 and then origin-feature-9`() {
+            val path = "../../.git"
+            idxClient.commits(
+                repoPath = path,
+                branchName = "origin/feature/6",
+                "Binocular",
+            )
+//            assertThat(repoService.findRepo(path)?.commits).hasSize(207)
+            assertDoesNotThrow {
+                idxClient.commits(
+                    repoPath = path,
+                    branchName = "origin/feature/9",
+                    "Binocular",
+                )
+            }
+//            assertThat(repoService.findRepo(path)?.commits).hasSize(219)
+        }
+    }
+
     @Nested
     inner class OctoRepo {
         @Test
@@ -252,7 +331,7 @@ internal class VcsIndexCommandsTest(
                 { assertThat(repo?.branches).isNotEmpty() },
                 { assertThat(repo?.branches).hasSize(1) },
                 { assertThat(repo?.branches?.map { it.name }).contains("master") },
-                { assertThat(repo?.branches?.flatMap { it.commitShas }).hasSize(14) },
+                { assertThat(repo?.branches?.flatMap { it.commits }).hasSize(14) },
             )
             assertAll(
                 "commits",
@@ -288,7 +367,9 @@ internal class VcsIndexCommandsTest(
                 )
             }
 //    // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
-        repo1!!.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+        assertThat(
+            repo1!!.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+        ).isNotNull()
 
         run {
             val vcsRepo =
@@ -297,7 +378,8 @@ internal class VcsIndexCommandsTest(
                     workTree = null,
                 ) // workTree & commonDir not relevant here
             this.repoService.addCommits(vcsRepo, listOf(newVcsCommit), simpleProject)
-
+        }
+        run {
             val repo2 = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
             assertThat(repo2).isNotNull()
             assertThat(repo2!!.id).isNotNull()
@@ -305,7 +387,7 @@ internal class VcsIndexCommandsTest(
                 "branches",
                 { assertThat(repo2.branches).hasSize(1) },
                 { assertThat(repo2.branches.map { it.name }).contains("master") },
-                { assertThat(repo2.branches.flatMap { it.commitShas }).hasSize(15) },
+                { assertThat(repo2.branches.flatMap { it.commits }).hasSize(15) },
             )
             assertAll(
                 "commits",

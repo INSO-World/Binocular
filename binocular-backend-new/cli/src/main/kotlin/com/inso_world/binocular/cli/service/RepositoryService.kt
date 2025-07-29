@@ -40,9 +40,9 @@ class RepositoryService {
     ): Collection<Commit> {
         logger.trace(">>> transformCommits({})", repo)
 
-        repo.user = userPort.findAll(repo).toMutableSet()
-        repo.branches = branchPort.findAll(repo).toMutableSet()
-        repo.commits = commitPort.findAll(repo).toMutableSet()
+//        repo.user = userPort.findAll(repo).toMutableSet()
+//        repo.branches = branchPort.findAll(repo).toMutableSet()
+//        repo.commits = commitPort.findAll(repo).toMutableSet()
 
         val userCache =
 //            userPort.findAll(repo).associateBy { it.email }.toMutableMap()
@@ -58,7 +58,7 @@ class RepositoryService {
         val commitMap =
             commits.associate {
                 it.sha to
-                    {
+                    run {
                         val e = it.toDomain()
                         val branchEntity =
                             it.branch.let { branchName ->
@@ -72,7 +72,7 @@ class RepositoryService {
 
                         repo.addCommit(e)
                         e
-                    }()
+                    }
             }
 
         // Now establish parent relationships using the map
@@ -109,7 +109,7 @@ class RepositoryService {
                 } ?: emptyList()
 
             // Set the parents on the entity
-            commit.parents = parentCommits.toMutableSet()
+            parentCommits.map { commit.addParent(it) }
         }
 
         logger.trace("<<< transformCommits({})", repo)
@@ -164,8 +164,12 @@ class RepositoryService {
         commitDtos: Collection<VcsCommit>,
         project: Project,
     ) {
-        val repo = this.getOrCreate(vcsRepo.gitDir, project)
-        project.repo = repo
+        val repo =
+            project.repo ?: run {
+                val repo = this.getOrCreate(vcsRepo.gitDir, project)
+                project.repo = repo
+                repo
+            }
         val existingCommitEntities = this.commitService.checkExisting(repo, commitDtos)
 
         logger.debug("Existing commits: ${existingCommitEntities.first.count()}")

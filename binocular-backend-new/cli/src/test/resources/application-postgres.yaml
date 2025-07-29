@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/binocular-test
+    username: ${DATABASE_USER:binocular}
+    password: ${DATABASE_PW:binocular}

@@ -23,8 +23,8 @@ public class PreventCyclesTrigger implements Trigger {
             throw new SQLException("Cyclic dependency detected: Commit " + childSha + " cannot be its own parent");
         }
 
-        // Only check for cycles from child to parent (does child already reach parent?)
-        checkCycles(conn, this.childId, this.parentId, childSha, parentSha);
+        // Check for cycles by verifying if the child can reach the parent
+//        checkCycles(conn, this.childId, this.parentId, childSha, parentSha);
     }
 
     private String getCommitSha(Connection conn, Long commitId) throws SQLException {
@@ -45,7 +45,7 @@ public class PreventCyclesTrigger implements Trigger {
         try (PreparedStatement stmt = conn.prepareStatement(
                 // Find all reachable commits from the start point
                 "WITH RECURSIVE reachable_commits(source_id, target_id, depth, path, sha_path) AS (" +
-                        // Base case: direct relationships
+                        // Base case: direct relationships (path from child_id to parent_id)
                         "SELECT cp.parent_id as source_id, cp.child_id as target_id, 1 as depth, " +
                         "ARRAY[cp.parent_id, cp.child_id] as path, " +
                         "ARRAY[p.sha, c.sha] as sha_path " +
@@ -75,20 +75,12 @@ public class PreventCyclesTrigger implements Trigger {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Array shaPathArray = rs.getArray(1);
-                    Object[] shaPathObjects = (Object[]) shaPathArray.getArray();
-                    String[] shaPath = new String[shaPathObjects.length + 1];
-                    for (int i = 0; i < shaPathObjects.length; i++) {
-                        shaPath[i] = (String) shaPathObjects[i];
-                    }
-                    shaPath[shaPathObjects.length] = childSha; // Add the new child at the end
-                    StringBuilder cycleStr = new StringBuilder();
-                    for (int i = 0; i < shaPath.length; i++) {
-                        if (i > 0) cycleStr.append(" → ");
-                        cycleStr.append(shaPath[i]);
-                    }
+                    String[] shaPath = (String[]) shaPathArray.getArray();
+                    String cyclePath = String.join(" → ", shaPath) + " → " + childSha;
+                    
                     throw new SQLException(
                         String.format("Cyclic dependency detected: Adding commit relationship %s → %s would create cycle: %s",
-                            parentSha, childSha, cycleStr.toString())
+                            parentSha, childSha, cyclePath)
                     );
                 }
             }

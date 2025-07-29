@@ -12,12 +12,9 @@ spring:
     driverClassName: org.h2.Driver
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
-    show-sql: true
+#    show-sql: true
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
+      ddl-auto: none
 #logging:
 #  level:
 ## https://stackoverflow.com/questions/30890076/spring-boot-show-sql-parameter-binding

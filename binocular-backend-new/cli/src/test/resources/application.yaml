@@ -1,3 +1,36 @@
+binocular:
+  index:
+    path: "./src/test/resources/fixtures/simple"
 spring:
   profiles:
-    active: test
+    active: test,sql,h2
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false
+  jpa:
+    defer-datasource-initialization: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 256
+        order_updates: true
+        order_inserts: true
+        batch_versioned_data: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: true
+logging:
+  file:
+    name: logs/test.log
+  level:
+    #    org.hibernate.orm.jdbc.bind: trace
+    com:
+      inso_world:
+        binocular: DEBUG
+      zaxxer:
+        hikari: TRACE
+    root: off

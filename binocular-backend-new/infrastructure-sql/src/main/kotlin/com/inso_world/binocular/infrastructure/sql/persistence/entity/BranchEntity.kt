@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.model.Branch
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -13,6 +14,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.hibernate.annotations.BatchSize
 
 /**
  * SQL-specific Branch entity.
@@ -31,8 +33,9 @@ internal data class BranchEntity(
     var id: Long? = null,
     @Column(nullable = false)
     val name: String,
+    @BatchSize(size = 256)
     @ManyToMany(mappedBy = "branches", fetch = FetchType.LAZY, cascade = [])
-    var commits: MutableSet<CommitEntity> = mutableSetOf(),
+    val commits: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
     var repository: RepositoryEntity? = null,
@@ -47,6 +50,13 @@ internal data class BranchEntity(
         this.commits.add(commit)
         commit.branches.add(this)
     }
+
+    fun toDomain(): Branch =
+        Branch(
+            id = this.id?.toString(),
+            name = this.name,
+            repository = null,
+        )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -70,3 +80,10 @@ internal data class BranchEntity(
         return "${repo.name},$name"
     }
 }
+
+internal fun Branch.toEntity(): BranchEntity =
+    BranchEntity(
+        id = this.id?.toLong(),
+        name = this.name,
+        repository = null,
+    )

@@ -2,8 +2,10 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
 import com.inso_world.binocular.model.Project
-import com.inso_world.binocular.model.Repository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -15,15 +17,10 @@ internal class ProjectMapper
         private val proxyFactory: RelationshipProxyFactory,
         @Lazy private val repoMapper: RepositoryMapper,
     ) {
-        private val context: MutableMap<Long, Repository> = mutableMapOf()
+        var logger: Logger = LoggerFactory.getLogger(ProjectMapper::class.java)
 
         fun toEntity(domain: Project): ProjectEntity {
-            val p =
-                ProjectEntity(
-                    id = domain.id?.toLong(),
-                    name = domain.name,
-                    description = domain.description,
-                )
+            val p = domain.toEntity()
 
             p.repo =
                 domain.repo?.let {
@@ -36,12 +33,7 @@ internal class ProjectMapper
         fun toDomain(entity: ProjectEntity): Project {
             val id = entity.id ?: throw IllegalStateException("Entity ID cannot be null")
 
-            val p =
-                Project(
-                    id = id.toString(),
-                    name = entity.name,
-                    description = entity.description,
-                )
+            val p = entity.toDomain()
 
             p.repo =
                 entity.repo?.let { r ->
