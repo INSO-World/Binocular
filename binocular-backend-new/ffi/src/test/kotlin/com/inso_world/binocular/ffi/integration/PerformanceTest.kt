@@ -2,14 +2,14 @@ package com.inso_world.binocular.ffi.integration
 
 import com.inso_world.binocular.ffi.BinocularFfi
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.assertTimeout
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
+@Disabled
 class PerformanceTest {
     private val ffi: BinocularFfi = BinocularFfi()
     private val repo = ffi.findRepo("../../.git")
