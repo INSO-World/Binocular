@@ -99,9 +99,12 @@ jobs:
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
 
+      - name: Install dependencies
+        run: |
+          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
+
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn clean install --pl ${{ matrix.module }} -am -DskipTests jar:test-jar
           mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,sql,h2 -Psql
 
       - name: Surefire report for module ${{ matrix.module }}
@@ -163,9 +166,12 @@ jobs:
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
 
+      - name: Install dependencies
+        run: |
+          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
+
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn clean install --pl ${{ matrix.module }} -am -DskipTests jar:test-jar
           mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,nosql,arangodb -Parangodb
 
       - name: Surefire report for module ${{ matrix.module }}
@@ -251,9 +257,12 @@ jobs:
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
 
+      - name: Install dependencies
+        run: | 
+          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
+
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn clean install --pl ${{ matrix.module }} -am -DskipTests jar:test-jar
           CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=${{ matrix.springProfile }}"
           if [ -n "${{ matrix.mvnProfile }}" ]; then
             CMD="$CMD -P${{ matrix.mvnProfile }}"
