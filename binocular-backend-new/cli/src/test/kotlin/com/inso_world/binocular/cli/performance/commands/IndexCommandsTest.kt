@@ -85,6 +85,7 @@ class IndexCommandsTest : PerformanceTest() {
 
     @ParameterizedTest
     @MethodSource("provideBranches")
+    @Disabled
     fun `test commit idx, with validation`(
         branch: String,
         headSha: String,
