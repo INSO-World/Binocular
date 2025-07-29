@@ -101,7 +101,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
+          CMD="mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install"
+          if [ -n "${{ matrix.mvnProfile }}" ]; then
+            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
@@ -168,7 +173,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
+          CMD="mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install"
+          if [ -n "${{ matrix.mvnProfile }}" ]; then
+            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
@@ -258,8 +268,13 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Install dependencies
-        run: | 
-          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
+        run: |
+          CMD="mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install"
+          if [ -n "${{ matrix.mvnProfile }}" ]; then
+            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
