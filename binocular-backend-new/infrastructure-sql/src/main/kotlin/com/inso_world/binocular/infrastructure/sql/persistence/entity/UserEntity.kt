@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.model.User
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -13,6 +14,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.hibernate.annotations.BatchSize
 import java.util.Objects
 
 /**
@@ -33,8 +35,10 @@ internal data class UserEntity(
     var name: String? = null,
     @Column(nullable = false)
     var email: String? = null,
+    @BatchSize(size = 256)
     @OneToMany(fetch = FetchType.LAZY, targetEntity = CommitEntity::class, cascade = [CascadeType.ALL])
     var committedCommits: MutableSet<CommitEntity> = mutableSetOf(),
+    @BatchSize(size = 256)
     @OneToMany(fetch = FetchType.LAZY, targetEntity = CommitEntity::class, cascade = [CascadeType.ALL])
     var authoredCommits: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -62,6 +66,14 @@ internal data class UserEntity(
         commit.author = this
     }
 
+    fun toDomain(): User =
+        User(
+            id = this.id?.toString(),
+            email = this.email,
+            name = this.name,
+            repository = null,
+        )
+
     override fun toString(): String = super.toString()
 
     override fun equals(other: Any?): Boolean {
@@ -85,3 +97,13 @@ internal data class UserEntity(
         return result
     }
 }
+
+internal fun User.toEntity(): UserEntity =
+    UserEntity(
+        id = this.id?.toLong(),
+        email = this.email,
+        name = this.name,
+        repository = null,
+        committedCommits = mutableSetOf(),
+        authoredCommits = mutableSetOf(),
+    )

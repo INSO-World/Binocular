@@ -6,6 +6,8 @@ import com.inso_world.binocular.core.exception.BinocularInfrastructureException
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,17 +42,17 @@ class CommitService(
 
     fun findAll(
         repo: Repository,
-        page: Int = 1,
-        perPage: Int = 100,
+        @Min(0) page: Int = 0,
+        @Min(0) @Max(2048) perPage: Int = 100,
     ): Iterable<Commit> {
         logger.trace("Loading all commits...")
         val page = if (page < 0) 0 else page
         val perPage = if (perPage < 0) 0 else perPage
         logger.debug("page is $page, perPage is $perPage")
-        val pageable: Pageable = PageRequest.of(page - 1, perPage)
+        val pageable: Pageable = PageRequest.of(page, perPage)
 
         try {
-            return commitPort.findAllByRepo(repo, pageable)
+            return commitPort.findAll(repo, pageable)
         } catch (e: BinocularInfrastructureException) {
             throw ServiceException(e)
         }

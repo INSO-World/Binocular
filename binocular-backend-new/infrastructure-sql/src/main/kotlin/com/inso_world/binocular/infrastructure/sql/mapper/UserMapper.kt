@@ -1,19 +1,14 @@
 package com.inso_world.binocular.infrastructure.sql.mapper
 
-import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingScope
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
-import jakarta.persistence.EntityManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
-import org.springframework.transaction.support.TransactionTemplate
 
 @Component
 internal class UserMapper {
@@ -23,88 +18,21 @@ internal class UserMapper {
     private lateinit var ctx: MappingContext
 
     @Autowired
-    private lateinit var proxyFactory: RelationshipProxyFactory
-
-    @Autowired
-    @Lazy
-    private lateinit var entityManager: EntityManager
-
-    @Autowired
-    @Lazy
-    private lateinit var transactionTemplate: TransactionTemplate
-
-    @Autowired
-    @Lazy
     private lateinit var commitMapper: CommitMapper
-
-    @Autowired
-    private lateinit var mappingScope: MappingScope
 
     /**
      * Converts a domain User to a SQL UserEntity
      */
-    fun toEntity(
-        domain: User,
-        repo: RepositoryEntity,
-    ): UserEntity {
-        val userContextKey = "${repo.name},${domain.email}"
+    fun toEntity(domain: User): UserEntity {
+        val userContextKey = domain.uniqueKey()
         ctx.entity.user[userContextKey]?.let {
             logger.trace("toEntity: User-Cache hit: '$userContextKey'")
             return it
         }
 
-        val entity =
-            UserEntity(
-                id = domain.id?.toLong(),
-//                gitSignature = domain.gitSignature,
-                email = domain.email,
-                name = domain.name,
-                repository = repo,
-                // Note: Relationships are not directly mapped in SQL entity
-            )
+        val entity = domain.toEntity()
 
         ctx.entity.user.computeIfAbsent(userContextKey) { entity }
-
-        entity.committedCommits =
-            proxyFactory
-                .createLazyMutableSet(
-                    {
-                        val commitEntities =
-                            domain.committedCommits
-                                .map {
-                                    val cmt =
-//                                            commitContext[it.sha]
-                                        ctx.entity.commit[it.sha]
-                                            ?: throw IllegalStateException("$it not found in context")
-                                    cmt
-                                }
-                        commitEntities
-                    },
-                    { it ->
-                        it.forEach { c -> c.committer = entity }
-                    },
-                )
-
-        entity.authoredCommits =
-            proxyFactory
-                .createLazyMutableSet(
-                    {
-                        val commitEntities =
-                            domain.authoredCommits
-                                .map {
-                                    val cmt =
-//                                            commitContext[it.sha]
-                                        ctx.entity.commit[it.sha]
-                                            ?: throw IllegalStateException("Commit sha $it not found in context")
-                                    cmt
-                                }
-                        commitEntities
-                    },
-                    { it ->
-                        it.forEach { c -> c.author = entity }
-                    },
-                )
-        repo.user.add(entity)
 
         return entity
     }
@@ -116,80 +44,33 @@ internal class UserMapper {
      * when accessed. This provides a consistent API regardless of the database
      * implementation and avoids the N+1 query problem.
      */
-    fun toDomain(
+    fun toDomain(entity: UserEntity): User {
+        val userContextKey = entity.uniqueKey()
+        ctx.domain.user[userContextKey]?.let {
+            logger.trace("toDomain: User-Cache hit: '$userContextKey'")
+            return it
+        }
+
+        val domain = entity.toDomain()
+
+        ctx.domain.user.computeIfAbsent(userContextKey) { domain }
+
+        return domain
+    }
+
+    fun toDomainFull(
         entity: UserEntity,
         repository: Repository,
     ): User {
-        val userContextKey = entity.uniqueKey()
-        ctx.domain.user[userContextKey]?.let { return it }
+        val mappedDomain = toDomain(entity)
 
-        val domain =
-            User(
-                id = entity.id?.toString(),
-                email = entity.email,
-                name = entity.name,
-//                    gitSignature = "${entity.name} <${entity.email}>",
-                repository = repository,
-                // Use direct entity relationships and map them to domain objects using the createLazyMappedList method
-//                commits =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.commits },
-//                        { commitMapper.toDomain(it) },
-//                    ),
-//                issues =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.issues },
-//                        { issueMapper.toDomain(it) },
-//                    ),
-//                files =
-//                    proxyFactory.createLazyMappedList(
-//                        { entity.commitFileConnections.mapNotNull { it.file } },
-//                        { fileMapper.toDomain(it) },
-//                    ),
-            )
-        ctx.domain.user.computeIfAbsent(userContextKey) { domain }
+        mappedDomain.committedCommits.addAll(
+            commitMapper.toDomainFull(entity.committedCommits, repository),
+        )
+        mappedDomain.authoredCommits.addAll(
+            commitMapper.toDomainFull(entity.authoredCommits, repository),
+        )
 
-        domain.committedCommits =
-//            proxyFactory.createLazyMutableSet(
-            run {
-                transactionTemplate.execute {
-                    // Reload the entity in a new session
-                    val freshEntity = entityManager.find(UserEntity::class.java, entity.id)
-                    // Now the collection is attached to this session
-                    freshEntity.committedCommits
-                        .map {
-                            ctx.domain.commit[it.sha] ?: throw IllegalStateException("Commit ${it.sha} was not mapped")
-                        }.toMutableSet()
-                } ?: throw IllegalStateException("transaction should load branch committedCommits")
-            }
-//                {
-//                        it.forEach { u -> u.committer = u }
-//                        require(it.size == entity.committedCommits.size) {
-//                            "entity.committedCommits: Expected size of ${entity.committedCommits.size} does not match ${it.size}"
-//                        }
-//                },
-//            )
-
-        domain.authoredCommits =
-//            proxyFactory.createLazyMutableSet(
-            run {
-                transactionTemplate.execute {
-                    // Reload the entity in a new session
-                    val freshEntity = entityManager.find(UserEntity::class.java, entity.id)
-                    // Now the collection is attached to this session
-                    freshEntity.authoredCommits
-                        .map {
-                            ctx.domain.commit[it.sha] ?: throw IllegalStateException("Commit ${it.sha} was not mapped")
-                        }.toMutableSet()
-                } ?: throw IllegalStateException("transaction should load authoredCommits entities")
-            }
-//                {
-//                        require(it.size == entity.authoredCommits.size) {
-//                            "entity.committedCommits: Expected size of ${entity.authoredCommits.size} does not match ${it.size}"
-//                        }
-//                },
-//            )
-
-        return domain
+        return mappedDomain
     }
 }

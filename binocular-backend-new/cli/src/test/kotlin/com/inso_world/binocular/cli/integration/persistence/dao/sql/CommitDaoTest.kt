@@ -1,6 +1,5 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql
 
-import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.toDtos
 import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceNoDataTest
@@ -164,6 +163,9 @@ internal class CommitDaoTest(
                     name = "test",
                     email = "test@example.com",
                 )
+            val branch = Branch(
+                name = "test",
+            )
             val cmt =
                 Commit(
                     sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
@@ -171,16 +173,12 @@ internal class CommitDaoTest(
                     commitDateTime = validCommitTime,
                     authorDateTime = null,
                     repositoryId = project.repo?.id,
-                    branches =
-                        mutableSetOf(
-                            Branch(
-                                name = "test",
-                            ),
-                        ),
                 )
+            branch.addCommit(cmt)
             user.addCommittedCommit(cmt)
             project.repo?.addCommit(cmt)
-            project.repo?.user?.add(user)
+            project.repo?.addUser(user)
+            project.repo?.addBranch(branch)
             assertDoesNotThrow {
                 commitPort.create(cmt)
             }
@@ -196,6 +194,9 @@ internal class CommitDaoTest(
                     name = "test",
                     email = "test@example.com",
                 )
+            val branch = Branch(
+                name = "test",
+            )
             val cmt =
                 Commit(
                     sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
@@ -203,16 +204,12 @@ internal class CommitDaoTest(
                     commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     authorDateTime = validAuthorTime,
                     repositoryId = project.repo?.id,
-                    branches =
-                        mutableSetOf(
-                            Branch(
-                                name = "test",
-                            ),
-                        ),
                 )
+            branch.addCommit(cmt)
             user.addCommittedCommit(cmt)
             project.repo?.addCommit(cmt)
-            project.repo?.user?.add(user)
+            project.repo?.addUser(user)
+            project.repo?.addBranch(branch)
             assertDoesNotThrow {
                 commitPort.create(cmt)
             }
@@ -415,7 +412,8 @@ internal class CommitDaoTest(
                         setOf(cmtBeforeBranching, octo3, octo2, octo1)
                     }
 
-                    assertAll("check suspect",
+                    assertAll(
+                        "check suspect",
                         { assertThat(suspect.children).isEmpty() },
                         { assertThat(suspect.parents).hasSize(4) },
                         { assertThat(suspect.parents).containsAll(parents) }
@@ -580,9 +578,43 @@ internal class CommitDaoTest(
                 }
 
                 var localRepo = genBranchCommits(null, "master")
+                assertAll(
+                    "check localRepo",
+                    { assertThat(localRepo.commits).hasSize(19) },
+                    { assertThat(localRepo.branches).hasSize(1) },
+                    { assertThat(localRepo.branches.find { it.name == "master" }?.commits).hasSize(19) },
+                    { assertThat(localRepo.user).hasSize(3) },
+                )
                 localRepo = genBranchCommits(localRepo, "bugfix")
+                assertAll(
+                    "check localRepo",
+                    { assertThat(localRepo.commits).hasSize(19 /*master*/ + 2 /*new on bugfix*/) },
+                    { assertThat(localRepo.branches.find { it.name == "master" }?.commits).hasSize(19) },
+                    { assertThat(localRepo.branches.find { it.name == "bugfix" }?.commits).hasSize(17) },
+                    { assertThat(localRepo.branches).hasSize(2) },
+                    { assertThat(localRepo.user).hasSize(3) },
+                )
                 localRepo = genBranchCommits(localRepo, "feature")
+                assertAll(
+                    "check localRepo",
+                    { assertThat(localRepo.commits).hasSize(19 /*master*/ + 2 /*new on bugfix*/ + 2 /*new on feature*/) },
+                    { assertThat(localRepo.branches.find { it.name == "master" }?.commits).hasSize(19) },
+                    { assertThat(localRepo.branches.find { it.name == "bugfix" }?.commits).hasSize(17) },
+                    { assertThat(localRepo.branches.find { it.name == "feature" }?.commits).hasSize(17) },
+                    { assertThat(localRepo.branches).hasSize(3) },
+                    { assertThat(localRepo.user).hasSize(3) },
+                )
                 localRepo = genBranchCommits(localRepo, "imported")
+                assertAll(
+                    "check localRepo",
+                    { assertThat(localRepo.commits).hasSize(19 /*master*/ + 2 /*bugfix*/ + 2 /*feature*/ + 1 /*imported*/) },
+                    { assertThat(localRepo.branches.find { it.name == "master" }?.commits).hasSize(19) },
+                    { assertThat(localRepo.branches.find { it.name == "bugfix" }?.commits).hasSize(17) },
+                    { assertThat(localRepo.branches.find { it.name == "feature" }?.commits).hasSize(17) },
+                    { assertThat(localRepo.branches.find { it.name == "imported" }?.commits).hasSize(1) },
+                    { assertThat(localRepo.branches).hasSize(4) },
+                    { assertThat(localRepo.user).hasSize(4) },
+                )
 
                 val leafs =
                     commitPort.findAllLeafCommits(

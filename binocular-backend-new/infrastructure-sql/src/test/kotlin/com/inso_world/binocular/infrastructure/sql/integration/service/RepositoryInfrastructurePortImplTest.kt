@@ -89,7 +89,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     val branch =
                         Branch(
                             name = "test branch",
-                            repositoryId = repository.id,
+                            repository = repository,
                         )
                     val cmt =
                         Commit(
@@ -109,7 +109,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
                     assertAll(
                         "check model",
-                        { assertThat(branch.commitShas).hasSize(1) },
+                        { assertThat(branch.commits).hasSize(1) },
                         { assertThat(cmt.branches).hasSize(1) },
                         { assertThat(repository.branches).hasSize(1) },
                         { assertThat(repository.user).hasSize(1) },
@@ -159,7 +159,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     val branch =
                         Branch(
                             name = "test branch",
-                            repositoryId = repository.id,
+                            repository = repository,
                         )
                     val parent = Commit(
                         sha = "0".repeat(40),
@@ -191,7 +191,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
                     assertAll(
                         "check model",
-                        { assertThat(branch.commitShas).hasSize(1) },
+                        { assertThat(branch.commits).hasSize(2) },
                         { assertThat(cmt.parents).hasSize(1) },
                         { assertThat(cmt.branches).hasSize(1) },
                         { assertThat(repository.branches).hasSize(1) },
@@ -248,7 +248,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     val branch =
                         Branch(
                             name = "test branch",
-                            repositoryId = repository.id,
+                            repository = repository,
                         )
                     val parent1 = Commit(
                         sha = "1".repeat(40),
@@ -291,7 +291,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
                     assertAll(
                         "check model",
-                        { assertThat(branch.commitShas).hasSize(1) },
+                        { assertThat(branch.commits).hasSize(3) },
                         { assertThat(cmt.parents).hasSize(2) },
                         { assertThat(cmt.branches).hasSize(1) },
                         { assertThat(repository.branches).hasSize(1) },
@@ -382,7 +382,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository
                 )
             val cmtA =
                 Commit(
@@ -413,7 +413,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
             assertAll(
                 "check model",
-                { assertThat(branch.commitShas).hasSize(2) },
+                { assertThat(branch.commits).hasSize(2) },
                 { assertThat(cmtA.branches).hasSize(1) },
                 { assertThat(cmtB.branches).hasSize(1) },
                 { assertThat(repository.branches).hasSize(1) },
@@ -467,7 +467,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val user =
                 User(
@@ -504,7 +504,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
             assertAll(
                 "check model",
-                { assertThat(branch.commitShas).hasSize(2) },
+                { assertThat(branch.commits).hasSize(2) },
                 { assertThat(repository.commits).hasSize(2) },
                 { assertThat(repository.branches).hasSize(1) },
                 { assertThat(repository.user).hasSize(1) },
@@ -520,7 +520,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 { assertThat(updatedEntity.branches).hasSize(1) },
                 { assertThat(updatedEntity.user).hasSize(1) },
             )
-            assertThat(updatedEntity.branches.toList()[0].commitShas).hasSize(2)
+            assertThat(updatedEntity.branches.toList()[0].commits).hasSize(2)
 
             assertAll(
                 { assertThat(projectPort.findAll()).hasSize(1) },
@@ -559,7 +559,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val cmt =
                 Commit(
@@ -583,7 +583,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
             assertAll(
                 "Check model",
-                { assertThat(branch.commitShas).hasSize(1) },
+                { assertThat(branch.commits).hasSize(1) },
                 { assertThat(repository.branches).hasSize(1) },
                 { assertThat(repository.commits).hasSize(1) },
                 { assertThat(repository.user).hasSize(1) },
@@ -637,7 +637,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val parent =
                 Commit(
@@ -673,7 +673,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             assertAll(
                 "Check model",
                 { assertThat(cmt.parents).hasSize(1) },
-                { assertThat(branch.commitShas).hasSize(1) },
+                { assertThat(branch.commits).hasSize(2) },
                 { assertThat(repository.branches).hasSize(1) },
                 { assertThat(repository.commits).hasSize(1) },
                 { assertThat(repository.user).hasSize(1) },
@@ -737,7 +737,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val parent1 =
                 Commit(
@@ -781,7 +781,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             assertAll(
                 "Check model",
                 { assertThat(cmt.parents).hasSize(2) },
-                { assertThat(branch.commitShas).hasSize(1) },
+                { assertThat(branch.commits).hasSize(3) },
                 { assertThat(repository.branches).hasSize(1) },
                 { assertThat(repository.commits).hasSize(1) },
                 { assertThat(repository.user).hasSize(1) },
@@ -841,7 +841,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val user =
                 User(
@@ -917,7 +917,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
 
             run {
@@ -1019,7 +1019,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 val branch =
                     Branch(
                         name = "test branch 1",
-                        repositoryId = repository.id,
+                        repository = repository,
                     )
 
                 val cmt =
@@ -1066,7 +1066,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 val branch =
                     Branch(
                         name = "test branch 2",
-                        repositoryId = repository.id,
+                        repository = repository,
                     )
 
                 val cmt =
@@ -1155,7 +1155,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 val branch =
                     Branch(
                         name = "test branch 1",
-                        repositoryId = repository.id,
+                        repository = repository,
                     )
 
                 cmt.addBranch(branch)
@@ -1167,7 +1167,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertAll(
                     "check model",
                     { assertThat(cmt.branches).hasSize(1) },
-                    { assertThat(branch.commitShas).hasSize(1) },
+                    { assertThat(branch.commits).hasSize(1) },
                     { assertThat(repository.branches).hasSize(1) },
                     { assertThat(repository.commits).hasSize(1) },
                 )
@@ -1198,7 +1198,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 val branch =
                     Branch(
                         name = "test branch 2",
-                        repositoryId = repository.id,
+                        repository = repository,
                     )
 
                 cmt.addBranch(branch)
@@ -1209,7 +1209,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertAll(
                     "check model",
                     { assertThat(cmt.branches).hasSize(2) },
-                    { assertThat(branch.commitShas).hasSize(1) },
+                    { assertThat(branch.commits).hasSize(1) },
                     { assertThat(repository.branches).hasSize(2) },
                     { assertThat(repository.commits).hasSize(1) },
                     { assertThat(repository.user).hasSize(1) },
@@ -1269,7 +1269,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch 1",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val user =
                 User(
@@ -1374,7 +1374,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             val branch =
                 Branch(
                     name = "test branch 1",
-                    repositoryId = repository.id,
+                    repository = repository,
                 )
             val savedRepo = run {
                 val cmt =
@@ -1477,7 +1477,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     val branch =
                         Branch(
                             name = "test branch 1",
-                            repositoryId = repository.id,
+                            repository = repository,
                         )
 
                     val cmtA =
@@ -1508,7 +1508,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
 
                     assertAll(
                         "check model",
-                        { assertThat(branch.commitShas).hasSize(2) },
+                        { assertThat(branch.commits).hasSize(2) },
                         { assertThat(cmtA.branches).hasSize(1) },
                         { assertThat(cmtB.branches).hasSize(1) },
                         { assertThat(repository.branches).hasSize(1) },
@@ -1545,7 +1545,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     assertThat(savedRepo.commits).hasSize(1)
                     assertThat(savedRepo.branches).hasSize(1)
                     assertThat(savedRepo.user).hasSize(1)
-                    assertThat(savedRepo.branches.toList()[0].commitShas).hasSize(1)
+                    assertThat(savedRepo.branches.toList()[0].commits).hasSize(1)
 
                     val updatedRepo =
                         assertDoesNotThrow {
@@ -1555,7 +1555,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     assertThat(updatedRepo.commits).hasSize(1)
                     assertThat(updatedRepo.branches).hasSize(1)
                     assertThat(updatedRepo.user).hasSize(1)
-                    assertThat(updatedRepo.branches.toList()[0].commitShas).hasSize(1)
+                    assertThat(updatedRepo.branches.toList()[0].commits).hasSize(1)
 
                     return@run updatedRepo
                 }

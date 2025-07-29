@@ -70,7 +70,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
         this.branchDomain =
             Branch(
                 name = "test branch",
-                repositoryId = repository.id,
+                repository = repository,
             )
     }
 
@@ -118,7 +118,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                 Arguments.of(
                     run {
                         val c1 = commit1()
-                        c1.parents.add(c1)
+                        c1.addParent(c1)
                         listOf(
                             c1
                         )
@@ -129,8 +129,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     run {
                         val c1 = commit1()
                         val c2 = commit2()
-                        c1.parents.add(c2)
-                        c2.parents.add(c2)
+                        c1.addParent(c2)
+                        c2.addParent(c2)
 
                         listOf(c1)
                     }
@@ -141,8 +141,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c1 = commit1()
                         val c2 = commit2()
 
-                        c1.parents.add(c2)
-                        c2.parents.add(c1)
+                        c1.addParent(c2)
+                        c2.addParent(c1)
 
                         listOf(c1)
                     }
@@ -154,9 +154,9 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2()
                         val c3 = commit3()
 
-                        c1.parents.add(c2)
-                        c2.parents.add(c3)
-                        c2.parents.add(c1)
+                        c1.addParent(c2)
+                        c2.addParent(c3)
+                        c2.addParent(c1)
 
                         listOf(c1)
                     }
@@ -168,8 +168,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2()
                         val c3 = commit3()
 
-                        c1.parents.add(c2)
-                        c2.parents.add(c2)
+                        c1.addParent(c2)
+                        c2.addParent(c2)
 
                         listOf(c1, c3)
                     }
@@ -181,8 +181,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2()
                         val c3 = commit3()
 
-                        c1.parents.add(c2)
-                        c2.parents.add(c2)
+                        c1.addParent(c2)
+                        c2.addParent(c2)
 
                         listOf(c3, c1)
                     }
@@ -194,9 +194,9 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2()
                         val c3 = commit3()
 
-                        c1.parents.add(c2)
-                        c2.parents.add(c3)
-                        c3.parents.add(c1)
+                        c1.addParent(c2)
+                        c2.addParent(c3)
+                        c3.addParent(c1)
 
                         listOf(c2)
                     }
@@ -208,9 +208,9 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2()
                         val c3 = commit3()
 
-                        c1.parents.add(c2)
-                        c2.parents.add(c3)
-                        c3.parents.add(c1)
+                        c1.addParent(c2)
+                        c2.addParent(c3)
+                        c3.addParent(c1)
 
                         listOf(c1)
                     }
@@ -222,9 +222,9 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2()
                         val c3 = commit3()
 
-                        c1.parents.add(c2)
-                        c2.parents.add(c3)
-                        c3.parents.add(c1)
+                        c1.addParent(c2)
+                        c2.addParent(c3)
+                        c3.addParent(c1)
 
                         listOf(c3)
                     }
@@ -243,21 +243,21 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
             fun commit1_pc(): Commit {
                 val cmt =
                     Commit(
-                        sha = "A".repeat(40),
+                        sha = "1".repeat(40),
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
                         repositoryId = null,
                         parents = mutableSetOf(),
                         committer = user(),
                     )
-                cmt.committer?.committedCommits?.add(cmt)
+                cmt.committer?.addCommittedCommit(cmt)
                 return cmt
             }
 
             fun commit2_pc(): Commit {
                 val cmt =
                     Commit(
-                        sha = "B".repeat(40),
+                        sha = "2".repeat(40),
                         message = "yet another commit",
                         commitDateTime = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
                         repositoryId = null,
@@ -265,14 +265,14 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         committer = user(),
                     )
 
-                cmt.committer?.committedCommits?.add(cmt)
+                cmt.committer?.addCommittedCommit(cmt)
                 return cmt
             }
 
             fun commit3_pc(): Commit {
                 val cmt =
                     Commit(
-                        sha = "C".repeat(40),
+                        sha = "3".repeat(40),
                         message = "commit number three",
                         commitDateTime = LocalDateTime.of(2022, 1, 1, 0, 0, 0),
                         repositoryId = null,
@@ -280,7 +280,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         committer = user(),
                     )
 
-                cmt.committer?.committedCommits?.add(cmt)
+                cmt.committer?.addCommittedCommit(cmt)
                 return cmt
             }
 
@@ -313,13 +313,27 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         )
                     }
                 ),
-                // 4, two commits, with relationship
+                // 4, two commits, with relationship c1->c2
                 Arguments.of(
                     run {
                         val c1 = commit1_pc()
                         val c2 = commit2_pc()
 
-                        c1.parents.add(c2)
+                        c1.addParent(c2)
+
+                        listOf(
+//                            intentionally missing c2 here
+                            c1
+                        )
+                    }
+                ),
+                // 4.2, two commits, with relationship c1<-c2
+                Arguments.of(
+                    run {
+                        val c1 = commit1_pc()
+                        val c2 = commit2_pc()
+
+                        c1.addChild(c2)
 
                         listOf(
 //                            intentionally missing c2 here
@@ -334,7 +348,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2_pc()
                         val c3 = commit3_pc()
 
-                        c1.parents.add(c2)
+                        c1.addParent(c2)
 
                         listOf(
 //                            intentionally missing c2 here
@@ -347,7 +361,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     run {
                         val c1 = commit1_pc()
                         val c2 = commit2_pc()
-                        c1.parents.add(c2)
+                        c1.addParent(c2)
 
                         listOf(
                             c1, c2
@@ -358,8 +372,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                 Arguments.of(
                     run {
                         val c1 = commit1_pc()
-                        c1.parents.add(commit2_pc())
-                        c1.parents.add(commit3_pc())
+                        c1.addParent(commit2_pc())
+                        c1.addParent(commit3_pc())
 
                         listOf(c1)
                     }
@@ -371,10 +385,10 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2_pc()
                         val c3 = commit3_pc()
 
-                        c1.parents.add(c3)
-                        c1.parents.add(c2)
+                        c1.addParent(c3)
+                        c1.addParent(c2)
 
-                        c3.parents.add(c2)
+                        c3.addParent(c2)
                         listOf(
                             c1, c2, c3
                         )
@@ -387,11 +401,11 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         val c2 = commit2_pc()
                         val c3 = commit3_pc()
 
-                        c1.parents.add(c2)
-                        c1.parents.add(c3)
+                        c1.addParent(c2)
+                        c1.addParent(c3)
 
 //                        vice versa to 7
-                        c2.parents.add(c3)
+                        c2.addParent(c3)
 
                         listOf(
                             c1, c2, c3
@@ -428,11 +442,11 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         mutableSetOf(baseBranch),
                     committer = user,
                 )
-            user.committedCommits.add(baseCommit)
-            baseBranch.commitShas.add(baseCommit.sha)
-            repository.commits.add(baseCommit)
-            repository.branches.add(baseBranch)
-            repository.user.add(user)
+            user.addCommittedCommit(baseCommit)
+            baseBranch.addCommit(baseCommit)
+            repository.addCommit(baseCommit)
+            repository.addBranch(baseBranch)
+            repository.addUser(user)
 
             this.savedCommit = commitPort.create(baseCommit)
         }
@@ -459,13 +473,14 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     name = "new branch",
                 )
 
-            savedCommit.branches.add(newBranch)
-            newBranch.commitShas.add(savedCommit.sha)
+            savedCommit.addBranch(newBranch)
+            newBranch.addCommit(savedCommit)
+            repository.addBranch(newBranch)
 
             assertAll(
                 "check model",
                 { assertThat(savedCommit.branches).hasSize(2) },
-                { assertThat(newBranch.commitShas).hasSize(1) },
+                { assertThat(newBranch.commits).hasSize(1) },
             )
 
             val updatedEntity =
@@ -527,10 +542,12 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                         )
 
                     user.addCommittedCommit(cmt)
-                    repository.user.add(user)
+                    repository.addUser(user)
 
-                    branchA.commitShas.add(cmt.sha)
-                    branchB.commitShas.add(cmt.sha)
+                    branchA.addCommit(cmt)
+                    branchB.addCommit(cmt)
+                    repository.addBranch(branchA)
+                    repository.addBranch(branchB)
 
                     val savedCommit =
                         assertDoesNotThrow {
@@ -598,18 +615,18 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     cmt.parents.forEach { c ->
                         c.repositoryId = repository.id
 
-                        branch.commitShas.add(c.sha)
-                        c.branches.add(branch)
+                        branch.addCommit(c)
+                        c.addBranch(branch)
 
-                        c.committer?.committedCommits?.add(c)
+                        c.committer?.addCommittedCommit(c)
                     }
 
-                    branch.commitShas.add(cmt.sha)
-                    cmt.branches.add(branch)
+                    branch.addCommit(cmt)
+                    cmt.addBranch(branch)
 
-                    cmt.committer?.committedCommits?.add(cmt)
+                    cmt.committer?.addCommittedCommit(cmt)
 
-                    repository.commits.add(cmt)
+                    repository.addCommit(cmt)
                     branch = commitPort.create(cmt).branches.toList()[0]
                 }
             }
@@ -625,36 +642,37 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
             val savedCommits =
                 commitList
                     .map { cmt ->
-                        cmt.branches.add(branchDomain)
-                        branchDomain.commitShas.add(cmt.sha)
+                        cmt.addBranch(branchDomain)
+                        branchDomain.addCommit(cmt)
                         cmt.repositoryId = repository.id
                         cmt.committer?.repository = repository
                         cmt.author?.repository = repository
-                        cmt.parents.forEach { c ->
+                        (cmt.parents + cmt.children).toSet().forEach { c ->
                             c.repositoryId = repository.id
                             c.committer?.repository = repository
                             c.committer?.let {
-                                repository.user.add(it)
+                                repository.addUser(it)
                                 it.addCommittedCommit(c)
                             }
                             c.author?.repository = repository
                             c.author?.let {
-                                repository.user.add(it)
+                                repository.addUser(it)
                                 it.addAuthoredCommit(c)
                             }
-                            c.branches.add(branchDomain)
-                            branchDomain.commitShas.add(c.sha)
+                            c.addBranch(branchDomain)
+                            branchDomain.addCommit(c)
+                            repository.addCommit(c)
                         }
-                        repository.commits.add(cmt)
+                        repository.addCommit(cmt)
                         cmt.committer?.let {
-                            repository.user.add(it)
+                            repository.addUser(it)
                             it.addCommittedCommit(cmt)
                         }
                         cmt.author?.let {
-                            repository.user.add(it)
+                            repository.addUser(it)
                             it.addAuthoredCommit(cmt)
                         }
-                        repository.branches.add(branchDomain)
+                        repository.addBranch(branchDomain)
 
                         assertDoesNotThrow {
                             commitPort.create(cmt)
@@ -676,6 +694,8 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                     .map { it.sha }
                     .union(
                         commitList.flatMap { it.parents.map { parent -> parent.sha } },
+                    ).union(
+                        commitList.flatMap { it.children.map { parent -> parent.sha } },
                     ).distinct()
                     .size,
             )
@@ -734,15 +754,18 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
             val savedEntities =
                 commitList
                     .map { cmt ->
-                        cmt.branches.add(branchDomain)
-                        branchDomain.commitShas.add(cmt.sha)
-                        cmt.repositoryId = repository.id
-                        cmt.parents.forEach { parent ->
-                            parent.repositoryId = repository.id
-                            parent.branches.add(branchDomain)
-                            branchDomain.commitShas.add(parent.sha)
+                        (listOf(cmt) + cmt.parents + cmt.children).forEach { elem ->
+                            repository.addCommit(elem)
+                            branchDomain.addCommit(elem)
+                            elem.committer?.let {
+                                repository.addUser(it)
+                                elem.addCommitter(it)
+                            }
+                            elem.author?.let {
+                                repository.addUser(it)
+                                elem.addAuthor(it)
+                            }
                         }
-                        repository.commits.add(cmt)
                         assertDoesNotThrow {
                             return@map commitPort.create(cmt)
                         }
@@ -752,7 +775,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
             repository.commits = savedEntities.toMutableSet()
 
             val expectedCommits =
-                (savedEntities + savedEntities.flatMap { it.parents })
+                (savedEntities + savedEntities.flatMap { it.parents } + savedEntities.flatMap { it.children })
                     .distinctBy { it.sha }
 
             assertAll(
@@ -819,25 +842,22 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                             email = "test@example.com",
                             repository = repository,
                         )
-                    repository.user.add(user)
+                    repository.addUser(user)
                     val savedCommits =
                         commitList
                             .map { cmt ->
-                                user.committedCommits.add(cmt)
-                                cmt.committer = user
-
-                                cmt.repositoryId = repository.id
-                                cmt.branches.add(branchDomain)
-                                branchDomain.commitShas.add(cmt.sha)
-                                cmt.parents.forEach { c ->
-                                    user.committedCommits.add(c)
-                                    c.committer = user
-
-                                    c.repositoryId = repository.id
-                                    c.branches.add(branchDomain)
-                                    branchDomain.commitShas.add(c.sha)
+                                (listOf(cmt) + cmt.parents + cmt.children).forEach { elem ->
+                                    repository.addCommit(elem)
+                                    branchDomain.addCommit(elem)
+                                    elem.committer?.let {
+                                        repository.addUser(it)
+                                        elem.addCommitter(it)
+                                    }
+                                    elem.author?.let {
+                                        repository.addUser(it)
+                                        elem.addAuthor(it)
+                                    }
                                 }
-                                repository.commits.add(cmt)
                                 assertDoesNotThrow {
                                     commitPort.create(cmt)
                                 }
@@ -850,7 +870,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                 }
 
             val expectedCommits =
-                (savedEntities + savedEntities.flatMap { it.parents })
+                (savedEntities + savedEntities.flatMap { it.parents }+ savedEntities.flatMap { it.children })
                     .distinctBy { it.sha }
             assertAll(
                 "check database numbers",
@@ -909,19 +929,19 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                             committer = user,
                         )
                     user.addCommittedCommit(cmt)
-                    cmt.branches.add(branchDomain)
-                    branchDomain.commitShas.add(cmt.sha)
+                    cmt.addBranch(branchDomain)
+                    branchDomain.addCommit(cmt)
                     cmt.repositoryId = repository.id
 
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
-                    repository.branches.add(branchDomain)
+                    repository.addCommit(cmt)
+                    repository.addUser(user)
+                    repository.addBranch(branchDomain)
 
                     assertAll(
                         "check model",
                         { assertThat(cmt.branches).hasSize(1) },
                         { assertThat(cmt.committer).isNotNull() },
-                        { assertThat(branchDomain.commitShas).hasSize(1) },
+                        { assertThat(branchDomain.commits).hasSize(1) },
                         { assertThat(cmt.repositoryId).isNotNull() },
                         { assertThat(user.repository).isNotNull() },
                         { assertThat(cmt.repositoryId).isEqualTo(repository.id) },
@@ -1015,8 +1035,9 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                             branches = mutableSetOf(branchDomain),
                             committer = user,
                         )
-                    user.committedCommits.add(cmt)
-                    branchDomain.commitShas.add(cmt.sha)
+                    user.addCommittedCommit(cmt)
+                    branchDomain.addCommit(cmt)
+                    repository.addUser(user)
 
                     assertDoesNotThrow {
                         return@run commitPort.create(cmt)
@@ -1069,10 +1090,10 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                             branches = mutableSetOf(branchDomain),
                             committer = user,
                         )
-                    user.committedCommits.add(cmt)
-                    branchDomain.commitShas.add(cmt.sha)
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
+                    user.addCommittedCommit(cmt)
+                    branchDomain.addCommit(cmt)
+                    repository.addCommit(cmt)
+                    repository.addUser(user)
 
                     assertDoesNotThrow {
                         return@run commitPort.create(cmt)

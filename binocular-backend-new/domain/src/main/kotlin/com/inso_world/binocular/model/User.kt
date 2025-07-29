@@ -27,25 +27,31 @@ class User(
 
     fun uniqueKey(): String {
         if (repository == null) {
-            throw IllegalStateException("cannot generate unique key for User when repository is null")
+            throw IllegalStateException("Cannot generate unique key for $javaClass when repository is null")
         }
         return "${repository?.name},$email"
     }
 
-    fun addAuthoredCommit(commit: Commit) {
-        authoredCommits.add(commit)
-        commit.author = this
+    fun addAuthoredCommit(commit: Commit): Boolean {
+        val a = authoredCommits.add(commit)
+        if (a) {
+            commit.author = this
+        }
+        return a
     }
 
-//
+    //
 //    fun addProjectMembership(member: ProjectMember) {
 //        memberAliases.add(member)
 //        member.user = this
 //    }
 //
-    fun addCommittedCommit(commit: Commit) {
-        committedCommits.add(commit)
-        commit.committer = this
+    fun addCommittedCommit(commit: Commit): Boolean {
+        val a = committedCommits.add(commit)
+        if (a) {
+            commit.committer = this
+        }
+        return a
     }
 
     override fun equals(other: Any?): Boolean {

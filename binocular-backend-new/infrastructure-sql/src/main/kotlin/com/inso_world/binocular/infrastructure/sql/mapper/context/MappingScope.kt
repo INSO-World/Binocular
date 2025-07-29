@@ -1,64 +1,75 @@
 package com.inso_world.binocular.infrastructure.sql.mapper.context
 
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectFactory
 import org.springframework.beans.factory.config.Scope
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 internal class MappingScope : Scope {
-    private val logger: Logger = LoggerFactory.getLogger(MappingScope::class.java)
+    private val logger = LoggerFactory.getLogger(MappingScope::class.java)
 
-    // your identity‑map storage
-    private val context = ThreadLocal.withInitial<MutableMap<String, Any>> { mutableMapOf() }
+    /** A single, application‑wide identity map. */
+    private val context = ConcurrentHashMap<String, Any>()
 
-    // nesting counter
-    private val sessionDepth = ThreadLocal.withInitial { 0 }
+    /** How many nested sessions are active *across all threads*. */
+    private val sessionDepth = AtomicInteger(0)
 
-    // the UUID of the current (outermost) session
-    private val sessionId = ThreadLocal<String?>()
+    /** The current session’s UUID, or null if none active. */
+    private val sessionId = AtomicReference<String?>(null)
 
     /**
      * Begins a (possibly nested) mapping session.
-     * - if depth==0 we generate a new ID & clear the old context
-     * @return the session ID
+     *
+     * - If this is the *first* session (depth goes 0→1), generate a new UUID
+     *   and clear out any old context.
+     * - Further nested calls just increment the depth.
+     *
+     * @return the active session ID
      */
+    @Synchronized
     fun startSession(): String {
-        val depth = sessionDepth.get()
-        if (depth == 0) {
-            val newId = UUID.randomUUID().toString()
-            sessionId.set(newId)
-            context.get().clear()
-            logger.debug("Starting new outermost session: {}", newId)
+        val depth = sessionDepth.incrementAndGet()
+        if (depth == 1) {
+            // outermost session
+            val newId = UUID.randomUUID().toString().also { sessionId.store(it) }
+            context.clear()
+            logger.debug("Started new outermost session: {}", newId)
+        } else {
+            logger.debug("Session {} nested depth → {}", sessionId.load(), depth)
         }
-        sessionDepth.set(depth + 1)
-        logger.debug("Session {} depth -> {}", sessionId.get(), sessionDepth.get())
-        return sessionId.get()!!
+        return sessionId.load()!!
     }
 
     /**
      * Ends one level of session.
-     * - if depth hits 0 we clear the context & remove the ID
+     *
+     * - If depth goes 1→0, clears the shared context and nulls out the sessionId.
+     * - Throws if no session is active.
+     *
      * @return Pair(session ID, remaining depth)
      */
+    @Synchronized
     fun endSession(): Pair<String, Int> {
-        val depthBefore = sessionDepth.get()
-        if (depthBefore <= 0) {
+        val before = sessionDepth.get()
+        if (before <= 0) {
             throw IllegalStateException("No mapping session to end")
         }
-        val id = sessionId.get()!!
-        val depthAfter = depthBefore - 1
-        sessionDepth.set(depthAfter)
-
-        if (depthAfter == 0) {
-            // outermost just finished
-            context.get().clear()
-            sessionId.remove()
-            logger.debug("Outermost session {} ended and context cleared", id)
+        val id = sessionId.load()!!
+        val after = sessionDepth.decrementAndGet()
+        if (after == 0) {
+            // all sessions ended
+            context.clear()
+            sessionId.store(null)
+            logger.debug("Session {} ended; context cleared", id)
         } else {
-            logger.debug("Session {} returned to depth {}", id, depthAfter)
+            logger.debug("Session {} returned to depth {}", id, after)
         }
-        return id to depthAfter
+        return id to after
     }
 
     override fun get(
@@ -70,22 +81,25 @@ internal class MappingScope : Scope {
                 "Tried to retrieve @Scope(\"mapping\") bean outside of a @MappingSession",
             )
         }
-        return context.get().computeIfAbsent(name) {
+        // Atomic compute-if-absent on the shared ConcurrentHashMap
+        return context.computeIfAbsent(name) {
             objectFactory.getObject()
         }
     }
 
-    override fun remove(name: String): Any? = context.get().remove(name)
+    override fun remove(name: String): Any? = context.remove(name)
 
     override fun registerDestructionCallback(
         name: String,
         callback: Runnable,
-    ) { /* no‑op */ }
+    ) {
+        // no‑op
+    }
 
     override fun resolveContextualObject(key: String): Any? = null
 
-    override fun getConversationId(): String = sessionId.get() ?: "no-session"
+    override fun getConversationId(): String = sessionId.load() ?: "no-session"
 
-    /** for logging/debugging */
-    fun size(): Int = context.get().size
+    /** For diagnostics: how many beans are in the shared map right now. */
+    fun size(): Int = context.size
 }

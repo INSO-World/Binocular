@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
+import java.util.stream.Collectors
 
 @Service
 @Validated
@@ -72,55 +73,42 @@ internal class CommitInfrastructurePortImpl
         @PostConstruct
         fun init() {
             super.dao = commitDao
-//        super.mapper = commitMapper
         }
 
         @MappingSession
         override fun create(value: Commit): Commit {
-            val repositoryId =
-                value.repositoryId?.toLong() ?: throw IllegalArgumentException("repositoryId of Commit must not be null")
-            val repository =
-                repositoryDao.findById(repositoryId)
-                    ?: throw NotFoundException("Repository id=${value.repositoryId} not found")
-
             val mapped =
                 run {
+                    val repositoryId =
+                        value.repositoryId?.toLong()
+                            ?: throw IllegalArgumentException("repositoryId of Commit must not be null")
+                    val repository =
+                        repositoryDao.findById(repositoryId)
+                            ?: throw NotFoundException("Repository id=${value.repositoryId} not found")
+
 //                TODO N+1 here
-                    ctx.entity.commit.putAll(repository.commits.associateBy { it.sha })
-                    ctx.entity.branch.putAll(
-                        repository.branches
-                            .associateBy {
-                                it.uniqueKey()
-                            },
-                    )
+                    ctx.entity.commit.putAll(repository.commits.associateBy(CommitEntity::uniqueKey))
+                    ctx.entity.branch.putAll(repository.branches.associateBy(BranchEntity::uniqueKey))
                     ctx.entity.user.putAll(repository.user.associateBy(UserEntity::uniqueKey))
 
-                    commitMapper.toEntity(
-                        value,
-                        repository,
-                    )
+                    val mappedCommit = commitMapper.toEntityFull(value, repository)
+                    return@run mappedCommit
                 }
-            return this.commitDao.create(mapped).let {
-                commitDao.flush()
-                val project =
-                    projectMapper.toDomain(
-                        repository.project,
-                    )
+            return this.commitDao
+                .create(mapped)
+                .also { commitDao.flush() }
+                .let { commitEntity ->
+                    val project =
+                        projectMapper.toDomain(
+                            mapped.repository?.project
+                                ?: throw IllegalStateException("Project disappeared after creating commit"),
+                        )
 
-                val repoModel =
-                    repositoryMapper.toDomain(
-                        it.repository ?: throw NotFoundException("Repository must not be null after saving commit"),
-                        project,
-                    )
-                return@let run {
-                    val domain = commitMapper.toDomain(it, repoModel)
-//                val violations = validator.validate(domain, FromInfrastructure::class.java)
-//                if (violations.isNotEmpty()) {
-//                    throw ConstraintViolationException(violations)
-//                }
-                    domain
+                    val repoModel =
+                        project.repo ?: throw IllegalStateException("Repository disappeared after creating commit")
+                    repoModel.commits.find { it.sha == commitEntity.sha }
+                        ?: throw IllegalStateException("Commit disappeared from repository after creating")
                 }
-            }
         }
 
         @MappingSession
@@ -160,7 +148,7 @@ internal class CommitInfrastructurePortImpl
                     throw IllegalStateException("Repository cannot be null when finding commit by ID")
                 }
 
-                commitMapper.toDomain(it, repository)
+                commitMapper.toDomain(it).also { c -> repository.addCommit(c) }
             }
 
         @MappingSession
@@ -194,10 +182,12 @@ internal class CommitInfrastructurePortImpl
                     if (existing == null) {
 //                    create new branch if not exists
                         val newBranch =
-                            branchMapper.toEntity(
-                                it,
-                                repository,
-                            )
+                            branchMapper
+                                .toEntity(
+                                    it,
+                                ).also { branch ->
+                                    repository.addBranch(branch)
+                                }
                         return@map branchDao.create(newBranch)
                     }
                     return@map existing
@@ -208,10 +198,12 @@ internal class CommitInfrastructurePortImpl
                     val existing = ctx.entity.user["${repository.name},${user.name}"]
                     if (existing == null) {
                         val newUser =
-                            userMapper.toEntity(
-                                user,
-                                repository,
-                            )
+                            userMapper
+                                .toEntity(
+                                    user,
+                                ).also {
+                                    repository.addUser(it)
+                                }
                         return@let userDao.create(newUser)
                     }
                     return@let existing
@@ -221,10 +213,12 @@ internal class CommitInfrastructurePortImpl
                     val existing = ctx.entity.user["${repository.name},${user.name}"]
                     if (existing == null) {
                         val newUser =
-                            userMapper.toEntity(
-                                user,
-                                repository,
-                            )
+                            userMapper
+                                .toEntity(
+                                    user,
+                                ).also {
+                                    repository.addUser(it)
+                                }
                         return@let userDao.create(newUser)
                     }
                     return@let existing
@@ -235,8 +229,8 @@ internal class CommitInfrastructurePortImpl
 
             return this.commitDao
                 .update(entity)
+                .also { commitDao.flush() }
                 .let {
-                    this.commitDao.flush()
                     val project =
                         projectMapper.toDomain(
                             repository.project,
@@ -249,7 +243,8 @@ internal class CommitInfrastructurePortImpl
                         repository.branches.associateBy { b -> "${repository.name},${b.name}" },
                     )
                     ctx.domain.user.putAll(repository.user.associateBy { u -> "${repository.name},${u.name}" })
-                    commitMapper.toDomain(it, repository)
+//                    commitMapper.toDomain(it).also { c -> repository.addCommit(c) }
+                    commitMapper.toDomainFull(it, repository)
                 }
         }
 
@@ -271,7 +266,10 @@ internal class CommitInfrastructurePortImpl
                 repositoryDao.findById(repositoryId)
                     ?: throw NotFoundException("Repository ${value.repositoryId} not found")
 
-            val mapped = commitMapper.toEntity(value, repository)
+            val mapped =
+                commitMapper.toEntity(value).also {
+                    repository.addCommit(it)
+                }
             this.commitDao.delete(mapped)
         }
 
@@ -336,14 +334,14 @@ internal class CommitInfrastructurePortImpl
             val repoModel = repositoryMapper.toDomain(repoEntity, project)
 
             return this.commitDao
-                .findExistingSha(repoEntity, shas)
+                .findExistingSha(repo, shas)
                 .map {
-                    this.commitMapper.toDomain(it, repoModel)
+                    this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) }
                 }
         }
 
         @MappingSession
-        override fun findAllByRepo(
+        override fun findAll(
             repo: Repository,
             pageable: Pageable,
         ): Iterable<Commit> {
@@ -358,20 +356,24 @@ internal class CommitInfrastructurePortImpl
             val repoModel = repositoryMapper.toDomain(repoEntity, project)
             return try {
                 this.commitDao
-                    .findAllByRepo(
-                        repoEntity,
-                        pageable,
-                    ).map { this.commitMapper.toDomain(it, repoModel) }
+                    .findAll(
+                        repo,
+//                        pageable,
+                    ).map { this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) } }
+                    .collect(Collectors.toSet())
             } catch (e: PersistenceException) {
                 throw BinocularInfrastructureException(e)
             }
         }
 
         @MappingSession
-        override fun findAll(repo: Repository): Iterable<Commit> =
+        override fun findAll(repository: Repository): Iterable<Commit> =
             this.commitDao
-                .findAll(repo)
-                .map { this.commitMapper.toDomain(it, repo) }
+                .findAll(repository)
+                .collect(Collectors.toSet())
+                .let {
+                    return@let this.commitMapper.toDomainFull(it, repository)
+                }
 
         @MappingSession
         override fun findHeadForBranch(
@@ -389,9 +391,9 @@ internal class CommitInfrastructurePortImpl
             val repoModel = repositoryMapper.toDomain(repoEntity, project)
             return this.commitDao
                 .findHeadForBranch(
-                    repoEntity,
+                    repo,
                     branch,
-                )?.let { this.commitMapper.toDomain(it, repoModel) }
+                )?.let { this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) } }
         }
 
         @MappingSession
@@ -407,7 +409,7 @@ internal class CommitInfrastructurePortImpl
             val repoModel = repositoryMapper.toDomain(repoEntity, project)
             return this.commitDao
                 .findAllLeafCommits(
-                    repoEntity,
-                ).map { this.commitMapper.toDomain(it, repoModel) }
+                    repo,
+                ).map { this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) } }
         }
     }

@@ -1,40 +1,76 @@
 package com.inso_world.binocular.model.validation
 
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Repository
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 
-class NoCommitCycleValidator : ConstraintValidator<NoCommitCycle, Commit> {
-    override fun isValid(
-        commit: Commit?,
-        context: ConstraintValidatorContext,
-    ): Boolean {
-//        val graph = DirectedAcyclicGraph<String, DefaultEdge>(DefaultEdge::class.java)
-//        if (commit == null) return true
-//        hasCycleBySha(commit, mutableListOf(), context, graph)
-//        println(graph.ac)
-        return true
+class NoCommitCycleValidator : ConstraintValidator<NoCommitCycle, Repository> {
+    private enum class VisitState {
+        VISITING,
+        VISITED,
     }
 
-    private fun hasCycleBySha(
-        commit: Commit,
-        path: MutableList<String>,
+    override fun isValid(
+        repo: Repository,
         context: ConstraintValidatorContext,
     ): Boolean {
-//        val sha = commit.sha
-//        val index = path.indexOf(sha)
-//        if (index != -1) {
-//            // Cycle detected: extract the cycle path
-//            val cyclePath = path.subList(index, path.size) + sha
-//            context.disableDefaultConstraintViolation()
-//            context
-//                .buildConstraintViolationWithTemplate(
-//                    "Commit cycle detected: " + cyclePath.joinToString(" -> "),
-//                ).addConstraintViolation()
-//            return true
-//        }
-//        path.add(sha)
-//        path.removeAt(path.size - 1)
-        return false
+        return true
+        // Track visit state of each commit
+        val visitStates = mutableMapOf<String, VisitState>()
+        val cyclePath = mutableListOf<String>()
+
+        fun hasCycle(commit: Commit): Boolean {
+            val sha = commit.sha
+
+            // If we find a commit we're currently visiting, we've found a cycle
+            if (visitStates[sha] == VisitState.VISITING) {
+                cyclePath.add(sha)
+                return true
+            }
+
+            // If we've already fully explored this commit, no cycle here
+            if (visitStates[sha] == VisitState.VISITED) {
+                return false
+            }
+
+            // Mark this commit as being visited
+            visitStates[sha] = VisitState.VISITING
+            cyclePath.add(sha)
+
+            // Check all parent commits
+            for (parent in commit.parents) {
+                if (hasCycle(parent)) {
+                    return true
+                }
+            }
+
+            // Remove from cycle path as we backtrack
+            cyclePath.removeAt(cyclePath.size - 1)
+            // Mark as fully visited
+            visitStates[sha] = VisitState.VISITED
+            return false
+        }
+
+        // Start DFS from each unvisited commit (in case of disconnected subgraphs)
+        for (commit in repo.commits) {
+            if (!visitStates.containsKey(commit.sha)) {
+                if (hasCycle(commit)) {
+                    // Found a cycle - build the error message
+                    val cycleStart = cyclePath.indexOf(cyclePath.last())
+                    val actualCycle = cyclePath.subList(cycleStart, cyclePath.size)
+
+                    context.disableDefaultConstraintViolation()
+                    context
+                        .buildConstraintViolationWithTemplate(
+                            "Commit cycle detected: ${actualCycle.joinToString(" -> ")}",
+                        ).addConstraintViolation()
+
+                    return false
+                }
+            }
+        }
+
+        return true
     }
 }

@@ -184,20 +184,27 @@ internal class RepositoryInfrastructurePortImpl :
         ctx.entity.user.putAll(entity.user.associateBy(UserEntity::uniqueKey))
         logger.trace("Entity context built")
 
-        entity.commits.addAll(
-            commitMapper.toEntityGraph(value.commits + value.commits.flatMap { it.parents }, entity),
+//        wireup is done internally
+        commitMapper.toEntityFull(
+            (value.commits + value.commits.flatMap { it.parents } + value.commits.flatMap { it.children }),
+            entity,
         )
+
         logger.trace("Commits updated")
         // Add or update branches
         value.branches.forEach {
             val key = "${entity.name},${it.name}"
             if (!ctx.entity.branch.containsKey(key)) {
-                val newBranch = branchMapper.toEntity(it, entity)
+                val newBranch = branchMapper.toEntity(it).also { b -> entity.addBranch(b) }
                 entity.branches.add(newBranch)
                 ctx.entity.branch.computeIfAbsent(key) { newBranch }
             }
         }
         logger.trace("Branches updated")
+
+        entity.commits.filter { it.id == null }.map { commit ->
+            commitDao.create(commit)
+        }
 
         val updated = repositoryDao.update(entity).also { repositoryDao.flush() }
 

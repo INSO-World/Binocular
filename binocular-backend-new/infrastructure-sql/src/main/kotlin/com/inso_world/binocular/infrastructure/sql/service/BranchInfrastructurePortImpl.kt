@@ -73,7 +73,7 @@ internal class BranchInfrastructurePortImpl(
         val context: MutableMap<Long, Repository> = mutableMapOf()
 
         return super<AbstractInfrastructurePort>.findAllEntities().map { b ->
-            val repo =
+            val repository =
                 context.getOrPut(b.repository?.id!!) {
                     val repo = b.repository ?: throw IllegalStateException("Repository of a Branch cannot be null")
                     val project =
@@ -83,14 +83,14 @@ internal class BranchInfrastructurePortImpl(
 
                     this.repositoryMapper.toDomain(repo, project)
                 }
-            branchMapper.toDomain(b, repo)
+            branchMapper.toDomainFull(b, repository)
         }
     }
 
     @MappingSession
     override fun findAll(repository: Repository): Iterable<Branch> =
         branchDao.findAll(repository).map { b ->
-            branchMapper.toDomain(b, repository)
+            branchMapper.toDomainFull(b, repository)
         }
 
     override fun findAll(pageable: Pageable): Page<Branch> {

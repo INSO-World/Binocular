@@ -133,7 +133,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun findAllByRepo(
+    override fun findAll(
         repo: Repository,
         pageable: Pageable,
     ): Iterable<Commit> {

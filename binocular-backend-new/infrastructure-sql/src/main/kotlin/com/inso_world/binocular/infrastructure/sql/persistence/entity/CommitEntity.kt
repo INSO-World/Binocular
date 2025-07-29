@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.model.Commit
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -16,7 +17,9 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import org.hibernate.annotations.BatchSize
 import java.time.LocalDateTime
 import java.util.Objects
 
@@ -47,6 +50,7 @@ internal data class CommitEntity(
     var webUrl: String? = null,
     @Deprecated("do not use")
     var branch: String? = null,
+    @BatchSize(size = 256)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "commit_parents",
@@ -60,8 +64,10 @@ internal data class CommitEntity(
         ],
     )
     var parents: MutableSet<CommitEntity> = mutableSetOf(),
+    @BatchSize(size = 256)
     @ManyToMany(mappedBy = "parents", fetch = FetchType.LAZY)
     var children: MutableSet<CommitEntity> = mutableSetOf(),
+    @BatchSize(size = 256)
     @ManyToMany(targetEntity = BranchEntity::class, fetch = FetchType.LAZY, cascade = [])
     @JoinTable(
         name = "commit_branches",
@@ -72,14 +78,44 @@ internal data class CommitEntity(
         ],
     )
     var branches: MutableSet<BranchEntity> = mutableSetOf(),
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.PERSIST])
-    var committer: UserEntity? = null,
-    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = [CascadeType.PERSIST])
-    var author: UserEntity? = null,
+//    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = [CascadeType.PERSIST])
+//    var author: UserEntity? = null,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
     var repository: RepositoryEntity? = null,
 ) : AbstractEntity() {
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.PERSIST])
+    var committer: UserEntity? = null
+        set(value) {
+            if (value == this.committer) {
+                return
+            }
+            if (this.committer != null) {
+                throw IllegalArgumentException("Committer already set for Commit $sha: $committer")
+            }
+            field = value
+            field!!.committedCommits.add(this)
+            field
+        }
+//        get() = field
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.PERSIST])
+    var author: UserEntity? = null
+        set(
+            @NotNull value,
+        ) {
+            if (value == this.author) {
+                return
+            }
+            if (this.author != null) {
+                throw IllegalArgumentException("Author already set for Commit $sha: $author")
+            }
+            field = value
+            field!!.authoredCommits.add(this)
+            field
+        }
+//        get() = author
+
     override fun uniqueKey(): String = this.sha
 
     override fun equals(other: Any?): Boolean {
@@ -104,6 +140,23 @@ internal data class CommitEntity(
     }
 
     override fun hashCode(): Int = Objects.hashCode(sha)
+
+    fun toDomain(): Commit =
+        Commit(
+            id = this.id?.toString(),
+            sha = this.sha,
+            commitDateTime = this.commitDateTime,
+            authorDateTime = this.authorDateTime,
+            message = this.message,
+            webUrl = this.webUrl,
+            branch = this.branch,
+            repositoryId = null,
+            parents = mutableSetOf(),
+            children = mutableSetOf(),
+            branches = mutableSetOf(),
+            committer = null,
+            author = null,
+        )
 
     @PreRemove
     fun preRemove() {
@@ -130,3 +183,20 @@ internal data class CommitEntity(
     override fun toString(): String =
         "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository?.name})"
 }
+
+internal fun Commit.toEntity(): CommitEntity =
+    CommitEntity(
+        id = this.id?.toLong(),
+        sha = this.sha,
+        commitDateTime = this.commitDateTime,
+        authorDateTime = this.authorDateTime,
+        message = this.message,
+        webUrl = this.webUrl,
+        branch = this.branch,
+        repository = null,
+        parents = mutableSetOf(),
+        children = mutableSetOf(),
+        branches = mutableSetOf(),
+//        committer = null,
+//        author = null,
+    )

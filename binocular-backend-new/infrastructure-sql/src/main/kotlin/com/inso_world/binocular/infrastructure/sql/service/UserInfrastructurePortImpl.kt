@@ -2,10 +2,13 @@ package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.UserInfrastructurePort
+import com.inso_world.binocular.core.service.exception.NotFoundException
+import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
+import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IUserDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Commit
@@ -31,7 +34,9 @@ import org.springframework.validation.annotation.Validated
 @Validated
 internal class UserInfrastructurePortImpl(
     @Autowired private val userDao: IUserDao,
+    @Autowired private val repositoryDao: RepositoryDao,
     @Autowired private var userMapper: UserMapper,
+    @Autowired private var commitMapper: CommitMapper,
 ) : AbstractInfrastructurePort<User, UserEntity, Long>(Long::class),
     UserInfrastructurePort {
     var logger: Logger = LoggerFactory.getLogger(UserInfrastructurePortImpl::class.java)
@@ -106,19 +111,25 @@ internal class UserInfrastructurePortImpl(
                 throw IllegalStateException("Id of repository cannot be null")
             }
 
-            val repo =
+            val repository =
                 context.getOrPut(repoEntity.id) {
                     this.repositoryMapper.toDomain(repoEntity, project)
                 }
-            userMapper.toDomain(u, repo)
+            userMapper.toDomainFull(u, repository)
         }
     }
 
     @MappingSession
-    override fun findAll(repository: Repository): Iterable<User> =
-        this.userDao.findAll(repository).map {
-            userMapper.toDomain(it, repository)
-        }
+    override fun findAll(repository: Repository): Iterable<User> {
+        TODO()
+        val repoEntity = this.repositoryDao.findByName(repository.name) ?: throw NotFoundException("Could not find repository $repository")
+
+        this.userDao
+            .findAll(repoEntity)
+            .map {
+                userMapper.toDomain(it)
+            }
+    }
 
     override fun findAll(pageable: Pageable): Page<User> {
         TODO("Not yet implemented")

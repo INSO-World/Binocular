@@ -113,7 +113,7 @@ internal class RepositoryServiceTestWithSimpleData(
         assertAll(
             { assertThat(repo?.commits).hasSize(14) },
             { assertThat(repo?.branches).hasSize(1) },
-            { assertThat(repo?.branches?.toList()[0]?.commitShas).hasSize(14) },
+            { assertThat(repo?.branches?.toList()[0]?.commits).hasSize(14) },
             { assertThat(repo?.user).hasSize(3) },
         )
 
@@ -153,7 +153,7 @@ internal class RepositoryServiceTestWithSimpleData(
         assertAll(
             { assertThat(repo2?.commits).hasSize(15) },
             { assertThat(repo2?.branches).hasSize(1) },
-            { assertThat(repo2?.branches?.toList()[0]?.commitShas).hasSize(15) },
+            { assertThat(repo2?.branches?.toList()[0]?.commits).hasSize(15) },
             { assertThat(repo2?.user).hasSize(4) },
         )
     }
@@ -161,14 +161,16 @@ internal class RepositoryServiceTestWithSimpleData(
     @Test
     @Transactional
     fun `update simple repo, add another commit, new branch`() {
-        val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
+        run {
+            val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
-        assertAll(
-            { assertThat(repo?.commits).hasSize(14) },
-            { assertThat(repo?.branches).hasSize(1) },
-            { assertThat(repo?.branches?.toList()[0]?.commitShas).hasSize(14) },
-            { assertThat(repo?.user).hasSize(3) },
-        )
+            assertAll(
+                { assertThat(repo?.commits).hasSize(14) },
+                { assertThat(repo?.branches).hasSize(1) },
+                { assertThat(repo?.branches?.toList()[0]?.commits).hasSize(14) },
+                { assertThat(repo?.user).hasSize(3) },
+            )
+        }
 
         // required to manipulate history
         var hashes =
@@ -179,13 +181,13 @@ internal class RepositoryServiceTestWithSimpleData(
                 branchField.set(it, "develop")
             }
         hashes = hashes.toMutableList()
-        val parent = hashes.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+        val parent = hashes.find { it.sha == "8f34ebee8f593193048f8bcbf848501bf2465865" }
             ?: throw IllegalStateException("must find parent here")
         hashes.add(
             VcsCommit(
                 "1234567890123456789012345678901234567890",
                 "msg1",
-                "develop",
+                "new one",
                 VcsPerson("User C", "committer@test.com"),
                 VcsPerson("User A", "author@test.com"),
                 LocalDateTime.now(),
@@ -200,15 +202,18 @@ internal class RepositoryServiceTestWithSimpleData(
             ) // workTree & commonDir not relevant here
         this.repositoryService.addCommits(vcsRepo, hashes, simpleProject)
 
-        val repo2 = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
+        run {
+            val repo = this.repositoryService.findRepo("${FIXTURES_PATH}/${SIMPLE_REPO}")
 
-        assertAll(
-            "repo2",
-            { assertThat(repo2?.commits).hasSize(15) },
-            { assertThat(repo2?.branches).hasSize(2) },
-            { assertThat(repo2?.user).hasSize(5) },
-            { assertThat(repo2?.branches?.map { it.commitShas.count() }).containsAll(listOf(14, 1)) },
-            { assertThat(repo2?.branches?.map { it.name }).containsAll(listOf("master", "develop")) },
-        )
+//            TODO check behaviour of Git in case of adding a new commit
+            assertAll(
+                "repo2",
+                { assertThat(repo?.commits).hasSize(15) },
+                { assertThat(repo?.branches).hasSize(2) },
+                { assertThat(repo?.user).hasSize(5) },
+                { assertThat(repo?.branches?.map { it.commits.count() }).containsAll(listOf(14, 3)) },
+                { assertThat(repo?.branches?.map { it.name }).containsAll(listOf("master", "new one")) },
+            )
+        }
     }
 }

@@ -159,10 +159,10 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyBranch =
             Branch(
                 name = "branch",
-                repositoryId = dummyRepo.id.toString(),
+                repository = dummyRepo,
             )
         invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commitShas.add(invalidCommit.sha)
+        dummyBranch.commits.add(invalidCommit)
         dummyRepo.commits.add(invalidCommit)
         dummyRepo.branches.add(dummyBranch)
         dummyProject.repo = dummyRepo
@@ -195,10 +195,10 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyBranch =
             Branch(
                 name = "branch",
-                repositoryId = dummyRepo.id.toString(),
+                repository = dummyRepo,
             )
         invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commitShas.add(invalidCommit.sha)
+        dummyBranch.commits.add(invalidCommit)
         dummyRepo.commits.add(invalidCommit)
         dummyRepo.branches.add(dummyBranch)
         dummyProject.repo = dummyRepo
@@ -231,10 +231,10 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyBranch =
             Branch(
                 name = "branch",
-                repositoryId = dummyRepo.id.toString(),
+                repository = dummyRepo,
             )
         invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commitShas.add(invalidCommit.sha)
+        dummyBranch.commits.add(invalidCommit)
         dummyRepo.commits.add(invalidCommit)
         dummyRepo.branches.add(dummyBranch)
         dummyProject.repo = dummyRepo

@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.model.Project
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -73,14 +74,19 @@ internal data class ProjectEntity(
 
     override fun uniqueKey(): String = this.name
 
-    //    fun addMergeRequest(it: MergeRequest) {
-//        this.mergeRequests.add(it)
-//        it.project = this
-//    }
+    fun toDomain(): Project =
+        Project(
+            id = this.id?.toString(),
+            name = this.name,
+            description = this.description,
+            repo = null,
+        )
 }
 
-// fun ProjectPojo.toEntity(name: String): Project =
-//    Project(
-//        description = description,
-//        name = name,
-//    )
+internal fun Project.toEntity(): ProjectEntity =
+    ProjectEntity(
+        id = this.id?.toLong(),
+        name = this.name,
+        description = this.description,
+        repo = null,
+    )

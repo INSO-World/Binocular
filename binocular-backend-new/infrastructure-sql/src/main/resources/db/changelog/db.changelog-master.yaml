@@ -1,13 +1,13 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/2025/07/23-01-changelog.yaml
-  - changeSet:
-      id: prevent-cycles-trigger
-      author: manuel
-      dbms: postgresql
-      changes:
-        - sqlFile:
-            path: ./trigger/prevent_cycles_trigger.sql
-            relativeToChangelogFile: true
-            splitStatements: false
-            stripComments: true
+      file: db/changelog/2025/07/26-01-changelog.yaml
+#  - changeSet:
+#      id: prevent-cycles-trigger
+#      author: manuel
+#      dbms: postgresql
+#      changes:
+#        - sqlFile:
+#            path: ./trigger/prevent_cycles_trigger.sql
+#            relativeToChangelogFile: true
+#            splitStatements: false
+#            stripComments: true

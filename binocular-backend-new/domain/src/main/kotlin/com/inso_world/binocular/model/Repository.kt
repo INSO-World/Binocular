@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 @CommitValidation
 @NoCommitCycle
-class Repository(
+data class Repository(
     val id: String? = null,
     @field:NotBlank
     val name: String,
@@ -28,7 +28,7 @@ class Repository(
     fun addBranch(branch: Branch): Boolean {
         val a = this.branches.add(branch)
         if (a) {
-            branch.repositoryId = this.id
+            branch.repository = this
         }
         return a
     }
@@ -60,7 +60,7 @@ class Repository(
         // Remove the commit sha from all branches' commitShas sets
         val affectedBranchNames = mutableListOf<String>()
         branches.forEach { branch ->
-            if (branch.commitShas.remove(sha)) {
+            if (branch.commits.removeIf { it.sha == sha }) {
                 affectedBranchNames.add(branch.name)
             }
         }
