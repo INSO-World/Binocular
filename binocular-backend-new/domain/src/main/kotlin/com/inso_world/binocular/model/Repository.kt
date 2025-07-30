@@ -63,7 +63,7 @@ data class Repository(
             }
         }
 
-    @field:Valid
+    @get:Valid
     val user: MutableSet<User> =
         object : MutableSet<User> by _user {
             override fun add(element: User): Boolean {
