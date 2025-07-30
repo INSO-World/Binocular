@@ -20,6 +20,7 @@ import java.util.stream.Stream
 
 class CommitValidationTest {
     private lateinit var validator: Validator
+    private lateinit var repository: Repository
 
     @BeforeEach
     fun setUp() {
@@ -30,6 +31,7 @@ class CommitValidationTest {
                 .messageInterpolator(ParameterMessageInterpolator())
                 .buildValidatorFactory()
                 .validator
+        repository = Repository(name = "test repo", project = Project(name = "test project"))
     }
 
     companion object {
@@ -52,6 +54,9 @@ class CommitValidationTest {
             )
         invalidCommit.branches.add(dummyBranch)
         dummyBranch.commits.add(invalidCommit)
+
+        repository.branches.add(dummyBranch)
+        repository.commits.add(invalidCommit)
 
         val violation =
             run {
@@ -84,44 +89,6 @@ class CommitValidationTest {
 
         // Then
         assertThat(violations).isEmpty()
-    }
-
-    @Test
-    fun `should fail validation when repository id is null but repositoryId is not null`() {
-        // Given
-        val branch = Branch(name = "b")
-        val commit = run {
-            val repository = Repository(name = "some-id", project = Project(name = "test"))
-            val commit = Commit(
-                sha = "a".repeat(40),
-                message = "message",
-                commitDateTime = LocalDateTime.now(),
-            )
-            repository.commits.add(commit)
-            commit
-        }
-        branch.commits.add(commit)
-        val repository =
-            Repository(id = null, name = "test-repo", project = Project(name = "test"))
-        repository.commits.add(commit)
-
-        // When
-        val violations = validator.validate(repository)
-
-        // Then
-        assertAll(
-            { assertThat(violations).isNotEmpty() },
-            { assertThat(violations).hasSize(1) },
-            {
-                assertThat(
-                    violations.map {
-                        it.message
-                    }[0],
-                ).isEqualTo(
-                    "Repository ID of Commit=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa is null, but commit has a repositoryId=null.",
-                )
-            },
-        )
     }
 
     @Test
@@ -165,7 +132,13 @@ class CommitValidationTest {
             name = "test-repo",
             project = Project(name = "test")
         )
+        val repository2 = Repository(
+            id = "different-id",
+            name = "test-repo",
+            project = Project(name = "test 2")
+        )
         repository.commits.add(commit)
+        repository2.commits.add(commit)
 
         // When
         val violations = validator.validate(repository)
@@ -177,13 +150,13 @@ class CommitValidationTest {
             {
                 assertThat(
                     violations.map { it.message }[0],
-                ).contains("Commit repositoryId=different-id does not match repository.id=repo-123")
+                ).contains("Commit repository.id=different-id does not match repository.id=repo-123")
             },
         )
     }
 
     @Test
-    fun `should pass validation when repository is null`() {
+    fun `should fail validation when repository is null`() {
         // Given
         val branch = Branch(name = "b")
         val commit =
@@ -199,6 +172,8 @@ class CommitValidationTest {
         val violations = validator.validate(commit)
 
         // Then
-        assertThat(violations).isEmpty()
+        assertThat(violations).hasSize(1)
+        val message = violations.toList()[0].propertyPath.toString()
+        assertThat(message).isEqualTo("repository")
     }
 }
