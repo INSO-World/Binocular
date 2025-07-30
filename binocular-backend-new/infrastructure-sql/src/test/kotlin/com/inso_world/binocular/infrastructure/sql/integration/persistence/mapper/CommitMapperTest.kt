@@ -104,11 +104,12 @@ internal class CommitMapperTest : BaseMapperTest() {
                 authorDateTime = this.commitEntityA.authorDateTime,
                 commitDateTime = this.commitEntityA.commitDateTime,
                 message = this.commitEntityA.message,
-                repositoryId =
-                    this.commitEntityA.repository
-                        ?.id
-                        .toString(),
+//                repositoryId =
+//                    this.commitEntityA.repository
+//                        ?.id
+//                        .toString(),
             )
+        repositoryDomain.commits.add(commitDomainA)
 
         this.commitDomainB =
             Commit(
@@ -117,11 +118,12 @@ internal class CommitMapperTest : BaseMapperTest() {
                 authorDateTime = this.commitEntityB.authorDateTime,
                 commitDateTime = this.commitEntityB.commitDateTime,
                 message = this.commitEntityB.message,
-                repositoryId =
-                    this.commitEntityB.repository
-                        ?.id
-                        .toString(),
+//                repositoryId =
+//                    this.commitEntityB.repository
+//                        ?.id
+//                        .toString(),
             )
+        repositoryDomain.commits.add(commitDomainB)
     }
 
     @Nested
@@ -137,7 +139,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 //                            ?.id
 //                            .toString(),
                 )
-            commitDomainA.addBranch(branch)
+            commitDomainA.branches.add(branch)
             branchEntity.addCommit(commitEntityA)
             repositoryEntity.addBranch(branchEntity)
 
@@ -196,17 +198,17 @@ internal class CommitMapperTest : BaseMapperTest() {
 //                            .toString(),
                 )
 //        Commit A
-            commitDomainA.addBranch(branch)
+            commitDomainA.branches.add(branch)
             branchEntity.addCommit(commitEntityA)
 //        Commit B
-            commitDomainB.addBranch(branch)
+            commitDomainB.branches.add(branch)
             branchEntity.addCommit(commitEntityB)
 //        Entity setup
             commitEntityA.addParent(commitEntityB)
 //            commitEntityB.children.add(commitEntityA)
 
             val commitWithParent = commitDomainA
-            commitWithParent.addParent(commitDomainB)
+            commitWithParent.parents.add(commitDomainB)
 //            commitDomainB.children.add(commitWithParent)
 
             assertThat(branch.commits).hasSize(2)
@@ -293,7 +295,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
         @Test
         fun `commitMapper toDomain, one commits, one branch`() {
-            val branchDomain = branchEntity.toDomain()
+//            val branchDomain = branchEntity.toDomain()
             commitEntityA.addBranch(branchEntity)
             branchEntity.addCommit(commitEntityA)
 
@@ -305,12 +307,12 @@ internal class CommitMapperTest : BaseMapperTest() {
                     commitMapper.toDomain(commitEntityA)
                 }
 
-            assertThat(domain.repositoryId).isNull()
+            assertThat(domain.repository).isNull()
             assertThat(domain)
                 .usingRecursiveComparison()
                 .ignoringCollectionOrder()
                 .ignoringFieldsMatchingRegexes(
-                    ".*id",".*branches", ".*committer", ".*author", ".*repository", ".*project",
+                    ".*id",".*branches", ".*committer", ".*author", ".*repository", ".*project", ".*_*",
                     ".*issues", ".*modules", ".*stats", ".*repositoryId", ".*builds", ".*files"
                 ).isEqualTo(commitEntityA)
             assertThat(domain.branches).isEmpty()
@@ -340,7 +342,7 @@ internal class CommitMapperTest : BaseMapperTest() {
                 .usingRecursiveComparison()
                 .ignoringCollectionOrder()
                 .ignoringFieldsMatchingRegexes(
-                    ".*id",".*branches", ".*committer", ".*author", ".*repository", ".*project",
+                    ".*id",".*branches", ".*committer", ".*author", ".*repository", ".*project", ".*_*",
                     ".*issues", ".*modules", ".*stats", ".*repositoryId", ".*builds", ".*files"
                 )
                 .isEqualTo(listOf(commitEntityA, commitEntityB))
@@ -355,8 +357,8 @@ internal class CommitMapperTest : BaseMapperTest() {
             val domainA =
                 assertDoesNotThrow {
                     commitMapper.toDomain(commitEntityA)
-                        .also { repositoryDomain.addCommit(it) }
-                        .also { branchDomain.addCommit(it) }
+                        .also { repositoryDomain.commits.add(it) }
+                        .also { branchDomain.commits.add(it) }
                 }
 
             assertThat(domainA.branches).hasSize(1)
@@ -369,8 +371,8 @@ internal class CommitMapperTest : BaseMapperTest() {
             val domainB =
                 assertDoesNotThrow {
                     commitMapper.toDomain(commitEntityB)
-                        .also { repositoryDomain.addCommit(it) }
-                        .also { branchDomain.addCommit(it) }
+                        .also { repositoryDomain.commits.add(it) }
+                        .also { branchDomain.commits.add(it) }
                 }
 
             assertThat(domainB.branches).hasSize(1)

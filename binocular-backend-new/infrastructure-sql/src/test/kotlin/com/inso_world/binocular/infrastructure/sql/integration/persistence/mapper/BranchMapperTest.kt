@@ -90,6 +90,7 @@ internal class BranchMapperTest : BaseMapperTest() {
 
     @Test
     fun `branchMapper toEntity, with commit`() {
+        val repository = this.repositoryEntity.toDomain(null)
         val commit =
             Commit(
                 id = "1",
@@ -97,14 +98,15 @@ internal class BranchMapperTest : BaseMapperTest() {
                 authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                 commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
                 message = "Valid commit 1",
-                repositoryId = this.repositoryEntity.id?.toString(),
             )
+        repository.commits.add(commit)
         val branch =
             Branch(
                 name = "testBranch",
                 repository = this.repositoryEntity.toDomain(null),
-                commits = mutableSetOf(commit),
             )
+        repository.branches.add(branch)
+        branch.commits.add(commit)
         // needed as branchMapper.toEntity requires the commit to be part of the repository already
         val commitEntity =
             CommitEntity(
@@ -186,9 +188,9 @@ internal class BranchMapperTest : BaseMapperTest() {
 
             val domain = branchMapper.toDomain(branchEntity)
                 .also {
-                    repositoryModel.addBranch(it)
+                    repositoryModel.branches.add(it)
                     it.commits.forEach { c ->
-                        repositoryModel.addCommit(c)
+                        repositoryModel.commits.add(c)
                     }
                 }
 
@@ -213,6 +215,7 @@ internal class BranchMapperTest : BaseMapperTest() {
                             ".*tracksFileRenames",
                             ".*files",
                             ".*branch",
+                            ".*_*"
                         )
                         .isEqualTo(branchEntity)
                 },

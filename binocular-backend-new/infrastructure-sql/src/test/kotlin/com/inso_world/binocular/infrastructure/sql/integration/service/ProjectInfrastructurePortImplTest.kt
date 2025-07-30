@@ -125,14 +125,13 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "1234567890123456789012345678901234567890",
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
-            user.addCommittedCommit(cmt)
-            repository.addUser(user)
-            branch.addCommit(cmt)
-            repository.addCommit(cmt)
-            repository.addBranch(branch)
+            branch.commits.add(cmt)
+            user.committedCommits.add(cmt)
+            repository.user.add(user)
+            branch.commits.add(cmt)
+            repository.commits.add(cmt)
+            repository.branches.add(branch)
 
             val repositoryProject =
                 projectPort.create(
@@ -169,8 +168,9 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
             assertAll(
                 "check ids",
                 { assertThat(commitPort.findAll().toList()[0].id).isNotNull() },
-                { assertThat(commitPort.findAll().toList()[0].repositoryId).isNotNull() },
-                { assertThat(commitPort.findAll().toList()[0].repositoryId).isEqualTo(repositoryProject.repo?.id) },
+                { assertThat(commitPort.findAll().toList()[0].repository).isNotNull() },
+                { assertThat(commitPort.findAll().toList()[0].repository?.id).isNotNull() },
+                { assertThat(commitPort.findAll().toList()[0].repository?.id).isEqualTo(repositoryProject.repo?.id) },
             )
         }
     }
@@ -298,14 +298,13 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1234567890123456789012345678901234567890",
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        repositoryId = existingProject.repo?.id,
-                        branches = mutableSetOf(branch),
                     )
-                user.addCommittedCommit(cmt)
-                existingProject.repo?.addUser(user)
-                branch.addCommit(cmt)
-                existingProject.repo?.addCommit(cmt)
-                existingProject.repo?.addBranch(branch)
+                branch.commits.add(cmt)
+                user.committedCommits.add(cmt)
+                existingProject.repo?.user?.add(user)
+                branch.commits.add(cmt)
+                existingProject.repo?.commits?.add(cmt)
+                existingProject.repo?.branches?.add(branch)
                 assertAll(
                     "check model",
                     { assertThat(existingProject.repo).isNotNull() },

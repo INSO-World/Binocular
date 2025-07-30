@@ -96,16 +96,14 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                             sha = "1234567890123456789012345678901234567890",
                             message = "test commit",
                             commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                            repositoryId = repository.id,
-                            branches = mutableSetOf(branch),
-                            committer = user,
                         )
-                    user.addCommittedCommit(cmt)
+                    branch.commits.add(cmt)
+                    user.committedCommits.add(cmt)
 
-                    branch.addCommit(cmt)
-                    repository.addBranch(branch)
-                    repository.addCommit(cmt)
-                    repository.addUser(user)
+                    branch.commits.add(cmt)
+                    repository.branches.add(branch)
+                    repository.commits.add(cmt)
+                    repository.user.add(user)
 
                     assertAll(
                         "check model",
@@ -134,8 +132,9 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             assertAll(
                 "check commit relationship",
                 { assertThat(commitPort.findAll().toList()[0].id).isNotNull() },
-                { assertThat(commitPort.findAll().toList()[0].repositoryId).isNotNull() },
-                { assertThat(commitPort.findAll().toList()[0].repositoryId).isEqualTo(savedRepo.id) },
+                { assertThat(commitPort.findAll().toList()[0].repository).isNotNull() },
+                { assertThat(commitPort.findAll().toList()[0].repository?.id).isNotNull() },
+                { assertThat(commitPort.findAll().toList()[0].repository?.id).isEqualTo(savedRepo.id) },
             )
         }
 
@@ -165,29 +164,23 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "0".repeat(40),
                         message = "test commit 2",
                         commitDateTime = LocalDateTime.of(2025, 5, 13, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
-                        committer = user,
-                        parents = mutableSetOf()
                     )
+                    branch.commits.add(parent)
                     val cmt =
                         Commit(
                             sha = "1".repeat(40),
                             message = "test commit",
                             commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                            repositoryId = repository.id,
-                            branches = mutableSetOf(branch),
-                            committer = user,
-                            parents = mutableSetOf(parent)
                         )
-                    parent.addChild(cmt)
-                    user.addCommittedCommit(cmt)
-                    user.addCommittedCommit(parent)
+                    branch.commits.add(cmt)
+                    parent.children.add(cmt)
+                    user.committedCommits.add(cmt)
+                    user.committedCommits.add(parent)
 
-                    branch.addCommit(cmt)
-                    repository.addBranch(branch)
-                    repository.addCommit(cmt)
-                    repository.addUser(user)
+                    branch.commits.add(cmt)
+                    repository.branches.add(branch)
+                    repository.commits.add(cmt)
+                    repository.user.add(user)
 
                     assertAll(
                         "check model",
@@ -223,8 +216,8 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             assertAll(
                 "check commit relationship",
                 { assertThat(commitPort.findAll().map { it.id }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repositoryId }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repositoryId }).containsOnly(savedRepo.id) },
+                { assertThat(commitPort.findAll().map { it.repository?.id }).doesNotContainNull() },
+                { assertThat(commitPort.findAll().map { it.repository?.id }).containsOnly(savedRepo.id) },
             )
         }
 
@@ -254,40 +247,32 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1".repeat(40),
                         message = "parent1",
                         commitDateTime = LocalDateTime.of(2025, 5, 13, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
-                        committer = user,
-                        parents = mutableSetOf()
                     )
+                    branch.commits.add(parent1)
                     val parent2 = Commit(
                         sha = "2".repeat(40),
                         message = "parent2",
                         commitDateTime = LocalDateTime.of(2025, 5, 13, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
-                        committer = user,
-                        parents = mutableSetOf()
                     )
+                    branch.commits.add(parent2)
                     val cmt =
                         Commit(
                             sha = "c".repeat(40),
                             message = "test commit",
                             commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                            repositoryId = repository.id,
-                            branches = mutableSetOf(branch),
-                            committer = user,
-                            parents = mutableSetOf(parent1, parent2)
                         )
-                    parent1.addChild(cmt)
-                    parent2.addChild(cmt)
-                    user.addCommittedCommit(cmt)
-                    user.addCommittedCommit(parent1)
-                    user.addCommittedCommit(parent2)
+                    branch.commits.add(cmt)
+                    cmt.parents.addAll(listOf(parent1, parent2))
+                    parent1.children.add(cmt)
+                    parent2.children.add(cmt)
+                    user.committedCommits.add(cmt)
+                    user.committedCommits.add(parent1)
+                    user.committedCommits.add(parent2)
 
-                    branch.addCommit(cmt)
-                    repository.addBranch(branch)
-                    repository.addCommit(cmt)
-                    repository.addUser(user)
+                    branch.commits.add(cmt)
+                    repository.branches.add(branch)
+                    repository.commits.add(cmt)
+                    repository.user.add(user)
 
                     assertAll(
                         "check model",
@@ -336,8 +321,8 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
             assertAll(
                 "check commit relationship",
                 { assertThat(commitPort.findAll().map { it.id }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repositoryId }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repositoryId }).containsOnly(savedRepo.id) },
+                { assertThat(commitPort.findAll().map { it.repository?.id }).doesNotContainNull() },
+                { assertThat(commitPort.findAll().map { it.repository?.id }).containsOnly(savedRepo.id) },
             )
         }
 
@@ -389,27 +374,24 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "A".repeat(40),
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
+            branch.commits.add(cmtA)
             val cmtB =
                 Commit(
                     sha = "B".repeat(40),
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2024, 8, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
-            user.addCommittedCommit(cmtA)
-            user.addCommittedCommit(cmtB)
+            branch.commits.add(cmtB)
+            user.committedCommits.add(cmtA)
+            user.committedCommits.add(cmtB)
 
-            branch.addCommit(cmtA)
-            branch.addCommit(cmtB)
+            branch.commits.add(cmtA)
+            branch.commits.add(cmtB)
 
-            repository.addBranch(branch)
-            repository.addCommit(cmtA)
-            repository.addCommit(cmtB)
-            repository.addUser(user)
+            repository.branches.add(branch)
+            repository.commits.addAll(listOf(cmtA, cmtB))
+            repository.user.add(user)
 
             assertAll(
                 "check model",
@@ -480,27 +462,23 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "A".repeat(40),
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
+            branch.commits.add(cmtA)
             val cmtB =
                 Commit(
                     sha = "B".repeat(40),
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2024, 8, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
-            user.addCommittedCommit(cmtA)
-            user.addCommittedCommit(cmtB)
+            branch.commits.add(cmtB)
+            user.committedCommits.add(cmtA)
+            user.committedCommits.add(cmtB)
 
-            branch.addCommit(cmtA)
-            branch.addCommit(cmtB)
+            branch.commits.addAll(listOf(cmtA, cmtB))
 
-            repository.addBranch(branch)
-            repository.addCommit(cmtA)
-            repository.addCommit(cmtB)
-            repository.addUser(user)
+            repository.branches.add(branch)
+            repository.commits.addAll(listOf(cmtA, cmtB))
+            repository.user.add(user)
 
             assertAll(
                 "check model",
@@ -566,20 +544,19 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "1234567890123456789012345678901234567890",
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
+            branch.commits.add(cmt)
             val user =
                 User(
                     name = "test",
                     email = "test@example.com",
                     repository = repository,
                 )
-            user.addCommittedCommit(cmt)
-            branch.addCommit(cmt)
-            repository.addBranch(branch)
-            repository.addCommit(cmt)
-            repository.addUser(user)
+            user.committedCommits.add(cmt)
+            branch.commits.add(cmt)
+            repository.branches.add(branch)
+            repository.commits.add(cmt)
+            repository.user.add(user)
 
             assertAll(
                 "Check model",
@@ -644,18 +621,16 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "1".repeat(40),
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
+            branch.commits.add(parent)
             val cmt =
                 Commit(
                     sha = "c".repeat(40),
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
-                    parents = mutableSetOf(parent)
                 )
+            branch.commits.add(cmt)
+            cmt.parents.add(parent)
 //            parent.addChild(cmt)
             val user =
                 User(
@@ -663,12 +638,12 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     email = "test@example.com",
                     repository = repository,
                 )
-            user.addCommittedCommit(cmt)
-            user.addCommittedCommit(parent)
-            branch.addCommit(cmt)
-            repository.addBranch(branch)
-            repository.addCommit(cmt)
-            repository.addUser(user)
+            user.committedCommits.add(cmt)
+            user.committedCommits.add(parent)
+            branch.commits.add(cmt)
+            repository.branches.add(branch)
+            repository.commits.add(cmt)
+            repository.user.add(user)
 
             assertAll(
                 "Check model",
@@ -744,39 +719,36 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "1".repeat(40),
                     message = "parent1",
                     commitDateTime = LocalDateTime.of(2025, 6, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
+            branch.commits.add(parent1)
             val parent2 =
                 Commit(
                     sha = "2".repeat(40),
                     message = "parent2",
                     commitDateTime = LocalDateTime.of(2025, 6, 14, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
+            branch.commits.add(parent2)
             val cmt =
                 Commit(
                     sha = "c".repeat(40),
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
-                    parents = mutableSetOf(parent1, parent2)
                 )
+            branch.commits.add(cmt)
+            cmt.parents.addAll(mutableSetOf(parent1, parent2))
             val user =
                 User(
                     name = "test",
                     email = "test@example.com",
                     repository = repository,
                 )
-            user.addCommittedCommit(cmt)
-            user.addCommittedCommit(parent1)
-            user.addCommittedCommit(parent2)
-            branch.addCommit(cmt)
-            repository.addBranch(branch)
-            repository.addCommit(cmt)
-            repository.addUser(user)
+            user.committedCommits.add(cmt)
+            user.committedCommits.add(parent1)
+            user.committedCommits.add(parent2)
+            branch.commits.add(cmt)
+            repository.branches.add(branch)
+            repository.commits.add(cmt)
+            repository.user.add(user)
 
             assertAll(
                 "Check model",
@@ -854,14 +826,13 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "1234567890123456789012345678901234567890",
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(branch),
                 )
-            user.addCommittedCommit(cmt)
-            branch.addCommit(cmt)
-            repository.addBranch(branch)
-            repository.addCommit(cmt)
-            repository.addUser(user)
+            branch.commits.add(cmt)
+            user.committedCommits.add(cmt)
+            branch.commits.add(cmt)
+            repository.branches.add(branch)
+            repository.commits.add(cmt)
+            repository.user.add(user)
 
             assertDoesNotThrow {
                 repositoryPort.update(repository)
@@ -926,20 +897,19 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1234567890123456789012345678901234567890",
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
+                branch.commits.add(cmt)
                 val user =
                     User(
                         name = "test",
                         email = "test@example.com",
                         repository = repository,
                     )
-                user.addCommittedCommit(cmt)
-                branch.addCommit(cmt)
-                repository.addBranch(branch)
-                repository.addCommit(cmt)
-                repository.addUser(user)
+                user.committedCommits.add(cmt)
+                branch.commits.add(cmt)
+                repository.branches.add(branch)
+                repository.commits.add(cmt)
+                repository.user.add(user)
 
                 assertDoesNotThrow {
                     repositoryPort.update(repository)
@@ -960,20 +930,19 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "B".repeat(40),
                         message = "test commit 2",
                         commitDateTime = LocalDateTime.of(2024, 1, 26, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
+                branch.commits.add(cmt)
                 val user =
                     User(
                         name = "test2",
                         email = "test2@example.com",
                         repository = repository,
                     )
-                user.addCommittedCommit(cmt)
-                branch.addCommit(cmt)
-                repository.addBranch(branch)
-                repository.addCommit(cmt)
-                repository.addUser(user)
+                user.committedCommits.add(cmt)
+                branch.commits.add(cmt)
+                repository.branches.add(branch)
+                repository.commits.add(cmt)
+                repository.user.add(user)
 
                 val updatedEntity =
                     assertDoesNotThrow {
@@ -1027,20 +996,19 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1234567890123456789012345678901234567890",
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
+                branch.commits.add(cmt)
                 val user =
                     User(
                         name = "test",
                         email = "test@example.com",
                         repository = repository,
                     )
-                user.addCommittedCommit(cmt)
-                branch.addCommit(cmt)
-                repository.addBranch(branch)
-                repository.addCommit(cmt)
-                repository.addUser(user)
+                user.committedCommits.add(cmt)
+                branch.commits.add(cmt)
+                repository.branches.add(branch)
+                repository.commits.add(cmt)
+                repository.user.add(user)
 
                 val updatedEntity =
                     assertDoesNotThrow {
@@ -1074,20 +1042,19 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "B".repeat(40),
                         message = "test commit 2",
                         commitDateTime = LocalDateTime.of(2024, 1, 26, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
+                branch.commits.add(cmt)
                 val user = // same as before
                     User(
                         name = "test",
                         email = "test@example.com",
                         repository = repository,
                     )
-                user.addCommittedCommit(cmt)
-                branch.addCommit(cmt)
-                repository.addBranch(branch)
-                repository.addCommit(cmt)
-                repository.addUser(user)
+                user.committedCommits.add(cmt)
+                branch.commits.add(cmt)
+                repository.branches.add(branch)
+                repository.commits.add(cmt)
+                repository.user.add(user)
 
                 val updatedEntity =
                     assertDoesNotThrow {
@@ -1140,8 +1107,6 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     sha = "1234567890123456789012345678901234567890",
                     message = "test commit",
                     commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    repositoryId = repository.id,
-                    branches = mutableSetOf(),
                 )
             val user =
                 User(
@@ -1149,7 +1114,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     email = "test@example.com",
                     repository = repository,
                 )
-            user.addCommittedCommit(cmt)
+            user.committedCommits.add(cmt)
 
             run {
                 val branch =
@@ -1158,11 +1123,11 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repository = repository,
                     )
 
-                cmt.addBranch(branch)
-                branch.addCommit(cmt)
-                repository.addBranch(branch)
-                repository.addCommit(cmt)
-                repository.addUser(user)
+                cmt.branches.add(branch)
+                branch.commits.add(cmt)
+                repository.branches.add(branch)
+                repository.commits.add(cmt)
+                repository.user.add(user)
 
                 assertAll(
                     "check model",
@@ -1201,10 +1166,10 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         repository = repository,
                     )
 
-                cmt.addBranch(branch)
-                branch.addCommit(cmt)
-                repository.addBranch(branch)
-                repository.addCommit(cmt)
+                cmt.branches.add(branch)
+                branch.commits.add(cmt)
+                repository.branches.add(branch)
+                repository.commits.add(cmt)
 
                 assertAll(
                     "check model",
@@ -1283,15 +1248,14 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1234567890123456789012345678901234567890",
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        repositoryId = repository.id,
                     )
-                user.addCommittedCommit(cmt)
+                user.committedCommits.add(cmt)
                 assertAll(
                     "Adding new commit",
-                    { assertTrue(branch.addCommit(cmt)) },
-                    { assertTrue(repository.addBranch(branch)) },
-                    { assertTrue(repository.addCommit(cmt)) },
-                    { assertTrue(repository.addUser(user)) },
+                    { assertTrue(branch.commits.add(cmt)) },
+                    { assertTrue(repository.branches.add(branch)) },
+                    { assertTrue(repository.commits.add(cmt)) },
+                    { assertTrue(repository.user.add(user)) },
                 )
 
                 assertDoesNotThrow {
@@ -1315,16 +1279,15 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1234567890123456789012345678901234567890",
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
-                user.addCommittedCommit(cmt)
+                branch.commits.add(cmt)
+                user.committedCommits.add(cmt)
                 assertAll(
                     "Add same commit again, same hashCode",
-                    { assertFalse(branch.addCommit(cmt)) }, // sha already in
-                    { assertFalse(repository.addBranch(branch)) }, // branch already in
-                    { assertFalse(repository.addCommit(cmt)) }, // cmt is in based on hashCode
-                    { assertFalse(repository.addUser(user)) }, // user is in based on hashCode
+                    { assertFalse(branch.commits.add(cmt)) }, // sha already in
+                    { assertFalse(repository.branches.add(branch)) }, // branch already in
+                    { assertFalse(repository.commits.add(cmt)) }, // cmt is in based on hashCode
+                    { assertFalse(repository.user.add(user)) }, // user is in based on hashCode
                 )
                 assertThat(repository.commits).hasSize(1)
                 assertThat(repository.user).hasSize(1)
@@ -1382,7 +1345,6 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1234567890123456789012345678901234567890",
                         message = "test commit",
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        repositoryId = repository.id,
                     )
                 val user =
                     User(
@@ -1390,14 +1352,14 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         email = "test@example.com",
                         repository = repository,
                     )
-                user.addCommittedCommit(cmt)
+                user.committedCommits.add(cmt)
 
                 assertAll(
                     "Adding new commit",
-                    { assertTrue(branch.addCommit(cmt)) },
-                    { assertTrue(repository.addBranch(branch)) },
-                    { assertTrue(repository.addCommit(cmt)) },
-                    { assertTrue(repository.addUser(user)) },
+                    { assertTrue(branch.commits.add(cmt)) },
+                    { assertTrue(repository.branches.add(branch)) },
+                    { assertTrue(repository.commits.add(cmt)) },
+                    { assertTrue(repository.user.add(user)) },
                 )
 
                 val savedRepo =
@@ -1428,14 +1390,13 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                         sha = "1234567890123456789012345678901234567890",
                         message = "msg changed", // message property changed!
                         commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        repositoryId = repository.id,
-                        branches = mutableSetOf(branch),
                     )
+                branch.commits.add(cmt)
                 assertAll(
                     "Add same commit again, same hashCode",
-                    { assertFalse(branch.addCommit(cmt)) }, // sha already in
-                    { assertFalse(repository.addBranch(branch)) }, // branch already in
-                    { assertTrue(repository.addCommit(cmt)) }, // cmt is NOT in based on hashCode, changed message
+                    { assertFalse(branch.commits.add(cmt)) }, // sha already in
+                    { assertFalse(repository.branches.add(branch)) }, // branch already in
+                    { assertTrue(repository.commits.add(cmt)) }, // cmt is NOT in based on hashCode, changed message
                 )
                 assertThat(repository.commits).hasSize(2)
 
@@ -1485,26 +1446,24 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                             sha = "A".repeat(40),
                             message = "test commit",
                             commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                            repositoryId = repository.id,
-                            branches = mutableSetOf(branch),
                         )
+                    branch.commits.add(cmtA)
                     val cmtB =
                         Commit(
                             sha = "B".repeat(40),
                             message = "test commit",
                             commitDateTime = LocalDateTime.of(2024, 8, 13, 1, 1),
-                            repositoryId = repository.id,
-                            branches = mutableSetOf(branch),
                         )
-                    user.addCommittedCommit(cmtA)
-                    user.addCommittedCommit(cmtB)
+                    branch.commits.add(cmtB)
+                    user.committedCommits.add(cmtA)
+                    user.committedCommits.add(cmtB)
 
-                    branch.addCommit(cmtA)
-                    branch.addCommit(cmtB)
-                    repository.addBranch(branch)
-                    repository.addCommit(cmtA)
-                    repository.addCommit(cmtB)
-                    repository.addUser(user)
+                    branch.commits.add(cmtA)
+                    branch.commits.add(cmtB)
+                    repository.branches.add(branch)
+                    repository.commits.add(cmtA)
+                    repository.commits.add(cmtB)
+                    repository.user.add(user)
 
                     assertAll(
                         "check model",
