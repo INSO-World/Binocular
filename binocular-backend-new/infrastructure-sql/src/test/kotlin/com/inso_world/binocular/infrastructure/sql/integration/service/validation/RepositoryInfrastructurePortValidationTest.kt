@@ -38,58 +38,78 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
         fun invalidCommitsForEntity(): Stream<Arguments> =
             Stream.of(
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "", // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+//                        val repository = Repository(id = "1", name = "1")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "", // invalid: should be 40 chars
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now(),
+                            message = "Valid message",
+                        )
+//                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "sha",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "a".repeat(39), // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+//                        val repository = Repository(id = "1", name = "1")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "a".repeat(39), // invalid: should be 40 chars
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now(),
+                            message = "Valid message",
+                        )
+//                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "sha",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "b".repeat(41), // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+//                        val repository = Repository(id = "1", name = "1")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "b".repeat(41), // invalid: should be 40 chars
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now(),
+                            message = "Valid message",
+                        )
+//                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "sha",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "c".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = null, // invalid: NotNull
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+//                        val repository = Repository(id = "1", name = "1")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "c".repeat(40),
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = null, // invalid: NotNull
+                            message = "Valid message",
+                        )
+//                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "commitDateTime",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "c".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now().plusSeconds(30), // invalid: Future
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+//                        val repository = Repository(id = "1", name = "1")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "c".repeat(40),
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now().plusSeconds(60), // invalid: Future
+                            message = "Valid message",
+                        )
+//                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "commitDateTime",
                 ),
 //                Arguments.of(
@@ -125,17 +145,17 @@ internal class RepositoryInfrastructurePortValidationTest : BaseServiceTest() {
 //                    ),
 //                    "message",
 //                ),
-                Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "e".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "Valid message",
-                        repositoryId = null, // invalid: NotNull, TODO only invalid if coming out of mapper, going in is ok e.g. on create
-                    ),
-                    "repositoryId",
-                ),
+//                Arguments.of(
+//                    Commit(
+//                        id = null,
+//                        sha = "e".repeat(40),
+//                        authorDateTime = LocalDateTime.now(),
+//                        commitDateTime = LocalDateTime.now(),
+//                        message = "Valid message",
+//                        repository = null, // invalid: NotNull, TODO only invalid if coming out of mapper, going in is ok e.g. on create
+//                    ),
+//                    "repositoryId",
+//                ),
             )
     }
 

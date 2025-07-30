@@ -7,6 +7,7 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,7 +38,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
     }
 
     companion object {
-        private val branchModel: Branch =
+        private fun branchModel() =
             Branch(
                 name = "testBranch",
             )
@@ -46,147 +47,173 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         fun commitList(): Stream<Arguments> =
             Stream.of(
                 Arguments.of(
-                    listOf(
-                        Commit(
-                            id = "1",
-                            sha = "a".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
-                            message = "Valid commit 1",
-                            parents =
-                                mutableSetOf(
+                    with(branchModel()) {
+                        listOf(
+                            run {
+                                val cmt = Commit(
+                                    id = "1",
+                                    sha = "a".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
+                                    message = "Valid commit 1",
+                                )
+                                this.commits.add(cmt)
+                                cmt.parents.add(
                                     Commit(
                                         id = "2",
                                         sha = "b".repeat(40),
                                         authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
                                         commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                                         message = "Valid commit 2",
-                                    ),
-                                ),
-                            branches = mutableSetOf(branchModel),
-                        ),
-                        Commit(
-                            id = "2",
-                            sha = "b".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
-                            message = "Valid commit 2",
-                            branches = mutableSetOf(branchModel),
-                        ),
-                    ),
+                                    )
+                                )
+                                cmt
+                            },
+                            run {
+                                val cmt = Commit(
+                                    id = "2",
+                                    sha = "b".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
+                                    message = "Valid commit 2",
+                                )
+                                this.commits.add(cmt)
+                                cmt
+                            },
+                        )
+                    },
                     2,
                 ),
                 Arguments.of(
-                    listOf(
-                        Commit(
-                            id = "3",
-                            sha = "a".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
-                            message = "Valid commit 1",
-                            parents =
-                                mutableSetOf(
+                    with(branchModel()) {
+                        listOf(
+                            run {
+                                val cmt = Commit(
+                                    id = "3",
+                                    sha = "a".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
+                                    message = "Valid commit 1",
+                                )
+                                this.commits.add(cmt)
+                                cmt.parents.add(
                                     Commit(
                                         id = "4",
                                         sha = "b".repeat(40),
                                         authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
                                         commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                                         message = "Valid commit 2",
-                                    ),
-                                ),
-                            branches = mutableSetOf(branchModel),
-                        ),
-                        Commit(
-                            id = "5",
-                            sha = "c".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 4, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
-                            message = "Valid commit 3",
-                            branches = mutableSetOf(branchModel),
-                        ),
-                    ),
+                                    )
+                                )
+                                cmt
+                            },
+                            run {
+                                val cmt = Commit(
+                                    id = "5",
+                                    sha = "c".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 4, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
+                                    message = "Valid commit 3",
+                                )
+                                this.commits.add(cmt)
+                                cmt
+                            },
+                        )
+                    },
                     3,
                 ),
                 Arguments.of(
-                    listOf(
-                        Commit(
-                            id = "6",
-                            sha = "a".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
-                            message = "Valid commit 1",
-                            parents =
-                                mutableSetOf(
+                    with(branchModel()) {
+                        listOf(
+                            run {
+                                val cmt = Commit(
+                                    id = "6",
+                                    sha = "a".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
+                                    message = "Valid commit 1",
+                                )
+                                this.commits.add(cmt)
+                                cmt.parents.add(
                                     Commit(
                                         id = "7",
                                         sha = "b".repeat(40),
                                         authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
                                         commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                                         message = "Valid commit 2",
-                                    ),
-                                ),
-                            branches = mutableSetOf(branchModel),
-                        ),
-                        Commit(
-                            id = "8",
-                            sha = "c".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 4, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
-                            message = "Valid commit 3",
-                            parents =
-                                mutableSetOf(
+                                    )
+                                )
+                                cmt
+                            },
+                            run {
+                                val cmt = Commit(
+                                    id = "8",
+                                    sha = "c".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 4, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
+                                    message = "Valid commit 3",
+                                )
+                                this.commits.add(cmt)
+                                cmt.parents.add(
                                     Commit(
                                         id = "7",
                                         sha = "b".repeat(40),
                                         authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
                                         commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                                         message = "Valid commit 2",
-                                    ),
-                                ),
-                            branches = mutableSetOf(branchModel),
-                        ),
-                    ),
+                                    )
+                                )
+                                cmt
+                            },
+                        )
+                    },
                     3,
                 ),
                 Arguments.of(
-                    listOf(
-                        Commit(
-                            id = "9",
-                            sha = "a".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
-                            message = "Valid commit 1",
-                            parents =
-                                mutableSetOf(
+                    with(branchModel()) {
+                        listOf(
+                            run {
+                                val cmt = Commit(
+                                    id = "9",
+                                    sha = "a".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
+                                    message = "Valid commit 1",
+                                )
+                                this.commits.add(cmt)
+                                cmt.parents.add(
                                     Commit(
                                         id = "10",
                                         sha = "b".repeat(40),
                                         authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
                                         commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                                         message = "Valid commit 2",
-                                    ),
-                                ),
-                            branches = mutableSetOf(branchModel),
-                        ),
-                        Commit(
-                            id = "11",
-                            sha = "c".repeat(40),
-                            authorDateTime = LocalDateTime.of(2020, 1, 4, 1, 0, 0, 0),
-                            commitDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
-                            message = "Valid commit 3",
-                            parents =
-                                mutableSetOf(
+                                    )
+                                )
+                                cmt
+                            },
+                            run {
+                                val cmt = Commit(
+                                    id = "11",
+                                    sha = "c".repeat(40),
+                                    authorDateTime = LocalDateTime.of(2020, 1, 4, 1, 0, 0, 0),
+                                    commitDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
+                                    message = "Valid commit 3",
+                                )
+                                this.commits.add(cmt)
+                                cmt.parents.add(
                                     Commit(
                                         id = "12",
                                         sha = "d".repeat(40),
                                         authorDateTime = LocalDateTime.of(2020, 1, 5, 1, 0, 0, 0),
                                         commitDateTime = LocalDateTime.of(2020, 1, 4, 1, 0, 0, 0),
                                         message = "Valid commit 4",
-                                    ),
-                                ),
-                            branches = mutableSetOf(branchModel),
-                        ),
-                    ),
+                                    )
+                                )
+                                cmt
+                            },
+                        )
+                    },
                     4,
                 ),
             )
@@ -240,7 +267,6 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                     authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                     commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
                     message = "Valid commit 1",
-                    repositoryId = domain.id,
                 ),
                 Commit(
                     id = "2",
@@ -248,19 +274,18 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                     authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
                     commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                     message = "Valid commit 2",
-                    repositoryId = domain.id,
                 ),
             )
+        domain.commits.addAll(commitList)
 
-        commitList.forEach { domain.addCommit(it) }
         val branch =
             Branch(
                 name = "test",
-                commits = commitList.toMutableSet(),
                 repository = domain,
             )
-        commitList.forEach { it.addBranch(branch) }
-        domain.addBranch(branch)
+        branch.commits.addAll(commitList)
+        commitList.forEach { it.branches.add(branch) }
+        domain.branches.add(branch)
 
         // Map to entity
         val entity = repositoryMapper.toEntity(domain, projectEntity)
@@ -322,21 +347,21 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             )
         commitList.forEach {
             // wire up author, committer
-            it.author?.addAuthoredCommit(it)
-            it.committer?.addCommittedCommit(it)
-            it.repositoryId = domain.id
-            it.branches.forEach { b -> domain.addBranch(b) }
+            it.author?.authoredCommits?.add(it)
+            it.committer?.committedCommits?.add(it)
+            it.repository = domain
+            it.branches.forEach { b -> domain.branches.add(b) }
             it.parents.forEach { parent ->
-                parent.repositoryId = domain.id
+                parent.repository = domain
                 it.branches.forEach { b ->
-                    parent.addBranch(b)
-                    domain.addBranch(b)
+                    parent.branches.add(b)
+                    domain.branches.add(b)
                 }
-                parent.addChild(it)
+                parent.children.add(it)
             }
         }
 
-        commitList.forEach { domain.addCommit(it) }
+        commitList.forEach { domain.commits.add(it) }
 
         assertThat(domain.branches).hasSize(1)
 
@@ -367,7 +392,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                 )
                 .isEqualTo(domainCmt)
             assertThat(entityCmt.branches.flatMap { b -> b.commits.map { c -> c.sha } })
-                .containsAll(domainCmt.branches.flatMap { b -> b.commits.map { c-> c.sha } })
+                .containsAll(domainCmt.branches.flatMap { b -> b.commits.map { c -> c.sha } })
         }
     }
 
@@ -391,18 +416,17 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                 authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
                 commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
                 message = "Valid commit 1",
-                repositoryId = domain.id,
             )
         val branch =
             Branch(
                 name = "test",
-                commits = mutableSetOf(commit),
                 repository = domain,
             )
-        commit.addBranch(branch)
-        domain.addBranch(branch)
+        branch.commits.add(commit)
+        commit.branches.add(branch)
+        domain.branches.add(branch)
 
-        domain.addCommit(commit)
+        domain.commits.add(commit)
 
         // Map to entity
         val entity = repositoryMapper.toEntity(domain, projectEntity)

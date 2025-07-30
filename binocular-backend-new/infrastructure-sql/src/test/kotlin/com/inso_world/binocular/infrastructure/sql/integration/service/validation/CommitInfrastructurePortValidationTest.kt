@@ -6,6 +6,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructurePortImpl
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Repository
 import io.mockk.junit5.MockKExtension
 import jakarta.validation.Validation
 import jakarta.validation.Validator
@@ -37,58 +38,78 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
         fun invalidCommitsForEntity(): Stream<Arguments> =
             Stream.of(
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "", // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+                        val repository = Repository(id = "1", name = "1")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "", // invalid: should be 40 chars
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now(),
+                            message = "Valid message",
+                        )
+                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "sha",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "a".repeat(39), // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+                        val repository = Repository(id = "2", name = "2")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "a".repeat(39), // invalid: should be 40 chars
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now(),
+                            message = "Valid message",
+                        )
+                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "sha",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "b".repeat(41), // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+                        val repository = Repository(id = "3", name = "3")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "b".repeat(41), // invalid: should be 40 chars
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now(),
+                            message = "Valid message",
+                        )
+                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "sha",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "c".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = null, // invalid: NotNull
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+                        val repository = Repository(id = "4", name = "4")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "c".repeat(40),
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = null, // invalid: NotNull
+                            message = "Valid message",
+                        )
+                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "commitDateTime",
                 ),
                 Arguments.of(
-                    Commit(
-                        id = null,
-                        sha = "c".repeat(40),
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now().plusSeconds(30), // invalid: Future
-                        message = "Valid message",
-                        repositoryId = "1",
-                    ),
+                    run {
+                        val repository = Repository(id = "5", name = "5")
+                        val cmt = Commit(
+                            id = null,
+                            sha = "c".repeat(40),
+                            authorDateTime = LocalDateTime.now(),
+                            commitDateTime = LocalDateTime.now().plusSeconds(30), // invalid: Future
+                            message = "Valid message",
+                        )
+                        repository.commits.add(cmt)
+                        cmt
+                    },
                     "commitDateTime",
                 ),
 //                Arguments.of(
