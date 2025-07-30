@@ -12,7 +12,7 @@ class CommitValidator : ConstraintValidator<CommitValidation, Repository> {
         val checks =
             repository.commits
                 .mapIndexed { index, commit ->
-                    val repositoryId = commit.repositoryId
+                    val repositoryId = commit.repository?.id
                     val repositoryActualId = repository.id
 
                     when {
@@ -34,7 +34,7 @@ class CommitValidator : ConstraintValidator<CommitValidation, Repository> {
                             context.disableDefaultConstraintViolation()
                             context
                                 .buildConstraintViolationWithTemplate(
-                                    "Commit repositoryId=$repositoryId does not match repository.id=$repositoryActualId.",
+                                    "Commit repository.id=$repositoryId does not match repository.id=$repositoryActualId.",
                                 ).addPropertyNode("commits")
                                 .addPropertyNode("repositoryId")
                                 .inIterable()
