@@ -80,11 +80,11 @@ internal class CommitInfrastructurePortImpl
             val mapped =
                 run {
                     val repositoryId =
-                        value.repositoryId?.toLong()
-                            ?: throw IllegalArgumentException("repositoryId of Commit must not be null")
+                        value.repository?.id?.toLong()
+                            ?: throw IllegalArgumentException("repository.id of Commit must not be null")
                     val repository =
                         repositoryDao.findById(repositoryId)
-                            ?: throw NotFoundException("Repository id=${value.repositoryId} not found")
+                            ?: throw NotFoundException("Repository id=${value.repository?.id} not found")
 
 //                TODO N+1 here
                     ctx.entity.commit.putAll(repository.commits.associateBy(CommitEntity::uniqueKey))
@@ -113,12 +113,10 @@ internal class CommitInfrastructurePortImpl
 
         @MappingSession
         override fun findAll(): Iterable<Commit> {
-            val repoContext: MutableMap<Long, Repository> = mutableMapOf()
-
             val values = this.commitDao.findAll()
             return values
                 .associateBy { it.repository }
-                .flatMap { (k, v) ->
+                .flatMap { (k, _) ->
                     if (k == null) throw IllegalStateException("Cannot map project without repository")
                     val project =
                         projectMapper.toDomain(
@@ -148,16 +146,16 @@ internal class CommitInfrastructurePortImpl
                     throw IllegalStateException("Repository cannot be null when finding commit by ID")
                 }
 
-                commitMapper.toDomain(it).also { c -> repository.addCommit(c) }
+                commitMapper.toDomain(it).also { c -> repository.commits.add(c) }
             }
 
         @MappingSession
         override fun update(value: Commit): Commit {
             val repositoryId =
-                value.repositoryId?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
+                value.repository?.id?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
             val repository =
                 repositoryDao.findById(repositoryId)
-                    ?: throw NotFoundException("Repository ${value.repositoryId} not found")
+                    ?: throw NotFoundException("Repository ${value.repository?.id} not found")
 
             val entity =
                 this.commitDao.findBySha(repository, value.sha)
@@ -261,10 +259,10 @@ internal class CommitInfrastructurePortImpl
 
         override fun delete(value: Commit) {
             val repositoryId =
-                value.repositoryId?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
+                value.repository?.id?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
             val repository =
                 repositoryDao.findById(repositoryId)
-                    ?: throw NotFoundException("Repository ${value.repositoryId} not found")
+                    ?: throw NotFoundException("Repository ${value.repository?.id} not found")
 
             val mapped =
                 commitMapper.toEntity(value).also {
@@ -336,7 +334,7 @@ internal class CommitInfrastructurePortImpl
             return this.commitDao
                 .findExistingSha(repo, shas)
                 .map {
-                    this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) }
+                    this.commitMapper.toDomain(it).also { c -> repoModel.commits.add(c) }
                 }
         }
 
@@ -359,7 +357,7 @@ internal class CommitInfrastructurePortImpl
                     .findAll(
                         repo,
 //                        pageable,
-                    ).map { this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) } }
+                    ).map { this.commitMapper.toDomain(it).also { c -> repoModel.commits.add(c) } }
                     .collect(Collectors.toSet())
             } catch (e: PersistenceException) {
                 throw BinocularInfrastructureException(e)
@@ -393,7 +391,7 @@ internal class CommitInfrastructurePortImpl
                 .findHeadForBranch(
                     repo,
                     branch,
-                )?.let { this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) } }
+                )?.let { this.commitMapper.toDomain(it).also { c -> repoModel.commits.add(c) } }
         }
 
         @MappingSession
@@ -410,6 +408,6 @@ internal class CommitInfrastructurePortImpl
             return this.commitDao
                 .findAllLeafCommits(
                     repo,
-                ).map { this.commitMapper.toDomain(it).also { c -> repoModel.addCommit(c) } }
+                ).map { this.commitMapper.toDomain(it).also { c -> repoModel.commits.add(c) } }
         }
     }

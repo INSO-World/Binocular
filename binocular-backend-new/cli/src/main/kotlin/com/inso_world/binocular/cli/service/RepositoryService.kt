@@ -1,10 +1,7 @@
 package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.cli.index.vcs.VcsCommit
-import com.inso_world.binocular.core.service.BranchInfrastructurePort
-import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -23,16 +20,7 @@ class RepositoryService {
     private lateinit var repositoryPort: RepositoryInfrastructurePort
 
     @Autowired
-    private lateinit var userPort: UserInfrastructurePort
-
-    @Autowired
     private lateinit var commitService: CommitService
-
-    @Autowired
-    lateinit var commitPort: CommitInfrastructurePort
-
-    @Autowired
-    private lateinit var branchPort: BranchInfrastructurePort
 
     internal fun transformCommits(
         repo: Repository,
@@ -57,22 +45,7 @@ class RepositoryService {
         // Create a map of SHA to Commit entities for quick lookups
         val commitMap =
             commits.associate {
-                it.sha to
-                    run {
-                        val e = it.toDomain()
-                        val branchEntity =
-                            it.branch.let { branchName ->
-                                branchCache.getOrPut(branchName) {
-                                    val b = Branch(name = branchName)
-                                    repo.addBranch(b)
-                                    b
-                                }
-                            }
-                        branchEntity.addCommit(e)
-
-                        repo.addCommit(e)
-                        e
-                    }
+                it.sha to it.toDomain()
             }
 
         // Now establish parent relationships using the map
@@ -80,15 +53,27 @@ class RepositoryService {
             // Find the VcsCommit that corresponds to this entity
             val vcsCommit = commits.find { it.sha == sha }
 
+            run {
+                val branchEntity =
+                    vcsCommit?.branch?.let { branchName ->
+                        branchCache.getOrPut(branchName) {
+                            val b = Branch(name = branchName)
+                            repo.branches.add(b)
+                            b
+                        }
+                    }
+                branchEntity?.commits?.add(commit)
+            }
+
             vcsCommit?.committer?.let {
                 val email = it.email
                 val user =
                     userCache.getOrPut(email) {
                         val e = it.toEntity()
-                        repo.addUser(e)
+                        repo.user.add(e)
                         e
                     }
-                user.addCommittedCommit(commit)
+                user.committedCommits.add(commit)
             }
 
             vcsCommit?.author?.let {
@@ -96,10 +81,10 @@ class RepositoryService {
                 val user =
                     userCache.getOrPut(email) {
                         val e = it.toEntity()
-                        repo.addUser(e)
+                        repo.user.add(e)
                         e
                     }
-                user.addAuthoredCommit(commit)
+                user.authoredCommits.add(commit)
             }
 
             // Get the parent commits from the map and set them
@@ -109,7 +94,8 @@ class RepositoryService {
                 } ?: emptyList()
 
             // Set the parents on the entity
-            parentCommits.map { commit.addParent(it) }
+            commit.parents.addAll(parentCommits)
+            repo.commits.add(commit)
         }
 
         logger.trace("<<< transformCommits({})", repo)
@@ -119,8 +105,6 @@ class RepositoryService {
     private fun normalizePath(path: String): String = if (path.endsWith(".git")) path else "$path/.git"
 
     fun findRepo(gitDir: String): Repository? = this.repositoryPort.findByName(normalizePath(gitDir))
-
-    private fun findRepo(vcsRepo: BinocularRepositoryPojo): Repository? = this.findRepo(vcsRepo.gitDir)
 
     fun getOrCreate(
         gitDir: String,
@@ -147,15 +131,6 @@ class RepositoryService {
         branch: String,
     ): Commit? = this.commitService.findHeadForBranch(repo, branch)
 
-    fun findBranch(
-        repository: Repository,
-        branchName: String,
-    ): Branch? {
-        // Delegate the logic to the new BranchService
-//        return this.branchPort.fin(repository, branchName)
-        TODO()
-    }
-
     fun update(repo: Repository): Repository = this.repositoryPort.update(repo)
 
     //    @Transactional
@@ -181,7 +156,10 @@ class RepositoryService {
 
             logger.debug("Commit transformation finished")
             logger.debug("${repo.commits.count { it.message?.isEmpty() == true }} Commits have empty messages")
-            logger.trace("Empty message commits: {}", repo.commits.filter { it.message?.isEmpty() == true }.map { it.sha })
+            logger.trace(
+                "Empty message commits: {}",
+                repo.commits.filter { it.message?.isEmpty() == true }.map { it.sha },
+            )
 
             project.repo = this.repositoryPort.update(repo)
 

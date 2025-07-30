@@ -119,9 +119,6 @@ internal data class RepositoryEntity(
             Repository(
                 id = this.id?.toString(),
                 name = this.name,
-                commits = mutableSetOf(),
-                branches = mutableSetOf(),
-                user = mutableSetOf(),
                 project = project,
             )
         project?.repo = repo

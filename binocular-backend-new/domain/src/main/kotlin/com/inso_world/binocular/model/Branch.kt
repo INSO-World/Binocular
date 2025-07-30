@@ -18,13 +18,36 @@ data class Branch(
     val latestCommit: String? = null,
     // Relationships
     val files: List<File> = emptyList(),
-    @field:NotEmpty
-    val commits: MutableSet<Commit> = mutableSetOf(),
     @field:NotNull
     var repository: Repository? = null,
 ) {
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
     val branch: String = name
+
+    @field:NotEmpty
+    private val _commits: MutableSet<Commit> = mutableSetOf()
+    val commits: MutableSet<Commit> =
+        object : MutableSet<Commit> by _commits {
+            override fun add(element: Commit): Boolean {
+                // add to this commit’s parents…
+                val added = _commits.add(element)
+                if (added) {
+                    // …and back-link to this as a child
+                    element.branches.add(this@Branch)
+                }
+                val parentsAdded = _commits.addAll(element.parents)
+                return added || parentsAdded
+            }
+
+            override fun addAll(elements: Collection<Commit>): Boolean {
+                // for bulk‐adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
 
     fun uniqueKey(): String {
         val repo = repository
@@ -32,18 +55,6 @@ data class Branch(
             throw IllegalStateException("Cannot generate unique key for $javaClass when repository is null")
         }
         return "${repo.name},$name"
-    }
-
-    fun addCommit(commit: Commit): Boolean {
-        val a = this.commits.add(commit)
-        val c =
-            if (commit.parents.isNotEmpty()) {
-                this.commits.addAll(commit.parents)
-            } else {
-                true
-            }
-        val b = commit.branches.add(this)
-        return a && b && c
     }
 
     override fun equals(other: Any?): Boolean {
@@ -71,7 +82,9 @@ data class Branch(
     }
 
     override fun toString(): String =
-        "Branch(id=$id, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=${commits.map {
-            it.sha
-        }}, repositoryId=${repository?.id})"
+        "Branch(id=$id, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=${
+            commits.map {
+                it.sha
+            }
+        }, repositoryId=${repository?.id})"
 }

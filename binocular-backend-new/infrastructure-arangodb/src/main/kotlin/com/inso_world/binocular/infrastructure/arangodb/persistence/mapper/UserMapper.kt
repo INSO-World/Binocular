@@ -3,7 +3,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.UserEntity
-import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -42,7 +41,7 @@ class UserMapper
                 id = entity.id,
                 name = entity.name,
                 email = entity.email,
-                committedCommits = mutableSetOf<Commit>(),
+//                committedCommits = mutableSetOf<Commit>(),
 //                TODO
 //                    proxyFactory.createLazyList {
 //                        (entity.commits ?: emptyList()).map { commitEntity ->

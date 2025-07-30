@@ -96,15 +96,14 @@ internal class CommitDaoTest(
         fun `commit with invalid sha length should fail`(invalidSha: String) {
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    commitPort.create(
-                        Commit(
-                            sha = invalidSha,
-                            message = "msg",
-                            commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                            authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                            repositoryId = this.project.repo?.id,
-                        ),
+                    val cmt = Commit(
+                        sha = invalidSha,
+                        message = "msg",
+                        commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                        authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     )
+                    this.project.repo?.commits?.add(cmt)
+                    commitPort.create(                        cmt                    )
                 }
             assertThat(exception.message).contains(".value.sha")
             entityManager.clear()
@@ -113,23 +112,20 @@ internal class CommitDaoTest(
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
         fun `commit with invalid sha value should fail`(invalidSha: String) {
+            val branch = Branch(
+                name = "test",
+            )
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    commitPort.create(
-                        Commit(
-                            sha = invalidSha,
-                            message = "msg",
-                            commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                            authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                            repositoryId = this.project.repo?.id,
-                            branches =
-                                mutableSetOf(
-                                    Branch(
-                                        name = "test",
-                                    ),
-                                ),
-                        ),
+                    val cmt = Commit(
+                        sha = invalidSha,
+                        message = "msg",
+                        commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                        authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     )
+                    cmt.branches.add(branch)
+                    this.project.repo?.commits?.add(cmt)
+                    commitPort.create(cmt)
                 }
             assertThat(exception.message).contains(".value.sha")
             entityManager.clear()
@@ -172,13 +168,12 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = validCommitTime,
                     authorDateTime = null,
-                    repositoryId = project.repo?.id,
                 )
-            branch.addCommit(cmt)
-            user.addCommittedCommit(cmt)
-            project.repo?.addCommit(cmt)
-            project.repo?.addUser(user)
-            project.repo?.addBranch(branch)
+            branch.commits.add(cmt)
+            user.committedCommits.add(cmt)
+            project.repo?.commits?.add(cmt)
+            project.repo?.user?.add(user)
+            project.repo?.branches?.add(branch)
             assertDoesNotThrow {
                 commitPort.create(cmt)
             }
@@ -203,13 +198,12 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     authorDateTime = validAuthorTime,
-                    repositoryId = project.repo?.id,
                 )
-            branch.addCommit(cmt)
-            user.addCommittedCommit(cmt)
-            project.repo?.addCommit(cmt)
-            project.repo?.addUser(user)
-            project.repo?.addBranch(branch)
+            branch.commits.add(cmt)
+            user.committedCommits.add(cmt)
+            project.repo?.commits?.add(cmt)
+            project.repo?.user?.add(user)
+            project.repo?.branches?.add(branch)
             assertDoesNotThrow {
                 commitPort.create(cmt)
             }
@@ -226,9 +220,8 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = invalidCommitTime,
                     authorDateTime = null,
-                    repositoryId = project.repo?.id,
                 )
-            project.repo?.addCommit(cmt)
+            project.repo?.commits?.add(cmt)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitPort.create(cmt)
@@ -248,9 +241,8 @@ internal class CommitDaoTest(
                     message = "msg",
                     commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     authorDateTime = invalidAuthorTime,
-                    repositoryId = project.repo?.id,
                 )
-            project.repo?.addCommit(cmt)
+            project.repo?.commits?.add(cmt)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitPort.create(cmt)
@@ -481,7 +473,8 @@ internal class CommitDaoTest(
                     )
                 assertAll(
                     { assertThat(masterLeaf).isNotNull() },
-                    { assertThat(masterLeaf?.repositoryId).isEqualTo(simpleRepo.id) },
+                    { assertThat(masterLeaf?.repository).isNotNull() },
+                    { assertThat(masterLeaf?.repository?.id).isEqualTo(simpleRepo.id) },
                     { assertThat(masterLeaf?.id).isNotNull() },
                     { assertThat(masterLeaf?.sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") },
                 )
@@ -526,11 +519,11 @@ internal class CommitDaoTest(
                 assertAll(
                     { assertThat(masterLeaf).isNotNull() },
 //                { assertThat(masterLeaf!!.repository!!.id).isEqualTo(this.octoRepo.id) },
-                    { assertThat(masterLeaf?.id).isNotNull() },
-                    { assertThat(masterLeaf?.sha).isEqualTo("4dedc3c738eee6b69c43cde7d89f146912532cff") },
-                    { assertThat(masterLeaf?.parents).hasSize(4) },
+                    { assertThat(masterLeaf.id).isNotNull() },
+                    { assertThat(masterLeaf.sha).isEqualTo("4dedc3c738eee6b69c43cde7d89f146912532cff") },
+                    { assertThat(masterLeaf.parents).hasSize(4) },
                     {
-                        assertThat(masterLeaf?.parents?.map { it.sha }).containsAll(
+                        assertThat(masterLeaf.parents.map { it.sha }).containsAll(
                             listOf(
                                 "f556329d268afeb5e5298e37fd8bfb5ef2058a9d",
                                 "42fbbe93509ed894cbbd61e4dbc07a440720c491",
@@ -539,8 +532,8 @@ internal class CommitDaoTest(
                             ),
                         )
                     },
-                    { assertThat(masterLeaf?.branches).hasSize(1) },
-                    { assertThat(masterLeaf?.branches?.toList()[0]?.name).isEqualTo("master") },
+                    { assertThat(masterLeaf.branches).hasSize(1) },
+                    { assertThat(masterLeaf.branches.toList()[0].name).isEqualTo("master") },
                 )
                 run {
                     val graph: MutableMap<String, Any?> = mutableMapOf()

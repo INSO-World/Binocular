@@ -66,14 +66,18 @@ class CommitValidationTest {
     fun `should pass validation when repository id is null and repositoryId is null`() {
         // Given
         val repository = Repository(id = null, name = "test-repo")
+        val branch = Branch(
+            name = "b",
+//            commits = mutableSetOf(Commit(sha="a".repeat(40))
+        )
         val commit =
             Commit(
                 sha = "a".repeat(40),
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
-                repositoryId = repository.id,
-                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
+        repository.commits.add(commit)
+        branch.commits.add(commit)
 
         // When
         val violations = validator.validate(commit)
@@ -85,15 +89,21 @@ class CommitValidationTest {
     @Test
     fun `should fail validation when repository id is null but repositoryId is not null`() {
         // Given
-        val commit =
-            Commit(
+        val branch = Branch(name = "b")
+        val commit = run {
+            val repository = Repository(name = "some-id", project = Project(name = "test"))
+            val commit = Commit(
                 sha = "a".repeat(40),
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
-                repositoryId = "some-id",
-                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
-        val repository = Repository(id = null, name = "test-repo", commits = mutableSetOf(commit), project = Project(name = "test"))
+            repository.commits.add(commit)
+            commit
+        }
+        branch.commits.add(commit)
+        val repository =
+            Repository(id = null, name = "test-repo", project = Project(name = "test"))
+        repository.commits.add(commit)
 
         // When
         val violations = validator.validate(repository)
@@ -118,14 +128,15 @@ class CommitValidationTest {
     fun `should pass validation when repository id is not null and repositoryId matches`() {
         // Given
         val repository = Repository(id = "repo-123", name = "test-repo")
+        val branch = Branch(name = "b")
         val commit =
             Commit(
                 sha = "a".repeat(40),
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
-                repositoryId = repository.id,
-                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
+        repository.commits.add(commit)
+        branch.commits.add(commit)
 
         // When
         val violations = validator.validate(commit)
@@ -137,15 +148,24 @@ class CommitValidationTest {
     @Test
     fun `should fail validation when repository id is not null but repositoryId does not match`() {
         // Given
-        val commit =
-            Commit(
+        val branch = Branch(name = "b")
+        val commit = run {
+            val repository = Repository(id = "different-id", name = "test-repo")
+            val cmt = Commit(
                 sha = "a".repeat(40),
                 message = "message",
                 commitDateTime = LocalDateTime.now(),
-                repositoryId = "different-id",
-                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
             )
-        val repository = Repository(id = "repo-123", name = "test-repo", commits = mutableSetOf(commit), project = Project(name = "test"))
+            repository.commits.add(cmt)
+            cmt
+        }
+        branch.commits.add(commit)
+        val repository = Repository(
+            id = "repo-123",
+            name = "test-repo",
+            project = Project(name = "test")
+        )
+        repository.commits.add(commit)
 
         // When
         val violations = validator.validate(repository)
@@ -165,14 +185,15 @@ class CommitValidationTest {
     @Test
     fun `should pass validation when repository is null`() {
         // Given
+        val branch = Branch(name = "b")
         val commit =
             Commit(
                 message = "test",
                 sha = "a".repeat(40),
                 commitDateTime = LocalDateTime.now(),
-                repositoryId = null,
-                branches = mutableSetOf(Branch(name = "b", commits = mutableSetOf(Commit(sha="a".repeat(40))))),
+                repository = null,
             )
+        branch.commits.add(commit)
 
         // When
         val violations = validator.validate(commit)

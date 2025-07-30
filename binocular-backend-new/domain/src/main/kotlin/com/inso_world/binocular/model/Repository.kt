@@ -1,7 +1,6 @@
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.validation.CommitValidation
-import com.inso_world.binocular.model.validation.NoCommitCycle
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -10,44 +9,80 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @CommitValidation
-@NoCommitCycle
 data class Repository(
     val id: String? = null,
     @field:NotBlank
     val name: String,
-    @field:Valid
-    var commits: MutableSet<Commit> = mutableSetOf(),
-    var user: MutableSet<User> = mutableSetOf(),
-    @field:Valid
-    var branches: MutableSet<Branch> = mutableSetOf(),
     @field:NotNull // TODO conditional validation, only when coming out of infra
     var project: Project? = null,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
+    private val _commits: MutableSet<Commit> = mutableSetOf()
+    private val _branches: MutableSet<Branch> = mutableSetOf()
+    private val _user: MutableSet<User> = mutableSetOf()
 
-    fun addBranch(branch: Branch): Boolean {
-        val a = this.branches.add(branch)
-        if (a) {
-            branch.repository = this
-        }
-        return a
-    }
+    @get:Valid
+    val commits: MutableSet<Commit> =
+        object : MutableSet<Commit> by _commits {
+            override fun add(element: Commit): Boolean {
+                val added = _commits.add(element)
+                if (added) {
+                    element.repository = this@Repository
+                }
+                return added
+            }
 
-    fun addCommit(commit: Commit): Boolean {
-        val a = this.commits.add(commit)
-        if (a) {
-            commit.repositoryId = this.id
+            override fun addAll(elements: Collection<Commit>): Boolean {
+                // for bulk‐adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
         }
-        return a
-    }
 
-    fun addUser(user: User): Boolean {
-        val a = this.user.add(user)
-        if (a) {
-            user.repository = this
+    @get:Valid
+    val branches: MutableSet<Branch> =
+        object : MutableSet<Branch> by _branches {
+            override fun add(element: Branch): Boolean {
+                val added = _branches.add(element)
+                if (added) {
+                    element.repository = this@Repository
+                }
+                return added
+            }
+
+            override fun addAll(elements: Collection<Branch>): Boolean {
+                // for bulk‐adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
         }
-        return a
-    }
+
+    @field:Valid
+    val user: MutableSet<User> =
+        object : MutableSet<User> by _user {
+            override fun add(element: User): Boolean {
+                val added = _user.add(element)
+                if (added) {
+                    element.repository = this@Repository
+                }
+                return added
+            }
+
+            override fun addAll(elements: Collection<User>): Boolean {
+                // for bulk‐adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
 
     override fun toString(): String = "Repository(id=$id, name='$name')"
 
