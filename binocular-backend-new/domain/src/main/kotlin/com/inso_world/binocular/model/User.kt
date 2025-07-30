@@ -1,6 +1,5 @@
 package com.inso_world.binocular.model
 
-import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.util.concurrent.ConcurrentHashMap
@@ -12,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap
 class User(
     var id: String? = null,
     @field:NotBlank val name: String? = null,
-    @field:Email
     var email: String? = null,
     @field:NotNull
     var repository: Repository? = null,
