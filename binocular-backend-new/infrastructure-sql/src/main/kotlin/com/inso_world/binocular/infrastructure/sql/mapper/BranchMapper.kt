@@ -79,7 +79,7 @@ internal class BranchMapper {
         // Commit is a child of Branch, hence it is mapped here
         commitMapper.toDomainGraph(entity.commits.asSequence()).map {
             //  add all parents also to the branch (git behavior of git rev-list --count <rev>)
-            (setOf(it) + it.parents).forEach { relative -> domain.addCommit(relative) }
+            (setOf(it) + it.parents).forEach { relative -> domain.commits.add(relative) }
 //            domain.addCommit(it)
         }
 
@@ -100,10 +100,10 @@ internal class BranchMapper {
         // Commit is a child of Branch, hence it is mapped here
         commitMapper.toDomainFull(entity.commits, repository).map {
             //  add all parents also to the branch (git behavior of git rev-list --count <rev>)
-            (setOf(it) + it.parents).forEach { relative -> domain.addCommit(relative) }
+            (setOf(it) + it.parents).forEach { relative -> domain.commits.add(relative) }
         }
 
-        repository.addBranch(domain)
+        repository.branches.add(domain)
 
         ctx.domain.branch.computeIfAbsent(branchContextKey) { domain }
 

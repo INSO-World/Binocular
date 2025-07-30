@@ -149,13 +149,6 @@ internal data class CommitEntity(
             authorDateTime = this.authorDateTime,
             message = this.message,
             webUrl = this.webUrl,
-            branch = this.branch,
-            repositoryId = null,
-            parents = mutableSetOf(),
-            children = mutableSetOf(),
-            branches = mutableSetOf(),
-            committer = null,
-            author = null,
         )
 
     @PreRemove
@@ -192,7 +185,6 @@ internal fun Commit.toEntity(): CommitEntity =
         authorDateTime = this.authorDateTime,
         message = this.message,
         webUrl = this.webUrl,
-        branch = this.branch,
         repository = null,
         parents = mutableSetOf(),
         children = mutableSetOf(),

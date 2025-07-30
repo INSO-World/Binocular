@@ -23,18 +23,16 @@ data class VcsCommit(
             it.sha
         }}, commitTime=$commitTime, authorTime=$authorTime)"
 
-    fun toDomain(): Commit =
-        Commit(
-            sha = this.sha,
-            message = this.message,
-            commitDateTime = this.commitTime ?: LocalDateTime.now(),
-            authorDateTime = this.authorTime,
-            committer = this.committer?.toEntity(),
-            author = this.author?.toEntity(),
-            parents = mutableSetOf(), // Will be set later in transformCommits
-            branches = mutableSetOf(), // Will be set later in transformCommits
-            repositoryId = null, // Will be set later in transformCommits
-        )
+    fun toDomain(): Commit {
+        val cmt =
+            Commit(
+                sha = this.sha,
+                message = this.message,
+                commitDateTime = this.commitTime ?: LocalDateTime.now(),
+                authorDateTime = this.authorTime,
+            )
+        return cmt
+    }
 
     override fun hashCode(): Int = Objects.hash(sha, message, branch, commitTime, authorTime)
 }

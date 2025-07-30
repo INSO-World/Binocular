@@ -15,6 +15,7 @@ import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.ffi.BinocularFfi
+import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -123,7 +124,7 @@ internal class RepositoryDaoTestWithSimpleData(
 
         simpleRepo.commits.addAll(commits)
         val saved = this.repositoryPort.update(simpleRepo)
-        val commitRepoIds = saved.commits.mapNotNull { it.repositoryId }
+        val commitRepoIds = saved.commits.mapNotNull { it.repository?.id }
         val userRepoIds =
             listOf(
                 saved.commits.mapNotNull { it.committer },

@@ -178,10 +178,14 @@ internal class CommitMapper {
                     ?: throw IllegalMappingStateException("Commit domain $sha must be mapped to map user")
             ent.committer
                 ?.let { userMapper.toDomain(it) }
-                ?.also { dom.addCommitter(it) }
+                ?.also {
+                    dom.committer = it
+                }
             ent.author
                 ?.let { userMapper.toDomain(it) }
-                ?.also { dom.addAuthor(it) }
+                ?.also {
+                    dom.author = it
+                }
         }
 
         // 3) wire up parent/child links in one sweep
@@ -194,13 +198,13 @@ internal class CommitMapper {
                     ctx.domain.commit[parentDom.sha]
                         ?: throw IllegalMappingStateException("Parent Commit domain ${parentDom.sha} must be mapped to wire up parent")
                 }.forEach {
-                    dom.addParent(it)
+                    dom.parents.add(it)
                 }
             ent.children
                 .map { childDom ->
                     ctx.domain.commit[childDom.sha]
                         ?: throw IllegalMappingStateException("Child Commit domain ${childDom.sha} must be mapped to wire up child")
-                }.forEach { dom.addChild(it) }
+                }.forEach { dom.children.add(it) }
         }
 
         val requiredCommits = entityBySha.values.map { it.sha }.toSet()
@@ -221,21 +225,21 @@ internal class CommitMapper {
                 val domain =
                     ctx.domain.commit[cmt.sha]
                         ?: throw IllegalStateException("Cannot map Commit$cmt with its entity ${cmt.sha}")
-                repository.addCommit(domain)
+                repository.commits.add(domain)
                 cmt.committer?.let {
                     val u = userMapper.toDomain(it)
-                    repository.addUser(u)
-                    u.addCommittedCommit(domain)
+                    repository.user.add(u)
+                    u.committedCommits.add(domain)
                 }
                 cmt.author?.let {
                     val u = userMapper.toDomain(it)
-                    repository.addUser(u)
-                    u.addAuthoredCommit(domain)
+                    repository.user.add(u)
+                    u.authoredCommits.add(domain)
                 }
                 cmt.branches.forEach {
                     val b = branchMapper.toDomain(it)
-                    repository.addBranch(b)
-                    b.addCommit(domain)
+                    repository.branches.add(b)
+                    b.commits.add(domain)
                 }
             }
 

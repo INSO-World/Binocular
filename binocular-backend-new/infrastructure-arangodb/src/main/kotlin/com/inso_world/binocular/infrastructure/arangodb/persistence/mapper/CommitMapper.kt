@@ -32,8 +32,8 @@ internal class CommitMapper
                 date = Date.from(domain.commitDateTime?.toInstant(ZoneOffset.UTC)),
                 message = domain.message,
                 webUrl = domain.webUrl,
-                branch = domain.branch,
                 stats = domain.stats,
+                branch = domain.branch,
                 // Relationships are handled by ArangoDB through edges
             )
 
@@ -44,45 +44,34 @@ internal class CommitMapper
          * when accessed. This provides a consistent API regardless of the database
          * implementation and avoids the N+1 query problem.
          */
-        override fun toDomain(entity: CommitEntity): Commit =
-            Commit(
-                id = entity.id,
-                sha = entity.sha,
-                commitDateTime = entity.date?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneOffset.UTC) },
-                message = entity.message,
-                webUrl = entity.webUrl,
-                branch = entity.branch,
-                stats = entity.stats,
-                parents =
-                    proxyFactory.createLazyMutableSet {
-                        (entity.parents).map { parentEntity ->
-                            toDomain(parentEntity)
-                        }
-                    },
-                children =
-                    proxyFactory.createLazyMutableSet {
-                        (entity.children).map { childEntity ->
-                            toDomain(childEntity)
-                        }
-                    },
-                builds =
-                    proxyFactory.createLazyList {
-                        (entity.builds).map { buildEntity ->
-                            buildMapper.toDomain(buildEntity)
-                        }
-                    },
-                files =
-                    proxyFactory.createLazyList {
-                        (entity.files).map { fileEntity ->
-                            fileMapper.toDomain(fileEntity)
-                        }
-                    },
-                modules =
-                    proxyFactory.createLazyList {
-                        (entity.modules).map { moduleEntity ->
-                            moduleMapper.toDomain(moduleEntity)
-                        }
-                    },
+        override fun toDomain(entity: CommitEntity): Commit {
+            val cmt =
+                Commit(
+                    id = entity.id,
+                    sha = entity.sha,
+                    commitDateTime = entity.date?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneOffset.UTC) },
+                    message = entity.message,
+                    webUrl = entity.webUrl,
+                    stats = entity.stats,
+                    branch = entity.branch,
+                    builds =
+                        proxyFactory.createLazyList {
+                            (entity.builds).map { buildEntity ->
+                                buildMapper.toDomain(buildEntity)
+                            }
+                        },
+                    files =
+                        proxyFactory.createLazyList {
+                            (entity.files).map { fileEntity ->
+                                fileMapper.toDomain(fileEntity)
+                            }
+                        },
+                    modules =
+                        proxyFactory.createLazyList {
+                            (entity.modules).map { moduleEntity ->
+                                moduleMapper.toDomain(moduleEntity)
+                            }
+                        },
 //                TODO this should be fixed by author and committer
 //                users =
 //                    proxyFactory.createLazyList {
@@ -90,13 +79,31 @@ internal class CommitMapper
 //                            userMapper.toDomain(userEntity)
 //                        }
 //                    },
-                issues =
-                    proxyFactory.createLazyList {
-                        (entity.issues).map { issueEntity ->
-                            issueMapper.toDomain(issueEntity)
-                        }
-                    },
-            )
+                    issues =
+                        proxyFactory.createLazyList {
+                            (entity.issues).map { issueEntity ->
+                                issueMapper.toDomain(issueEntity)
+                            }
+                        },
+                )
+//            TODO does not work so
+//            cmt.children.addAll(
+//                proxyFactory.createLazyMutableSet {
+//                    (entity.children).map { childEntity ->
+//                        toDomain(childEntity)
+//                    }
+//                },
+//            )
+//            cmt.parents.addAll(
+//                proxyFactory.createLazyMutableSet {
+//                    (entity.parents).map { parentEntity ->
+//                        toDomain(parentEntity)
+//                    }
+//                },
+//            )
+
+            return cmt
+        }
 
         /**
          * Converts a list of ArangoDB CommitEntity objects to a list of domain Commit objects

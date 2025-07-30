@@ -41,40 +41,43 @@ object TestDataProvider {
             ),
         )
 
+    private val mainBranch = Branch("1", "main", true, true, "abc123")
+    private val newFeatureBranch = Branch("2", "feature/new-feature", true, false, "def456")
+    val testBranches =
+        listOf(mainBranch,newFeatureBranch)
+
     val testCommits =
         listOf(
-            Commit(
-                "1",
-                "abc123",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                "First commit",
-                null,
-                null,
-                null,
-                "https://example.com/commit/abc123",
-                "main",
-                Stats(10, 5),
-            ),
-            Commit(
-                "2",
-                "def456",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                "Second commit",
-                null,
-                null,
-                null,
-                "https://example.com/commit/def456",
-                "main",
-                Stats(7, 3),
-            ),
-        )
-
-    val testBranches =
-        listOf(
-            Branch("1", "main", true, true, "abc123"),
-            Branch("2", "feature/new-feature", true, false, "def456"),
+            run{
+                val cmt = Commit(
+                    "1",
+                    "abc123",
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
+                    "First commit",
+                    null,
+                    "https://example.com/commit/abc123",
+                    "main",
+                    Stats(10, 5),
+                )
+                mainBranch.commits.add(cmt)
+                cmt
+            },
+            run {
+                val cmt = Commit(
+                    "2",
+                    "def456",
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
+                    "Second commit",
+                    null,
+                    "https://example.com/commit/def456",
+                    "main",
+                    Stats(7, 3),
+                )
+                mainBranch.commits.add(cmt)
+                cmt
+            },
         )
 
     val testBuilds =

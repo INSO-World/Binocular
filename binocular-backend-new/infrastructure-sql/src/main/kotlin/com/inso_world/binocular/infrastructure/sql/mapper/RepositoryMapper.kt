@@ -112,49 +112,56 @@ internal class RepositoryMapper
                 } ?: throw IllegalStateException("Cannot load the entire set of CommitEntity once")
 
             // now map them in one go
-            domain.commits = commitMapper.toDomainGraph(allCommits.asSequence()).toMutableSet()
-            domain.commits.forEach { it.repositoryId = domain.id }
+            domain.commits.addAll(
+                commitMapper.toDomainGraph(allCommits.asSequence()),
+            )
+            domain.commits.forEach { it.repository = domain }
 
             // do similar bulk‑mapping for branches and user
-            domain.branches =
+            domain.branches.addAll(
                 transactionTemplate.execute {
                     val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
                     fresh.branches.map { branchMapper.toDomain(it) }.toMutableSet()
-                } ?: throw IllegalStateException("Cannot bulk-map branches")
-            domain.branches.forEach {
-                it.repository = domain
-            }
+                } ?: throw IllegalStateException("Cannot bulk-map branches"),
+            )
+//            domain.branches.forEach {
+//                it.repository = domain
+//            }
 
-            domain.user = transactionTemplate.execute {
-                val domCommitMap = domain.commits.associateBy { it.sha }
-                val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
-                fresh.user
-                    .map { userEntity ->
-                        val u =
-                            userMapper
-                                .toDomain(userEntity)
-                                .apply {
-                                    this.committedCommits =
-                                        userEntity.committedCommits
-                                            .map {
-                                                domCommitMap[it.sha]
-                                                    ?: throw IllegalMappingStateException(
-                                                        "Commit ${it.sha} was not mapped (committedCommits)",
-                                                    )
-                                            }.toMutableSet()
-                                    this.authoredCommits =
-                                        userEntity.authoredCommits
-                                            .map {
-                                                domCommitMap[it.sha]
-                                                    ?: throw IllegalMappingStateException(
-                                                        "Commit ${it.sha} was not mapped (authoredCommits)",
-                                                    )
-                                            }.toMutableSet()
-                                }
-                        u
-                    }.toMutableSet()
-            } ?: throw IllegalStateException("Cannot bulk-map branches")
-            domain.user.forEach { it.repository = domain }
+            domain.user.addAll(
+                transactionTemplate.execute {
+                    val domCommitMap = domain.commits.associateBy { it.sha }
+                    val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
+                    fresh.user
+                        .map { userEntity ->
+                            val u =
+                                userMapper
+                                    .toDomain(userEntity)
+                                    .apply {
+                                        this.committedCommits.addAll(
+                                            userEntity.committedCommits
+                                                .map {
+                                                    domCommitMap[it.sha]
+                                                        ?: throw IllegalMappingStateException(
+                                                            "Commit ${it.sha} was not mapped (committedCommits)",
+                                                        )
+                                                },
+                                        )
+                                        this.authoredCommits.addAll(
+                                            userEntity.authoredCommits
+                                                .map {
+                                                    domCommitMap[it.sha]
+                                                        ?: throw IllegalMappingStateException(
+                                                            "Commit ${it.sha} was not mapped (authoredCommits)",
+                                                        )
+                                                },
+                                        )
+                                    }
+                            u
+                        }.toMutableSet()
+                } ?: throw IllegalStateException("Cannot bulk-map branches"),
+            )
+//            domain.user.forEach { it.repository = domain }
 
             return domain
         }
