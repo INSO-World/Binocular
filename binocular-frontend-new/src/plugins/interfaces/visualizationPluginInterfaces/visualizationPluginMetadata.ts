@@ -11,6 +11,7 @@ export enum VisualizationPluginMetadataCategory {
   Files = 'Files',
   Ownership = 'Ownership',
   AuthorBehaviour = 'Author Behaviour',
+  Statistics = 'Statistics',
   Examples = 'Examples',
   Unknown = 'Unknown',
 }
