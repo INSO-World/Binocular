@@ -1,6 +1,6 @@
 import { GraphQL } from './utils';
-import { ApolloQueryResult, gql } from '@apollo/client';
-import { DataPluginUser, DataPluginUsers } from '../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import {type ApolloQueryResult, gql } from '@apollo/client';
+import type {DataPluginUser, DataPluginUsers} from '../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 interface AuthorsQueryResult {
   repository: { assignableUsers: { totalCount: number; nodes: { id: string; name: string; email: string; login: string }[] } };

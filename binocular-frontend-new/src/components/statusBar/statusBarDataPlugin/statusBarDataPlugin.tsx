@@ -1,6 +1,6 @@
-import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
+import type {DatabaseSettingsDataPluginType} from '../../../types/settings/databaseSettingsType.ts';
 import { useEffect, useState } from 'react';
-import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import type {DataPlugin} from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { configureStore } from '@reduxjs/toolkit';
 import { createLogger } from 'redux-logger';

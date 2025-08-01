@@ -15,7 +15,7 @@ function SettingsDialog() {
           Settings
         </h3>
         <div>
-          <div role="tablist" className="tabs tabs-boxed">
+          <div role="tablist" className="tabs tabs-box">
             <a
               role={'tab'}
               className={'tab no-underline ' + (activeTab === 'General' ? 'tab-active' : '')}

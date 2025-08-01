@@ -1,6 +1,6 @@
-import { ReactElement } from 'react';
+import type {ReactElement} from 'react';
 import { Provider } from 'react-redux';
-import { Action, Store } from '@reduxjs/toolkit';
+import type {Action, Store} from '@reduxjs/toolkit';
 
 export default function ReduxSubAppStoreWrapper(props: {
   children: ReactElement[] | ReactElement;

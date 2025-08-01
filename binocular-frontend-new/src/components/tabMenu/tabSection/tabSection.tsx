@@ -1,5 +1,5 @@
 import tabStyles from './tabSection.module.scss';
-import React, { ReactElement } from 'react';
+import React, {type ReactElement } from 'react';
 import { TabAlignment } from '../../../types/general/tabType.ts';
 
 export interface TabSectionProps {
@@ -13,7 +13,7 @@ function TabSection(props: TabSectionProps) {
       <div className={tabStyles.tabSectionHorizontal}>
         <div className={tabStyles.tabSectionName}>{props.name}</div>
         {Array.isArray(props.children)
-          ? props.children.map((child) => React.cloneElement(child, { orientation: 'horizontal' }))
+          ? props.children.map((child ) => React.cloneElement(child, { orientation: 'horizontal' }))
           : React.cloneElement(props.children, { orientation: 'horizontal' })}
       </div>
     );

@@ -1,5 +1,5 @@
 import dashboardItemPlaceholderStyles from './dashboardItemPlaceholder.module.scss';
-import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import type {DashboardItemType} from '../../../types/general/dashboardItemType.ts';
 
 function DashboardItemPlaceholder(props: { item: DashboardItemType; cellSize: number; colCount: number; rowCount: number }) {
   return (

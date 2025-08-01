@@ -1,6 +1,9 @@
 import { GraphQL } from './utils.ts';
 import { gql } from '@apollo/client';
-import { DataPluginBranch, DataPluginBranches } from '../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
+import type {
+  DataPluginBranch,
+  DataPluginBranches
+} from '../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
 
 export default class Branches implements DataPluginBranches {
   private graphQl;

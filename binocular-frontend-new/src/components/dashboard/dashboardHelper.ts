@@ -1,5 +1,5 @@
-import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
-import { MutableRefObject, RefObject } from 'react';
+import type {DashboardItemDTO, DashboardItemType} from '../../types/general/dashboardItemType.ts';
+import type {MutableRefObject, RefObject} from 'react';
 import dashboardStyles from './dashboard.module.scss';
 import { DragResizeMode } from './resizeMode.ts';
 

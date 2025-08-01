@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ProgressType } from '../../../types/general/progressType.ts';
-import { SocketConnectionStatusType, SocketConnectionType } from '../../../types/general/socketConnectionType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type {ProgressType} from '../../../types/general/progressType.ts';
+import { SocketConnectionStatusType, type SocketConnectionType } from '../../../types/general/socketConnectionType.ts';
 
 export interface ProgressInitialState {
   socketConnection: SocketConnectionType;

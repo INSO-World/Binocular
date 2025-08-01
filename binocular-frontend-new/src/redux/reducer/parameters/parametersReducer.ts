@@ -1,8 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ParametersGeneralType } from '../../../types/parameters/parametersGeneralType.ts';
-import { ParametersDateRangeType } from '../../../types/parameters/parametersDateRangeType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type {ParametersGeneralType} from '../../../types/parameters/parametersGeneralType.ts';
+import type {ParametersDateRangeType} from '../../../types/parameters/parametersDateRangeType.ts';
 import Config from '../../../config.ts';
-import { ParametersType } from '../../../types/parameters/parametersType.ts';
+import type {ParametersType} from '../../../types/parameters/parametersType.ts';
 
 const currentDate = new Date();
 const currentDateLastYear = new Date();

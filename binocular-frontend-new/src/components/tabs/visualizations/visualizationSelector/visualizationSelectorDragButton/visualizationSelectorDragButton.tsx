@@ -1,10 +1,10 @@
 import visualizationSelectorStyles from '../visualizationSelector.module.scss';
 import { addDashboardItem, placeDashboardItem } from '../../../../../redux/reducer/general/dashboardReducer.ts';
 import { DragDropElementType } from '../../../../../types/general/dragDropElementType.ts';
-import { VisualizationPlugin } from '../../../../../plugins/interfaces/visualizationPlugin.ts';
-import { AppDispatch, RootState, useAppDispatch } from '../../../../../redux';
+import type {VisualizationPlugin} from '../../../../../plugins/interfaces/visualizationPlugin.ts';
+import {type AppDispatch, type RootState, useAppDispatch } from '../../../../../redux';
 import { useSelector } from 'react-redux';
-import { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType.ts';
+import type {DatabaseSettingsDataPluginType} from '../../../../../types/settings/databaseSettingsType.ts';
 import HelpIcon from '../../../../../assets/help_blue.svg';
 import { showInfoTooltipp } from '../../../../infoTooltipp/infoTooltippHelper.ts';
 function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<unknown, unknown>; showHelp: boolean }) {
@@ -46,7 +46,7 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
         <img draggable={'false'} src={props.plugin.images.thumbnail} alt={props.plugin.name} />
         <span>{props.plugin.name}</span>
         {props.plugin.metadata.description && props.showHelp && (
-          <button
+          <div
             className={visualizationSelectorStyles.visualizationHelpButton}
             onClick={(e) => {
               e.preventDefault();
@@ -54,7 +54,7 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
               showInfoTooltipp(e.clientX, e.clientY, { headline: props.plugin.name, text: props.plugin.metadata.description ?? '' });
             }}>
             <img draggable={'false'} src={HelpIcon} alt={props.plugin.name} />
-          </button>
+          </div>
         )}
       </div>
     </button>

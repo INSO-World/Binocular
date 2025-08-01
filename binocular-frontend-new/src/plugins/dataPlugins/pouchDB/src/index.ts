@@ -1,10 +1,10 @@
 import Commits from './collections/commits.ts';
-import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
+import type {DataPlugin} from '../../../interfaces/dataPlugin.ts';
 import Users from './collections/users.ts';
 import General from './general.ts';
 import Files from './collections/files.ts';
 import Database from './database.ts';
-import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type {FileConfig} from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import Builds from './collections/builds.ts';
 import Branches from './collections/branches.ts';
 

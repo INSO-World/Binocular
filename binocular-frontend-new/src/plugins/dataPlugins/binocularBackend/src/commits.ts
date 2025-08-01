@@ -1,6 +1,6 @@
 import { GraphQL, traversePages } from './utils';
 import { gql } from '@apollo/client';
-import {
+import type {
   DataPluginCommit,
   DataPluginCommits,
   DataPluginFileOwnership,

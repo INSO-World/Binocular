@@ -1,4 +1,4 @@
-import { ParametersDateRangeType } from '../../../../types/parameters/parametersDateRangeType.ts';
+import type {ParametersDateRangeType} from '../../../../types/parameters/parametersDateRangeType.ts';
 import { useEffect, useState } from 'react';
 
 function DateRange(props: {
@@ -45,51 +45,49 @@ function DateRange(props: {
               />
             </td>
             <td>
-              <button
-                className={'btn btn-xs btn-accent'}
-                onClick={() => props.setParametersDateRange({ from: today(), to: props.parametersDateRange.to })}
-                title={'set date to today'}
-                disabled={props.disabled}>
-                T
-              </button>
-            </td>
-            <td>
-              <button
-                className={'btn btn-xs btn-accent'}
-                onClick={() =>
-                  shiftMode
-                    ? props.setParametersDateRange({
+              <div className="join">
+                <button
+                  className={'btn btn-xs btn-accent join-item ml-2'}
+                  onClick={() => props.setParametersDateRange({ from: today(), to: props.parametersDateRange.to })}
+                  title={'set date to today'}
+                  disabled={props.disabled}>
+                  T
+                </button>
+                <button
+                  className={'btn btn-xs btn-accent join-item'}
+                  onClick={() =>
+                    shiftMode
+                      ? props.setParametersDateRange({
                         from: subtractYear(props.parametersDateRange.from),
                         to: props.parametersDateRange.to,
                       })
-                    : props.setParametersDateRange({
+                      : props.setParametersDateRange({
                         from: subtractMonth(props.parametersDateRange.from),
                         to: props.parametersDateRange.to,
                       })
-                }
-                title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
-                disabled={props.disabled}>
-                {shiftMode ? '-Y' : '-M'}
-              </button>
-            </td>
-            <td>
-              <button
-                className={'btn btn-xs btn-accent'}
-                onClick={() =>
-                  shiftMode
-                    ? props.setParametersDateRange({
+                  }
+                  title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
+                  disabled={props.disabled}>
+                  {shiftMode ? '-Y' : '-M'}
+                </button>
+                <button
+                  className={'btn btn-xs btn-accent join-item'}
+                  onClick={() =>
+                    shiftMode
+                      ? props.setParametersDateRange({
                         from: addYear(props.parametersDateRange.from),
                         to: props.parametersDateRange.to,
                       })
-                    : props.setParametersDateRange({
+                      : props.setParametersDateRange({
                         from: addMonth(props.parametersDateRange.from),
                         to: props.parametersDateRange.to,
                       })
-                }
-                title={shiftMode ? 'add 1 year' : 'add 1 month'}
-                disabled={props.disabled}>
-                {shiftMode ? '+Y' : '+M'}
-              </button>
+                  }
+                  title={shiftMode ? 'add 1 year' : 'add 1 month'}
+                  disabled={props.disabled}>
+                  {shiftMode ? '+Y' : '+M'}
+                </button>
+              </div>
             </td>
           </tr>
           <tr>
@@ -109,51 +107,49 @@ function DateRange(props: {
               />
             </td>
             <td>
-              <button
-                className={'btn btn-xs btn-accent'}
-                onClick={() => props.setParametersDateRange({ from: props.parametersDateRange.from, to: today() })}
-                title={'set date to today'}
-                disabled={props.disabled}>
-                T
-              </button>
-            </td>
-            <td>
-              <button
-                className={'btn btn-xs btn-accent'}
-                onClick={() =>
-                  shiftMode
-                    ? props.setParametersDateRange({
+              <div className="join">
+                <button
+                  className={'btn btn-xs btn-accent join-item ml-2'}
+                  onClick={() => props.setParametersDateRange({ from: props.parametersDateRange.from, to: today() })}
+                  title={'set date to today'}
+                  disabled={props.disabled}>
+                  T
+                </button>
+                <button
+                  className={'btn btn-xs btn-accent join-item'}
+                  onClick={() =>
+                    shiftMode
+                      ? props.setParametersDateRange({
                         from: props.parametersDateRange.from,
                         to: subtractYear(props.parametersDateRange.to),
                       })
-                    : props.setParametersDateRange({
+                      : props.setParametersDateRange({
                         from: props.parametersDateRange.from,
                         to: subtractMonth(props.parametersDateRange.to),
                       })
-                }
-                title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
-                disabled={props.disabled}>
-                {shiftMode ? '-Y' : '-M'}
-              </button>
-            </td>
-            <td>
-              <button
-                className={'btn btn-xs btn-accent'}
-                onClick={() =>
-                  shiftMode
-                    ? props.setParametersDateRange({
+                  }
+                  title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
+                  disabled={props.disabled}>
+                  {shiftMode ? '-Y' : '-M'}
+                </button>
+                <button
+                  className={'btn btn-xs btn-accent join-item'}
+                  onClick={() =>
+                    shiftMode
+                      ? props.setParametersDateRange({
                         from: props.parametersDateRange.from,
                         to: addYear(props.parametersDateRange.to),
                       })
-                    : props.setParametersDateRange({
+                      : props.setParametersDateRange({
                         from: props.parametersDateRange.from,
                         to: addMonth(props.parametersDateRange.to),
                       })
-                }
-                title={shiftMode ? 'add 1 year' : 'add 1 month'}
-                disabled={props.disabled}>
-                {shiftMode ? '+Y' : '+M'}
-              </button>
+                  }
+                  title={shiftMode ? 'add 1 year' : 'add 1 month'}
+                  disabled={props.disabled}>
+                  {shiftMode ? '+Y' : '+M'}
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

@@ -1,6 +1,10 @@
 import { GraphQL } from './utils.ts';
-import { ApolloQueryResult, gql } from '@apollo/client';
-import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import {type ApolloQueryResult, gql } from '@apollo/client';
+import type {
+  DataPluginCommit,
+  DataPluginCommits,
+  DataPluginOwnership
+} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 interface CommitQueryResult {
   repository: {

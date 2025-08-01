@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthorType } from '../../../types/data/authorType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type {AuthorType} from '../../../types/data/authorType.ts';
 import Config from '../../../config.ts';
 
 export interface AuthorsInitialState {

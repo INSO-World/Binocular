@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SprintType } from '../../../types/data/sprintType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type {SprintType} from '../../../types/data/sprintType.ts';
 import Config from '../../../config.ts';
 
 export interface SprintsInitialState {

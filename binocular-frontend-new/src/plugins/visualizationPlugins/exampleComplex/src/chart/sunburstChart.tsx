@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
-import { DataChild, data as exampleSunburstData } from './exampleSunburstData.ts';
+import {type DataChild, data as exampleSunburstData } from './exampleSunburstData.ts';
 
 /**
  * Example from https://observablehq.com/@d3/zoomable-sunburst?intent=fork#data reworked for ts

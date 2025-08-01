@@ -1,7 +1,7 @@
-import { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
+import type {VisualizationPlugin} from '../../../interfaces/visualizationPlugin.ts';
 import Chart from './chart/chart.tsx';
 import { getSVGData } from './utilities/utilities.ts';
-import { DefaultSettings } from './settings/settings.tsx';
+import type {DefaultSettings} from './settings/settings.tsx';
 import { getDataSlice } from './reducer';
 import Saga from './saga';
 export default function createVisualizationPlugin<SettingsType extends DefaultSettings, DataType>(

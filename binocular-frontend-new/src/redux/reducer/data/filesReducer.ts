@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
-import { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
+import type {FileListElementType, FileTreeElementType} from '../../../types/data/fileListType.ts';
 
 export interface FilesInitialState {
   fileTrees: { [id: number]: FileTreeElementType };

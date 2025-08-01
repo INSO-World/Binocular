@@ -5,12 +5,15 @@ import BinocularBackend from './dataPlugins/binocularBackend';
 import Github from './dataPlugins/github';
 import PouchDb from './dataPlugins/pouchDB';
 
-import { VisualizationPlugin } from './interfaces/visualizationPlugin.ts';
+import type {VisualizationPlugin} from './interfaces/visualizationPlugin.ts';
 import Changes from './visualizationPlugins/changes';
-import { DataPluginBuild } from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import type {DataPluginBuild} from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import createVisualizationPlugin from './visualizationPlugins/simpleVisualizationPlugin';
-import { BuildSettings, ChangesSettings } from './visualizationPlugins/simpleVisualizationPlugin/src/settings/settings.tsx';
-import { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type {
+  BuildSettings,
+  ChangesSettings
+} from './visualizationPlugins/simpleVisualizationPlugin/src/settings/settings.tsx';
+import type {DataPluginCommit} from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import ExampleComplex from './visualizationPlugins/exampleComplex';
 import ExampleStats from './visualizationPlugins/exampleStats';
 import ExampleVisualization from './visualizationPlugins/exampleVisualization';

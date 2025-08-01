@@ -1,4 +1,4 @@
-import { DataPluginFile, DataPluginFiles } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type {DataPluginFile, DataPluginFiles} from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import { GraphQL, traversePages } from './utils.ts';
 import { gql } from '@apollo/client';
 

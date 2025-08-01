@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, useAppDispatch } from '../../redux';
+import {type AppDispatch, type RootState, useAppDispatch } from '../../redux';
 import notificationControllerStyles from './notificationController.module.scss';
 import { AlertType } from '../../types/general/alertType.ts';
 import { removeNotification } from '../../redux/reducer/general/notificationsReducer.ts';

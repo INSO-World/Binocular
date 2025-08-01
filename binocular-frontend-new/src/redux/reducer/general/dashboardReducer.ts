@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
-import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import type {DashboardItemType} from '../../../types/general/dashboardItemType.ts';
 
 export interface DashboardInitialState {
   dashboardItems: DashboardItemType[];

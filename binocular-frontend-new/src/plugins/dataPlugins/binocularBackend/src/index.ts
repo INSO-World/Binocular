@@ -1,10 +1,10 @@
 import Commits from './commits.ts';
-import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
+import type {DataPlugin} from '../../../interfaces/dataPlugin.ts';
 import General from './general.ts';
 import Files from './files.ts';
 import Users from './users.ts';
-import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
-import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
+import type {FileConfig} from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type {ProgressUpdateConfig} from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './builds.ts';
 import Branches from './branches.ts';
 

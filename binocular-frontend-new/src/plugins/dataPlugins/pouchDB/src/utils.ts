@@ -2,7 +2,7 @@ import PouchDB from 'pouchdb-browser';
 import PouchDBFind from 'pouchdb-find';
 import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 import _ from 'lodash';
-import { DataPluginFileOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type {DataPluginFileOwnership} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);

@@ -1,9 +1,9 @@
-import { MutableRefObject, useEffect, useMemo, useRef } from 'react';
+import {type MutableRefObject, useEffect, useMemo, useRef } from 'react';
 import * as d3 from 'd3';
-import { ScaleLinear, ScaleTime, symbol, symbolTriangle } from 'd3';
-import { ChartData, Palette } from './chart.tsx';
-import { SprintType } from '../../../../../types/data/sprintType.ts';
-import { DefaultSettings } from '../settings/settings.tsx';
+import {type ScaleLinear, type ScaleTime, symbol, symbolTriangle } from 'd3';
+import type {ChartData, Palette} from './chart.tsx';
+import type {SprintType} from '../../../../../types/data/sprintType.ts';
+import type {DefaultSettings} from '../settings/settings.tsx';
 import { PositiveNegativeSide, splitPositiveNegativeData } from '../utilities/utilities.ts';
 import { round } from 'lodash';
 

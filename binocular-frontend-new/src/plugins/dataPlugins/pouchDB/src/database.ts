@@ -12,7 +12,7 @@ PouchDB.plugin(PouchDBAdapterMemory);
 PouchDB.adapter('worker', WorkerPouch);
 import JSZip from 'jszip';
 import { decompressJson } from '../../../../../../utils/json-utils.ts';
-import { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type {FileConfig, JSONObject} from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default class Database {
   public documentStore: PouchDB.Database | undefined;

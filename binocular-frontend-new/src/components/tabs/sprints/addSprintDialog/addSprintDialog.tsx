@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RootState } from '../../../../redux';
+import type {RootState} from '../../../../redux';
 import { useSelector } from 'react-redux';
 import AddSprintDialogSingleTab from './addSprintDialogSingleTab/addSprintDialogSingleTab.tsx';
 import AddSprintDialogMultipleTabs from './addSprintDialogMultipleTabs/addSprintDialogMultipleTabs.tsx';

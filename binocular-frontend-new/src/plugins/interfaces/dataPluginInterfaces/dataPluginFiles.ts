@@ -1,5 +1,5 @@
-import { DataPluginStats } from './dataPluginCommits.ts';
-import { PreviousFileData } from '../../../types/data/ownershipType.ts';
+import type {DataPluginStats} from './dataPluginCommits.ts';
+import type {PreviousFileData} from '../../../types/data/ownershipType.ts';
 
 export interface DataPluginFiles {
   getAll: () => Promise<DataPluginFile[]>;

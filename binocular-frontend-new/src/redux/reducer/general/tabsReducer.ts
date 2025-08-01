@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TabType } from '../../../types/general/tabType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type {TabType} from '../../../types/general/tabType.ts';
 import Config from '../../../config.ts';
 
 export interface TabsInitialState {

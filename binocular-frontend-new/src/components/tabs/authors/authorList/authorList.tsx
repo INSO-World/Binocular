@@ -1,7 +1,7 @@
 import authorListStyles from './authorList.module.scss';
 import authorStyles from '../authors.module.scss';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
+import {type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import {
   editAuthor,
   moveAuthorToOther,
@@ -19,14 +19,13 @@ import addToOtherIcon from '../../../../assets/group_add_gray.svg';
 import editIcon from '../../../../assets/edit_gray.svg';
 import dragIndicatorIcon from '../../../../assets/drag_indicator_gray.svg';
 import removePersonIcon from '../../../../assets/remove_person_gray.svg';
-import { AuthorType } from '../../../../types/data/authorType.ts';
-import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
+import type {AuthorType} from '../../../../types/data/authorType.ts';
+import type {DatabaseSettingsDataPluginType} from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
-import { DataPluginUser } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import type {DataPluginUser} from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 function AuthorList(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
-
   const authorLists: { [id: number]: AuthorType[] } = useSelector((state: RootState) => state.authors.authorLists);
   const dragging = useSelector((state: RootState) => state.authors.dragging);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);

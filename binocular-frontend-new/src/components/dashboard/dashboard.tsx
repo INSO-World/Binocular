@@ -3,7 +3,7 @@ import { createRef, useEffect, useRef, useState } from 'react';
 import DashboardItem from './dashboardItem/dashboardItem.tsx';
 import { DragResizeMode } from './resizeMode.ts';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, store, useAppDispatch } from '../../redux';
+import {type AppDispatch, type RootState, store, useAppDispatch } from '../../redux';
 import {
   addDashboardItem,
   deleteDashboardItem,
@@ -12,8 +12,8 @@ import {
   updateDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
-import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
-import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
+import type {DashboardItemDTO, DashboardItemType} from '../../types/general/dashboardItemType.ts';
+import type {DatabaseSettingsDataPluginType} from '../../types/settings/databaseSettingsType.ts';
 import { addNotification } from '../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../types/general/alertType.ts';
 import {

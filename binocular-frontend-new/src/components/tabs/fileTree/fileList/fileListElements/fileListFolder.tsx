@@ -1,9 +1,9 @@
 import fileListElementsStyles from './fileListElements.module.scss';
-import { FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType.ts';
+import {type FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType.ts';
 import FolderIcon from '../../../../../assets/folder_gray.svg';
 import FolderOpenIcon from '../../../../../assets/folder_open_gray.svg';
 import FileListFile from './fileListFile.tsx';
-import { AppDispatch, useAppDispatch } from '../../../../../redux';
+import {type AppDispatch, useAppDispatch } from '../../../../../redux';
 import { showFileTreeElementInfo, updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
 import { formatName } from '../fileListUtilities/fileTreeUtilities.tsx';
 import { showContextMenu } from '../../../../contextMenu/contextMenuHelper.ts';

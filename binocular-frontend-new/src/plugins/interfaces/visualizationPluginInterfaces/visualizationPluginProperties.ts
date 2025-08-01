@@ -1,11 +1,11 @@
-import { RefObject } from 'react';
-import { Store } from '@reduxjs/toolkit';
-import { DataPlugin } from '../dataPlugin.ts';
-import { AuthorType } from '../../../types/data/authorType.ts';
-import { SprintType } from '../../../types/data/sprintType.ts';
-import { ParametersType } from '../../../types/parameters/parametersType.ts';
-import { ChartData, Palette } from '../../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
-import { FileListElementType } from '../../../types/data/fileListType.ts';
+import type {RefObject} from 'react';
+import type {Store} from '@reduxjs/toolkit';
+import type {DataPlugin} from '../dataPlugin.ts';
+import type {AuthorType} from '../../../types/data/authorType.ts';
+import type {SprintType} from '../../../types/data/sprintType.ts';
+import type {ParametersType} from '../../../types/parameters/parametersType.ts';
+import type {ChartData, Palette} from '../../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
+import type {FileListElementType} from '../../../types/data/fileListType.ts';
 
 export interface VisualizationPluginProperties<SettingsType, DataType> {
   settings: SettingsType; // Interface for settings defines which settings are transported
