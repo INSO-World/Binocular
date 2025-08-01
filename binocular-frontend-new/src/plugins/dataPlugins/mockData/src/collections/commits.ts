@@ -739,4 +739,37 @@ export default class Commits implements DataPluginCommits {
       resolve(commits);
     });
   }
+
+  public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
+    return Promise.resolve({
+      sha: sha,
+      shortSha: '00001',
+      files: { data: [] },
+      messageHeader: 'Commit 1',
+      message: 'This is the first Commit',
+      user: {
+        id: '1',
+        gitSignature: 'tester@github.com',
+      },
+      branch: 'main',
+      date: '2024-11-25T15:05:10.000Z',
+      parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
+      webUrl: 'www.github.com',
+      stats: { additions: 5, deletions: 0 },
+    });
+  }
+
+  public async getDateOfFirstCommit() {
+    console.log(`Getting Date of First Commit`);
+    return new Promise<string>((resolve) => {
+      resolve('2024-06-01T12:00:00.000Z');
+    });
+  }
+
+  public async getDateOfLastCommit() {
+    console.log(`Getting Date of Last Commit`);
+    return new Promise<string>((resolve) => {
+      resolve('2024-06-05T12:00:00.000Z');
+    });
+  }
 }
