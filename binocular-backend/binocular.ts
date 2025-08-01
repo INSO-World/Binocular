@@ -81,6 +81,8 @@ import Note from './models/models/Note.ts';
 import IssueNoteConnection from './models/connections/IssueNoteConnection.ts';
 import NoteAccountConnection from './models/connections/NoteAccountConnection.ts';
 import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
+import AccountUserConnection from './models/connections/AccountUserConnection.ts';
+import { findBestUserMatchLeve } from './models/utils.ts';
 
 cli.parse(
   (targetPath, options) => {
@@ -388,6 +390,12 @@ function runBackend() {
         return !provider || !provider.isStopping();
       });
 
+      // export db if required
+      if (context.argv.export) {
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
+        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
+      }
+
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
         return;
@@ -395,10 +403,6 @@ function runBackend() {
 
       await Issue.deduceUsers();
       createManualIssueReferences(config.get('issueReferences'));
-      if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
-        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
-      }
 
       //now that the indexers have finished, we have VCS, ITS and CI data and can connect them.
       // for that purpose, references between e.g. issues and commits have been stored in the collections.
@@ -408,6 +412,7 @@ function runBackend() {
       // (like the `mentions` field in issues).
       await connectIssuesAndCommits();
       await connectCommitsAndBuilds();
+      await connectAccountsAndUsers();
       const endTime = Moment.now();
       console.log('End Time: ' + Moment(endTime).format());
       const executionTime = Moment(endTime).diff(startTime, 'seconds');
@@ -611,6 +616,7 @@ function runBackend() {
           MergeRequestAccountConnection.ensureCollection(),
           IssueMilestoneConnection.ensureCollection(),
           MergeRequestMilestoneConnection.ensureCollection(),
+          AccountUserConnection.ensureCollection(),
         ]);
       });
   }
@@ -703,6 +709,34 @@ function runBackend() {
     }
 
     await Build.deleteShaRefAttributes();
+  }
+
+  // this function is only used for matching one User to each account, not the other way around
+  async function connectAccountsAndUsers() {
+    const accounts = await Account.findAll();
+    const accountUserConnections = await AccountUserConnection.findAll();
+    for (const account of accounts) {
+      if (account === null || account._id === undefined) {
+        continue;
+      }
+      let existing = false;
+      accountUserConnections.map((conn) => {
+        if (conn !== null) {
+          if (Number(account._id?.split('/')[1]) === Number(conn._from?.split('/')[1])) {
+            existing = true;
+            return;
+          }
+        }
+      });
+      if (existing) {
+        continue;
+      }
+      const user = await findBestUserMatchLeve(account.data);
+      if (user && account) {
+        console.debug(`Connecting ${account.data.name} to ${user.data.gitSignature}`);
+        await AccountUserConnection.connect({}, { from: account, to: user });
+      }
+    }
   }
 
   // start services

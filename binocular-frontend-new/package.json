@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "build:offline": "PRE_CONFIGURE_DB=pouchdb NODE_OPTIONS=--max-old-space-size=32768 vite build",
     "lint": "eslint binocular --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "eslint .",
+    "fix": "eslint --fix ."
   },
   "dependencies": {
     "@apollo/client": "^3.10.4",
@@ -62,6 +65,12 @@
     "sass": "^1.75.0",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0"
+    "vite": "^5.2.0",
+    "vite-plugin-conditional-compiler": "^0.3.1",
+    "vite-plugin-node-polyfills": "^0.22.0",
+    "vite-plugin-singlefile": "^2.0.3"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-musl": "4.32.0"
   }
 }

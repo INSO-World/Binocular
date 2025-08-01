@@ -3,6 +3,7 @@ import authorStyles from '../authors.module.scss';
 import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import {
+  checkAllAuthors,
   editAuthor,
   moveAuthorToOther,
   resetAuthor,
@@ -10,19 +11,27 @@ import {
   setAuthorsDataPluginId,
   setDragging,
   setParentAuthor,
+  switchAllAuthorSelection,
   switchAuthorSelection,
+  uncheckAllAuthors,
 } from '../../../../redux/reducer/data/authorsReducer.ts';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import distinctColors from 'distinct-colors';
 import { showContextMenu } from '../../../contextMenu/contextMenuHelper.ts';
 import addToOtherIcon from '../../../../assets/group_add_gray.svg';
 import editIcon from '../../../../assets/edit_gray.svg';
 import dragIndicatorIcon from '../../../../assets/drag_indicator_gray.svg';
 import removePersonIcon from '../../../../assets/remove_person_gray.svg';
+import checkBoxIconGray from '../../../../assets/check_box_gray.svg';
+import checkBoxOutlineIconGray from '../../../../assets/check_box_outline_gray.svg';
 import { AuthorType } from '../../../../types/data/authorType.ts';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
 import { DataPluginUser } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import { DataPluginAccount } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
+import { accountsSlice, setAccountList, setAccountsDataPluginId } from '../../../../redux/reducer/data/accountsReducer.ts';
+import Config from '../../../../config.ts';
+import { AccountType } from '../../../../types/data/accountType.ts';
 
 function AuthorList(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -31,69 +40,160 @@ function AuthorList(props: { orientation?: string }) {
   const dragging = useSelector((state: RootState) => state.authors.dragging);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
 
-  const authors: AuthorType[] = authorLists[authorsDataPluginId] || [];
+  const [authors, setAuthors] = useState<AuthorType[]>(authorLists[authorsDataPluginId] || []);
 
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
-  function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
-    DataPluginStorage.getDataPlugin(dP)
-      .then((dataPlugin) => {
-        if (dataPlugin) {
-          dataPlugin.users
-            .getAll()
-            .then((users: DataPluginUser[]) => {
-              const colors = distinctColors({ count: users.length, lightMin: 50 });
-              dispatch(
-                setAuthorList({
-                  dataPluginId: dP.id !== undefined ? dP.id : -1,
-                  authors: users.map((user, i) => {
-                    return {
-                      user: user,
-                      id: 0, // real id gets set in reducer
-                      parent: -1,
-                      color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
-                      selected: true,
-                    };
-                  }),
-                }),
-              );
-            })
-            .catch(() => console.log('Error loading Users from selected data source!'));
-        }
-      })
-      .catch((e) => console.log(e));
-  }
-
-  useEffect(() => {
-    if (configuredDataPlugins.length === 0) {
-      dispatch(setAuthorsDataPluginId(undefined));
-    }
-    configuredDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
-      if (authorsDataPluginId === undefined && dP.isDefault && dP.id) {
-        dispatch(setAuthorsDataPluginId(dP.id));
-      }
+  function refreshAccounts(dP: DatabaseSettingsDataPluginType): Promise<void> {
+    return new Promise((resolve) => {
       if (dP && dP.id !== undefined) {
-        refreshAuthors(dP);
+        console.log(`REFRESH ACCOUNTS (${dP.name} #${dP.id})`);
+        DataPluginStorage.getDataPlugin(dP)
+          .then((dataPlugin) => {
+            if (dataPlugin) {
+              dataPlugin.accounts
+                .getAll()
+                .then((accounts: DataPluginAccount[]) => {
+                  dispatch(
+                    setAccountList({
+                      dataPluginId: dP.id !== undefined ? dP.id : -1,
+                      accounts: accounts.map((account) => {
+                        return {
+                          localId: 0, // real id gets set in reducer
+                          id: account.id,
+                          name: account.name,
+                          platform: account.platform,
+                          user: null, // is not set, because it is not needed in the accounts list
+                        };
+                      }),
+                    }),
+                  );
+                  resolve();
+                })
+                .catch((e) => {
+                  console.log('Error loading Accounts from selected data source! ' + e);
+                  resolve();
+                });
+            } else {
+              resolve();
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+            resolve();
+          });
+      } else {
+        if (configuredDataPlugins.length > 0) {
+          dispatch(setAccountsDataPluginId(configuredDataPlugins[0].id));
+        }
+        resolve();
       }
     });
+  }
+
+  function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
+    if (dP && dP.id !== undefined) {
+      console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
+      const stored = localStorage.getItem(`${accountsSlice.name}StateV${Config.localStorageVersion}`);
+      let accounts: AccountType[];
+      if (stored) {
+        accounts = JSON.parse(stored).accountLists[dP.id];
+      }
+      DataPluginStorage.getDataPlugin(dP)
+        .then((dataPlugin) => {
+          if (dataPlugin) {
+            dataPlugin.users
+              .getAll()
+              .then((users: DataPluginUser[]) => {
+                const colors = distinctColors({ count: users.length, lightMin: 50 });
+                dispatch(
+                  setAuthorList({
+                    dataPluginId: dP.id !== undefined ? dP.id : -1,
+                    authors: users.map((user, i) => {
+                      if (user.account !== null && user.account !== undefined) {
+                        const account = accounts.find((acc) => acc.id === user.account?.id);
+                        return {
+                          // mapping could be done in helper function?
+                          user: {
+                            account:
+                              account === undefined
+                                ? null
+                                : {
+                                    user: null,
+                                    id: account.id,
+                                    localId: account.localId,
+                                    name: account.name,
+                                    platform: account.platform,
+                                  },
+                            id: user.id,
+                            gitSignature: user.gitSignature,
+                          },
+                          id: 0, // real id gets set in reducer
+                          parent: -1,
+                          color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
+                          selected: true,
+                        };
+                      }
+                      return {
+                        user: {
+                          account: null,
+                          id: user.id,
+                          gitSignature: user.gitSignature,
+                        },
+                        id: 0, // real id gets set in reducer
+                        parent: -1,
+                        color: { main: colors[i].hex(), secondary: colors[i].hex() + '55' },
+                        selected: true,
+                      };
+                    }),
+                  }),
+                );
+              })
+              .catch((e) => console.log('Error loading Users from selected data source! ' + e));
+          }
+        })
+        .catch((e) => console.log(e));
+    } else {
+      if (configuredDataPlugins.length > 0) {
+        dispatch(setAuthorsDataPluginId(configuredDataPlugins[0].id));
+      }
+    }
+  }
+
+  // order is needed to ensure that the authors are loaded with assigned accounts
+  useEffect(() => {
+    const runRefresh = async () => {
+      if (configuredDataPlugins.length === 0) {
+        dispatch(setAuthorsDataPluginId(undefined));
+      }
+      for (const dP of configuredDataPlugins) {
+        if (authorsDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
+          dispatch(setAuthorsDataPluginId(dP.id));
+          dispatch(setAccountsDataPluginId(dP.id));
+        }
+        await refreshAccounts(dP);
+        refreshAuthors(dP);
+      }
+    };
+    void runRefresh();
   }, [configuredDataPlugins]);
+
+  useEffect(() => {
+    setAuthors(authorLists[authorsDataPluginId] || []);
+  }, [authorLists, authorsDataPluginId]);
 
   globalStore.subscribe(() => {
     if (authorsDataPluginId) {
       if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
         if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === authorsDataPluginId) {
-          const dp = globalStore
-            .getState()
-            .settings.database.dataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
-          if (dp) {
-            console.log(`REFRESH AUTHORS (${dp.name} #${dp.id})`);
-            refreshAuthors(dp);
-          }
+          const dP = configuredDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === authorsDataPluginId)[0];
+          void refreshAccounts(dP).then(() => {
+            refreshAuthors(dP);
+          });
         }
       }
     }
   });
-
   return (
     <>
       <div
@@ -103,6 +203,14 @@ function AuthorList(props: { orientation?: string }) {
           ' ' +
           (props.orientation === 'horizontal' ? authorListStyles.authorListHorizontal : authorListStyles.authorListVertical)
         }>
+        <div className={'border-b border-base-300 pt-1'}>
+          <button
+            className={'btn btn-circle btn-xs ' + authorListStyles.checkAllButton}
+            onClick={() => dispatch(checkAllAuthors())}></button>
+          <button
+            className={'btn btn-circle btn-xs ml-1 ' + authorListStyles.uncheckAllButton}
+            onClick={() => dispatch(uncheckAllAuthors())}></button>
+        </div>
         <div>
           {authors
             .filter((a: AuthorType) => a.parent === -1)
@@ -121,7 +229,29 @@ function AuthorList(props: { orientation?: string }) {
                       type={'checkbox'}
                       className={'checkbox checkbox-accent ' + authorListStyles.authorCheckbox}
                       checked={parentAuthor.selected}
-                      onChange={() => dispatch(switchAuthorSelection(parentAuthor.id))}
+                      onClick={(e) => {
+                        if (e.shiftKey) {
+                          dispatch(switchAllAuthorSelection());
+                        } else {
+                          dispatch(switchAuthorSelection(parentAuthor.id));
+                        }
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showContextMenu(e.clientX, e.clientY, [
+                          {
+                            label: 'check all',
+                            icon: checkBoxIconGray,
+                            function: () => dispatch(checkAllAuthors()),
+                          },
+                          {
+                            label: 'uncheck all',
+                            icon: checkBoxOutlineIconGray,
+                            function: () => dispatch(uncheckAllAuthors()),
+                          },
+                        ]);
+                      }}
                     />
                     <div
                       style={{ borderColor: parentAuthor.color.main }}

@@ -28,7 +28,7 @@ function NotificationController() {
                 key={`notification${notification.id}`}
                 id={`notification${notification.id}`}
                 role={'alert'}
-                className={`alert w-3/5 m-1 transition-all ease-in-out duration-500 ${
+                className={`${notificationControllerStyles.notification} ${
                   notification.type === AlertType.error
                     ? 'alert-error'
                     : notification.type === AlertType.warning

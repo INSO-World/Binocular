@@ -5,7 +5,7 @@ $dashboardItemResizeBarThickness: 3px;
 .dashboardItem{
   position: absolute;
   @apply bg-base-200;
-  border-radius: $border-radius-default;
+  border-radius: $border-radius-small;
   border: $border-default;
   @apply border-base-300;
   box-shadow: $shadow-default;
@@ -22,6 +22,9 @@ $dashboardItemResizeBarThickness: 3px;
 
 .dashboardItemInteractionBar{
   position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   @apply bg-base-100;
   box-shadow: $shadow-default;
   user-select: none;
@@ -30,16 +33,44 @@ $dashboardItemResizeBarThickness: 3px;
   width: 100%;
 }
 
-.dashboardItemInteractionBar>span{
-  margin-left: .5rem;
-  float: left;
+.dashboardItemInteractionBarLeft{
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  justify-content: start;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  height: 100%;
 }
 
-.dashboardItemInteractionBar>button{
-  margin-right: .5rem;
+.dashboardItemInteractionBarLeft::after{
+  content: "";
+  display: block;
+  position: absolute;
+  height: $dashboardItemInteractionBarThickness;
+  width: $dashboardItemInteractionBarThickness;
+  right: 0;
+  background: linear-gradient(to right, transparent, oklch(var(--b1)));
+}
+
+
+.dashboardItemInteractionBarRight{
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: end;
+  flex-wrap: nowrap;
+  gap: .25rem;
+}
+
+.dashboardItemInteractionBarRight>button{
   width: $dashboardItemInteractionBarThickness;
   height: $dashboardItemInteractionBarThickness;
-  float: right;
+}
+
+.dashboardItemInteractionBarLeft>span{
+  margin-left: .5rem;
+  text-wrap: nowrap;
 }
 
 .dashboardItemResizeBarTop{
@@ -94,8 +125,13 @@ $dashboardItemResizeBarThickness: 3px;
   background: url("../../../assets/info_gray.svg");
 }
 
+.deleteButton{
+  background: url("../../../assets/close_red.svg");
+}
 
-.settingsBackground{
+
+
+.subWindowBackground{
   position: absolute;
   top: 0;
   left: 0;
@@ -104,7 +140,7 @@ $dashboardItemResizeBarThickness: 3px;
   z-index: +1;
 }
 
-.settingsWindow{
+.subWindow{
   position: absolute;
   width: 20rem;
   min-height: 5rem;

@@ -1,16 +1,24 @@
 import moment from 'moment/moment';
-import { BuildChartData, Palette } from '../chart/chart.tsx';
 import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
 import chroma from 'chroma-js';
 import _ from 'lodash';
 import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { AuthorType } from '../../../../../types/data/authorType.ts';
+import { BuildSettings } from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
+import { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
-export function convertBuildDataToChartData(
-  builds: DataPluginBuild[],
-  authorList: AuthorType[],
-  parameters: ParametersType,
-  splitBuildsPerAuthor: boolean,
+interface BuildChartData {
+  date: number;
+  [signature: string]: number;
+}
+
+interface Palette {
+  [signature: string]: { main: string; secondary: string };
+}
+
+export function convertToChartData(
+  builds: DataPluginBuild[] | unknown[],
+  props: VisualizationPluginProperties<BuildSettings, DataPluginBuild>,
 ): {
   chartData: BuildChartData[];
   scale: number[];
@@ -21,7 +29,9 @@ export function convertBuildDataToChartData(
   }
 
   //Sort builds after their build time in case they arnt sorted
-  const sortedBuilds = _.clone(builds).sort((c1, c2) => new Date(c1.createdAt).getTime() - new Date(c2.createdAt).getTime());
+  const sortedBuilds = _.clone(builds as DataPluginBuild[]).sort(
+    (c1, c2) => new Date(c1.createdAt).getTime() - new Date(c2.createdAt).getTime(),
+  );
 
   const firstTimestamp = sortedBuilds[0].createdAt;
   const lastTimestamp = sortedBuilds[sortedBuilds.length - 1].createdAt;
@@ -32,15 +42,23 @@ export function convertBuildDataToChartData(
   let returnValue;
 
   if (sortedBuilds.length > 0) {
-    if (splitBuildsPerAuthor) {
-      returnValue = getDataByAuthors(parameters, firstTimestamp, lastTimestamp, sortedBuilds, scale, palette, chartData, authorList);
+    if (props.settings.splitBuildsPerAuthor) {
+      returnValue = getDataByAuthors(
+        props.parameters,
+        firstTimestamp,
+        lastTimestamp,
+        sortedBuilds,
+        scale,
+        palette,
+        chartData,
+        props.authorList,
+      );
     } else {
-      returnValue = getDataByStatus(parameters, firstTimestamp, lastTimestamp, sortedBuilds, scale, palette, chartData);
+      returnValue = getDataByStatus(props.parameters, firstTimestamp, lastTimestamp, sortedBuilds, scale, palette, chartData);
     }
   } else {
     return { chartData: [], palette: {}, scale: [] };
   }
-  // TODO split chartData into positive and negative Data for generalisation
   return returnValue;
 }
 
@@ -217,12 +235,12 @@ function getDataByAuthors(
     data.push(obj);
   }
 
-  //---- STEP 2: CONSTRUCT CHART DATA FROM AGGREGATED COMMITS ----
+  //---- STEP 2: CONSTRUCT CHART DATA FROM AGGREGATED BUILDS ----
   palette['Successful builds others'] = { main: '#555555', secondary: '#777777' };
   palette['Failed builds others'] = { main: '#AAAAAA', secondary: '#CCCCCC' };
-  data.forEach((commit) => {
+  data.forEach((build) => {
     //commit has structure {date, statsByAuthor: {}} (see next line)}
-    const obj: BuildChartData = { date: commit.date };
+    const obj: BuildChartData = { date: build.date };
 
     for (const author of authors) {
       palette['Successful builds ' + (author.displayName || author.user.gitSignature)] = {
@@ -248,17 +266,17 @@ function getDataByAuthors(
             ? 'others'
             : authors.filter((a) => a.id === author.parent)[0].user.gitSignature;
 
-      if (author.user.id in commit.statsBySortingObject) {
+      if (author.user.id in build.statsBySortingObject) {
         //Insert number of changes with the author name as key,
         //statsByAuthor has structure {{authorName: {count, additions, deletions, changes}}, ...}
         if ('Successful builds ' + name in obj && 'Failed builds ' + name in obj) {
-          obj['Successful builds ' + name] += commit.statsBySortingObject[author.user.id].success;
+          obj['Successful builds ' + name] += build.statsBySortingObject[author.user.id].success;
           //-0.001 for stack layout to realize it belongs on the bottom
-          obj['Failed builds ' + name] += commit.statsBySortingObject[author.user.id].failed * -1 - 0.001;
+          obj['Failed builds ' + name] += build.statsBySortingObject[author.user.id].failed * -1 - 0.001;
         } else {
-          obj['Successful builds ' + name] = commit.statsBySortingObject[author.user.id].success;
+          obj['Successful builds ' + name] = build.statsBySortingObject[author.user.id].success;
           //-0.001 for stack layout to realize it belongs on the bottom
-          obj['Failed builds ' + name] = commit.statsBySortingObject[author.user.id].failed * -1 - 0.001;
+          obj['Failed builds ' + name] = build.statsBySortingObject[author.user.id].failed * -1 - 0.001;
         }
       }
     });
@@ -305,27 +323,4 @@ function getGranularity(resolution: string): { unit: string; interval: moment.Du
     default:
       return { interval: moment.duration(1, 'day'), unit: 'day' };
   }
-}
-
-export enum PositiveNegativeSide {
-  POSITIVE,
-  NEGATIVE,
-}
-
-export function splitPositiveNegativeData(data: BuildChartData[], side: PositiveNegativeSide) {
-  return data.map((d) => {
-    const newD: BuildChartData = { date: d.date };
-    Object.keys(d).forEach((k) => {
-      if (k !== 'date') {
-        if (d[k] >= 0 && side === PositiveNegativeSide.POSITIVE) {
-          newD[k] = d[k];
-        } else if (d[k] < 0 && side === PositiveNegativeSide.NEGATIVE) {
-          newD[k] = d[k];
-        } else {
-          newD[k] = 0;
-        }
-      }
-    });
-    return newD;
-  });
 }

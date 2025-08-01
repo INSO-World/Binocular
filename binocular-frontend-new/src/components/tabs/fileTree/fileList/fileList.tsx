@@ -1,34 +1,93 @@
 import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../redux';
-import { useEffect, useState } from 'react';
-import { FileListElementType } from '../../../../types/data/fileListType.ts';
-import { generateFileTree } from './fileListUtilities/fileTreeUtilities.ts';
+import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
+import { useEffect } from 'react';
+import { FileTreeElementTypeType } from '../../../../types/data/fileListType.ts';
+import { filterFileTree, generateFileTree } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
+import { setFileList, setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
+import { DataPluginFile } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
-function FileList(props: { orientation?: string }) {
+function FileList(props: { orientation?: string; search: string }) {
+  const dispatch: AppDispatch = useAppDispatch();
   const currentDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const fileTrees = useSelector((state: RootState) => state.files.fileTrees);
+  const fileCounts = useSelector((state: RootState) => state.files.fileCounts);
 
-  const [fileList, setFileList] = useState<FileListElementType[]>();
   const filesDataPluginId = useSelector((state: RootState) => state.files.dataPluginId);
 
-  useEffect(() => {
-    const selectedDataPlugin = currentDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)[0];
-    if (selectedDataPlugin && selectedDataPlugin.id !== undefined) {
-      DataPluginStorage.getDataPlugin(selectedDataPlugin)
+  function refreshFileTree(dP: DatabaseSettingsDataPluginType) {
+    if (dP && dP.id !== undefined) {
+      console.log(`REFRESH FILES (${dP.name} #${dP.id})`);
+      DataPluginStorage.getDataPlugin(dP)
         .then((dataPlugin) => {
           if (dataPlugin) {
             dataPlugin.files
               .getAll()
-              .then((files) => setFileList(generateFileTree(files)))
-              .catch(() => console.log('Error loading Users from selected data source!'));
+              .then((files) =>
+                dispatch(
+                  setFileList({
+                    dataPluginId: dP.id !== undefined ? dP.id : -1,
+                    fileTree: {
+                      name: '/',
+                      type: FileTreeElementTypeType.Folder,
+                      children: generateFileTree(files),
+                      checked: true,
+                      foldedOut: true,
+                      isRoot: true,
+                    },
+                    files: files.map((f: DataPluginFile) => {
+                      return {
+                        element: f,
+                        checked: true,
+                      };
+                    }),
+                  }),
+                ),
+              )
+              .catch(() => console.log('Error loading Files from selected data source!'));
           }
         })
         .catch((e) => console.log(e));
+    } else {
+      if (currentDataPlugins.length > 0) {
+        dispatch(setFilesDataPluginId(currentDataPlugins[0].id));
+      }
     }
+  }
+
+  useEffect(() => {
+    const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
+    refreshFileTree(dataPlugin);
   }, [currentDataPlugins, filesDataPluginId]);
+
+  useEffect(() => {
+    if (currentDataPlugins.length !== 0) {
+      currentDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
+        if (filesDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
+          dispatch(setFilesDataPluginId(dP.id));
+        }
+        refreshFileTree(dP);
+      });
+    }
+  }, [currentDataPlugins]);
+
+  useEffect(() => {
+    refreshFileTree(filesDataPluginId);
+  }, [filesDataPluginId]);
+
+  globalStore.subscribe(() => {
+    if (filesDataPluginId) {
+      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
+        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === filesDataPluginId) {
+          const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
+          refreshFileTree(dataPlugin);
+        }
+      }
+    }
+  });
 
   return (
     <>
@@ -39,9 +98,10 @@ function FileList(props: { orientation?: string }) {
           ' ' +
           (props.orientation === 'horizontal' ? fileListStyles.fileListHorizontal : fileListStyles.fileListVertical)
         }>
+        <div>{fileCounts[filesDataPluginId]} Files indexed</div>
         <div>
-          {fileList ? (
-            <FileListFolder folder={fileList} name={'/'} foldedOut={true}></FileListFolder>
+          {fileTrees[filesDataPluginId] ? (
+            <FileListFolder folder={filterFileTree(fileTrees[filesDataPluginId], props.search)} foldedOut={true}></FileListFolder>
           ) : (
             <span className="loading loading-spinner loading-xs text-accent"></span>
           )}

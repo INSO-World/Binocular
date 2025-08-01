@@ -5,8 +5,9 @@ import { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts'
 import Reducer from './reducer';
 import Saga from './saga';
 import Help from './help/help.tsx';
+import { VisualizationPluginMetadataCategory } from '../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
-const ExampleVisualization: VisualizationPlugin<SettingsType> = {
+const ExampleVisualization: VisualizationPlugin<SettingsType, null> = {
   name: 'Example Visualization',
   chartComponent: Chart,
   settingsComponent: Settings,
@@ -21,6 +22,9 @@ const ExampleVisualization: VisualizationPlugin<SettingsType> = {
   },
   images: {
     thumbnail: PreviewImage,
+  },
+  metadata: {
+    category: VisualizationPluginMetadataCategory.Examples,
   },
   reducer: Reducer,
   saga: Saga,

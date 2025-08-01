@@ -12,58 +12,90 @@ PouchDB.plugin(PouchDBAdapterMemory);
 PouchDB.adapter('worker', WorkerPouch);
 import JSZip from 'jszip';
 import { decompressJson } from '../../../../../../utils/json-utils.ts';
+import { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
-interface JSONObject {
-  [key: string]: string | boolean | number;
-}
-
-class Database {
+export default class Database {
   public documentStore: PouchDB.Database | undefined;
   public edgeStore: PouchDB.Database | undefined;
 
   constructor() {}
 
-  init(file: { name: string | undefined; file: File | undefined }) {
+  public initDB(file: FileConfig) {
     if (file.name) {
-      return this.initDB(file.name).then((newDatabaseInitialized: boolean) => {
+      return this.createDB(file.name).then((newDatabaseInitialized: boolean) => {
         if (newDatabaseInitialized && file.file !== undefined) {
           return new Promise((resolve) => {
             const jszip = new JSZip();
             let collectionsImported = 0;
-            jszip
-              .loadAsync(file.file)
-              .then((zip) => {
-                zip.forEach((fileName: string) => {
-                  zip
-                    .file(fileName)
-                    ?.async('string')
-                    .then((content) => {
-                      const name = fileName.slice(0, fileName.length - 5).split('/')[1];
-                      const JSONContent = JSON.parse(content);
-                      if (name.includes('-')) {
-                        this.importEdge(name, JSONContent)
-                          .then(() => {
-                            collectionsImported++;
-                            if (collectionsImported >= Object.keys(zip.files).length) {
-                              resolve(true);
-                            }
-                          })
-                          .catch((e) => console.log(e));
-                      } else {
-                        this.importDocument(name, JSONContent)
-                          .then(() => {
-                            collectionsImported++;
-                            if (collectionsImported >= Object.keys(zip.files).length) {
-                              resolve(true);
-                            }
-                          })
-                          .catch((e) => console.log(e));
-                      }
-                    })
-                    .catch((e) => console.log(e));
-                });
-              })
-              .catch((e) => console.log(e));
+            if (file.file) {
+              jszip
+                .loadAsync(file.file)
+                .then((zip) => {
+                  const dbCollectionCount = Object.keys(zip.files).length;
+                  zip.forEach((fileName: string) => {
+                    zip
+                      .file(fileName)
+                      ?.async('string')
+                      .then((content) => {
+                        const name = fileName.slice(0, fileName.length - 5).split('/')[1];
+                        const JSONContent = JSON.parse(content);
+                        if (name.includes('-')) {
+                          this.importEdge(name, JSONContent)
+                            .then(() => {
+                              collectionsImported++;
+                              if (collectionsImported >= dbCollectionCount) {
+                                resolve(true);
+                              }
+                            })
+                            .catch((e) => console.log(e));
+                        } else {
+                          this.importDocument(name, JSONContent)
+                            .then(() => {
+                              collectionsImported++;
+                              if (collectionsImported >= dbCollectionCount) {
+                                resolve(true);
+                              }
+                            })
+                            .catch((e) => console.log(e));
+                        }
+                      })
+                      .catch((e) => console.log(e));
+                  });
+                })
+                .catch((e) => console.log(e));
+            }
+          });
+        } else if (newDatabaseInitialized && file.dbObjects !== undefined) {
+          return new Promise((resolve) => {
+            let collectionsImported = 0;
+            if (file.dbObjects !== undefined) {
+              const dbCollectionCount = Object.keys(file.dbObjects).length;
+              Object.keys(file.dbObjects).forEach((name: string) => {
+                if (name.includes('-')) {
+                  if (file.dbObjects !== undefined) {
+                    this.importEdge(name, file.dbObjects[name])
+                      .then(() => {
+                        collectionsImported++;
+                        if (collectionsImported >= dbCollectionCount) {
+                          resolve(true);
+                        }
+                      })
+                      .catch((e) => console.log(e));
+                  }
+                } else {
+                  if (file.dbObjects !== undefined) {
+                    this.importDocument(name, file.dbObjects[name])
+                      .then(() => {
+                        collectionsImported++;
+                        if (collectionsImported >= dbCollectionCount) {
+                          resolve(true);
+                        }
+                      })
+                      .catch((e) => console.log(e));
+                  }
+                }
+              });
+            }
           });
         }
       });
@@ -79,23 +111,21 @@ class Database {
     }
   }
 
-  private initDB(name: string) {
+  private async createDB(name: string) {
     // check if web workers are supported
-    return WorkerPouch.isSupportedBrowser().then((supported: boolean) => {
-      if (supported) {
-        // using web workers does not block the main thread, making the UI load faster.
-        // note: worker adapter does not support custom indices!
-        return this.assignDB(name, 'worker');
-      } else {
-        return this.assignDB(name, 'memory');
-      }
-    });
+    if (window.Worker) {
+      // using web workers does not block the main thread, making the UI load faster.
+      // note: worker adapter does not support custom indices!
+      return this.createDBStore(name, 'worker');
+    } else {
+      return this.createDBStore(name, 'memory');
+    }
   }
 
   /*
   Return true when a new database was initialized and false when the database already existed
    */
-  async assignDB(name: string, adapter: string): Promise<boolean> {
+  async createDBStore(name: string, adapter: string): Promise<boolean> {
     this.documentStore = new PouchDB(`${name}_documents`, { adapter: adapter });
     this.edgeStore = new PouchDB(`${name}_edges`, { adapter: adapter });
     const documentStoreInfo = await this.documentStore.info();
@@ -155,5 +185,3 @@ class Database {
     });
   }
 }
-
-export { Database };

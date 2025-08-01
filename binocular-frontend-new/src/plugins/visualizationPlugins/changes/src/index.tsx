@@ -1,18 +1,22 @@
-import Chart from './chart/chart.tsx';
 import PreviewImage from '../assets/thumbnail.svg';
 import Settings, { SettingsType } from './settings/settings.tsx';
 import { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
 import { getSVGData } from './utilities/utilities.ts';
-import Reducer from './reducer';
+import Reducer from '../../simpleVisualizationPlugin/src/reducer';
 import Saga from './saga';
 import Help from './help/help.tsx';
+import { convertToChartData } from './utilities/dataConverter.ts';
+import { DataPluginCommit } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { VisualizationPluginMetadataCategory } from '../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
-const Changes: VisualizationPlugin<SettingsType> = {
+const Changes: VisualizationPlugin<SettingsType, DataPluginCommit> = {
   name: 'Changes',
-  chartComponent: Chart,
+  chartComponent: undefined,
   settingsComponent: Settings,
   helpComponent: Help,
-  defaultSettings: { splitAdditionsDeletions: false, visualizationStyle: 'curved' },
+  dataConnectionName: 'commits',
+  dataConverter: convertToChartData,
+  defaultSettings: { splitAdditionsDeletions: true, visualizationStyle: 'curved' },
   export: {
     getSVGData: getSVGData,
   },
@@ -22,6 +26,11 @@ const Changes: VisualizationPlugin<SettingsType> = {
   },
   images: {
     thumbnail: PreviewImage,
+  },
+  metadata: {
+    category: VisualizationPluginMetadataCategory.Commits,
+    recommended: true,
+    description: 'A line chart that visualizes the amount of additions and deletion and what author is responsible for them over time.',
   },
   reducer: Reducer,
   saga: Saga,

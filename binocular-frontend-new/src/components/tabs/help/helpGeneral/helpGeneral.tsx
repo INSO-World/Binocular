@@ -27,9 +27,8 @@ function HelpGeneral() {
                 parameters can also be set on an per visualization instance basis.
               </li>
               <li>
-                <span className={'font-bold'}>Components:</span> In the parameters tab the basic parameters are set all compatible
-                visualizations adhere to. This includes for example the date range, granularity or if merge requests are excluded. Those
-                parameters can also be set on an per visualization instance basis.
+                <span className={'font-bold'}>Visualizations:</span> In the visualizations tab new visualizations can be added to the
+                dashboard by either clicking on them or dragging them to the desired location.
               </li>
               <li>
                 <span className={'font-bold'}>Sprints:</span> The sprints tab lets the user define and manage sprints which later can be
@@ -42,7 +41,8 @@ function HelpGeneral() {
               </li>
               <li>
                 <span className={'font-bold'}>FileTree:</span> The file tree tab shows the file tree of the analyzed repository. Folders can
-                be opened and closed to reveal more files.
+                be opened and closed to reveal more files. It is also possible to view information about files and folders and select or
+                deselect them. The selection of files will influence supporting visualizations.
               </li>
               <li>
                 <span className={'font-bold'}>Help:</span> The help tab provides useful information to Binocular and all of its different
