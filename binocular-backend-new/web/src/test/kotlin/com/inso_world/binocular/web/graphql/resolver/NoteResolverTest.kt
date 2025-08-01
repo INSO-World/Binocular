@@ -1,22 +1,24 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.inso_world.binocular.web.BaseDbTest
+import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 /**
  * Test class for verifying the Note resolver functionality.
- * This class extends BaseDbTest to leverage the test data setup.
+ * This class extends GraphQlControllerTest to leverage the test data setup.
  */
-class NoteResolverTest : BaseDbTest() {
-
+internal class NoteResolverTest : GraphQlControllerTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve note with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     note(id: "1") {
                         id
@@ -31,11 +33,11 @@ class NoteResolverTest : BaseDbTest() {
                         importedFrom
                     }
                 }
-            """)
-                .execute()
-                .path("note")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("note")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify note data
             assertAll(
@@ -48,7 +50,7 @@ class NoteResolverTest : BaseDbTest() {
                 { assertEquals(false, result.get("internal").asBoolean(), "Note internal mismatch") },
                 { assertEquals(false, result.get("confidential").asBoolean(), "Note confidential mismatch") },
                 { assertEquals(false, result.get("imported").asBoolean(), "Note imported mismatch") },
-                { assertEquals("gitlab", result.get("importedFrom").asText(), "Note importedFrom mismatch") }
+                { assertEquals("gitlab", result.get("importedFrom").asText(), "Note importedFrom mismatch") },
             )
         }
     }
@@ -57,7 +59,10 @@ class NoteResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve note with related accounts`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     note(id: "1") {
                         id
@@ -70,16 +75,16 @@ class NoteResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("note")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("note")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify note data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
-                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") }
+                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") },
             )
 
             // Verify accounts
@@ -92,13 +97,16 @@ class NoteResolverTest : BaseDbTest() {
                 { assertEquals("1", account.get("id").asText(), "Account ID mismatch") },
                 { assertEquals("GitHub", account.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", account.get("login").asText(), "Account login mismatch") },
-                { assertEquals("User One", account.get("name").asText(), "Account name mismatch") }
+                { assertEquals("User One", account.get("name").asText(), "Account name mismatch") },
             )
         }
 
         @Test
         fun `should retrieve note with related issues`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     note(id: "1") {
                         id
@@ -110,16 +118,16 @@ class NoteResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("note")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("note")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify note data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
-                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") }
+                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") },
             )
 
             // Verify issues
@@ -131,13 +139,16 @@ class NoteResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", issue.get("id").asText(), "Issue ID mismatch") },
                 { assertEquals(101, issue.get("iid").asInt(), "Issue IID mismatch") },
-                { assertEquals("Fix bug in login flow", issue.get("title").asText(), "Issue title mismatch") }
+                { assertEquals("Fix bug in login flow", issue.get("title").asText(), "Issue title mismatch") },
             )
         }
 
         @Test
         fun `should retrieve note with related merge requests`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     note(id: "1") {
                         id
@@ -149,16 +160,16 @@ class NoteResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("note")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("note")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify note data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
-                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") }
+                { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") },
             )
 
             // Verify merge requests
@@ -170,7 +181,7 @@ class NoteResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", mergeRequest.get("id").asText(), "Merge request ID mismatch") },
                 { assertEquals(201, mergeRequest.get("iid").asInt(), "Merge request IID mismatch") },
-                { assertEquals("Implement user authentication", mergeRequest.get("title").asText(), "Merge request title mismatch") }
+                { assertEquals("Implement user authentication", mergeRequest.get("title").asText(), "Merge request title mismatch") },
             )
         }
     }
@@ -181,20 +192,21 @@ class NoteResolverTest : BaseDbTest() {
         fun `should handle non-existent note`() {
             // Create a test query for a note that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     note(id: "999") {
                         id
                         body
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("Note not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }

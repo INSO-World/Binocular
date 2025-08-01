@@ -1,0 +1,18 @@
+spring:
+  profiles:
+    active: test,h2
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+logging:
+  file:
+    path: logs
+    name: logs/infrastructure-sql.test.log
+  level:
+    #    org.hibernate.orm.jdbc.bind: trace
+    com:
+      inso_world:
+        binocular: trace

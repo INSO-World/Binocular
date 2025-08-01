@@ -1,16 +1,18 @@
 package com.inso_world.binocular.web
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
-import org.springframework.context.annotation.ComponentScan
 
-@SpringBootApplication(exclude = [
-    org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration::class,
-    org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration::class
-])
+@SpringBootApplication(
+    scanBasePackages = [
+        "com.inso_world.binocular.web",
+//        make sure the ones below match the ones in CliApplication (and vice versa)
+        "com.inso_world.binocular.core.persistence",
+        "com.inso_world.binocular.core.service",
+    ],
+)
 class BinocularWebApplication
 
 fun main(args: Array<String>) {
-  runApplication<BinocularWebApplication>(*args)
+    runApplication<BinocularWebApplication>(*args)
 }

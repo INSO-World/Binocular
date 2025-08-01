@@ -1,38 +1,40 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.inso_world.binocular.web.BaseDbTest
+import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 /**
  * Test class for verifying the Module resolver functionality.
- * This class extends BaseDbTest to leverage the test data setup.
+ * This class extends GraphQlControllerTest to leverage the test data setup.
  */
-class ModuleResolverTest : BaseDbTest() {
-
+internal class ModuleResolverTest : GraphQlControllerTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve module with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     module(id: "1") {
                         id
                         path
                     }
                 }
-            """)
-                .execute()
-                .path("module")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("module")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify module data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") },
             )
         }
     }
@@ -41,7 +43,10 @@ class ModuleResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve module with related commits`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     module(id: "1") {
                         id
@@ -53,16 +58,16 @@ class ModuleResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("module")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("module")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify module data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") },
             )
 
             // Verify commits
@@ -74,13 +79,16 @@ class ModuleResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", commit.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
 
         @Test
         fun `should retrieve module with related files`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     module(id: "1") {
                         id
@@ -92,16 +100,16 @@ class ModuleResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("module")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("module")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify module data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") },
             )
 
             // Verify files
@@ -113,13 +121,16 @@ class ModuleResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", file.get("id").asText(), "File ID mismatch") },
                 { assertEquals("src/main/kotlin/com/example/Main.kt", file.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", file.get("webUrl").asText(), "File webUrl mismatch") }
+                { assertEquals("https://example.com/files/Main.kt", file.get("webUrl").asText(), "File webUrl mismatch") },
             )
         }
 
         @Test
         fun `should retrieve module with child modules`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     module(id: "1") {
                         id
@@ -130,16 +141,16 @@ class ModuleResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("module")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("module")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify module data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/core", result.get("path").asText(), "Module path mismatch") },
             )
 
             // Verify child modules
@@ -150,13 +161,16 @@ class ModuleResolverTest : BaseDbTest() {
             val childModule = childModules.get(0)
             assertAll(
                 { assertEquals("2", childModule.get("id").asText(), "Child module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/api", childModule.get("path").asText(), "Child module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/api", childModule.get("path").asText(), "Child module path mismatch") },
             )
         }
 
         @Test
         fun `should retrieve module with parent modules`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     module(id: "2") {
                         id
@@ -167,16 +181,16 @@ class ModuleResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("module")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("module")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify module data
             assertAll(
                 { assertEquals("2", result.get("id").asText(), "Module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/api", result.get("path").asText(), "Module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/api", result.get("path").asText(), "Module path mismatch") },
             )
 
             // Verify parent modules
@@ -187,7 +201,7 @@ class ModuleResolverTest : BaseDbTest() {
             val parentModule = parentModules.get(0)
             assertAll(
                 { assertEquals("1", parentModule.get("id").asText(), "Parent module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/core", parentModule.get("path").asText(), "Parent module path mismatch") }
+                { assertEquals("src/main/kotlin/com/example/core", parentModule.get("path").asText(), "Parent module path mismatch") },
             )
         }
     }
@@ -198,20 +212,21 @@ class ModuleResolverTest : BaseDbTest() {
         fun `should handle non-existent module`() {
             // Create a test query for a module that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     module(id: "999") {
                         id
                         path
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("Module not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }

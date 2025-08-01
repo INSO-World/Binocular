@@ -1,0 +1,296 @@
+name: Test Backend CI (fast)
+
+on:
+  push:
+  pull_request:
+    branches:
+      - "!main"
+      - "!develop"
+  workflow_dispatch:
+
+env:
+  MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true'
+  WD: binocular-backend-new
+
+jobs:
+
+  compile:
+    name: Compile & Install
+
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+        include:
+          - os: ubuntu-latest
+            architecture: 'x64'
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Verify Parent with Maven
+        run: mvn $MAVEN_CLI_OPTS validate
+
+      - name: Compile with Maven
+        run: mvn $MAVEN_CLI_OPTS clean compile
+
+      - name: Install with Maven
+        run: mvn $MAVEN_CLI_OPTS install -DskipTests
+
+  test-application-h2:
+    name: Test-Application Layers w/ H2
+    needs: compile
+
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+        module: [ 'web', 'cli' ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Install dependencies
+        run: |
+          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install -Psql
+
+      - name: Run tests for module ${{ matrix.module }}
+        run: |
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,sql,h2 -Psql
+
+      - name: Surefire report for module ${{ matrix.module }}
+        if: always()
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,sql,h2 -Psql
+
+      - name: Upload surefire report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-report-h2
+          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
+
+  test-application-arangodb:
+    name: Test-Application Layers w/ ArangoDB
+    needs: compile
+
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    services:
+      db:
+        image: arangodb:3.12
+        ports:
+          - "8529:8529"
+        env:
+          ARANGO_NO_AUTH: 1
+
+    strategy:
+      fail-fast: false
+      matrix:
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+        module: [ 'web', 'cli' ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Install dependencies
+        run: |
+          mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install -Parangodb
+
+      - name: Run tests for module ${{ matrix.module }}
+        run: |
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,nosql,arangodb -Parangodb
+
+      - name: Surefire report for module ${{ matrix.module }}
+        if: always()
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,nosql,arangodb -Parangodb
+
+      - name: Upload surefire report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-report-arangodb
+          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
+
+  test-modules:
+    name: Test
+    needs: compile
+
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    services:
+      db:
+        image: arangodb:3.12
+        ports:
+          - "8529:8529"
+        env:
+          ARANGO_NO_AUTH: 1
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+        module: [ 'domain', 'ffi', 'core', 'infrastructure-arangodb', 'infrastructure-sql' ]
+        include:
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'domain'
+            springProfile: 'test'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'ffi'
+            springProfile: 'test'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'core'
+            springProfile: 'test'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'infrastructure-arangodb'
+            mvnProfile: 'arangodb'
+            springProfile: 'test,nosql,arangodb'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'infrastructure-sql'
+            mvnProfile: 'h2'
+            springProfile: 'test,sql,h2'
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+
+      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+        uses: actions/setup-java@v4
+        with:
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Install dependencies
+        run: |
+          CMD="mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install"
+          if [ -n "${{ matrix.mvnProfile }}" ]; then
+            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
+
+      - name: Run tests for module ${{ matrix.module }}
+        run: |
+          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=${{ matrix.springProfile }}"
+          if [ -n "${{ matrix.mvnProfile }}" ]; then
+            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
+
+      - name: Surefire report for module ${{ matrix.module }}
+        if: always()
+        run: |
+          CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=${{matrix.springProfile}}"
+          if [ -n "${{ matrix.mvnProfile }}" ]; then
+            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
+
+      - name: Upload surefire report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-report
+          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/

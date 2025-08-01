@@ -1,22 +1,24 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.inso_world.binocular.web.BaseDbTest
+import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 /**
  * Test class for verifying the Issue resolver functionality.
- * This class extends BaseDbTest to leverage the test data setup.
+ * This class extends GraphQlControllerTest to leverage the test data setup.
  */
-class IssueResolverTest : BaseDbTest() {
-
+internal class IssueResolverTest : GraphQlControllerTest() {
     @Nested
     inner class BasicFunctionality {
         @Test
         fun `should retrieve issue with all fields`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     issue(id: "1") {
                         id
@@ -28,11 +30,11 @@ class IssueResolverTest : BaseDbTest() {
                         labels
                     }
                 }
-            """)
-                .execute()
-                .path("issue")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("issue")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify issue data
             assertAll(
@@ -44,7 +46,7 @@ class IssueResolverTest : BaseDbTest() {
                 { assertEquals("https://example.com/issues/101", result.get("webUrl").asText(), "Issue webUrl mismatch") },
                 { assertTrue(result.get("labels").isArray(), "Labels should be an array") },
                 { assertEquals("bug", result.get("labels").get(0).asText(), "First label mismatch") },
-                { assertEquals("high-priority", result.get("labels").get(1).asText(), "Second label mismatch") }
+                { assertEquals("high-priority", result.get("labels").get(1).asText(), "Second label mismatch") },
             )
         }
     }
@@ -53,7 +55,10 @@ class IssueResolverTest : BaseDbTest() {
     inner class RelationshipTests {
         @Test
         fun `should retrieve issue with related accounts`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     issue(id: "1") {
                         id
@@ -70,11 +75,11 @@ class IssueResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("issue")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("issue")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify issue data
             assertAll(
@@ -83,7 +88,7 @@ class IssueResolverTest : BaseDbTest() {
                 { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") },
                 { assertEquals("Users are unable to log in...", result.get("description").asText(), "Issue description mismatch") },
                 { assertEquals("open", result.get("state").asText(), "Issue state mismatch") },
-                { assertEquals("https://example.com/issues/101", result.get("webUrl").asText(), "Issue webUrl mismatch") }
+                { assertEquals("https://example.com/issues/101", result.get("webUrl").asText(), "Issue webUrl mismatch") },
             )
 
             // Verify accounts
@@ -96,13 +101,16 @@ class IssueResolverTest : BaseDbTest() {
                 { assertEquals("1", account.get("id").asText(), "Account ID mismatch") },
                 { assertEquals("GitHub", account.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", account.get("login").asText(), "Account login mismatch") },
-                { assertEquals("User One", account.get("name").asText(), "Account name mismatch") }
+                { assertEquals("User One", account.get("name").asText(), "Account name mismatch") },
             )
         }
 
         @Test
         fun `should retrieve issue with related commits`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     issue(id: "1") {
                         id
@@ -115,17 +123,17 @@ class IssueResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("issue")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("issue")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify issue data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Issue ID mismatch") },
                 { assertEquals(101, result.get("iid").asInt(), "Issue IID mismatch") },
-                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") }
+                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") },
             )
 
             // Verify commits
@@ -137,13 +145,16 @@ class IssueResolverTest : BaseDbTest() {
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
                 { assertEquals("abc123", commit.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") }
+                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
 
         @Test
         fun `should retrieve issue with related milestones`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     issue(id: "1") {
                         id
@@ -157,17 +168,17 @@ class IssueResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("issue")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("issue")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify issue data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Issue ID mismatch") },
                 { assertEquals(101, result.get("iid").asInt(), "Issue IID mismatch") },
-                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") }
+                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") },
             )
 
             // Verify milestones
@@ -180,13 +191,16 @@ class IssueResolverTest : BaseDbTest() {
                 { assertEquals("1", milestone.get("id").asText(), "Milestone ID mismatch") },
                 { assertEquals(201, milestone.get("iid").asInt(), "Milestone IID mismatch") },
                 { assertEquals("Release 1.0", milestone.get("title").asText(), "Milestone title mismatch") },
-                { assertEquals("First stable release", milestone.get("description").asText(), "Milestone description mismatch") }
+                { assertEquals("First stable release", milestone.get("description").asText(), "Milestone description mismatch") },
             )
         }
 
         @Test
         fun `should retrieve issue with related notes`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     issue(id: "1") {
                         id
@@ -198,17 +212,17 @@ class IssueResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("issue")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("issue")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify issue data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Issue ID mismatch") },
                 { assertEquals(101, result.get("iid").asInt(), "Issue IID mismatch") },
-                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") }
+                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") },
             )
 
             // Verify notes
@@ -219,13 +233,16 @@ class IssueResolverTest : BaseDbTest() {
             val note = notes.get(0)
             assertAll(
                 { assertEquals("1", note.get("id").asText(), "Note ID mismatch") },
-                { assertEquals("This is a comment", note.get("body").asText(), "Note body mismatch") }
+                { assertEquals("This is a comment", note.get("body").asText(), "Note body mismatch") },
             )
         }
 
         @Test
         fun `should retrieve issue with related users`() {
-            val result: JsonNode = graphQlTester.document("""
+            val result: JsonNode =
+                graphQlTester
+                    .document(
+                        """
                 query {
                     issue(id: "1") {
                         id
@@ -237,17 +254,17 @@ class IssueResolverTest : BaseDbTest() {
                         }
                     }
                 }
-            """)
-                .execute()
-                .path("issue")
-                .entity(JsonNode::class.java)
-                .get()
+            """,
+                    ).execute()
+                    .path("issue")
+                    .entity(JsonNode::class.java)
+                    .get()
 
             // Verify issue data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Issue ID mismatch") },
                 { assertEquals(101, result.get("iid").asInt(), "Issue IID mismatch") },
-                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") }
+                { assertEquals("Fix bug in login flow", result.get("title").asText(), "Issue title mismatch") },
             )
 
             // Verify users
@@ -258,7 +275,7 @@ class IssueResolverTest : BaseDbTest() {
             val user = users.get(0)
             assertAll(
                 { assertEquals("1", user.get("id").asText(), "User ID mismatch") },
-                { assertEquals("John Doe <john.doe@example.com>", user.get("gitSignature").asText(), "User gitSignature mismatch") }
+                { assertEquals("John Doe <john.doe@example.com>", user.get("gitSignature").asText(), "User gitSignature mismatch") },
             )
         }
     }
@@ -269,7 +286,9 @@ class IssueResolverTest : BaseDbTest() {
         fun `should handle non-existent issue`() {
             // Create a test query for an issue that doesn't exist in the test data
             // This should return an error
-            graphQlTester.document("""
+            graphQlTester
+                .document(
+                    """
                 query {
                     issue(id: "999") {
                         id
@@ -277,13 +296,12 @@ class IssueResolverTest : BaseDbTest() {
                         title
                     }
                 }
-            """)
-                .execute()
+            """,
+                ).execute()
                 .errors()
                 .expect { error ->
                     error.message?.contains("Issue not found with id: 999") ?: false
-                }
-                .verify()
+                }.verify()
         }
     }
 }

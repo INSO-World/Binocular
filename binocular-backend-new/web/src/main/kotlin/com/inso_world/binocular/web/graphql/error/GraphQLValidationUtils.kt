@@ -15,7 +15,9 @@ object GraphQLValidationUtils {
      * @return The non-null entity
      * @throws NotFoundException if the entity is null
      */
-    fun <T> requireEntityExists(entity: T?, entityType: String, id: String): T {
-        return entity ?: throw NotFoundException("$entityType not found with id: $id")
-    }
+    fun <T> requireEntityExists(
+        entity: T?,
+        entityType: String,
+        id: String,
+    ): T = entity ?: throw NotFoundException("$entityType not found with id: $id")
 }

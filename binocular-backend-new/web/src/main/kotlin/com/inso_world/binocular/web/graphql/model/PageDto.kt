@@ -1,6 +1,6 @@
 package com.inso_world.binocular.web.graphql.model
 
-import com.inso_world.binocular.web.persistence.model.Page
+import com.inso_world.binocular.core.persistence.model.Page
 import org.springframework.data.domain.Pageable
 
 /**
@@ -17,7 +17,7 @@ data class PageDto<T>(
     val count: Int,
     val page: Int,
     val perPage: Int,
-    val data: List<T>
+    val data: List<T>,
 ) {
     /**
      * Secondary constructor that automatically converts from Spring's 0-based pagination to 1-based pagination.
@@ -30,7 +30,7 @@ data class PageDto<T>(
         count = count,
         page = pageable.pageNumber + 1, // Convert from 0-based to 1-based
         perPage = pageable.pageSize,
-        data = data
+        data = data,
     )
 
     /**
@@ -43,6 +43,6 @@ data class PageDto<T>(
         count = page.totalElements.toInt(),
         page = page.number + 1, // Convert from 0-based to 1-based
         perPage = page.size,
-        data = page.content
+        data = page.content,
     )
 }

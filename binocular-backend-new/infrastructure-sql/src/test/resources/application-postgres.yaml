@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/binocular-test
+    username: ${DATABASE_USER:binocular}
+    password: ${DATABASE_PW:binocular}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 256
+        order_updates: true
+        order_inserts: true
+        batch_versioned_data: true 
