@@ -1,7 +1,7 @@
 import type {
   DataPluginCommit,
   DataPluginCommits,
-  DataPluginOwnership
+  DataPluginOwnership,
 } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {

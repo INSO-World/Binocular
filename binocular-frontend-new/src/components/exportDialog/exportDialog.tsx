@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import type {RootState} from '../../redux';
+import type { RootState } from '../../redux';
 import { ExportType } from '../../redux/reducer/export/exportReducer.ts';
 
 function ExportDialog() {

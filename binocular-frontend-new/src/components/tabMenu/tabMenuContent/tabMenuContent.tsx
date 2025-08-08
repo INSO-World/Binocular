@@ -1,4 +1,4 @@
-import type {ReactElement} from 'react';
+import type { ReactElement } from 'react';
 function TabMenuContent(props: { children: ReactElement }) {
   return <>{props.children}</>;
 }

@@ -2,7 +2,7 @@ import PouchDB from 'pouchdb-browser';
 import PouchDBFind from 'pouchdb-find';
 import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 import _ from 'lodash';
-import type {DataPluginFileOwnership} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { DataPluginFileOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
@@ -204,7 +204,6 @@ function preprocessCommit(
   const commitUserRelation = binarySearch(commitUser, commit._id, 'from');
 
   if (!commitUserRelation) {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     console.log('Error in localDB: commit: no user found for commit ' + commit.sha);
     return commit;
   }
@@ -213,7 +212,6 @@ function preprocessCommit(
   const author = users[commitUserRelation.to];
 
   if (!author) {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     console.log('Error in localDB: commit: no user found with ID ' + commitUserRelation.to);
     return commit;
   }

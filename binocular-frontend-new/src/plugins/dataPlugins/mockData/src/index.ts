@@ -1,5 +1,5 @@
 import Commits from './commits.ts';
-import type {DataPlugin} from '../../../interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import Users from './users.ts';
 import General from './general.ts';
 import Files from './files.ts';

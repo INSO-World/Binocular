@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type {RootState} from '../../../../redux';
+import type { RootState } from '../../../../redux';
 import { useSelector } from 'react-redux';
 import AddSprintDialogSingleTab from './addSprintDialogSingleTab/addSprintDialogSingleTab.tsx';
 import AddSprintDialogMultipleTabs from './addSprintDialogMultipleTabs/addSprintDialogMultipleTabs.tsx';
@@ -19,7 +19,7 @@ function AddSprintDialog() {
           <AddSprintDialogSingleTab></AddSprintDialogSingleTab>
         ) : (
           <>
-            <div role="tablist" className="tabs tabs-bordered">
+            <div role="tablist" className="tabs tabs-box">
               <a role={'tab'} className={'tab ' + (activeTab === 'single' ? 'tab-active' : '')} onClick={() => setActiveTab('single')}>
                 Single Tab
               </a>

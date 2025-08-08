@@ -53,7 +53,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ["vite-plugin-node-polyfills/shims/buffer/dist/index.cjs"],
+      external: ['vite-plugin-node-polyfills/shims/buffer/dist/index.cjs'],
     },
   },
 });

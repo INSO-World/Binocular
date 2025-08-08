@@ -1,4 +1,4 @@
-import type {ParametersDateRangeType} from '../../../../types/parameters/parametersDateRangeType.ts';
+import type { ParametersDateRangeType } from '../../../../types/parameters/parametersDateRangeType.ts';
 import { useEffect, useState } from 'react';
 
 function DateRange(props: {
@@ -31,7 +31,7 @@ function DateRange(props: {
 
   return (
     <div className={'text-xs'}>
-      <table>
+      <table style={{ borderCollapse: 'separate', borderSpacing: '0 2px' }}>
         <tbody>
           <tr>
             <td>From:</td>
@@ -58,13 +58,13 @@ function DateRange(props: {
                   onClick={() =>
                     shiftMode
                       ? props.setParametersDateRange({
-                        from: subtractYear(props.parametersDateRange.from),
-                        to: props.parametersDateRange.to,
-                      })
+                          from: subtractYear(props.parametersDateRange.from),
+                          to: props.parametersDateRange.to,
+                        })
                       : props.setParametersDateRange({
-                        from: subtractMonth(props.parametersDateRange.from),
-                        to: props.parametersDateRange.to,
-                      })
+                          from: subtractMonth(props.parametersDateRange.from),
+                          to: props.parametersDateRange.to,
+                        })
                   }
                   title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
                   disabled={props.disabled}>
@@ -75,13 +75,13 @@ function DateRange(props: {
                   onClick={() =>
                     shiftMode
                       ? props.setParametersDateRange({
-                        from: addYear(props.parametersDateRange.from),
-                        to: props.parametersDateRange.to,
-                      })
+                          from: addYear(props.parametersDateRange.from),
+                          to: props.parametersDateRange.to,
+                        })
                       : props.setParametersDateRange({
-                        from: addMonth(props.parametersDateRange.from),
-                        to: props.parametersDateRange.to,
-                      })
+                          from: addMonth(props.parametersDateRange.from),
+                          to: props.parametersDateRange.to,
+                        })
                   }
                   title={shiftMode ? 'add 1 year' : 'add 1 month'}
                   disabled={props.disabled}>
@@ -120,13 +120,13 @@ function DateRange(props: {
                   onClick={() =>
                     shiftMode
                       ? props.setParametersDateRange({
-                        from: props.parametersDateRange.from,
-                        to: subtractYear(props.parametersDateRange.to),
-                      })
+                          from: props.parametersDateRange.from,
+                          to: subtractYear(props.parametersDateRange.to),
+                        })
                       : props.setParametersDateRange({
-                        from: props.parametersDateRange.from,
-                        to: subtractMonth(props.parametersDateRange.to),
-                      })
+                          from: props.parametersDateRange.from,
+                          to: subtractMonth(props.parametersDateRange.to),
+                        })
                   }
                   title={shiftMode ? 'remove 1 year' : 'remove 1 month'}
                   disabled={props.disabled}>
@@ -137,13 +137,13 @@ function DateRange(props: {
                   onClick={() =>
                     shiftMode
                       ? props.setParametersDateRange({
-                        from: props.parametersDateRange.from,
-                        to: addYear(props.parametersDateRange.to),
-                      })
+                          from: props.parametersDateRange.from,
+                          to: addYear(props.parametersDateRange.to),
+                        })
                       : props.setParametersDateRange({
-                        from: props.parametersDateRange.from,
-                        to: addMonth(props.parametersDateRange.to),
-                      })
+                          from: props.parametersDateRange.from,
+                          to: addMonth(props.parametersDateRange.to),
+                        })
                   }
                   title={shiftMode ? 'add 1 year' : 'add 1 month'}
                   disabled={props.disabled}>

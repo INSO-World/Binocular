@@ -1,9 +1,9 @@
 import { useSelector } from 'react-redux';
-import {type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
 import { useEffect, useState } from 'react';
 import editAuthorDialogStyles from './editAuthorDialog.module.scss';
 import { editAuthor, resetAuthor, saveAuthor, setParentAuthor } from '../../../../redux/reducer/data/authorsReducer.ts';
-import type {AuthorType} from '../../../../types/data/authorType.ts';
+import type { AuthorType } from '../../../../types/data/authorType.ts';
 
 function EditAuthorDialog() {
   const dispatch: AppDispatch = useAppDispatch();

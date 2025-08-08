@@ -1,4 +1,4 @@
-import type {DataPluginFileOwnership} from '../../plugins/interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { DataPluginFileOwnership } from '../../plugins/interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export interface OwnershipData {
   sha: string;

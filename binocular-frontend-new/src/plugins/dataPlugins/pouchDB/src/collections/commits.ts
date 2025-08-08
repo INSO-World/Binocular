@@ -1,7 +1,7 @@
 import type {
   DataPluginCommit,
   DataPluginCommits,
-  DataPluginOwnership
+  DataPluginOwnership,
 } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { findAllCommits, findCommit, findOwnershipData } from '../utils.js';
 import Database from '../database.ts';

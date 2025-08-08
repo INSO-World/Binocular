@@ -1,5 +1,5 @@
 import Commits from './commits.ts';
-import type {DataPlugin} from '../../../interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import Users from './users.ts';
 import General from './general.ts';
 import Files from './files.ts';
@@ -29,7 +29,6 @@ class Github implements DataPlugin {
     this.general = new General('');
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async init(apiKey: string | undefined, endpoint: string | undefined) {
     console.log(`Init GitHub Backend with ApiKey: ${apiKey} and Endpoint ${endpoint}`);
     if (apiKey !== undefined) {

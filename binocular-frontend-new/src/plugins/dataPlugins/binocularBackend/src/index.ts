@@ -1,10 +1,10 @@
 import Commits from './commits.ts';
-import type {DataPlugin} from '../../../interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import General from './general.ts';
 import Files from './files.ts';
 import Users from './users.ts';
-import type {FileConfig} from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
-import type {ProgressUpdateConfig} from '../../../../types/settings/databaseSettingsType.ts';
+import type { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './builds.ts';
 import Branches from './branches.ts';
 
@@ -35,7 +35,6 @@ class BinocularBackend implements DataPlugin {
     this.branches = new Branches('/graphQl');
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async init(
     apiKey: string | undefined,
     endpoint: string | undefined,

@@ -1,4 +1,4 @@
-import type {DataPluginUser, DataPluginUsers} from '../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import type { DataPluginUser, DataPluginUsers } from '../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 export default class Users implements DataPluginUsers {
   constructor() {}

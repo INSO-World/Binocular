@@ -1,10 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
-import {type GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
-import type {
-  DatabaseSettingsDataPluginType,
-  DatabaseSettingsType
-} from '../../../types/settings/databaseSettingsType.ts';
+import { type GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
+import type { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../../types/settings/databaseSettingsType.ts';
 import distinctColors from 'distinct-colors';
 
 export interface SettingsInitialState {

@@ -1,7 +1,7 @@
 import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.ts';
-import type {DataPlugin} from '../../../plugins/interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { createRef, useState } from 'react';
-import {type AppDispatch, useAppDispatch } from '../../../redux';
+import { type AppDispatch, useAppDispatch } from '../../../redux';
 
 enum State {
   unconfigured,

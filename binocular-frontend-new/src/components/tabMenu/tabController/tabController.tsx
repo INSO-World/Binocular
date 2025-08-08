@@ -1,17 +1,17 @@
-import {type ReactElement, useEffect, useState } from 'react';
+import React, { type ReactElement, useEffect, useState } from 'react';
 import tabControllerStyles from './tabController.module.scss';
 import tabHandleStyles from './tabHandle.module.scss';
 import TabDropHint from './tabDropHint/tabDropHint.tsx';
-import Tab from '../tab/tab.tsx';
+import Tab, { type TabProps } from '../tab/tab.tsx';
 import TabMenuContent from '../tabMenuContent/tabMenuContent.tsx';
 import TabControllerButton from '../tabControllerButton/tabControllerButton.tsx';
 import { TabAlignment, type TabType } from '../../../types/general/tabType.ts';
-import {type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
 import { useSelector } from 'react-redux';
 import { setTabList } from '../../../redux/reducer/general/tabsReducer.ts';
 import _ from 'lodash';
 import TabControllerButtonThemeSwitch from '../tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx';
-import {type ContextMenuOption, showContextMenu } from '../../contextMenu/contextMenuHelper.ts';
+import { type ContextMenuOption, showContextMenu } from '../../contextMenu/contextMenuHelper.ts';
 import showIcon from '../../../assets/show_gray.svg';
 import hideIcon from '../../../assets/hide_gray.svg';
 import arrowUpIcon from '../../../assets/arrow_up_gray.svg';
@@ -25,6 +25,10 @@ import { placeDashboardItem } from '../../../redux/reducer/general/dashboardRedu
 
 interface TabContents {
   [id: number]: ReactElement;
+}
+
+export interface TabElementType {
+  name: string;
 }
 
 function TabController(props: {
@@ -66,7 +70,6 @@ function TabController(props: {
   but the content of each tab overlaps the handles,
   so the content cant be rendered as part of the backgrounds directly.
    */
-
   return (
     <div className={tabControllerStyles.tabController}>
       <TabDropHint dragState={dragState}></TabDropHint>
@@ -207,7 +210,7 @@ function TabController(props: {
                 }
                 return (
                   <Tab key={'tabTop' + i} displayName={tab.displayName} alignment={TabAlignment.top}>
-                    {tabContents[tab.contentID].props.children}
+                    {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
               })[0]
@@ -228,7 +231,7 @@ function TabController(props: {
                 }
                 return (
                   <Tab key={'tabRight' + i} displayName={tab.displayName} alignment={TabAlignment.right}>
-                    {tabContents[tab.contentID].props.children}
+                    {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
               })[0]
@@ -245,7 +248,7 @@ function TabController(props: {
                 }
                 return (
                   <Tab key={'tabBottom' + i} displayName={tab.displayName} alignment={TabAlignment.bottom}>
-                    {tabContents[tab.contentID].props.children}
+                    {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
               })[0]
@@ -266,7 +269,7 @@ function TabController(props: {
                 }
                 return (
                   <Tab key={'tabLeft' + i} displayName={tab.displayName} alignment={TabAlignment.left}>
-                    {tabContents[tab.contentID].props.children}
+                    {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
               })[0]
@@ -276,7 +279,11 @@ function TabController(props: {
       <>
         {/*Additional Buttons. Here additional buttons like Settings or export get rendered that get displayed in the top right corner */}
         <div className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarHorizontal + ' ' + tabControllerStyles.tabBarTopRight}>
-          {props.children.filter((child) => child.type === TabControllerButton || child.type === TabControllerButtonThemeSwitch)}
+          {props.children.filter(
+            (child) =>
+              (child.type as TabElementType).name === TabControllerButton.name ||
+              (child.type as TabElementType).name === TabControllerButtonThemeSwitch.name,
+          )}
         </div>
       </>
     </div>
@@ -300,7 +307,7 @@ function generateTabs(
   let id = 0;
   const tabContents: TabContents = {};
   const tabList = children
-    .filter((child) => child.type === Tab)
+    .filter((child) => (child.type as TabElementType).name === Tab.name)
     .map((tab) => {
       const selected =
         (tab.props.alignment === TabAlignment.top && !firstFound[0]) ||

@@ -1,4 +1,4 @@
-import type {ProgressUpdateConfig} from '../../../types/settings/databaseSettingsType.ts';
+import type { ProgressUpdateConfig } from '../../../types/settings/databaseSettingsType.ts';
 
 export interface DataPluginGeneral {
   getIndexer: () => DataPluginIndexer;

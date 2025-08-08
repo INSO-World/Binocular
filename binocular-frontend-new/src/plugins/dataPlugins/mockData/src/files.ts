@@ -1,8 +1,4 @@
-import type {
-  DataPluginFile,
-  DataPluginFiles,
-  PreviousFilePaths
-} from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { DataPluginFile, DataPluginFiles, PreviousFilePaths } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default class Files implements DataPluginFiles {
   constructor() {}

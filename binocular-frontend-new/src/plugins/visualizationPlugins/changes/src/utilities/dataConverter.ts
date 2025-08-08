@@ -1,12 +1,10 @@
 import moment from 'moment/moment';
 import chroma from 'chroma-js';
 import _ from 'lodash';
-import type {DataPluginCommit} from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
-import type {AuthorType} from '../../../../../types/data/authorType.ts';
-import type {SettingsType} from '../settings/settings.tsx';
-import type {
-  VisualizationPluginProperties
-} from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { AuthorType } from '../../../../../types/data/authorType.ts';
+import type { SettingsType } from '../settings/settings.tsx';
+import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 interface CommitChartData {
   date: number;

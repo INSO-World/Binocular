@@ -45,6 +45,7 @@
     "worker-pouch": "^2.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.32.0",
     "@types/chroma-js": "^3.1.1",
     "@types/lodash": "^4.17.20",
     "@types/pouchdb-adapter-memory": "^6.1.6",
@@ -64,9 +65,12 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
     "prettier": "3.6.2",
+    "react-refresh": "^0.17.0",
     "sass": "^1.89.2",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.38.0",
     "vite": "6.3.4",
     "vite-plugin-conditional-compiler": "^0.3.1",
     "vite-plugin-node-polyfills": "^0.24.0",

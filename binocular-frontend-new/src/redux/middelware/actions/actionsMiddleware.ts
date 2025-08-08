@@ -1,5 +1,5 @@
-import type {Middleware} from 'redux';
-import type {Action} from '@reduxjs/toolkit';
+import type { Middleware } from 'redux';
+import type { Action } from '@reduxjs/toolkit';
 import { setLastAction } from '../../reducer/general/actionsReducer.ts';
 
 const actionsMiddleware = (): Middleware => {

@@ -1,4 +1,4 @@
-import type {DataPluginUser} from '../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import type { DataPluginUser } from '../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 export interface AuthorType {
   user: DataPluginUser;

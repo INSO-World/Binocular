@@ -1,5 +1,5 @@
-import type {DataPluginFileInCommit} from './dataPluginFiles.ts';
-import type {DataPluginUser} from './dataPluginUsers.ts';
+import type { DataPluginFileInCommit } from './dataPluginFiles.ts';
+import type { DataPluginUser } from './dataPluginUsers.ts';
 
 export interface DataPluginCommits {
   getAll: (from: string, to: string) => Promise<DataPluginCommit[]>;

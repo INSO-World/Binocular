@@ -1,5 +1,5 @@
-import type {RefObject} from 'react';
-import type {ChartData} from '../chart/chart.tsx';
+import type { RefObject } from 'react';
+import type { ChartData } from '../chart/chart.tsx';
 
 export function getSVGData(chartContainerRef: RefObject<HTMLDivElement | undefined>): string {
   const svgData = chartContainerRef.current?.children[1].outerHTML;

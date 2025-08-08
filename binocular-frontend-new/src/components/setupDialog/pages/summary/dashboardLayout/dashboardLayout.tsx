@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import type {RootState} from '../../../../../redux';
+import type { RootState } from '../../../../../redux';
 import DashboardPreview from '../../dashboard/dashboardPreview/dashboardPreview.tsx';
 
 function DashboardLayout() {

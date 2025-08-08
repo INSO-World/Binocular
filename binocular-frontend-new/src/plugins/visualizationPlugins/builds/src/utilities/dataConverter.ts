@@ -1,13 +1,11 @@
 import moment from 'moment/moment';
-import type {ParametersType} from '../../../../../types/parameters/parametersType.ts';
+import type { ParametersType } from '../../../../../types/parameters/parametersType.ts';
 import chroma from 'chroma-js';
 import _ from 'lodash';
-import type {DataPluginBuild} from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
-import type {AuthorType} from '../../../../../types/data/authorType.ts';
-import type {BuildSettings} from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
-import type {
-  VisualizationPluginProperties
-} from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import type { AuthorType } from '../../../../../types/data/authorType.ts';
+import type { BuildSettings } from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
+import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 interface BuildChartData {
   date: number;

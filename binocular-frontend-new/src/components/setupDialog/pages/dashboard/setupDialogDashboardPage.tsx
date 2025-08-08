@@ -1,5 +1,5 @@
-import {type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
-import type {RecommendedDashboard} from '../../../../types/general/recommendedDashboardType.ts';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
+import type { RecommendedDashboard } from '../../../../types/general/recommendedDashboardType.ts';
 import defaultDashboard from './recommendedDashboards/defaultDashboard.ts';
 import { setDashboardState } from '../../../../redux/reducer/general/dashboardReducer.ts';
 import { useState } from 'react';

@@ -1,7 +1,4 @@
-import type {
-  DataPluginBranch,
-  DataPluginBranches
-} from '../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
+import type { DataPluginBranch, DataPluginBranches } from '../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
 
 export default class Branches implements DataPluginBranches {
   public async getAllBranches(): Promise<DataPluginBranch[]> {

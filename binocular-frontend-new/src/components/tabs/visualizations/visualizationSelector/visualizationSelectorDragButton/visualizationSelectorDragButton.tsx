@@ -1,10 +1,10 @@
 import visualizationSelectorStyles from '../visualizationSelector.module.scss';
 import { addDashboardItem, placeDashboardItem } from '../../../../../redux/reducer/general/dashboardReducer.ts';
 import { DragDropElementType } from '../../../../../types/general/dragDropElementType.ts';
-import type {VisualizationPlugin} from '../../../../../plugins/interfaces/visualizationPlugin.ts';
-import {type AppDispatch, type RootState, useAppDispatch } from '../../../../../redux';
+import type { VisualizationPlugin } from '../../../../../plugins/interfaces/visualizationPlugin.ts';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../../../redux';
 import { useSelector } from 'react-redux';
-import type {DatabaseSettingsDataPluginType} from '../../../../../types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType.ts';
 import HelpIcon from '../../../../../assets/help_blue.svg';
 import { showInfoTooltipp } from '../../../../infoTooltipp/infoTooltippHelper.ts';
 function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<unknown, unknown>; showHelp: boolean }) {

@@ -1,4 +1,4 @@
-import type {DataPluginFile} from '../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { DataPluginFile } from '../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export interface FileListElementType {
   element: DataPluginFile;

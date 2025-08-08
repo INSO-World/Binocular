@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type {NotificationType} from '../../../types/general/alertType.ts';
+import type { NotificationType } from '../../../types/general/alertType.ts';
 
 export interface NotificationsInitialState {
   notificationList: NotificationType[];

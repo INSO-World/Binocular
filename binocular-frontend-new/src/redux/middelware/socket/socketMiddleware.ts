@@ -1,10 +1,10 @@
 //Modified version from: https://shav.dev/blog/socket-io-and-redux-middleware
 
 //Modified version from: https://shav.dev/blog/socket-io-and-redux-middleware
-import type {Middleware} from 'redux';
-import SocketFactory, {type SocketInterface } from './SocketFactory.ts';
+import type { Middleware } from 'redux';
+import SocketFactory, { type SocketInterface } from './SocketFactory.ts';
 import { setConnectionStatus, setProgress } from '../../reducer/general/progressReducer.ts';
-import type {ProgressType} from '../../../types/general/progressType.ts';
+import type { ProgressType } from '../../../types/general/progressType.ts';
 import _ from 'lodash';
 import { SocketConnectionStatusType } from '../../../types/general/socketConnectionType.ts';
 

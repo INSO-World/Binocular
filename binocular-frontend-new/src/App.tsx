@@ -13,7 +13,7 @@ import OtherAuthors from './components/tabs/authors/otherAuthors/otherAuthors.ts
 import TabControllerButton from './components/tabMenu/tabControllerButton/tabControllerButton.tsx';
 import SettingsGray from './assets/settings_gray.svg';
 import ExportGray from './assets/export_gray.svg';
-import {type AppDispatch, type RootState, useAppDispatch } from './redux';
+import { type AppDispatch, type RootState, useAppDispatch } from './redux';
 import { useSelector } from 'react-redux';
 import { setParametersDateRange, setParametersGeneral } from './redux/reducer/parameters/parametersReducer.ts';
 import SprintView from './components/tabs/sprints/sprintView/sprintView.tsx';
@@ -23,7 +23,7 @@ import FileList from './components/tabs/fileTree/fileList/fileList.tsx';
 import HelpGeneral from './components/tabs/help/helpGeneral/helpGeneral.tsx';
 import HelpComponents from './components/tabs/help/helpComponents/helpComponents.tsx';
 import DataPluginQuickSelect from './components/dataPluginQuickSelect/dataPluginQuickSelect.tsx';
-import type {DatabaseSettingsDataPluginType} from './types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from './types/settings/databaseSettingsType.ts';
 import { setAuthorsDataPluginId } from './redux/reducer/data/authorsReducer.ts';
 import { setFilesDataPluginId } from './redux/reducer/data/filesReducer.ts';
 import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx';

@@ -2,11 +2,9 @@ import { StackedAreaChart } from './stackedAreaChart.tsx';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
-import type {DefaultSettings} from '../settings/settings.tsx';
+import type { DefaultSettings } from '../settings/settings.tsx';
 import { handelPopoutResizing } from '../../../../utils/resizing.ts';
-import type {
-  VisualizationPluginProperties
-} from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 export interface ChartData {
   date: number;

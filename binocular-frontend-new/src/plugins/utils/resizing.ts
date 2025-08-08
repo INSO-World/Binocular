@@ -1,4 +1,4 @@
-import type {Store} from '@reduxjs/toolkit';
+import type { Store } from '@reduxjs/toolkit';
 import { throttle } from 'throttle-debounce';
 
 export function handelPopoutResizing(store: Store, fn: () => void) {

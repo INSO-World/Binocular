@@ -1,7 +1,7 @@
 import statusBarStyles from './statusBar.module.scss';
 import { useSelector } from 'react-redux';
-import type {RootState} from '../../redux';
-import type {DatabaseSettingsDataPluginType} from '../../types/settings/databaseSettingsType.ts';
+import type { RootState } from '../../redux';
+import type { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
 import StatusBarDataPlugin from './statusBarDataPlugin/statusBarDataPlugin.tsx';
 
 function StatusBar() {

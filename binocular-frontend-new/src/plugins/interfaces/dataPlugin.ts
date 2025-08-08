@@ -1,10 +1,10 @@
-import type {DataPluginGeneral} from './dataPluginInterfaces/dataPluginGeneral.ts';
-import type {DataPluginCommits} from './dataPluginInterfaces/dataPluginCommits.ts';
-import type {DataPluginUsers} from './dataPluginInterfaces/dataPluginUsers.ts';
-import type {DataPluginBuilds} from './dataPluginInterfaces/dataPluginBuilds.ts';
-import type {DataPluginFiles, FileConfig} from './dataPluginInterfaces/dataPluginFiles.ts';
-import type {ProgressUpdateConfig} from '../../types/settings/databaseSettingsType.ts';
-import type {DataPluginBranches} from './dataPluginInterfaces/dataPluginBranches.ts';
+import type { DataPluginGeneral } from './dataPluginInterfaces/dataPluginGeneral.ts';
+import type { DataPluginCommits } from './dataPluginInterfaces/dataPluginCommits.ts';
+import type { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
+import type { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
+import type { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
+import type { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
+import type { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
 
 export interface DataPlugin {
   name: string;

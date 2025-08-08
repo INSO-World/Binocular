@@ -1,9 +1,9 @@
-import type {ReactNode, RefObject} from 'react';
-import type {DataPlugin} from './dataPlugin.ts';
-import type {Reducer} from '@reduxjs/toolkit';
-import type {ChartData, Palette} from '../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
-import type {VisualizationPluginProperties} from './visualizationPluginInterfaces/visualizationPluginProperties.ts';
-import type {VisualizationPluginMetadata} from './visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import type { ReactNode, RefObject } from 'react';
+import type { DataPlugin } from './dataPlugin.ts';
+import type { Reducer } from '@reduxjs/toolkit';
+import type { ChartData, Palette } from '../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
+import type { VisualizationPluginProperties } from './visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { VisualizationPluginMetadata } from './visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
 export interface VisualizationPlugin<SettingsType, DataType> {
   name: string;

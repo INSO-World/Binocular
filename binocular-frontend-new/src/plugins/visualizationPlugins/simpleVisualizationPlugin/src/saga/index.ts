@@ -1,6 +1,6 @@
 import { put, takeEvery, fork, call, select } from 'redux-saga/effects';
-import {type State, DataState, getDataSlice } from '../reducer';
-import type {DataPlugin} from '../../../../interfaces/dataPlugin.ts';
+import { type State, DataState, getDataSlice } from '../reducer';
+import type { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
 
 export default function* <DataType>(dataConnection: DataPlugin, name?: string, dataConnectionName?: string) {
   yield fork(() => watchRefresh<DataType>(dataConnection, name!, dataConnectionName!));

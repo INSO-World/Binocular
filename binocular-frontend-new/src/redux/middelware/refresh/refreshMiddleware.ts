@@ -1,6 +1,6 @@
-import type {Middleware} from 'redux';
-import type {Action, Store} from '@reduxjs/toolkit';
-import type {DatabaseSettingsDataPluginType} from '../../../types/settings/databaseSettingsType.ts';
+import type { Middleware } from 'redux';
+import type { Action, Store } from '@reduxjs/toolkit';
+import type { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 
 const refreshMiddleware = (globalStore: Store, dataPlugin: DatabaseSettingsDataPluginType): Middleware => {
   return () => {
