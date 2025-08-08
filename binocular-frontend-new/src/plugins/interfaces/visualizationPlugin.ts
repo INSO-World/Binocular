@@ -17,7 +17,7 @@ export interface VisualizationPlugin<SettingsType, DataType> {
   ) => { chartData: ChartData[]; scale: number[]; palette: Palette };
   defaultSettings: unknown;
   export: {
-    getSVGData: (chartContainerRef: RefObject<HTMLDivElement>) => string; // method that extracts and returns a svg element as a string from a RefObject
+    getSVGData: (chartContainerRef: RefObject<HTMLDivElement | null>) => string; // method that extracts and returns a svg element as a string from a RefObject
   };
   capabilities: {
     //capabilities that the visualization can fulfill

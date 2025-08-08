@@ -22,7 +22,7 @@ export interface VisualizationPluginProperties<SettingsType, DataType> {
   fileList: FileListElementType[]; //list of Users set by Binocular
   sprintList: SprintType[]; //list of Sprints set by Binocular
   parameters: ParametersType; // General Parameters Provided By Binocular
-  chartContainerRef: RefObject<HTMLDivElement>; //forwarded ref that should reference the chart div
+  chartContainerRef: RefObject<HTMLDivElement | null>; //forwarded ref that should reference the chart div
   store: Store; //Redux store is needed
   // for creating the redux dispatch within the chart component so that it can change the store.
   // The store gets dynamically created for each visualization item within the components/dashboard/dashboardItem component

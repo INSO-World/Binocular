@@ -41,7 +41,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
    * RESIZE Logic START
    */
   function resize() {
-    if (!props.chartContainerRef.current) return;
+    if (!props.chartContainerRef?.current) return;
     if (props.chartContainerRef.current?.offsetWidth !== chartWidth) {
       setChartWidth(props.chartContainerRef.current.offsetWidth);
     }
