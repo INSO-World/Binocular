@@ -235,12 +235,12 @@ function getDataByAuthors(
     data.push(obj);
   }
 
-  //---- STEP 2: CONSTRUCT CHART DATA FROM AGGREGATED COMMITS ----
+  //---- STEP 2: CONSTRUCT CHART DATA FROM AGGREGATED BUILDS ----
   palette['Successful builds others'] = { main: '#555555', secondary: '#777777' };
   palette['Failed builds others'] = { main: '#AAAAAA', secondary: '#CCCCCC' };
-  data.forEach((commit) => {
+  data.forEach((build) => {
     //commit has structure {date, statsByAuthor: {}} (see next line)}
-    const obj: BuildChartData = { date: commit.date };
+    const obj: BuildChartData = { date: build.date };
 
     for (const author of authors) {
       palette['Successful builds ' + (author.displayName || author.user.gitSignature)] = {
@@ -266,17 +266,17 @@ function getDataByAuthors(
             ? 'others'
             : authors.filter((a) => a.id === author.parent)[0].user.gitSignature;
 
-      if (author.user.id in commit.statsBySortingObject) {
+      if (author.user.id in build.statsBySortingObject) {
         //Insert number of changes with the author name as key,
         //statsByAuthor has structure {{authorName: {count, additions, deletions, changes}}, ...}
         if ('Successful builds ' + name in obj && 'Failed builds ' + name in obj) {
-          obj['Successful builds ' + name] += commit.statsBySortingObject[author.user.id].success;
+          obj['Successful builds ' + name] += build.statsBySortingObject[author.user.id].success;
           //-0.001 for stack layout to realize it belongs on the bottom
-          obj['Failed builds ' + name] += commit.statsBySortingObject[author.user.id].failed * -1 - 0.001;
+          obj['Failed builds ' + name] += build.statsBySortingObject[author.user.id].failed * -1 - 0.001;
         } else {
-          obj['Successful builds ' + name] = commit.statsBySortingObject[author.user.id].success;
+          obj['Successful builds ' + name] = build.statsBySortingObject[author.user.id].success;
           //-0.001 for stack layout to realize it belongs on the bottom
-          obj['Failed builds ' + name] = commit.statsBySortingObject[author.user.id].failed * -1 - 0.001;
+          obj['Failed builds ' + name] = build.statsBySortingObject[author.user.id].failed * -1 - 0.001;
         }
       }
     });

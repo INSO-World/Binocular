@@ -121,5 +121,19 @@ $authorRowHeight :1.5rem;
 
 }
 
+.checkAllButton{
+  background-image: url('../../../../assets/check_box_black.svg');
+  background-size: 1rem 1rem;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.uncheckAllButton{
+  background-image: url('../../../../assets/check_box_outline_black.svg');
+  background-size: 1rem 1rem;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 
 
