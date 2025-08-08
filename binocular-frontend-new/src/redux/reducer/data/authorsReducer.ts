@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { AuthorType } from '../../../types/data/authorType.ts';
 import Config from '../../../config.ts';
-import { AccountType } from '../../../types/data/accountType.ts';
+import type { AccountType } from '../../../types/data/accountType.ts';
 
 export interface AuthorsInitialState {
   authorLists: { [id: number]: AuthorType[] };

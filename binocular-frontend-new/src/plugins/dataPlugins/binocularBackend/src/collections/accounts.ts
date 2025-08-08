@@ -1,6 +1,6 @@
 import { GraphQL, traversePages } from '../utils.ts';
 import { gql } from '@apollo/client';
-import { DataPluginAccount, DataPluginAccounts } from '../../../../interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
+import type { DataPluginAccount, DataPluginAccounts } from '../../../../interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
 
 export default class Accounts implements DataPluginAccounts {
   private graphQl;

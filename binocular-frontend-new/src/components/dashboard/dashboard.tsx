@@ -237,10 +237,12 @@ function Dashboard() {
   }, [columnCount, gridSize]);
 
   const resizeObserver = new ResizeObserver(() => {
-    if (dashboardRef.current) {
-      setCellSize(dashboardRef.current.offsetWidth / columnCount);
-      dispatch({ type: 'RESIZE' });
-    }
+    requestAnimationFrame(() => {
+      if (dashboardRef.current) {
+        setCellSize(dashboardRef.current.offsetWidth / columnCount);
+        dispatch({ type: 'RESIZE' });
+      }
+    });
   });
 
   useEffect(() => {
@@ -261,10 +263,10 @@ function Dashboard() {
         <div className={dashboardStyles.dashboardContent}>
           <table className={dashboardStyles.dashboardBackground}>
             <tbody>
-              {[...Array(rowCount).keys()].map((row) => {
+              {Array.from({ length: rowCount }, (_, i) => i).map((row) => {
                 return (
                   <tr key={'dashboardBackgroundRow' + row}>
-                    {[...Array(columnCount).keys()].map((col) => {
+                    {Array.from({ length: columnCount }, (_, i) => i).map((col) => {
                       return (
                         <td
                           key={'dashboardBackgroundCol' + col}

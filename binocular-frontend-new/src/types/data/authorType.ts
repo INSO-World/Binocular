@@ -1,4 +1,4 @@
-import { UserType } from './userType.ts';
+import type { UserType } from './userType.ts';
 
 export interface AuthorType {
   user: UserType;

@@ -21,10 +21,10 @@ function AddSprintDialog() {
           <>
             <div role="tablist" className="tabs tabs-box">
               <a role={'tab'} className={'tab ' + (activeTab === 'single' ? 'tab-active' : '')} onClick={() => setActiveTab('single')}>
-                Single Tab
+                Single Sprint
               </a>
               <a role={'tab'} className={'tab ' + (activeTab === 'multiple' ? 'tab-active' : '')} onClick={() => setActiveTab('multiple')}>
-                Multiple Tabs
+                Multiple Sprints
               </a>
             </div>
             {activeTab === 'single' && <AddSprintDialogSingleTab></AddSprintDialogSingleTab>}

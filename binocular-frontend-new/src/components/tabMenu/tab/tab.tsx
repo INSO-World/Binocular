@@ -11,7 +11,6 @@ export interface TabProps {
 }
 
 function Tab(props: TabProps) {
-  console.log('Tab', props);
   if (Array.isArray(props.children)) {
     return (
       <div className={tabStyles.tab}>

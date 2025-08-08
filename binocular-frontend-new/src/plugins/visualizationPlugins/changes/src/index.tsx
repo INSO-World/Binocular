@@ -1,5 +1,5 @@
 import PreviewImage from '../assets/thumbnail.svg';
-import Settings, { type SettingsType } from './settings/settings.tsx';
+import Settings, { type ChangesSettings } from './settings/settings.tsx';
 import type { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
 import { getSVGData } from './utilities/utilities.ts';
 import Reducer from '../../simpleVisualizationPlugin/src/reducer';
@@ -9,7 +9,7 @@ import { convertToChartData } from './utilities/dataConverter.ts';
 import type { DataPluginCommit } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { VisualizationPluginMetadataCategory } from '../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
-const Changes: VisualizationPlugin<SettingsType, DataPluginCommit> = {
+const Changes: VisualizationPlugin<ChangesSettings, DataPluginCommit> = {
   name: 'Changes',
   chartComponent: undefined,
   settingsComponent: Settings,

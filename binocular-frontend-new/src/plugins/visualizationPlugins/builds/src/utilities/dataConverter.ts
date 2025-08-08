@@ -4,8 +4,8 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import type { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import type { AuthorType } from '../../../../../types/data/authorType.ts';
-import type { BuildSettings } from '../../../simpleVisualizationPlugin/src/settings/settings.tsx';
 import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { BuildSettings } from '../settings/settings';
 
 interface BuildChartData {
   date: number;

@@ -1,9 +1,9 @@
 import {
-  DataPluginGeneral,
-  DataPluginIndexer,
+  type DataPluginGeneral,
+  type DataPluginIndexer,
   DataPluginIndexerState,
 } from '../../../../interfaces/dataPluginInterfaces/dataPluginGeneral.ts';
-import { ProgressUpdateConfig } from '../../../../../types/settings/databaseSettingsType.ts';
+import type { ProgressUpdateConfig } from '../../../../../types/settings/databaseSettingsType.ts';
 //import {GraphQL} from "./utils.ts";
 
 export default class General implements DataPluginGeneral {

@@ -1,5 +1,5 @@
 import PreviewImage from '../assets/thumbnail.svg';
-import Settings, { type SettingsType } from './settings/settings.tsx';
+import Settings, { type BuildSettings } from './settings/settings.tsx';
 import type { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
 import { getSVGData } from './utilities/utilities.ts';
 import Reducer from './reducer';
@@ -9,7 +9,7 @@ import Help from './help/help.tsx';
 import type { DataPluginBuild } from '../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { VisualizationPluginMetadataCategory } from '../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
-const Builds: VisualizationPlugin<SettingsType, DataPluginBuild> = {
+const Builds: VisualizationPlugin<BuildSettings, DataPluginBuild> = {
   name: 'Builds',
   chartComponent: undefined,
   settingsComponent: Settings,

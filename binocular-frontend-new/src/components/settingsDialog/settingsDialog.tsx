@@ -7,7 +7,7 @@ function SettingsDialog() {
 
   return (
     <dialog id={'settingsDialog'} className={'modal'}>
-      <div className={'modal-box max-w-full h-full'}>
+      <div className={'modal-box max-w-full'} style={{ height: '95vh' }}>
         <form method={'dialog'}>
           <button className="btn btn-sm btn-circle absolute right-2 top-2 btn-accent">✕</button>
         </form>

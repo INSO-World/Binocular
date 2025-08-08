@@ -35,7 +35,7 @@ export function moveResizeDashboardItem(dashboardItem: DashboardItemType, rowCou
   }
 }
 
-export function clearHighlightDropArea(dragIndicatorRef: RefObject<HTMLDivElement>, columnCount: number, rowCount: number) {
+export function clearHighlightDropArea(dragIndicatorRef: RefObject<HTMLDivElement | null>, columnCount: number, rowCount: number) {
   if (dragIndicatorRef.current !== null) {
     dragIndicatorRef.current.style.display = 'none';
   }
@@ -81,7 +81,7 @@ export function highlightDropArea(
 }
 
 export function setDragResizeMode(
-  dragResizeZoneRef: RefObject<HTMLDivElement>,
+  dragResizeZoneRef: RefObject<HTMLDivElement | null>,
   dragResizeMode: MutableRefObject<DragResizeMode>,
   newDragResizeMode: DragResizeMode,
 ) {
@@ -96,7 +96,7 @@ export function setDragResizeMode(
 }
 
 export function placeDragIndicator(
-  dragIndicatorRef: RefObject<HTMLDivElement>,
+  dragIndicatorRef: RefObject<HTMLDivElement | null>,
   movingItem: MutableRefObject<DashboardItemDTO>,
   columnCount: number,
   gridMultiplier: number,
@@ -112,7 +112,7 @@ export function placeDragIndicator(
 }
 
 export function moveDragIndicator(
-  dragIndicatorRef: RefObject<HTMLDivElement>,
+  dragIndicatorRef: RefObject<HTMLDivElement | null>,
   movingItem: MutableRefObject<DashboardItemDTO>,
   dragResizeMode: MutableRefObject<DragResizeMode>,
   movement: { movementX: number; movementY: number },

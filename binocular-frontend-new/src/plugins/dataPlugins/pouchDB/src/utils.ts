@@ -547,14 +547,18 @@ export function findFileCommitUserConnections(relations: PouchDB.Database) {
 }
 
 export function findBranch(database: PouchDB.Database, branch: string) {
-  return database.find({
-    selector: {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      _id: { $regex: new RegExp('^branches/.*') },
-      branch: { $eq: branch },
-    },
-  });
+  return new Promise<PouchDB.Find.FindResponse<object>>((resolve) =>
+    database
+      .find({
+        selector: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          _id: { $regex: new RegExp('^branches/.*') },
+          branch: { $eq: branch },
+        },
+      })
+      .then((result) => resolve(result)),
+  );
 }
 
 export function findBranchFileConnections(relations: PouchDB.Database) {

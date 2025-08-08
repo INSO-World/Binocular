@@ -126,6 +126,7 @@ $authorRowHeight :1.5rem;
   background-size: 1rem 1rem;
   background-repeat: no-repeat;
   background-position: center;
+  padding: 0 .75rem;
 }
 
 .uncheckAllButton{
@@ -133,6 +134,15 @@ $authorRowHeight :1.5rem;
   background-size: 1rem 1rem;
   background-repeat: no-repeat;
   background-position: center;
+  padding: 0 .75rem;
+}
+
+.flipButton{
+  background-image: url('../../../../assets/flip_black.svg');
+  background-size: 1rem 1rem;
+  background-repeat: no-repeat;
+  background-position: center;
+  padding: 0 .75rem;
 }
 
 

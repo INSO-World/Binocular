@@ -1,4 +1,4 @@
-import { AccountType } from './accountType.ts';
+import type { AccountType } from './accountType.ts';
 
 export interface UserType {
   id: string;
