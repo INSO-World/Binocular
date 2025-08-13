@@ -3,7 +3,7 @@ import { createRef, useEffect, useRef, useState } from 'react';
 import DashboardItem from './dashboardItem/dashboardItem.tsx';
 import { DragResizeMode } from './resizeMode.ts';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, store, useAppDispatch } from '../../redux';
+import { type AppDispatch, type RootState, store, useAppDispatch } from '../../redux';
 import {
   addDashboardItem,
   deleteDashboardItem,
@@ -12,8 +12,8 @@ import {
   updateDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
-import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
-import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
+import type { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
 import { addNotification } from '../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../types/general/alertType.ts';
 import {
@@ -237,10 +237,12 @@ function Dashboard() {
   }, [columnCount, gridSize]);
 
   const resizeObserver = new ResizeObserver(() => {
-    if (dashboardRef.current) {
-      setCellSize(dashboardRef.current.offsetWidth / columnCount);
-      dispatch({ type: 'RESIZE' });
-    }
+    requestAnimationFrame(() => {
+      if (dashboardRef.current) {
+        setCellSize(dashboardRef.current.offsetWidth / columnCount);
+        dispatch({ type: 'RESIZE' });
+      }
+    });
   });
 
   useEffect(() => {
@@ -261,10 +263,10 @@ function Dashboard() {
         <div className={dashboardStyles.dashboardContent}>
           <table className={dashboardStyles.dashboardBackground}>
             <tbody>
-              {[...Array(rowCount).keys()].map((row) => {
+              {Array.from({ length: rowCount }, (_, i) => i).map((row) => {
                 return (
                   <tr key={'dashboardBackgroundRow' + row}>
-                    {[...Array(columnCount).keys()].map((col) => {
+                    {Array.from({ length: columnCount }, (_, i) => i).map((col) => {
                       return (
                         <td
                           key={'dashboardBackgroundCol' + col}

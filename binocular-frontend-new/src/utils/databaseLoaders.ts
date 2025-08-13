@@ -1,6 +1,6 @@
 // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
 import { addDataPlugin, LocalDatabaseLoadingState, setLocalDatabaseLoadingState } from '../redux/reducer/settings/settingsReducer.ts';
-import { AppDispatch } from '../redux';
+import type { AppDispatch } from '../redux';
 import { PouchDB } from '../plugins/pluginRegistry.ts';
 
 /**
@@ -37,7 +37,7 @@ import notes from '../db_export/notes.json';
 import issuesNotes from '../db_export/issues-notes.json';
 import mergeRequestsNotes from '../db_export/mergeRequests-notes.json';
 import notesAccounts from '../db_export/notes-accounts.json';
-import { JSONObject } from '../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { JSONObject } from '../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 const dbObjects: { [key: string]: JSONObject[] } = {
   branches: branches,

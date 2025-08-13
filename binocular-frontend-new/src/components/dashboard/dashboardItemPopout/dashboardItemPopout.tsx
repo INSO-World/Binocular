@@ -1,5 +1,5 @@
-import { ReactElement } from 'react';
-import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
+import type { ReactElement } from 'react';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
 import { useSelector } from 'react-redux';
 import PopoutController from './popoutController/popoutController.tsx';
 import { addNotification } from '../../../redux/reducer/general/notificationsReducer.ts';

@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
-import { AccountType } from '../../../types/data/accountType.ts';
+import type { AccountType } from '../../../types/data/accountType.ts';
 
 export interface AccountsInitialState {
   accountLists: { [id: number]: AccountType };

@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
 import { clearSettingsStorage, importSettingsStorage, setGeneralSettings } from '../../../redux/reducer/settings/settingsReducer.ts';
 import { SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
 import { clearAuthorsStorage, importAuthorsStorage } from '../../../redux/reducer/data/authorsReducer.ts';
@@ -112,6 +112,7 @@ function GeneralSettings() {
                             setFileImportError('Storage Version not compatible!');
                           }
                         } catch (e) {
+                          console.error(e);
                           setFileImportError('Error Reading File!');
                         }
                       }

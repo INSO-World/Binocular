@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { SunburstChart } from './sunburstChart.tsx';
-import { Store } from '@reduxjs/toolkit';
+import type { Store } from '@reduxjs/toolkit';
 import { handelPopoutResizing } from '../../../../utils/resizing.ts';
 
 function Chart(props: { store: Store }) {

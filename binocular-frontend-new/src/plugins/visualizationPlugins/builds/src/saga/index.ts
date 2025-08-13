@@ -1,7 +1,7 @@
 import { put, takeEvery, fork, call, select } from 'redux-saga/effects';
-import { BuildsState, DataState, setBuilds, setDataState, setDateRange } from '../reducer';
-import { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
-import { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import { type BuildsState, DataState, setBuilds, setDataState, setDateRange } from '../reducer';
+import type { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
+import type { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 
 export default function* (dataConnection: DataPlugin) {
   yield fork(() => watchRefresh(dataConnection));

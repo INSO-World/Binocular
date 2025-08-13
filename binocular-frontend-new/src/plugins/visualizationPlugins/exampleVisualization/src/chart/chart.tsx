@@ -1,8 +1,8 @@
 import { AreaChart } from './areaChart.tsx';
 import { createRef, useEffect, useState } from 'react';
-import { SettingsType } from '../settings/settings.tsx';
+import type { SettingsType } from '../settings/settings.tsx';
 import { handelPopoutResizing } from '../../../../utils/resizing.ts';
-import { Store } from '@reduxjs/toolkit';
+import type { Store } from '@reduxjs/toolkit';
 
 function Chart(props: { settings: SettingsType; store: Store }) {
   const chartContainerRef = createRef<HTMLDivElement>();

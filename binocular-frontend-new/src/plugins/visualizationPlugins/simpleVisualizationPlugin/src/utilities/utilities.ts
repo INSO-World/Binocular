@@ -1,7 +1,7 @@
-import { RefObject } from 'react';
-import { ChartData } from '../chart/chart.tsx';
+import type { RefObject } from 'react';
+import type { ChartData } from '../chart/chart.tsx';
 
-export function getSVGData(chartContainerRef: RefObject<HTMLDivElement | undefined>): string {
+export function getSVGData(chartContainerRef: RefObject<HTMLDivElement | null>): string {
   const svgData = chartContainerRef.current?.children[1].outerHTML;
   if (svgData === undefined) {
     return '<svg xmlns="http://www.w3.org/2000/svg"></svg>';

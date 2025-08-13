@@ -47,12 +47,12 @@ function SetupDialog() {
 
         <div className={'modal-action'}>
           {page > 1 && page <= pageCount && (
-            <button className={'btn btn-sm btn-accent'} style={{ color: '#fff' }} onClick={() => setPage(page - 1)}>
+            <button className={'btn btn-sm btn-accent'} onClick={() => setPage(page - 1)}>
               Back
             </button>
           )}
           {page >= pageCount ? (
-            <button className={'btn btn-sm btn-success'} style={{ color: '#fff' }} onClick={() => location.reload()}>
+            <button className={'btn btn-sm btn-success'} onClick={() => location.reload()}>
               Save
             </button>
           ) : (

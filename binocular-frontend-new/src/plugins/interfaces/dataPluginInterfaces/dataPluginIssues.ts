@@ -1,5 +1,5 @@
-import { DataPluginAccount } from './dataPluginAccounts.ts';
-import { DataPluginNote } from './dataPluginNotes.ts';
+import type { DataPluginAccount } from './dataPluginAccounts.ts';
+import type { DataPluginNote } from './dataPluginNotes.ts';
 
 export interface DataPluginIssues {
   getAll: (from: string, to: string) => Promise<DataPluginIssue[]>;

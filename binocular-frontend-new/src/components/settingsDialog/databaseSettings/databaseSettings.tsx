@@ -1,9 +1,9 @@
 import { dataPlugins } from '../../../plugins/pluginRegistry.ts';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../redux';
-import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import type { RootState } from '../../../redux';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { useEffect } from 'react';
-import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import AddDataPluginCard from '../addDataPluginCard/addDataPluginCard.tsx';
 import ConnectedDataPlugins from '../connectedDataPlugins/connectedDataPlugins.tsx';

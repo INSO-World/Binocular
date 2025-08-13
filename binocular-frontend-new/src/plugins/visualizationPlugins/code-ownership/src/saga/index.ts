@@ -1,8 +1,9 @@
 import { put, takeLatest, fork, call, select } from 'redux-saga/effects';
-import { DataState, setDataState, setData, CodeOwnershipData, CodeOwnershipState, setCurrentBranch } from '../reducer';
-import { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
+import { DataState, setDataState, setData, type CodeOwnershipData, type CodeOwnershipState, setCurrentBranch } from '../reducer';
+import type { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
 import { getCommitDataForSha, getDefaultBranch, getFilenamesForBranch, getOwnershipForCommits, getPreviousFilenames } from './helper.ts';
-import { PreviousFileData } from '../../../../../types/data/ownershipType.ts';
+import type { PreviousFileData } from '../../../../../types/data/ownershipType.ts';
+import type { DataPluginBranch } from '../../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
 
 export default function* (dataConnection: DataPlugin) {
   yield fork(() => watchRefresh(dataConnection));
@@ -24,7 +25,7 @@ function* fetchCodeOwnershipData(dataConnection: DataPlugin) {
   const data: CodeOwnershipData = yield call(async () => {
     if (!dataConnection.branches) return;
     const branches = (await dataConnection.branches.getAllBranches()).sort((a, b) => a.branch.localeCompare(b.branch));
-    let currentBranch = undefined;
+    let currentBranch: DataPluginBranch | null | undefined = undefined;
     if (!branchId) currentBranch = getDefaultBranch(branches);
     else currentBranch = branches[branchId];
 
@@ -41,11 +42,15 @@ function* fetchCodeOwnershipData(dataConnection: DataPlugin) {
           throw new Error('Latest branch commit not found');
         }
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         const activeFiles = await getFilenamesForBranch(currentBranch.branch, dataConnection);
 
         //get previous filenames for all active files
         const previousFilenames: { [p: string]: PreviousFileData[] } = await getPreviousFilenames(
           activeFiles,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
           currentBranch,
           dataConnection,
         );

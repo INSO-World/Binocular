@@ -1,10 +1,10 @@
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
-import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
+import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import { useState } from 'react';
 import { addDataPlugin, LocalDatabaseLoadingState } from '../../../../redux/reducer/settings/settingsReducer.ts';
 import { dataPlugins } from '../../../../plugins/pluginRegistry.ts';
-import { DataPlugin } from '../../../../plugins/interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../../plugins/interfaces/dataPlugin.ts';
 import AddDataPluginCard from '../../../settingsDialog/addDataPluginCard/addDataPluginCard.tsx';
 import ConnectedDataPlugins from '../../../settingsDialog/connectedDataPlugins/connectedDataPlugins.tsx';
 

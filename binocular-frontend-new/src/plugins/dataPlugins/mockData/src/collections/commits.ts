@@ -1,4 +1,8 @@
-import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type {
+  DataPluginCommit,
+  DataPluginCommits,
+  DataPluginOwnership,
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
   constructor() {}
@@ -16,6 +20,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-01T12:00:00.000Z',
@@ -32,6 +37,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-02T12:00:00.000Z',
@@ -48,6 +54,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-03T12:00:00.000Z',
@@ -64,6 +71,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-04T12:00:00.000Z',
@@ -80,6 +88,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-05T12:00:00.000Z',
@@ -668,6 +677,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-01T12:00:00.000Z',
@@ -683,12 +693,16 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-02T12:00:00.000Z',
           parents: ['0000000001'],
           webUrl: 'www.github.com',
           stats: { additions: 10, deletions: 20 },
+          files: {
+            data: [],
+          },
         },
         {
           sha: '0000000003',
@@ -698,12 +712,16 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-03T12:00:00.000Z',
           parents: ['0000000002'],
           webUrl: 'www.github.com',
           stats: { additions: 2, deletions: 5 },
+          files: {
+            data: [],
+          },
         },
         {
           sha: '0000000004',
@@ -713,12 +731,16 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-04T12:00:00.000Z',
           parents: ['0000000003'],
           webUrl: 'www.github.com',
           stats: { additions: 20, deletions: 0 },
+          files: {
+            data: [],
+          },
         },
         {
           sha: '0000000005',
@@ -728,15 +750,53 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-05T12:00:00.000Z',
           parents: ['0000000004'],
           webUrl: 'www.github.com',
           stats: { additions: 6, deletions: 10 },
+          files: {
+            data: [],
+          },
         },
       ];
       resolve(commits);
+    });
+  }
+
+  public async getCommitDataForSha(_sha: string) {
+    return new Promise<DataPluginCommit>((resolve) => {
+      resolve({
+        sha: '0000000001',
+        shortSha: '00001',
+        files: { data: [] },
+        messageHeader: 'Commit 1',
+        message: 'This is the first Commit',
+        user: {
+          id: '1',
+          gitSignature: 'tester@github.com',
+          account: null,
+        },
+        branch: 'main',
+        date: '2024-06-01T12:00:00.000Z',
+        parents: [],
+        webUrl: 'www.github.com',
+        stats: { additions: 5, deletions: 0 },
+      });
+    });
+  }
+
+  public async getDateOfFirstCommit() {
+    return new Promise<string>((resolve) => {
+      resolve('2024-06-01T12:00:00.000Z');
+    });
+  }
+
+  public async getDateOfLastCommit() {
+    return new Promise<string>((resolve) => {
+      resolve('2024-06-01T12:00:00.000Z');
     });
   }
 }
