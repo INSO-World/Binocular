@@ -1,7 +1,7 @@
 import authorListStyles from './authorList.module.scss';
 import authorStyles from '../authors.module.scss';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
+import { type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import {
   checkAllAuthors,
   editAuthor,
@@ -24,14 +24,15 @@ import dragIndicatorIcon from '../../../../assets/drag_indicator_gray.svg';
 import removePersonIcon from '../../../../assets/remove_person_gray.svg';
 import checkBoxIconGray from '../../../../assets/check_box_gray.svg';
 import checkBoxOutlineIconGray from '../../../../assets/check_box_outline_gray.svg';
-import { AuthorType } from '../../../../types/data/authorType.ts';
-import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
+import flipIconGray from '../../../../assets/flip_gray.svg';
+import type { AuthorType } from '../../../../types/data/authorType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
-import { DataPluginUser } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
-import { DataPluginAccount } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
+import type { DataPluginUser } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import type { DataPluginAccount } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
 import { accountsSlice, setAccountList, setAccountsDataPluginId } from '../../../../redux/reducer/data/accountsReducer.ts';
 import Config from '../../../../config.ts';
-import { AccountType } from '../../../../types/data/accountType.ts';
+import type { AccountType } from '../../../../types/data/accountType.ts';
 
 function AuthorList(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -204,12 +205,17 @@ function AuthorList(props: { orientation?: string }) {
           (props.orientation === 'horizontal' ? authorListStyles.authorListHorizontal : authorListStyles.authorListVertical)
         }>
         <div className={'border-b border-base-300 pt-1'}>
-          <button
-            className={'btn btn-circle btn-xs ' + authorListStyles.checkAllButton}
-            onClick={() => dispatch(checkAllAuthors())}></button>
-          <button
-            className={'btn btn-circle btn-xs ml-1 ' + authorListStyles.uncheckAllButton}
-            onClick={() => dispatch(uncheckAllAuthors())}></button>
+          <div className="join">
+            <button
+              className={'btn btn-xs join-item ' + authorListStyles.checkAllButton}
+              onClick={() => dispatch(checkAllAuthors())}></button>
+            <button
+              className={`btn btn-xs join-item '+ ${authorListStyles.uncheckAllButton}`}
+              onClick={() => dispatch(uncheckAllAuthors())}></button>
+            <button
+              className={'btn btn-xs join-item ' + authorListStyles.flipButton}
+              onClick={() => dispatch(switchAllAuthorSelection())}></button>
+          </div>
         </div>
         <div>
           {authors
@@ -229,12 +235,8 @@ function AuthorList(props: { orientation?: string }) {
                       type={'checkbox'}
                       className={'checkbox checkbox-accent ' + authorListStyles.authorCheckbox}
                       checked={parentAuthor.selected}
-                      onClick={(e) => {
-                        if (e.shiftKey) {
-                          dispatch(switchAllAuthorSelection());
-                        } else {
-                          dispatch(switchAuthorSelection(parentAuthor.id));
-                        }
+                      onChange={() => {
+                        dispatch(switchAuthorSelection(parentAuthor.id));
                       }}
                       onContextMenu={(e) => {
                         e.preventDefault();
@@ -249,6 +251,11 @@ function AuthorList(props: { orientation?: string }) {
                             label: 'uncheck all',
                             icon: checkBoxOutlineIconGray,
                             function: () => dispatch(uncheckAllAuthors()),
+                          },
+                          {
+                            label: 'flip',
+                            icon: flipIconGray,
+                            function: () => dispatch(switchAllAuthorSelection()),
                           },
                         ]);
                       }}

@@ -1,6 +1,6 @@
 import { GraphQL, traversePages } from '../utils.ts';
 import { gql } from '@apollo/client';
-import { DataPluginNote, DataPluginNotes } from '../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
+import type { DataPluginNote, DataPluginNotes } from '../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
 
 export default class Notes implements DataPluginNotes {
   private graphQl;

@@ -1,6 +1,6 @@
 import Database from '../database.ts';
 import { findAll } from '../utils.ts';
-import { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import type { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 
 export default class Issues implements DataPluginIssues {
   public database: Database | undefined;

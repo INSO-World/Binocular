@@ -1,6 +1,6 @@
-import { DataPluginAccount } from './dataPluginAccounts.ts';
-import { DataPluginIssue } from './dataPluginIssues.ts';
-import { DataPluginMergeRequest } from './dataPluginMergeRequests.ts';
+import type { DataPluginAccount } from './dataPluginAccounts.ts';
+import type { DataPluginIssue } from './dataPluginIssues.ts';
+import type { DataPluginMergeRequest } from './dataPluginMergeRequests.ts';
 
 export interface DataPluginNotes {
   getAll: (from: string, to: string) => Promise<DataPluginNote[]>;

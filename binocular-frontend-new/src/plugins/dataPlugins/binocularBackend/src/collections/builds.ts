@@ -1,7 +1,7 @@
 import { GraphQL, traversePages } from '../utils.ts';
 import { gql } from '@apollo/client';
-import { DataPluginBuild, DataPluginBuilds, DataPluginJob } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
-import { DataPluginUser } from '../../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import type { DataPluginBuild, DataPluginBuilds, DataPluginJob } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import type { DataPluginUser } from '../../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 export default class Builds implements DataPluginBuilds {
   private graphQl;

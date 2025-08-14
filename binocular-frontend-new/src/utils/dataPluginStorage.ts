@@ -1,5 +1,5 @@
-import { DataPlugin } from '../plugins/interfaces/dataPlugin.ts';
-import { DatabaseSettingsDataPluginType } from '../types/settings/databaseSettingsType.ts';
+import type { DataPlugin } from '../plugins/interfaces/dataPlugin.ts';
+import type { DatabaseSettingsDataPluginType } from '../types/settings/databaseSettingsType.ts';
 import { dataPlugins } from '../plugins/pluginRegistry.ts';
 
 export default abstract class DataPluginStorage {

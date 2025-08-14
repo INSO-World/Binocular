@@ -7,7 +7,7 @@ function SettingsDialog() {
 
   return (
     <dialog id={'settingsDialog'} className={'modal'}>
-      <div className={'modal-box max-w-full h-full'}>
+      <div className={'modal-box max-w-full'} style={{ height: '95vh' }}>
         <form method={'dialog'}>
           <button className="btn btn-sm btn-circle absolute right-2 top-2 btn-accent">✕</button>
         </form>
@@ -15,7 +15,7 @@ function SettingsDialog() {
           Settings
         </h3>
         <div>
-          <div role="tablist" className="tabs tabs-boxed">
+          <div role="tablist" className="tabs tabs-box">
             <a
               role={'tab'}
               className={'tab no-underline ' + (activeTab === 'General' ? 'tab-active' : '')}

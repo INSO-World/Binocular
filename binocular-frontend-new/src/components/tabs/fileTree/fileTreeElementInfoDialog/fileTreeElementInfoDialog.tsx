@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../redux';
-import { FileTreeElementType, FileTreeElementTypeType } from '../../../../types/data/fileListType.ts';
+import type { RootState } from '../../../../redux';
+import { type FileTreeElementType, FileTreeElementTypeType } from '../../../../types/data/fileListType.ts';
 import FileListFolder from '../fileList/fileListElements/fileListFolder.tsx';
 import { filterFileTree } from '../fileList/fileListUtilities/fileTreeUtilities.tsx';
 import FileSearch from '../fileSearch/fileSearch.tsx';

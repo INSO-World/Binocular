@@ -1,5 +1,5 @@
 import AddSprintDialog from '../addSprintDialog/addSprintDialog.tsx';
-import { AppDispatch, useAppDispatch } from '../../../../redux';
+import { type AppDispatch, useAppDispatch } from '../../../../redux';
 import { sprintToEdit } from '../../../../redux/reducer/data/sprintsReducer.ts';
 
 function AddSprint() {

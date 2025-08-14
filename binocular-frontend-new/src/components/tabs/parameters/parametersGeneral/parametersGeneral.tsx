@@ -1,4 +1,4 @@
-import { ParametersGeneralType } from '../../../../types/parameters/parametersGeneralType.ts';
+import type { ParametersGeneralType } from '../../../../types/parameters/parametersGeneralType.ts';
 
 function ParametersGeneral(props: {
   disabled: boolean;
@@ -7,7 +7,7 @@ function ParametersGeneral(props: {
 }) {
   return (
     <div className={'text-xs'}>
-      <table>
+      <table style={{ borderCollapse: 'separate', borderSpacing: '0 2px' }}>
         <tbody>
           <tr>
             <td>Granularity:</td>

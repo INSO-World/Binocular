@@ -1,5 +1,5 @@
 import Database from '../database.ts';
-import { DataPluginBranch, DataPluginBranches } from '../../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
+import type { DataPluginBranch, DataPluginBranches } from '../../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
 import { findAll } from '../utils.ts';
 
 export default class Branches implements DataPluginBranches {

@@ -1,7 +1,7 @@
-import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import { removeDataPlugin, setDataPluginAsDefault } from '../../../redux/reducer/settings/settingsReducer.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
-import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
 import { useSelector } from 'react-redux';
 
 function ConnectedDataPlugins(props: { interactable: boolean }) {

@@ -1,4 +1,4 @@
-import { DataPluginFile, PreviousFilePaths } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { DataPluginFile, PreviousFilePaths } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default {
   getAll: () => {

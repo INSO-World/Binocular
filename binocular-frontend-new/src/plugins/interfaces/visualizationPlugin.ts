@@ -1,9 +1,9 @@
-import { ReactNode, RefObject } from 'react';
-import { DataPlugin } from './dataPlugin.ts';
-import { Reducer } from '@reduxjs/toolkit';
-import { ChartData, Palette } from '../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
-import { VisualizationPluginProperties } from './visualizationPluginInterfaces/visualizationPluginProperties.ts';
-import { VisualizationPluginMetadata } from './visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import type { ReactNode, RefObject } from 'react';
+import type { DataPlugin } from './dataPlugin.ts';
+import type { Reducer } from '@reduxjs/toolkit';
+import type { ChartData, Palette } from '../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
+import type { VisualizationPluginProperties } from './visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { VisualizationPluginMetadata } from './visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
 export interface VisualizationPlugin<SettingsType, DataType> {
   name: string;
@@ -17,7 +17,7 @@ export interface VisualizationPlugin<SettingsType, DataType> {
   ) => { chartData: ChartData[]; scale: number[]; palette: Palette };
   defaultSettings: unknown;
   export: {
-    getSVGData: (chartContainerRef: RefObject<HTMLDivElement>) => string; // method that extracts and returns a svg element as a string from a RefObject
+    getSVGData: (chartContainerRef: RefObject<HTMLDivElement | null>) => string; // method that extracts and returns a svg element as a string from a RefObject
   };
   capabilities: {
     //capabilities that the visualization can fulfill
