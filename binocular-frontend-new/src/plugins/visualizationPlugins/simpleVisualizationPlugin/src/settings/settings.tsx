@@ -8,25 +8,7 @@ function Settings(props: { settings: DefaultSettings; setSettings: (newSettings:
   return (
     <>
       <div>
-        <label className="form-control w-full max-w-xs">
-          <div className="label">
-            <span className="label-text">Visualization Style:</span>
-          </div>
-          <select
-            className="select select-bordered select-sm"
-            defaultValue={props.settings.visualizationStyle}
-            onChange={(e) =>
-              props.setSettings({
-                visualizationStyle: e.target.value,
-                showSprints: props.settings.showSprints,
-              })
-            }>
-            <option value={'curved'}>curved</option>
-            <option value={'stepped'}>stepped</option>
-            <option value={'linear'}>linear</option>
-          </select>
-        </label>
-        <label className="label cursor-pointer">
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
@@ -39,6 +21,22 @@ function Settings(props: { settings: DefaultSettings; setSettings: (newSettings:
               })
             }
           />
+        </label>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Visualization Style:</span>
+          <select
+            className={'select select-accent select-xs w-24'}
+            defaultValue={props.settings.visualizationStyle}
+            onChange={(e) =>
+              props.setSettings({
+                visualizationStyle: e.target.value,
+                showSprints: props.settings.showSprints,
+              })
+            }>
+            <option value={'curved'}>curved</option>
+            <option value={'stepped'}>stepped</option>
+            <option value={'linear'}>linear</option>
+          </select>
         </label>
       </div>
     </>

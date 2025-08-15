@@ -10,6 +10,7 @@ import Branches from './collections/branches.ts';
 import Issues from './collections/issues.ts';
 import Notes from './collections/notes.ts';
 import Accounts from './collections/accounts.ts';
+import MergeRequests from './collections/mergeRequests.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -27,6 +28,7 @@ class BinocularBackend implements DataPlugin {
   public users;
   public accounts;
   public issues;
+  public mergeRequests;
   public notes;
   public general;
   public files;
@@ -38,6 +40,7 @@ class BinocularBackend implements DataPlugin {
     this.users = new Users('/graphQl');
     this.accounts = new Accounts('/graphQl');
     this.issues = new Issues('/graphQl');
+    this.mergeRequests = new MergeRequests('/graphQl');
     this.notes = new Notes('/graphQl');
     this.general = new General('/graphQl', undefined);
     this.files = new Files('/graphQl');
@@ -59,6 +62,7 @@ class BinocularBackend implements DataPlugin {
     this.users = new Users(endpoint);
     this.accounts = new Accounts(endpoint);
     this.issues = new Issues(endpoint);
+    this.mergeRequests = new MergeRequests(endpoint);
     this.notes = new Notes(endpoint);
     this.general = new General(endpoint, progressUpdateConfig);
     this.files = new Files(endpoint);

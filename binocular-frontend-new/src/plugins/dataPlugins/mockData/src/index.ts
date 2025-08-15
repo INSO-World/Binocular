@@ -1,5 +1,5 @@
 import Commits from './collections/commits.ts';
-import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
+import { type DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import Users from './collections/users.ts';
 import General from './collections/general.ts';
 import Files from './collections/files.ts';
@@ -8,6 +8,7 @@ import Issues from './collections/issues.ts';
 import Notes from './collections/notes.ts';
 import Accounts from './collections/accounts.ts';
 import Branches from './collections/branches.ts';
+import MergeRequests from './collections/mergeRequests.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';
@@ -28,6 +29,7 @@ class MockData implements DataPlugin {
   public files;
   public branches;
   public issues;
+  public mergeRequests;
   public notes;
 
   constructor() {
@@ -39,6 +41,7 @@ class MockData implements DataPlugin {
     this.files = new Files();
     this.branches = new Branches();
     this.issues = new Issues();
+    this.mergeRequests = new MergeRequests();
     this.notes = new Notes();
   }
 
