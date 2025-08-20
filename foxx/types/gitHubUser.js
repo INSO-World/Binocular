@@ -2,6 +2,7 @@
 
 const gql = require("graphql-sync");
 const arangodb = require("@arangodb");
+const Timestamp = require("./Timestamp");
 const db = arangodb.db;
 const aql = arangodb.aql;
 const commitsToUsers = db._collection("commits-users");
@@ -37,17 +38,15 @@ module.exports = new gql.GraphQLObjectType({
       issues: {
         type: new gql.GraphQLList(require('./issue.js')),
         description: 'Issues where this account is an assignee',
-        resolve(account) {
-          return db
-            ._query(
-              aql`
-              FOR issue, edge
-              IN INBOUND ${account} ${issuesToAccounts}
-              FILTER edge.role IN ["assignees", "author", "reviewer", "commenter"]
+        args: { from: { type: Timestamp }, to: { type: Timestamp } },
+        resolve(account, args) {
+          return db._query(aql`
+            FOR issue, edge IN INBOUND ${account} ${issuesToAccounts}
+              FILTER edge.role IN ["assignees","author","reviewer","commenter"]
+              ${args.from ? aql`FILTER DATE_TIMESTAMP(issue.createdAt) >= DATE_TIMESTAMP(${args.from})` : aql``}
+              ${args.to   ? aql`FILTER DATE_TIMESTAMP(issue.createdAt) <= DATE_TIMESTAMP(${args.to})` : aql``}
               RETURN issue
-              `
-            )
-            .toArray();
+          `).toArray();
         },
       },
     };
