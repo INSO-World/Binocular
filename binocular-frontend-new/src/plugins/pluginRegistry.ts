@@ -4,6 +4,7 @@ import Issues from './visualizationPlugins/issues';
 import TimeSpent from './visualizationPlugins/timeSpent';
 import CodeOwnership from './visualizationPlugins/code-ownership';
 import FileChanges from './visualizationPlugins/fileChanges';
+import MergeRequests from './visualizationPlugins/mergeRequests';
 
 import ExampleComplex from './visualizationPlugins/exampleComplex';
 import ExampleStats from './visualizationPlugins/exampleStats';
@@ -25,11 +26,14 @@ import type { IssueSettings } from './visualizationPlugins/issues/src/settings/s
 import type { BuildSettings } from './visualizationPlugins/builds/src/settings/settings.tsx';
 import type { TimeSpentSettings } from './visualizationPlugins/timeSpent/src/settings/settings.tsx';
 import type { ChangesSettings } from './visualizationPlugins/changes/src/settings/settings.tsx';
+import type { DataPluginMergeRequest } from './interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
+import type { MergeRequestsSettings } from './visualizationPlugins/mergeRequests/src/settings/settings.tsx';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
 const issues = createVisualizationPlugin<IssueSettings, DataPluginIssue>(Issues);
+const mergeRequest = createVisualizationPlugin<MergeRequestsSettings, DataPluginMergeRequest>(MergeRequests);
 const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginNote>(TimeSpent);
 
 //The implicit type here has to be any because every Visualization plugin has a different settings type implied
@@ -38,6 +42,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   changes,
   builds,
   issues,
+  mergeRequest,
   timeSpent,
   CodeOwnership,
   FileChanges,

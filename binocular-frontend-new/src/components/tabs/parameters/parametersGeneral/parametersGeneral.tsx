@@ -7,44 +7,36 @@ function ParametersGeneral(props: {
 }) {
   return (
     <div className={'text-xs'}>
-      <table style={{ borderCollapse: 'separate', borderSpacing: '0 2px' }}>
-        <tbody>
-          <tr>
-            <td>Granularity:</td>
-            <td>
-              <select
-                className={'select select-accent select-xs'}
-                disabled={props.disabled}
-                value={props.parametersGeneral.granularity}
-                onChange={(e) =>
-                  props.setParametersGeneral({
-                    granularity: e.target.value,
-                    excludeMergeCommits: props.parametersGeneral.excludeMergeCommits,
-                  })
-                }>
-                <option value={'years'}>Year</option>
-                <option value={'months'}>Month</option>
-                <option value={'weeks'}>Week</option>
-                <option value={'days'}>Day</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td>Exclude Merge Commits:</td>
-            <td>
-              <input
-                type={'checkbox'}
-                className={'toggle toggle-accent toggle-sm'}
-                disabled={props.disabled}
-                checked={props.parametersGeneral.excludeMergeCommits}
-                onChange={(e) =>
-                  props.setParametersGeneral({ granularity: props.parametersGeneral.granularity, excludeMergeCommits: e.target.checked })
-                }
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <label className="label cursor-pointer flex w-full justify-between items-center">
+        <span className="label-text">Granularity:</span>
+        <select
+          className={'select select-bordered select-xs w-24'}
+          disabled={props.disabled}
+          value={props.parametersGeneral.granularity}
+          onChange={(e) =>
+            props.setParametersGeneral({
+              granularity: e.target.value,
+              excludeMergeCommits: props.parametersGeneral.excludeMergeCommits,
+            })
+          }>
+          <option value={'years'}>Year</option>
+          <option value={'months'}>Month</option>
+          <option value={'weeks'}>Week</option>
+          <option value={'days'}>Day</option>
+        </select>
+      </label>
+      <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+        <span className="label-text">Exclude Merge Commits:</span>
+        <input
+          type={'checkbox'}
+          className={'toggle toggle-accent toggle-sm'}
+          disabled={props.disabled}
+          checked={props.parametersGeneral.excludeMergeCommits}
+          onChange={(e) =>
+            props.setParametersGeneral({ granularity: props.parametersGeneral.granularity, excludeMergeCommits: e.target.checked })
+          }
+        />
+      </label>
     </div>
   );
 }

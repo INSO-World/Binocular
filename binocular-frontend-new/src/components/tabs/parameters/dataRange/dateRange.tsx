@@ -37,7 +37,7 @@ function DateRange(props: {
             <td>From:</td>
             <td>
               <input
-                className={'input input-accent input-xs'}
+                className={'input input-bordered input-xs'}
                 type={'datetime-local'}
                 disabled={props.disabled}
                 value={props.parametersDateRange.from.split('.')[0]}
@@ -94,7 +94,7 @@ function DateRange(props: {
             <td>To:</td>
             <td>
               <input
-                className={'input input-accent input-xs'}
+                className={'input input-bordered input-xs'}
                 type={'datetime-local'}
                 disabled={props.disabled}
                 value={props.parametersDateRange.to.split('.')[0]}
