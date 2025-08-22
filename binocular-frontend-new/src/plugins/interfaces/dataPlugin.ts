@@ -8,6 +8,7 @@ import type { DataPluginIssues } from './dataPluginInterfaces/dataPluginIssues.t
 import type { DataPluginNotes } from './dataPluginInterfaces/dataPluginNotes.ts';
 import type { DataPluginAccounts } from './dataPluginInterfaces/dataPluginAccounts.ts';
 import type { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
+import type { DataPluginMergeRequests } from './dataPluginInterfaces/dataPluginMergeRequests.ts';
 
 export interface DataPlugin {
   name: string;
@@ -16,6 +17,7 @@ export interface DataPlugin {
   commits: DataPluginCommits;
   builds: DataPluginBuilds;
   issues: DataPluginIssues;
+  mergeRequests: DataPluginMergeRequests;
   notes: DataPluginNotes;
   users: DataPluginUsers;
   accounts: DataPluginAccounts;

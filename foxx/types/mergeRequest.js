@@ -105,6 +105,14 @@ module.exports = new gql.GraphQLObjectType({
         type: Timestamp,
         description: 'Creation date of the mergeRequest',
       },
+      closedAt: {
+        type: Timestamp,
+        description: 'Creation date of the mergeRequest',
+      },
+      updatedAt: {
+        type: Timestamp,
+        description: 'Creation date of the mergeRequest',
+      },
       milestone: {
         type: require('./milestone.js'),
         description: 'The milestone this issue belongs to',

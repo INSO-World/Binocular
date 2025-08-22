@@ -34,7 +34,7 @@ function DashboardItemSettings(props: {
       </button>
       <hr className={'text-base-300 m-1'} />
       <div>
-        <label className="label cursor-pointer">
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
           <span className="label-text">Ignore Global Parameters:</span>
           <input
             type="checkbox"

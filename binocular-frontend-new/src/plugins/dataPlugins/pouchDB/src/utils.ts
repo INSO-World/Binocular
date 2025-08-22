@@ -421,7 +421,6 @@ export async function findAllAccounts(database: PouchDB.Database, relations: Pou
   const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'from');
 
   accounts.docs = await Promise.all(accounts.docs.map((u) => preprocessAccount(u, accountsUsersConnection, users)));
-  console.log(accounts);
   return accounts;
 }
 

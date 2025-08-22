@@ -1,11 +1,11 @@
 import type { DefaultSettings } from '../../../simpleVisualizationPlugin/src/settings/settings';
 
-export interface IssueSettings extends DefaultSettings {
-  splitIssuesPerAuthor: boolean;
+export interface MergeRequestsSettings extends DefaultSettings {
+  splitMergeRequestsPerAuthor: boolean;
   breakdown: boolean;
 }
 
-function Settings(props: { settings: IssueSettings; setSettings: (newSettings: IssueSettings) => void }) {
+function Settings(props: { settings: MergeRequestsSettings; setSettings: (newSettings: MergeRequestsSettings) => void }) {
   return (
     <>
       <div>
@@ -17,7 +17,7 @@ function Settings(props: { settings: IssueSettings; setSettings: (newSettings: I
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
-                splitIssuesPerAuthor: props.settings.splitIssuesPerAuthor,
+                splitMergeRequestsPerAuthor: props.settings.splitMergeRequestsPerAuthor,
                 breakdown: props.settings.breakdown,
                 visualizationStyle: props.settings.visualizationStyle,
                 showSprints: event.target.checked,
@@ -32,7 +32,7 @@ function Settings(props: { settings: IssueSettings; setSettings: (newSettings: I
             defaultValue={props.settings.visualizationStyle}
             onChange={(e) =>
               props.setSettings({
-                splitIssuesPerAuthor: props.settings.splitIssuesPerAuthor,
+                splitMergeRequestsPerAuthor: props.settings.splitMergeRequestsPerAuthor,
                 breakdown: props.settings.breakdown,
                 visualizationStyle: e.target.value,
                 showSprints: props.settings.showSprints,
@@ -44,14 +44,14 @@ function Settings(props: { settings: IssueSettings; setSettings: (newSettings: I
           </select>
         </label>
         <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
-          <span className="label-text">Split Issues per Assignee:</span>
+          <span className="label-text">Split Merge Requests per Assignee:</span>
           <input
             type="checkbox"
             className="toggle toggle-accent toggle-sm"
-            defaultChecked={props.settings.splitIssuesPerAuthor}
+            defaultChecked={props.settings.splitMergeRequestsPerAuthor}
             onChange={(event) =>
               props.setSettings({
-                splitIssuesPerAuthor: event.target.checked,
+                splitMergeRequestsPerAuthor: event.target.checked,
                 breakdown: props.settings.breakdown,
                 visualizationStyle: props.settings.visualizationStyle,
                 showSprints: props.settings.showSprints,
@@ -60,14 +60,14 @@ function Settings(props: { settings: IssueSettings; setSettings: (newSettings: I
           />
         </label>
         <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
-          <span className="label-text">Breakdown (Total Open Issues):</span>
+          <span className="label-text">Breakdown (Total Open Merge Requests):</span>
           <input
             type="checkbox"
             className="toggle toggle-accent toggle-sm"
             defaultChecked={props.settings.breakdown}
             onChange={(event) =>
               props.setSettings({
-                splitIssuesPerAuthor: props.settings.splitIssuesPerAuthor,
+                splitMergeRequestsPerAuthor: props.settings.splitMergeRequestsPerAuthor,
                 breakdown: event.target.checked,
                 visualizationStyle: props.settings.visualizationStyle,
                 showSprints: props.settings.showSprints,

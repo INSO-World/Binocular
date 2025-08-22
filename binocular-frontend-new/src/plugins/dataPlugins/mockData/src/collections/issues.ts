@@ -7,6 +7,27 @@ export default class Issues implements DataPluginIssues {
   public async getAll(from: string, to: string) {
     console.log(`Getting Issues from ${from} to ${to}`);
     return new Promise<DataPluginIssue[]>((resolve) => {
+      const Tester1 = {
+        id: '1',
+        name: 'Tester 1',
+        platform: 'GitHub',
+        user: {
+          id: '1',
+          gitSignature: 'tester@github.com',
+          account: null,
+        },
+      };
+
+      const Tester2 = {
+        id: '2',
+        name: 'Tester 2',
+        platform: 'GitHub',
+        user: {
+          id: '2',
+          gitSignature: 'tester2@github.com',
+          account: null,
+        },
+      };
       const issues: DataPluginIssue[] = [
         {
           id: '001',
@@ -17,38 +38,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2024-02-15T10:34:12Z',
           closedAt: '2024-03-10T15:12:45Z',
           notes: [],
-          author: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester1,
+          assignee: Tester1,
+          assignees: [Tester1],
         },
         {
           id: '002',
@@ -59,16 +51,7 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2024-05-20T09:11:00Z',
           closedAt: null,
           notes: [],
-          author: {
-            id: '2',
-            name: 'Tester 2',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
+          author: Tester2,
           assignee: null,
           assignees: [],
         },
@@ -81,38 +64,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2024-06-11T08:22:45Z',
           closedAt: '2024-07-01T12:13:37Z',
           notes: [],
-          author: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester1,
+          assignee: Tester1,
+          assignees: [Tester1],
         },
         {
           id: '004',
@@ -123,38 +77,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2024-07-15T14:02:11Z',
           closedAt: '2024-08-10T16:45:30Z',
           notes: [],
-          author: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester1,
+          assignee: Tester1,
+          assignees: [Tester1],
         },
         {
           id: '005',
@@ -165,38 +90,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2024-09-01T11:32:59Z',
           closedAt: '2024-10-04T10:11:18Z',
           notes: [],
-          author: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester1,
+          assignee: Tester1,
+          assignees: [Tester1],
         },
         {
           id: '006',
@@ -207,38 +103,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2024-10-10T12:10:10Z',
           closedAt: '2024-11-01T18:33:12Z',
           notes: [],
-          author: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '2',
-            name: 'Tester 2',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester1,
+          assignee: Tester2,
+          assignees: [Tester1],
         },
         {
           id: '007',
@@ -249,38 +116,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2025-01-05T08:45:30Z',
           closedAt: null,
           notes: [],
-          author: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester1,
+          assignee: Tester1,
+          assignees: [Tester1],
         },
         {
           id: '008',
@@ -291,38 +129,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2024-12-03T09:55:20Z',
           closedAt: '2025-01-01T11:42:15Z',
           notes: [],
-          author: {
-            id: '2',
-            name: 'Tester 2',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '2',
-            name: 'Tester 2',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester2,
+          assignee: Tester2,
+          assignees: [Tester1],
         },
         {
           id: '009',
@@ -333,38 +142,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2025-02-21T15:12:47Z',
           closedAt: null,
           notes: [],
-          author: {
-            id: '2',
-            name: 'Tester 2',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '2',
-            name: 'Tester 2',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester2,
+          assignee: Tester2,
+          assignees: [Tester1],
         },
         {
           id: '010',
@@ -375,38 +155,9 @@ export default class Issues implements DataPluginIssues {
           createdAt: '2025-03-03T13:18:28Z',
           closedAt: '2025-03-21T10:10:00Z',
           notes: [],
-          author: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignee: {
-            id: '1',
-            name: 'Tester 1',
-            platform: 'GitHub',
-            user: {
-              id: '2',
-              gitSignature: 'tester2@github.com',
-              account: null,
-            },
-          },
-          assignees: [
-            {
-              id: '1',
-              name: 'Tester 1',
-              platform: 'GitHub',
-              user: {
-                id: '1',
-                gitSignature: 'tester@github.com',
-                account: null,
-              },
-            },
-          ],
+          author: Tester1,
+          assignee: Tester1,
+          assignees: [Tester1],
         },
       ];
       resolve(issues);
