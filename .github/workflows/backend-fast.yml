@@ -104,7 +104,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean install -DskipTests -Psql
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Psql
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
@@ -171,7 +171,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean install -DskipTests -Parangodb
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Parangodb
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
