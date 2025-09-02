@@ -1,4 +1,4 @@
-import { DataPluginIssue } from "./dataPluginIssues.ts";
+import type { DataPluginIssue } from "./dataPluginIssues.ts";
 
 export interface DataPluginAccountsIssues {
   getAll: (from: string, to: string) => Promise<DataPluginAccountIssues[]>;

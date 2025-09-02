@@ -1,11 +1,11 @@
 import { gql } from "@apollo/client";
-import { GraphQL, traversePages } from "./utils";
-import {
-  DataPluginAccount,
-  DataPluginAccounts,
-} from "../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts";
+import { GraphQL, traversePages } from "../utils.ts";
+import type {
+  DataPluginAccountIssues,
+  DataPluginAccountsIssues,
+} from "../../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts";
 
-export default class AccountsIssues implements DataPluginAccounts {
+export default class AccountsIssues implements DataPluginAccountsIssues {
   private graphQl: GraphQL;
 
   constructor(endpoint: string) {
@@ -15,9 +15,12 @@ export default class AccountsIssues implements DataPluginAccounts {
   /**
    * Retrieves all accounts with their related issues from the backend.
    */
-  public async getAll(from: string, to: string): Promise<DataPluginAccount[]> {
+  public async getAll(
+    from: string,
+    to: string,
+  ): Promise<DataPluginAccountIssues[]> {
     console.log(`Getting all Accounts with Issues from:${from} to:${to}:`);
-    const relationships: DataPluginAccount[] = [];
+    const relationships: DataPluginAccountIssues[] = [];
     const getAccountsIssuesPage =
       (from?: string, to?: string) =>
       async (page: number, perPage: number = 50) => {
@@ -55,6 +58,7 @@ export default class AccountsIssues implements DataPluginAccounts {
           `,
           variables: { page, perPage, from, to },
         });
+        console.log("FETCHED !!!!!!!!!");
         return response.data.accounts;
       };
 
