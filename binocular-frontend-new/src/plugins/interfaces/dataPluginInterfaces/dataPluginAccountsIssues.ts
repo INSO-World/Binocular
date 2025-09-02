@@ -1,10 +1,10 @@
 import { DataPluginIssue } from "./dataPluginIssues.ts";
 
-export interface DataPluginAccounts {
-  getAll: (from: string, to: string) => Promise<DataPluginAccount[]>;
+export interface DataPluginAccountsIssues {
+  getAll: (from: string, to: string) => Promise<DataPluginAccountIssues[]>;
 }
 
-export interface DataPluginAccount {
+export interface DataPluginAccountIssues {
   id: string;
   login: string;
   name: string;

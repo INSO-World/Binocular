@@ -7,7 +7,7 @@ import {
   FileConfig,
 } from "./dataPluginInterfaces/dataPluginFiles.ts";
 import { ProgressUpdateConfig } from "../../types/settings/databaseSettingsType.ts";
-import { DataPluginAccounts } from "./dataPluginInterfaces/dataPluginAccount.ts";
+import { DataPluginAccountsIssues } from "./dataPluginInterfaces/dataPluginAccountsIssues.ts";
 
 export interface DataPlugin {
   name: string;
@@ -17,7 +17,7 @@ export interface DataPlugin {
   builds: DataPluginBuilds;
   users: DataPluginUsers;
   files: DataPluginFiles;
-  accountsIssues: DataPluginAccounts;
+  accountsIssues: DataPluginAccountsIssues;
   capabilities: string[];
   experimental: boolean;
   requirements: {
