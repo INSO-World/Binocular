@@ -47,7 +47,7 @@ class BinocularBackend implements DataPlugin {
     this.general = new General("/graphQl", undefined);
     this.files = new Files("/graphQl");
     this.branches = new Branches("/graphQl");
-    this.accountsIssues = new AccountsIssues("graphQL");
+    this.accountsIssues = new AccountsIssues("graphQl");
   }
 
   public async init(

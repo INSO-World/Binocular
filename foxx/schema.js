@@ -138,15 +138,6 @@ const queryType = new gql.GraphQLObjectType({
             ${limit}
               RETURN user`,
       }),
-      accounts: paginated({
-        type: require('./types/gitHubUser.js'),
-        query: (root, args, limit) => aql`
-          FOR account
-            IN
-            ${accounts}
-            ${limit}
-              RETURN account`,
-      }),
       committers: {
         type: new gql.GraphQLList(gql.GraphQLString),
         resolve: () => {

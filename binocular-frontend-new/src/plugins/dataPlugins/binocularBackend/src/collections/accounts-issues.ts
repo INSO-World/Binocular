@@ -20,13 +20,14 @@ export default class AccountsIssues implements DataPluginAccountsIssues {
     to: string,
   ): Promise<DataPluginAccountIssues[]> {
     console.log(`Getting all Accounts with Issues from:${from} to:${to}:`);
+    console.log(this.graphQl);
     const relationships: DataPluginAccountIssues[] = [];
     const getAccountsIssuesPage =
       (from?: string, to?: string) =>
       async (page: number, perPage: number = 50) => {
         const response = await this.graphQl.client.query({
           query: gql`
-            query (
+            query getAccountsIssues(
               $page: Int
               $perPage: Int
               $from: Timestamp
@@ -58,7 +59,6 @@ export default class AccountsIssues implements DataPluginAccountsIssues {
           `,
           variables: { page, perPage, from, to },
         });
-        console.log("FETCHED !!!!!!!!!");
         return response.data.accounts;
       };
 
