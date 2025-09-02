@@ -11,10 +11,6 @@ export interface ChangesSettings extends DefaultSettings {
   splitAdditionsDeletions: boolean;
 }
 
-export interface CollaborationSettings extends DefaultSettings {
-  splitBuildsPerAuthor: boolean;
-}
-
 function Settings(props: {
   settings: BuildSettings;
   setSettings: (newSettings: BuildSettings) => void;
