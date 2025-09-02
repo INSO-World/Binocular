@@ -1,6 +1,10 @@
 import { GraphQL } from './utils.ts';
-import { ApolloQueryResult, gql } from '@apollo/client';
-import { DataPluginCommit, DataPluginCommits } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { type ApolloQueryResult, gql } from '@apollo/client';
+import type {
+  DataPluginCommit,
+  DataPluginCommits,
+  DataPluginOwnership,
+} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 interface CommitQueryResult {
   repository: {
@@ -48,7 +52,14 @@ export default class Commits implements DataPluginCommits {
       const resp: void | ApolloQueryResult<CommitQueryResult> = await this.graphQl.client
         .query<
           CommitQueryResult,
-          { nextPageCursor: string | null; perPage: number; from: string; to: string; owner: string; name: string }
+          {
+            nextPageCursor: string | null;
+            perPage: number;
+            from: string;
+            to: string;
+            owner: string;
+            name: string;
+          }
         >({
           query: gql`
             query ($nextPageCursor: String, $perPage: Int, $from: GitTimestamp, $to: GitTimestamp, $owner: String!, $name: String!) {
@@ -90,12 +101,18 @@ export default class Commits implements DataPluginCommits {
               }
             }
           `,
-          variables: { nextPageCursor, perPage, from, to, owner: this.owner, name: this.name },
+          variables: {
+            nextPageCursor,
+            perPage,
+            from,
+            to,
+            owner: this.owner,
+            name: this.name,
+          },
         })
         .catch((e) => console.log(e));
 
       if (resp) {
-        console.log(resp.data.repository.defaultBranchRef.target.history.pageInfo.hasNextPage);
         resp.data.repository.defaultBranchRef.target.history.nodes.forEach((commit) => {
           if (commit.author.user === null) {
             return;
@@ -103,14 +120,22 @@ export default class Commits implements DataPluginCommits {
           commitNodes.push({
             sha: commit.oid,
             shortSha: '',
+            files: { data: [] },
             messageHeader: commit.messageHeadline,
             message: commit.message,
-            user: { id: commit.author.user.id, gitSignature: commit.author.user.login },
+            user: {
+              id: commit.author.user.id,
+              gitSignature: commit.author.user.login,
+              account: null,
+            },
             branch: '',
             date: commit.committedDate,
             parents: commit.parents.nodes.map((parent) => parent.oid),
             webUrl: commit.url,
-            stats: { additions: commit.additions, deletions: commit.deletions },
+            stats: {
+              additions: commit.additions,
+              deletions: commit.deletions,
+            },
           });
         });
         nextPageCursor = resp.data.repository.defaultBranchRef.target.history.pageInfo.endCursor;
@@ -121,5 +146,132 @@ export default class Commits implements DataPluginCommits {
     }
 
     return commitNodes;
+  }
+
+  public async getOwnershipDataForCommits(): Promise<DataPluginOwnership[]> {
+    return Promise.resolve([]);
+  }
+  public async getCommitDataForSha(_sha: string): Promise<DataPluginCommit> {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    return Promise.resolve({});
+  }
+
+  public async getByFile(file: string): Promise<DataPluginCommit[]> {
+    console.log(`Getting Commits for file ${file}`);
+    let hasNextPage: boolean = true;
+    let nextPageCursor: string | null = null;
+    const commitList: DataPluginCommit[] = [];
+    const perPage = 100; // You can adjust this value or make it a parameter
+
+    while (hasNextPage) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resp: any = await this.graphQl.client
+        .query({
+          query: gql`
+            query ($file: String!, $nextPageCursor: String, $perPage: Int) {
+              file(path: $file) {
+                commits(after: $nextPageCursor, first: $perPage) {
+                  pageInfo {
+                    endCursor
+                    hasNextPage
+                  }
+                  data {
+                    commit {
+                      sha
+                      message
+                      messageHeader
+                      date
+                      stats {
+                        additions
+                        deletions
+                      }
+                    }
+                    files(page: 1, perPage: 1000) {
+                      data {
+                        file {
+                          path
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          variables: { nextPageCursor, perPage, file },
+        })
+        .catch((e) => {
+          console.log(e);
+          return null;
+        });
+
+      if (resp && resp.data.file.commits) {
+        resp.data.file.commits.data.forEach((data: { commit: DataPluginCommit }) => {
+          commitList.push(data.commit);
+        });
+
+        nextPageCursor = resp.data.file.commits.pageInfo.endCursor;
+        hasNextPage = resp.data.file.commits.pageInfo.hasNextPage;
+      } else {
+        hasNextPage = false;
+      }
+    }
+
+    const sortedCommits = commitList.sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+
+    return sortedCommits;
+  }
+
+  public async getDateOfFirstCommit() {
+    console.log(`Getting Date of First Commit`);
+    const resp = await this.graphQl.client.query({
+      query: gql`
+        query ($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            defaultBranchRef {
+              target {
+                ... on Commit {
+                  history(first: 1) {
+                    nodes {
+                      committedDate
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: { owner: this.owner, name: this.name },
+    });
+    return resp.data.repository.defaultBranchRef.target.history.nodes[0].committedDate;
+  }
+
+  public async getDateOfLastCommit() {
+    console.log(`Getting Date of Last Commit`);
+    const resp = await this.graphQl.client.query({
+      query: gql`
+        query ($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            defaultBranchRef {
+              target {
+                ... on Commit {
+                  history(last: 1) {
+                    nodes {
+                      committedDate
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: { owner: this.owner, name: this.name },
+    });
+    return resp.data.repository.defaultBranchRef.target.history.nodes[0].committedDate;
   }
 }

@@ -2,6 +2,7 @@ import PouchDB from 'pouchdb-browser';
 import PouchDBFind from 'pouchdb-find';
 import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 import _ from 'lodash';
+import type { DataPluginFileOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
@@ -139,12 +140,13 @@ export function findID(database: PouchDB.Database, id: string) {
 
 // ###################### SPECIFIC SEARCHES ######################
 
+// ###################### COMMITS ######################
+
 export async function findAllCommits(database: PouchDB.Database, relations: PouchDB.Database) {
   const commits = await findAll(database, 'commits');
   const allCommits = sortByAttributeString(commits.docs, '_id');
   const commitUserConnections = sortByAttributeString((await findCommitUserConnections(relations)).docs, 'from');
   const commitCommitConnections = sortByAttributeString((await findCommitCommitConnections(relations)).docs, 'from');
-
   const userObjects = (await findAll(database, 'users')).docs;
   const users: JSONObject = {};
   userObjects.map((s) => {
@@ -204,7 +206,6 @@ function preprocessCommit(
   const commitUserRelation = binarySearch(commitUser, commit._id, 'from');
 
   if (!commitUserRelation) {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     console.log('Error in localDB: commit: no user found for commit ' + commit.sha);
     return commit;
   }
@@ -213,12 +214,77 @@ function preprocessCommit(
   const author = users[commitUserRelation.to];
 
   if (!author) {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     console.log('Error in localDB: commit: no user found with ID ' + commitUserRelation.to);
     return commit;
   }
   return _.assign(commit, { user: { gitSignature: author, id: commitUserRelation.to } });
 }
+
+function preprocessCommitWithOwnership(
+  commit: JSONObject,
+  allCommits: JSONObject[],
+  commitCommit: JSONObject[],
+  users: JSONObject,
+  allFiles: JSONObject[],
+  commitFiles: JSONObject[],
+  commitFileUsers: JSONObject[],
+) {
+  //add parents: first get the ids of the parents using the commits-commits connection, then find the actual commits to get the hashes
+  const parents: string[] = [];
+  binarySearchArray(commitCommit, commit._id, 'from').forEach((r) => {
+    const parent = binarySearch(allCommits, r.to, '_id');
+    if (parent !== null) {
+      parents.push(<string>parent.sha);
+    }
+  });
+  //add ownership data for each file using the commits-file connection and for every individual author using the commits-file-user connection
+  const files: {
+    path: string;
+    action: string;
+    ownership: DataPluginFileOwnership[];
+  }[] = [];
+  binarySearchArray(commitFiles, commit._id, 'from').forEach((cf) => {
+    const file = binarySearch(allFiles, cf.to, '_id');
+    //action field might not be needed
+    const fileEntry: { path: string; action: string; ownership: DataPluginFileOwnership[] } = {
+      path: <string>file?.path,
+      action: <string>cf.action,
+      ownership: [],
+    };
+    binarySearchArray(commitFileUsers, cf._id, 'from').forEach((cfu) => {
+      fileEntry.ownership.push(<DataPluginFileOwnership>{ user: users[<string>cfu.to], hunks: cfu.hunks });
+    });
+    files.push(fileEntry);
+  });
+
+  return { sha: commit.sha, date: commit.date, parents: parents, files: files };
+}
+
+export async function findOwnershipData(database: PouchDB.Database, relations: PouchDB.Database) {
+  const commits = await findAll(database, 'commits');
+  const allCommits = sortByAttributeString(commits.docs, '_id');
+  const commitCommitConnections = sortByAttributeString((await findCommitCommitConnections(relations)).docs, 'from');
+  const userObjects = (await findAll(database, 'users')).docs;
+  const commitFileConnections = sortByAttributeString((await findFileCommitConnections(relations)).docs, 'from');
+  const commitFileUserConnections = sortByAttributeString((await findFileCommitUserConnections(relations)).docs, 'from');
+  const users: JSONObject = {};
+  const files = (await findAll(database, 'files')).docs;
+  userObjects.map((s) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    users[s._id] = s.gitSignature;
+  });
+
+  commits.docs = await Promise.all(
+    commits.docs.map((c) =>
+      preprocessCommitWithOwnership(c, allCommits, commitCommitConnections, users, files, commitFileConnections, commitFileUserConnections),
+    ),
+  );
+
+  return commits;
+}
+
+// ###################### BUILDS ######################
 
 export async function findAllBuilds(database: PouchDB.Database, relations: PouchDB.Database) {
   const builds = await findAll(database, 'builds');
@@ -249,6 +315,132 @@ function preprocessBuild(build: JSONObject, commitBuildConnections: JSONObject[]
   const author = users[commitUserRelation.to];
   return _.assign(build, { user: { gitSignature: author, id: commitUserRelation.to } });
 }
+
+// ###################### NOTES ######################
+
+export async function findAllNotes(database: PouchDB.Database, relations: PouchDB.Database) {
+  const notes = await findAll(database, 'notes');
+  const noteAccountConnections = sortByAttributeString((await findNoteAccountConnections(relations)).docs, 'to');
+  const accountUserConnections = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'to');
+  const noteIssueConnections = sortByAttributeString((await findIssueNoteConnection(relations)).docs, 'to');
+  const noteMRConnections = sortByAttributeString((await findMRNoteConnection(relations)).docs, 'to');
+  const users = (await findAll(database, 'users')).docs;
+  const mergeRequests = (await findAll(database, 'mergeRequests')).docs;
+  const issues = (await findAll(database, 'issues')).docs;
+  const noteUserConnections: { from: string; to: string }[] = [];
+
+  noteAccountConnections.forEach((noteAccount) => {
+    const matchedAccount = accountUserConnections.find((accountUser) => accountUser.from === noteAccount.to);
+    if (matchedAccount) {
+      noteUserConnections.push({
+        from: noteAccount.from as string,
+        to: matchedAccount.to as string,
+      });
+    }
+  });
+  // sort it to match the order of notes
+  noteUserConnections.sort((a, b) => {
+    if (a.from < b.from) return -1;
+    if (a.from > b.from) return 1;
+    return 0;
+  });
+
+  notes.docs = await Promise.all(
+    notes.docs.map((n, index) =>
+      preprocessNotes(n, noteUserConnections[index], noteIssueConnections, noteMRConnections, users, mergeRequests, issues),
+    ),
+  );
+  return notes;
+}
+
+function preprocessNotes(
+  note: JSONObject,
+  noteUserConnection: { from: string; to: string },
+  noteIssueConnections: JSONObject[],
+  noteMRConnections: JSONObject[],
+  users: JSONObject[],
+  mergeRequests: JSONObject[],
+  issues: JSONObject[],
+) {
+  const rawUser = binarySearch(users, noteUserConnection.to, '_id');
+  if (rawUser == null) {
+    return _.assign(note, { manualRun: true });
+  }
+  const dataPluginGitUser = {
+    id: rawUser._id as string,
+    gitSignature: rawUser.gitSignature as string,
+  };
+  // id and name of author currently not needed, not implemented to reduce amount of searches to find unnecessary information
+  note.author = {
+    id: '',
+    name: '',
+    user: dataPluginGitUser,
+  };
+  const noteMRRelation = binarySearch(noteMRConnections, note._id, 'to');
+  if (noteMRRelation !== null) {
+    const mergeRequest = binarySearch(mergeRequests, noteMRRelation.from, '_id');
+    return _.assign(note, { mergeRequest: mergeRequest });
+  } else {
+    const noteIssueRelation = binarySearch(noteIssueConnections, note._id, 'to');
+    if (noteIssueRelation !== null) {
+      const issue = binarySearch(issues, noteIssueRelation.from, '_id');
+      return _.assign(note, { issue: issue });
+    }
+  }
+  return _.assign(note, { manualRun: true });
+}
+
+// ###################### USERS ######################
+
+export async function findAllUsers(database: PouchDB.Database, relations: PouchDB.Database) {
+  const users = await findAll(database, 'users');
+  const accounts = (await findAll(database, 'accounts')).docs;
+  const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'to');
+
+  users.docs = await Promise.all(users.docs.map((u) => preprocessUser(u, accountsUsersConnection, accounts)));
+  return users;
+}
+
+function preprocessUser(user: JSONObject, accountsUsersConnection: JSONObject[], accounts: JSONObject[]) {
+  const accountUserRelation = binarySearch(accountsUsersConnection, user._id, 'to');
+  if (accountUserRelation === null) {
+    return _.assign(user, { id: user._id, manualRun: true });
+  }
+  const account = binarySearch(accounts, accountUserRelation.from, '_id');
+  if (account === null) {
+    return _.assign(user, { id: user._id, manualRun: true });
+  }
+  return _.assign(user, { id: user._id, account: account });
+}
+
+// ###################### ACCOUNTS ######################
+
+export async function findAllAccounts(database: PouchDB.Database, relations: PouchDB.Database) {
+  const users = (await findAll(database, 'users')).docs;
+  const accounts = await findAll(database, 'accounts');
+  const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'from');
+
+  accounts.docs = await Promise.all(accounts.docs.map((u) => preprocessAccount(u, accountsUsersConnection, users)));
+  return accounts;
+}
+
+function preprocessAccount(account: JSONObject, accountsUsersConnection: JSONObject[], users: JSONObject[]) {
+  const accountUserRelation = binarySearch(accountsUsersConnection, account._id, 'from');
+  // If user.name is null but user.login exists, set name = login
+  if (account.name == null && account.login != null) {
+    account.name = account.login;
+  }
+  if (accountUserRelation === null) {
+    return _.assign(account, { id: account._id, manualRun: true });
+  }
+  const user = binarySearch(users, accountUserRelation.to, '_id');
+  if (user === null) {
+    return _.assign(account, { id: account._id, manualRun: true });
+  }
+  return _.assign(account, { id: account._id, user: user });
+}
+
+// ###################### OTHER ######################
 
 export function findIssue(database: PouchDB.Database, iid: number) {
   return database.find({
@@ -354,14 +546,18 @@ export function findFileCommitUserConnections(relations: PouchDB.Database) {
 }
 
 export function findBranch(database: PouchDB.Database, branch: string) {
-  return database.find({
-    selector: {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      _id: { $regex: new RegExp('^branches/.*') },
-      branch: { $eq: branch },
-    },
-  });
+  return new Promise<PouchDB.Find.FindResponse<object>>((resolve) =>
+    database
+      .find({
+        selector: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          _id: { $regex: new RegExp('^branches/.*') },
+          branch: { $eq: branch },
+        },
+      })
+      .then((result) => resolve(result)),
+  );
 }
 
 export function findBranchFileConnections(relations: PouchDB.Database) {
@@ -407,4 +603,16 @@ export function findIssueNoteConnections(relations: PouchDB.Database) {
 
 export function findNoteAccountConnections(relations: PouchDB.Database) {
   return findAll(relations, 'notes-accounts');
+}
+
+export function findAccountUserConnections(relations: PouchDB.Database) {
+  return findAll(relations, 'accounts-users');
+}
+
+export function findIssueNoteConnection(relations: PouchDB.Database) {
+  return findAll(relations, 'issues-notes');
+}
+
+export function findMRNoteConnection(relations: PouchDB.Database) {
+  return findAll(relations, 'mergeRequests-notes');
 }

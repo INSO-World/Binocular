@@ -1,6 +1,6 @@
-import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../redux';
+import type { RootState } from '../../redux';
 
 function DataPluginQuickSelect(props: {
   selected: DatabaseSettingsDataPluginType | undefined;

@@ -1,9 +1,9 @@
-import { MutableRefObject, useEffect, useMemo, useRef } from 'react';
+import { type MutableRefObject, useEffect, useMemo, useRef } from 'react';
 import * as d3 from 'd3';
-import { ScaleLinear, ScaleTime, symbol, symbolTriangle } from 'd3';
-import { ChartData, Palette } from './chart.tsx';
-import { SprintType } from '../../../../../types/data/sprintType.ts';
-import { DefaultSettings } from '../settings/settings.tsx';
+import { type ScaleLinear, type ScaleTime, symbol, symbolTriangle } from 'd3';
+import type { ChartData, Palette } from './chart.tsx';
+import type { SprintType } from '../../../../../types/data/sprintType.ts';
+import type { DefaultSettings } from '../settings/settings.tsx';
 import { PositiveNegativeSide, splitPositiveNegativeData } from '../utilities/utilities.ts';
 import { round } from 'lodash';
 
@@ -56,15 +56,12 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
       if (!extent) {
         //This Timeout is necessary because it not the reset of the brush would trigger the reset of the domain
         // and the brushing wouldn't work.
-        if (!idleTimeout) return (idleTimeout = setTimeout(idled, 350));
+        if (!idleTimeout) return (idleTimeout = window.setTimeout(idled, 350));
         xScale.domain([xMin || 0, xMax || 0]);
       } else {
         xScale.domain([xScale.invert(extent[0]), xScale.invert(extent[1])]);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        svgElement.select('.brush').call(brush.move, null);
+
+        svgElement.select<SVGGElement>('.brush').call(brush.move.bind(this), null);
       }
       // d3/typescript sometimes does weird things and throws an error where no error is.
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -96,8 +93,15 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
     <>
       <div
         ref={tooltipRef}
-        style={{ position: 'fixed', visibility: 'hidden', border: '2px solid', padding: '.2rem', borderRadius: '4px', fontSize: '.75rem' }}>
-        Tooltipp
+        className={'card bg-base-100 shadow-xl rounded border-2 p-2 break-all'}
+        style={{
+          position: 'fixed',
+          visibility: 'hidden',
+          minWidth: '10rem',
+          maxWidth: '20rem',
+        }}>
+        <div className={'tooltip-label font-bold text-xs'}>Label</div>
+        <div className={'tooltip-value badge badge-outline'}>Value</div>
       </div>
       <svg width={width} height={height} xmlns="http://www.w3.org/2000/svg">
         <g width={boundsWidth} height={boundsHeight} ref={svgRef} transform={`translate(${[MARGIN.left, MARGIN.top].join(',')})`}></g>
@@ -105,6 +109,30 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
     </>
   );
 };
+
+function positionTooltip(tooltip: d3.Selection<null, unknown, null, undefined>, svgRef: React.MutableRefObject<null>, e: MouseEvent) {
+  if (svgRef.current) {
+    const visRect = (svgRef.current as SVGSVGElement).getBoundingClientRect();
+    const middleX = visRect.x + visRect.width / 2;
+    const middleY = visRect.y + visRect.height / 2;
+    const tooltipRect = (tooltip.node() as unknown as HTMLDivElement).getBoundingClientRect();
+    if (middleX < e.pageX) {
+      tooltip.style('left', e.pageX - tooltipRect.width + 'px');
+    } else {
+      tooltip.style('left', e.pageX + 'px');
+    }
+    if (middleY < e.pageY) {
+      tooltip.style('top', e.pageY - tooltipRect.height + 'px');
+    } else {
+      tooltip.style('top', e.pageY + 20 + 'px');
+    }
+  }
+}
+
+function setTooltipContent(tooltip: d3.Selection<null, unknown, null, undefined>, tooltipLable: string, tooltipValue: string) {
+  tooltip.select('.tooltip-label').text(tooltipLable);
+  tooltip.select('.tooltip-value').text(tooltipValue);
+}
 
 function generateDataLines(
   palette: Palette,
@@ -140,13 +168,11 @@ function generateDataLines(
       .on('mousemove', (e: MouseEvent, d: ChartData[]) => {
         const [x] = d3.pointer(e);
         const closestIndex = getClosestIndex(x, d, xScale);
-        return d3
-          .select(tooltipRef.current)
-          .style('top', 20 + e.pageY + 'px')
-          .style('left', e.pageX + 'px')
-          .style('background', palette[dataItemName].secondary)
-          .style('border-color', palette[dataItemName].secondary)
-          .text(`${dataItemName}: ${round(d[closestIndex][dataItemName])}`);
+        const tooltip = d3.select(tooltipRef.current);
+        tooltip.style('border-color', palette[dataItemName].secondary);
+        setTooltipContent(tooltip, dataItemName, `${round(d[closestIndex][dataItemName])}`);
+        positionTooltip(tooltip, svgRef, e);
+        return tooltip;
       })
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');
@@ -173,13 +199,11 @@ function generateDataLines(
       .on('mousemove', (e: MouseEvent, d: ChartData[]) => {
         const [x] = d3.pointer(e);
         const closestIndex = getClosestIndex(x, d, xScale);
-        return d3
-          .select(tooltipRef.current)
-          .style('top', 20 + e.pageY + 'px')
-          .style('left', e.pageX + 'px')
-          .style('background', palette[dataItemName].secondary)
-          .style('border-color', palette[dataItemName].secondary)
-          .text(`${dataItemName}: ${round(-d[closestIndex][dataItemName])}`);
+        const tooltip = d3.select(tooltipRef.current);
+        tooltip.style('border-color', palette[dataItemName].secondary);
+        setTooltipContent(tooltip, dataItemName, `${round(d[closestIndex][dataItemName])}`);
+        positionTooltip(tooltip, svgRef, e);
+        return tooltip;
       })
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');

@@ -1,7 +1,7 @@
 import { put, takeEvery, fork, call, select, throttle } from 'redux-saga/effects';
-import { ChangesState, DataState, setCommits, setDataState, setDateRange } from '../reducer';
-import { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
-import { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { type ChangesState, DataState, setCommits, setDataState, setDateRange } from '../reducer';
+import type { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
+import type { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default function* (dataConnection: DataPlugin) {
   yield fork(() => watchRefresh(dataConnection));
@@ -18,8 +18,10 @@ function* watchDateRangeChange(dataConnection: DataPlugin) {
 
 function* fetchChangesData(dataConnection: DataPlugin) {
   yield put(setDataState(DataState.FETCHING));
-  const state: ChangesState = yield select();
-  const commits: DataPluginCommit[] = yield call(() => dataConnection.commits.getAll(state.dateRange.from, state.dateRange.to));
+  const state: { plugin: ChangesState } = yield select();
+  const commits: DataPluginCommit[] = yield call(() =>
+    dataConnection.commits.getAll(state.plugin.dateRange.from, state.plugin.dateRange.to),
+  );
   yield put(setCommits(commits));
   yield put(setDataState(DataState.COMPLETE));
 }

@@ -1,10 +1,10 @@
 import fileListElementsStyles from './fileListElements.module.scss';
-import { FileTreeElementType } from '../../../../../types/data/fileListType.ts';
+import type { FileTreeElementType } from '../../../../../types/data/fileListType.ts';
 import FileIcon from '../../../../../assets/file_gray.svg';
 import { showFileTreeElementInfo, updateFileListElement } from '../../../../../redux/reducer/data/filesReducer.ts';
-import { AppDispatch, useAppDispatch } from '../../../../../redux';
+import { type AppDispatch, useAppDispatch } from '../../../../../redux';
 import { formatName } from '../fileListUtilities/fileTreeUtilities.tsx';
-import { ContextMenuOption, showContextMenu } from '../../../../contextMenu/contextMenuHelper.ts';
+import { type ContextMenuOption, showContextMenu } from '../../../../contextMenu/contextMenuHelper.ts';
 import infoIcon from '../../../../../assets/info_gray.svg';
 import openInNewIcon from '../../../../../assets/open_in_new_gray.svg';
 
@@ -42,7 +42,7 @@ function FileListFile(props: { file: FileTreeElementType; listOnly?: boolean }) 
             type={'checkbox'}
             className={'checkbox checkbox-accent checkbox-xs'}
             checked={props.file.checked}
-            onChange={(e) => dispatch(updateFileListElement({ ...props.file, checked: e.target.checked }))}
+            onChange={(e) => dispatch(updateFileListElement({ ...props.file, checked: e.target.checked, update: true }))}
           />
         )}
         <div

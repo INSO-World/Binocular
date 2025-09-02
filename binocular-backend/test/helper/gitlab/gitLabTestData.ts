@@ -103,9 +103,9 @@ export const testPipelines = [
 
     jobs: {
       edges: [
-        { node: { id: '0', stage: { name: '' } } },
-        { node: { id: '1', stage: { name: '' } } },
-        { node: { id: '2', stage: { name: '' } } },
+        { node: { id: '0', status: 'success', stage: { name: '' } } },
+        { node: { id: '1', status: 'success', stage: { name: '' } } },
+        { node: { id: '2', status: 'success', stage: { name: '' } } },
       ],
     },
   },
@@ -115,9 +115,9 @@ export const testPipelines = [
     user: { name: 'Tester1' },
     jobs: {
       edges: [
-        { node: { id: '0', stage: { name: '' } } },
-        { node: { id: '1', stage: { name: '' } } },
-        { node: { id: '2', stage: { name: '' } } },
+        { node: { id: '0', status: 'success', stage: { name: '' } } },
+        { node: { id: '1', status: 'success', stage: { name: '' } } },
+        { node: { id: '2', status: 'success', stage: { name: '' } } },
       ],
     },
   },
@@ -128,9 +128,9 @@ export const testPipelines = [
 
     jobs: {
       edges: [
-        { node: { id: '0', stage: { name: '' } } },
-        { node: { id: '1', stage: { name: '' } } },
-        { node: { id: '2', stage: { name: '' } } },
+        { node: { id: '0', status: 'success', stage: { name: '' } } },
+        { node: { id: '1', status: 'success', stage: { name: '' } } },
+        { node: { id: '2', status: 'success', stage: { name: '' } } },
       ],
     },
   },

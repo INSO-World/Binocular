@@ -1,34 +1,32 @@
-export interface SettingsType {
+import type { DefaultSettings } from '../../../simpleVisualizationPlugin/src/settings/settings';
+
+export interface BuildSettings extends DefaultSettings {
   splitBuildsPerAuthor: boolean;
-  visualizationStyle: string;
-  showSprints: boolean;
 }
 
-function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) {
+function Settings(props: { settings: BuildSettings; setSettings: (newSettings: BuildSettings) => void }) {
   return (
     <>
       <div>
-        <label className="label cursor-pointer">
-          <span className="label-text">Split Builds per Author:</span>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
             className="toggle toggle-accent toggle-sm"
-            defaultChecked={props.settings.splitBuildsPerAuthor}
+            defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
-                splitBuildsPerAuthor: event.target.checked,
+                splitBuildsPerAuthor: props.settings.splitBuildsPerAuthor,
                 visualizationStyle: props.settings.visualizationStyle,
-                showSprints: props.settings.showSprints,
+                showSprints: event.target.checked,
               })
             }
           />
         </label>
-        <label className="form-control w-full max-w-xs">
-          <div className="label">
-            <span className="label-text">Visualization Style:</span>
-          </div>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Visualization Style:</span>
           <select
-            className="select select-bordered select-sm"
+            className={'select select-bordered select-xs w-24'}
             defaultValue={props.settings.visualizationStyle}
             onChange={(e) =>
               props.setSettings({
@@ -42,17 +40,17 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
             <option value={'linear'}>linear</option>
           </select>
         </label>
-        <label className="label cursor-pointer">
-          <span className="label-text">Show Sprints:</span>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Split Builds per Author:</span>
           <input
             type="checkbox"
             className="toggle toggle-accent toggle-sm"
-            defaultChecked={props.settings.showSprints}
+            defaultChecked={props.settings.splitBuildsPerAuthor}
             onChange={(event) =>
               props.setSettings({
-                splitBuildsPerAuthor: props.settings.splitBuildsPerAuthor,
+                splitBuildsPerAuthor: event.target.checked,
                 visualizationStyle: props.settings.visualizationStyle,
-                showSprints: event.target.checked,
+                showSprints: props.settings.showSprints,
               })
             }
           />

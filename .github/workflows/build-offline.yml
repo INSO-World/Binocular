@@ -85,7 +85,7 @@ jobs:
 
       # Source: https://www.voorhoede.nl/en/blog/super-fast-npm-install-on-github-actions/
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ./node_modules
           key: modules-${{ hashFiles('package-lock.json') }}

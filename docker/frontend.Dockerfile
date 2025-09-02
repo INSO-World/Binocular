@@ -10,6 +10,7 @@ WORKDIR /app/binocular/binocular-frontend
 RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
     --mount=type=bind,src=./binocular-backend/package.json,target=./binocular-backend/package.json,readonly \
     --mount=type=bind,src=./binocular-frontend/package.json,target=./binocular-frontend/package.json,readonly \
+    --mount=type=bind,src=./binocular-frontend-new/package.json,target=./binocular-frontend-new/package.json,readonly \
 #    npm ci --omit=optional --ignore-scripts && \
 # Error: Cannot find module @rollup/rollup-linux-x64-musl.
     # npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828).

@@ -1,6 +1,6 @@
 import { GraphQL } from './utils';
-import { ApolloQueryResult, gql } from '@apollo/client';
-import { DataPluginUser, DataPluginUsers } from '../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import { type ApolloQueryResult, gql } from '@apollo/client';
+import type { DataPluginUser, DataPluginUsers } from '../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 interface AuthorsQueryResult {
   repository: { assignableUsers: { totalCount: number; nodes: { id: string; name: string; email: string; login: string }[] } };
@@ -43,7 +43,7 @@ export default class Users implements DataPluginUsers {
       .catch((e) => console.log(e));
     if (resp) {
       return resp.data.repository.assignableUsers.nodes.map((assignableUser) => {
-        return { id: assignableUser.id, gitSignature: assignableUser.login };
+        return { id: assignableUser.id, gitSignature: assignableUser.login, account: null };
       });
     } else {
       return [];
