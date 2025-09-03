@@ -1,22 +1,22 @@
-import Commits from "./collections/commits.ts";
-import type { DataPlugin } from "../../../interfaces/dataPlugin.ts";
-import General from "./collections/general.ts";
-import Files from "./collections/files.ts";
-import Users from "./collections/users.ts";
-import { type FileConfig } from "../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts";
-import { type ProgressUpdateConfig } from "../../../../types/settings/databaseSettingsType.ts";
-import Builds from "./collections/builds.ts";
-import Branches from "./collections/branches.ts";
-import Issues from "./collections/issues.ts";
-import Notes from "./collections/notes.ts";
-import Accounts from "./collections/accounts.ts";
-import MergeRequests from "./collections/mergeRequests.ts";
-import AccountsIssues from "./collections/accounts-issues.ts";
+import Commits from './collections/commits.ts';
+import type { DataPlugin } from '../../../interfaces/dataPlugin.ts';
+import General from './collections/general.ts';
+import Files from './collections/files.ts';
+import Users from './collections/users.ts';
+import { type FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { type ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
+import Builds from './collections/builds.ts';
+import Branches from './collections/branches.ts';
+import Issues from './collections/issues.ts';
+import Notes from './collections/notes.ts';
+import Accounts from './collections/accounts.ts';
+import MergeRequests from './collections/mergeRequests.ts';
+import AccountsIssues from './collections/accounts-issues.ts';
 
 class BinocularBackend implements DataPlugin {
-  public name = "Binocular Backend";
-  public description = "Connection to the Binocular GraphQL Backend.";
-  public capabilities = ["authors", "commits", "files"];
+  public name = 'Binocular Backend';
+  public description = 'Connection to the Binocular GraphQL Backend.';
+  public capabilities = ['authors', 'commits', 'files'];
   public experimental = false;
   public requirements = {
     apiKey: false,
@@ -37,17 +37,17 @@ class BinocularBackend implements DataPlugin {
   public branches;
 
   constructor() {
-    this.commits = new Commits("/graphQl");
-    this.builds = new Builds("/graphQl");
-    this.users = new Users("/graphQl");
-    this.accounts = new Accounts("/graphQl");
-    this.issues = new Issues("/graphQl");
-    this.mergeRequests = new MergeRequests("/graphQl");
-    this.notes = new Notes("/graphQl");
-    this.general = new General("/graphQl", undefined);
-    this.files = new Files("/graphQl");
-    this.branches = new Branches("/graphQl");
-    this.accountsIssues = new AccountsIssues("graphQl");
+    this.commits = new Commits('/graphQl');
+    this.builds = new Builds('/graphQl');
+    this.users = new Users('/graphQl');
+    this.accounts = new Accounts('/graphQl');
+    this.issues = new Issues('/graphQl');
+    this.mergeRequests = new MergeRequests('/graphQl');
+    this.notes = new Notes('/graphQl');
+    this.general = new General('/graphQl', undefined);
+    this.files = new Files('/graphQl');
+    this.branches = new Branches('/graphQl');
+    this.accountsIssues = new AccountsIssues('graphQl');
   }
 
   public async init(
@@ -56,11 +56,9 @@ class BinocularBackend implements DataPlugin {
     _file: FileConfig | undefined,
     progressUpdateConfig: ProgressUpdateConfig | undefined,
   ) {
-    console.log(
-      `Init Binocular Backend with ApiKey: ${apiKey} and Endpoint ${endpoint}`,
-    );
+    console.log(`Init Binocular Backend with ApiKey: ${apiKey} and Endpoint ${endpoint}`);
     if (endpoint === undefined || endpoint.length === 0) {
-      endpoint = "/graphQl";
+      endpoint = '/graphQl';
     }
     this.commits = new Commits(endpoint);
     this.builds = new Builds(endpoint);

@@ -1,12 +1,12 @@
-import { gql } from "@apollo/client";
-import { GraphQL, traversePages } from "../utils.ts";
+import { gql } from '@apollo/client';
+import { GraphQL, traversePages } from '../utils.ts';
 import type {
   DataPluginAccountIssues,
   DataPluginAccountsIssues,
-} from "../../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts";
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts';
 
 export default class AccountsIssues implements DataPluginAccountsIssues {
-  private graphQl: GraphQL;
+  private readonly graphQl: GraphQL;
 
   constructor(endpoint: string) {
     this.graphQl = new GraphQL(endpoint);
@@ -15,10 +15,7 @@ export default class AccountsIssues implements DataPluginAccountsIssues {
   /**
    * Retrieves all accounts with their related issues from the backend.
    */
-  public async getAll(
-    from: string,
-    to: string,
-  ): Promise<DataPluginAccountIssues[]> {
+  public async getAll(from: string, to: string): Promise<DataPluginAccountIssues[]> {
     console.log(`Getting all Accounts with Issues from:${from} to:${to}:`);
     console.log(this.graphQl);
     const relationships: DataPluginAccountIssues[] = [];
@@ -27,12 +24,7 @@ export default class AccountsIssues implements DataPluginAccountsIssues {
       async (page: number, perPage: number = 50) => {
         const response = await this.graphQl.client.query({
           query: gql`
-            query getAccountsIssues(
-              $page: Int
-              $perPage: Int
-              $from: Timestamp
-              $to: Timestamp
-            ) {
+            query getAccountsIssues($page: Int, $perPage: Int, $from: Timestamp, $to: Timestamp) {
               accounts(page: $page, perPage: $perPage) {
                 count
                 page
@@ -62,14 +54,16 @@ export default class AccountsIssues implements DataPluginAccountsIssues {
         return response.data.accounts;
       };
 
-    await traversePages(getAccountsIssuesPage(from, to), (record: any) => {
+    // @ts-expect-error ignores any on the api call
+    await traversePages(getAccountsIssuesPage(from, to), (record) => {
       relationships.push({
         id: record.login,
         login: record.login,
         name: record.name,
         avatarUrl: record.avatarUrl,
         url: record.url,
-        issues: record.issues.map((issue: any) => ({
+        // @ts-expect-error ignores any on the api call
+        issues: record.issues.map((issue) => ({
           id: issue.id,
           iid: String(issue.iid),
           title: issue.title,

@@ -9,7 +9,7 @@ import type { DataPluginNotes } from './dataPluginInterfaces/dataPluginNotes.ts'
 import type { DataPluginAccounts } from './dataPluginInterfaces/dataPluginAccounts.ts';
 import type { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
 import type { DataPluginMergeRequests } from './dataPluginInterfaces/dataPluginMergeRequests.ts';
-import type { DataPluginAccountsIssues } from "./dataPluginInterfaces/dataPluginAccountsIssues.ts";
+import type { DataPluginAccountsIssues } from './dataPluginInterfaces/dataPluginAccountsIssues.ts';
 
 export interface DataPlugin {
   name: string;
