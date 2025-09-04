@@ -1,6 +1,11 @@
 import { type FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType.ts';
 import type { DataPluginFile } from '../../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import fileListElementsStyles from '../fileListElements/fileListElements.module.scss';
+import type { JSX } from 'react';
+import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType';
+import DataPluginStorage from '../../../../../utils/dataPluginStorage';
+import { setFileList } from '../../../../../redux/reducer/data/filesReducer';
+import type { AppDispatch } from '../../../../../redux';
 
 export function generateFileTree(files: DataPluginFile[]): FileTreeElementType[] {
   return convertData(files).content;
@@ -102,4 +107,40 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
     }
   }
   return formatedName;
+}
+
+export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
+  if (dP && dP.id !== undefined) {
+    console.log(`REFRESH FILES (${dP.name} #${dP.id})`);
+    DataPluginStorage.getDataPlugin(dP)
+      .then((dataPlugin) => {
+        if (dataPlugin) {
+          dataPlugin.files
+            .getAll()
+            .then((files) =>
+              dispatch(
+                setFileList({
+                  dataPluginId: dP.id !== undefined ? dP.id : -1,
+                  fileTree: {
+                    name: '/',
+                    type: FileTreeElementTypeType.Folder,
+                    children: generateFileTree(files),
+                    checked: true,
+                    foldedOut: true,
+                    isRoot: true,
+                  },
+                  files: files.map((f: DataPluginFile) => {
+                    return {
+                      element: f,
+                      checked: true,
+                    };
+                  }),
+                }),
+              ),
+            )
+            .catch(() => console.log('Error loading Files from selected data source!'));
+        }
+      })
+      .catch((e) => console.log(e));
+  }
 }
