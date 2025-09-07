@@ -1,6 +1,7 @@
 import Changes from './visualizationPlugins/changes';
 import Builds from './visualizationPlugins/builds';
 import Issues from './visualizationPlugins/issues';
+import Sprints from './visualizationPlugins/sprints';
 import TimeSpent from './visualizationPlugins/timeSpent';
 import CodeOwnership from './visualizationPlugins/code-ownership';
 import FileChanges from './visualizationPlugins/fileChanges';
@@ -33,6 +34,7 @@ import type { MergeRequestsSettings } from './visualizationPlugins/mergeRequests
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
 const issues = createVisualizationPlugin<IssueSettings, DataPluginIssue>(Issues);
+const sprints = createVisualizationPlugin<any, any>(Sprints);
 const mergeRequest = createVisualizationPlugin<MergeRequestsSettings, DataPluginMergeRequest>(MergeRequests);
 const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginNote>(TimeSpent);
 
@@ -44,6 +46,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   issues,
   mergeRequest,
   timeSpent,
+  sprints,
   CodeOwnership,
   FileChanges,
   ExampleStats,
