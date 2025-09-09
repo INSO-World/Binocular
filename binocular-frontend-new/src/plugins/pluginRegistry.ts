@@ -34,8 +34,6 @@ import type { MergeRequestsSettings } from './visualizationPlugins/mergeRequests
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
 const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds);
 const issues = createVisualizationPlugin<IssueSettings, DataPluginIssue>(Issues);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sprints = createVisualizationPlugin<any, any>(Sprints);
 const mergeRequest = createVisualizationPlugin<MergeRequestsSettings, DataPluginMergeRequest>(MergeRequests);
 const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginNote>(TimeSpent);
 
@@ -47,7 +45,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   issues,
   mergeRequest,
   timeSpent,
-  sprints,
+  Sprints,
   CodeOwnership,
   FileChanges,
   ExampleStats,
