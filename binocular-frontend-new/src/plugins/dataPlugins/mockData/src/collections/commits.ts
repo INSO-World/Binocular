@@ -1,4 +1,9 @@
-import { DataPluginCommit, DataPluginCommits, DataPluginOwnership, DataPluginCommitBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import {
+  DataPluginCommit,
+  DataPluginCommits,
+  DataPluginOwnership,
+  DataPluginCommitBuild,
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import Builds from './builds.ts';
 import { DataPluginFileInCommit } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 

@@ -25,6 +25,8 @@ import { IssueSettings } from './visualizationPlugins/issues/src/settings/settin
 import { BuildSettings } from './visualizationPlugins/builds/src/settings/settings.tsx';
 import { TimeSpentSettings } from './visualizationPlugins/timeSpent/src/settings/settings.tsx';
 import { ChangesSettings } from './visualizationPlugins/changes/src/settings/settings.tsx';
+import KnowledgeRadar from './visualizationPlugins/knowledge-radar';
+import CodeExpertise from './visualizationPlugins/code-expertise';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
@@ -44,6 +46,8 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   ExampleStats,
   ExampleVisualization,
   ExampleComplex,
+  KnowledgeRadar,
+  CodeExpertise,
 ];
 
 //Order = priority used when nothing selected by the user.
