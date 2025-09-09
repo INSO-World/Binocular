@@ -2,16 +2,28 @@ import { useSelector } from 'react-redux';
 import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
 import { useEffect, useState } from 'react';
 import editAuthorDialogStyles from './editAuthorDialog.module.scss';
-import { editAuthor, resetAuthor, saveAuthor, setParentAuthor } from '../../../../redux/reducer/data/authorsReducer.ts';
+import {
+  assignAccount,
+  editAuthor,
+  resetAccount,
+  resetAuthor,
+  saveAuthor,
+  setParentAuthor,
+} from '../../../../redux/reducer/data/authorsReducer.ts';
 import { AuthorType } from '../../../../types/data/authorType.ts';
+import { AccountType } from '../../../../types/data/accountType.ts';
+import { showConfirmationDialog } from '../../../../utils/confirmationDialog.tsx';
 
 function EditAuthorDialog() {
   const dispatch: AppDispatch = useAppDispatch();
 
   const authorToEdit = useSelector((state: RootState) => state.authors.authorToEdit);
   const authorLists = useSelector((state: RootState) => state.authors.authorLists);
+  const accountLists = useSelector((state: RootState) => state.accounts.accountLists);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
   const [authors, setAuthors] = useState(authorLists[authorsDataPluginId] || []);
+  // use the same dataPluginId because there is no other use for a separate one and in current use case it should be the same id
+  const [accounts] = useState(accountLists[authorsDataPluginId] || []);
 
   useEffect(() => {
     setAuthors(authorLists[authorsDataPluginId] || []);
@@ -22,12 +34,16 @@ function EditAuthorDialog() {
   const [colorSecondary, setColorSecondary] = useState(authorToEdit ? authorToEdit.color.secondary : '#CCCCC55');
   const [mergedAuthors, setMergedAuthors] = useState(authorToEdit && authors.filter((a: AuthorType) => a.parent === authorToEdit.id));
   const [parent, setParent] = useState(authorToEdit && authors.filter((a: AuthorType) => a.id === authorToEdit.parent)[0]);
+  const [assignedAccount, setAssignedAccount] = useState(
+    authorToEdit ? authors.find((a: AuthorType) => a.id === authorToEdit.id)?.user.account : undefined,
+  );
   useEffect(() => {
     setDisplayName(authorToEdit && authorToEdit.displayName ? authorToEdit.displayName : '');
     setColorMain(authorToEdit ? authorToEdit.color.main : '#CCCCC');
     setColorSecondary(authorToEdit ? authorToEdit.color.secondary : '#CCCCC55');
     setMergedAuthors(authorToEdit && authors.filter((a: AuthorType) => a.parent === authorToEdit.id));
     setParent(authorToEdit && authors.filter((a: AuthorType) => a.id === authorToEdit.parent)[0]);
+    setAssignedAccount(authorToEdit ? authors.find((a: AuthorType) => a.id === authorToEdit.id)?.user.account : undefined);
   }, [authorToEdit, authors]);
   return (
     <dialog id={'editAuthorDialog'} className={'modal'}>
@@ -79,7 +95,7 @@ function EditAuthorDialog() {
                       style={{ borderColor: parent.color.main, background: parent.color.secondary }}
                       className={editAuthorDialogStyles.authorName}
                       onClick={() => dispatch(editAuthor(parent?.id))}>
-                      {parent.displayName || parent.signature}
+                      {parent.user.displayName || parent.user.gitSignature}
                     </span>
                   </div>
                 </div>
@@ -97,8 +113,9 @@ function EditAuthorDialog() {
                     placeholder={'Add Author'}
                     onChange={(e) => {
                       if (e.target.value.length > 0) {
-                        const searchedAuthors = authors.filter((a: AuthorType) => a.id === Number(e.target.value));
-                        console.log(e.target.value);
+                        const searchedAuthors = authors // Exclude the author being edited and its parent
+                          .filter((a: AuthorType) => a.id !== authorToEdit.id && a.parent !== authorToEdit.id)
+                          .filter((a: AuthorType) => a.id === Number(e.target.value));
                         if (searchedAuthors.length === 1) {
                           e.target.value = '';
                           dispatch(setParentAuthor({ author: searchedAuthors[0].id, parent: authorToEdit.id }));
@@ -107,7 +124,8 @@ function EditAuthorDialog() {
                     }}
                   />
                   <datalist id="allAuthors">
-                    {authors
+                    {authors // Exclude the author being edited and its parent
+                      .filter((a: AuthorType) => a.id !== authorToEdit.id && a.parent !== authorToEdit.id)
                       .filter((a: AuthorType) => a.id !== authorToEdit.id)
                       .map((a: AuthorType) => (
                         <option key={a.id} value={a.id}>
@@ -133,6 +151,80 @@ function EditAuthorDialog() {
                       ))
                     : 'No authors merged!'}
                 </div>
+                {/* Assign Account*/}
+                <div className="label">
+                  <span className="label-text font-bold">Assigned Account:</span>
+                </div>
+                <div>
+                  {!(assignedAccount !== undefined && assignedAccount !== null) && (
+                    <input
+                      type={'text'}
+                      list="allAccounts"
+                      className="input input-xs input-bordered w-full mb-2"
+                      placeholder={'Assign Account'}
+                      onChange={(e) => {
+                        if (e.target.value.length > 0) {
+                          const searchedAccounts = accounts.filter((a: AccountType) => Number(a.localId) === Number(e.target.value));
+                          if (searchedAccounts.length === 1) {
+                            const isAlreadyAssigned = authors.some((a: AuthorType) => {
+                              return a.user.account?.id != null && a.user.account.id === searchedAccounts[0].id && a.id !== authorToEdit.id;
+                            });
+                            if (isAlreadyAssigned) {
+                              const rect = (e.target as HTMLInputElement).getBoundingClientRect();
+                              const dialogWidth = 350;
+                              const dialogHeight = 90;
+                              const x = rect.left + rect.width / 2 - dialogWidth / 2 + window.scrollX;
+                              const y = rect.top + rect.height / 2 + dialogHeight / 2 + window.scrollY;
+                              showConfirmationDialog(
+                                x,
+                                y,
+                                dialogWidth,
+                                `This will remove the connection between this account and another author! Are you sure?`,
+                                [
+                                  {
+                                    label: 'Yes',
+                                    icon: null,
+                                    function: () => dispatch(assignAccount({ account: searchedAccounts[0], author: authorToEdit.id })),
+                                  },
+                                  {
+                                    label: 'No',
+                                    icon: null,
+                                    function: () => {},
+                                  },
+                                ],
+                              );
+                              e.target.value = '';
+                              return;
+                            }
+                            e.target.value = '';
+                            dispatch(assignAccount({ account: searchedAccounts[0], author: authorToEdit.id }));
+                          }
+                        }
+                      }}
+                    />
+                  )}
+                  <datalist id="allAccounts">
+                    {accounts.map((a: AccountType) => (
+                      <option key={a.localId} value={a.localId}>
+                        {a.name || a.user?.gitSignature}
+                      </option>
+                    ))}
+                  </datalist>
+                </div>
+                <div className={editAuthorDialogStyles.authorList}>
+                  {assignedAccount !== undefined && assignedAccount !== null ? (
+                    <div className={editAuthorDialogStyles.authorListItem} key={assignedAccount.id}>
+                      <span style={{ borderColor: 'green', background: 'lightgreen' }} className={editAuthorDialogStyles.authorName}>
+                        {assignedAccount.name}
+                      </span>
+                      <button className={editAuthorDialogStyles.removeButton} onClick={() => dispatch(resetAccount(assignedAccount.id))}>
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    'No account assigned!'
+                  )}
+                </div>
               </>
             )}
           </>
@@ -146,7 +238,11 @@ function EditAuthorDialog() {
                 dispatch(
                   saveAuthor({
                     id: authorToEdit.id,
-                    user: authorToEdit.user,
+                    user: {
+                      id: authorToEdit.user.id,
+                      gitSignature: authorToEdit.user.gitSignature,
+                      account: assignedAccount ? assignedAccount : null,
+                    },
                     parent: authorToEdit.parent,
                     displayName: displayName,
                     color: {

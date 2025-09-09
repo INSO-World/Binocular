@@ -43,7 +43,7 @@ export default class Users implements DataPluginUsers {
       .catch((e) => console.log(e));
     if (resp) {
       return resp.data.repository.assignableUsers.nodes.map((assignableUser) => {
-        return { id: assignableUser.id, gitSignature: assignableUser.login };
+        return { id: assignableUser.id, gitSignature: assignableUser.login, account: null };
       });
     } else {
       return [];

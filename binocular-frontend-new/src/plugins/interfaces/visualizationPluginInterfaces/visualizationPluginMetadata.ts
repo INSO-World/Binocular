@@ -10,6 +10,7 @@ export enum VisualizationPluginMetadataCategory {
   Builds = 'Builds',
   Files = 'Files',
   Ownership = 'Ownership',
+  AuthorBehaviour = 'Author Behaviour',
   Examples = 'Examples',
   Unknown = 'Unknown',
   Expertise = 'Expertise',

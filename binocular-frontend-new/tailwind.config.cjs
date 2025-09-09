@@ -35,6 +35,7 @@ export default {
           "base-300": "#E0E0E0",
           "success":"#4cd964",
           "error":"#ff3b30",
+          "error-content":"#FFFFFF",
           "warning":"#ffcc00",
           "info":"#5ac8fa",
         },

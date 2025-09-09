@@ -1,5 +1,5 @@
 import { DataPluginUser, DataPluginUsers } from '../../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
-import { findAll } from '../utils';
+import { findAllUsers } from '../utils';
 import Database from '../database';
 
 export default class Users implements DataPluginUsers {
@@ -10,11 +10,10 @@ export default class Users implements DataPluginUsers {
 
   public async getAll() {
     console.log(`Getting Authors`);
-    if (this.database && this.database.documentStore) {
-      return findAll(this.database.documentStore, 'users').then((res: { docs: unknown[] }) => {
-        return (res.docs as { gitSignature: string; _id: string; rev: string }[]).map((user) => {
-          return { gitSignature: user.gitSignature, id: user._id };
-        });
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findAllUsers(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+        res.docs = res.docs as DataPluginUser[];
+        return res.docs as unknown as DataPluginUser[];
       });
     } else {
       return new Promise<DataPluginUser[]>((resolve) => {

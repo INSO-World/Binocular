@@ -123,6 +123,7 @@ export default class Commits implements DataPluginCommits {
             user: {
               id: commit.author.user.id,
               gitSignature: commit.author.user.login,
+              account: null,
             },
             branch: '',
             date: commit.committedDate,
