@@ -43,6 +43,17 @@ export default class Commits implements DataPluginCommits {
                     additions
                     deletions
                   }
+                  files {
+                    data {
+                      file {
+                        path
+                      }
+                      stats {
+                        additions
+                        deletions
+                      }
+                    }
+                  }
                 }
               }
             }
