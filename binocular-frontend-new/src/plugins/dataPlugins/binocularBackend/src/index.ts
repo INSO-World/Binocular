@@ -11,6 +11,7 @@ import Issues from './collections/issues.ts';
 import Notes from './collections/notes.ts';
 import Accounts from './collections/accounts.ts';
 import MergeRequests from './collections/mergeRequests.ts';
+import AccountsIssues from './collections/accounts-issues.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -32,6 +33,7 @@ class BinocularBackend implements DataPlugin {
   public notes;
   public general;
   public files;
+  public accountsIssues;
   public branches;
 
   constructor() {
@@ -45,6 +47,7 @@ class BinocularBackend implements DataPlugin {
     this.general = new General('/graphQl', undefined);
     this.files = new Files('/graphQl');
     this.branches = new Branches('/graphQl');
+    this.accountsIssues = new AccountsIssues('graphQl');
   }
 
   public async init(
@@ -66,6 +69,7 @@ class BinocularBackend implements DataPlugin {
     this.notes = new Notes(endpoint);
     this.general = new General(endpoint, progressUpdateConfig);
     this.files = new Files(endpoint);
+    this.accountsIssues = new AccountsIssues(endpoint);
   }
 
   public async clearRemains() {}
