@@ -20,8 +20,8 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
         dispatch(
           addDashboardItem({
             id: 0,
-            width: 12,
-            height: 8,
+            width: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[0] : 12,
+            height: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[1] : 8,
             pluginName: props.plugin.name,
             dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
           }),
@@ -35,8 +35,8 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
             id: 0,
             x: 0,
             y: 0,
-            width: 12,
-            height: 8,
+            width: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[0] : 12,
+            height: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[1] : 8,
             pluginName: props.plugin.name,
             dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
           }),

@@ -2,6 +2,7 @@ export interface VisualizationPluginMetadata {
   category: VisualizationPluginMetadataCategory;
   recommended?: boolean;
   description?: string;
+  defaultSize?: [number, number];
 }
 
 export enum VisualizationPluginMetadataCategory {
