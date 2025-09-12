@@ -4,6 +4,7 @@ import Issues from './visualizationPlugins/issues';
 import TimeSpent from './visualizationPlugins/timeSpent';
 import CodeOwnership from './visualizationPlugins/code-ownership';
 import FileChanges from './visualizationPlugins/fileChanges';
+import RepositoryStats from './visualizationPlugins/respositoryStats';
 import MergeRequests from './visualizationPlugins/mergeRequests';
 
 import ExampleComplex from './visualizationPlugins/exampleComplex';
@@ -44,6 +45,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   issues,
   mergeRequest,
   timeSpent,
+  RepositoryStats,
   CodeOwnership,
   FileChanges,
   ExampleStats,

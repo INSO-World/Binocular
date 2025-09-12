@@ -15,7 +15,7 @@ import MergeRequests from './collections/mergeRequests.ts';
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
   public description = 'Connection to the Binocular GraphQL Backend.';
-  public capabilities = ['authors', 'commits', 'files'];
+  public capabilities = ['authors', 'commits', 'builds', 'files', 'issues'];
   public experimental = false;
   public requirements = {
     apiKey: false,

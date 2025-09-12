@@ -13,7 +13,7 @@ export default class Builds implements DataPluginBuilds {
   public async getAll(from: string, to: string, sort: string = 'ASC') {
     console.log(`Getting Builds from ${from} to ${to}`);
     const builds: DataPluginBuild[] = [];
-    const getBuildPage = (since?: string, until?: string, sort?: string) => async (page: number, perPage: number) => {
+    const getBuildPage = (since?: string | number, until?: string | number, sort?: string) => async (page: number, perPage: number) => {
       const resp = await this.graphQl.client.query({
         // variable tag not queried, because it cannot be found(maybe a keyword), not needed at the moment
         query: gql`
@@ -54,7 +54,7 @@ export default class Builds implements DataPluginBuilds {
       return resp.data.builds;
     };
 
-    await traversePages(getBuildPage(from, to, sort), (build: Build) => {
+    await traversePages(getBuildPage(new Date(from).getTime(), new Date(to).getTime(), sort), (build: Build) => {
       builds.push(convertToDataPluginBuild(build));
     });
     return builds;
