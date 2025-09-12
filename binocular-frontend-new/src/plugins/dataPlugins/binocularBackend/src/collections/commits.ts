@@ -250,6 +250,19 @@ export default class Commits implements DataPluginCommits {
                   additions
                   deletions
                 }
+                files {
+                  count
+                  page
+                  perPage
+                  data {
+                    file {
+                      path
+                      id
+                      webUrl
+                    }
+                    action
+                  }
+                }
                 builds {
                   id
                   status
