@@ -1,15 +1,16 @@
 import Commits from './collections/commits.ts';
-import { DataPlugin } from '../../../interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import General from './collections/general.ts';
 import Files from './collections/files.ts';
 import Users from './collections/users.ts';
-import { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
-import { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
+import { type FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { type ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './collections/builds.ts';
 import Branches from './collections/branches.ts';
 import Issues from './collections/issues.ts';
 import Notes from './collections/notes.ts';
 import Accounts from './collections/accounts.ts';
+import MergeRequests from './collections/mergeRequests.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
@@ -27,6 +28,7 @@ class BinocularBackend implements DataPlugin {
   public users;
   public accounts;
   public issues;
+  public mergeRequests;
   public notes;
   public general;
   public files;
@@ -38,13 +40,13 @@ class BinocularBackend implements DataPlugin {
     this.users = new Users('/graphQl');
     this.accounts = new Accounts('/graphQl');
     this.issues = new Issues('/graphQl');
+    this.mergeRequests = new MergeRequests('/graphQl');
     this.notes = new Notes('/graphQl');
     this.general = new General('/graphQl', undefined);
     this.files = new Files('/graphQl');
     this.branches = new Branches('/graphQl');
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async init(
     apiKey: string | undefined,
     endpoint: string | undefined,
@@ -60,6 +62,7 @@ class BinocularBackend implements DataPlugin {
     this.users = new Users(endpoint);
     this.accounts = new Accounts(endpoint);
     this.issues = new Issues(endpoint);
+    this.mergeRequests = new MergeRequests(endpoint);
     this.notes = new Notes(endpoint);
     this.general = new General(endpoint, progressUpdateConfig);
     this.files = new Files(endpoint);

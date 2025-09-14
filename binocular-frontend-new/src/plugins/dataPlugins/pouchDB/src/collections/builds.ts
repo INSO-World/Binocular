@@ -1,6 +1,6 @@
 import { findAllBuilds } from '../utils.js';
 import Database from '../database.ts';
-import { DataPluginBuild, DataPluginBuilds } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import type { DataPluginBuild, DataPluginBuilds } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 
 export default class Builds implements DataPluginBuilds {
   private readonly database: Database | undefined;

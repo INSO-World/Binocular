@@ -1,13 +1,14 @@
-import { DataPluginGeneral } from './dataPluginInterfaces/dataPluginGeneral.ts';
-import { DataPluginCommits } from './dataPluginInterfaces/dataPluginCommits.ts';
-import { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
-import { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
-import { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
-import { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
-import { DataPluginIssues } from './dataPluginInterfaces/dataPluginIssues.ts';
-import { DataPluginNotes } from './dataPluginInterfaces/dataPluginNotes.ts';
-import { DataPluginAccounts } from './dataPluginInterfaces/dataPluginAccounts.ts';
-import { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
+import type { DataPluginGeneral } from './dataPluginInterfaces/dataPluginGeneral.ts';
+import type { DataPluginCommits } from './dataPluginInterfaces/dataPluginCommits.ts';
+import type { DataPluginUsers } from './dataPluginInterfaces/dataPluginUsers.ts';
+import type { DataPluginBuilds } from './dataPluginInterfaces/dataPluginBuilds.ts';
+import type { DataPluginFiles, FileConfig } from './dataPluginInterfaces/dataPluginFiles.ts';
+import type { ProgressUpdateConfig } from '../../types/settings/databaseSettingsType.ts';
+import type { DataPluginIssues } from './dataPluginInterfaces/dataPluginIssues.ts';
+import type { DataPluginNotes } from './dataPluginInterfaces/dataPluginNotes.ts';
+import type { DataPluginAccounts } from './dataPluginInterfaces/dataPluginAccounts.ts';
+import type { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
+import type { DataPluginMergeRequests } from './dataPluginInterfaces/dataPluginMergeRequests.ts';
 
 export interface DataPlugin {
   name: string;
@@ -16,6 +17,7 @@ export interface DataPlugin {
   commits: DataPluginCommits;
   builds: DataPluginBuilds;
   issues: DataPluginIssues;
+  mergeRequests: DataPluginMergeRequests;
   notes: DataPluginNotes;
   users: DataPluginUsers;
   accounts: DataPluginAccounts;

@@ -1,4 +1,4 @@
-import { DataPluginAccount, DataPluginAccounts } from '../../../../interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
+import type { DataPluginAccount, DataPluginAccounts } from '../../../../interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
 import { findAllAccounts } from '../utils';
 import Database from '../database';
 

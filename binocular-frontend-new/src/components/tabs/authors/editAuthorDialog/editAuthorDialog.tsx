@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, useAppDispatch } from '../../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
 import { useEffect, useState } from 'react';
 import editAuthorDialogStyles from './editAuthorDialog.module.scss';
 import {
@@ -10,9 +10,9 @@ import {
   saveAuthor,
   setParentAuthor,
 } from '../../../../redux/reducer/data/authorsReducer.ts';
-import { AuthorType } from '../../../../types/data/authorType.ts';
-import { AccountType } from '../../../../types/data/accountType.ts';
-import { showConfirmationDialog } from '../../../../utils/confirmationDialog.tsx';
+import type { AuthorType } from '../../../../types/data/authorType.ts';
+import type { AccountType } from '../../../../types/data/accountType.ts';
+import { showConfirmationDialog } from '../../../confirmationDialog/confirmationDialog.tsx';
 
 function EditAuthorDialog() {
   const dispatch: AppDispatch = useAppDispatch();

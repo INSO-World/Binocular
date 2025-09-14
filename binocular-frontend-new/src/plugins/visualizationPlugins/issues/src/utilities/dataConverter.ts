@@ -1,11 +1,11 @@
 import moment from 'moment/moment';
-import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
+import type { ParametersType } from '../../../../../types/parameters/parametersType.ts';
 import chroma from 'chroma-js';
 import _ from 'lodash';
-import { AuthorType } from '../../../../../types/data/authorType.ts';
-import { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
-import { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
-import { IssueSettings } from '../settings/settings.tsx';
+import type { AuthorType } from '../../../../../types/data/authorType.ts';
+import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import type { IssueSettings } from '../settings/settings.tsx';
 
 interface IssueChartData {
   date: number;
@@ -336,9 +336,6 @@ function getDataByAuthors(
           obj.statsBySortingObject[assignee] = { OPEN: totalIssuesPerAuthor[assignee] };
         }
       } else {
-        if (!(assignee in obj.statsBySortingObject)) {
-          obj.statsBySortingObject[assignee] = { OPENED: 0, CLOSED: 0 };
-        }
         if (!(assignee in obj.statsBySortingObject)) {
           obj.statsBySortingObject[assignee] = { OPENED: 0, CLOSED: 0 };
         }

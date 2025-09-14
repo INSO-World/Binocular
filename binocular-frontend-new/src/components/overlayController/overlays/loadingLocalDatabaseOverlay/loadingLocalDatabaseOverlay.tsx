@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../redux';
+import type { RootState } from '../../../../redux';
 import { LocalDatabaseLoadingState } from '../../../../redux/reducer/settings/settingsReducer.ts';
 
 function LoadingLocalDatabaseOverlay() {

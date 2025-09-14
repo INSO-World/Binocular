@@ -2,7 +2,7 @@ import PouchDB from 'pouchdb-browser';
 import PouchDBFind from 'pouchdb-find';
 import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 import _ from 'lodash';
-import { DataPluginFileOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { DataPluginFileOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
@@ -206,7 +206,6 @@ function preprocessCommit(
   const commitUserRelation = binarySearch(commitUser, commit._id, 'from');
 
   if (!commitUserRelation) {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     console.log('Error in localDB: commit: no user found for commit ' + commit.sha);
     return commit;
   }
@@ -215,7 +214,6 @@ function preprocessCommit(
   const author = users[commitUserRelation.to];
 
   if (!author) {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     console.log('Error in localDB: commit: no user found with ID ' + commitUserRelation.to);
     return commit;
   }
@@ -423,7 +421,6 @@ export async function findAllAccounts(database: PouchDB.Database, relations: Pou
   const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'from');
 
   accounts.docs = await Promise.all(accounts.docs.map((u) => preprocessAccount(u, accountsUsersConnection, users)));
-  console.log(accounts);
   return accounts;
 }
 
@@ -549,14 +546,18 @@ export function findFileCommitUserConnections(relations: PouchDB.Database) {
 }
 
 export function findBranch(database: PouchDB.Database, branch: string) {
-  return database.find({
-    selector: {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      _id: { $regex: new RegExp('^branches/.*') },
-      branch: { $eq: branch },
-    },
-  });
+  return new Promise<PouchDB.Find.FindResponse<object>>((resolve) =>
+    database
+      .find({
+        selector: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          _id: { $regex: new RegExp('^branches/.*') },
+          branch: { $eq: branch },
+        },
+      })
+      .then((result) => resolve(result)),
+  );
 }
 
 export function findBranchFileConnections(relations: PouchDB.Database) {

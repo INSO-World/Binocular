@@ -1,5 +1,5 @@
-import { FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType.ts';
-import { DataPluginFile } from '../../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { type FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType.ts';
+import type { DataPluginFile } from '../../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import fileListElementsStyles from '../fileListElements/fileListElements.module.scss';
 
 export function generateFileTree(files: DataPluginFile[]): FileTreeElementType[] {

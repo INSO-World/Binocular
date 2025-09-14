@@ -1,6 +1,10 @@
 import { GraphQL } from './utils.ts';
-import { ApolloQueryResult, gql } from '@apollo/client';
-import { DataPluginCommit, DataPluginCommits, DataPluginOwnership } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import { type ApolloQueryResult, gql } from '@apollo/client';
+import type {
+  DataPluginCommit,
+  DataPluginCommits,
+  DataPluginOwnership,
+} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 interface CommitQueryResult {
   repository: {
@@ -109,7 +113,6 @@ export default class Commits implements DataPluginCommits {
         .catch((e) => console.log(e));
 
       if (resp) {
-        console.log(resp.data.repository.defaultBranchRef.target.history.pageInfo.hasNextPage);
         resp.data.repository.defaultBranchRef.target.history.nodes.forEach((commit) => {
           if (commit.author.user === null) {
             return;
@@ -204,8 +207,6 @@ export default class Commits implements DataPluginCommits {
         });
 
       if (resp && resp.data.file.commits) {
-        console.log(resp.data.file.commits.pageInfo.hasNextPage);
-
         resp.data.file.commits.data.forEach((data: { commit: DataPluginCommit }) => {
           commitList.push(data.commit);
         });

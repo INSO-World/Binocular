@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
-import { DataChild, data as exampleSunburstData } from './exampleSunburstData.ts';
+import { type DataChild, data as exampleSunburstData } from './exampleSunburstData.ts';
 
 /**
  * Example from https://observablehq.com/@d3/zoomable-sunburst?intent=fork#data reworked for ts
@@ -158,6 +158,8 @@ function clicked(
   // Transition the data on all arcs, even the ones that aren’t visible,
   // so that if this transition is interrupted, entering arcs will start
   // the next transition from the desired position.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
   path
     .transition(t)
     .tween('data', (d) => {

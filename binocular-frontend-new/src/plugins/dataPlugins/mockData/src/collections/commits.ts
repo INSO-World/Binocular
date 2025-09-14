@@ -27,6 +27,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-01T12:00:00.000Z', // Matches build id 1
@@ -43,6 +44,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-02T12:00:00.000Z', // Matches build id 2
@@ -59,6 +61,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-10T12:00:00.000Z', // Matches build id 3
@@ -75,6 +78,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-11T12:00:00.000Z', // Matches build id 4
@@ -91,6 +95,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-07-10T12:00:00.000Z', // Matches build id 5
@@ -107,6 +112,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-07-11T12:00:00.000Z', // Matches build id 6 and 7
@@ -123,6 +129,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-07-12T12:00:00.000Z', // Matches build id 11
@@ -139,6 +146,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-08-11T12:00:00.000Z', // Matches build id 8, 9, and 10
@@ -155,6 +163,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-08-13T12:00:00.000Z', // Matches build id 12
@@ -171,6 +180,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-08-14T12:00:00.000Z', // Matches build id 13
@@ -188,6 +198,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-08-20T12:00:00.000Z', // No matching build
@@ -776,6 +787,7 @@ export default class Commits implements DataPluginCommits {
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-01T12:00:00.000Z',
@@ -786,102 +798,115 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000002',
           shortSha: '00002',
-          files: { data: [] },
           messageHeader: 'Commit 2',
           message: 'This is the second Commit',
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-02T12:00:00.000Z',
           parents: ['0000000001'],
           webUrl: 'www.github.com',
           stats: { additions: 10, deletions: 20 },
+          files: {
+            data: [],
+          },
         },
         {
           sha: '0000000003',
           shortSha: '00003',
-          files: { data: [] },
           messageHeader: 'Commit 3',
           message: 'This is the third Commit',
           user: {
             id: '2',
             gitSignature: 'tester2@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-03T12:00:00.000Z',
           parents: ['0000000002'],
           webUrl: 'www.github.com',
           stats: { additions: 2, deletions: 5 },
+          files: {
+            data: [],
+          },
         },
         {
           sha: '0000000004',
           shortSha: '00004',
-          files: { data: [] },
           messageHeader: 'Commit 4',
           message: 'This is the fourth Commit',
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-04T12:00:00.000Z',
           parents: ['0000000003'],
           webUrl: 'www.github.com',
           stats: { additions: 20, deletions: 0 },
+          files: {
+            data: [],
+          },
         },
         {
           sha: '0000000005',
           shortSha: '00005',
-          files: { data: [] },
           messageHeader: 'Commit 5',
           message: 'This is the fifth Commit',
           user: {
             id: '1',
             gitSignature: 'tester@github.com',
+            account: null,
           },
           branch: 'main',
           date: '2024-06-05T12:00:00.000Z',
           parents: ['0000000004'],
           webUrl: 'www.github.com',
           stats: { additions: 6, deletions: 10 },
+          files: {
+            data: [],
+          },
         },
       ];
       resolve(commits);
     });
   }
 
-  public async getCommitDataForSha(sha: string): Promise<DataPluginCommit> {
-    return Promise.resolve({
-      sha: sha,
-      shortSha: '00001',
-      files: { data: [] },
-      messageHeader: 'Commit 1',
-      message: 'This is the first Commit',
-      user: {
-        id: '1',
-        gitSignature: 'tester@github.com',
-      },
-      branch: 'main',
-      date: '2024-11-25T15:05:10.000Z',
-      parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
-      webUrl: 'www.github.com',
-      stats: { additions: 5, deletions: 0 },
+  public async getCommitDataForSha(_sha: string) {
+    return new Promise<DataPluginCommit>((resolve) => {
+      resolve({
+        sha: '0000000001',
+        shortSha: '00001',
+        files: { data: [] },
+        messageHeader: 'Commit 1',
+        message: 'This is the first Commit',
+        user: {
+          id: '1',
+          gitSignature: 'tester@github.com',
+          account: null,
+        },
+        branch: 'main',
+        date: '2024-06-01T12:00:00.000Z',
+        parents: [],
+        webUrl: 'www.github.com',
+        stats: { additions: 5, deletions: 0 },
+      });
     });
   }
 
   public async getDateOfFirstCommit() {
-    console.log(`Getting Date of First Commit`);
     return new Promise<string>((resolve) => {
       resolve('2024-06-01T12:00:00.000Z');
     });
   }
 
   public async getDateOfLastCommit() {
-    console.log(`Getting Date of Last Commit`);
     return new Promise<string>((resolve) => {
-      resolve('2024-06-05T12:00:00.000Z');
+      resolve('2024-06-01T12:00:00.000Z');
     });
   }
 

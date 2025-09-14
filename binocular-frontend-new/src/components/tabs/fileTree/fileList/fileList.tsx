@@ -1,14 +1,14 @@
 import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, store as globalStore, useAppDispatch } from '../../../../redux';
+import { type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
 import { FileTreeElementTypeType } from '../../../../types/data/fileListType.ts';
 import { filterFileTree, generateFileTree } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
-import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
 import { setFileList, setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
-import { DataPluginFile } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { DataPluginFile } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();

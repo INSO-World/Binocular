@@ -1,4 +1,4 @@
-import { DataPluginFile, DataPluginFiles, PreviousFilePaths } from '../../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { DataPluginFile, DataPluginFiles, PreviousFilePaths } from '../../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import {
   binarySearch,
   binarySearchArray,

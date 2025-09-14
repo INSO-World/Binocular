@@ -1,6 +1,6 @@
 import { GraphQL, traversePages } from '../utils.ts';
 import { gql } from '@apollo/client';
-import { DataPluginUser, DataPluginUsers } from '../../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
+import type { DataPluginUser, DataPluginUsers } from '../../../../interfaces/dataPluginInterfaces/dataPluginUsers.ts';
 
 export default class Users implements DataPluginUsers {
   private graphQl;

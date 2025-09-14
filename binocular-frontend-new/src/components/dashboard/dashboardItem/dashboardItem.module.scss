@@ -1,4 +1,5 @@
-@import "../../../variables.scss";
+@use "../../../variables.scss" as *;
+@reference "../../../index.scss";
 
 $dashboardItemInteractionBarThickness: 1.5rem;
 $dashboardItemResizeBarThickness: 3px;

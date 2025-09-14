@@ -32,7 +32,7 @@
   height: 1.5rem;
   width: 50%;
   float: left;
-  @apply rounded-btn;
+  @apply btn;
   overflow: hidden;
   border: 2px solid;
   @apply font-bold;

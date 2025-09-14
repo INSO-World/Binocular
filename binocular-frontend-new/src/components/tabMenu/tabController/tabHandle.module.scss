@@ -1,5 +1,6 @@
-@import '../../../variables.scss';
-@import '../tabControllerVariables.module';
+@use '../../../variables.scss' as *;
+@use '../tabControllerVariables.module' as *;
+@reference "../../../index.scss";
 
 
 .tabHandle{

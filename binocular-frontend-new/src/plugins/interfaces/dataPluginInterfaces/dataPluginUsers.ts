@@ -1,4 +1,4 @@
-import { DataPluginAccount } from './dataPluginAccounts.ts';
+import type { DataPluginAccount } from './dataPluginAccounts.ts';
 
 export interface DataPluginUsers {
   getAll: () => Promise<DataPluginUser[]>;

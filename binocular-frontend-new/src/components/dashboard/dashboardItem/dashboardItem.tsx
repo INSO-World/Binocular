@@ -4,21 +4,21 @@ import { visualizationPlugins } from '../../../plugins/pluginRegistry.ts';
 import { memo, useEffect, useRef, useState } from 'react';
 import DashboardItemPopout from '../dashboardItemPopout/dashboardItemPopout.tsx';
 import { increasePopupCount, updateDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
-import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
 import openInNewGray from '../../../assets/open_in_new_white.svg';
 import openInNewBlack from '../../../assets/open_in_new_black.svg';
 import { useSelector } from 'react-redux';
 import DashboardItemSettings from '../dashboardItemSettings/dashboardItemSettings.tsx';
 import { parametersInitialState } from '../../../redux/reducer/parameters/parametersReducer.ts';
-import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import type { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
 import { ExportType, setExportName, setExportSVGData, setExportType } from '../../../redux/reducer/export/exportReducer.ts';
 import ReduxSubAppStoreWrapper from '../reduxSubAppStoreWrapper/reduxSubAppStoreWrapper.tsx';
-import { combineReducers, configureStore, Store } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, type Store } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import { createLogger } from 'redux-logger';
-import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import _ from 'lodash';
-import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 
 import { store as globalStore } from '../../../redux';
@@ -281,7 +281,7 @@ const DashboardItem = memo(function DashboardItem(props: {
           <div
             className={dashboardItemStyles.dashboardItemInteractionBar}
             style={{
-              background: `linear-gradient(90deg, ${selectedDataPlugin ? selectedDataPlugin.color : 'oklch(var(--b2))'}, oklch(var(--b1))`,
+              background: `linear-gradient(90deg, ${selectedDataPlugin ? selectedDataPlugin.color : 'var(--color-base-200)'}, var(--color-base-200)`,
             }}
             onMouseDown={() => {
               console.log('Start dragging dashboard item ' + props.item.pluginName);

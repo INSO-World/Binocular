@@ -1,7 +1,7 @@
 import Chart from './chart/chart.tsx';
 import PreviewImage from '../assets/thumbnail.svg';
-import Settings, { SettingsType } from './settings/settings.tsx';
-import { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
+import Settings, { type SettingsType } from './settings/settings.tsx';
+import type { VisualizationPlugin } from '../../../interfaces/visualizationPlugin.ts';
 import { getSVGData } from './utilities/utilities.ts';
 import Reducer from './reducer';
 import Saga from './saga';
@@ -31,6 +31,9 @@ const FileChanges: VisualizationPlugin<SettingsType, null> = {
   },
   metadata: {
     category: VisualizationPluginMetadataCategory.Commits,
+    recommended: false,
+    description:
+      'A line chart that visualizes the amount of additions and deletion and what author is responsible for them over time for an individual file.',
   },
   reducer: Reducer,
   saga: Saga,
