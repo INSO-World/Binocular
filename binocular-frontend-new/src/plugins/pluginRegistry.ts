@@ -4,6 +4,7 @@ import Issues from './visualizationPlugins/issues';
 import TimeSpent from './visualizationPlugins/timeSpent';
 import CodeOwnership from './visualizationPlugins/code-ownership';
 import FileChanges from './visualizationPlugins/fileChanges';
+import RepositoryStats from './visualizationPlugins/respositoryStats';
 import MergeRequests from './visualizationPlugins/mergeRequests';
 
 import ExampleComplex from './visualizationPlugins/exampleComplex';
@@ -28,8 +29,7 @@ import type { TimeSpentSettings } from './visualizationPlugins/timeSpent/src/set
 import type { ChangesSettings } from './visualizationPlugins/changes/src/settings/settings.tsx';
 import type { DataPluginMergeRequest } from './interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
 import type { MergeRequestsSettings } from './visualizationPlugins/mergeRequests/src/settings/settings.tsx';
-import KnowledgeRadar from './visualizationPlugins/knowledge-radar';
-import CodeExpertise from './visualizationPlugins/code-expertise';
+import CollaborationVisualization from './visualizationPlugins/collaboration';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
@@ -46,13 +46,13 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   issues,
   mergeRequest,
   timeSpent,
+  RepositoryStats,
   CodeOwnership,
   FileChanges,
   ExampleStats,
   ExampleVisualization,
   ExampleComplex,
-  KnowledgeRadar,
-  CodeExpertise,
+  CollaborationVisualization,
 ];
 
 //Order = priority used when nothing selected by the user.

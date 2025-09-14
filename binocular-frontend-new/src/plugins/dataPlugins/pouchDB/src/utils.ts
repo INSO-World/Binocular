@@ -469,7 +469,7 @@ export async function findAllMergeRequests(database: PouchDB.Database, relations
 // finds all Issues/MRs and infers notes, author, assignee and assignees using the respective relations
 async function findAllIssuesOrMergeRequests(database: PouchDB.Database, relations: PouchDB.Database, type: string) {
   if (type !== 'issues' && type !== 'mergeRequests') {
-    return [];
+    return { docs: [] };
   }
   const issues = await findAll(database, type);
 

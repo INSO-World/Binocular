@@ -215,8 +215,8 @@ export default class Commits implements DataPluginCommits {
     return new Promise<DataPluginOwnership[]>((resolve) => {
       const commits: DataPluginOwnership[] = [
         {
-          sha: '61ad1d652fdc287fac6bebe2f47618e8b503404e',
-          date: '2024-11-22T11:03:56.000Z',
+          sha: '0000000001',
+          date: '2024-10-22T11:03:56.000Z',
           parents: [],
           files: [
             {
@@ -457,9 +457,9 @@ export default class Commits implements DataPluginCommits {
           ],
         },
         {
-          sha: '5f13d85a7c3a2e62711e5e78f79f04854ecc5907',
+          sha: '0000000002',
           date: '2024-11-25T15:05:10.000Z',
-          parents: ['61ad1d652fdc287fac6bebe2f47618e8b503404e'],
+          parents: ['0000000001'],
           files: [
             {
               path: 'index.js',
@@ -876,10 +876,10 @@ export default class Commits implements DataPluginCommits {
     });
   }
 
-  public async getCommitDataForSha(_sha: string) {
+  public async getCommitDataForSha(sha: string) {
     return new Promise<DataPluginCommit>((resolve) => {
       resolve({
-        sha: '0000000001',
+        sha: sha,
         shortSha: '00001',
         files: { data: [] },
         messageHeader: 'Commit 1',
@@ -891,7 +891,7 @@ export default class Commits implements DataPluginCommits {
         },
         branch: 'main',
         date: '2024-06-01T12:00:00.000Z',
-        parents: [],
+        parents: ['0000000001'],
         webUrl: 'www.github.com',
         stats: { additions: 5, deletions: 0 },
       });

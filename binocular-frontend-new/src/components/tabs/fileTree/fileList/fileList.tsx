@@ -2,13 +2,10 @@ import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
-import { FileTreeElementTypeType } from '../../../../types/data/fileListType.ts';
-import { filterFileTree, generateFileTree } from './fileListUtilities/fileTreeUtilities.tsx';
+import { filterFileTree, refreshFileList } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
-import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
-import { setFileList, setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
-import type { DataPluginFile } from '../../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
 
 function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -20,37 +17,7 @@ function FileList(props: { orientation?: string; search: string }) {
 
   function refreshFileTree(dP: DatabaseSettingsDataPluginType) {
     if (dP && dP.id !== undefined) {
-      console.log(`REFRESH FILES (${dP.name} #${dP.id})`);
-      DataPluginStorage.getDataPlugin(dP)
-        .then((dataPlugin) => {
-          if (dataPlugin) {
-            dataPlugin.files
-              .getAll()
-              .then((files) =>
-                dispatch(
-                  setFileList({
-                    dataPluginId: dP.id !== undefined ? dP.id : -1,
-                    fileTree: {
-                      name: '/',
-                      type: FileTreeElementTypeType.Folder,
-                      children: generateFileTree(files),
-                      checked: true,
-                      foldedOut: true,
-                      isRoot: true,
-                    },
-                    files: files.map((f: DataPluginFile) => {
-                      return {
-                        element: f,
-                        checked: true,
-                      };
-                    }),
-                  }),
-                ),
-              )
-              .catch(() => console.log('Error loading Files from selected data source!'));
-          }
-        })
-        .catch((e) => console.log(e));
+      refreshFileList(dP, dispatch);
     } else {
       if (currentDataPlugins.length > 0) {
         dispatch(setFilesDataPluginId(currentDataPlugins[0].id));
@@ -62,21 +29,6 @@ function FileList(props: { orientation?: string; search: string }) {
     const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
     refreshFileTree(dataPlugin);
   }, [currentDataPlugins, filesDataPluginId]);
-
-  useEffect(() => {
-    if (currentDataPlugins.length !== 0) {
-      currentDataPlugins.forEach((dP: DatabaseSettingsDataPluginType) => {
-        if (filesDataPluginId === undefined && dP.isDefault && dP.id !== undefined) {
-          dispatch(setFilesDataPluginId(dP.id));
-        }
-        refreshFileTree(dP);
-      });
-    }
-  }, [currentDataPlugins]);
-
-  useEffect(() => {
-    refreshFileTree(filesDataPluginId);
-  }, [filesDataPluginId]);
 
   globalStore.subscribe(() => {
     if (filesDataPluginId) {

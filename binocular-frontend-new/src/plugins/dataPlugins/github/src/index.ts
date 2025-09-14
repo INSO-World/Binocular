@@ -3,6 +3,7 @@ import type { DataPlugin } from '../../../interfaces/dataPlugin.ts';
 import Users from './users.ts';
 import General from './general.ts';
 import Files from './files.ts';
+import Issues from './issues.ts';
 import Builds from './builds.ts';
 import Notes from './notes.ts';
 import Issues from './issues.ts';

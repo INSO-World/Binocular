@@ -7,7 +7,7 @@ export default class Branches implements DataPluginBranches {
         branch: 'develop',
         active: false,
         tracksFileRenames: true,
-        latestCommit: '5f13d85a7c3a2e62711e5e78f79f04854ecc5907',
+        latestCommit: '0000000002',
       },
     ]);
   }

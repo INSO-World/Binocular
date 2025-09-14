@@ -9,11 +9,12 @@ import Notes from './collections/notes.ts';
 import Accounts from './collections/accounts.ts';
 import Branches from './collections/branches.ts';
 import MergeRequests from './collections/mergeRequests.ts';
+import AccountsIssues from './collections/accounts-issues.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';
   public description = 'Mocked Data for testing purposes.';
-  public capabilities = ['authors', 'commits', 'files', 'issues', 'builds'];
+  public capabilities = ['authors', 'commits', 'files', 'issues', 'builds', 'collaboration'];
   public experimental = false;
   public requirements = {
     apiKey: false,
@@ -27,6 +28,7 @@ class MockData implements DataPlugin {
   public accounts;
   public general;
   public files;
+  public accountsIssues;
   public branches;
   public issues;
   public mergeRequests;
@@ -43,6 +45,7 @@ class MockData implements DataPlugin {
     this.issues = new Issues();
     this.mergeRequests = new MergeRequests();
     this.notes = new Notes();
+    this.accountsIssues = new AccountsIssues();
   }
 
   public async init() {}
