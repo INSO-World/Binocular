@@ -33,7 +33,7 @@ export default class Commits implements DataPluginCommits {
           date: '2024-06-01T12:00:00.000Z', // Matches build id 1
           parents: [],
           webUrl: 'www.github.com',
-          stats: { additions: 5, deletions: 0 },
+          stats: { additions: 500, deletions: 0 },
         },
         {
           sha: '0000000002',
@@ -50,7 +50,7 @@ export default class Commits implements DataPluginCommits {
           date: '2024-06-02T12:00:00.000Z', // Matches build id 2
           parents: ['0000000001'],
           webUrl: 'www.github.com',
-          stats: { additions: 10, deletions: 20 },
+          stats: { additions: 240, deletions: 20 },
         },
         {
           sha: '0000000003',
