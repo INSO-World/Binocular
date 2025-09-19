@@ -101,7 +101,7 @@ cli.parse(
   },
   (options) => {
     if (options.runIndexer) {
-      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
+      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
       const indexerOptions = {
         backend: true,
         frontend: false,
@@ -392,8 +392,8 @@ function runBackend() {
 
       // export db if required
       if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
-        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
+        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend-new/src');
       }
 
       if (activeProviders.length < 1) {
