@@ -15,4 +15,5 @@ export enum VisualizationPluginMetadataCategory {
   Statistics = 'Statistics',
   Examples = 'Examples',
   Unknown = 'Unknown',
+  Expertise = 'Expertise',
 }
