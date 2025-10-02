@@ -17,7 +17,8 @@ class FileMapper
         @Lazy private val moduleMapper: ModuleMapper,
         @Lazy private val userMapper: UserMapper,
     ) : EntityMapper<File, FileEntity> {
-        @Lazy @Autowired
+        @Lazy
+        @Autowired
         private lateinit var commitMapper: CommitMapper
 
         /**
@@ -39,43 +40,46 @@ class FileMapper
          * when accessed. This provides a consistent API regardless of the database
          * implementation and avoids the N+1 query problem.
          */
-        override fun toDomain(entity: FileEntity): File =
-            File(
-                id = entity.id,
-                path = entity.path,
-                webUrl = entity.webUrl,
-                maxLength = entity.maxLength,
-                commits =
-                    proxyFactory.createLazyList {
-                        (entity.commits ?: emptyList()).map { commitEntity ->
-                            commitMapper.toDomain(commitEntity)
-                        }
-                    },
-                branches =
-                    proxyFactory.createLazyList {
-                        (entity.branches ?: emptyList()).map { branchEntity ->
-                            branchMapper.toDomain(branchEntity)
-                        }
-                    },
-                modules =
-                    proxyFactory.createLazyList {
-                        (entity.modules ?: emptyList()).map { moduleEntity ->
-                            moduleMapper.toDomain(moduleEntity)
-                        }
-                    },
-                relatedFiles =
-                    proxyFactory.createLazyList {
-                        (entity.relatedFiles ?: emptyList()).map { relatedFileEntity ->
-                            toDomain(relatedFileEntity)
-                        }
-                    },
-                users =
-                    proxyFactory.createLazyList {
-                        (entity.users ?: emptyList()).map { userEntity ->
-                            userMapper.toDomain(userEntity)
-                        }
-                    },
-            )
+        override fun toDomain(entity: FileEntity): File {
+            val file =
+                File(
+                    id = entity.id,
+                    path = entity.path,
+                )
+//            file.webUrl = entity.webUrl
+//            file.maxLength = entity.maxLength
+//            file.commits =
+//                proxyFactory.createLazyList {
+//                    (entity.commits ?: emptyList()).map { commitEntity ->
+//                        commitMapper.toDomain(commitEntity)
+//                    }
+//                }
+//            file.branches =
+//                proxyFactory.createLazyList {
+//                    (entity.branches ?: emptyList()).map { branchEntity ->
+//                        branchMapper.toDomain(branchEntity)
+//                    }
+//                }
+//            file.modules =
+//                proxyFactory.createLazyList {
+//                    (entity.modules ?: emptyList()).map { moduleEntity ->
+//                        moduleMapper.toDomain(moduleEntity)
+//                    }
+//                }
+//            file.relatedFiles =
+//                proxyFactory.createLazyList {
+//                    (entity.relatedFiles ?: emptyList()).map { relatedFileEntity ->
+//                        toDomain(relatedFileEntity)
+//                    }
+//                }
+//            file.users =
+//                proxyFactory.createLazyList {
+//                    (entity.users ?: emptyList()).map { userEntity ->
+//                        userMapper.toDomain(userEntity)
+//                    }
+//                }
+            return file
+        }
 
         /**
          * Converts a list of ArangoDB FileEntity objects to a list of domain File objects

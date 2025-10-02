@@ -1,4 +1,4 @@
-package com.inso_world.binocular.cli
+package com.inso_world.binocular.cli.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration

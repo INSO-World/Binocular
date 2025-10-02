@@ -24,7 +24,7 @@ data class CommitEntity(
     var message: String? = null,
     var webUrl: String? = null,
     var branch: String? = null,
-    var stats: Stats? = null,
+    var stats: CommitDiff.Stats? = null,
     @Relations(edges = [CommitCommitConnectionEntity::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
     var parents: List<CommitEntity> = emptyList(),
     @Relations(edges = [CommitCommitConnectionEntity::class], lazy = true, maxDepth = 1, direction = Relations.Direction.INBOUND)

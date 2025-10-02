@@ -1,13 +1,10 @@
 package com.inso_world.binocular.cli.index.vcs
 
-import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
 import com.inso_world.binocular.model.Commit
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.Objects
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.abs
 
+@Deprecated("legacy")
 data class VcsCommit(
     val sha: String,
     val message: String,
@@ -35,40 +32,6 @@ data class VcsCommit(
     }
 
     override fun hashCode(): Int = Objects.hash(sha, message, branch, commitTime, authorTime)
-}
-
-fun List<BinocularCommitPojo>.toDtos(): List<VcsCommit> {
-    val commitCache = ConcurrentHashMap<String, VcsCommit>()
-
-    // First pass: Create VcsCommit objects without parents
-    parallelStream().forEach { pojo ->
-        commitCache.computeIfAbsent(pojo.commit) { sha ->
-            VcsCommit(
-                sha = sha,
-                message = pojo.message,
-                branch = pojo.branch ?: "",
-                committer = pojo.committer?.let { VcsPerson(it.name, it.email) },
-                author = pojo.author?.let { VcsPerson(it.name, it.email) },
-                commitTime = pojo.committer?.time?.let { t -> LocalDateTime.ofEpochSecond(t.seconds, abs(t.offset), ZoneOffset.UTC) },
-                authorTime = pojo.author?.time?.let { t -> LocalDateTime.ofEpochSecond(t.seconds, abs(t.offset), ZoneOffset.UTC) },
-                parents = mutableSetOf(), // Will be populated in second pass
-            )
-        }
-    }
-
-    // Second pass: Set up parent relationships using cached objects
-    parallelStream().forEach { pojo ->
-        val commit = commitCache[pojo.commit]!!
-        val parentCommits =
-            pojo.parents
-                .mapNotNull { parent ->
-                    commitCache[parent.commit]
-                }.toSet()
-
-        commit.parents.addAll(parentCommits)
-    }
-
-    return parallelStream().map { pojo -> commitCache[pojo.commit]!! }.toList()
 }
 
 fun traverseGraph(

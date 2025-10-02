@@ -1,20 +1,22 @@
 package com.inso_world.binocular.cli.service
 
-import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.nio.file.Paths
 
 @Service
 class RepositoryService {
-    private val logger: Logger = LoggerFactory.getLogger(RepositoryService::class.java)
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(RepositoryService::class.java)
+    }
 
     @Autowired
     private lateinit var repositoryPort: RepositoryInfrastructurePort
@@ -22,108 +24,195 @@ class RepositoryService {
     @Autowired
     private lateinit var commitService: CommitService
 
+    /**
+     * Deduplicate incoming commits against the repository by uniqueKey() and
+     * wire up relationships (author/committer, branches, parents/children)
+     * so that all references point to the canonical objects in `repo`.
+     *
+     * Returns the canonicalized commits corresponding to the input order.
+     */
     internal fun transformCommits(
         repo: Repository,
-        commits: Iterable<VcsCommit>,
+        commits: Iterable<Commit>,
     ): Collection<Commit> {
-        logger.trace(">>> transformCommits({})", repo)
+        // --- canonical indexes from repository state
+        val commitsByKey = repo.commits.associateByTo(mutableMapOf<String, Commit>()) { it.uniqueKey() }
+        val usersByKey = repo.user.associateByTo(mutableMapOf<String, User>()) { it.uniqueKey() }
+        val usersByEmail =
+            repo.user
+                .mapNotNull { u -> normalizeEmail(u.email)?.let { it to u } }
+                .toMap(mutableMapOf())
 
-//        repo.user = userPort.findAll(repo).toMutableSet()
-//        repo.branches = branchPort.findAll(repo).toMutableSet()
-//        repo.commits = commitPort.findAll(repo).toMutableSet()
+        val branchesByKey = repo.branches.associateByTo(mutableMapOf<String, Branch>()) { it.uniqueKey() }
 
-        val userCache =
-//            userPort.findAll(repo).associateBy { it.email }.toMutableMap()
-            repo.user.associateBy { it.email }.toMutableMap()
-        val branchCache =
-//            branchPort.findAll(repo).associateBy { it.name }.toMutableMap()
-            repo.branches.associateBy { it.name }.toMutableMap()
-        val commitCache: Map<String, Commit> =
-//            commitPort.findAll(repo).associateBy { it.sha }
-            repo.commits.associateBy { it.sha }
-
-        // Create a map of SHA to Commit entities for quick lookups
-        val commitMap =
-            commits.associate {
-                it.sha to it.toDomain()
+        // --- seed indexes with any pre-attached users on incoming commits
+        commits.forEach { c ->
+            listOf(c.author, c.committer).forEach { u ->
+                if (u != null) {
+                    u.repository = repo
+                    usersByKey.putIfAbsent(u.uniqueKey(), u)
+                    normalizeEmail(u.email)?.let { usersByEmail.putIfAbsent(it, u) }
+                }
             }
-
-        // Now establish parent relationships using the map
-        commitMap.forEach { (sha, commit) ->
-            // Find the VcsCommit that corresponds to this entity
-            val vcsCommit = commits.find { it.sha == sha }
-
-            run {
-                val branchEntity =
-                    vcsCommit?.branch?.let { branchName ->
-                        branchCache.getOrPut(branchName) {
-                            val b = Branch(name = branchName)
-                            repo.branches.add(b)
-                            b
-                        }
-                    }
-                branchEntity?.commits?.add(commit)
-            }
-
-            vcsCommit?.committer?.let {
-                val email = it.email
-                val user =
-                    userCache.getOrPut(email) {
-                        val e = it.toEntity()
-                        repo.user.add(e)
-                        e
-                    }
-                user.committedCommits.add(commit)
-            }
-
-            vcsCommit?.author?.let {
-                val email = it.email
-                val user =
-                    userCache.getOrPut(email) {
-                        val e = it.toEntity()
-                        repo.user.add(e)
-                        e
-                    }
-                user.authoredCommits.add(commit)
-            }
-
-            // Get the parent commits from the map and set them
-            val parentCommits =
-                vcsCommit?.parents?.mapNotNull { parent ->
-                    commitCache[parent.sha] ?: commitMap[parent.sha]
-                } ?: emptyList()
-
-            // Set the parents on the entity
-            commit.parents.addAll(parentCommits)
-            repo.commits.add(commit)
         }
 
-        logger.trace("<<< transformCommits({})", repo)
-        return commitMap.values.toList()
+        fun canonicalizeCommit(incoming: Commit): Commit {
+            val key = incoming.uniqueKey()
+            val existing = commitsByKey[key]
+            if (existing != null) return existing
+
+            // Add to repo first to establish repository back-link
+            repo.commits.add(incoming)
+            commitsByKey[key] = incoming
+            return incoming
+        }
+
+        fun canonicalizeUser(u: User?): User? {
+            if (u == null) return null
+            u.repository = repo
+
+            // 1) prefer uniqueKey match
+            usersByKey[u.uniqueKey()]?.let { return it }
+
+            // 2) coalesce by email (case-insensitive)
+            normalizeEmail(u.email)?.let { em ->
+                usersByEmail[em]?.let { existing -> return existing }
+            }
+
+            // 3) no match — register new canonical instance
+            repo.user.add(u)
+            usersByKey[u.uniqueKey()] = u
+            normalizeEmail(u.email)?.let { usersByEmail[it] = u }
+            return u
+        }
+
+        fun canonicalizeBranch(b: Branch?): Branch? {
+            if (b == null) return null
+            b.repository = repo
+            return branchesByKey[b.uniqueKey()] ?: run {
+                repo.branches.add(b)
+                branchesByKey[b.uniqueKey()] = b
+                b
+            }
+        }
+
+        // Helpers to *safely* rebind author/committer to canonical instances
+        fun forceSetAuthor(
+            c: Commit,
+            target: User?,
+        ) {
+            if (target == null) return
+            val current = c.author
+            if (current === target) return
+            if (current != null && sameEmail(current, target)) {
+                // migrate to canonical: remove old back-link, then use setter
+                current.authoredCommits.remove(c)
+                // clear via reflection to allow setter without violating guard
+                setField(c, "author", null)
+            }
+            if (c.author == null) c.author = target
+        }
+
+        fun forceSetCommitter(
+            c: Commit,
+            target: User?,
+        ) {
+            if (target == null) return
+            val current = c.committer
+            if (current === target) return
+            if (current != null && sameEmail(current, target)) {
+                current.committedCommits.remove(c)
+                setField(c, "committer", null)
+            }
+            if (c.committer == null) c.committer = target
+        }
+
+        // --- pass 1: ensure every commit has a canonical instance
+        val canonicalInOrder = commits.map { canonicalizeCommit(it) }
+
+        // --- pass 2: users + branches
+        commits.forEach { raw ->
+            val c = canonicalizeCommit(raw)
+
+            val authorCanon = canonicalizeUser(raw.author)
+            val committerCanon = canonicalizeUser(raw.committer)
+
+            // If both emails are equal, unify to the same instance (prefer author’s instance)
+            val unifiedByEmail =
+                if (authorCanon != null && committerCanon != null &&
+                    sameEmail(authorCanon, committerCanon)
+                ) {
+                    authorCanon
+                } else {
+                    null
+                }
+
+            forceSetAuthor(c, unifiedByEmail ?: authorCanon)
+            forceSetCommitter(c, unifiedByEmail ?: committerCanon)
+
+            raw.branches.forEach { bRaw ->
+                canonicalizeBranch(bRaw)?.commits?.add(c)
+            }
+        }
+
+        // --- pass 3: parents / children
+        commits.forEach { raw ->
+            val c = canonicalizeCommit(raw)
+
+            raw.parents.forEach { pRaw ->
+                val p = canonicalizeCommit(pRaw)
+                c.parents.add(p) // back-links to children are handled by domain model
+            }
+            raw.children.forEach { chRaw ->
+                val ch = canonicalizeCommit(chRaw)
+                c.children.add(ch)
+            }
+        }
+
+        return canonicalInOrder
     }
 
-    private fun normalizePath(path: String): String = if (path.endsWith(".git")) path else "$path/.git"
+    // ---------- small utilities ----------
+
+    private fun normalizeEmail(email: String?): String? = email?.trim()?.lowercase()
+
+    private fun sameEmail(
+        a: User,
+        b: User,
+    ): Boolean =
+        normalizeEmail(a.email) != null &&
+            normalizeEmail(a.email) == normalizeEmail(b.email)
+
+    private fun <T> setField(
+        target: Any,
+        fieldName: String,
+        value: T?,
+    ) {
+        val f = target.javaClass.getDeclaredField(fieldName)
+        f.isAccessible = true
+        f.set(target, value)
+    }
+
+    private fun normalizePath(path: String): String =
+        (if (path.endsWith(".git")) path else "$path/.git").let {
+            Paths.get(it).toRealPath().toString()
+        }
 
     fun findRepo(gitDir: String): Repository? = this.repositoryPort.findByName(normalizePath(gitDir))
 
-    fun getOrCreate(
-        gitDir: String,
-        p: Project,
-    ): Repository {
-        val find = this.findRepo(gitDir)
-        if (find == null) {
-            logger.info("Repository does not exists, creating new repository")
-            return this.repositoryPort.create(
-                Repository(
-                    id = null,
-                    name = normalizePath(gitDir),
-                    project = p,
-                ),
-            )
-        } else {
-            logger.debug("Repository already exists, returning existing repository")
-            return find
-        }
+    fun create(repository: Repository): Repository {
+        require(repository.id == null) { "Repository.id must be null to create repository" }
+        require(repository.project != null) { "Repository.project must not be null to create repository" }
+        require(repository.project?.repo == repository) { "Mismatch in Repository and Project configuration" }
+
+//        val find = this.findRepo(name)
+//        if (find == null) {
+//            logger.info("Repository does not exists, creating new repository")
+        return this.repositoryPort.create(repository)
+//        } else {
+//            logger.debug("Repository already exists, returning existing repository")
+//            return find
+//        }
     }
 
     fun getHeadCommits(
@@ -135,22 +224,15 @@ class RepositoryService {
 
     //    @Transactional
     fun addCommits(
-        vcsRepo: BinocularRepositoryPojo,
-        commitDtos: Collection<VcsCommit>,
-        project: Project,
-    ) {
-        val repo =
-            project.repo ?: run {
-                val repo = this.getOrCreate(vcsRepo.gitDir, project)
-                project.repo = repo
-                repo
-            }
+        repo: Repository,
+        commitDtos: Collection<Commit>,
+    ): Repository {
         val existingCommitEntities = this.commitService.checkExisting(repo, commitDtos)
 
         logger.debug("Existing commits: ${existingCommitEntities.first.count()}")
         logger.trace("New commits to add: ${existingCommitEntities.second.count()}")
 
-        if (existingCommitEntities.second.count() != 0) {
+        if (existingCommitEntities.second.isNotEmpty()) {
             // these commits are new so always added, also to an existing branch
             this.transformCommits(repo, existingCommitEntities.second)
 
@@ -161,11 +243,13 @@ class RepositoryService {
                 repo.commits.filter { it.message?.isEmpty() == true }.map { it.sha },
             )
 
-            project.repo = this.repositoryPort.update(repo)
+            val newRepo = update(repo)
 
-            logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${project.name}")
+            logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${repo.project?.name}")
+            return newRepo
         } else {
             logger.info("No new commits were found, skipping update")
+            return repo
         }
     }
 }

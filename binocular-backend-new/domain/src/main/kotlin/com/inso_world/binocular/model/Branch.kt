@@ -42,7 +42,7 @@ data class Branch(
             }
 
             override fun addAll(elements: Collection<Commit>): Boolean {
-                // for bulk‐adds make sure each one gets the same treatment
+                // for bulk-adds make sure each one gets the same treatment
                 var anyAdded = false
                 for (e in elements) {
                     if (add(e)) anyAdded = true
