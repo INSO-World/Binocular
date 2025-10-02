@@ -1,9 +1,9 @@
 package com.inso_world.binocular.cli.index.vcs
 
-import com.inso_world.binocular.ffi.pojos.BinocularCommitSignaturePojo
 import com.inso_world.binocular.model.User
 import java.util.Objects
 
+@Deprecated("legacy")
 data class VcsPerson(
     val name: String,
     val email: String,
@@ -32,9 +32,3 @@ data class VcsPerson(
         return result
     }
 }
-
-fun BinocularCommitSignaturePojo.toVcsPerson(): VcsPerson =
-    VcsPerson(
-        name = this.name,
-        email = this.email,
-    )

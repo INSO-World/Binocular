@@ -40,7 +40,7 @@ data class Repository(
             }
 
             override fun addAll(elements: Collection<Commit>): Boolean {
-                // for bulk‐adds make sure each one gets the same treatment
+                // for bulk-adds make sure each one gets the same treatment
                 var anyAdded = false
                 for (e in elements) {
                     if (add(e)) anyAdded = true
@@ -61,7 +61,7 @@ data class Repository(
             }
 
             override fun addAll(elements: Collection<Branch>): Boolean {
-                // for bulk‐adds make sure each one gets the same treatment
+                // for bulk-adds make sure each one gets the same treatment
                 var anyAdded = false
                 for (e in elements) {
                     if (add(e)) anyAdded = true
@@ -82,7 +82,7 @@ data class Repository(
             }
 
             override fun addAll(elements: Collection<User>): Boolean {
-                // for bulk‐adds make sure each one gets the same treatment
+                // for bulk-adds make sure each one gets the same treatment
                 var anyAdded = false
                 for (e in elements) {
                     if (add(e)) anyAdded = true

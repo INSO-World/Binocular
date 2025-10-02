@@ -1,9 +1,9 @@
 package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.cli.exception.ServiceException
-import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.core.exception.BinocularInfrastructureException
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.exception.NotFoundException
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.constraints.Max
@@ -24,15 +24,20 @@ class CommitService(
 
     fun checkExisting(
         repo: Repository,
-        minedCommits: Collection<VcsCommit>,
-    ): Pair<Collection<Commit>, Collection<VcsCommit>> {
+        minedCommits: Collection<Commit>,
+    ): Pair<Collection<Commit>, Collection<Commit>> {
         val allShas: List<String> =
             minedCommits
                 .stream()
                 .map { m -> m.sha }
                 .collect(Collectors.toList())
 
-        val existingEntities: Iterable<Commit> = commitPort.findExistingSha(repo, allShas)
+        val existingEntities: Iterable<Commit> =
+            try {
+                commitPort.findExistingSha(repo, allShas)
+            } catch (_: NotFoundException) {
+                emptyList()
+            }
 
         val refIdsToRemove = existingEntities.map { it.sha }
         val missingShas = minedCommits.filterNot { it.sha in refIdsToRemove } // .stream().collect(Collectors.toSet())

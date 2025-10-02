@@ -118,7 +118,7 @@ internal data class RepositoryEntity(
         val repo =
             Repository(
                 id = this.id?.toString(),
-                name = this.name,
+                localPath = this.name,
                 project = project,
             )
         project?.repo = repo
