@@ -17,9 +17,6 @@ data class Repository(
     var project: Project? = null,
     // TODO add remotes
 ) : AbstractDomainObject() {
-    @Deprecated(message = "legacy")
-    val name: String = localPath
-
     private val _commits: MutableSet<Commit> = mutableSetOf()
     private val _branches: MutableSet<Branch> = mutableSetOf()
     private val _user: MutableSet<User> = mutableSetOf()

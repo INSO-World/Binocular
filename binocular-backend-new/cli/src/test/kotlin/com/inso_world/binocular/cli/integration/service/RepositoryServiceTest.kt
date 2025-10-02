@@ -314,7 +314,7 @@ internal class RepositoryServiceTest(
 
         val transformedCommits = repositoryService.transformCommits(
             Repository(
-                name = "new one"
+                localPath = "new one"
             ), simpleRepoVcsCommits
         )
         val transformedCommitMap = transformedCommits.associateBy { it.sha }

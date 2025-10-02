@@ -166,7 +166,7 @@ internal class RepositoryInfrastructurePortImpl :
         logger.trace("Commits synchronized")
         run {
             // Synchronize branches: remove those not in value.branches
-            val valueBranchKeys = value.branches.map { "${entity.name},${it.name}" }.toSet()
+            val valueBranchKeys = value.branches.map { "${entity.localPath},${it.name}" }.toSet()
             entity.branches.removeIf { it.uniqueKey() !in valueBranchKeys }
         }
         logger.trace("Branches synchronized")
@@ -193,7 +193,7 @@ internal class RepositoryInfrastructurePortImpl :
         logger.trace("Commits updated")
         // Add or update branches
         value.branches.forEach {
-            val key = "${entity.name},${it.name}"
+            val key = "${entity.localPath},${it.name}"
             if (!ctx.entity.branch.containsKey(key)) {
                 val newBranch = branchMapper.toEntity(it).also { b -> entity.addBranch(b) }
                 entity.branches.add(newBranch)
@@ -241,8 +241,8 @@ internal class RepositoryInfrastructurePortImpl :
 
     override fun delete(value: Repository) {
         val mapped =
-            this.repositoryDao.findByName(name = value.name)
-                ?: throw NotFoundException("Repository ${value.name} not found")
+            this.repositoryDao.findByName(name = value.localPath)
+                ?: throw NotFoundException("Repository ${value.localPath} not found")
         this.repositoryDao.delete(mapped)
     }
 
