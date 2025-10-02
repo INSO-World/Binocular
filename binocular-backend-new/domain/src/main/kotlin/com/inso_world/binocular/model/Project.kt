@@ -13,6 +13,8 @@ class Project(
     val issues: MutableSet<Issue> = mutableSetOf(),
     val description: String? = null,
     var repo: Repository? = null,
-) {
+) : AbstractDomainObject() {
     override fun toString(): String = "Project(id=$id, name='$name', description=$description)"
+
+    override fun uniqueKey(): String = name
 }

@@ -15,11 +15,15 @@ data class Repository(
     val name: String,
     @field:NotNull // TODO conditional validation, only when coming out of infra
     var project: Project? = null,
-) {
-    private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
+    // TODO add remotes
+) : AbstractDomainObject() {
     private val _commits: MutableSet<Commit> = mutableSetOf()
     private val _branches: MutableSet<Branch> = mutableSetOf()
     private val _user: MutableSet<User> = mutableSetOf()
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
+    }
 
     @get:Valid
     val commits: MutableSet<Commit> =
@@ -105,5 +109,13 @@ data class Repository(
             affectedBranchNames.size,
             affectedBranchNames.joinToString(", "),
         )
+    }
+
+    override fun uniqueKey(): String {
+        val project =
+            requireNotNull(this.project) {
+                "Repository project must not be null"
+            }
+        return "${project.uniqueKey()},$localPath"
     }
 }

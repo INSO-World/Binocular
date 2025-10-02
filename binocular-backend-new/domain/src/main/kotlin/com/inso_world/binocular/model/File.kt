@@ -7,12 +7,38 @@ package com.inso_world.binocular.model
 data class File(
     var id: String? = null,
     var path: String,
-    var webUrl: String,
-    var maxLength: Int? = null,
+    val states: MutableSet<FileState> = mutableSetOf(),
+) : AbstractDomainObject() {
+    @Deprecated("legacy")
+    lateinit var webUrl: String
+
+    @Deprecated("legacy")
+    val maxLength: Int
+        get() =
+            states
+                .mapNotNull { it.content?.length }
+                .reduce { acc, n -> if (n > acc) n else acc }
+
     // Relationships
-    var commits: List<Commit> = emptyList(),
-    var branches: List<Branch> = emptyList(),
-    var modules: List<Module> = emptyList(),
-    var relatedFiles: List<File> = emptyList(),
-    var users: List<User> = emptyList(),
-)
+    @Deprecated("legacy")
+    val commits: List<Commit>
+        get() = states.map { it.commit }
+
+    @Deprecated("legacy")
+    val branches: List<Branch>
+        get() = states.map { it.commit }.flatMap { it.branches }
+
+    @Deprecated("legacy")
+    var modules: List<Module> = emptyList()
+
+    @Deprecated("legacy")
+    val relatedFiles: List<File> = emptyList()
+
+    @Deprecated("legacy")
+    val users: List<User>
+        get() = states.map { it.commit }.flatMap { it.users }
+
+    override fun uniqueKey(): String = path
+
+    override fun toString(): String = "File(states=$states, path='$path', id=$id)"
+}

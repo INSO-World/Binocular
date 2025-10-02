@@ -29,17 +29,18 @@ data class Commit(
     val webUrl: String? = null,
     @Deprecated("do not use")
     val branch: String? = null,
-    val stats: Stats? = null,
+    val stats: CommitDiff.Stats? = null,
     // Relationships
 //    old stuff
     val builds: List<Build> = emptyList(),
     val files: List<File> = emptyList(),
     val modules: List<Module> = emptyList(),
     val issues: List<Issue> = emptyList(),
-) : Cloneable {
+) : AbstractDomainObject(),
+    Cloneable {
     // 1) private backing set
-    private val _parents = ConcurrentHashMap.newKeySet<Commit>()
-    private val _children = ConcurrentHashMap.newKeySet<Commit>()
+    private var _parents = mutableSetOf<Commit>()
+    private var _children = mutableSetOf<Commit>()
     private val _branches = ConcurrentHashMap.newKeySet<Branch>()
 
     var committer: User? = null
@@ -66,7 +67,7 @@ data class Commit(
             this.author!!.authoredCommits.add(this)
         }
 
-    val parents: MutableSet<Commit> =
+    var parents: MutableSet<Commit> =
         object : MutableSet<Commit> by _parents {
             override fun add(element: Commit): Boolean {
                 // add to this commit’s parents…
@@ -88,7 +89,7 @@ data class Commit(
             }
         }
 
-    val children: MutableSet<Commit> =
+    var children: MutableSet<Commit> =
         object : MutableSet<Commit> by _children {
             override fun add(element: Commit): Boolean {
                 // add to this commit’s parents…
@@ -144,35 +145,32 @@ data class Commit(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null) return false
+        if (javaClass != other?.javaClass) return false
 
         other as Commit
 
-        if (id != other.id) return false
+//        if (id != other.id) return false
         if (sha != other.sha) return false
-        if (authorDateTime != other.authorDateTime) return false
-        if (commitDateTime != other.commitDateTime) return false
-        if (message != other.message) return false
-        if (webUrl != other.webUrl) return false
+//        if (authorDateTime != other.authorDateTime) return false
+//        if (commitDateTime != other.commitDateTime) return false
+//        if (message != other.message) return false
+//        if (webUrl != other.webUrl) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = Objects.hashCode(id)
-        result += 31 * Objects.hashCode(sha)
-        result += 31 * Objects.hashCode(authorDateTime)
-        result += 31 * Objects.hashCode(commitDateTime)
-        result += 31 * Objects.hashCode(message)
-        result += 31 * Objects.hashCode(webUrl)
-        return result
+//        var result = Objects.hashCode(id)
+//        result += 31 * Objects.hashCode(sha)
+//        result += 31 * Objects.hashCode(authorDateTime)
+//        result += 31 * Objects.hashCode(commitDateTime)
+//        result += 31 * Objects.hashCode(message)
+//        result += 31 * Objects.hashCode(webUrl)
+        return Objects.hashCode(sha)
     }
 
     override fun toString(): String =
         "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, author=${author?.name}, committer=${committer?.name}, repositoryId=${repository?.id})"
-}
 
-data class Stats(
-    var additions: Long,
-    var deletions: Long,
-)
+    override fun uniqueKey(): String = sha
+}
