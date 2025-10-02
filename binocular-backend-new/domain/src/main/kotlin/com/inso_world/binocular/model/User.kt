@@ -2,13 +2,14 @@ package com.inso_world.binocular.model
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Domain model for a User, representing a Git user.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
-class User(
+data class User(
     var id: String? = null,
     @field:NotBlank val name: String? = null,
     var email: String? = null,
@@ -17,7 +18,7 @@ class User(
     // Relationships
     val issues: List<Issue> = emptyList(),
     val files: List<File> = emptyList(),
-) {
+) : AbstractDomainObject() {
     private val _committedCommits = ConcurrentHashMap.newKeySet<Commit>()
     private val _authoredCommits = ConcurrentHashMap.newKeySet<Commit>()
 
@@ -69,8 +70,8 @@ class User(
     val gitSignature: String
         get() = "$name <$email>"
 
-    fun uniqueKey(): String {
-        if (repository == null) {
+    override fun uniqueKey(): String {
+        requireNotNull(repository) {
             throw IllegalStateException("Cannot generate unique key for $javaClass when repository is null")
         }
         return "${repository?.name},$email"

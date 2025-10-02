@@ -26,6 +26,8 @@ data class Branch(
 
     @field:NotEmpty
     private val _commits: MutableSet<Commit> = mutableSetOf()
+
+    @get:NotEmpty
     val commits: MutableSet<Commit> =
         object : MutableSet<Commit> by _commits {
             override fun add(element: Commit): Boolean {
@@ -50,11 +52,11 @@ data class Branch(
         }
 
     fun uniqueKey(): String {
-        val repo = repository
-        if (repo == null) {
-            throw IllegalStateException("Cannot generate unique key for $javaClass when repository is null")
-        }
-        return "${repo.name},$name"
+        val repo =
+            requireNotNull(repository) {
+                "Cannot generate unique key for $javaClass when repository is null"
+            }
+        return "${repo.localPath},$name"
     }
 
     override fun equals(other: Any?): Boolean {
