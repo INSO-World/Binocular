@@ -1,20 +1,38 @@
 package com.inso_world.binocular.ffi
 
+import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.ffi.exception.FfiException
-import com.inso_world.binocular.ffi.pojos.BinocularBranchPojo
-import com.inso_world.binocular.ffi.pojos.BinocularCommitPojo
-import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
-import com.inso_world.binocular.ffi.pojos.toPojo
+import com.inso_world.binocular.ffi.extensions.toDomain
+import com.inso_world.binocular.ffi.extensions.toModel
+import com.inso_world.binocular.ffi.pojos.toDomain
+import com.inso_world.binocular.ffi.pojos.toFfi
+import com.inso_world.binocular.ffi.pojos.toModel
+import com.inso_world.binocular.ffi.util.Utils
 import com.inso_world.binocular.internal.AnyhowException
+import com.inso_world.binocular.internal.BinocularDiffInput
+import com.inso_world.binocular.internal.GixDiffAlgorithm
+import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.CommitDiff
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.vcs.BlameEntry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import java.nio.file.Path
+import kotlin.math.min
+import kotlin.streams.asSequence
 
-class BinocularFfi {
-    private var logger: Logger = LoggerFactory.getLogger(BinocularFfi::class.java)
+@Service
+class BinocularFfi : GitIndexer {
+    companion object {
+        private var logger: Logger = LoggerFactory.getLogger(BinocularFfi::class.java)
+        private val ALGORITHM = GixDiffAlgorithm.HISTOGRAM
+    }
 
     init {
         logger.info("Loading native library...")
-        val rp = loadPlatformLibrary("binocular_ffi")
+        val rp = Utils.loadPlatformLibrary("binocular_ffi")
         logger.debug("Loaded library: $rp")
         logger.info("Library loaded successfully.")
     }
@@ -25,105 +43,67 @@ class BinocularFfi {
     }
 
     @Throws(FfiException::class)
-    fun findRepo(path: String): BinocularRepositoryPojo {
+    override fun findRepo(path: Path): Repository {
         logger.trace("Searching repository... at '$path'")
-        return try {
-            com.inso_world.binocular.internal
-                .findRepo(path)
-                .toPojo()
+        try {
+            val repo =
+                com.inso_world.binocular.internal
+                    .findRepo(path.toString().trim())
+                    .toModel()
+            return repo
         } catch (e: AnyhowException) {
             throw FfiException(e)
         }
     }
 
-    fun traverseBranch(
-        repo: BinocularRepositoryPojo,
-        branchName: String,
-    ): List<BinocularCommitPojo> {
+    override fun traverseBranch(
+        repo: Repository,
+        branch: Branch,
+    ): List<Commit> {
         val commitVec =
             com.inso_world.binocular.internal
-                .traverseBranch(repo.toFfi(), branchName)
+                .traverseBranch(repo.toFfi(), branch.name)
 
-        // First, create all pojos and a map from commit hash to pojo
-        val pojos = commitVec.map { it.toPojo() }
-        val pojoMap = pojos.associateBy { it.commit }
+        val commits = commitVec.toDomain(repo)
+        branch.commits.addAll(commits)
 
-        // Now, set the parents for each pojo
-        commitVec.parallelStream().forEach { cmt ->
-            val pojo = pojoMap[cmt.commit]
-            if (pojo != null) {
-                cmt.parents.forEach { parentHash ->
-                    val parentPojo = pojoMap[parentHash]
-                    if (parentPojo != null) {
-                        pojo.parents.add(parentPojo)
-                    }
-                }
-            }
-        }
+        repo.branches.add(branch)
+        branch.repository = repo
 
-        return pojos
+        return commits
     }
 
-    fun findAllBranches(repo: BinocularRepositoryPojo): List<BinocularBranchPojo> =
+    override fun findAllBranches(repo: Repository): List<Branch> =
         com.inso_world.binocular.internal
             .findAllBranches(repo.toFfi())
-            .map { it.toPojo() }
+            .map {
+                val branch = it.toModel()
+                branch
+            }
 
-    fun findCommit(
-        repo: BinocularRepositoryPojo,
+    override fun findCommit(
+        repo: Repository,
         hash: String,
     ): String =
         com.inso_world.binocular.internal
             .findCommit(repo.toFfi(), hash)
 
-    fun traverse(
-        repo: BinocularRepositoryPojo,
+    override fun traverse(
+        repo: Repository,
         sourceCmt: String,
-        trgtCmt: String? = null,
-    ): List<BinocularCommitPojo> =
+        trgtCmt: String?,
+    ): List<Commit> =
         com.inso_world.binocular.internal
             .traverse(repo.toFfi(), sourceCmt, trgtCmt)
-            .map { it.toPojo() }
-}
+            .toDomain(repo)
 
-@Throws(UnsupportedOperationException::class)
-private fun loadPlatformLibrary(libBaseName: String): String {
-    // 1) Detect platform
-    val platform = detectPlatform()
 
-    // 2) Map the name to e.g. "libfoo.so" / "foo.dll" / "libfoo.dylib"
-    val mappedName = System.mapLibraryName(libBaseName)
 
-    // 3) Build resource path under /{platform}/{mappedName}
-    val resourcePath = "/$platform/$mappedName"
 
-    System.setProperty("uniffi.component.$libBaseName.libraryOverride", resourcePath)
+        val ffiRepo = repo.toFfi()
 
-    if (BinocularFfi::class.java.getResource(resourcePath) == null) {
-        throw IllegalStateException("$resourcePath does not exist on the classpath")
-    }
 
-    return resourcePath
-}
 
-@Throws(UnsupportedOperationException::class)
-private fun detectPlatform(): String {
-    val os = System.getProperty("os.name").lowercase()
-    val arch = System.getProperty("os.arch").lowercase()
 
-    return when {
-        // macOS
-        os.contains("mac") && (arch == "x86_64" || arch == "amd64") -> "x86_64-apple-darwin"
-        os.contains("mac") && (arch == "aarch64" || arch == "arm64") -> "aarch64-apple-darwin"
-
-        // Linux
-        (os.contains("nux") || os.contains("nix")) && (arch == "x86_64" || arch == "amd64") -> "x86_64-unknown-linux-gnu"
-        (os.contains("nux") || os.contains("nix")) && arch == "aarch64" -> "aarch64-unknown-linux-gnu"
-
-        // Windows
-        os.contains("win") && (arch == "x86_64" || arch == "amd64") -> "x86_64-pc-windows-msvc"
-        os.contains("win") && arch == "aarch64" -> "aarch64-pc-windows-msvc"
-
-        else -> throw UnsupportedOperationException("Unsupported OS/Arch combination: $os/$arch")
     }
 }
