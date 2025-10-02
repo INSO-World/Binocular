@@ -23,9 +23,9 @@ internal data class RepositoryEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     val id: Long? = null,
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, updatable = false)
     @field:NotBlank
-    var name: String,
+    var localPath: String,
     @BatchSize(size = 256)
     @OneToMany(
         fetch = FetchType.LAZY,
@@ -63,7 +63,7 @@ internal data class RepositoryEntity(
         other as RepositoryEntity
 
         if (id != other.id) return false
-        if (name != other.name) return false
+        if (localPath != other.localPath) return false
 //        if (commits != other.commits) return false
 //        if (user != other.user) return false
 //        if (project.uniqueKey() != other.project.uniqueKey()) return false
@@ -107,18 +107,18 @@ internal data class RepositoryEntity(
 
     override fun uniqueKey(): String {
         val project = this.project
-        return "${project.name},$name"
+        return "${project.name},$localPath"
     }
 
     override fun hashCode(): Int = super.hashCode()
 
-    override fun toString(): String = "RepositoryEntity(id=$id, name='$name')"
+    override fun toString(): String = "RepositoryEntity(id=$id, localPath='$localPath')"
 
     fun toDomain(project: Project?): Repository {
         val repo =
             Repository(
                 id = this.id?.toString(),
-                localPath = this.name,
+                localPath = this.localPath,
                 project = project,
             )
         project?.repo = repo
@@ -135,6 +135,6 @@ internal data class RepositoryEntity(
 internal fun Repository.toEntity(project: ProjectEntity): RepositoryEntity =
     RepositoryEntity(
         id = this.id?.toLong(),
-        name = this.name,
+        localPath = this.localPath,
         project = project,
     )

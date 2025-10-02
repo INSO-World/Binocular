@@ -20,7 +20,7 @@ internal class RepositoryDao(
 
     override fun findByIdWithAllRelations(id: Long): RepositoryEntity? = repo.findByIdWithAllRelations(id)
 
-    override fun findByName(name: String): RepositoryEntity? = repo.findByName(name)
+    override fun findByName(name: String): RepositoryEntity? = repo.findByLocalPath(name)
 
     private object RepositorySpecification {
         fun <T> hasRepository(name: String): Specification<T> =
