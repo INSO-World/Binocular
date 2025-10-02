@@ -1,4 +1,4 @@
-package com.inso_world.binocular.core.integration.base
+package base
 
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -8,8 +8,13 @@ import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import kotlin.collections.forEach
+import kotlin.text.lowercase
+import kotlin.text.replace
+import kotlin.text.startsWith
+import kotlin.text.substring
 
-open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
+open class BaseFixturesIntegrationTest : base.BaseIntegrationTest() {
     companion object {
         const val FIXTURES_PATH = "src/test/resources/fixtures"
         const val SIMPLE_REPO = "simple"
@@ -19,17 +24,17 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         const val OCTO_REPO = "octo"
         const val OCTO_PROJECT_NAME = "octo"
 
-        @JvmStatic
+        @kotlin.jvm.JvmStatic
         @BeforeAll
         fun setUp() {
             fun createGitRepo(path: String) {
-                val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("windows")
-                val builder = ProcessBuilder()
+                val isWindows = java.lang.System.getProperty("os.name").lowercase(java.util.Locale.getDefault()).startsWith("windows")
+                val builder = java.lang.ProcessBuilder()
                 if (isWindows) {
-                    val winPath = File(FIXTURES_PATH).absolutePath
+                    val winPath = java.io.File(FIXTURES_PATH).absolutePath
                     val wslPath = "/mnt/" + winPath[0].lowercase() + winPath.substring(2).replace("\\", "/")
-                    println("WINDOWS: $winPath")
-                    println("WSL: $wslPath")
+                    kotlin.io.println("WINDOWS: $winPath")
+                    kotlin.io.println("WSL: $wslPath")
                     builder.command(
                         "wsl",
                         "bash",
@@ -39,20 +44,21 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
                 } else {
                     builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
                 }
-                builder.directory(File(FIXTURES_PATH))
+                builder.directory(java.io.File(FIXTURES_PATH))
                 val process = builder.start()
-                val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println, path)
-                val executorService = Executors.newFixedThreadPool(1)
-                val future: Future<*> = executorService.submit(streamGobbler)
+                val streamGobbler: base.StreamGobbler =
+                    base.StreamGobbler(process.inputStream, java.io.PrintStream::println, path)
+                val executorService = java.util.concurrent.Executors.newFixedThreadPool(1)
+                val future: java.util.concurrent.Future<*> = executorService.submit(streamGobbler)
 
                 val exitCode = process.waitFor()
-                assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) }
+                assertDoesNotThrow { future.get(25, java.util.concurrent.TimeUnit.SECONDS) }
                 assertEquals(0, exitCode)
             }
 
-            val executorService = Executors.newFixedThreadPool(3)
+            val executorService = java.util.concurrent.Executors.newFixedThreadPool(3)
             val futures =
-                listOf(
+                kotlin.collections.listOf(
                     executorService.submit { createGitRepo(SIMPLE_REPO) },
                     executorService.submit { createGitRepo(OCTO_REPO) },
                     executorService.submit { createGitRepo(ADVANCED_REPO) },

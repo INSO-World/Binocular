@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1759136732-1
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - renameColumn:
