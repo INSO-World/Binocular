@@ -730,6 +730,12 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -760,6 +766,8 @@ fun uniffi_binocular_ffi_checksum_func_hello(
 fun uniffi_binocular_ffi_checksum_func_traverse(
 ): Short
 fun uniffi_binocular_ffi_checksum_func_traverse_branch(
+): Short
+fun uniffi_binocular_ffi_checksum_method_procerrorinterface_message(
 ): Short
 fun ffi_binocular_ffi_uniffi_contract_version(
 ): Int
@@ -814,21 +822,31 @@ internal interface UniffiLib : Library {
 ): Pointer
 fun uniffi_binocular_ffi_fn_free_anyhowerror(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
-fun uniffi_binocular_ffi_fn_func_blames(`brepo`: RustBuffer.ByValue,`defines`: RustBuffer.ByValue,`diffAlgorithm`: RustBuffer.ByValue,`maxThreads`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_binocular_ffi_fn_clone_procerrorinterface(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+): Pointer
+fun uniffi_binocular_ffi_fn_free_procerrorinterface(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+fun uniffi_binocular_ffi_fn_method_procerrorinterface_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_binocular_ffi_fn_func_diffs(`brepo`: RustBuffer.ByValue,`commitlist`: RustBuffer.ByValue,`maxThreads`: Byte,`skipMerges`: Byte,`diffAlgorithm`: RustBuffer.ByValue,`breadthFirst`: Byte,`follow`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_binocular_ffi_fn_method_procerrorinterface_uniffi_trait_debug(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_binocular_ffi_fn_func_find_all_branches(`brepo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_binocular_ffi_fn_method_procerrorinterface_uniffi_trait_display(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_binocular_ffi_fn_func_find_commit(`brepo`: RustBuffer.ByValue,`hash`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_binocular_ffi_fn_func_blames(`binocularRepo`: RustBuffer.ByValue,`defines`: RustBuffer.ByValue,`diffAlgorithm`: RustBuffer.ByValue,`maxThreads`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_diffs(`binocularRepo`: RustBuffer.ByValue,`commitPairs`: RustBuffer.ByValue,`maxThreads`: Byte,`diffAlgorithm`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_find_all_branches(`binocularRepo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_binocular_ffi_fn_func_find_commit(`binocularRepo`: RustBuffer.ByValue,`hash`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_binocular_ffi_fn_func_find_repo(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_binocular_ffi_fn_func_hello(uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
-fun uniffi_binocular_ffi_fn_func_traverse(`brepo`: RustBuffer.ByValue,`sourceCommit`: RustBuffer.ByValue,`targetCommit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_binocular_ffi_fn_func_traverse(`binocularRepo`: RustBuffer.ByValue,`sourceCommit`: RustBuffer.ByValue,`targetCommit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_binocular_ffi_fn_func_traverse_branch(`brepo`: RustBuffer.ByValue,`branch`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_binocular_ffi_fn_func_traverse_branch(`binocularRepo`: RustBuffer.ByValue,`branch`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun ffi_binocular_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -956,16 +974,16 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_binocular_ffi_checksum_func_blames() != 65035.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_blames() != 43562.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_diffs() != 2376.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_diffs() != 8096.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_find_all_branches() != 50688.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_find_all_branches() != 25084.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_find_commit() != 472.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_find_commit() != 17603.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_binocular_ffi_checksum_func_find_repo() != 58199.toShort()) {
@@ -974,10 +992,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_binocular_ffi_checksum_func_hello() != 42727.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_traverse() != 10733.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_traverse() != 57362.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_binocular_ffi_checksum_func_traverse_branch() != 29479.toShort()) {
+    if (lib.uniffi_binocular_ffi_checksum_func_traverse_branch() != 12450.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_binocular_ffi_checksum_method_procerrorinterface_message() != 63107.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1528,6 +1549,263 @@ public object FfiConverterTypeAnyhowError: FfiConverter<AnyhowException, Pointer
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface ProcErrorInterfaceInterface {
+    
+    fun `message`(): kotlin.String
+    
+    companion object
+}
+
+
+open class ProcErrorInterface : kotlin.Exception, Disposable, AutoCloseable, ProcErrorInterfaceInterface {
+
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_free_procerrorinterface(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_clone_procerrorinterface(pointer!!, status)
+        }
+    }
+
+    override fun `message`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_method_procerrorinterface_message(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    override fun toString(): String {
+        return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_method_procerrorinterface_uniffi_trait_display(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<ProcErrorInterface> {
+        override fun lift(error_buf: RustBuffer.ByValue): ProcErrorInterface {
+            // Due to some mismatches in the ffi converter mechanisms, errors are a RustBuffer.
+            val bb = error_buf.asByteBuffer()
+            if (bb == null) {
+                throw InternalException("?")
+            }
+            return FfiConverterTypeProcErrorInterface.read(bb)
+        }
+    }
+    
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeProcErrorInterface: FfiConverter<ProcErrorInterface, Pointer> {
+
+    override fun lower(value: ProcErrorInterface): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): ProcErrorInterface {
+        return ProcErrorInterface(value)
+    }
+
+    override fun read(buf: ByteBuffer): ProcErrorInterface {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: ProcErrorInterface) = 8UL
+
+    override fun write(value: ProcErrorInterface, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
 
 data class BinocularBlameEntry (
     var `startInBlamedFile`: kotlin.UInt, 
@@ -1671,7 +1949,7 @@ data class BinocularCommitVec (
     var `committer`: BinocularSig?, 
     var `author`: BinocularSig?, 
     var `branch`: kotlin.String?, 
-    var `parents`: List<kotlin.String>
+    var `parents`: List<ObjectId>
 ) {
     
     companion object
@@ -1688,7 +1966,7 @@ public object FfiConverterTypeBinocularCommitVec: FfiConverterRustBuffer<Binocul
             FfiConverterOptionalTypeBinocularSig.read(buf),
             FfiConverterOptionalTypeBinocularSig.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterSequenceString.read(buf),
+            FfiConverterSequenceTypeObjectId.read(buf),
         )
     }
 
@@ -1698,7 +1976,7 @@ public object FfiConverterTypeBinocularCommitVec: FfiConverterRustBuffer<Binocul
             FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
             FfiConverterOptionalTypeBinocularSig.allocationSize(value.`author`) +
             FfiConverterOptionalString.allocationSize(value.`branch`) +
-            FfiConverterSequenceString.allocationSize(value.`parents`)
+            FfiConverterSequenceTypeObjectId.allocationSize(value.`parents`)
     )
 
     override fun write(value: BinocularCommitVec, buf: ByteBuffer) {
@@ -1707,7 +1985,39 @@ public object FfiConverterTypeBinocularCommitVec: FfiConverterRustBuffer<Binocul
             FfiConverterOptionalTypeBinocularSig.write(value.`committer`, buf)
             FfiConverterOptionalTypeBinocularSig.write(value.`author`, buf)
             FfiConverterOptionalString.write(value.`branch`, buf)
-            FfiConverterSequenceString.write(value.`parents`, buf)
+            FfiConverterSequenceTypeObjectId.write(value.`parents`, buf)
+    }
+}
+
+
+
+data class BinocularDiffInput (
+    var `suspect`: ObjectId, 
+    var `target`: ObjectId?
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBinocularDiffInput: FfiConverterRustBuffer<BinocularDiffInput> {
+    override fun read(buf: ByteBuffer): BinocularDiffInput {
+        return BinocularDiffInput(
+            FfiConverterTypeObjectId.read(buf),
+            FfiConverterOptionalTypeObjectId.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: BinocularDiffInput) = (
+            FfiConverterTypeObjectId.allocationSize(value.`suspect`) +
+            FfiConverterOptionalTypeObjectId.allocationSize(value.`target`)
+    )
+
+    override fun write(value: BinocularDiffInput, buf: ByteBuffer) {
+            FfiConverterTypeObjectId.write(value.`suspect`, buf)
+            FfiConverterOptionalTypeObjectId.write(value.`target`, buf)
     }
 }
 
@@ -1750,7 +2060,7 @@ public object FfiConverterTypeBinocularDiffStats: FfiConverterRustBuffer<Binocul
 
 
 data class BinocularDiffVec (
-    var `changeMap`: Map<BString, BinocularDiffStats>, 
+    var `files`: List<BinocularFileDiff>, 
     var `commit`: ObjectId, 
     var `parent`: ObjectId?, 
     var `committer`: BinocularSig?, 
@@ -1766,7 +2076,7 @@ data class BinocularDiffVec (
 public object FfiConverterTypeBinocularDiffVec: FfiConverterRustBuffer<BinocularDiffVec> {
     override fun read(buf: ByteBuffer): BinocularDiffVec {
         return BinocularDiffVec(
-            FfiConverterMapTypeBStringTypeBinocularDiffStats.read(buf),
+            FfiConverterSequenceTypeBinocularFileDiff.read(buf),
             FfiConverterTypeObjectId.read(buf),
             FfiConverterOptionalTypeObjectId.read(buf),
             FfiConverterOptionalTypeBinocularSig.read(buf),
@@ -1775,7 +2085,7 @@ public object FfiConverterTypeBinocularDiffVec: FfiConverterRustBuffer<Binocular
     }
 
     override fun allocationSize(value: BinocularDiffVec) = (
-            FfiConverterMapTypeBStringTypeBinocularDiffStats.allocationSize(value.`changeMap`) +
+            FfiConverterSequenceTypeBinocularFileDiff.allocationSize(value.`files`) +
             FfiConverterTypeObjectId.allocationSize(value.`commit`) +
             FfiConverterOptionalTypeObjectId.allocationSize(value.`parent`) +
             FfiConverterOptionalTypeBinocularSig.allocationSize(value.`committer`) +
@@ -1783,11 +2093,55 @@ public object FfiConverterTypeBinocularDiffVec: FfiConverterRustBuffer<Binocular
     )
 
     override fun write(value: BinocularDiffVec, buf: ByteBuffer) {
-            FfiConverterMapTypeBStringTypeBinocularDiffStats.write(value.`changeMap`, buf)
+            FfiConverterSequenceTypeBinocularFileDiff.write(value.`files`, buf)
             FfiConverterTypeObjectId.write(value.`commit`, buf)
             FfiConverterOptionalTypeObjectId.write(value.`parent`, buf)
             FfiConverterOptionalTypeBinocularSig.write(value.`committer`, buf)
             FfiConverterOptionalTypeBinocularSig.write(value.`author`, buf)
+    }
+}
+
+
+
+data class BinocularFileDiff (
+    var `insertions`: kotlin.UInt, 
+    var `deletions`: kotlin.UInt, 
+    var `change`: BinocularChangeType, 
+    var `oldFileContent`: kotlin.String?, 
+    var `newFileContent`: kotlin.String?
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBinocularFileDiff: FfiConverterRustBuffer<BinocularFileDiff> {
+    override fun read(buf: ByteBuffer): BinocularFileDiff {
+        return BinocularFileDiff(
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterTypeBinocularChangeType.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: BinocularFileDiff) = (
+            FfiConverterUInt.allocationSize(value.`insertions`) +
+            FfiConverterUInt.allocationSize(value.`deletions`) +
+            FfiConverterTypeBinocularChangeType.allocationSize(value.`change`) +
+            FfiConverterOptionalString.allocationSize(value.`oldFileContent`) +
+            FfiConverterOptionalString.allocationSize(value.`newFileContent`)
+    )
+
+    override fun write(value: BinocularFileDiff, buf: ByteBuffer) {
+            FfiConverterUInt.write(value.`insertions`, buf)
+            FfiConverterUInt.write(value.`deletions`, buf)
+            FfiConverterTypeBinocularChangeType.write(value.`change`, buf)
+            FfiConverterOptionalString.write(value.`oldFileContent`, buf)
+            FfiConverterOptionalString.write(value.`newFileContent`, buf)
     }
 }
 
@@ -1936,6 +2290,124 @@ public object FfiConverterTypeRepositoryRemote: FfiConverterRustBuffer<Repositor
             FfiConverterOptionalString.write(value.`path`, buf)
     }
 }
+
+
+
+sealed class BinocularChangeType {
+    
+    data class Addition(
+        val `location`: BString) : BinocularChangeType() {
+        companion object
+    }
+    
+    data class Deletion(
+        val `location`: BString) : BinocularChangeType() {
+        companion object
+    }
+    
+    data class Modification(
+        val `location`: BString) : BinocularChangeType() {
+        companion object
+    }
+    
+    data class Rewrite(
+        val `sourceLocation`: BString, 
+        val `location`: BString, 
+        val `copy`: kotlin.Boolean) : BinocularChangeType() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBinocularChangeType : FfiConverterRustBuffer<BinocularChangeType>{
+    override fun read(buf: ByteBuffer): BinocularChangeType {
+        return when(buf.getInt()) {
+            1 -> BinocularChangeType.Addition(
+                FfiConverterTypeBString.read(buf),
+                )
+            2 -> BinocularChangeType.Deletion(
+                FfiConverterTypeBString.read(buf),
+                )
+            3 -> BinocularChangeType.Modification(
+                FfiConverterTypeBString.read(buf),
+                )
+            4 -> BinocularChangeType.Rewrite(
+                FfiConverterTypeBString.read(buf),
+                FfiConverterTypeBString.read(buf),
+                FfiConverterBoolean.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: BinocularChangeType) = when(value) {
+        is BinocularChangeType.Addition -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeBString.allocationSize(value.`location`)
+            )
+        }
+        is BinocularChangeType.Deletion -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeBString.allocationSize(value.`location`)
+            )
+        }
+        is BinocularChangeType.Modification -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeBString.allocationSize(value.`location`)
+            )
+        }
+        is BinocularChangeType.Rewrite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeBString.allocationSize(value.`sourceLocation`)
+                + FfiConverterTypeBString.allocationSize(value.`location`)
+                + FfiConverterBoolean.allocationSize(value.`copy`)
+            )
+        }
+    }
+
+    override fun write(value: BinocularChangeType, buf: ByteBuffer) {
+        when(value) {
+            is BinocularChangeType.Addition -> {
+                buf.putInt(1)
+                FfiConverterTypeBString.write(value.`location`, buf)
+                Unit
+            }
+            is BinocularChangeType.Deletion -> {
+                buf.putInt(2)
+                FfiConverterTypeBString.write(value.`location`, buf)
+                Unit
+            }
+            is BinocularChangeType.Modification -> {
+                buf.putInt(3)
+                FfiConverterTypeBString.write(value.`location`, buf)
+                Unit
+            }
+            is BinocularChangeType.Rewrite -> {
+                buf.putInt(4)
+                FfiConverterTypeBString.write(value.`sourceLocation`, buf)
+                FfiConverterTypeBString.write(value.`location`, buf)
+                FfiConverterBoolean.write(value.`copy`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
 
 
 
@@ -2436,6 +2908,34 @@ public object FfiConverterSequenceTypeBinocularCommitVec: FfiConverterRustBuffer
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeBinocularDiffInput: FfiConverterRustBuffer<List<BinocularDiffInput>> {
+    override fun read(buf: ByteBuffer): List<BinocularDiffInput> {
+        val len = buf.getInt()
+        return List<BinocularDiffInput>(len) {
+            FfiConverterTypeBinocularDiffInput.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<BinocularDiffInput>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeBinocularDiffInput.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<BinocularDiffInput>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeBinocularDiffInput.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeBinocularDiffVec: FfiConverterRustBuffer<List<BinocularDiffVec>> {
     override fun read(buf: ByteBuffer): List<BinocularDiffVec> {
         val len = buf.getInt()
@@ -2464,35 +2964,52 @@ public object FfiConverterSequenceTypeBinocularDiffVec: FfiConverterRustBuffer<L
 /**
  * @suppress
  */
-public object FfiConverterMapTypeBStringTypeBinocularDiffStats: FfiConverterRustBuffer<Map<BString, BinocularDiffStats>> {
-    override fun read(buf: ByteBuffer): Map<BString, BinocularDiffStats> {
+public object FfiConverterSequenceTypeBinocularFileDiff: FfiConverterRustBuffer<List<BinocularFileDiff>> {
+    override fun read(buf: ByteBuffer): List<BinocularFileDiff> {
         val len = buf.getInt()
-        return buildMap<BString, BinocularDiffStats>(len) {
-            repeat(len) {
-                val k = FfiConverterTypeBString.read(buf)
-                val v = FfiConverterTypeBinocularDiffStats.read(buf)
-                this[k] = v
-            }
+        return List<BinocularFileDiff>(len) {
+            FfiConverterTypeBinocularFileDiff.read(buf)
         }
     }
 
-    override fun allocationSize(value: Map<BString, BinocularDiffStats>): ULong {
-        val spaceForMapSize = 4UL
-        val spaceForChildren = value.map { (k, v) ->
-            FfiConverterTypeBString.allocationSize(k) +
-            FfiConverterTypeBinocularDiffStats.allocationSize(v)
-        }.sum()
-        return spaceForMapSize + spaceForChildren
+    override fun allocationSize(value: List<BinocularFileDiff>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeBinocularFileDiff.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
     }
 
-    override fun write(value: Map<BString, BinocularDiffStats>, buf: ByteBuffer) {
+    override fun write(value: List<BinocularFileDiff>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        // The parens on `(k, v)` here ensure we're calling the right method,
-        // which is important for compatibility with older android devices.
-        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
-        value.forEach { (k, v) ->
-            FfiConverterTypeBString.write(k, buf)
-            FfiConverterTypeBinocularDiffStats.write(v, buf)
+        value.iterator().forEach {
+            FfiConverterTypeBinocularFileDiff.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeObjectId: FfiConverterRustBuffer<List<ObjectId>> {
+    override fun read(buf: ByteBuffer): List<ObjectId> {
+        val len = buf.getInt()
+        return List<ObjectId>(len) {
+            FfiConverterTypeObjectId.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<ObjectId>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeObjectId.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<ObjectId>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeObjectId.write(it, buf)
         }
     }
 }
@@ -2555,41 +3072,41 @@ public typealias FfiConverterTypeBString = FfiConverterString
  */
 public typealias ObjectId = kotlin.String
 public typealias FfiConverterTypeObjectId = FfiConverterString
-    @Throws(AnyhowException::class) fun `blames`(`brepo`: BinocularRepository, `defines`: Map<ObjectId, List<kotlin.String>>, `diffAlgorithm`: GixDiffAlgorithm?, `maxThreads`: kotlin.UByte): List<BinocularBlameResult> {
+    @Throws(AnyhowException::class) fun `blames`(`binocularRepo`: BinocularRepository, `defines`: Map<ObjectId, List<kotlin.String>>, `diffAlgorithm`: GixDiffAlgorithm?, `maxThreads`: kotlin.UByte): List<BinocularBlameResult> {
             return FfiConverterSequenceTypeBinocularBlameResult.lift(
     uniffiRustCallWithError(AnyhowException) { _status ->
     UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_blames(
-        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterMapTypeObjectIdSequenceString.lower(`defines`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),FfiConverterUByte.lower(`maxThreads`),_status)
+        FfiConverterTypeBinocularRepository.lower(`binocularRepo`),FfiConverterMapTypeObjectIdSequenceString.lower(`defines`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),FfiConverterUByte.lower(`maxThreads`),_status)
 }
     )
     }
     
 
-    @Throws(AnyhowException::class) fun `diffs`(`brepo`: BinocularRepository, `commitlist`: List<kotlin.String>, `maxThreads`: kotlin.UByte, `skipMerges`: kotlin.Boolean, `diffAlgorithm`: GixDiffAlgorithm?, `breadthFirst`: kotlin.Boolean, `follow`: kotlin.Boolean): List<BinocularDiffVec> {
+    @Throws(ProcErrorInterface::class) fun `diffs`(`binocularRepo`: BinocularRepository, `commitPairs`: List<BinocularDiffInput>, `maxThreads`: kotlin.UByte, `diffAlgorithm`: GixDiffAlgorithm?): List<BinocularDiffVec> {
             return FfiConverterSequenceTypeBinocularDiffVec.lift(
-    uniffiRustCallWithError(AnyhowException) { _status ->
+    uniffiRustCallWithError(ProcErrorInterface) { _status ->
     UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_diffs(
-        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterSequenceString.lower(`commitlist`),FfiConverterUByte.lower(`maxThreads`),FfiConverterBoolean.lower(`skipMerges`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),FfiConverterBoolean.lower(`breadthFirst`),FfiConverterBoolean.lower(`follow`),_status)
+        FfiConverterTypeBinocularRepository.lower(`binocularRepo`),FfiConverterSequenceTypeBinocularDiffInput.lower(`commitPairs`),FfiConverterUByte.lower(`maxThreads`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),_status)
 }
     )
     }
     
 
-    @Throws(AnyhowException::class) fun `findAllBranches`(`brepo`: BinocularRepository): List<BinocularBranch> {
+    @Throws(AnyhowException::class) fun `findAllBranches`(`binocularRepo`: BinocularRepository): List<BinocularBranch> {
             return FfiConverterSequenceTypeBinocularBranch.lift(
     uniffiRustCallWithError(AnyhowException) { _status ->
     UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_all_branches(
-        FfiConverterTypeBinocularRepository.lower(`brepo`),_status)
+        FfiConverterTypeBinocularRepository.lower(`binocularRepo`),_status)
 }
     )
     }
     
 
-    @Throws(AnyhowException::class) fun `findCommit`(`brepo`: BinocularRepository, `hash`: kotlin.String): ObjectId {
+    @Throws(AnyhowException::class) fun `findCommit`(`binocularRepo`: BinocularRepository, `hash`: kotlin.String): ObjectId {
             return FfiConverterTypeObjectId.lift(
     uniffiRustCallWithError(AnyhowException) { _status ->
     UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_find_commit(
-        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterString.lower(`hash`),_status)
+        FfiConverterTypeBinocularRepository.lower(`binocularRepo`),FfiConverterString.lower(`hash`),_status)
 }
     )
     }
@@ -2613,21 +3130,21 @@ public typealias FfiConverterTypeObjectId = FfiConverterString
     
     
 
-    @Throws(AnyhowException::class) fun `traverse`(`brepo`: BinocularRepository, `sourceCommit`: ObjectId, `targetCommit`: ObjectId?): List<BinocularCommitVec> {
+    @Throws(AnyhowException::class) fun `traverse`(`binocularRepo`: BinocularRepository, `sourceCommit`: ObjectId, `targetCommit`: ObjectId?): List<BinocularCommitVec> {
             return FfiConverterSequenceTypeBinocularCommitVec.lift(
     uniffiRustCallWithError(AnyhowException) { _status ->
     UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_traverse(
-        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterTypeObjectId.lower(`sourceCommit`),FfiConverterOptionalTypeObjectId.lower(`targetCommit`),_status)
+        FfiConverterTypeBinocularRepository.lower(`binocularRepo`),FfiConverterTypeObjectId.lower(`sourceCommit`),FfiConverterOptionalTypeObjectId.lower(`targetCommit`),_status)
 }
     )
     }
     
 
-    @Throws(UniffiException::class) fun `traverseBranch`(`brepo`: BinocularRepository, `branch`: kotlin.String): List<BinocularCommitVec> {
+    @Throws(UniffiException::class) fun `traverseBranch`(`binocularRepo`: BinocularRepository, `branch`: kotlin.String): List<BinocularCommitVec> {
             return FfiConverterSequenceTypeBinocularCommitVec.lift(
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.INSTANCE.uniffi_binocular_ffi_fn_func_traverse_branch(
-        FfiConverterTypeBinocularRepository.lower(`brepo`),FfiConverterString.lower(`branch`),_status)
+        FfiConverterTypeBinocularRepository.lower(`binocularRepo`),FfiConverterString.lower(`branch`),_status)
 }
     )
     }
