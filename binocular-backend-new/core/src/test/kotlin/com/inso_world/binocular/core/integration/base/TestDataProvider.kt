@@ -1,4 +1,4 @@
-package com.inso_world.binocular.core.integration.base
+package base
 
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
@@ -11,9 +11,11 @@ import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Platform
-import com.inso_world.binocular.model.Stats
+import com.inso_world.binocular.model.CommitDiff.Stats
+import com.inso_world.binocular.model.FileState
 import com.inso_world.binocular.model.User
 import java.time.LocalDateTime
+import kotlin.run
 
 /**
  * Provides test data for web module tests.
@@ -22,18 +24,18 @@ import java.time.LocalDateTime
  */
 object TestDataProvider {
     val testAccounts =
-        listOf(
-            Account(
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.Account(
                 "1",
-                Platform.GitHub,
+                com.inso_world.binocular.model.Platform.GitHub,
                 "user1",
                 "User One",
                 "https://example.com/avatars/user1.png",
                 "https://github.com/user1",
             ),
-            Account(
+            com.inso_world.binocular.model.Account(
                 "2",
-                Platform.GitLab,
+                com.inso_world.binocular.model.Platform.GitLab,
                 "user2",
                 "User Two",
                 "https://example.com/avatars/user2.png",
@@ -41,39 +43,40 @@ object TestDataProvider {
             ),
         )
 
-    private val mainBranch = Branch("1", "main", true, true, "abc123")
-    private val newFeatureBranch = Branch("2", "feature/new-feature", true, false, "def456")
+    private val mainBranch = com.inso_world.binocular.model.Branch("1", "main", true, true, "abc123")
+    private val newFeatureBranch =
+        com.inso_world.binocular.model.Branch("2", "feature/new-feature", true, false, "def456")
     val testBranches =
-        listOf(mainBranch,newFeatureBranch)
+        kotlin.collections.listOf(mainBranch, newFeatureBranch)
 
     val testCommits =
-        listOf(
-            run{
-                val cmt = Commit(
+        kotlin.collections.listOf(
+            run {
+                val cmt = com.inso_world.binocular.model.Commit(
                     "1",
                     "abc123",
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
+                    java.time.LocalDateTime.now(),
+                    java.time.LocalDateTime.now(),
                     "First commit",
                     null,
                     "https://example.com/commit/abc123",
                     "main",
-                    Stats(10, 5),
+                    com.inso_world.binocular.model.CommitDiff.Stats(10, 5),
                 )
                 mainBranch.commits.add(cmt)
                 cmt
             },
             run {
-                val cmt = Commit(
+                val cmt = com.inso_world.binocular.model.Commit(
                     "2",
                     "def456",
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
+                    java.time.LocalDateTime.now(),
+                    java.time.LocalDateTime.now(),
                     "Second commit",
                     null,
                     "https://example.com/commit/def456",
                     "main",
-                    Stats(7, 3),
+                    com.inso_world.binocular.model.CommitDiff.Stats(7, 3),
                 )
                 mainBranch.commits.add(cmt)
                 cmt
@@ -81,8 +84,8 @@ object TestDataProvider {
         )
 
     val testBuilds =
-        listOf(
-            Build(
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.Build(
                 "1",
                 "abc123",
                 "main",
@@ -90,26 +93,26 @@ object TestDataProvider {
                 "v0.0.1-rc",
                 "user1",
                 "User One",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
                 120,
-                listOf(
-                    Build.Job(
+                kotlin.collections.listOf(
+                    com.inso_world.binocular.model.Build.Job(
                         "job1",
                         "test",
                         "success",
                         "test",
-                        LocalDateTime.now(),
-                        LocalDateTime.now(),
+                        java.time.LocalDateTime.now(),
+                        java.time.LocalDateTime.now(),
                         "https://example.com/jobs/job1",
                     ),
                 ),
                 "https://example.com/builds/1",
             ),
-            Build(
+            com.inso_world.binocular.model.Build(
                 "2",
                 "def456",
                 "feature/new-feature",
@@ -117,20 +120,20 @@ object TestDataProvider {
                 "v1.0.0",
                 "user2",
                 "User Two",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
                 180,
-                listOf(
-                    Build.Job(
+                kotlin.collections.listOf(
+                    com.inso_world.binocular.model.Build.Job(
                         "job2",
                         "build",
                         "failed",
                         "build",
-                        LocalDateTime.now(),
-                        LocalDateTime.now(),
+                        java.time.LocalDateTime.now(),
+                        java.time.LocalDateTime.now(),
                         "https://example.com/jobs/job2",
                     ),
                 ),
@@ -139,82 +142,120 @@ object TestDataProvider {
         )
 
     val testFiles =
-        listOf(
-            File("1", "src/main/kotlin/com/example/Main.kt", "https://example.com/files/Main.kt", 1000),
-            File("2", "src/main/kotlin/com/example/Utils.kt", "https://example.com/files/Utils.kt", 500),
+        kotlin.collections.listOf(
+            run {
+                val file = com.inso_world.binocular.model.File(
+                    "1",
+                    "src/main/kotlin/com/example/Main.kt",
+                    kotlin.collections.mutableSetOf()
+                )
+                file.webUrl = "https://example.com/files/Main.kt"
+                return@run file
+            },
+            run {
+                val file = com.inso_world.binocular.model.File(
+                    "2",
+                    "src/main/kotlin/com/example/Utils.kt",
+                    kotlin.collections.mutableSetOf()
+                )
+                file.webUrl = "https://example.com/files/Utils.kt"
+                return@run file
+            }
         )
 
     val testIssues =
-        listOf(
-            Issue(
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.Issue(
                 "1",
                 101,
                 "Fix bug in login flow",
                 "Users are unable to log in...",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
                 null,
-                listOf("bug", "high-priority"),
+                kotlin.collections.listOf("bug", "high-priority"),
                 "open",
                 "https://example.com/issues/101",
-                listOf(Mention("abc123", LocalDateTime.now(), false)),
+                kotlin.collections.listOf(
+                    com.inso_world.binocular.model.Mention(
+                        "abc123",
+                        java.time.LocalDateTime.now(),
+                        false
+                    )
+                ),
             ),
-            Issue(
+            com.inso_world.binocular.model.Issue(
                 "2",
                 102,
                 "Add new feature",
                 "Implement profile customization",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                listOf("enhancement", "feature"),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                kotlin.collections.listOf("enhancement", "feature"),
                 "closed",
                 "https://example.com/issues/102",
-                listOf(Mention("def456", LocalDateTime.now(), true)),
+                kotlin.collections.listOf(
+                    com.inso_world.binocular.model.Mention(
+                        "def456",
+                        java.time.LocalDateTime.now(),
+                        true
+                    )
+                ),
             ),
         )
 
     val testMergeRequests =
-        listOf(
-            MergeRequest(
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.MergeRequest(
                 "1",
                 201,
                 "Implement user authentication",
                 "Add JWT auth",
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
+                java.time.LocalDateTime.now().toString(),
+                java.time.LocalDateTime.now().toString(),
                 null,
-                listOf("feature", "security"),
+                kotlin.collections.listOf("feature", "security"),
                 "open",
                 "https://example.com/merge_requests/201",
-                listOf(Mention("abc123", LocalDateTime.now(), false)),
+                kotlin.collections.listOf(
+                    com.inso_world.binocular.model.Mention(
+                        "abc123",
+                        java.time.LocalDateTime.now(),
+                        false
+                    )
+                ),
             ),
-            MergeRequest(
+            com.inso_world.binocular.model.MergeRequest(
                 "2",
                 202,
                 "Fix CSS",
                 "Fix responsive design",
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                listOf("bug", "ui"),
+                java.time.LocalDateTime.now().toString(),
+                java.time.LocalDateTime.now().toString(),
+                java.time.LocalDateTime.now().toString(),
+                kotlin.collections.listOf("bug", "ui"),
                 "merged",
                 "https://example.com/merge_requests/202",
-                listOf(Mention("def456", LocalDateTime.now(), true)),
+                kotlin.collections.listOf(
+                    com.inso_world.binocular.model.Mention(
+                        "def456",
+                        java.time.LocalDateTime.now(),
+                        true
+                    )
+                ),
             ),
         )
 
     val testModules =
-        listOf(
-            com.inso_world.binocular.model
-                .Module("1", "src/main/kotlin/com/example/core"),
-            com.inso_world.binocular.model
-                .Module("2", "src/main/kotlin/com/example/api"),
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.Module("1", "src/main/kotlin/com/example/core"),
+            com.inso_world.binocular.model.Module("2", "src/main/kotlin/com/example/api"),
         )
 
     val testNotes =
-        listOf(
-            Note(
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.Note(
                 "1",
                 "This is a comment",
                 "2023-01-01T10:00:00Z",
@@ -226,7 +267,7 @@ object TestDataProvider {
                 false,
                 "gitlab",
             ),
-            Note(
+            com.inso_world.binocular.model.Note(
                 "2",
                 "This is a system note",
                 "2023-01-02T11:00:00Z",
@@ -241,14 +282,14 @@ object TestDataProvider {
         )
 
     val testUsers =
-        listOf(
-            User("1", "John Doe", "john.doe@example.com"),
-            User("2", "Jane Smith", "jane.smith@example.com"),
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.User("1", "John Doe", "john.doe@example.com"),
+            com.inso_world.binocular.model.User("2", "Jane Smith", "jane.smith@example.com"),
         )
 
     val testMilestones =
-        listOf(
-            Milestone(
+        kotlin.collections.listOf(
+            com.inso_world.binocular.model.Milestone(
                 id = "1",
                 iid = 201,
                 title = "Release 1.0",
@@ -261,7 +302,7 @@ object TestDataProvider {
                 expired = false,
                 webUrl = "https://example.com/milestones/1",
             ),
-            Milestone(
+            com.inso_world.binocular.model.Milestone(
                 id = "2",
                 iid = 202,
                 title = "Release 2.0",

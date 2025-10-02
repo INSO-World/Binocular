@@ -190,6 +190,519 @@ and is currently in its development and test phase.
 It is not yet ready for use but gives a glimpse into the future of what binocular could look like.
 
 
+## Contributors ✨
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- Grid-Container -->
+<div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center; align-items:flex-start;">
+
+  <div style="width: 100%"><h3>Core Team</h3></div>
+  
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/nuberion" title="Johann Grabner" style="text-decoration:none;">
+      <img
+        src="https://github.com/nuberion.png?size=120"
+        alt="Johann Grabner"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Johann Grabner</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/MaximilianZenz" title="Maximilian Zenz" style="text-decoration:none;">
+      <img
+        src="https://github.com/MaximilianZenz.png?size=120"
+        alt="Maximilian Zenz"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Maximilian Zenz</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/uberroot4" title="Manuel Stöger" style="text-decoration:none;">
+      <img
+        src="https://github.com/uberroot4.png?size=120"
+        alt="Manuel Stöger"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Manuel Stöger</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Megalokom" title="Michael Strasser" style="text-decoration:none;">
+      <img
+        src="https://github.com/Megalokom.png?size=120"
+        alt="Michael Strasser"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Michael Strasser</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/bastianferch" title="Bastian Ferch" style="text-decoration:none;">
+      <img
+        src="https://github.com/bastianferch.png?size=120"
+        alt="Bastian Ferch"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Bastian Ferch</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Markus99at" title="Markus Gumpoltsberger" style="text-decoration:none;">
+      <img
+        src="https://github.com/Markus99at.png?size=120"
+        alt="Markus Gumpoltsberger"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Markus Gumpoltsberger</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/kkastenmeier" title="Kai Kastenmeier" style="text-decoration:none;">
+      <img
+        src="https://github.com/kkastenmeier.png?size=120"
+        alt="Kai Kastenmeier"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Kai Kastenmeier</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Nyzabes" title="Sebastian Watzinger" style="text-decoration:none;">
+      <img
+        src="https://github.com/Nyzabes.png?size=120"
+        alt="Sebastian Watzinger"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Sebastian Watzinger</div>
+    </a>
+  </div>
+
+  <div style="width: 100%"><h3>Bachelor/Master-Theses</h3></div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/romandecker" title="Roman Decker" style="text-decoration:none;">
+      <img
+        src="https://github.com/romandecker.png?size=120"
+        alt="Roman Decker"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Roman Decker</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/alexnefi" title="Alexander Nemetz-Fiedler" style="text-decoration:none;">
+      <img
+        src="https://github.com/alexnefi.png?size=120"
+        alt="Alexander Nemetz-Fiedler"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Alexander Nemetz-Fiedler</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/THMv1TU" title="Michael Thurner" style="text-decoration:none;">
+      <img
+        src="https://github.com/THMv1TU.png?size=120"
+        alt="Michael Thurner"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Michael Thurner</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/schoeberlt" title="Tamas Schöberl" style="text-decoration:none;">
+      <img
+        src="https://github.com/schoeberlt.png?size=120"
+        alt="Tamas Schöberl"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Tamas Schöberl</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/belthazors" title="Amar Kasic" style="text-decoration:none;">
+      <img
+        src="https://github.com/belthazors.png?size=120"
+        alt="Amar Kasic"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Amar Kasic</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/juliankotrba" title="Julian Kotrba" style="text-decoration:none;">
+      <img
+        src="https://github.com/juliankotrba.png?size=120"
+        alt="Julian Kotrba"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Julian Kotrba</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/matthiasweiss" title="Matthias Weiß" style="text-decoration:none;">
+      <img
+        src="https://github.com/matthiasweiss.png?size=120"
+        alt="Matthias Weiß"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Matthias Weiß</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Thoma5" title="Thomas Mörbauer" style="text-decoration:none;">
+      <img
+        src="https://github.com/Thoma5.png?size=120"
+        alt="Thomas Mörbauer"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Thomas Mörbauer</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/m4nv3ru" title="Michael Kurz" style="text-decoration:none;">
+      <img
+        src="https://github.com/m4nv3ru.png?size=120"
+        alt="Michael Kurz"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Michael Kurz</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/profjellybean" title="Valentin Schnabl" style="text-decoration:none;">
+      <img
+        src="https://github.com/profjellybean.png?size=120"
+        alt="Valentin Schnabl"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Valentin Schnabl</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Soleymantic" title="Solaiman Nejat" style="text-decoration:none;">
+      <img
+        src="https://github.com/Soleymantic.png?size=120"
+        alt="Solaiman Nejat"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Solaiman Nejat</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Soleymantic" title="Solaiman Nejat" style="text-decoration:none;">
+      <img
+        src="https://github.com/Soleymantic.png?size=120"
+        alt="Solaiman Nejat"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Solaiman Nejat</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Grochni" title="Christian Gröchenig" style="text-decoration:none;">
+      <img
+        src="https://github.com/Grochni.png?size=120"
+        alt="Christian Gröchenig"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Christian Gröchenig</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/raini90" title="Rainhard Pfneiszl" style="text-decoration:none;">
+      <img
+        src="https://github.com/raini90.png?size=120"
+        alt="Rainhard Pfneiszl"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Rainhard Pfneiszl</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/codester007" title="Valentin Kastberger" style="text-decoration:none;">
+      <img
+        src="https://github.com/codester007.png?size=120"
+        alt="Valentin Kastberger"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Valentin Kastberger</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/AM307" title="André Mategka" style="text-decoration:none;">
+      <img
+        src="https://github.com/AM307.png?size=120"
+        alt="André Mategka"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">André Mategka</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Bene-dykt" title="Benedikt Eckerstorfer" style="text-decoration:none;">
+      <img
+        src="https://github.com/Bene-dykt.png?size=120"
+        alt="Benedikt Eckerstorfer"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Benedikt Eckerstorfer</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/DominikKidery" title="Dominik Kidery" style="text-decoration:none;">
+      <img
+        src="https://github.com/DominikKidery.png?size=120"
+        alt="Dominik Kidery"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Dominik Kidery</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/peter-kotouc" title="Peter Kotouč" style="text-decoration:none;">
+      <img
+        src="https://github.com/peter-kotouc.png?size=120"
+        alt="Peter Kotouč"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Peter Kotouč</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/TBalint2000" title="Bálint Timár" style="text-decoration:none;">
+      <img
+        src="https://github.com/TBalint2000.png?size=120"
+        alt="Bálint Timár"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Bálint Timár</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/maerzman" title="Manuel Märzinger" style="text-decoration:none;">
+      <img
+        src="https://github.com/maerzman.png?size=120"
+        alt="Manuel Märzinger"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Manuel Märzinger</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/martan001" title="Anton Martinovic" style="text-decoration:none;">
+      <img
+        src="https://github.com/martan001.png?size=120"
+        alt="Anton Martinovic"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Anton Martinovic</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/ValentinFutterer" title="Valentin Futterer" style="text-decoration:none;">
+      <img
+        src="https://github.com/ValentinFutterer.png?size=120"
+        alt="Valentin Futterer"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Valentin Futterer</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/MoravekJakub" title="Jakub Morávek" style="text-decoration:none;">
+      <img
+        src="https://github.com/MoravekJakub.png?size=120"
+        alt="Jakub Morávek"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Jakub Morávek</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/R0555" title="Ross Boulton" style="text-decoration:none;">
+      <img
+        src="https://github.com/R0555.png?size=120"
+        alt="Ross Boulton"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Ross Boulton</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/DangeeundDu" title="Martin Weber" style="text-decoration:none;">
+      <img
+        src="https://github.com/DangeeundDu.png?size=120"
+        alt="Martin Weber"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Martin Weber</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/thimonpelka" title="Thimon Pelka" style="text-decoration:none;">
+      <img
+        src="https://github.com/thimonpelka.png?size=120"
+        alt="Thimon Pelka"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Thimon Pelka</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/Sebastian-Schuch" title="Sebastian Schuch" style="text-decoration:none;">
+      <img
+        src="https://github.com/Sebastian-Schuch.png?size=120"
+        alt="Sebastian Schuch"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Sebastian Schuch</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/SurfingCaterpillar" title="Sarah Biedermann" style="text-decoration:none;">
+      <img
+        src="https://github.com/SurfingCaterpillar.png?size=120"
+        alt="Sarah Biedermann"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Sarah Biedermann</div>
+    </a>
+  </div>
+
+  <!-- Card -->
+  <div style="flex:0 0 140px; text-align:center;">
+    <a href="https://github.com/FreshGuy32" title="Mathias Trapl" style="text-decoration:none;">
+      <img
+        src="https://github.com/FreshGuy32.png?size=120"
+        alt="Mathias Trapl"
+        width="96" height="96"
+        style="border-radius:50%; display:block; margin:0 auto;"
+      />
+      <div style="font-weight:600; margin-top:6px;">Mathias Trapl</div>
+    </a>
+  </div>
+
+</div>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 ## Contributing
 
 **:warning:Binocular is currently in a transition state from javascript to typescript.
