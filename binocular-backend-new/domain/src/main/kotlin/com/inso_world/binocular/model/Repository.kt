@@ -12,11 +12,14 @@ import org.slf4j.LoggerFactory
 data class Repository(
     val id: String? = null,
     @field:NotBlank
-    val name: String,
+    val localPath: String,
     @field:NotNull // TODO conditional validation, only when coming out of infra
     var project: Project? = null,
     // TODO add remotes
 ) : AbstractDomainObject() {
+    @Deprecated(message = "legacy")
+    val name: String = localPath
+
     private val _commits: MutableSet<Commit> = mutableSetOf()
     private val _branches: MutableSet<Branch> = mutableSetOf()
     private val _user: MutableSet<User> = mutableSetOf()
@@ -88,7 +91,7 @@ data class Repository(
             }
         }
 
-    override fun toString(): String = "Repository(id=$id, name='$name')"
+    override fun toString(): String = "Repository(id=$id, localPath='$localPath')"
 
     fun removeCommitBySha(
         @Size(min = 40, max = 40)

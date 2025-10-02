@@ -56,7 +56,7 @@ data class Branch(
             requireNotNull(repository) {
                 "Cannot generate unique key for $javaClass when repository is null"
             }
-        return "${repo.localPath},$name"
+        return "${repo.name},$name"
     }
 
     override fun equals(other: Any?): Boolean {

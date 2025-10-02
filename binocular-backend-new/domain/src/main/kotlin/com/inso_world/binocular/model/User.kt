@@ -74,7 +74,7 @@ data class User(
         requireNotNull(repository) {
             throw IllegalStateException("Cannot generate unique key for $javaClass when repository is null")
         }
-        return "${repository?.name},$email"
+        return "${repository?.localPath},$email"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -83,9 +83,9 @@ data class User(
 
         other as User
 
-        if (id != other.id) return false
+//        if (id != other.id) return false
         if (name != other.name) return false
-        if (repository?.name != other.repository?.name) return false
+        if (repository?.localPath != other.repository?.localPath) return false
 //        if (gitSignature != other.gitSignature) return false
 //        if (authoredCommits != other.authoredCommits) return false
 //        if (committedCommits != other.committedCommits) return false
@@ -96,9 +96,8 @@ data class User(
     }
 
     override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + (name?.hashCode() ?: 0)
-        result = 31 * result + gitSignature.hashCode()
+        var result = Objects.hashCode(name)
+        result += 31 * Objects.hashCode(repository?.localPath)
         return result
     }
 

@@ -4,7 +4,6 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.vcs.BlameEntry
 import jakarta.validation.Valid
 import java.nio.file.Path
 
