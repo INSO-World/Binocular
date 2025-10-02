@@ -15,7 +15,6 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.vcs.BlameEntry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -96,14 +95,4 @@ class BinocularFfi : GitIndexer {
         com.inso_world.binocular.internal
             .traverse(repo.toFfi(), sourceCmt, trgtCmt)
             .toDomain(repo)
-
-
-
-
-        val ffiRepo = repo.toFfi()
-
-
-
-
-    }
 }
