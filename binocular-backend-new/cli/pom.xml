@@ -59,12 +59,12 @@
         </dependency>
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
-            <artifactId>ffi</artifactId>
+            <artifactId>domain</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
-            <artifactId>domain</artifactId>
+            <artifactId>ffi</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!--Non binocular below -->
@@ -198,6 +198,7 @@
                 <configuration>
                     <args>
                         <arg>-Xjsr305=strict</arg>
+                        <arg>-Xannotation-target-all</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
