@@ -33,7 +33,7 @@ internal object ValidationTestData {
         Stream.of(
             Arguments.of(
                 run {
-                    val repository = Repository(id = "1", name = "test repo")
+                    val repository = Repository(id = "1", localPath = "test repo")
                     val cmt = Commit(
                         id = null,
                         sha = "", // invalid: should be 40 chars
@@ -49,7 +49,7 @@ internal object ValidationTestData {
             ),
             Arguments.of(
                 run {
-                    val repository = Repository(id="1",name = "2222222")
+                    val repository = Repository(id="1",localPath = "2222222")
                     val cmt = Commit(
                         id = null,
                         sha = "a".repeat(39), // invalid: should be 40 chars
@@ -64,7 +64,7 @@ internal object ValidationTestData {
             ),
             Arguments.of(
                 run {
-                    val repository = Repository(id="1",name = "33333")
+                    val repository = Repository(id="1",localPath = "33333")
                     val cmt = Commit(
                         id = null,
                         sha = "b".repeat(41), // invalid: should be 40 chars
@@ -79,7 +79,7 @@ internal object ValidationTestData {
             ),
             Arguments.of(
                 run {
-                    val repository = Repository(id="1",name = "44444")
+                    val repository = Repository(id="1",localPath = "44444")
                     val cmt = Commit(
                     id = null,
                     sha = "c".repeat(40),
@@ -96,7 +96,7 @@ internal object ValidationTestData {
                 .map {
                     Arguments.of(
                         run {
-                            val repository = Repository(id="1",name = "5555")
+                            val repository = Repository(id="1",localPath = "5555")
                             val cmt = Commit(
                             id = null,
                             sha = "c".repeat(40),
@@ -114,7 +114,7 @@ internal object ValidationTestData {
                 .map {
                     Arguments.of(
                         run {
-                            val repository = Repository(id="1",name = "6666")
+                            val repository = Repository(id="1",localPath = "6666")
                             val cmt = Commit(
                             id = null,
                             sha = "c".repeat(40),

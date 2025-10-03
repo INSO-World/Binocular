@@ -25,8 +25,8 @@ internal class UserDao(
         fun hasRepository(repository: RepositoryEntity): Specification<UserEntity> =
             Specification { root, query, cb ->
                 cb.equal(
-                    root.get<RepositoryEntity>("repository").get<String>("name"),
-                    repository.name,
+                    root.get<RepositoryEntity>("repository").get<String>("local_path"),
+                    repository.localPath,
                 )
             }
     }

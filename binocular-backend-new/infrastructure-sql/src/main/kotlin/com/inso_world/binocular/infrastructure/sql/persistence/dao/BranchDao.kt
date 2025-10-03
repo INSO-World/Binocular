@@ -26,8 +26,8 @@ internal class BranchDao(
         fun hasRepository(repository: com.inso_world.binocular.model.Repository): Specification<BranchEntity> =
             Specification { root, query, cb ->
                 cb.equal(
-                    root.get<RepositoryEntity>("repository").get<String>("name"),
-                    repository.name,
+                    root.get<RepositoryEntity>("repository").get<String>("local_path"),
+                    repository.localPath,
                 )
             }
     }

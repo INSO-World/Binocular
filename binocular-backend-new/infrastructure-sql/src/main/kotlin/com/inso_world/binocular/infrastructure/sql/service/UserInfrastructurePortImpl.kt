@@ -122,13 +122,14 @@ internal class UserInfrastructurePortImpl(
     @MappingSession
     override fun findAll(repository: Repository): Iterable<User> {
         TODO()
-        val repoEntity = this.repositoryDao.findByName(repository.name) ?: throw NotFoundException("Could not find repository $repository")
-
-        this.userDao
-            .findAll(repoEntity)
-            .map {
-                userMapper.toDomain(it)
-            }
+//        val repoEntity =
+//            this.repositoryDao.findByName(repository.localPath) ?: throw NotFoundException("Could not find repository $repository")
+//
+//        this.userDao
+//            .findAll(repoEntity)
+//            .map {
+//                userMapper.toDomain(it)
+//            }
     }
 
     override fun findAll(pageable: Pageable): Page<User> {

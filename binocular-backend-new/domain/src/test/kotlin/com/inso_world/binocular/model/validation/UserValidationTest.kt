@@ -26,7 +26,7 @@ class UserValidationTest {
                 .buildValidatorFactory()
         validator = validatorFactory.validator
 
-        repository = Repository(name = "test repo", project = Project(name = "test project"))
+        repository = Repository(localPath = "test repo", project = Project(name = "test project"))
     }
 
     @ParameterizedTest

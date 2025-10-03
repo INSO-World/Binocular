@@ -76,8 +76,11 @@ internal data class BranchEntity(
     override fun toString(): String = "BranchEntity(id=$id, name='$name', commits=${commits.map { it.sha }})"
 
     override fun uniqueKey(): String {
-        val repo = this.repository ?: throw IllegalStateException("RepositoryEntity required for uniqueKey")
-        return "${repo.name},$name"
+        val repo =
+            requireNotNull(this.repository) {
+                "RepositoryEntity required for uniqueKey"
+            }
+        return "${repo.localPath},$name"
     }
 }
 

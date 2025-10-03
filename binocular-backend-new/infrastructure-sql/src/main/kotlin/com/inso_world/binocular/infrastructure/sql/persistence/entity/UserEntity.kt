@@ -46,8 +46,8 @@ internal data class UserEntity(
     var repository: RepositoryEntity? = null,
 ) : AbstractEntity() {
     override fun uniqueKey(): String {
-        val repo = this.repository ?: throw IllegalStateException("RepositoryEntity required for uniqueKey")
-        return "${repo.name},$email"
+        val repo = requireNotNull(this.repository) { "RepositoryEntity required for uniqueKey" }
+        return "${repo.localPath},$email"
     }
 
     @PreRemove

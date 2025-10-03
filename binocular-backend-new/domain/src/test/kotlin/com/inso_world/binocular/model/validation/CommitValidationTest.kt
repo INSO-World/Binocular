@@ -31,7 +31,7 @@ class CommitValidationTest {
                 .messageInterpolator(ParameterMessageInterpolator())
                 .buildValidatorFactory()
                 .validator
-        repository = Repository(name = "test repo", project = Project(name = "test project"))
+        repository = Repository(localPath = "test repo", project = Project(name = "test project"))
     }
 
     companion object {
@@ -49,7 +49,7 @@ class CommitValidationTest {
             Branch(
                 name = "branch",
                 repository = Repository(
-                    name = "test repo"
+                    localPath = "test repo"
                 )
             )
         invalidCommit.branches.add(dummyBranch)
@@ -70,7 +70,7 @@ class CommitValidationTest {
     @Test
     fun `should pass validation when repository id is null and repositoryId is null`() {
         // Given
-        val repository = Repository(id = null, name = "test-repo")
+        val repository = Repository(id = null, localPath = "test-repo")
         val branch = Branch(
             name = "b",
 //            commits = mutableSetOf(Commit(sha="a".repeat(40))
@@ -94,7 +94,7 @@ class CommitValidationTest {
     @Test
     fun `should pass validation when repository id is not null and repositoryId matches`() {
         // Given
-        val repository = Repository(id = "repo-123", name = "test-repo")
+        val repository = Repository(id = "repo-123", localPath = "test-repo")
         val branch = Branch(name = "b")
         val commit =
             Commit(
@@ -117,7 +117,7 @@ class CommitValidationTest {
         // Given
         val branch = Branch(name = "b")
         val commit = run {
-            val repository = Repository(id = "different-id", name = "test-repo")
+            val repository = Repository(id = "different-id", localPath = "test-repo")
             val cmt = Commit(
                 sha = "a".repeat(40),
                 message = "message",
@@ -129,12 +129,12 @@ class CommitValidationTest {
         branch.commits.add(commit)
         val repository = Repository(
             id = "repo-123",
-            name = "test-repo",
+            localPath = "test-repo",
             project = Project(name = "test")
         )
         val repository2 = Repository(
             id = "different-id",
-            name = "test-repo",
+            localPath = "test-repo",
             project = Project(name = "test 2")
         )
         repository.commits.add(commit)

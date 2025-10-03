@@ -174,7 +174,7 @@ internal data class CommitEntity(
     }
 
     override fun toString(): String =
-        "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository?.name})"
+        "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository?.localPath})"
 }
 
 internal fun Commit.toEntity(): CommitEntity =
