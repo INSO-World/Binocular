@@ -1,7 +1,7 @@
 binocular:
   database:
     database_name: "binocular-web-test"
-    host: "localhost"
-    port: 8529
+    host: ${ARANGODB_HOST:localhost}
+    port: ${ARANGODB_PORT:5432}
     user: TODO
     password: TODO
