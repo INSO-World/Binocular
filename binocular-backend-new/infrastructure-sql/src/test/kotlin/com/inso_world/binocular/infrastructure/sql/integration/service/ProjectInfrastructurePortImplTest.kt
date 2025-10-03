@@ -39,7 +39,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
 
     private var repository =
         Repository(
-            name = "test repository",
+            localPath = "test repository",
         )
 
     @Nested
@@ -263,7 +263,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         @Test
         fun `update project, change repository, should fail`() {
             existingProject.repo = Repository(
-                name = "new repository",
+                localPath = "new repository",
                 project = existingProject
             )
             assertThrows<IllegalArgumentException> {

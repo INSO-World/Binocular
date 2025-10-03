@@ -75,7 +75,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 run {
                     val repository =
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         )
                     val user =
@@ -144,7 +144,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 run {
                     val repository =
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         )
                     val user =
@@ -227,7 +227,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 run {
                     val repository =
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         )
                     val user =
@@ -330,7 +330,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
         fun `save plain repository, expecting in database`() {
             val repository =
                 Repository(
-                    name = "test repository",
+                    localPath = "test repository",
                     project = repositoryProject,
                 )
 
@@ -352,7 +352,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
         fun `save repository with two commits, expecting in database`() {
             val repository =
                 Repository(
-                    name = "test repository",
+                    localPath = "test repository",
                     project = repositoryProject,
                 )
 
@@ -432,7 +432,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -520,7 +520,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -597,7 +597,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -695,7 +695,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -796,7 +796,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -871,7 +871,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -970,7 +970,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -1088,7 +1088,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -1216,7 +1216,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -1319,7 +1319,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 assertDoesNotThrow {
                     repositoryPort.create(
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         ),
                     )
@@ -1426,7 +1426,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                 run {
                     val repository =
                         Repository(
-                            name = "test repository",
+                            localPath = "test repository",
                             project = repositoryProject,
                         )
                     val user =

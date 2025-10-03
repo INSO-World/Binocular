@@ -45,7 +45,7 @@ internal class CommitMapperTest : BaseMapperTest() {
         this.repositoryEntity =
             RepositoryEntity(
                 id = 1L,
-                name = "TestRepository",
+                localPath = "TestRepository",
                 project =
                     ProjectEntity(
                         id = 1L,
@@ -56,7 +56,7 @@ internal class CommitMapperTest : BaseMapperTest() {
         this.repositoryDomain =
             Repository(
                 id = this.repositoryEntity.id?.toString(),
-                name = this.repositoryEntity.name,
+                localPath = this.repositoryEntity.localPath,
                 project = Project(
                     id = this.repositoryEntity.project.id?.toString(),
                     name = this.repositoryEntity.project.name,

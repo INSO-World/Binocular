@@ -52,7 +52,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
 
     private var repository =
         Repository(
-            name = "test repository",
+            localPath = "test repository",
         )
     private lateinit var branchDomain: Branch
     private lateinit var project: Project
@@ -505,7 +505,7 @@ internal class CommitInfrastructurePortImplTest : BaseServiceTest() {
                                 name = "test project",
                                 repo =
                                     Repository(
-                                        name = "test repository",
+                                        localPath = "test repository",
                                     ),
                             ),
                         )
