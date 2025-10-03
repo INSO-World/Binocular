@@ -353,10 +353,22 @@ const DashboardItem = memo(function DashboardItem(props: {
             </div>
           </div>
           <div
+            className={dashboardItemStyles.dashboardItemResizeBarTopLeft}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top left');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeTopLeft);
+            }}></div>
+          <div
             className={dashboardItemStyles.dashboardItemResizeBarTop}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top');
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeTop);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarTopRight}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top right');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeTopRight);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarRight}
@@ -365,10 +377,22 @@ const DashboardItem = memo(function DashboardItem(props: {
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeRight);
             }}></div>
           <div
+            className={dashboardItemStyles.dashboardItemResizeBarBottomRight}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom right');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottomRight);
+            }}></div>
+          <div
             className={dashboardItemStyles.dashboardItemResizeBarBottom}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom');
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottom);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarBottomLeft}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom left');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottomLeft);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarLeft}
