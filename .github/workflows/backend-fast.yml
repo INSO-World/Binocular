@@ -187,7 +187,7 @@ jobs:
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,nosql,arangodb -Parangodb
+        run: mvn -DARANGODB_HOST=db $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,nosql,arangodb -Parangodb
 
       - name: Upload surefire report
         if: always()
