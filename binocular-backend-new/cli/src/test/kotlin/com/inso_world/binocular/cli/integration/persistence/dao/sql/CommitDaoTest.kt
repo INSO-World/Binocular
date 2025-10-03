@@ -1,7 +1,5 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql
 
-import com.inso_world.binocular.cli.index.vcs.toDtos
-import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceNoDataTest
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceWithDataTest
@@ -77,7 +75,7 @@ internal class CommitDaoTest(
                 repositoryPort.create(
                     Repository(
                         id = null,
-                        name = "testRepository",
+                        localPath = "testRepository",
                         project = project,
                     ),
                 )
@@ -103,7 +101,7 @@ internal class CommitDaoTest(
                         authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                     )
                     this.project.repo?.commits?.add(cmt)
-                    commitPort.create(                        cmt                    )
+                    commitPort.create(cmt)
                 }
             assertThat(exception.message).contains(".value.sha")
             entityManager.clear()
@@ -261,21 +259,19 @@ internal class CommitDaoTest(
 
             @Test
             fun `index repo, expect all commits in database`() {
-                val project =
-                    projectPort.create(
-                        Project(
-                            name = "test",
-                        ),
+                val repo = run {
+                    val cfg = setupRepoConfig(
+                        "${FIXTURES_PATH}/${SIMPLE_REPO}",
+                        "HEAD",
+                        projectName = SIMPLE_PROJECT_NAME,
+                        branch = Branch(name = "master")
                     )
+                    requireNotNull(projectPort.create(cfg.project).repo) {
+                        "Repository could not be created"
+                    }
+                }
 
-
-                val cfg = setupRepoConfig(
-                    "${FIXTURES_PATH}/${SIMPLE_REPO}",
-                    "HEAD",
-                    projectName = SIMPLE_PROJECT_NAME,
-                )
-
-                repoService.addCommits(cfg.repo, cfg.hashes.toDtos(), project)
+                repoService.addCommits(repo, repo.commits)
 
                 val allCommits = commitPort.findAll()
                 assertThat(allCommits).hasSize(14)
@@ -347,20 +343,19 @@ internal class CommitDaoTest(
 
             @Test
             fun `index repo, expect all commits in database`() {
-                val project =
-                    projectPort.create(
-                        Project(
-                            name = "test",
-                        ),
+                val repo = run {
+                    val cfg = setupRepoConfig(
+                        "${FIXTURES_PATH}/${OCTO_REPO}",
+                        "HEAD",
+                        projectName = OCTO_PROJECT_NAME,
+                        branch = Branch(name = "master")
                     )
+                    requireNotNull(projectPort.create(cfg.project).repo) {
+                        "Repository could not be created"
+                    }
+                }
 
-                val cfg = setupRepoConfig(
-                    "${FIXTURES_PATH}/${OCTO_REPO}",
-                    "HEAD",
-                    projectName = OCTO_PROJECT_NAME,
-                )
-
-                repoService.addCommits(cfg.repo, cfg.hashes.toDtos(), project)
+                repoService.addCommits(repo, repo.commits)
 
                 val allCommits = commitPort.findAll()
                 assertThat(allCommits).hasSize(19)
@@ -554,12 +549,12 @@ internal class CommitDaoTest(
                         setupRepoConfig(
                             "${FIXTURES_PATH}/${OCTO_REPO}",
                             "HEAD",
-                            branch,
+                            branch = Branch(name = branch),
                             projectName = OCTO_PROJECT_NAME,
                         )
                     var tmpRepo =
                         localRepo ?: run {
-                            val r = octoRepoConfig.repo.toVcsRepository().toDomain()
+                            val r = octoRepoConfig.repo
                             r.project = octoRepoConfig.project
                             octoRepoConfig.project.repo = r
                             projectPort.create(octoRepoConfig.project).repo

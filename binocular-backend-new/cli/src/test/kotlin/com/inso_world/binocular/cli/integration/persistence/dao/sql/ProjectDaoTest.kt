@@ -56,7 +56,7 @@ internal class ProjectDaoTest(
             // When
             val savedProject = projectInfrastructurePort.create(Project(name = "Project With Repo", description = "Project with repo"))
             savedProject.repo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "test-repo", project = savedProject))
+                repositoryInfrastructurePort.create(Repository(id = null, localPath = "test-repo", project = savedProject))
 
             // Then
             assertAll(
@@ -74,7 +74,7 @@ internal class ProjectDaoTest(
             val savedProject =
                 projectInfrastructurePort.create(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
             savedProject.repo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "cascading-repo", project = savedProject))
+                repositoryInfrastructurePort.create(Repository(id = null, localPath = "cascading-repo", project = savedProject))
             // updated dependencies, as not managed by JPA
             projectInfrastructurePort.update(savedProject)
 
@@ -93,7 +93,7 @@ internal class ProjectDaoTest(
             // When
             val savedProject = projectInfrastructurePort.create(Project(name = "Null Desc Project"))
             val savedRepo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "null-desc-repo", project = savedProject))
+                repositoryInfrastructurePort.create(Repository(id = null, localPath = "null-desc-repo", project = savedProject))
             savedProject.repo = savedRepo
 
             // Then
@@ -125,7 +125,7 @@ internal class ProjectDaoTest(
             // When
             val savedProject = projectInfrastructurePort.create(Project(name = allowedName, description = "Long name project"))
             val savedRepo =
-                repositoryInfrastructurePort.create(Repository(id = null, name = "long-name-repo", project = savedProject))
+                repositoryInfrastructurePort.create(Repository(id = null, localPath = "long-name-repo", project = savedProject))
             savedProject.repo = savedRepo
 
             // Then
