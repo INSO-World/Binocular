@@ -176,7 +176,7 @@ internal class CommitInfrastructurePortImpl
             entity.branches.addAll(
                 value.branches.map {
                     val existing =
-                        ctx.entity.branch["${repository.name},${it.name}"]
+                        ctx.entity.branch["${repository.localPath},${it.name}"]
                     if (existing == null) {
 //                    create new branch if not exists
                         val newBranch =
@@ -193,7 +193,7 @@ internal class CommitInfrastructurePortImpl
             )
             entity.committer =
                 value.committer?.let { user ->
-                    val existing = ctx.entity.user["${repository.name},${user.name}"]
+                    val existing = ctx.entity.user["${repository.localPath},${user.name}"]
                     if (existing == null) {
                         val newUser =
                             userMapper
@@ -208,7 +208,7 @@ internal class CommitInfrastructurePortImpl
                 }
             entity.author =
                 value.author?.let { user ->
-                    val existing = ctx.entity.user["${repository.name},${user.name}"]
+                    val existing = ctx.entity.user["${repository.localPath},${user.name}"]
                     if (existing == null) {
                         val newUser =
                             userMapper
@@ -238,9 +238,9 @@ internal class CommitInfrastructurePortImpl
                         repositoryMapper.toDomain(repository, project)
                     ctx.domain.commit.putAll(repository.commits.associateBy { c -> c.sha })
                     ctx.domain.branch.putAll(
-                        repository.branches.associateBy { b -> "${repository.name},${b.name}" },
+                        repository.branches.associateBy { b -> "${repository.localPath},${b.name}" },
                     )
-                    ctx.domain.user.putAll(repository.user.associateBy { u -> "${repository.name},${u.name}" })
+                    ctx.domain.user.putAll(repository.user.associateBy { u -> "${repository.localPath},${u.name}" })
 //                    commitMapper.toDomain(it).also { c -> repository.addCommit(c) }
                     commitMapper.toDomainFull(it, repository)
                 }
@@ -322,7 +322,7 @@ internal class CommitInfrastructurePortImpl
             shas: List<String>,
         ): Iterable<Commit> {
             val repoEntity =
-                repositoryDao.findByName(repo.name) ?: throw NotFoundException("Repository ${repo.name} not found")
+                repositoryDao.findByName(repo.localPath) ?: throw NotFoundException("Repository ${repo.localPath} not found")
 
             val project =
                 projectMapper.toDomain(
@@ -344,7 +344,7 @@ internal class CommitInfrastructurePortImpl
             pageable: Pageable,
         ): Iterable<Commit> {
             val repoEntity =
-                repositoryDao.findByName(repo.name) ?: throw NotFoundException("Repository ${repo.name} not found")
+                repositoryDao.findByName(repo.localPath) ?: throw NotFoundException("Repository ${repo.localPath} not found")
 
             val project =
                 projectMapper.toDomain(
@@ -379,7 +379,7 @@ internal class CommitInfrastructurePortImpl
             branch: String,
         ): Commit? {
             val repoEntity =
-                repositoryDao.findByName(repo.name) ?: throw NotFoundException("Repository ${repo.name} not found")
+                repositoryDao.findByName(repo.localPath) ?: throw NotFoundException("Repository ${repo.localPath} not found")
 
             val project =
                 projectMapper.toDomain(
@@ -397,7 +397,7 @@ internal class CommitInfrastructurePortImpl
         @MappingSession
         override fun findAllLeafCommits(repo: Repository): Iterable<Commit> {
             val repoEntity =
-                repositoryDao.findByName(repo.name) ?: throw NotFoundException("Repository ${repo.name} not found")
+                repositoryDao.findByName(repo.localPath) ?: throw NotFoundException("Repository ${repo.localPath} not found")
 
             val project =
                 projectMapper.toDomain(

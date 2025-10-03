@@ -62,9 +62,9 @@ internal class ProjectInfrastructurePortImpl(
             when {
                 // Case 1: Both repos exist - check if they're the same and update
                 domainRepo != null && entityRepo != null -> {
-                    if (domainRepo.name != entityRepo.name) {
+                    if (domainRepo.localPath != entityRepo.localPath) {
                         throw IllegalArgumentException(
-                            "Cannot update project with a different repository. Project '${managedEntity.uniqueKey()}' already has repository '${entityRepo.name}'",
+                            "Cannot update project with a different repository. Project '${managedEntity.uniqueKey()}' already has repository '${entityRepo.localPath}'",
                         )
                     }
                     // Don't create a new entity, just update the existing one's fields

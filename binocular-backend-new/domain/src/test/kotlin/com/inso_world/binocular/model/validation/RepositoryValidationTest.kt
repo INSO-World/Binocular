@@ -30,7 +30,7 @@ class RepositoryValidationTest {
         val repository =
             Repository(
                 id = null,
-                name = "test-repo",
+                localPath = "test-repo",
                 project = Project(id = null, name = "test-project-2"),
             )
 
@@ -48,7 +48,7 @@ class RepositoryValidationTest {
         val repository =
             Repository(
                 id = null,
-                name = "test-repo",
+                localPath = "test-repo",
                 project = Project(id = "some-id", name = "test-project"),
             )
         project.repo = repository
@@ -68,7 +68,7 @@ class RepositoryValidationTest {
         val repository =
             Repository(
                 id = null,
-                name = "test-repo",
+                localPath = "test-repo",
                 project = Project(id = "project-123", name = "test-project"),
             )
 
@@ -86,7 +86,7 @@ class RepositoryValidationTest {
         val repository =
             Repository(
                 id = null,
-                name = "test-repo",
+                localPath = "test-repo",
                 project = Project(id = "different-id", name = "test-project"),
             )
         project.repo = repository
@@ -105,7 +105,7 @@ class RepositoryValidationTest {
         val repository =
             Repository(
                 id = null,
-                name = "test-repo",
+                localPath = "test-repo",
                 project = Project(id = null, name = "test-project"),
             )
 

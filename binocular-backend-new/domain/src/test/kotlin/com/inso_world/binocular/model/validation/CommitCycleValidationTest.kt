@@ -173,7 +173,7 @@ class CommitCycleValidationTest {
     @Test
     fun `should fail validation for deep nested cycle at level 3`() {
         val repository = Repository(
-            name = "test repo",
+            localPath = "test repo",
             project = Project(name = "test project")
         )
         val branch = Branch(name = "b")
