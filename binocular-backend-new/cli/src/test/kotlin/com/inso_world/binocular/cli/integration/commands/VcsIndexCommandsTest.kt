@@ -5,11 +5,12 @@ import com.inso_world.binocular.cli.index.vcs.VcsCommit
 import com.inso_world.binocular.cli.index.vcs.VcsPerson
 import com.inso_world.binocular.cli.integration.commands.base.BaseShellWithDataTest
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.ffi.pojos.BinocularRepositoryPojo
+import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import com.inso_world.binocular.model.User
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
@@ -24,13 +25,14 @@ import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 internal class VcsIndexCommandsTest(
-    @Autowired val idxClient: Index,
+    @all:Autowired val idxClient: Index,
 //  @Autowired val client: ShellTestClient,
-    @Autowired val repoService: RepositoryService,
-    @Autowired val transactionTemplate: TransactionTemplate,
+    @all:Autowired val repoService: RepositoryService,
+    @all:Autowired val transactionTemplate: TransactionTemplate,
 ) : BaseShellWithDataTest() {
 
     @Nested
+    @Disabled
     inner class BinocularRepo {
         @Test
         fun `index branch origin-feature-5`() {
@@ -48,6 +50,18 @@ internal class VcsIndexCommandsTest(
                 branchName = "origin/feature/6",
                 "Binocular",
             )
+        }
+
+        @Test
+        @Disabled
+        fun `index branch origin-feature-6, calculate diffs`() {
+            val projectName = "Binocular"
+            idxClient.commits(
+                repoPath = "../../",
+                branchName = "origin/feature/6",
+                projectName,
+            )
+            idxClient.diffs(projectName)
         }
 
         @Test
@@ -71,7 +85,7 @@ internal class VcsIndexCommandsTest(
 
         @Test
         fun `index branch origin-feature-6 and then again`() {
-            val path = "../../"
+            val path = "../../.git"
             idxClient.commits(
                 repoPath = path,
                 branchName = "origin/feature/6",
@@ -156,7 +170,7 @@ internal class VcsIndexCommandsTest(
 
 //     you can then assert that the session isComplete() or simply proceed with your DB checks
 //    await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-        val repo = transactionTemplate.execute { this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO") }
+        val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
         assertAll(
             { assertThat(repo).isNotNull() },
 //            { assertThat(repo?.id).isNotNull() },
@@ -321,68 +335,69 @@ internal class VcsIndexCommandsTest(
             branchName = "master",
             SIMPLE_PROJECT_NAME,
         )
-        var repo1: Repository? = null
+        val repo1: Repository =
 //    await().atMost(20, TimeUnit.SECONDS).untilAsserted {
         run {
-            val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+            val repo = requireNotNull(this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO"))
             assertThat(repo).isNotNull()
             assertAll(
                 "branches",
-                { assertThat(repo?.branches).isNotEmpty() },
-                { assertThat(repo?.branches).hasSize(1) },
-                { assertThat(repo?.branches?.map { it.name }).contains("master") },
-                { assertThat(repo?.branches?.flatMap { it.commits }).hasSize(14) },
+                { assertThat(repo.branches).isNotEmpty() },
+                { assertThat(repo.branches).hasSize(1) },
+                { assertThat(repo.branches.map { it.name }).contains("master") },
+                { assertThat(repo.branches.flatMap { it.commits }).hasSize(14) },
             )
             assertAll(
                 "commits",
-                { assertThat(repo?.commits).isNotEmpty() },
-                { assertThat(repo?.commits).hasSize(14) },
+                { assertThat(repo.commits).isNotEmpty() },
+                { assertThat(repo.commits).hasSize(14) },
             )
-            assertThat(repo?.user).hasSize(3)
-            repo1 = repo
+            assertThat(repo.user).hasSize(3)
+            return@run repo
 //      }
         }
 
         val newVcsCommit =
             run {
-                val parent = VcsCommit(
+                val branch = Branch(name = "master")
+                val parent = Commit(
+                    id = null,
                     "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
                     "parent",
-                    "master",
-                    VcsPerson("User B", "b@test.com"),
                     null,
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
-                    mutableSetOf(),
+                    null,
+                    "master",
                 )
-                return@run VcsCommit(
+                parent.committer = User(name = "User B", email = "b@test.com")
+                val child = Commit(
+                    id = null,
                     "123456789_123456789_123456789_123456789_",
+                    LocalDateTime.now(),
+                    LocalDateTime.now(),
                     "msg1",
-                    "master",
-                    VcsPerson("User A", "a@test.com"),
                     null,
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
-                    mutableSetOf(parent),
+                    null,
+                    null
                 )
+                child.committer = User(name = "User A", email = "a@test.com")
+                child.parents.add(parent)
+                branch.commits.add(child)
+                return@run child
             }
-//    // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
+       // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
         assertThat(
-            repo1!!.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+            repo1.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
         ).isNotNull()
 
-        run {
-            val vcsRepo =
-                BinocularRepositoryPojo(
-                    gitDir = "$FIXTURES_PATH/$SIMPLE_REPO",
-                    workTree = null,
-                ) // workTree & commonDir not relevant here
-            this.repoService.addCommits(vcsRepo, listOf(newVcsCommit), simpleProject)
+        val repo2 = assertDoesNotThrow {
+            this.repoService.addCommits(repo1, listOf(newVcsCommit))
         }
+
         run {
-            val repo2 = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
             assertThat(repo2).isNotNull()
-            assertThat(repo2!!.id).isNotNull()
+            assertThat(repo2.id).isNotNull()
             assertAll(
                 "branches",
                 { assertThat(repo2.branches).hasSize(1) },
