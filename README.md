@@ -16,7 +16,7 @@ Binocular then hosts interactive visualizations about the gathered data
 via a web-interface.
 
 ## Preview
-- [Demo Page](https://inso-tuwien.github.io/Binocular/)
+- [Demo Page](https://inso-world.github.io/Binocular/)
 - [Screenshots](docs/PREVIEW.md)
 
 ## Dependencies
