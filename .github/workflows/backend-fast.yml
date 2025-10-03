@@ -67,8 +67,8 @@ jobs:
       - name: Compile tests with Maven
         run: mvn $MAVEN_CLI_OPTS test-compile
 
-      - name: Install with Maven
-        run: mvn $MAVEN_CLI_OPTS install -DskipTests
+#      - name: Install with Maven
+#        run: mvn $MAVEN_CLI_OPTS install -DskipTests
 
   test-application-h2:
     name: Test-Application Layers w/ H2
