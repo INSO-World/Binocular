@@ -1,4 +1,4 @@
-package base
+package com.inso_world.binocular.core.integration.base
 
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -14,7 +14,7 @@ import kotlin.text.replace
 import kotlin.text.startsWith
 import kotlin.text.substring
 
-open class BaseFixturesIntegrationTest : base.BaseIntegrationTest() {
+open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
     companion object {
         const val FIXTURES_PATH = "src/test/resources/fixtures"
         const val SIMPLE_REPO = "simple"
@@ -44,21 +44,20 @@ open class BaseFixturesIntegrationTest : base.BaseIntegrationTest() {
                 } else {
                     builder.command("sh", "-c", "rm -rf $path ${path}_remote.git && ./$path.sh $path")
                 }
-                builder.directory(java.io.File(FIXTURES_PATH))
+                builder.directory(File(FIXTURES_PATH))
                 val process = builder.start()
-                val streamGobbler: base.StreamGobbler =
-                    base.StreamGobbler(process.inputStream, java.io.PrintStream::println, path)
-                val executorService = java.util.concurrent.Executors.newFixedThreadPool(1)
-                val future: java.util.concurrent.Future<*> = executorService.submit(streamGobbler)
+                val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println, path)
+                val executorService = Executors.newFixedThreadPool(1)
+                val future: Future<*> = executorService.submit(streamGobbler)
 
                 val exitCode = process.waitFor()
-                assertDoesNotThrow { future.get(25, java.util.concurrent.TimeUnit.SECONDS) }
+                assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) }
                 assertEquals(0, exitCode)
             }
 
-            val executorService = java.util.concurrent.Executors.newFixedThreadPool(3)
+            val executorService = Executors.newFixedThreadPool(3)
             val futures =
-                kotlin.collections.listOf(
+                listOf(
                     executorService.submit { createGitRepo(SIMPLE_REPO) },
                     executorService.submit { createGitRepo(OCTO_REPO) },
                     executorService.submit { createGitRepo(ADVANCED_REPO) },
