@@ -2,14 +2,20 @@ package com.inso_world.binocular.infrastructure.sql.integration.persistence.mapp
 
 import com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper.base.BaseMapperTest
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
+import io.mockk.every
+import io.mockk.mockk
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertNotNull
@@ -225,7 +231,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         val repositoryDomain =
             Repository(
                 id = "10",
-                name = "TestRepo",
+                localPath = "TestRepo",
                 project = Project(
                     id = projectEntity.id?.toString(),
                     name = projectEntity.name,
@@ -239,7 +245,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         // Assert mapping
         assertAll(
             { assertNotNull(repositoryEntity) },
-            { assertEquals(repositoryEntity.name, repositoryDomain.name) },
+            { assertEquals(repositoryEntity.localPath, repositoryDomain.localPath) },
             { assertThat(repositoryEntity.project).isSameAs(projectEntity) },
             { assertThat(projectEntity.repo).isSameAs(repositoryEntity) },
             { assertThat(projectEntity.repo).usingRecursiveComparison().isEqualTo(repositoryEntity) },
@@ -252,7 +258,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         val domain =
             Repository(
                 id = "10",
-                name = "TestRepo",
+                localPath = "TestRepo",
                 project = Project(
                     id = projectEntity.id?.toString(),
                     name = projectEntity.name,
@@ -292,7 +298,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
 
         // Assert mapping
         assertAll(
-            { assertEquals(entity.name, domain.name) },
+            { assertEquals(entity.localPath, domain.localPath) },
             { assertThat(entity.commits).hasSize(domain.commits.size) },
 //            {
 //                assertThat(entity.commits)
@@ -338,7 +344,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         val domain =
             Repository(
                 id = "10",
-                name = "TestRepo",
+                localPath = "TestRepo",
                 project = Project(
                     id = projectEntity.id?.toString(),
                     name = projectEntity.name,
@@ -402,7 +408,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         val domain =
             Repository(
                 id = "10",
-                name = "TestRepo",
+                localPath = "TestRepo",
                 project = Project(
                     id = projectEntity.id?.toString(),
                     name = projectEntity.name,
@@ -437,5 +443,137 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         assertThat(entity.commits.map { it.branches }).hasSize(1)
         assertThat(entity.branches).hasSize(1)
         assertThat(entity.commits.flatMap { it.branches }.toList()[0]).isSameAs(entity.branches.toList()[0])
+    }
+
+    @Nested
+    inner class ToDomain : BaseMapperTest() {
+        private lateinit var repositoryEntity: RepositoryEntity
+        private lateinit var repositoryDomain: Repository
+        private lateinit var branchEntity: BranchEntity
+
+        private lateinit var commitEntityA: CommitEntity
+        private lateinit var commitEntityB: CommitEntity
+        private lateinit var commitDomainA: Commit
+        private lateinit var commitDomainB: Commit
+
+        val entityManagerMock = mockk<EntityManager>()
+        @BeforeEach
+        fun setup() {
+            run {
+                val field = RepositoryMapper::class.java.getDeclaredField("entityManager")
+                field.isAccessible = true
+                field.set(repositoryMapper, entityManagerMock)
+            }
+
+            this.repositoryEntity =
+                RepositoryEntity(
+                    id = 1L,
+                    localPath = "TestRepository",
+                    project =
+                        ProjectEntity(
+                            id = 1L,
+                            name = "TestProject",
+                            description = "A test project",
+                        ),
+                )
+            this.repositoryDomain =
+                Repository(
+                    id = this.repositoryEntity.id?.toString(),
+                    localPath = this.repositoryEntity.localPath,
+                    project = Project(
+                        id = this.repositoryEntity.project.id?.toString(),
+                        name = this.repositoryEntity.project.name,
+                        description = this.repositoryEntity.project.description,
+                    ),
+                )
+
+            this.commitEntityA =
+                CommitEntity(
+                    id = 1,
+                    sha = "A".repeat(40),
+                    authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
+                    commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
+                    message = "Valid commit 1",
+                    repository = this.repositoryEntity,
+                    branches = mutableSetOf(),
+                )
+
+            this.commitEntityB =
+                CommitEntity(
+                    id = 2,
+                    sha = "B".repeat(40),
+                    authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
+                    commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
+                    message = "Valid commit 2",
+                    repository = this.repositoryEntity,
+                    branches = mutableSetOf(),
+                )
+
+            this.branchEntity =
+                BranchEntity(
+                    name = "testBranch",
+                    repository = this.repositoryEntity,
+                    commits = mutableSetOf(),
+                )
+//        commitEntityA
+//        this.commitEntityA.addBranch(this.branchEntity)
+//        commitEntityB
+//        this.commitEntityB.addBranch(this.branchEntity)
+
+            this.commitDomainA =
+                Commit(
+                    id = this.commitEntityA.id?.toString(),
+                    sha = this.commitEntityA.sha,
+                    authorDateTime = this.commitEntityA.authorDateTime,
+                    commitDateTime = this.commitEntityA.commitDateTime,
+                    message = this.commitEntityA.message,
+//                repositoryId =
+//                    this.commitEntityA.repository
+//                        ?.id
+//                        .toString(),
+                )
+            repositoryDomain.commits.add(commitDomainA)
+
+            this.commitDomainB =
+                Commit(
+                    id = this.commitEntityB.id?.toString(),
+                    sha = this.commitEntityB.sha,
+                    authorDateTime = this.commitEntityB.authorDateTime,
+                    commitDateTime = this.commitEntityB.commitDateTime,
+                    message = this.commitEntityB.message,
+//                repositoryId =
+//                    this.commitEntityB.repository
+//                        ?.id
+//                        .toString(),
+                )
+            repositoryDomain.commits.add(commitDomainB)
+
+            every { entityManagerMock.find(RepositoryEntity::class.java, repositoryEntity.id) } returns repositoryEntity
+        }
+
+        @Test
+        fun `repositoryMapper toDomain, with commit and parent`() {
+            commitEntityA.addParent(commitEntityB)
+            commitEntityA.addBranch(branchEntity)
+            branchEntity.addCommit(commitEntityA)
+            branchEntity.addCommit(commitEntityB)
+
+            repositoryEntity.addCommit(commitEntityA)
+            repositoryEntity.addCommit(commitEntityB)
+            repositoryEntity.addBranch(branchEntity)
+
+            val domain = repositoryMapper.toDomain(repositoryEntity, null)
+
+            assertThat(domain.commits).hasSize(2)
+//            assertThat(domain.branches).hasSize(1)
+            val commitA = domain.commits.find { it.sha == commitEntityA.sha } ?: throw java.lang.IllegalStateException("Could not find commitEntityA")
+            val commitB = domain.commits.find { it.sha == commitEntityB.sha } ?: throw java.lang.IllegalStateException("Could not find commitEntityB")
+
+            assertThat(commitA.parents).hasSize(1)
+            assertThat(commitA.children).hasSize(0)
+
+            assertThat(commitB.parents).hasSize(0)
+            assertThat(commitB.children).hasSize(1)
+        }
     }
 }

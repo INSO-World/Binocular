@@ -57,14 +57,14 @@ internal class BranchMapperTest : BaseMapperTest() {
         this.repositoryEntity =
             RepositoryEntity(
                 id = 1L,
-                name = "TestRepository",
+                localPath = "TestRepository",
                 project = projectEntity,
             )
 
         this.repositoryModel =
             Repository(
                 id = this.repositoryEntity.id.toString(),
-                name = this.repositoryEntity.name,
+                localPath = this.repositoryEntity.localPath,
                 project = projectModel,
             )
 

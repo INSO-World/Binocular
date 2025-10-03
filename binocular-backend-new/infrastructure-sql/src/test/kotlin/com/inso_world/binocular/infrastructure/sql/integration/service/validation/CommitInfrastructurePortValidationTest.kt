@@ -39,7 +39,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
             Stream.of(
                 Arguments.of(
                     run {
-                        val repository = Repository(id = "1", name = "1")
+                        val repository = Repository(id = "1", localPath = "1")
                         val cmt = Commit(
                             id = null,
                             sha = "", // invalid: should be 40 chars
@@ -54,7 +54,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
                 ),
                 Arguments.of(
                     run {
-                        val repository = Repository(id = "2", name = "2")
+                        val repository = Repository(id = "2", localPath = "2")
                         val cmt = Commit(
                             id = null,
                             sha = "a".repeat(39), // invalid: should be 40 chars
@@ -69,7 +69,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
                 ),
                 Arguments.of(
                     run {
-                        val repository = Repository(id = "3", name = "3")
+                        val repository = Repository(id = "3", localPath = "3")
                         val cmt = Commit(
                             id = null,
                             sha = "b".repeat(41), // invalid: should be 40 chars
@@ -84,7 +84,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
                 ),
                 Arguments.of(
                     run {
-                        val repository = Repository(id = "4", name = "4")
+                        val repository = Repository(id = "4", localPath = "4")
                         val cmt = Commit(
                             id = null,
                             sha = "c".repeat(40),
@@ -99,7 +99,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
                 ),
                 Arguments.of(
                     run {
-                        val repository = Repository(id = "5", name = "5")
+                        val repository = Repository(id = "5", localPath = "5")
                         val cmt = Commit(
                             id = null,
                             sha = "c".repeat(40),
@@ -171,7 +171,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyRepo =
             RepositoryEntity(
                 id = 1,
-                name = "test r",
+                localPath = "test r",
                 project =
                     ProjectEntity(
                         id = 1,
@@ -203,7 +203,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyRepo =
             RepositoryEntity(
                 id = 1,
-                name = "test r",
+                localPath = "test r",
                 project =
                     ProjectEntity(
                         id = 1,
@@ -235,7 +235,7 @@ internal class CommitInfrastructurePortValidationTest : BaseServiceTest() {
         val dummyRepo =
             RepositoryEntity(
                 id = 1,
-                name = "test r",
+                localPath = "test r",
                 project =
                     ProjectEntity(
                         id = 1,
