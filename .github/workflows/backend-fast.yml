@@ -2,6 +2,8 @@ name: Test Backend CI (fast)
 
 on:
   push:
+    paths:
+      - 'binocular-backend-new/**'
   pull_request:
     branches:
       - "!main"
