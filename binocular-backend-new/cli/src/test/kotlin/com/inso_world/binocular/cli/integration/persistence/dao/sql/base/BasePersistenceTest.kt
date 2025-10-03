@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 import java.util.stream.Stream
 
 // @ExtendWith(SpringExtension::class)
-@Transactional
+//@Transactional
 @SpringBootTest(classes = [BinocularCommandLineApplication::class])
 class BasePersistenceTest : BaseIntegrationTest() {
     companion object {

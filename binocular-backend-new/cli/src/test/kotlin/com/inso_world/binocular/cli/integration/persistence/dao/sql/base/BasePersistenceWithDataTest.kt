@@ -1,7 +1,6 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
 import com.inso_world.binocular.cli.integration.utils.generateCommits
@@ -11,6 +10,7 @@ import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTes
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.junit.jupiter.api.AfterEach
@@ -54,15 +54,12 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     @BeforeEach
     fun setupBase() {
         fun prepare(repoConfig: RepositoryConfig): Project {
-            repoConfig.project.repo = repoConfig.repo.toVcsRepository().toDomain()
+            repoConfig.project.repo = repoConfig.repo
             repoConfig.project.repo?.project = repoConfig.project
 
             val project = projectPort.create(repoConfig.project)
 
-            project.repo?.let { generateCommits(repoService,repoConfig, it) } ?: throw IllegalStateException(
-                "Repository must not be null at this point",
-            )
-            return projectPort.update(project)
+            return project
         }
 
         prepare(
@@ -70,6 +67,7 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
                 "${FIXTURES_PATH}/${SIMPLE_REPO}",
                 "HEAD",
                 projectName = SIMPLE_PROJECT_NAME,
+                branch = Branch(name = "master")
             ),
         ).also { savedProject ->
             savedProject.repo?.let { this.simpleRepo = it }
@@ -81,6 +79,7 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
                 "${FIXTURES_PATH}/${OCTO_REPO}",
                 "HEAD",
                 projectName = OCTO_PROJECT_NAME,
+                branch = Branch(name = "master")
             ),
         ).also { savedProject ->
             savedProject.repo?.let { this.octoRepo = it }

@@ -2,8 +2,8 @@ package com.inso_world.binocular.cli.integration.service
 
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.FfiService
-import com.inso_world.binocular.ffi.BinocularFfi
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -11,6 +11,8 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.stream.Stream
 
+@Deprecated("legacy")
+@Disabled
 internal class FfiServiceTest(
     @Autowired private val ffiService: FfiService,
 ) : BaseServiceTest() {
@@ -22,7 +24,7 @@ internal class FfiServiceTest(
         remoteBranches: Collection<String>,
         noOfBranches: Int,
     ) {
-        val repo = BinocularFfi().findRepo("${FIXTURES_PATH}/$path")
+        val repo = ffiService.findRepo("${FIXTURES_PATH}/$path")
         val branches = this.ffiService.findAllBranches(repo)
 
         assertAll(

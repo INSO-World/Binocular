@@ -1,15 +1,15 @@
 package com.inso_world.binocular.cli.integration.service.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.index.vcs.toVcsRepository
 import com.inso_world.binocular.cli.integration.TestDataSetupService
-import com.inso_world.binocular.cli.integration.utils.generateCommits
-import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
+import com.inso_world.binocular.cli.integration.utils.RealDataProvider
 import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.junit.jupiter.api.AfterEach
@@ -28,6 +28,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 internal class BaseServiceTest : BaseFixturesIntegrationTest() {
+    @Autowired
+    private lateinit var idx: GitIndexer
+
     @Autowired
     private lateinit var testDataSetupService: TestDataSetupService
 
@@ -60,21 +63,18 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
 
     @BeforeEach
     fun setupBase() {
-        val simpleRepoConfig =
-            setupRepoConfig(
-                "${FIXTURES_PATH}/${SIMPLE_REPO}",
-                "HEAD",
+        val simpleProject = run {
+            val data = RealDataProvider(idx)
+            data.setUp(
                 projectName = SIMPLE_PROJECT_NAME,
+                repoPath = "${FIXTURES_PATH}/${SIMPLE_REPO}",
+                branch = Branch(name = "master")
             )
-        val repo = simpleRepoConfig.repo.toVcsRepository().toDomain()
-        repo.project = simpleRepoConfig.project
-        simpleRepoConfig.project.repo = repo
-        this.simpleProject = projectPort.create(simpleRepoConfig.project)
-        this.simpleRepo = run {
-            val repo =
-                this.simpleProject.repo ?: throw IllegalStateException("Repository must be present at this state")
-            generateCommits(repoService, simpleRepoConfig, repo)
-            return@run repositoryPort.update(repo)
+            data.project
+        }
+        this.simpleProject = projectPort.create(simpleProject)
+        this.simpleRepo = requireNotNull(this.simpleProject.repo) {
+            "Repository could not be created with Project"
         }
         this.simpleProject.repo = this.simpleRepo
         this.simpleRepo.project = this.simpleProject
