@@ -56,8 +56,11 @@ jobs:
       - name: Verify Parent with Maven
         run: mvn $MAVEN_CLI_OPTS validate
 
-      - name: Compile with Maven
+      - name: Compile sources with Maven
         run: mvn $MAVEN_CLI_OPTS clean compile
+          
+      - name: Compile tests with Maven
+        run: mvn $MAVEN_CLI_OPTS test-compile
 
       - name: Install with Maven
         run: mvn $MAVEN_CLI_OPTS install -DskipTests
