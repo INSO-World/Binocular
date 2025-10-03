@@ -53,6 +53,9 @@ jobs:
           distribution: ${{ matrix.distribution }}
           architecture: ${{ matrix.architecture }}
 
+      - name: Download all dependencies
+        run: mvn dependency:go-offline
+
       - name: Verify Parent with Maven
         run: mvn $MAVEN_CLI_OPTS validate
 
