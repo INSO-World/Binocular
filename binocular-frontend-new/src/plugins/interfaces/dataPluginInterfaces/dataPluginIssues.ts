@@ -15,6 +15,7 @@ export interface DataPluginIssue {
   webUrl: string;
   createdAt: string;
   closedAt: string | null;
+  labels: string[];
   author: DataPluginAccount;
   assignee: DataPluginAccount | null;
   assignees: DataPluginAccount[];

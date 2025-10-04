@@ -29,6 +29,7 @@ export default class Issues implements DataPluginIssues {
                 createdAt
                 closedAt
                 updatedAt
+                labels
                 author {
                   login
                   name
