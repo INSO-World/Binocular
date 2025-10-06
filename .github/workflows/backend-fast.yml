@@ -223,7 +223,6 @@ jobs:
         image: arangodb:3.12
         ports:
           - "8529:8529"
-        options: --name db
         env:
           ARANGO_NO_AUTH: 1
 
@@ -265,13 +264,13 @@ jobs:
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          ARANGODB_HOST=db \
+          ARANGODB_HOST=localhost \
           mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,nosql,arangodb -Parangodb
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
         run: |
-          ARANGODB_HOST=db \
+          ARANGODB_HOST=localhost \
           mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,nosql,arangodb -Parangodb
 
       - name: Upload surefire report
