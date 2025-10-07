@@ -195,25 +195,258 @@ It is not yet ready for use but gives a glimpse into the future of what binocula
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 
-### Core Team
-| | | | |
-|---|---|---|---|
-| <a href="https://github.com/nuberion" title="Johann Grabner"><img src="https://github.com/nuberion.png?size=120" alt="Johann Grabner"><br><sub><b>Johann Grabner</b></sub></a><br> | <a href="https://github.com/MaximilianZenz" title="Maximilian Zenz"><img src="https://github.com/MaximilianZenz.png?size=120" alt="Maximilian Zenz"><br><sub><b>Maximilian Zenz</b></sub></a><br> | <a href="https://github.com/uberroot4" title="Manuel Stöger"><img src="https://github.com/uberroot4.png?size=120" alt="Manuel Stöger"><br><sub><b>Manuel Stöger</b></sub></a><br> | <a href="https://github.com/Megalokom" title="Michael Strasser"><img src="https://github.com/Megalokom.png?size=120" alt="Michael Strasser"><br><sub><b>Michael Strasser</b></sub></a><br> |
-| <a href="https://github.com/bastianferch" title="Bastian Ferch"><img src="https://github.com/bastianferch.png?size=120" alt="Bastian Ferch"><br><sub><b>Bastian Ferch</b></sub></a><br> | <a href="https://github.com/Markus99at" title="Markus Gumpoltsberger"><img src="https://github.com/Markus99at.png?size=120" alt="Markus Gumpoltsberger"><br><sub><b>Markus Gumpoltsberger</b></sub></a><br> | <a href="https://github.com/kkastenmeier" title="Kai Kastenmeier"><img src="https://github.com/kkastenmeier.png?size=120" alt="Kai Kastenmeier"><br><sub><b>Kai Kastenmeier</b></sub></a><br> | <a href="https://github.com/Nyzabes" title="Sebastian Watzinger"><img src="https://github.com/Nyzabes.png?size=120" alt="Sebastian Watzinger"><br><sub><b>Sebastian Watzinger</b></sub></a><br> |
+<h3>Core Team</h3>
+<table>
+  <tr>
+    <td>
+      <a href="https://github.com/nuberion" title="Johann Grabner">
+        <img src="https://github.com/nuberion.png?size=120" alt="Johann Grabner" width="96" height="96"><br>
+        <b>Johann Grabner</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/MaximilianZenz" title="Maximilian Zenz">
+        <img src="https://github.com/MaximilianZenz.png?size=120" alt="Maximilian Zenz" width="96" height="96"><br>
+        <b>Maximilian Zenz</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/uberroot4" title="Manuel Stöger">
+        <img src="https://github.com/uberroot4.png?size=120" alt="Manuel Stöger" width="96" height="96"><br>
+        <b>Manuel Stöger</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Megalokom" title="Michael Strasser">
+        <img src="https://github.com/Megalokom.png?size=120" alt="Michael Strasser" width="96" height="96"><br>
+        <b>Michael Strasser</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/bastianferch" title="Bastian Ferch">
+        <img src="https://github.com/bastianferch.png?size=120" alt="Bastian Ferch" width="96" height="96"><br>
+        <b>Bastian Ferch</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Markus99at" title="Markus Gumpoltsberger">
+        <img src="https://github.com/Markus99at.png?size=120" alt="Markus Gumpoltsberger" width="96" height="96"><br>
+        <b>Markus Gumpoltsberger</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/kkastenmeier" title="Kai Kastenmeier">
+        <img src="https://github.com/kkastenmeier.png?size=120" alt="Kai Kastenmeier" width="96" height="96"><br>
+        <b>Kai Kastenmeier</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Nyzabes" title="Sebastian Watzinger">
+        <img src="https://github.com/Nyzabes.png?size=120" alt="Sebastian Watzinger" width="96" height="96"><br>
+        <b>Sebastian Watzinger</b>
+      </a>
+    </td>
+  </tr>
+</table>
 
-### Bachelor/Master-Theses
-
-| | | | |
-|---|---|---|---|
-| <a href="https://github.com/romandecker" title="Roman Decker"><img src="https://github.com/romandecker.png?size=120" alt="Roman Decker"><br><sub><b>Roman Decker</b></sub></a><br> | <a href="https://github.com/alexnefi" title="Alexander Nemetz-Fiedler"><img src="https://github.com/alexnefi.png?size=120" alt="Alexander Nemetz-Fiedler"><br><sub><b>Alexander Nemetz-Fiedler</b></sub></a><br> | <a href="https://github.com/THMv1TU" title="Michael Thurner"><img src="https://github.com/THMv1TU.png?size=120" alt="Michael Thurner"><br><sub><b>Michael Thurner</b></sub></a><br> | <a href="https://github.com/schoeberlt" title="Tamas Schöberl"><img src="https://github.com/schoeberlt.png?size=120" alt="Tamas Schöberl"><br><sub><b>Tamas Schöberl</b></sub></a><br> |
-| <a href="https://github.com/belthazors" title="Amar Kasic"><img src="https://github.com/belthazors.png?size=120" alt="Amar Kasic"><br><sub><b>Amar Kasic</b></sub></a><br> | <a href="https://github.com/juliankotrba" title="Julian Kotrba"><img src="https://github.com/juliankotrba.png?size=120" alt="Julian Kotrba"><br><sub><b>Julian Kotrba</b></sub></a><br> | <a href="https://github.com/matthiasweiss" title="Matthias Weiß"><img src="https://github.com/matthiasweiss.png?size=120" alt="Matthias Weiß"><br><sub><b>Matthias Weiß</b></sub></a><br> | <a href="https://github.com/Thoma5" title="Thomas Mörbauer"><img src="https://github.com/Thoma5.png?size=120" alt="Thomas Mörbauer"><br><sub><b>Thomas Mörbauer</b></sub></a><br> |
-| <a href="https://github.com/m4nv3ru" title="Michael Kurz"><img src="https://github.com/m4nv3ru.png?size=120" alt="Michael Kurz"><br><sub><b>Michael Kurz</b></sub></a><br> | <a href="https://github.com/profjellybean" title="Valentin Schnabl"><img src="https://github.com/profjellybean.png?size=120" alt="Valentin Schnabl"><br><sub><b>Valentin Schnabl</b></sub></a><br> | <a href="https://github.com/Soleymantic" title="Solaiman Nejat"><img src="https://github.com/Soleymantic.png?size=120" alt="Solaiman Nejat"><br><sub><b>Solaiman Nejat</b></sub></a><br> | <a href="https://github.com/Grochni" title="Christian Gröchenig"><img src="https://github.com/Grochni.png?size=120" alt="Christian Gröchenig"><br><sub><b>Christian Gröchenig</b></sub></a><br> |
-| <a href="https://github.com/raini90" title="Rainhard Pfneiszl"><img src="https://github.com/raini90.png?size=120" alt="Rainhard Pfneiszl"><br><sub><b>Rainhard Pfneiszl</b></sub></a><br> | <a href="https://github.com/codester007" title="Valentin Kastberger"><img src="https://github.com/codester007.png?size=120" alt="Valentin Kastberger"><br><sub><b>Valentin Kastberger</b></sub></a><br> | <a href="https://github.com/AM307" title="André Mategka"><img src="https://github.com/AM307.png?size=120" alt="André Mategka"><br><sub><b>André Mategka</b></sub></a><br> | <a href="https://github.com/Bene-dykt" title="Benedikt Eckerstorfer"><img src="https://github.com/Bene-dykt.png?size=120" alt="Benedikt Eckerstorfer"><br><sub><b>Benedikt Eckerstorfer</b></sub></a><br> |
-| <a href="https://github.com/DominikKidery" title="Dominik Kidery"><img src="https://github.com/DominikKidery.png?size=120" alt="Dominik Kidery"><br><sub><b>Dominik Kidery</b></sub></a><br> | <a href="https://github.com/peter-kotouc" title="Peter Kotouč"><img src="https://github.com/peter-kotouc.png?size=120" alt="Peter Kotouč"><br><sub><b>Peter Kotouč</b></sub></a><br> | <a href="https://github.com/TBalint2000" title="Bálint Timár"><img src="https://github.com/TBalint2000.png?size=120" alt="Bálint Timár"><br><sub><b>Bálint Timár</b></sub></a><br> | <a href="https://github.com/maerzman" title="Manuel Märzinger"><img src="https://github.com/maerzman.png?size=120" alt="Manuel Märzinger"><br><sub><b>Manuel Märzinger</b></sub></a><br> |
-| <a href="https://github.com/martan001" title="Anton Martinovic"><img src="https://github.com/martan001.png?size=120" alt="Anton Martinovic"><br><sub><b>Anton Martinovic</b></sub></a><br> | <a href="https://github.com/ValentinFutterer" title="Valentin Futterer"><img src="https://github.com/ValentinFutterer.png?size=120" alt="Valentin Futterer"><br><sub><b>Valentin Futterer</b></sub></a><br> | <a href="https://github.com/MoravekJakub" title="Jakub Morávek"><img src="https://github.com/MoravekJakub.png?size=120" alt="Jakub Morávek"><br><sub><b>Jakub Morávek</b></sub></a><br> | <a href="https://github.com/R0555" title="Ross Boulton"><img src="https://github.com/R0555.png?size=120" alt="Ross Boulton"><br><sub><b>Ross Boulton</b></sub></a><br> |
-| <a href="https://github.com/DangeeundDu" title="Martin Weber"><img src="https://github.com/DangeeundDu.png?size=120" alt="Martin Weber"><br><sub><b>Martin Weber</b></sub></a><br> | <a href="https://github.com/thimonpelka" title="Thimon Pelka"><img src="https://github.com/thimonpelka.png?size=120" alt="Thimon Pelka"><br><sub><b>Thimon Pelka</b></sub></a><br> | <a href="https://github.com/Sebastian-Schuch" title="Sebastian Schuch"><img src="https://github.com/Sebastian-Schuch.png?size=120" alt="Sebastian Schuch"><br><sub><b>Sebastian Schuch</b></sub></a><br> | <a href="https://github.com/SurfingCaterpillar" title="Sarah Biedermann"><img src="https://github.com/SurfingCaterpillar.png?size=120" alt="Sarah Biedermann"><br><sub><b>Sarah Biedermann</b></sub></a><br> |
-| <a href="https://github.com/FreshGuy32" title="Mathias Trapl"><img src="https://github.com/FreshGuy32.png?size=120" alt="Mathias Trapl"><br><sub><b>Mathias Trapl</b></sub></a><br> | &nbsp; | &nbsp; | &nbsp; |
-
+<h3>Bachelor/Master-Theses</h3>
+<table>
+  <tr>
+    <td>
+      <a href="https://github.com/romandecker" title="Roman Decker">
+        <img src="https://github.com/romandecker.png?size=120" alt="Roman Decker" width="96" height="96"><br>
+        <b>Roman Decker</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/alexnefi" title="Alexander Nemetz-Fiedler">
+        <img src="https://github.com/alexnefi.png?size=120" alt="Alexander Nemetz-Fiedler" width="96" height="96"><br>
+        <b>Alexander Nemetz-Fiedler</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/THMv1TU" title="Michael Thurner">
+        <img src="https://github.com/THMv1TU.png?size=120" alt="Michael Thurner" width="96" height="96"><br>
+        <b>Michael Thurner</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/schoeberlt" title="Tamas Schöberl">
+        <img src="https://github.com/schoeberlt.png?size=120" alt="Tamas Schöberl" width="96" height="96"><br>
+        <b>Tamas Schöberl</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/belthazors" title="Amar Kasic">
+        <img src="https://github.com/belthazors.png?size=120" alt="Amar Kasic" width="96" height="96"><br>
+        <b>Amar Kasic</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/juliankotrba" title="Julian Kotrba">
+        <img src="https://github.com/juliankotrba.png?size=120" alt="Julian Kotrba" width="96" height="96"><br>
+        <b>Julian Kotrba</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/matthiasweiss" title="Matthias Weiß">
+        <img src="https://github.com/matthiasweiss.png?size=120" alt="Matthias Weiß" width="96" height="96"><br>
+        <b>Matthias Weiß</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Thoma5" title="Thomas Mörbauer">
+        <img src="https://github.com/Thoma5.png?size=120" alt="Thomas Mörbauer" width="96" height="96"><br>
+        <b>Thomas Mörbauer</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/m4nv3ru" title="Michael Kurz">
+        <img src="https://github.com/m4nv3ru.png?size=120" alt="Michael Kurz" width="96" height="96"><br>
+        <b>Michael Kurz</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/profjellybean" title="Valentin Schnabl">
+        <img src="https://github.com/profjellybean.png?size=120" alt="Valentin Schnabl" width="96" height="96"><br>
+        <b>Valentin Schnabl</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Soleymantic" title="Solaiman Nejat">
+        <img src="https://github.com/Soleymantic.png?size=120" alt="Solaiman Nejat" width="96" height="96"><br>
+        <b>Solaiman Nejat</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Grochni" title="Christian Gröchenig">
+        <img src="https://github.com/Grochni.png?size=120" alt="Christian Gröchenig" width="96" height="96"><br>
+        <b>Christian Gröchenig</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/raini90" title="Rainhard Pfneiszl">
+        <img src="https://github.com/raini90.png?size=120" alt="Rainhard Pfneiszl" width="96" height="96"><br>
+        <b>Rainhard Pfneiszl</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/codester007" title="Valentin Kastberger">
+        <img src="https://github.com/codester007.png?size=120" alt="Valentin Kastberger" width="96" height="96"><br>
+        <b>Valentin Kastberger</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/AM307" title="André Mategka">
+        <img src="https://github.com/AM307.png?size=120" alt="André Mategka" width="96" height="96"><br>
+        <b>André Mategka</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Bene-dykt" title="Benedikt Eckerstorfer">
+        <img src="https://github.com/Bene-dykt.png?size=120" alt="Benedikt Eckerstorfer" width="96" height="96"><br>
+        <b>Benedikt Eckerstorfer</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/DominikKidery" title="Dominik Kidery">
+        <img src="https://github.com/DominikKidery.png?size=120" alt="Dominik Kidery" width="96" height="96"><br>
+        <b>Dominik Kidery</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/peter-kotouc" title="Peter Kotouč">
+        <img src="https://github.com/peter-kotouc.png?size=120" alt="Peter Kotouč" width="96" height="96"><br>
+        <b>Peter Kotouč</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/TBalint2000" title="Bálint Timár">
+        <img src="https://github.com/TBalint2000.png?size=120" alt="Bálint Timár" width="96" height="96"><br>
+        <b>Bálint Timár</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/maerzman" title="Manuel Märzinger">
+        <img src="https://github.com/maerzman.png?size=120" alt="Manuel Märzinger" width="96" height="96"><br>
+        <b>Manuel Märzinger</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/martan001" title="Anton Martinovic">
+        <img src="https://github.com/martan001.png?size=120" alt="Anton Martinovic" width="96" height="96"><br>
+        <b>Anton Martinovic</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/ValentinFutterer" title="Valentin Futterer">
+        <img src="https://github.com/ValentinFutterer.png?size=120" alt="Valentin Futterer" width="96" height="96"><br>
+        <b>Valentin Futterer</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/MoravekJakub" title="Jakub Morávek">
+        <img src="https://github.com/MoravekJakub.png?size=120" alt="Jakub Morávek" width="96" height="96"><br>
+        <b>Jakub Morávek</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/R0555" title="Ross Boulton">
+        <img src="https://github.com/R0555.png?size=120" alt="Ross Boulton" width="96" height="96"><br>
+        <b>Ross Boulton</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/DangeeundDu" title="Martin Weber">
+        <img src="https://github.com/DangeeundDu.png?size=120" alt="Martin Weber" width="96" height="96"><br>
+        <b>Martin Weber</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/thimonpelka" title="Thimon Pelka">
+        <img src="https://github.com/thimonpelka.png?size=120" alt="Thimon Pelka" width="96" height="96"><br>
+        <b>Thimon Pelka</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Sebastian-Schuch" title="Sebastian Schuch">
+        <img src="https://github.com/Sebastian-Schuch.png?size=120" alt="Sebastian Schuch" width="96" height="96"><br>
+        <b>Sebastian Schuch</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/SurfingCaterpillar" title="Sarah Biedermann">
+        <img src="https://github.com/SurfingCaterpillar.png?size=120" alt="Sarah Biedermann" width="96" height="96"><br>
+        <b>Sarah Biedermann</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/FreshGuy32" title="Mathias Trapl">
+        <img src="https://github.com/FreshGuy32.png?size=120" alt="Mathias Trapl" width="96" height="96"><br>
+        <b>Mathias Trapl</b>
+      </a>
+    </td>
+    <td><!-- frei --></td>
+    <td><!-- frei --></td>
+    <td><!-- frei --></td>
+  </tr>
+</table>
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
