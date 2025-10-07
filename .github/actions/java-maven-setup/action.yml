@@ -29,11 +29,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: ${{ inputs.checkout-depth }}
-
     - name: Cache local Maven repository
       uses: actions/cache@v4
       with:

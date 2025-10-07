@@ -143,7 +143,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                 { assertEquals("1", file.get("id").asText(), "File ID mismatch") },
                 { assertEquals("src/main/kotlin/com/example/Main.kt", file.get("path").asText(), "File path mismatch") },
                 { assertEquals("https://example.com/files/Main.kt", file.get("webUrl").asText(), "File webUrl mismatch") },
-                { assertEquals(1000, file.get("maxLength").asInt(), "File maxLength mismatch") },
+                { assertEquals(Int.MIN_VALUE, file.get("maxLength").asInt(), "File maxLength mismatch") },
             )
         }
 
