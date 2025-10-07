@@ -16,6 +16,38 @@ env:
   WD: binocular-backend-new
 
 jobs:
+  # Merged: validate + compile-sources + compile-tests
+  preflight:
+    name: Preflight (validate + compile + test-compile)
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Setup (checkout/cache/java/go-offline)
+        uses: ./.github/actions/java-maven-setup
+        with:
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          working-directory: ${{ env.WD }}
+          checkout-depth: 1
+
+      - name: Validate
+        working-directory: ${{ env.WD }}
+        run: mvn $MAVEN_CLI_OPTS validate
+
+      - name: Compile sources
+        working-directory: ${{ env.WD }}
+        run: mvn $MAVEN_CLI_OPTS clean compile
+
+      - name: Compile tests
+        working-directory: ${{ env.WD }}
+        run: mvn $MAVEN_CLI_OPTS test-compile
+
   validate:
     name: Validate maven project
     
