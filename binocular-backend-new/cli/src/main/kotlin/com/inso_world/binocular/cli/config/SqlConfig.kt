@@ -19,4 +19,4 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @Configuration
 @Profile("sql", "postgres")
 @ComponentScan("com.inso_world.binocular.infrastructure.sql")
-class SqlConfig
+internal class SqlConfig
