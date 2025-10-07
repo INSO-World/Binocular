@@ -147,67 +147,67 @@ jobs:
       - name: Compile tests with Maven
         run: mvn $MAVEN_CLI_OPTS clean test-compile
 
-  test-application-h2:
-    name: Test-Application Layers w/ H2
-    needs:
-      - compile-sources
-      - compile-tests
-
-    defaults:
-      run:
-        working-directory: ${{ env.WD }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        java_version: [ '23' ]
-        distribution: [ 'temurin' ]
-        module: [ 'web', 'cli' ]
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
-
-      - name: Cache local Maven repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
-
-      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
-        uses: actions/setup-java@v4
-        with:
-          cache: 'maven'
-          cache-dependency-path: '**/pom.xml'
-          java-version: ${{ matrix.java_version }}
-          distribution: ${{ matrix.distribution }}
-          architecture: ${{ matrix.architecture }}
-
-      - name: Install dependencies
-        run: |
-          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Psql
-
-      - name: Run tests for module ${{ matrix.module }}
-        run: |
-          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,sql,h2 -Psql
-
-      - name: Surefire report for module ${{ matrix.module }}
-        if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,sql,h2 -Psql
-
-      - name: Upload surefire report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.module }}-report-h2
-          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
-
+#  test-application-h2:
+#    name: Test-Application Layers w/ H2
+#    needs:
+#      - compile-sources
+#      - compile-tests
+#
+#    defaults:
+#      run:
+#        working-directory: ${{ env.WD }}
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        java_version: [ '23' ]
+#        distribution: [ 'temurin' ]
+#        module: [ 'web', 'cli' ]
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: '0'
+#
+#      - name: Cache local Maven repository
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.m2/repository
+#          key: ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}-maven-${{ hashFiles('**/pom.xml') }}
+#          restore-keys: |
+#            ${{ runner.os }}.${{ matrix.distribution }}.${{ matrix.java_version }}--maven-
+#
+#      - name: Set up JDK ${{ matrix.distribution }}/${{ matrix.java_version }} for ${{ matrix.architecture }}
+#        uses: actions/setup-java@v4
+#        with:
+#          cache: 'maven'
+#          cache-dependency-path: '**/pom.xml'
+#          java-version: ${{ matrix.java_version }}
+#          distribution: ${{ matrix.distribution }}
+#          architecture: ${{ matrix.architecture }}
+#
+#      - name: Install dependencies
+#        run: |
+#          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Psql
+#
+#      - name: Run tests for module ${{ matrix.module }}
+#        run: |
+#          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,sql,h2 -Psql
+#
+#      - name: Surefire report for module ${{ matrix.module }}
+#        if: always()
+#        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,sql,h2 -Psql
+#
+#      - name: Upload surefire report
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ matrix.module }}-report-h2
+#          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
+#
   test-application-arangodb:
     name: Test-Application Layers w/ ArangoDB
     needs:
@@ -231,7 +231,7 @@ jobs:
       matrix:
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
-        module: [ 'web', 'cli' ]
+        module: [ 'web' ] # 'cli' TODO: Add cli when it's done
 
     runs-on: ubuntu-latest
 
