@@ -1,10 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/binocular-test
-    username: ${DATABASE_USER:binocular}
-    password: ${DATABASE_PW:binocular}
+    url: jdbc:tc:postgresql:17.5:///binocular-test
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
