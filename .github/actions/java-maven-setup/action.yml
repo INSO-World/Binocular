@@ -1,0 +1,57 @@
+name: Java + Maven setup
+description: Checkout, cache, setup Java, and pre-fetch dependencies
+
+inputs:
+  java-version:
+    description: Java version (e.g., 23)
+    required: true
+    default: '23'
+  distribution:
+    description: Java distribution (e.g., temurin)
+    required: true
+    default: 'temurin'
+  architecture:
+    description: CPU architecture
+    required: false
+    default: 'x64'
+  working-directory:
+    description: Working directory for mvn commands
+    required: true
+  cache-dependency-path:
+    description: Paths for dependency cache hashing
+    required: false
+    default: '**/pom.xml'
+  checkout-depth:
+    description: Git fetch depth (0 for full history)
+    required: false
+    default: '1'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ inputs.checkout-depth }}
+
+    - name: Cache local Maven repository
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}.${{ inputs.distribution }}.${{ inputs['java-version'] }}-maven-${{ hashFiles(inputs.cache-dependency-path) }}
+        restore-keys: |
+          ${{ runner.os }}.${{ inputs.distribution }}.${{ inputs['java-version'] }}--maven-
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        cache: maven
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+        java-version: ${{ inputs['java-version'] }}
+        distribution: ${{ inputs.distribution }}
+        architecture: ${{ inputs.architecture }}
+
+    - name: Download all dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: mvn dependency:go-offline
