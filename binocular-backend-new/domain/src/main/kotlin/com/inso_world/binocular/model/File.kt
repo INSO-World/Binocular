@@ -17,7 +17,8 @@ data class File(
         get() =
             states
                 .mapNotNull { it.content?.length }
-                .reduce { acc, n -> if (n > acc) n else acc }
+                .takeIf { it.isNotEmpty() }
+                ?.reduce { acc, n -> if (n > acc) n else acc } ?: Int.MIN_VALUE
 
     // Relationships
     @Deprecated("legacy")

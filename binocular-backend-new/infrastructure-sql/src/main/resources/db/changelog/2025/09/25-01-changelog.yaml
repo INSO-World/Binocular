@@ -5,3 +5,6 @@ databaseChangeLog:
       objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
       changes:
         - renameColumn:
+            newColumnName: local_path
+            oldColumnName: name
+            tableName: repositories

@@ -1,6 +1,20 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/2025/07/26-01-changelog.yaml
+      file: db/changelog/2025/09/18-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/19-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/19-02-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/19-03-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/19-04-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/22-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/23-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/25-01-changelog.yaml
 #  - changeSet:
 #      id: prevent-cycles-trigger
 #      author: manuel

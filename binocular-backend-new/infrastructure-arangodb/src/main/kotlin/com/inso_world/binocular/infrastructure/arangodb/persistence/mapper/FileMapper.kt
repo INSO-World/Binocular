@@ -46,7 +46,7 @@ class FileMapper
                     id = entity.id,
                     path = entity.path,
                 )
-//            file.webUrl = entity.webUrl
+            file.webUrl = entity.webUrl
 //            file.maxLength = entity.maxLength
 //            file.commits =
 //                proxyFactory.createLazyList {
