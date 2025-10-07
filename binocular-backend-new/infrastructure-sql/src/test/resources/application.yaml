@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: test,h2
+    active: test,postgres
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     drop-first: true
@@ -13,6 +13,9 @@ logging:
     name: logs/infrastructure-sql.test.log
   level:
     #    org.hibernate.orm.jdbc.bind: trace
+    com.inso_world.binocular.infrastructure.sql.mapper: off
     com:
       inso_world:
-        binocular: trace
+        binocular: TRACE
+      zaxxer:
+        hikari: TRACE

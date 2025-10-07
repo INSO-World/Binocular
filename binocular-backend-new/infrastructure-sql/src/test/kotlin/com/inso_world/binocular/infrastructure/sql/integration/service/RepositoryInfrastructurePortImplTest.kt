@@ -1396,9 +1396,9 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     "Add same commit again, same hashCode",
                     { assertFalse(branch.commits.add(cmt)) }, // sha already in
                     { assertFalse(repository.branches.add(branch)) }, // branch already in
-                    { assertTrue(repository.commits.add(cmt)) }, // cmt is NOT in based on hashCode, changed message
+                    { assertFalse(repository.commits.add(cmt)) }, // cmt is in based on hashCode, changed message
                 )
-                assertThat(repository.commits).hasSize(2)
+                assertThat(repository.commits).hasSize(1)
 
                 val updatedRepo =
                     assertDoesNotThrow {
