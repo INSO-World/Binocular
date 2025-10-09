@@ -3,7 +3,7 @@ name: Build Rust Library for Backend
 on:
   push:
     paths:
-      - '.github/workflows/backend-rust.yml'
+      - '.github/workflows/backend-rust.yaml'
       - 'binocular-backend-new/ffi/lib/**'
   pull_request:
     branches:
@@ -14,7 +14,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   CLICOLOR: '1'
-  WD: binocular-backend-new/ffi/lib
+  RUST_LIB_WD: binocular-backend-new/ffi/lib
   RESOURCES_DIR: binocular-backend-new/ffi/src/main/resources/
   LIB_BASENAME: gix_binocular
   KOTLIN_DIR: binocular-backend-new/ffi/src/main/kotlin
@@ -24,10 +24,10 @@ jobs:
 
     defaults:
       run:
-        working-directory: ${{ env.WD }}
+        working-directory: ${{ env.RUST_LIB_WD }}
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - container: amd64/debian:stable-slim
@@ -90,6 +90,8 @@ jobs:
         run: echo "PATH=$HOME/.cargo/bin:$PATH" >> "$GITHUB_ENV"
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.RUST_LIB_WD }}
 
       - name: Build library for target ${{ matrix.host-triple }}
         shell: bash
@@ -97,11 +99,126 @@ jobs:
           set +x
           cargo build --release --target ${{ matrix.host-triple }}
 
+      - name: Sanity checks
+        run: |
+          # Debug: List contents of artifacts directory
+          echo "Contents of artifacts directory:"
+          ls -la target/
+          ls -la target/${{ matrix.host-triple }}/release
+          test -f target/${{ matrix.host-triple }}/release/*${{ env.LIB_BASENAME }}.${{ matrix.file-ending }}
+
       - name: Upload built library artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.host-triple }}               # keeps triple as folder name when downloading
           path: |
-            target/${{ matrix.host-triple }}/release/*${{ env.LIB_BASENAME }}.${{ matrix.file-ending }}
+            ${{ env.RUST_LIB_WD }}/target/${{ matrix.host-triple }}/release/*${{ env.LIB_BASENAME }}.${{ matrix.file-ending }}
           if-no-files-found: error
           retention-days: 7
+
+  collect-and-push:
+    name: Collect native libs into resources and push
+    needs: pure-rust-build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}   # don’t push on PRs
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all native lib artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*'
+          path: artifacts
+          merge-multiple: false   # creates subfolders per artifact name (the triple)
+
+      - name: Stage libs into ${{ env.RESOURCES_DIR }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          BASE="${{ env.RESOURCES_DIR }}"
+          mkdir -p "$BASE"
+          for tripleDir in artifacts/*; do
+            triple="$(basename "$tripleDir")"
+            mkdir -p "$BASE/$triple"
+            # copy only shared libs
+            for lib in "$tripleDir"/*.so "$tripleDir"/*.dylib "$tripleDir"/*.dll; do
+              [ -e "$lib" ] || continue
+              cp "$lib" "$BASE/$triple/"
+            done
+          done
+          echo "Resulting resources tree:"
+          find "$BASE" -maxdepth 2 -type f -print
+
+      - name: Install Rust (for uniffi-bindgen)
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+            | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare library path for uniffi-bindgen
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          # Nimm genau eine gebaute Lib (bevorzugt .so, sonst .dylib, sonst .dll)
+          ref="$(ls artifacts/*/*.so 2>/dev/null | head -n1 || true)"
+          ending=so
+          if [ -z "$ref" ]; then ref="$(ls artifacts/*/*.dylib 2>/dev/null | head -n1 || true)"; ending=dylib; fi
+          if [ -z "$ref" ]; then ref="$(ls artifacts/*/*.dll 2>/dev/null | head -n1 || true)"; ending=dll; fi
+          if [ -z "$ref" ]; then echo "No built library artifact found for uniffi-bindgen"; exit 1; fi
+          
+          triple="$(basename "$(dirname "$ref")")"
+          mkdir -p "${{ env.RUST_LIB_WD }}/target/$triple/release"
+          cp "$ref" "${{ env.RUST_LIB_WD }}/target/$triple/release/lib${{ env.LIB_BASENAME }}.$ending"
+          
+          echo "UNIFFI_TRIPLE=$triple" >> "$GITHUB_ENV"
+          echo "UNIFFI_ENDING=$ending" >> "$GITHUB_ENV"
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.RUST_LIB_WD }}
+          cache-all-crates: 'true'
+
+      - name: Generate Kotlin bindings (uniffi-bindgen)
+        working-directory: ${{ env.RUST_LIB_WD }}
+        shell: bash
+        run: |
+          cargo run --release \
+            --bin uniffi-bindgen generate \
+              --library "./target/${UNIFFI_TRIPLE}/release/lib${{ env.LIB_BASENAME }}.${UNIFFI_ENDING}" \
+              --language kotlin \
+              --no-format \
+              --out-dir "$GITHUB_WORKSPACE/${{ env.KOTLIN_DIR }}"
+
+      - name: Sanity checks
+        shell: bash
+        run: |
+          ls -R ${{ env.KOTLIN_DIR }}
+          # Erwartete Datei (zur Info)
+          test -f "${{ env.KOTLIN_DIR }}/com/inso_world/binocular/ffi/internal/gix_binocular.kt" || {
+            echo "WARN: gix_binocular.kt nicht gefunden (Pfad prüfen)"; ls -R "${{ env.KOTLIN_DIR }}" || true; }
+
+      - name: Commit and push changes (if any)
+        shell: bash
+        run: |
+          ls -R ${{ env.KOTLIN_DIR }}
+          git status -s -uno
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "++++++++++ git add ++++++++++" 
+          git add "${{ env.RESOURCES_DIR }}" "${{ env.KOTLIN_DIR }}"
+          git status -s -uno
+          set -euo pipefail
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(ffi): update native libs + Kotlin bindings [skip ci]"
+            git push
+          else
+            echo "No changes to commit."
+          fi
