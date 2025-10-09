@@ -35,27 +35,27 @@ jobs:
             runner-os: ubuntu-latest
             host-triple: x86_64-unknown-linux-gnu
             file-ending: so
+          - container: amd64/rust:slim-bullseye
+            runner-arch: amd64
+            runner-os: ubuntu-latest
+            host-triple: x86_64-pc-windows-gnu
+            file-ending: dll
           - runner-arch: arm64
             runner-os: ubuntu-24.04-arm
             host-triple: aarch64-unknown-linux-gnu
             file-ending: so
-          #          - container: alpine:3.22.0
-          #            runner-arch: amd64
-          #            runner-os: ubuntu-latest
-          #            host-triple: aarch64-unknown-linux-musl
-          #            file-ending: so
-#          - runner-arch: arm64
-#            runner-os: macos-latest
-#            host-triple: aarch64-apple-darwin
-#            file-ending: dylib
-#          - runner-arch: x86_64
-#            runner-os: macos-latest
-#            host-triple: x86_64-apple-darwin
-#            file-ending: dylib
-#          - runner-arch: x86_64
-#            runner-os: windows-latest
-#            host-triple: x86_64-pc-windows-msvc
-#            file-ending: dll
+    #          - runner-arch: arm64
+    #            runner-os: macos-latest
+    #            host-triple: aarch64-apple-darwin
+    #            file-ending: dylib
+    #          - runner-arch: x86_64
+    #            runner-os: macos-latest
+    #            host-triple: x86_64-apple-darwin
+    #            file-ending: dylib
+    #          - runner-arch: x86_64
+    #            runner-os: windows-latest
+    #            host-triple: x86_64-pc-windows-msvc
+    #            file-ending: dll
     #          - runner-arch: x86_64
     #            runner-os: windows-latest
     #            host-triple: aarch64-pc-windows-msvc
@@ -70,10 +70,14 @@ jobs:
         if: startsWith(matrix.runner-os, 'ubuntu') && matrix.container != null
         run: |
           prerequisites=(
+            build-essential
             ca-certificates
             curl
             gcc  # rustc calls gcc to invoke the linker.
             libc-dev  # rustc, in the toolchain we are using, dynamically links to the system libc.
+            gdb-mingw-w64
+            gcc-mingw-w64-x86-64
+            gcc-x86-64-linux-gnu
           )
           dpkg --add-architecture ${{ matrix.runner-arch }}
           apt-get update
@@ -81,13 +85,20 @@ jobs:
         shell: bash  # This step needs `bash`, and the default in container jobs is `sh`.
 
       - name: Install Rust via Rustup
+        if: contains(matrix.container, 'rust:') != true
         run: |
           # Specify toolchain to avoid possible misdetection based on the 64-bit running kernel.
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
             sh -s -- -y --default-host ${{ matrix.host-triple }} --profile minimal
 
       - name: Add Rust tools to path
+        if: contains(matrix.container, 'rust:') != true
         run: echo "PATH=$HOME/.cargo/bin:$PATH" >> "$GITHUB_ENV"
+
+      - name: Run rustup target add
+        if: contains(matrix.container, 'rust:')
+        run: |
+          rustup target add ${{ matrix.host-triple }}
 
       - uses: Swatinem/rust-cache@v2
         with:
