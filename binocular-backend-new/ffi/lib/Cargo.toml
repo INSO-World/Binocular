@@ -21,20 +21,9 @@ crate-type = ["lib", "cdylib"]
 [workspace]
 members = [
     "crates/diff",
-    #    "crates/diff/tests",
     "crates/commits",
-    #    "crates/commits/tests",
-    #    "crates/render",
-    "crates/shared",
     "crates/blame",
-    #    "web-fs",
-    #    "crates/pyo3-bindings",
-    #    "crates/neon-npm",
-    # libgit2
-    #    "crates/ffi",
-    #    "examples/ffi",
-    #    "examples/diff-rayon",
-    #    "examples/diff-std",
+    "crates/shared",
 ]
 
 
