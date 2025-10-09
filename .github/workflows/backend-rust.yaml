@@ -15,6 +15,9 @@ env:
   CARGO_TERM_COLOR: always
   CLICOLOR: '1'
   WD: binocular-backend-new/ffi/lib
+  RESOURCES_DIR: binocular-backend-new/ffi/src/main/resources/
+  LIB_BASENAME: gix_binocular
+  KOTLIN_DIR: binocular-backend-new/ffi/src/main/kotlin
 
 jobs:
   pure-rust-build:
@@ -93,3 +96,12 @@ jobs:
         run: |
           set +x
           cargo build --release --target ${{ matrix.host-triple }}
+
+      - name: Upload built library artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.host-triple }}               # keeps triple as folder name when downloading
+          path: |
+            target/${{ matrix.host-triple }}/release/*${{ env.LIB_BASENAME }}.${{ matrix.file-ending }}
+          if-no-files-found: error
+          retention-days: 7
