@@ -1,0 +1,23 @@
+[package]
+name = "commits"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+license.workspace = true
+
+autotests = false
+include = ["src/**/*"]
+
+[lib]
+doctest = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "0.22.1"
+gix = { workspace = true, default-features = true, features = ["mailmap", "max-performance"] }
+log = { workspace = true }
+anyhow = { workspace = true }
+shared = { path = "../shared" }

@@ -1,0 +1,28 @@
+[package]
+name = "binocular-diff"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+autotests = false
+include = ["src/**/*"]
+
+[lib]
+doctest = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crossbeam-channel = { version = "0.5.15" }
+crossbeam-queue = { version = "0.3.12" }
+gix = { workspace = true, features = ["max-performance-safe", "blob-diff", "revision", "mailmap", ] }
+shared = { path = "../shared" }
+rayon = { version = "1.11.0" }
+
+log = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+assertables = { version = "9.5.0" }
+pretty_assertions = { version = "1.4.1" }
