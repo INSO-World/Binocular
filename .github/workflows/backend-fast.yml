@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/backend-fast.yml'
+      - '!binocular-backend-new/ffi/lib/**'
       - 'binocular-backend-new/**'
   pull_request:
     branches:
