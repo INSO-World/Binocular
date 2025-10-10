@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: infrsastructure-test
+  profiles:
+    # Choose which stack to run: use either [arangodb] or [sql,postgres]
+    # Default to arangodb for these infrastructure tests; override in IDE/Maven if needed
+    active: arangodb
+
+logging:
+  level:
+    root: warn
+    com.inso_world.binocular: info

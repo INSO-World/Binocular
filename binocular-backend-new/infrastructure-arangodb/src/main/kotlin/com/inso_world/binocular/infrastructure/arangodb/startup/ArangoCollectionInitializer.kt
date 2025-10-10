@@ -1,0 +1,102 @@
+package com.inso_world.binocular.infrastructure.arangodb.startup
+
+import com.arangodb.entity.CollectionType
+import com.arangodb.model.CollectionCreateOptions
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.AdbConfig
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Component
+import jakarta.annotation.PostConstruct
+
+/**
+ * Ensures required ArangoDB collections exist when running with the "arangodb" profile.
+ *
+ * This prevents runtime failures like:
+ *   org.springframework.dao.InvalidDataAccessResourceUsageException: ... Error: 1203 - collection or view not found: files
+ * by proactively creating missing collections used by queries/entities.
+ */
+@Component
+@Profile("arangodb")
+class ArangoCollectionInitializer(
+    private val adbConfig: AdbConfig,
+) {
+    private val logger: Logger = LoggerFactory.getLogger(ArangoCollectionInitializer::class.java)
+
+    @PostConstruct
+    fun ensureCollections() {
+        val arango = adbConfig.arango().build()
+        val dbName = adbConfig.database()
+        val db = arango.db(dbName)
+        logger.info("Ensuring required ArangoDB collections exist in database: {}", dbName)
+
+        // Document collections
+        ensureDocumentCollection(dbName, "branches")
+        ensureDocumentCollection(dbName, "files")
+        ensureDocumentCollection(dbName, "repositories")
+        ensureDocumentCollection(dbName, "projects")
+        ensureDocumentCollection(dbName, "commits")
+        ensureDocumentCollection(dbName, "users")
+        ensureDocumentCollection(dbName, "issues")
+        ensureDocumentCollection(dbName, "mergeRequests")
+        ensureDocumentCollection(dbName, "milestones")
+        ensureDocumentCollection(dbName, "modules")
+        ensureDocumentCollection(dbName, "builds")
+        ensureDocumentCollection(dbName, "notes")
+        ensureDocumentCollection(dbName, "accounts")
+
+        // Edge collections
+        ensureEdgeCollection(dbName, "branches-files")
+        ensureEdgeCollection(dbName, "branch-files-files")
+        ensureEdgeCollection(dbName, "commits-builds")
+        ensureEdgeCollection(dbName, "commits-commits")
+        ensureEdgeCollection(dbName, "commits-files")
+        ensureEdgeCollection(dbName, "commit-files-users")
+        ensureEdgeCollection(dbName, "commits-modules")
+        ensureEdgeCollection(dbName, "commits-users")
+        ensureEdgeCollection(dbName, "issues-accounts")
+        ensureEdgeCollection(dbName, "issues-commits")
+        ensureEdgeCollection(dbName, "issues-milestones")
+        ensureEdgeCollection(dbName, "issues-notes")
+        ensureEdgeCollection(dbName, "issues-users")
+        ensureEdgeCollection(dbName, "merge-requests-accounts")
+        ensureEdgeCollection(dbName, "merge-requests-milestones")
+        ensureEdgeCollection(dbName, "merge-requests-notes")
+        ensureEdgeCollection(dbName, "modules-files")
+        ensureEdgeCollection(dbName, "modules-modules")
+        ensureEdgeCollection(dbName, "notes-accounts")
+    }
+
+    private fun ensureDocumentCollection(dbName: String, name: String) {
+        try {
+            val arango = adbConfig.arango().build()
+            val db = arango.db(dbName)
+            val collection = db.collection(name)
+            if (!collection.exists()) {
+                db.createCollection(name)
+                logger.info("Created missing ArangoDB document collection: {}", name)
+            } else {
+                logger.debug("ArangoDB document collection exists: {}", name)
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed to ensure document collection '{}': {}", name, e.message)
+        }
+    }
+
+    private fun ensureEdgeCollection(dbName: String, name: String) {
+        try {
+            val arango = adbConfig.arango().build()
+            val db = arango.db(dbName)
+            val collection = db.collection(name)
+            if (!collection.exists()) {
+                val opts = CollectionCreateOptions().type(CollectionType.EDGES)
+                db.createCollection(name, opts)
+                logger.info("Created missing ArangoDB edge collection: {}", name)
+            } else {
+                logger.debug("ArangoDB edge collection exists: {}", name)
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed to ensure edge collection '{}': {}", name, e.message)
+        }
+    }
+}
