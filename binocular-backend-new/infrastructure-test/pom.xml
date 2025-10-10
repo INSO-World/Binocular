@@ -10,8 +10,8 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>infrsastructure-test</artifactId>
-    <name>infrsastructure-test</name>
+    <artifactId>infrastructure-test</artifactId>
+    <name>infrastructure-test</name>
     <packaging>jar</packaging>
     <description>Test-only module to verify infrastructure adapters. Switch between ArangoDB and SQL via profiles.</description>
 
