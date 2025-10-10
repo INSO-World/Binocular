@@ -16,6 +16,7 @@ class MergeRequestMapper
         @Lazy private val milestoneMapper: MilestoneMapper,
         @Lazy private val noteMapper: NoteMapper,
         @Lazy private val accountMapper: AccountMapper,
+        private val mentionMapper: MentionMapper,
     ) : EntityMapper<MergeRequest, MergeRequestEntity> {
         /**
          * Converts a domain MergeRequest to an ArangoDB MergeRequestEntity
@@ -32,7 +33,9 @@ class MergeRequestMapper
                 labels = domain.labels,
                 state = domain.state,
                 webUrl = domain.webUrl,
-                mentions = domain.mentions,
+                mentions = (domain.mentions).map { mention ->
+                    mentionMapper.toEntity(mention)
+                },
                 // Relationships are handled by ArangoDB through edges
             )
 
@@ -55,7 +58,9 @@ class MergeRequestMapper
                 labels = entity.labels,
                 state = entity.state,
                 webUrl = entity.webUrl,
-                mentions = entity.mentions,
+                mentions = (entity.mentions).map { mentionEntity ->
+                    mentionMapper.toDomain(mentionEntity)
+                    },
                 accounts =
                     proxyFactory.createLazyList {
                         (entity.accounts ?: emptyList()).map { accountEntity ->

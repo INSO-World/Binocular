@@ -16,8 +16,3 @@ data class Account(
     var mergeRequests: List<MergeRequest> = emptyList(),
     var notes: List<Note> = emptyList(),
 )
-
-enum class Platform {
-    GitHub,
-    GitLab,
-}

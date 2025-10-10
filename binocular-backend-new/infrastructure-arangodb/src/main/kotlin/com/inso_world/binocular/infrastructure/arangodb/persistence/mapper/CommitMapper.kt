@@ -21,6 +21,7 @@ internal class CommitMapper
         @Lazy private val fileMapper: FileMapper,
         @Lazy private val userMapper: UserMapper,
         @Lazy private val issueMapper: IssueMapper,
+        private val statsMapper: StatsMapper,
     ) : EntityMapper<Commit, CommitEntity> {
         /**
          * Converts a domain Commit to an ArangoDB CommitEntity
@@ -32,7 +33,7 @@ internal class CommitMapper
                 date = Date.from(domain.commitDateTime?.toInstant(ZoneOffset.UTC)),
                 message = domain.message,
                 webUrl = domain.webUrl,
-                stats = domain.stats,
+                stats = domain.stats?.let { statsMapper.toEntity(it) },
                 branch = domain.branch,
                 // Relationships are handled by ArangoDB through edges
             )
@@ -52,7 +53,7 @@ internal class CommitMapper
                     commitDateTime = entity.date?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneOffset.UTC) },
                     message = entity.message,
                     webUrl = entity.webUrl,
-                    stats = entity.stats,
+                    stats = entity.stats?.let { statsMapper.toDomain(it) },
                     branch = entity.branch,
                     builds =
                         proxyFactory.createLazyList {

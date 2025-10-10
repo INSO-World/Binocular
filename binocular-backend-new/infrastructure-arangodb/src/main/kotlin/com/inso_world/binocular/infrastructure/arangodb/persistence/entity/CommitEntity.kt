@@ -7,7 +7,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitModuleConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueCommitConnectionEntity
-import com.inso_world.binocular.model.*
 import org.springframework.data.annotation.Id
 import java.util.Date
 
@@ -24,7 +23,7 @@ data class CommitEntity(
     var message: String? = null,
     var webUrl: String? = null,
     var branch: String? = null,
-    var stats: CommitDiff.Stats? = null,
+    var stats: StatsEntity? = null,
     @Relations(edges = [CommitCommitConnectionEntity::class], lazy = true, maxDepth = 1, direction = Relations.Direction.OUTBOUND)
     var parents: List<CommitEntity> = emptyList(),
     @Relations(edges = [CommitCommitConnectionEntity::class], lazy = true, maxDepth = 1, direction = Relations.Direction.INBOUND)

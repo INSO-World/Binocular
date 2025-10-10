@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BuildEntity
 import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.model.Job
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -15,6 +16,7 @@ class BuildMapper
     @Autowired
     constructor(
         private val proxyFactory: RelationshipProxyFactory,
+        private val jobMapper: JobMapper
     ) : EntityMapper<Build, BuildEntity> {
         @Lazy @Autowired
         private lateinit var commitMapper: CommitMapper
@@ -37,7 +39,8 @@ class BuildMapper
                 finishedAt = domain.finishedAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
                 committedAt = domain.committedAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
                 duration = domain.duration,
-                jobs = domain.jobs,
+                jobs = (domain.jobs).map { job ->
+                    jobMapper.toEntity(job)},
                 webUrl = domain.webUrl,
                 // Relationships are handled by ArangoDB through edges
             )
@@ -84,7 +87,8 @@ class BuildMapper
                         ?.atZone(ZoneOffset.UTC)
                         ?.toLocalDateTime(),
                 duration = entity.duration,
-                jobs = entity.jobs,
+                jobs = (entity.jobs).map { jobEntity ->
+                    jobMapper.toDomain(jobEntity) },
                 webUrl = entity.webUrl,
                 commits =
                     proxyFactory.createLazyList {

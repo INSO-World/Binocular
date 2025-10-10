@@ -39,8 +39,8 @@ data class Commit(
 ) : AbstractDomainObject(),
     Cloneable {
     // 1) private backing set
-    private var _parents = mutableSetOf<Commit>()
-    private var _children = mutableSetOf<Commit>()
+    private val _parents = ConcurrentHashMap.newKeySet<Commit>()
+    private val _children = ConcurrentHashMap.newKeySet<Commit>()
     private val _branches = ConcurrentHashMap.newKeySet<Branch>()
 
     var committer: User? = null
@@ -67,7 +67,7 @@ data class Commit(
             this.author!!.authoredCommits.add(this)
         }
 
-    var parents: MutableSet<Commit> =
+    val parents: MutableSet<Commit> =
         object : MutableSet<Commit> by _parents {
             override fun add(element: Commit): Boolean {
                 // add to this commit’s parents…
@@ -89,7 +89,7 @@ data class Commit(
             }
         }
 
-    var children: MutableSet<Commit> =
+    val children: MutableSet<Commit> =
         object : MutableSet<Commit> by _children {
             override fun add(element: Commit): Boolean {
                 // add to this commit’s parents…

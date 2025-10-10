@@ -3,7 +3,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.entity
 import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitBuildConnectionEntity
-import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.model.Job
 import org.springframework.data.annotation.Id
 import java.util.*
 
@@ -26,13 +26,13 @@ data class BuildEntity(
     var finishedAt: Date? = null,
     var committedAt: Date? = null,
     var duration: Int? = null,
-    var jobs: List<Build.Job> = emptyList(),
+    var jobs: List<JobEntity> = emptyList(),
     var webUrl: String? = null,
     @Relations(
         edges = [CommitBuildConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
-        direction = Relations.Direction.INBOUND,
+        direction = Relations.Direction.OUTBOUND,
     )
     var commits: List<CommitEntity> = emptyList(),
 )
