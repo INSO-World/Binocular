@@ -19,6 +19,7 @@ class IssueMapper
         @Lazy private val milestoneMapper: MilestoneMapper,
         @Lazy private val noteMapper: NoteMapper,
         @Lazy private val userMapper: UserMapper,
+        private val mentionMapper: MentionMapper,
     ) : EntityMapper<Issue, IssueEntity> {
         @Lazy @Autowired
         private lateinit var commitMapper: CommitMapper
@@ -38,7 +39,9 @@ class IssueMapper
                 labels = domain.labels,
                 state = domain.state,
                 webUrl = domain.webUrl,
-                mentions = domain.mentions,
+                mentions = (domain.mentions).map { mention ->
+                    mentionMapper.toEntity(mention)
+                },
                 // Relationships are handled by ArangoDB through edges
             )
 
@@ -73,7 +76,9 @@ class IssueMapper
                 labels = entity.labels,
                 state = entity.state,
                 webUrl = entity.webUrl,
-                mentions = entity.mentions,
+                mentions = (entity.mentions).map { mentionEntity ->
+                    mentionMapper.toDomain(mentionEntity)
+                },
                 accounts =
                     proxyFactory.createLazyList {
                         (entity.accounts ?: emptyList()).map { accountEntity ->

@@ -8,7 +8,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueMilestoneConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueNoteConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueUserConnectionEntity
-import com.inso_world.binocular.model.Mention
 import org.springframework.data.annotation.Id
 import java.util.*
 
@@ -29,7 +28,7 @@ data class IssueEntity(
     var labels: List<String> = emptyList(),
     var state: String? = null,
     var webUrl: String? = null,
-    var mentions: List<Mention> = emptyList(),
+    var mentions: List<MentionEntity> = emptyList(),
     @Relations(
         edges = [IssueAccountConnectionEntity::class],
         lazy = true,

@@ -24,7 +24,7 @@ data class MergeRequestEntity(
     var labels: List<String> = emptyList(),
     var state: String? = null,
     var webUrl: String? = null,
-    var mentions: List<Mention> = emptyList(),
+    var mentions: List<MentionEntity> = emptyList(),
     @Relations(
         edges = [MergeRequestAccountConnectionEntity::class],
         lazy = true,

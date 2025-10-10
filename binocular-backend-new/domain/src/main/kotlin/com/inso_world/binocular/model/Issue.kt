@@ -25,9 +25,3 @@ data class Issue(
     var notes: List<Note> = emptyList(),
     var users: List<User> = emptyList(),
 )
-
-data class Mention(
-    var commit: String? = null,
-    var createdAt: LocalDateTime? = null,
-    var closes: Boolean? = null,
-)

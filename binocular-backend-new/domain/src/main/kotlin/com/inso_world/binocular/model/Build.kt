@@ -24,14 +24,4 @@ data class Build(
     var webUrl: String? = null,
     // Relationships
     var commits: List<Commit> = emptyList(),
-) {
-    data class Job(
-        var id: String? = null,
-        var name: String? = null,
-        var status: String? = null,
-        var stage: String? = null,
-        var createdAt: LocalDateTime? = null,
-        var finishedAt: LocalDateTime? = null,
-        var webUrl: String? = null,
-    )
-}
+)

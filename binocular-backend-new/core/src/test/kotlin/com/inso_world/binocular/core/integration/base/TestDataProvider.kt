@@ -7,12 +7,14 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Job
 import com.inso_world.binocular.model.Mention
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import java.time.LocalDateTime
 
@@ -51,32 +53,34 @@ object TestDataProvider {
     val testCommits =
         listOf(
             run {
-                val cmt = Commit(
-                    "1",
-                    "abc123",
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
-                    "First commit",
-                    null,
-                    "https://example.com/commit/abc123",
-                    "main",
-                    CommitDiff.Stats(10, 5),
-                )
+                val cmt =
+                    Commit(
+                        "1",
+                        "abc123",
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        "First commit",
+                        null,
+                        "https://example.com/commit/abc123",
+                        "main",
+                        Stats(10, 5),
+                    )
                 mainBranch.commits.add(cmt)
                 cmt
             },
             run {
-                val cmt = Commit(
-                    "2",
-                    "def456",
-                    java.time.LocalDateTime.now(),
-                    java.time.LocalDateTime.now(),
-                    "Second commit",
-                    null,
-                    "https://example.com/commit/def456",
-                    "main",
-                    CommitDiff.Stats(7, 3),
-                )
+                val cmt =
+                    Commit(
+                        "2",
+                        "def456",
+                        java.time.LocalDateTime.now(),
+                        java.time.LocalDateTime.now(),
+                        "Second commit",
+                        null,
+                        "https://example.com/commit/def456",
+                        "main",
+                        Stats(7, 3),
+                    )
                 mainBranch.commits.add(cmt)
                 cmt
             },
@@ -99,7 +103,7 @@ object TestDataProvider {
                 LocalDateTime.now(),
                 120,
                 listOf(
-                    Build.Job(
+                    Job(
                         "job1",
                         "test",
                         "success",
@@ -126,7 +130,7 @@ object TestDataProvider {
                 java.time.LocalDateTime.now(),
                 180,
                 listOf(
-                    Build.Job(
+                    Job(
                         "job2",
                         "build",
                         "failed",
@@ -143,23 +147,25 @@ object TestDataProvider {
     val testFiles =
         listOf(
             run {
-                val file = File(
-                    "1",
-                    "src/main/kotlin/com/example/Main.kt",
-                    mutableSetOf()
-                )
+                val file =
+                    File(
+                        "1",
+                        "src/main/kotlin/com/example/Main.kt",
+                        mutableSetOf(),
+                    )
                 file.webUrl = "https://example.com/files/Main.kt"
                 return@run file
             },
             run {
-                val file = File(
-                    "2",
-                    "src/main/kotlin/com/example/Utils.kt",
-                    mutableSetOf()
-                )
+                val file =
+                    File(
+                        "2",
+                        "src/main/kotlin/com/example/Utils.kt",
+                        mutableSetOf(),
+                    )
                 file.webUrl = "https://example.com/files/Utils.kt"
                 return@run file
-            }
+            },
         )
 
     val testIssues =
@@ -179,8 +185,8 @@ object TestDataProvider {
                     Mention(
                         "abc123",
                         LocalDateTime.now(),
-                        false
-                    )
+                        false,
+                    ),
                 ),
             ),
             Issue(
@@ -198,8 +204,8 @@ object TestDataProvider {
                     Mention(
                         "def456",
                         java.time.LocalDateTime.now(),
-                        true
-                    )
+                        true,
+                    ),
                 ),
             ),
         )
@@ -221,8 +227,8 @@ object TestDataProvider {
                     Mention(
                         "abc123",
                         LocalDateTime.now(),
-                        false
-                    )
+                        false,
+                    ),
                 ),
             ),
             MergeRequest(
@@ -240,8 +246,8 @@ object TestDataProvider {
                     Mention(
                         "def456",
                         java.time.LocalDateTime.now(),
-                        true
-                    )
+                        true,
+                    ),
                 ),
             ),
         )
