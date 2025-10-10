@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi.extensions
 
-import com.inso_world.binocular.internal.BinocularTime
+import com.inso_world.binocular.ffi.internal.BinocularTime
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset

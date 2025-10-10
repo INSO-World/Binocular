@@ -1,5 +1,6 @@
 package com.inso_world.binocular.cli.integration
 
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -31,6 +32,9 @@ internal class TestDataSetupService(
     @Lazy
     private lateinit var entityManager: EntityManager
 
+    @Autowired
+    private lateinit var infrastructureDataSetup: InfrastructureDataSetup
+
     /**
      * Clears all test data from the database.
      * This method only clears entity data, as relationship data is managed
@@ -38,12 +42,8 @@ internal class TestDataSetupService(
      */
     @Transactional
     fun clearAllData() {
-        entityManager.flush()
-        entityManager.clear()
-        projectInfrastructurePort.deleteAll()
-        repositoryInfrastructurePort.deleteAll()
-        branchInfrastructurePort.deleteAll()
-        commitInfrastructurePort.deleteAll()
+        infrastructureDataSetup.teardown()
+
 //        accountRepository.saveAll(emptyList())
 //        branchRepository.saveAll(emptyList())
 //        buildRepository.saveAll(emptyList())
@@ -63,6 +63,7 @@ internal class TestDataSetupService(
      * are handled by the infrastructure implementation based on the entity data.
      */
     fun setupTestData() {
+        infrastructureDataSetup.setup()
 //        commitRepository.saveAll(TestDataProvider.testCommits)
 //        accountRepository.saveAll(TestDataProvider.testAccounts)
 //        branchRepository.saveAll(TestDataProvider.testBranches)

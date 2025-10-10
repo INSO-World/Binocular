@@ -1,8 +1,8 @@
 package com.inso_world.binocular.ffi.pojos
 
-import com.inso_world.binocular.internal.BString
-import com.inso_world.binocular.internal.BinocularChangeType
-import com.inso_world.binocular.internal.BinocularFileDiff
+import com.inso_world.binocular.ffi.internal.BString
+import com.inso_world.binocular.ffi.internal.BinocularChangeType
+import com.inso_world.binocular.ffi.internal.BinocularFileDiff
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.File

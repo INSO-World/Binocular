@@ -34,6 +34,13 @@ internal class CommitMapper {
     @Lazy
     private lateinit var branchMapper: BranchMapper
 
+    enum class Options {
+        NO_RELATIONSHIPS,
+        CHILDREN,
+        PARENTS,
+        FULL,
+    }
+
     /**
      * Converts a domain Commit to a SQL CommitEntity
      */
@@ -83,8 +90,11 @@ internal class CommitMapper {
         repository: RepositoryEntity,
     ): CommitEntity = toEntityFull(setOf(value), repository).toList()[0]
 
-    fun toDomain(root: CommitEntity): Commit {
-        toDomainGraph(sequenceOf(root))
+    fun toDomain(
+        root: CommitEntity,
+        options: Options = Options.NO_RELATIONSHIPS,
+    ): Commit {
+        toDomainGraph(sequenceOf(root), options)
 
         // return the root node
         return ctx.domain.commit[root.sha]
@@ -147,6 +157,7 @@ internal class CommitMapper {
 
     fun toDomainGraph(
         @NotEmpty entities: Sequence<CommitEntity>,
+        options: Options = Options.FULL,
     ): Set<Commit> {
         // 1) build a sha→entity map (we assume entities already contains *all* commits)
         val entityBySha = entities.associateBy { it.sha }
@@ -193,18 +204,22 @@ internal class CommitMapper {
             val dom =
                 ctx.domain.commit[sha]
                     ?: throw IllegalMappingStateException("Commit domain $sha must be mapped to wire up user")
-            ent.parents
-                .map { parentDom ->
-                    ctx.domain.commit[parentDom.sha]
-                        ?: throw IllegalMappingStateException("Parent Commit domain ${parentDom.sha} must be mapped to wire up parent")
-                }.forEach {
-                    dom.parents.add(it)
-                }
-            ent.children
-                .map { childDom ->
-                    ctx.domain.commit[childDom.sha]
-                        ?: throw IllegalMappingStateException("Child Commit domain ${childDom.sha} must be mapped to wire up child")
-                }.forEach { dom.children.add(it) }
+            if (options == Options.PARENTS || options == Options.FULL) {
+                ent.parents
+                    .map { parentDom ->
+                        ctx.domain.commit[parentDom.sha]
+                            ?: throw IllegalMappingStateException("Parent Commit domain ${parentDom.sha} must be mapped to wire up parent")
+                    }.forEach {
+                        dom.parents.add(it)
+                    }
+            }
+            if (options == Options.CHILDREN || options == Options.FULL) {
+                ent.children
+                    .map { childDom ->
+                        ctx.domain.commit[childDom.sha]
+                            ?: throw IllegalMappingStateException("Child Commit domain ${childDom.sha} must be mapped to wire up child")
+                    }.forEach { dom.children.add(it) }
+            }
         }
 
         val requiredCommits = entityBySha.values.map { it.sha }.toSet()
@@ -216,8 +231,9 @@ internal class CommitMapper {
     fun toDomainFull(
         values: Set<CommitEntity>,
         repository: Repository,
+        options: Options = Options.FULL,
     ): Set<Commit> {
-        val mappedValues = toDomainGraph(values.asSequence())
+        val mappedValues = toDomainGraph(values.asSequence(), options)
 
         (values + values.flatMap { it.children } + values.flatMap { it.parents })
             .toSet()

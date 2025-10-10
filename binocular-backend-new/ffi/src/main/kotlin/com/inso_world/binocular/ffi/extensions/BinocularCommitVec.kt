@@ -1,18 +1,10 @@
 package com.inso_world.binocular.ffi.extensions
 
-import com.inso_world.binocular.internal.BinocularCommitVec
-import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.ffi.internal.BinocularCommitVec
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.File
-import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
-import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.util.Base64
-import kotlin.math.abs
 
 /** Map a whole batch in two passes to preserve identity for commits, parents and users. */
 internal fun Collection<BinocularCommitVec>.toDomain(repository: Repository): List<Commit> {

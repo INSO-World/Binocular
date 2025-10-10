@@ -5,6 +5,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IC
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.CommitRepository
+import com.inso_world.binocular.model.Commit
 import jakarta.persistence.criteria.JoinType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
@@ -16,7 +17,7 @@ import java.util.stream.Stream
  */
 @Repository
 internal class CommitDao(
-    @Autowired
+    @field:Autowired
     private val repo: CommitRepository,
 ) : SqlDao<CommitEntity, Long>(),
     ICommitDao {
@@ -45,8 +46,7 @@ internal class CommitDao(
         repository: com.inso_world.binocular.model.Repository,
         shas: List<String>,
     ): Iterable<CommitEntity> {
-        val rid = repository.id
-        if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
+        val rid = repository.id ?: throw PersistenceException("Cannot search for repo without valid ID")
         val shas =
             this.repo.findAll(
                 Specification.allOf(
@@ -89,4 +89,8 @@ internal class CommitDao(
     }
 
     override fun findAllAsStream(): Stream<CommitEntity> = repo.findAllAsStream()
+
+    override fun findParentsBySha(sha: String): Set<CommitEntity> = this.repo.findParentsBySha(sha)
+
+    override fun findChildrenBySha(sha: String): Set<CommitEntity> = this.repo.findChildrenBySha(sha)
 }

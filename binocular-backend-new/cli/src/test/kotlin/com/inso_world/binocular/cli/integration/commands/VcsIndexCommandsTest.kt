@@ -53,18 +53,6 @@ internal class VcsIndexCommandsTest(
         }
 
         @Test
-        @Disabled
-        fun `index branch origin-feature-6, calculate diffs`() {
-            val projectName = "Binocular"
-            idxClient.commits(
-                repoPath = "../../",
-                branchName = "origin/feature/6",
-                projectName,
-            )
-            idxClient.diffs(projectName)
-        }
-
-        @Test
         fun `index branch origin-feature-6 and then origin-feature-5`() {
             val path = "../../"
             idxClient.commits(

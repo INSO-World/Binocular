@@ -7,19 +7,31 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 import org.springframework.shell.command.annotation.CommandScan
 
 @SpringBootApplication(
-    scanBasePackages = [
+//    scanBasePackages = [
+//        "com.inso_world.binocular.cli",
+// //        make sure the ones below match the ones in WebApplication (and vice versa)
+//        "com.inso_world.binocular.core.persistence",
+//        "com.inso_world.binocular.core.service",
+//    ],
+)
+@CommandScan(basePackages = ["com.inso_world.binocular.cli.commands"])
+@ComponentScan(
+    basePackages = [
         "com.inso_world.binocular.cli",
 //        make sure the ones below match the ones in WebApplication (and vice versa)
         "com.inso_world.binocular.core.persistence",
         "com.inso_world.binocular.core.service",
     ],
 )
-@CommandScan(basePackages = ["com.inso_world.binocular.cli.commands"])
 class BinocularCommandLineApplication {
-    private var logger: Logger = LoggerFactory.getLogger(BinocularCommandLineApplication::class.java)
+    companion object {
+        private var logger: Logger = LoggerFactory.getLogger(BinocularCommandLineApplication::class.java)
+    }
 
 //  @Bean
 //  fun myPromptProvider(): PromptProvider {

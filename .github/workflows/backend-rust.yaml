@@ -44,22 +44,14 @@ jobs:
             runner-os: ubuntu-24.04-arm
             host-triple: aarch64-unknown-linux-gnu
             file-ending: so
-    #          - runner-arch: arm64
-    #            runner-os: macos-latest
-    #            host-triple: aarch64-apple-darwin
-    #            file-ending: dylib
-    #          - runner-arch: x86_64
-    #            runner-os: macos-latest
-    #            host-triple: x86_64-apple-darwin
-    #            file-ending: dylib
-    #          - runner-arch: x86_64
-    #            runner-os: windows-latest
-    #            host-triple: x86_64-pc-windows-msvc
-    #            file-ending: dll
-    #          - runner-arch: x86_64
-    #            runner-os: windows-latest
-    #            host-triple: aarch64-pc-windows-msvc
-    #            file-ending: dll
+          - runner-arch: arm64
+            runner-os: macos-latest
+            host-triple: aarch64-apple-darwin
+            file-ending: dylib
+          - runner-arch: x86_64
+            runner-os: macos-latest
+            host-triple: x86_64-apple-darwin
+            file-ending: dylib
     runs-on: ${{ matrix.runner-os }}
     container: ${{ matrix.container }}
 
@@ -96,7 +88,7 @@ jobs:
         run: echo "PATH=$HOME/.cargo/bin:$PATH" >> "$GITHUB_ENV"
 
       - name: Run rustup target add
-        if: contains(matrix.container, 'rust:')
+        if: contains(matrix.container, 'rust:') || contains(matrix.host-triple, 'x86_64-apple-darwin')
         run: |
           rustup target add ${{ matrix.host-triple }}
 

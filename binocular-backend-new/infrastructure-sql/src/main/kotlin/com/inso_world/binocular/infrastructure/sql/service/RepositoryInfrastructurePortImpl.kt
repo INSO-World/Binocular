@@ -23,6 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
@@ -129,16 +130,16 @@ internal class RepositoryInfrastructurePortImpl :
                 project,
             )
 //        val newEntity =
-//        return try {
-//            super.create(mapped)
-//            repositoryDao.flush()
-//        } catch (e: DataIntegrityViolationException) {
-//            logger.error(e.message)
-//            throw e
-//        }
-        return super.create(mapped).let { newEntity ->
+        return try {
+            val newEntity = super.create(mapped)
             repositoryDao.flush()
-
+            newEntity
+        } catch (e: DataIntegrityViolationException) {
+            entityManager.flush()
+            entityManager.clear()
+            logger.error(e.message)
+            throw e
+        }.let { newEntity ->
             val project =
                 projectMapper.toDomain(
                     newEntity.project,
@@ -150,12 +151,20 @@ internal class RepositoryInfrastructurePortImpl :
 
     @MappingSession
     override fun update(value: Repository): Repository {
-        val projectId =
-            value.project?.id?.toLong() ?: throw IllegalArgumentException("project.id of Repository must not be null")
-        val project = projectDao.findById(projectId) ?: throw NotFoundException("Project ${value.project} not found")
         val entity =
-            project.repo
-                ?: throw IllegalStateException("On updating Repository, it is required to be set to project already")
+            run {
+                value.id?.let {
+                    repositoryDao.findById(it.toLong())
+                } ?: run {
+                    val project =
+                        value.project?.id?.let { id ->
+                            this.projectDao.findById(id.toLong())
+                        } ?: throw NotFoundException("Project ${value.project} not found")
+
+                    this.repositoryMapper.toEntity(value, project)
+                }
+            }
+
         logger.debug("Repository Entity found")
 
         run {
