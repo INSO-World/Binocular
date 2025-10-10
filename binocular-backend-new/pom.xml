@@ -59,6 +59,7 @@
         <module>ffi</module>
         <module>infrastructure-arangodb</module>
         <module>infrastructure-sql</module>
+        <module>infrastructure-test</module>
         <module>cli</module>
         <module>web</module>
     </modules>
