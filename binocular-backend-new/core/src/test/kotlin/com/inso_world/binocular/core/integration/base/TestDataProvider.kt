@@ -14,6 +14,8 @@ import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import java.time.LocalDateTime
@@ -256,6 +258,27 @@ object TestDataProvider {
         listOf(
             Module("1", "src/main/kotlin/com/example/core"),
             Module("2", "src/main/kotlin/com/example/api"),
+        )
+
+    val testProjects =
+        listOf(
+            Project(id = "p1", name = "proj-pg-0"),
+            Project(id = "p2", name = "proj-pg-1"),
+            Project(id = "p3", name = "proj-pg-2"),
+            Project(id = "p4", name = "proj-pg-3"),
+            Project(id = "p5", name = "proj-pg-4"),
+            Project(id = "pR", name = "proj-for-repos"),
+        )
+
+    val testRepositories =
+        listOf(
+            Repository(id = "r1", name = "repo-pg-0", project = testProjects.last()),
+            Repository(id = "r2", name = "repo-pg-1", project = testProjects.last()),
+            Repository(id = "r3", name = "repo-pg-2", project = testProjects.last()),
+            Repository(id = "r4", name = "repo-pg-3", project = testProjects.last()),
+            Repository(id = "r5", name = "repo-pg-4", project = testProjects.last()),
+            Repository(id = "r6", name = "repo-pg-5", project = testProjects.last()),
+            Repository(id = "r7", name = "repo-pg-6", project = testProjects.last()),
         )
 
     val testNotes =

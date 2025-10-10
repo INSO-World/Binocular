@@ -1,0 +1,26 @@
+spring:
+  main:
+    banner-mode: off
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/binocular
+    username: ${DATABASE_USER:binocular}
+    password: ${DATABASE_PW:binocular}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: true
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 256
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+logging:
+  level:
+    org:
+      hibernate:
+        engine:
+          internal:
+            StatisticalLoggingSessionEventListener: info
