@@ -58,8 +58,9 @@ internal class RepositoryMapper
 //                    wire up commit->user
                 allCommitsOfDomain.associateBy(Commit::sha).values.forEach { cmt ->
                     val commitEntity =
-                        ctx.entity.commit[cmt.sha]
-                            ?: throw IllegalStateException("Cannot map Commit$cmt with its entity ${cmt.sha}")
+                        requireNotNull(ctx.entity.commit[cmt.sha]) {
+                            "Cannot map Commit$cmt with its entity ${cmt.sha}"
+                        }
                     cmt.committer
                         ?.let { user ->
 //                            commitEntity.add(userMapper.toEntity(user))
@@ -159,7 +160,7 @@ internal class RepositoryMapper
                                     }
                             u
                         }.toMutableSet()
-                } ?: throw IllegalStateException("Cannot bulk-map branches"),
+                } ?: throw IllegalStateException("Cannot bulk-map user"),
             )
 //            domain.user.forEach { it.repository = domain }
 

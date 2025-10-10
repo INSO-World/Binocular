@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi.pojos
 
-import com.inso_world.binocular.internal.BinocularRepository
+import com.inso_world.binocular.ffi.internal.BinocularRepository
 import com.inso_world.binocular.model.Repository
 
 internal fun Repository.toFfi(): BinocularRepository =

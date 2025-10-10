@@ -54,8 +54,9 @@ internal class BranchMapper {
         // Commit is a child of Branch, hence it is mapped here
         domain.commits
             .map {
-                ctx.entity.commit[it.sha]
-                    ?: throw IllegalStateException("Commit sha $it not found in context")
+                requireNotNull(ctx.entity.commit[it.sha]) {
+                    "Commit sha $it not found in context"
+                }
             }.forEach {
                 entity.addCommit(it)
             }

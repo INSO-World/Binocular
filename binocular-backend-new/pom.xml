@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.inso-world.binocular</groupId>
@@ -46,11 +46,12 @@
         </url>
     </scm>
     <properties>
+        <spring.version>3.5.6</spring.version>
         <java.version>23</java.version>
-        <kotlin.version>2.1.20</kotlin.version>
+        <kotlin.version>2.2.20</kotlin.version>
         <junit.version>5.13.1</junit.version>
         <mockk.version>1.14.4</mockk.version>
-        <!--        <revision>0.0.1-SNAPSHOT</revision>-->
+        <testcontainers.version>1.21.3</testcontainers.version>
     </properties>
     <modules>
         <module>domain</module>
@@ -79,11 +80,6 @@
                 <version>6.6.12.Final</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-jpa</artifactId>
-                <version>3.5.1</version>
-            </dependency>
-            <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-reflect</artifactId>
                 <version>${kotlin.version}</version>
@@ -107,14 +103,14 @@
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.7.6</version>
+                <version>42.7.8</version>
                 <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring.version}</version>
                 <!-- make sure this one is the same version as spring-boot-starter-parent -->
-                <version>3.5.3</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -142,7 +138,7 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>1.21.3</version>
+                <version>${testcontainers.version}</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -219,9 +215,6 @@
         </profile>
         <profile>
             <id>arangodb</id>
-        </profile>
-        <profile>
-            <id>postgres</id>
         </profile>
     </profiles>
 

@@ -62,4 +62,18 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
         repoId: Long,
         sha: String,
     ): CommitEntity?
+
+    @Query("""
+            select ch from CommitEntity c 
+            join c.children ch 
+            where c.sha = :sha
+        """)
+        fun findChildrenBySha(@Param("sha") sha: String): Set<CommitEntity>
+
+        @Query("""
+                select p from CommitEntity c 
+                join c.parents p 
+                where c.sha = :sha
+            """)
+            fun findParentsBySha(@Param("sha") sha: String): Set<CommitEntity>
 }

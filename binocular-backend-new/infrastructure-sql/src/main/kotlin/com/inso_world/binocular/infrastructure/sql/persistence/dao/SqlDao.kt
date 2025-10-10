@@ -5,6 +5,8 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IDao
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
@@ -15,6 +17,10 @@ import java.util.stream.Stream
 internal class SqlDao<T, I : Serializable> : IDao<T, I> {
     private lateinit var clazz: Class<T>
     private lateinit var repository: JpaRepository<T, I>
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(SqlDao::class.java)
+    }
 
     @PersistenceContext
     protected lateinit var entityManager: EntityManager

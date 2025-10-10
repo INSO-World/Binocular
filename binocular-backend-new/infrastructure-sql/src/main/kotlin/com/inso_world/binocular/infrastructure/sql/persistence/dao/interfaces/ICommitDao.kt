@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces
 
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import java.util.stream.Stream
 
@@ -26,4 +27,8 @@ internal interface ICommitDao : IDao<CommitEntity, Long> {
     ): CommitEntity?
 
     fun findAll(repository: Repository): Stream<CommitEntity>
+
+    fun findParentsBySha(sha: String): Set<CommitEntity>
+
+    fun findChildrenBySha(sha: String): Set<CommitEntity>
 }

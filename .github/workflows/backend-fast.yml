@@ -6,10 +6,10 @@ on:
       - '.github/workflows/backend-fast.yml'
       - 'binocular-backend-new/**'
       - '!binocular-backend-new/ffi/lib/**'
-  pull_request:
-    branches:
-      - "!main"
-      - "!develop"
+#  pull_request:
+#    branches:
+#      - "!main"
+#      - "!develop"
   workflow_dispatch:
 
 env:

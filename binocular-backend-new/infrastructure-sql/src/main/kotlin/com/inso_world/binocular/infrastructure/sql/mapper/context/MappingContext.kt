@@ -16,7 +16,9 @@ import java.util.concurrent.ConcurrentHashMap
 @Component
 @Scope("mapping", proxyMode = ScopedProxyMode.TARGET_CLASS)
 internal class MappingContext {
-    private val logger: Logger = LoggerFactory.getLogger(MappingContext::class.java)
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(MappingContext::class.java)
+    }
 
     // entity → domain
     val domain = DomainMaps()

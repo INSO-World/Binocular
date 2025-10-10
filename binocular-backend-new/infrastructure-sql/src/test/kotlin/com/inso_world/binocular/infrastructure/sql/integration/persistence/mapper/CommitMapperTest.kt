@@ -332,7 +332,7 @@ internal class CommitMapperTest : BaseMapperTest() {
 
             val domain =
                 assertDoesNotThrow {
-                    commitMapper.toDomain(commitEntityA)
+                    commitMapper.toDomain(commitEntityA, options = CommitMapper.Options.FULL)
                 }
 
             assertThat(domain.parents).hasSize(1)

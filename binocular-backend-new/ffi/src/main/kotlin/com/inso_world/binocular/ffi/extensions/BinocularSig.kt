@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi.extensions
 
-import com.inso_world.binocular.internal.BinocularSig
+import com.inso_world.binocular.ffi.internal.BinocularSig
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 
