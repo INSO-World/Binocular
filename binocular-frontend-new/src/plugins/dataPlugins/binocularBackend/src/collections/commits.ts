@@ -5,6 +5,7 @@ import type {
   DataPluginCommitBuild,
   DataPluginCommits,
   DataPluginFileOwnership,
+  DataPluginCommitShort,
 } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
@@ -12,6 +13,40 @@ export default class Commits implements DataPluginCommits {
 
   constructor(endpoint: string) {
     this.graphQl = new GraphQL(endpoint);
+  }
+
+  public async getAllShort() {
+    console.log('Getting all commits short');
+    const commitList: DataPluginCommitShort[] = [];
+    const getCommitsPage = () => async (page: number, perPage: number) => {
+      const resp = await this.graphQl.client.query({
+        query: gql`
+          query ($page: Int, $perPage: Int) {
+            commits(page: $page, perPage: $perPage) {
+              count
+              page
+              perPage
+              data {
+                sha
+                date
+                message
+              }
+            }
+          }
+        `,
+        variables: { page, perPage },
+      });
+      return resp.data.commits;
+    };
+
+    await traversePages(getCommitsPage(), (commit: DataPluginCommitShort) => {
+      commitList.push(commit);
+    });
+
+    console.log('listtttt');
+    console.log(commitList);
+
+    return commitList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   public async getAll(from: string, to: string, sort: string = 'ASC') {

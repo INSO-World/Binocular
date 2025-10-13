@@ -10,7 +10,7 @@ import Accounts from './collections/accounts.ts';
 import Branches from './collections/branches.ts';
 import MergeRequests from './collections/mergeRequests.ts';
 import AccountsIssues from './collections/accounts-issues.ts';
-import CommitsFiles from './commitsFiles.ts';
+import CommitsFiles from './collections/commitsFiles.ts';
 
 class MockData implements DataPlugin {
   public name = 'Mock Data';

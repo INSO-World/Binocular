@@ -12,7 +12,7 @@ import Notes from './collections/notes.ts';
 import Accounts from './collections/accounts.ts';
 import MergeRequests from './collections/mergeRequests.ts';
 import AccountsIssues from './collections/accounts-issues.ts';
-import CommitsFiles from './commitsFiles.ts';
+import CommitsFiles from './collections/commitsFiles.ts';
 
 class BinocularBackend implements DataPlugin {
   public name = 'Binocular Backend';
