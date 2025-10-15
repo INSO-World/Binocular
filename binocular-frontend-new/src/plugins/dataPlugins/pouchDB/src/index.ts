@@ -11,6 +11,7 @@ import Issues from './collections/issues.ts';
 import Accounts from './collections/accounts.ts';
 import Branches from './collections/branches.ts';
 import MergeRequests from './collections/mergeRequests.ts';
+import AccountsIssues from './collections/accounts-issues';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
@@ -33,6 +34,7 @@ class PouchDb implements DataPlugin {
   public branches;
   public notes;
   public issues;
+  public accountsIssues;
   public mergeRequests;
 
   private readonly database;
@@ -49,6 +51,7 @@ class PouchDb implements DataPlugin {
     this.files = new Files(undefined);
     this.database = new Database();
     this.branches = new Branches(undefined);
+    this.accountsIssues = new AccountsIssues(undefined);
   }
 
   public async init(_apiKey: string | undefined, _endpoint: string | undefined, file: FileConfig | undefined) {
@@ -64,6 +67,7 @@ class PouchDb implements DataPlugin {
       this.general = new General();
       this.files = new Files(this.database);
       this.branches = new Branches(this.database);
+      this.accountsIssues = new AccountsIssues(this.database);
     }
   }
 
