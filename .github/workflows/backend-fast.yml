@@ -194,24 +194,18 @@ jobs:
           - os: ubuntu-latest
             architecture: 'x64'
             module: 'domain'
-            springProfile: 'test'
           - os: ubuntu-latest
             architecture: 'x64'
             module: 'ffi'
-            springProfile: 'test'
           - os: ubuntu-latest
             architecture: 'x64'
             module: 'core'
-            springProfile: 'test'
           - os: ubuntu-latest
             architecture: 'x64'
             module: 'infrastructure-arangodb'
-            mvnProfile: 'arangodb'
-            springProfile: 'test,nosql,arangodb'
           - os: ubuntu-latest
             architecture: 'x64'
             module: 'infrastructure-sql'
-            springProfile: 'test,sql,postgres'
           - os: ubuntu-latest
             architecture: 'x64'
             module: 'infrastructure-test'
@@ -238,19 +232,13 @@ jobs:
           checkout-depth: 1
 
       - name: Install dependencies
-        run: |
-          CMD="mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install"
-          if [ -n "${{ matrix.mvnProfile }}" ]; then
-            CMD="$CMD -P${{ matrix.mvnProfile }}"
-          fi
-          echo "Running: $CMD"
-          eval $CMD
+        run: mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=${{ matrix.springProfile }}"
-          if [ -n "${{ matrix.mvnProfile }}" ]; then
-            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}"
+          if [ -n "${{ matrix.springProfile }}" ]; then
+            CMD="$CMD -Dspring.profiles.active=${{ matrix.springProfile }}"
           fi
           echo "Running: $CMD"
           eval $CMD
@@ -258,9 +246,9 @@ jobs:
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
         run: |
-          CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=${{matrix.springProfile}}"
-          if [ -n "${{ matrix.mvnProfile }}" ]; then
-            CMD="$CMD -P${{ matrix.mvnProfile }}"
+          CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am"
+          if [ -n "${{ matrix.springProfile }}" ]; then
+            CMD="$CMD -Dspring.profiles.active=${{matrix.springProfile}}"
           fi
           echo "Running: $CMD"
           eval $CMD
