@@ -8,7 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootApplication(scanBasePackages = ["com.inso_world.binocular.infrastructure.sql.mapper"])
+@SpringBootApplication(
+    scanBasePackages = ["com.inso_world.binocular.infrastructure.sql.mapper", "com.inso_world.binocular.core"],
+    exclude = [
+        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration::class,
+        org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration::class,
+        org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration::class,
+        org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration::class,
+        org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration::class
+    ]
+)
 private class MapperTestApplication
 
 @SpringBootTest(classes = [MapperTestApplication::class])
@@ -26,99 +35,3 @@ internal class BaseMapperTest : BaseIntegrationTest() {
         mappingScope.endSession()
     }
 }
-
-//internal object MapperTestData {
-//    val projectEntity =
-//        ProjectEntity(
-//            id = 1L,
-//            name = "TestProject",
-//            description = "A test project",
-//        )
-//
-//    val repositoryEntity =
-//        RepositoryEntity(
-//            id = 1L,
-//            name = "TestRepository",
-//            project = projectEntity,
-//        )
-//
-//    val commitEntityA =
-//        CommitEntity(
-//            id = 1,
-//            sha = "A".repeat(40),
-//            authorDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
-//            commitDateTime = LocalDateTime.of(2020, 1, 1, 1, 0, 0, 0),
-//            message = "Valid commit 1",
-//            repository = this.repositoryEntity,
-//            branches = mutableSetOf(),
-//        )
-//
-//    val commitEntityB =
-//        CommitEntity(
-//            id = 2,
-//            sha = "B".repeat(40),
-//            authorDateTime = LocalDateTime.of(2020, 1, 3, 1, 0, 0, 0),
-//            commitDateTime = LocalDateTime.of(2020, 1, 2, 1, 0, 0, 0),
-//            message = "Valid commit 2",
-//            repository = this.repositoryEntity,
-//            branches = mutableSetOf(),
-//        )
-//
-//    val branchEntity =
-//        BranchEntity(
-//            name = "testBranch",
-//            repository = this.repositoryEntity,
-//            commits =
-//                mutableSetOf(
-////                    commitEntityA,
-////                    commitEntityB,
-//                ),
-//        )
-//
-//    /*
-//     * Domain objects
-//     */
-//
-//    fun repositoryModel() =
-//        Repository(
-//            id = this.repositoryEntity.id.toString(),
-//            name = this.repositoryEntity.name,
-//            project = Project(
-//                id = projectEntity.id?.toString(),
-//                name = projectEntity.name,
-//                description = projectEntity.description,
-//            )
-//        )
-//
-//    val branchDomain =
-//        Branch(
-//            id = branchEntity.id?.toString(),
-//            name = branchEntity.name,
-//            repository = repositoryModel(),
-//        )
-//
-//    val commitDomainA =
-//        Commit(
-//            id = commitEntityA.id?.toString(),
-//            sha = commitEntityA.sha,
-//            authorDateTime = commitEntityA.authorDateTime,
-//            commitDateTime = commitEntityA.commitDateTime,
-//            message = commitEntityA.message,
-//            repositoryId = commitEntityA.repository?.id.toString(),
-//        )
-//    val commitDomainB =
-//        Commit(
-//            id = commitEntityB.id?.toString(),
-//            sha = commitEntityB.sha,
-//            authorDateTime = commitEntityB.authorDateTime,
-//            commitDateTime = commitEntityB.commitDateTime,
-//            message = commitEntityB.message,
-//            repositoryId = commitEntityB.repository?.id.toString(),
-//        )
-//
-//    val commits =
-//        listOf(
-//            commitDomainA,
-//            commitDomainB,
-//        )
-//}
