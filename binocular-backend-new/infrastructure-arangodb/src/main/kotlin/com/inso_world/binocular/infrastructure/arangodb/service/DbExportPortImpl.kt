@@ -2,10 +2,9 @@ package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.arangodb.ArangoDBException
 import com.inso_world.binocular.core.service.DbExportPort
-import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.AdbConfig
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 
 /**
@@ -14,9 +13,8 @@ import org.springframework.stereotype.Service
  * This implementation only works with ArangoDB.
  */
 @Service
-@Profile("arangodb")
 class DbExportPortImpl(
-    private val arangoConfig: AdbConfig,
+    private val arangoConfig: ArangodbAppConfig,
 ) : DbExportPort {
     var logger: Logger = LoggerFactory.getLogger(DbExportPortImpl::class.java)
 

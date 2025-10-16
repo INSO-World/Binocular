@@ -20,7 +20,7 @@ import kotlin.io.path.Path
 @ContextConfiguration(
     classes = [LocalArangodbConfig::class, LocalPostgresConfig::class, LocalGixConfig::class],
     initializers = [
-        com.inso_world.binocular.infrastructure.arangodb.ArangodbConfig.Initializer::class,
+        com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig.Initializer::class,
         com.inso_world.binocular.infrastructure.sql.PostgresConfig.Initializer::class
     ]
 )

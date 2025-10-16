@@ -3,7 +3,7 @@ package com.inso_world.binocular.infrastructure.arangodb.service
 import com.arangodb.ArangoDB
 import com.arangodb.ArangoDatabase
 import com.arangodb.entity.CollectionEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.AdbConfig
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -16,8 +16,8 @@ import org.junit.jupiter.api.assertThrows
  */
 class DbExportServiceTest {
 
-  private val adbConfig = mockk<AdbConfig>()
-  private val service = DbExportPortImpl(adbConfig)
+  private val arangodbAppConfig = mockk<ArangodbAppConfig>()
+  private val service = DbExportPortImpl(arangodbAppConfig)
 
   @Test
   fun `should export data from mocked database`() {
@@ -42,9 +42,9 @@ class DbExportServiceTest {
     val dataForCollection1 = listOf(mapOf("key" to "value1"))
     val dataForCollection2 = listOf(mapOf("key" to "value2"))
 
-    every { adbConfig.arango() } returns builder
+    every { arangodbAppConfig.arango() } returns builder
     every { builder.build() } returns arango
-    every { adbConfig.database() } returns "testdb"
+    every { arangodbAppConfig.database() } returns "testdb"
 
     // ArangoDB returns the database
     every { arango.db("testdb") } returns database
@@ -74,7 +74,7 @@ class DbExportServiceTest {
     }
 
     // initialize service
-    val service = DbExportPortImpl(adbConfig)
+    val service = DbExportPortImpl(arangodbAppConfig)
 
     // call the function
     val result = service.exportDb()
@@ -101,9 +101,9 @@ class DbExportServiceTest {
       every { name } returns "_system"
     }
 
-    every { adbConfig.arango() } returns builder
+    every { arangodbAppConfig.arango() } returns builder
     every { builder.build() } returns arango
-    every { adbConfig.database() } returns "testdb"
+    every { arangodbAppConfig.database() } returns "testdb"
     every { arango.db("testdb") } returns database
     every { database.collections } returns listOf(systemCollection)
 
@@ -118,13 +118,13 @@ class DbExportServiceTest {
   @Test
   fun `should throw exception when database connection fails`() {
     // mock the behaviour of the call
-    every { adbConfig.arango().build() } throws RuntimeException("Error while connecting to database")
+    every { arangodbAppConfig.arango().build() } throws RuntimeException("Error while connecting to database")
 
     // assert that calling the service throws a RuntimeException
     assertThrows<RuntimeException> {
       service.exportDb()
     }
 
-    verify { adbConfig.arango().build() }
+    verify { arangodbAppConfig.arango().build() }
   }
 }

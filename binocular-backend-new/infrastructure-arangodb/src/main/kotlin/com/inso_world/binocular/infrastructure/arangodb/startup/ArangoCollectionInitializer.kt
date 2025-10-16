@@ -2,7 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.startup
 
 import com.arangodb.entity.CollectionType
 import com.arangodb.model.CollectionCreateOptions
-import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.AdbConfig
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -19,14 +19,14 @@ import jakarta.annotation.PostConstruct
 @Component
 @Profile("arangodb")
 class ArangoCollectionInitializer(
-    private val adbConfig: AdbConfig,
+    private val arangodbAppConfig: ArangodbAppConfig,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ArangoCollectionInitializer::class.java)
 
     @PostConstruct
     fun ensureCollections() {
-        val arango = adbConfig.arango().build()
-        val dbName = adbConfig.database()
+        val arango = arangodbAppConfig.arango().build()
+        val dbName = arangodbAppConfig.database()
         val db = arango.db(dbName)
         logger.info("Ensuring required ArangoDB collections exist in database: {}", dbName)
 
@@ -69,7 +69,7 @@ class ArangoCollectionInitializer(
 
     private fun ensureDocumentCollection(dbName: String, name: String) {
         try {
-            val arango = adbConfig.arango().build()
+            val arango = arangodbAppConfig.arango().build()
             val db = arango.db(dbName)
             val collection = db.collection(name)
             if (!collection.exists()) {
@@ -85,7 +85,7 @@ class ArangoCollectionInitializer(
 
     private fun ensureEdgeCollection(dbName: String, name: String) {
         try {
-            val arango = adbConfig.arango().build()
+            val arango = arangodbAppConfig.arango().build()
             val db = arango.db(dbName)
             val collection = db.collection(name)
             if (!collection.exists()) {

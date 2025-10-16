@@ -12,7 +12,7 @@ internal class ContainerChecks : BaseInfrastructureSpringTest() {
         loadContext = true
     )
     fun checkAdbContainerIsRunning() {
-        assertTrue(com.inso_world.binocular.infrastructure.arangodb.ArangodbConfig.adbContainer.isRunning)
+        assertTrue(com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig.adbContainer.isRunning)
     }
 
     @Test

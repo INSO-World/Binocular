@@ -4,14 +4,11 @@ import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.infrastructure.test.config.LocalArangodbConfig
 import com.inso_world.binocular.infrastructure.test.config.LocalPostgresConfig
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.EnabledIf
 
 /**
  * Base class for infrastructure integration tests. Profiles and properties are now managed via
@@ -22,7 +19,7 @@ import org.springframework.test.context.junit.jupiter.EnabledIf
 @ContextConfiguration(
     classes = [LocalArangodbConfig::class, LocalPostgresConfig::class],
     initializers = [
-        com.inso_world.binocular.infrastructure.arangodb.ArangodbConfig.Initializer::class,
+        com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig.Initializer::class,
         com.inso_world.binocular.infrastructure.sql.PostgresConfig.Initializer::class
     ]
 )
