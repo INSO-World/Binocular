@@ -178,34 +178,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        MODULE: [
+          { name: 'domain' },
+          { name: 'ffi' },
+          { name: 'core' },
+          { name: 'infrastructure-arangodb' },
+          { name: 'infrastructure-sql' },
+          { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' }
+          { name: 'infrastructure-test', springProfile: 'test,gix,postgres' }
+        ]
         os: [ ubuntu-latest ]
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
-        module: [ 'domain', 'ffi', 'core', 'infrastructure-arangodb', 'infrastructure-sql', 'infrastructure-test' ]
-        include:
-          - os: ubuntu-latest
-            architecture: 'x64'
-            module: 'domain'
-          - os: ubuntu-latest
-            architecture: 'x64'
-            module: 'ffi'
-          - os: ubuntu-latest
-            architecture: 'x64'
-            module: 'core'
-          - os: ubuntu-latest
-            architecture: 'x64'
-            module: 'infrastructure-arangodb'
-          - os: ubuntu-latest
-            architecture: 'x64'
-            module: 'infrastructure-sql'
-          - os: ubuntu-latest
-            architecture: 'x64'
-            module: 'infrastructure-test'
-            springProfile: 'test,gix,arangodb'
-          - os: ubuntu-latest
-            architecture: 'x64'
-            module: 'infrastructure-test'
-            springProfile: 'test,gix,postgres'
 
     runs-on: ${{ matrix.os }}
 
@@ -224,23 +208,23 @@ jobs:
           checkout-depth: 1
 
       - name: Install dependencies
-        run: mvn clean --pl ${{ matrix.module }} -am -DskipTests jar:test-jar install
+        run: mvn clean --pl ${{ matrix.MODULE.name }} -am -DskipTests jar:test-jar install
 
-      - name: Run tests for module ${{ matrix.module }}
+      - name: Run tests for module ${{ matrix.MODULE.name }}
         run: |
-          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}"
-          if [ -n "${{ matrix.springProfile }}" ]; then
-            CMD="$CMD -Dspring.profiles.active=${{ matrix.springProfile }}"
+          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.MODULE.name }}"
+          if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
+            CMD="$CMD -Dspring.profiles.active=${{ matrix.MODULE.springProfile }}"
           fi
           echo "Running: $CMD"
           eval $CMD
 
-      - name: Surefire report for module ${{ matrix.module }}
+      - name: Surefire report for module ${{ matrix.MODULE.name }}
         if: always()
         run: |
-          CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am"
-          if [ -n "${{ matrix.springProfile }}" ]; then
-            CMD="$CMD -Dspring.profiles.active=${{matrix.springProfile}}"
+          CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.MODULE.name }} -am"
+          if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
+            CMD="$CMD -Dspring.profiles.active=${{matrix.MODULE.springProfile}}"
           fi
           echo "Running: $CMD"
           eval $CMD
@@ -249,5 +233,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.module }}-report
-          path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
+          name: ${{ matrix.MODULE.name }}-report
+          path: ${{ env.WD }}/${{ matrix.MODULE.name }}/target/reports/
