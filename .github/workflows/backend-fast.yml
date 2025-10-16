@@ -233,5 +233,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.MODULE.name }}-report
+          name: ${{ matrix.MODULE.name }}-${{ matrix.MODULE.springProfile }}-report
           path: ${{ env.WD }}/${{ matrix.MODULE.name }}/target/reports/
