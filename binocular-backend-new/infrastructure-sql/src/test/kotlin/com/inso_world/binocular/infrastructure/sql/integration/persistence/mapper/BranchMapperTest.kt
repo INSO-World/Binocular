@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper
 
-import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper.base.BaseMapperTest
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
@@ -26,9 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 
 internal class BranchMapperTest : BaseMapperTest() {
-    @Autowired
-    private lateinit var proxyFactory: RelationshipProxyFactory
-
     @Autowired
     private lateinit var ctx: MappingContext
 
