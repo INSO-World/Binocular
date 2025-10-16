@@ -29,7 +29,7 @@ data class Commit(
     val webUrl: String? = null,
     @Deprecated("do not use")
     val branch: String? = null,
-    val stats: CommitDiff.Stats? = null,
+    val stats: Stats? = null,
     // Relationships
 //    old stuff
     val builds: List<Build> = emptyList(),

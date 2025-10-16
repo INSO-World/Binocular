@@ -1,6 +1,7 @@
 package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
+import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Milestone
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -9,8 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-class MilestoneTest : BaseInfrastructureSpringTest() {
-
+internal class MilestoneTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var milestonePort: MilestoneInfrastructurePort
 

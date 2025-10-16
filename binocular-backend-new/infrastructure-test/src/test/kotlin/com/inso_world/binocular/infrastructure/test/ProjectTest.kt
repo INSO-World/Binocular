@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Project
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -9,19 +11,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-class ProjectTest : BaseInfrastructureSpringTest() {
-
+internal class ProjectTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var projectPort: ProjectInfrastructurePort
 
-    @BeforeEach
-    fun setup() {
-        projectPort.deleteAll()
-    }
-
-    @AfterEach
-    fun cleanup() {
-        projectPort.deleteAll()
+    @Test
+    fun `find all projects, expect non empty list`() {
+        assertThat(projectPort.findAll()).hasSize(6)
     }
 
     @Test

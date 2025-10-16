@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
+import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -22,12 +23,15 @@ import java.time.LocalDateTime
  * Verifies that domain constraints are enforced via the core ports.
  * Only imports from core and model are used, as requested.
  */
-class ValidationTest : BaseInfrastructureSpringTest() {
-
+internal class ValidationTest : BaseInfrastructureSpringTest() {
     @Autowired lateinit var projectPort: ProjectInfrastructurePort
+
     @Autowired lateinit var repositoryPort: RepositoryInfrastructurePort
+
     @Autowired lateinit var branchPort: BranchInfrastructurePort
+
     @Autowired lateinit var commitPort: CommitInfrastructurePort
+
     @Autowired lateinit var userPort: UserInfrastructurePort
 
     private lateinit var validProject: Project
@@ -35,25 +39,9 @@ class ValidationTest : BaseInfrastructureSpringTest() {
 
     @BeforeEach
     fun setup() {
-        // Clean state
-        userPort.deleteAll()
-        branchPort.deleteAll()
-        commitPort.deleteAll()
-        repositoryPort.deleteAll()
-        projectPort.deleteAll()
-
         // Baseline valid project/repository for tests that need them
         validProject = projectPort.create(Project(name = "proj-valid"))
-        validRepository = repositoryPort.create(Repository(name = "repo-valid", project = validProject))
-    }
-
-    @AfterEach
-    fun cleanup() {
-        userPort.deleteAll()
-        branchPort.deleteAll()
-        commitPort.deleteAll()
-        repositoryPort.deleteAll()
-        projectPort.deleteAll()
+        validRepository = repositoryPort.create(Repository(localPath = "repo-valid", project = validProject))
     }
 
     // Project validations
@@ -68,14 +56,14 @@ class ValidationTest : BaseInfrastructureSpringTest() {
     @Test
     fun `repository name must not be blank`() {
         assertThrows(ConstraintViolationException::class.java) {
-            repositoryPort.create(Repository(name = "", project = validProject))
+            repositoryPort.create(Repository(localPath = "", project = validProject))
         }
     }
 
     @Test
     fun `repository project must not be null`() {
         assertThrows(ConstraintViolationException::class.java) {
-            repositoryPort.create(Repository(name = "repo-no-project", project = null))
+            repositoryPort.create(Repository(localPath = "repo-no-project", project = null))
         }
     }
 
@@ -104,7 +92,7 @@ class ValidationTest : BaseInfrastructureSpringTest() {
                     authorDateTime = LocalDateTime.now(),
                     commitDateTime = LocalDateTime.now(),
                     repository = validRepository,
-                )
+                ),
             )
         }
     }
@@ -118,7 +106,7 @@ class ValidationTest : BaseInfrastructureSpringTest() {
                     authorDateTime = LocalDateTime.now(),
                     commitDateTime = null, // invalid
                     repository = validRepository,
-                )
+                ),
             )
         }
     }
@@ -132,7 +120,7 @@ class ValidationTest : BaseInfrastructureSpringTest() {
                     authorDateTime = LocalDateTime.now(),
                     commitDateTime = LocalDateTime.now(),
                     repository = null, // invalid
-                )
+                ),
             )
         }
     }

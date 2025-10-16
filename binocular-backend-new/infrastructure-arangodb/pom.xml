@@ -67,6 +67,12 @@
             <artifactId>mockk-jvm</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.goodforgod</groupId>
+            <artifactId>arangodb-testcontainer</artifactId>
+            <version>${arangodb-testcontainer.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

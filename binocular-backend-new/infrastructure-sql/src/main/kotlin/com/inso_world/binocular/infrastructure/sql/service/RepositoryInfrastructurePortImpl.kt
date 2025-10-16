@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
@@ -33,7 +34,9 @@ import org.springframework.validation.annotation.Validated
 internal class RepositoryInfrastructurePortImpl :
     AbstractInfrastructurePort<Repository, RepositoryEntity, Long>(Long::class),
     RepositoryInfrastructurePort {
-    private val logger: Logger = LoggerFactory.getLogger(RepositoryInfrastructurePortImpl::class.java)
+    companion object {
+        private val logger by logger()
+    }
 
     @Autowired
     lateinit var repositoryMapper: RepositoryMapper
@@ -245,7 +248,7 @@ internal class RepositoryInfrastructurePortImpl :
     }
 
     override fun saveAll(values: Collection<Repository>): Iterable<Repository> {
-        TODO("Not yet implemented")
+        return values.map { this.create(it) }
     }
 
     override fun delete(value: Repository) {

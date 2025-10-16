@@ -2,8 +2,8 @@ package com.inso_world.binocular.cli.integration.service
 
 import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
-import com.inso_world.binocular.cli.integration.utils.TestDataProvider
 import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
@@ -40,12 +40,12 @@ internal class RepositoryServiceTest(
     private lateinit var simpleRepoVcsCommits: List<Commit>
     private lateinit var octoRepoVcsCommits: List<Commit>
     private lateinit var advancedRepoVcsCommits: List<Commit>
-    private lateinit var testData: TestDataProvider
+    private lateinit var testData: MockTestDataProvider
 
     @BeforeEach
     fun setUp() {
         this.simpleRepoVcsCommits = this.simpleRepo.commits.toList()
-        this.testData = TestDataProvider()
+        this.testData = MockTestDataProvider()
 
         run {
             val path = Path("${FIXTURES_PATH}/${OCTO_REPO}")

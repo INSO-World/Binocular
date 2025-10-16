@@ -2,14 +2,14 @@ package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-class CommitTest : BaseInfrastructureSpringTest() {
-
+internal class CommitTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var commitPort: CommitInfrastructurePort
 

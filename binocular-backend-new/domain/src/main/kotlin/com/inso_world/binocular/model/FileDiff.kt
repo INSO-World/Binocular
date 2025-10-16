@@ -4,7 +4,7 @@ data class FileDiff(
     val pathBefore: String? = null, // null bei ADD
     val pathAfter: String? = null, // null bei DELETE
     val change: ChangeType,
-    val stats: CommitDiff.Stats,
+    val stats: Stats,
     var oldFileState: FileState?,
     var newFileState: FileState?,
 //    val hunks: List<Hunk>, // optional, nur wenn du Textdiffs speicherst

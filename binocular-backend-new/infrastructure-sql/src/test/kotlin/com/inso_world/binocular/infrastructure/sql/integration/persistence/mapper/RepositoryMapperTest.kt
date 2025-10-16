@@ -394,7 +394,8 @@ internal class RepositoryMapperTest : BaseMapperTest() {
                     ".*repository",
                     ".*children",
                     ".*commits",
-                    ".*commitShas"
+                    ".*commitShas",
+                    ".*diffs"
                 )
                 .isEqualTo(domainCmt)
             assertThat(entityCmt.branches.flatMap { b -> b.commits.map { c -> c.sha } })

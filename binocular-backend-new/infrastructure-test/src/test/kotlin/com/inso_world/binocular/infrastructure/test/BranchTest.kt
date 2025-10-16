@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -10,8 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 /**
  * create and load branch using BranchInfrastructurePort from core module package
  */
-class BranchTest : BaseInfrastructureSpringTest() {
-
+internal class BranchTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var branchPort: BranchInfrastructurePort
 

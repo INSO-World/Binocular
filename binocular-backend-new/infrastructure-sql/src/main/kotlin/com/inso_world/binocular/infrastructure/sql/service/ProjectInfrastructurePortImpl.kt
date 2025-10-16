@@ -117,8 +117,9 @@ internal class ProjectInfrastructurePortImpl(
                 this.projectMapper.toDomain(it)
             }
 
+    @MappingSession
     override fun saveAll(values: Collection<Project>): Iterable<Project> {
-        TODO("Not yet implemented")
+        return values.map { this.create(it) }
     }
 
     @MappingSession
