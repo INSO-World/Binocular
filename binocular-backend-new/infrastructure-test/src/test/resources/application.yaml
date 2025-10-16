@@ -1,10 +1,12 @@
 spring:
   application:
-    name: infrsastructure-test
+    name: infrastructure-test
   profiles:
-    # Choose which stack to run: use either [arangodb] or [sql,postgres]
-    # Default to arangodb for these infrastructure tests; override in IDE/Maven if needed
-    active: arangodb
+    # if you add a required profile here, also change the ../.github/workflows/backend-fast.yml!
+#    active: test,gix,postgres
+    active: test,gix,arangodb
+  liquibase:
+    enabled: false
 
 logging:
   level:

@@ -3,6 +3,7 @@ package com.inso_world.binocular.infrastructure.test
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
+import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
@@ -13,8 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-class UserTest : BaseInfrastructureSpringTest() {
-
+internal class UserTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var userPort: UserInfrastructurePort
 
@@ -33,7 +33,7 @@ class UserTest : BaseInfrastructureSpringTest() {
         repositoryPort.deleteAll()
         projectPort.deleteAll()
         val project = projectPort.create(Project(name = "proj-user-001"))
-        repository = repositoryPort.create(Repository(name = "repo-user-001", project = project))
+        repository = repositoryPort.create(Repository(localPath = "repo-user-001", project = project))
     }
 
     @AfterEach

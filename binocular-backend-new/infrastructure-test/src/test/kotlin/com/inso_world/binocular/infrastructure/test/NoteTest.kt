@@ -2,12 +2,12 @@ package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.core.service.NoteInfrastructurePort
+import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-class NoteTest : BaseInfrastructureSpringTest() {
-
+internal class NoteTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var notePort: NoteInfrastructurePort
 

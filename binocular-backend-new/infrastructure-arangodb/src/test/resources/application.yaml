@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: test,arangodb
+
+binocular:
+  database:
+    database_name: "binocular-web-test"
+#    host: ${ARANGODB_HOST:localhost}
+    host: localhost
+    port: ${ARANGODB_PORT:5432}
+    user: TODO
+    password: TODO
+logging:
+  charset:
+    console: utf-8
+  level:
+    root: trace

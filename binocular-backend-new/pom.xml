@@ -52,6 +52,7 @@
         <junit.version>5.13.1</junit.version>
         <mockk.version>1.14.4</mockk.version>
         <testcontainers.version>1.21.3</testcontainers.version>
+        <arangodb-testcontainer.version>4.0.0</arangodb-testcontainer.version>
     </properties>
     <modules>
         <module>domain</module>
@@ -213,9 +214,6 @@
             <properties>
                 <groups>unit</groups>
             </properties>
-        </profile>
-        <profile>
-            <id>arangodb</id>
         </profile>
     </profiles>
 

@@ -11,15 +11,15 @@ class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
     override fun toEntity(domain: Repository): RepositoryEntity =
         RepositoryEntity(
             id = domain.id,
-            name = domain.name,
             projectId = domain.project?.id,
+            name = domain.localPath
         )
 
     override fun toDomain(entity: RepositoryEntity): Repository =
         Repository(
             id = entity.id,
-            name = entity.name,
             project = entity.projectId?.let { Project(id = it, name = "") },
+            localPath = entity.name,
         )
 
     override fun toDomainList(entities: Iterable<RepositoryEntity>): List<Repository> = entities.map { toDomain(it) }

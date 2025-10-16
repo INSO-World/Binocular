@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component
 internal class ProjectMapper
     @Autowired
     constructor(
-        private val proxyFactory: RelationshipProxyFactory,
         @Lazy private val repoMapper: RepositoryMapper,
     ) {
         var logger: Logger = LoggerFactory.getLogger(ProjectMapper::class.java)

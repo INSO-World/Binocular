@@ -1,7 +1,11 @@
 package com.inso_world.binocular.infrastructure.arangodb
 
+import com.inso_world.binocular.core.data.MockTestDataProvider
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.integration.base.TestDataProvider
+import com.inso_world.binocular.core.service.FileInfrastructurePort
+import com.inso_world.binocular.core.service.IssueInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.BranchFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitBuildConnection
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitCommitConnection
@@ -39,11 +43,42 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IModuleFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IModuleModuleConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.INoteAccountConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.service.AccountInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.BranchInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.BuildInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.CommitInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.MergeRequestInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.MilestoneInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.ModuleInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.NoteInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.ProjectInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.RepositoryInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.UserInfrastructurePortImpl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class ArangodbInfrastructureDataSetup : InfrastructureDataSetup {
+internal class ArangodbInfrastructureDataSetup(
+//    @Autowired private val infrastructureDataSetup: InfrastructureDataSetup,
+    @Autowired private val commitRepository: CommitInfrastructurePortImpl,
+    @Autowired private val accountRepository: AccountInfrastructurePortImpl,
+    @Autowired private val branchRepository: BranchInfrastructurePortImpl,
+    @Autowired private val buildRepository: BuildInfrastructurePortImpl,
+    @Autowired private val fileRepository: FileInfrastructurePort,
+    @Autowired private val issueRepository: IssueInfrastructurePort,
+    @Autowired private val mergeRequestRepository: MergeRequestInfrastructurePortImpl,
+    @Autowired private val moduleRepository: ModuleInfrastructurePortImpl,
+    @Autowired private val noteRepository: NoteInfrastructurePortImpl,
+    @Autowired private val userRepository: UserInfrastructurePortImpl,
+    @Autowired private val milestoneRepository: MilestoneInfrastructurePortImpl,
+    @Autowired private val projectRepository: ProjectInfrastructurePortImpl,
+    @Autowired private val repositoryRepository: RepositoryInfrastructurePortImpl,
+) : InfrastructureDataSetup {
+
+    companion object {
+        private val logger by logger()
+    }
+
     @Autowired
     private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
 
@@ -101,11 +136,33 @@ class ArangodbInfrastructureDataSetup : InfrastructureDataSetup {
     @Autowired
     private lateinit var noteAccountConnectionRepository: INoteAccountConnectionDao
 
+    private lateinit var mockTestData: MockTestDataProvider
+
     override fun setup() {
+        logger.info(">>> ArangodbInfrastructureDataSetup setup")
+        this.mockTestData = MockTestDataProvider()
+        // order: create parents first where necessary
+        projectRepository.saveAll(mockTestData.testProjects)
+        repositoryRepository.saveAll(mockTestData.testRepositories)
+
+        commitRepository.saveAll(TestDataProvider.testCommits)
+        accountRepository.saveAll(TestDataProvider.testAccounts)
+        branchRepository.saveAll(TestDataProvider.testBranches)
+        buildRepository.saveAll(TestDataProvider.testBuilds)
+        fileRepository.saveAll(TestDataProvider.testFiles)
+        issueRepository.saveAll(TestDataProvider.testIssues)
+        mergeRequestRepository.saveAll(TestDataProvider.testMergeRequests)
+        milestoneRepository.saveAll(TestDataProvider.testMilestones)
+        moduleRepository.saveAll(TestDataProvider.testModules)
+        noteRepository.saveAll(TestDataProvider.testNotes)
+        userRepository.saveAll(TestDataProvider.testUsers)
+
         createEntityRelationships()
+        logger.info("<<< ArangodbInfrastructureDataSetup setup")
     }
 
     override fun teardown() {
+        logger.info(">>> ArangodbInfrastructureDataSetup teardown")
         // First clear all edge connections
         branchFileConnectionRepository.deleteAll()
         branchFileFileConnectionRepository.deleteAll()
@@ -126,6 +183,22 @@ class ArangodbInfrastructureDataSetup : InfrastructureDataSetup {
         moduleFileConnectionRepository.deleteAll()
         moduleModuleConnectionRepository.deleteAll()
         noteAccountConnectionRepository.deleteAll()
+
+        // entities
+        commitRepository.deleteAll()
+        accountRepository.deleteAll()
+        branchRepository.deleteAll()
+        buildRepository.deleteAll()
+        fileRepository.deleteAll()
+        issueRepository.deleteAll()
+        mergeRequestRepository.deleteAll()
+        milestoneRepository.deleteAll()
+        moduleRepository.deleteAll()
+        noteRepository.deleteAll()
+        userRepository.deleteAll()
+        repositoryRepository.deleteAll()
+        projectRepository.deleteAll()
+        logger.info("<<< ArangodbInfrastructureDataSetup teardown")
     }
 
     private fun createEntityRelationships() {

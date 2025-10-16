@@ -4,7 +4,6 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Job
@@ -25,6 +24,10 @@ import java.time.LocalDateTime
  * This class contains all the test entities and their relationships,
  * making the web module tests independent of infrastructure-specific test data.
  */
+@Deprecated(
+    "Objects are singletons, every change is propagated over tests. Instead, use the MockTestDataProvider class and create a new object before each test rung to have a clean state",
+    replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider")
+)
 object TestDataProvider {
     val testAccounts =
         listOf(
@@ -262,23 +265,23 @@ object TestDataProvider {
 
     val testProjects =
         listOf(
-            Project(id = "p1", name = "proj-pg-0"),
-            Project(id = "p2", name = "proj-pg-1"),
-            Project(id = "p3", name = "proj-pg-2"),
-            Project(id = "p4", name = "proj-pg-3"),
-            Project(id = "p5", name = "proj-pg-4"),
-            Project(id = "pR", name = "proj-for-repos"),
+            Project(id = "1", name = "proj-pg-0"),
+            Project(id = "2", name = "proj-pg-1"),
+            Project(id = "3", name = "proj-pg-2"),
+            Project(id = "4", name = "proj-pg-3"),
+            Project(id = "5", name = "proj-pg-4"),
+            Project(id = "6", name = "proj-for-repos"),
         )
 
     val testRepositories =
         listOf(
-            Repository(id = "r1", name = "repo-pg-0", project = testProjects.last()),
-            Repository(id = "r2", name = "repo-pg-1", project = testProjects.last()),
-            Repository(id = "r3", name = "repo-pg-2", project = testProjects.last()),
-            Repository(id = "r4", name = "repo-pg-3", project = testProjects.last()),
-            Repository(id = "r5", name = "repo-pg-4", project = testProjects.last()),
-            Repository(id = "r6", name = "repo-pg-5", project = testProjects.last()),
-            Repository(id = "r7", name = "repo-pg-6", project = testProjects.last()),
+            Repository(id = "r1", localPath = "repo-pg-0", project = testProjects.last()),
+            Repository(id = "r2", localPath = "repo-pg-1", project = testProjects.last()),
+            Repository(id = "r3", localPath = "repo-pg-2", project = testProjects.last()),
+            Repository(id = "r4", localPath = "repo-pg-3", project = testProjects.last()),
+            Repository(id = "r5", localPath = "repo-pg-4", project = testProjects.last()),
+            Repository(id = "r6", localPath = "repo-pg-5", project = testProjects.last()),
+            Repository(id = "r7", localPath = "repo-pg-6", project = testProjects.last()),
         )
 
     val testNotes =

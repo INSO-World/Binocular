@@ -1,16 +1,17 @@
 package com.inso_world.binocular.infrastructure.sql.integration.persistence.mapper.base
 
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import com.inso_world.binocular.infrastructure.sql.TestApplication
 import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingScope
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest(
-    classes = [TestApplication::class],
-)
+@SpringBootApplication(scanBasePackages = ["com.inso_world.binocular.infrastructure.sql.mapper"])
+private class MapperTestApplication
+
+@SpringBootTest(classes = [MapperTestApplication::class])
 internal class BaseMapperTest : BaseIntegrationTest() {
     @Autowired
     private lateinit var mappingScope: MappingScope

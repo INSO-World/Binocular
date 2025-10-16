@@ -253,7 +253,7 @@ internal class CommitMapperTest : BaseMapperTest() {
             assertThat(entity)
                 .usingRecursiveComparison()
                 .ignoringCollectionOrder()
-                .ignoringFieldsMatchingRegexes(".*branches", ".*repository")
+                .ignoringFieldsMatchingRegexes(".*branches", ".*repository", ".*diffs")
                 .isEqualTo(commitEntityA)
 //            assertThat(repositoryEntity.branches).hasSize(1)
 //            assertThat(repositoryEntity.branches.toList()[0]).isSameAs(entity.branches.toList()[0])
@@ -313,7 +313,7 @@ internal class CommitMapperTest : BaseMapperTest() {
                 .ignoringCollectionOrder()
                 .ignoringFieldsMatchingRegexes(
                     ".*id",".*branches", ".*committer", ".*author", ".*repository", ".*project", ".*_*",
-                    ".*issues", ".*modules", ".*stats", ".*repositoryId", ".*builds", ".*files"
+                    ".*issues", ".*modules", ".*stats", ".*repositoryId", ".*builds", ".*files", ".*diffs"
                 ).isEqualTo(commitEntityA)
             assertThat(domain.branches).isEmpty()
         }
@@ -343,7 +343,7 @@ internal class CommitMapperTest : BaseMapperTest() {
                 .ignoringCollectionOrder()
                 .ignoringFieldsMatchingRegexes(
                     ".*id",".*branches", ".*committer", ".*author", ".*repository", ".*project", ".*_*",
-                    ".*issues", ".*modules", ".*stats", ".*repositoryId", ".*builds", ".*files"
+                    ".*issues", ".*modules", ".*stats", ".*repositoryId", ".*builds", ".*files", ".*diffs"
                 )
                 .isEqualTo(listOf(commitEntityA, commitEntityB))
         }

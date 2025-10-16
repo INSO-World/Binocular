@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.io.Serializable
 import java.util.stream.Stream
 
@@ -53,6 +54,7 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
 
     override fun findAllAsStream(): Stream<T> = entityManager.createQuery("SELECT e FROM ${clazz.name} e", clazz).resultStream
 
+    @Transactional
     override fun create(entity: T): T {
         entityManager.persist(entity)
         return entity
@@ -103,6 +105,7 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
     /**
      * Save multiple entities
      */
+    @Transactional
     override fun saveAll(entities: Collection<T>): Iterable<T> = this.repository.saveAll(entities)
 
     override fun flush() {

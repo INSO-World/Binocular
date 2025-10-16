@@ -63,12 +63,11 @@ internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Seriali
         this.dao.deleteAll()
     }
 
-    @Transactional
     internal fun create(
         @Valid value: E,
     ): E = this.dao.create(value)
 
-    @Transactional
+//    @Transactional
     internal fun saveAll(values: Collection<@Valid E>): Iterable<E> {
         TODO("Not yet implemented")
 //        return this.dao.saveAll(entities)

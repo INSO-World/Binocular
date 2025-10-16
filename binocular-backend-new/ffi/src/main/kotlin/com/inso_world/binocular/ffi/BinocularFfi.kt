@@ -7,7 +7,6 @@ import com.inso_world.binocular.ffi.extensions.toModel
 import com.inso_world.binocular.ffi.internal.AnyhowException
 import com.inso_world.binocular.ffi.internal.BinocularDiffInput
 import com.inso_world.binocular.ffi.internal.GixDiffAlgorithm
-import com.inso_world.binocular.ffi.pojos.toDomain
 import com.inso_world.binocular.ffi.pojos.toFfi
 import com.inso_world.binocular.ffi.pojos.toModel
 import com.inso_world.binocular.ffi.util.Utils
