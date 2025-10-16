@@ -294,8 +294,8 @@ export default class Commits implements DataPluginCommits {
         variables: {
           page,
           perPage,
-          since: new Date(from).getTime() || undefined,
-          until: new Date(to).getTime() || undefined,
+          since: from ? new Date(from).getTime() : undefined,
+          until: to ? new Date(to).getTime() : undefined,
         },
       });
       return resp.data.commits;
@@ -368,7 +368,7 @@ export default class Commits implements DataPluginCommits {
 
     const commitFileList: DataPluginCommit[] = [];
 
-    await traversePages(getCommitsFilesPage(from, to), (commit: unknown) => {
+    await traversePages(getCommitsFilesPage(from, to), (commit: DataPluginCommit) => {
       // Create a copy of the commit
       const tempCommitFile: DataPluginCommit = { ...commit };
 

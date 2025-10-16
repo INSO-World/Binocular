@@ -23,7 +23,7 @@ export interface DataPluginCommit {
   parents: string[];
   webUrl: string;
   stats: DataPluginStats;
-  files: DataPluginCommitFilesData;
+  files?: DataPluginCommitFilesData;
 }
 
 export interface DataPluginCommitFilesData {

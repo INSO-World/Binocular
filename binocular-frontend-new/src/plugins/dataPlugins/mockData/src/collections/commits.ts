@@ -83,7 +83,7 @@ export default class Commits implements DataPluginCommits {
             data: [
               {
                 file: {
-                  path: 'index.js',
+                  path: 'src/app.js',
                   webUrl: '',
                   maxLength: 0,
                 },
@@ -1112,7 +1112,7 @@ export default class Commits implements DataPluginCommits {
     });
 
     // Filter to only include commits with files
-    const filteredCommits = commitsWithFiles.filter((commit) => commit.files.data.length > 0);
+    const filteredCommits = commitsWithFiles.filter((commit) => commit.files && commit.files.data.length > 0);
 
     // Sort by date in descending order
     return filteredCommits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

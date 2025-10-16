@@ -68,13 +68,36 @@ export function convertToChartData(
         statsByAuthor: {},
       }; //Save date of time bucket, create object
       for (; i < sortedCommits.length && Date.parse(sortedCommits[i].date) < nextTimestamp; i++) {
-        for (const file of sortedCommits[i].files.data) {
-          if (file.stats == undefined || !activeFiles.includes(file.file.path)) continue;
-          //Iterate through commits that fall into this time bucket
-          const additions = file.stats.additions;
-          const deletions = file.stats.deletions;
+        const commitAuthor = sortedCommits[i].user.id;
+        if (sortedCommits[i].files != undefined)
+          for (const file of sortedCommits[i].files!.data) {
+            if (file.stats == undefined || !activeFiles.includes(file.file.path)) continue;
+            //Iterate through commits that fall into this time bucket
+            const additions = file.stats.additions;
+            const deletions = file.stats.deletions;
+            const changes = additions + deletions;
+            if (totalChangesPerAuthor[commitAuthor] === undefined) {
+              totalChangesPerAuthor[commitAuthor] = 0;
+            }
+            totalChangesPerAuthor[commitAuthor] += changes;
+            if (
+              commitAuthor in obj.statsByAuthor //If author is already in statsByAuthor, add to previous values
+            ) {
+              obj.statsByAuthor[commitAuthor] = {
+                count: obj.statsByAuthor[commitAuthor].count + 1,
+                additions: obj.statsByAuthor[commitAuthor].additions + additions,
+                deletions: obj.statsByAuthor[commitAuthor].deletions + deletions,
+              };
+            } else {
+              //Else create new values
+              obj.statsByAuthor[commitAuthor] = { count: 1, additions: additions, deletions: deletions };
+            }
+          }
+        else {
+          // if we do not have the relevant data per file, we just sum up additions and deletions per commit
+          const additions = sortedCommits[i].stats.additions;
+          const deletions = sortedCommits[i].stats.deletions;
           const changes = additions + deletions;
-          const commitAuthor = sortedCommits[i].user.id;
           if (totalChangesPerAuthor[commitAuthor] === undefined) {
             totalChangesPerAuthor[commitAuthor] = 0;
           }
