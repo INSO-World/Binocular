@@ -189,7 +189,7 @@ jobs:
         os: [ ubuntu-latest ]
         java_version: [ '23' ]
         distribution: [ 'temurin' ]
-        module: [ 'domain', 'ffi', 'core', 'infrastructure-arangodb', 'infrastructure-sql' ]
+        module: [ 'domain', 'ffi', 'core', 'infrastructure-arangodb', 'infrastructure-sql', 'infrastructure-test' ]
         include:
           - os: ubuntu-latest
             architecture: 'x64'
