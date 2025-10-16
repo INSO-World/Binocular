@@ -212,6 +212,14 @@ jobs:
             architecture: 'x64'
             module: 'infrastructure-sql'
             springProfile: 'test,sql,postgres'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'infrastructure-test'
+            springProfile: 'test,gix,arangodb'
+          - os: ubuntu-latest
+            architecture: 'x64'
+            module: 'infrastructure-test'
+            springProfile: 'test,gix,postgres'
 
     runs-on: ${{ matrix.os }}
 
