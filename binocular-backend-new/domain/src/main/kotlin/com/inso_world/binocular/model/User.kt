@@ -22,6 +22,10 @@ data class User(
     private val _committedCommits = ConcurrentHashMap.newKeySet<Commit>()
     private val _authoredCommits = ConcurrentHashMap.newKeySet<Commit>()
 
+    init {
+        repository?.user?.add(this)
+    }
+
     val committedCommits: MutableSet<Commit> =
         object : MutableSet<Commit> by _committedCommits {
             override fun add(element: Commit): Boolean {

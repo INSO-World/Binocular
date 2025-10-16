@@ -1255,7 +1255,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     { assertTrue(branch.commits.add(cmt)) },
                     { assertTrue(repository.branches.add(branch)) },
                     { assertTrue(repository.commits.add(cmt)) },
-                    { assertTrue(repository.user.add(user)) },
+                    { assertFalse(repository.user.add(user)) },
                 )
 
                 assertDoesNotThrow {
@@ -1359,7 +1359,7 @@ internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
                     { assertTrue(branch.commits.add(cmt)) },
                     { assertTrue(repository.branches.add(branch)) },
                     { assertTrue(repository.commits.add(cmt)) },
-                    { assertTrue(repository.user.add(user)) },
+                    { assertFalse(repository.user.add(user)) },
                 )
 
                 val savedRepo =

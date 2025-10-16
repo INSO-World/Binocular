@@ -7,20 +7,25 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.annotation.DirtiesContext
 
 @SpringBootApplication(
     scanBasePackages = ["com.inso_world.binocular.infrastructure.sql.mapper", "com.inso_world.binocular.core"],
-    exclude = [
-        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration::class,
-        org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration::class,
-        org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration::class,
-        org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration::class,
-        org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration::class
-    ]
 )
 private class MapperTestApplication
 
-@SpringBootTest(classes = [MapperTestApplication::class])
+@SpringBootTest(
+    classes = [MapperTestApplication::class],
+    properties = [
+        "spring.autoconfigure.exclude=" +
+                "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration"
+    ]
+)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 internal class BaseMapperTest : BaseIntegrationTest() {
     @Autowired
     private lateinit var mappingScope: MappingScope
