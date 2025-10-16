@@ -9,8 +9,11 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.support.TransactionTemplate
@@ -25,7 +28,7 @@ import org.springframework.transaction.support.TransactionTemplate
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-internal open class BaseServiceTest : BaseIntegrationTest() {
+internal class BaseServiceTest : BaseIntegrationTest() {
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
 
