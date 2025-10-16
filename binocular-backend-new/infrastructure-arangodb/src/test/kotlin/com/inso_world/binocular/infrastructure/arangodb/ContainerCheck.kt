@@ -12,15 +12,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @SpringBootTest
 @EnableAutoConfiguration
 @ContextConfiguration(
-    classes = [ArangodbConfig::class],
+    classes = [ArangodbTestConfig::class],
     initializers = [
-        ArangodbConfig.Initializer::class,
+        ArangodbTestConfig.Initializer::class,
     ]
 )
 @ExtendWith(SpringExtension::class)
 internal class ContainerCheck : BaseIntegrationTest() {
     @Test
     fun `check if arangodb container is running`() {
-        assertTrue(ArangodbConfig.adbContainer.isRunning);
+        assertTrue(ArangodbTestConfig.adbContainer.isRunning);
     }
 }

@@ -1,6 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb
 
-import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.AdbConfig
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
 import io.testcontainers.arangodb.containers.ArangoContainer
 import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.ApplicationContextInitializer
@@ -13,14 +13,15 @@ import org.springframework.test.context.ContextConfiguration
 
 @Configuration
 @ComponentScan("com.inso_world.binocular.infrastructure.arangodb")
-@ContextConfiguration(initializers = [ArangodbConfig.Initializer::class])
-@Import(AdbConfig::class)
-class ArangodbConfig {
-    companion object {
+@ContextConfiguration(initializers = [ArangodbTestConfig.Initializer::class])
+@Import(ArangodbAppConfig::class)
+class ArangodbTestConfig {
+    companion object Companion {
         val adbContainer =
             ArangoContainer("arangodb:3.12")
                 .apply { withExposedPorts(8529) }
                 .apply { withoutAuth() }
+                .apply { withReuse(true) }
     }
 
     class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
 @EnableArangoRepositories(
     basePackages = ["com.inso_world.binocular.infrastructure.arangodb.persistence", "com.inso_world.binocular.infrastructure.arangodb.model"],
 )
-class AdbConfig(
+class ArangodbAppConfig(
     @Autowired private val infraConfig: InfrastructureConfig,
 ) : ArangoConfiguration {
     override fun arango(): ArangoDB.Builder {

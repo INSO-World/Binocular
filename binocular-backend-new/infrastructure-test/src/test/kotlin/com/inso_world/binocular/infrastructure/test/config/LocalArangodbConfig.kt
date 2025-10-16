@@ -6,6 +6,6 @@ import org.springframework.context.annotation.Profile
 
 
 @Profile("arangodb")
-@Import(com.inso_world.binocular.infrastructure.arangodb.ArangodbConfig::class)
+@Import(com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig::class)
 @Configuration
 class LocalArangodbConfig
