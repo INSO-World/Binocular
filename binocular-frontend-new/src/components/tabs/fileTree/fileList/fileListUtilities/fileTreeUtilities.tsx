@@ -138,7 +138,7 @@ export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: Ap
                 }),
               ),
             )
-            .catch(() => console.log('Error loading Files from selected data source!'));
+            .catch((e) => console.log('Error loading Files from selected data source!', e));
         }
       })
       .catch((e) => console.log(e));

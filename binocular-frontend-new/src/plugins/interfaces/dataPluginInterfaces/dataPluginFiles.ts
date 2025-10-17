@@ -16,6 +16,7 @@ export interface DataPluginFile {
 export interface DataPluginFileInCommit {
   file: DataPluginFile;
   hunks: DataPluginHunk[];
+  stats?: DataPluginStats;
 }
 
 export interface DataPluginHunk {

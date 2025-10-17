@@ -149,6 +149,8 @@ export async function findAllCommits(database: PouchDB.Database, relations: Pouc
   const commitCommitConnections = sortByAttributeString((await findCommitCommitConnections(relations)).docs, 'from');
   const userObjects = (await findAll(database, 'users')).docs;
   const users: JSONObject = {};
+  const commitFiles = sortByAttributeString((await findFileCommitConnections(relations)).docs, 'from');
+  const files = (await findAll(database, 'files')).docs;
   userObjects.map((s) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
@@ -156,7 +158,43 @@ export async function findAllCommits(database: PouchDB.Database, relations: Pouc
   });
 
   commits.docs = await Promise.all(
-    commits.docs.map((c) => preprocessCommit(c, allCommits, commitUserConnections, commitCommitConnections, users)),
+    commits.docs.map((c) => preprocessCommit(c, allCommits, commitUserConnections, commitCommitConnections, users, commitFiles, files)),
+  );
+
+  return commits;
+}
+
+export async function findAllCommitsWithBuilds(database: PouchDB.Database, relations: PouchDB.Database) {
+  const commits = await findAll(database, 'commits');
+  const allCommits = sortByAttributeString(commits.docs, '_id');
+  const commitUserConnections = sortByAttributeString((await findCommitUserConnections(relations)).docs, 'from');
+  const commitCommitConnections = sortByAttributeString((await findCommitCommitConnections(relations)).docs, 'from');
+  const userObjects = (await findAll(database, 'users')).docs;
+  const users: JSONObject = {};
+  const commitFiles = sortByAttributeString((await findFileCommitConnections(relations)).docs, 'from');
+  const files = (await findAll(database, 'files')).docs;
+  const commitBuilds = sortByAttributeString((await findCommitBuildConnections(relations)).docs, 'from');
+  const builds = (await findAll(database, 'builds')).docs;
+  userObjects.map((s) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    users[s._id] = s.gitSignature;
+  });
+
+  commits.docs = await Promise.all(
+    commits.docs.map((c) =>
+      preprocessCommitWithBuilds(
+        c,
+        allCommits,
+        commitUserConnections,
+        commitCommitConnections,
+        users,
+        commitFiles,
+        files,
+        commitBuilds,
+        builds,
+      ),
+    ),
   );
 
   return commits;
@@ -181,7 +219,7 @@ export async function findCommit(database: PouchDB.Database, relations: PouchDB.
       // @ts-expect-error
       users[s._id] = s.gitSignature;
     });
-    commit.docs[0] = preprocessCommit(commit.docs[0], allCommits, commitUserConnections, commitCommitConnections, users);
+    commit.docs[0] = preprocessCommit(commit.docs[0], allCommits, commitUserConnections, commitCommitConnections, users, [], []);
   }
   return commit;
 }
@@ -193,6 +231,8 @@ function preprocessCommit(
   commitUser: JSONObject[],
   commitCommit: JSONObject[],
   users: JSONObject,
+  commitFiles: JSONObject[],
+  files: JSONObject[],
 ) {
   //add parents: first get the ids of the parents using the commits-commits connection, then find the actual commits to get the hashes
   commit.parents = binarySearchArray(commitCommit, commit._id, 'from').map((r) => {
@@ -217,7 +257,47 @@ function preprocessCommit(
     console.log('Error in localDB: commit: no user found with ID ' + commitUserRelation.to);
     return commit;
   }
-  return _.assign(commit, { user: { gitSignature: author, id: commitUserRelation.to } });
+
+  _.assign(commit, { user: { gitSignature: author, id: commitUserRelation.to } });
+
+  //add file data
+  const commitFileRelation = binarySearchArray(commitFiles, commit._id, 'from');
+  const filesData: JSONObject[] = [];
+  if (!commitFileRelation) {
+    return commit;
+  }
+  commitFileRelation.forEach((cfr) => {
+    const file = binarySearch(files, cfr.to, '_id');
+    filesData.push({ file: { path: file!.path }, stats: cfr.stats });
+  });
+  return _.assign(commit, { files: { data: filesData } });
+}
+
+function preprocessCommitWithBuilds(
+  commit: JSONObject,
+  allCommits: JSONObject[],
+  commitUser: JSONObject[],
+  commitCommit: JSONObject[],
+  users: JSONObject,
+  commitFiles: JSONObject[],
+  files: JSONObject[],
+  builds: JSONObject[],
+  commitBuilds: JSONObject[],
+) {
+  commit = preprocessCommit(commit, allCommits, commitUser, commitCommit, users, commitFiles, files);
+
+  //add file data
+  const commitBuildRelation = binarySearchArray(commitBuilds, commit._id, 'from');
+  const buildData: JSONObject[] = [];
+  if (!commitBuildRelation) {
+    return commit;
+  }
+  commitBuildRelation.forEach((cbr) => {
+    const build = binarySearch(builds, cbr.to, '_id');
+    if (build) buildData.push(build);
+  });
+
+  return _.assign(commit, { builds: buildData });
 }
 
 function preprocessCommitWithOwnership(
@@ -438,6 +518,27 @@ function preprocessAccount(account: JSONObject, accountsUsersConnection: JSONObj
     return _.assign(account, { id: account._id, manualRun: true });
   }
   return _.assign(account, { id: account._id, user: user });
+}
+
+export async function findAllAccountsIssues(database: PouchDB.Database, relations: PouchDB.Database) {
+  const users = (await findAll(database, 'users')).docs;
+  const accounts = await findAll(database, 'accounts');
+  const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'from');
+  const issues = (await findAll(database, 'issues')).docs;
+  const accountsIssuesConnection = sortByAttributeString((await findAll(relations, 'issues-accounts')).docs, 'to');
+
+  accounts.docs = await Promise.all(accounts.docs.map((u) => preprocessAccount(u, accountsUsersConnection, users)));
+  accounts.docs.forEach((account) => {
+    account.issues = [];
+    const relevantIssues = binarySearchArray(accountsIssuesConnection, account._id, 'to');
+    relevantIssues.forEach((issueConnection) => {
+      const issue = binarySearch(issues, issueConnection.from, '_id');
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      if (issue) account.issues.push(issue);
+    });
+  });
+  return accounts;
 }
 
 // ###################### OTHER ######################
