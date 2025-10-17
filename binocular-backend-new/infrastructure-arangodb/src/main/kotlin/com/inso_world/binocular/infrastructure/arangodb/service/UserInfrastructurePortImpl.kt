@@ -6,6 +6,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IUserDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.UserDao
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Service
 @Service
 class UserInfrastructurePortImpl : UserInfrastructurePort {
     @Autowired
-    private lateinit var userDao: IUserDao
+    private lateinit var userDao: UserDao
 
     @Autowired
     private lateinit var commitUserConnectionRepository: ICommitUserConnectionDao
@@ -69,11 +70,11 @@ class UserInfrastructurePortImpl : UserInfrastructurePort {
 
     override fun create(entity: User): User = userDao.create(entity)
 
-    override fun saveAll(entities: Collection<User>): Iterable<User> = userDao.saveAll(entities)
+    override fun saveAll(values: Collection<User>): Iterable<User> = userDao.saveAll(values)
 
-    override fun delete(entity: User) = this.userDao.delete(entity)
+    override fun delete(value: User) = this.userDao.delete(value)
 
-    override fun update(entity: User): User {
+    override fun update(value: User): User {
         TODO("Not yet implemented")
     }
 

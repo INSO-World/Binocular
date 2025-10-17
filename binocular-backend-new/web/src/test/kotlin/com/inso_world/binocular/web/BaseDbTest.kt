@@ -1,6 +1,5 @@
 package com.inso_world.binocular.web
 
-import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import com.inso_world.binocular.core.service.AccountInfrastructurePort
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.BuildInfrastructurePort
@@ -12,6 +11,7 @@ import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
 import com.inso_world.binocular.core.service.ModuleInfrastructurePort
 import com.inso_world.binocular.core.service.NoteInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
+import com.inso_world.binocular.web.base.AbstractWebIntegrationTest
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Profile
@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Profile
  * It uses the TestDataSetupService to manage test data independently of infrastructure.
  */
 @Profile("test")
-internal abstract class BaseDbTest : BaseIntegrationTest() {
+internal abstract class BaseDbTest : AbstractWebIntegrationTest() {
     @Autowired
     protected lateinit var testDataSetupService: TestDataSetupService
 

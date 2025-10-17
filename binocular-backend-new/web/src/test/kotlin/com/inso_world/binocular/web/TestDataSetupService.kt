@@ -2,7 +2,17 @@ package com.inso_world.binocular.web
 
 import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.integration.base.TestDataProvider
-import com.inso_world.binocular.core.service.*
+import com.inso_world.binocular.core.service.AccountInfrastructurePort
+import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.core.service.BuildInfrastructurePort
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.FileInfrastructurePort
+import com.inso_world.binocular.core.service.IssueInfrastructurePort
+import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
+import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
+import com.inso_world.binocular.core.service.ModuleInfrastructurePort
+import com.inso_world.binocular.core.service.NoteInfrastructurePort
+import com.inso_world.binocular.core.service.UserInfrastructurePort
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 

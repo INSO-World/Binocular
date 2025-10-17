@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: test,arangodb
   application:
     name: binocular-test
   graphql:
