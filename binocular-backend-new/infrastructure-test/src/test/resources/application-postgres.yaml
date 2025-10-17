@@ -13,7 +13,6 @@ spring:
       hibernate:
         jdbc:
           batch_size: 256
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 logging:
   level:
     org:

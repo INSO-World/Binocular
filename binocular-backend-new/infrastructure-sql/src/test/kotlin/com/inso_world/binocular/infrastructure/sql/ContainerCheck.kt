@@ -12,9 +12,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @SpringBootTest
 @EnableAutoConfiguration
 @ContextConfiguration(
-    classes = [PostgresConfig::class],
+    classes = [SqlTestConfig::class],
     initializers = [
-        PostgresConfig.Initializer::class,
+        SqlTestConfig.Initializer::class,
     ]
 )
 @ExtendWith(SpringExtension::class)
@@ -22,7 +22,7 @@ internal class ContainerCheck : BaseIntegrationTest() {
 
     @Test
     fun `check if postgres container is running`() {
-        assertTrue(PostgresConfig.pg.isRunning)
+        assertTrue(SqlTestConfig.pg.isRunning)
     }
 
 }

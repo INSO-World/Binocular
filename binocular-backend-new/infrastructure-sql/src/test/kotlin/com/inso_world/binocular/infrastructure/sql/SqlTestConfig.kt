@@ -9,10 +9,10 @@ import org.springframework.core.env.Profiles
 import org.testcontainers.containers.PostgreSQLContainer
 
 @Configuration
-@Import(SqlRepositoryConfig::class)
-class PostgresConfig {
+@Import(SqlAppConfig::class)
+class SqlTestConfig {
 
-    companion object {
+    companion object Companion {
         val pg: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:18-alpine")
             .apply { withDatabaseName("binocular_it") }
             .apply { withUsername("postgres") }

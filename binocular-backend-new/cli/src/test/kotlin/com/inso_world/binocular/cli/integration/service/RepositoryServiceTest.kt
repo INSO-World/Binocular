@@ -1,10 +1,10 @@
 package com.inso_world.binocular.cli.integration.service
 
-import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.index.GitIndexer
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.model.Branch
@@ -29,7 +29,7 @@ internal class RepositoryServiceTest(
     private lateinit var idx: GitIndexer
 
     @Autowired
-    private lateinit var testDataSetupService: TestDataSetupService
+    private lateinit var testDataSetupService: InfrastructureDataSetup
 
     @Autowired
     private lateinit var userPort: UserInfrastructurePort
@@ -209,7 +209,7 @@ internal class RepositoryServiceTest(
 
     @Test
     fun `transformCommits should correctly establish parent-child relationships`() {
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 
         assertAll(
             "check database numbers",
@@ -309,7 +309,7 @@ internal class RepositoryServiceTest(
     @Test
     fun `transformCommits should only increase user count`() {
         // Clear data to start with empty state
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 
         val initialUserCount = userPort.findAll().toSet().size
         val initialBranchCount = branchPort.findAll().toSet().size
@@ -347,7 +347,7 @@ internal class RepositoryServiceTest(
     @Test
     fun `transformCommits should only increase branch count`() {
         // Clear data to start with empty state
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 
         val initialBranchCount = branchPort.findAll().toSet().size
 
@@ -367,7 +367,7 @@ internal class RepositoryServiceTest(
     @Test
     fun `transformCommits should only increase commit count`() {
         // Clear data to start with empty state
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 
         val initialCommitCount = commitPort.findAll().toSet().size
 
@@ -393,7 +393,7 @@ internal class RepositoryServiceTest(
     @Test
     fun `transformCommits should maintain monotonic increase across multiple calls`() {
         // Clear data to start with empty state
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 
         val initialUserCount = userPort.findAll().toSet().size
         val initialBranchCount = branchPort.findAll().toSet().size
@@ -429,7 +429,7 @@ internal class RepositoryServiceTest(
     @Test
     fun `transformCommits should handle empty input without affecting counts`() {
         // Clear data to start with empty state
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 
         val initialUserCount = userPort.findAll().toSet().size
         val initialBranchCount = branchPort.findAll().toSet().size
@@ -457,7 +457,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with new users should increase user count`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialUserCount = userPort.findAll().toSet().size
 
@@ -476,7 +476,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with new branches should increase branch count`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialBranchCount = branchPort.findAll().toSet().size
 
@@ -501,7 +501,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with new commits should increase commit count`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialCommitCount = commitPort.findAll().toSet().size
             assertThat(initialCommitCount).isEqualTo(0)
@@ -524,7 +524,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with overlapping data should maintain counts`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialUserCount = userPort.findAll().toSet().size
             val initialBranchCount = branchPort.findAll().toSet().size
@@ -552,7 +552,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with partial new data should increase counts appropriately`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialUserCount = userPort.findAll().toSet().size
             val initialBranchCount = branchPort.findAll().toSet().size
@@ -581,7 +581,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with incremental data should show progressive increase`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialUserCount = userPort.findAll().toSet().size
             val initialBranchCount = branchPort.findAll().toSet().size
@@ -623,7 +623,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with mixed data should handle all count types correctly`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialUserCount = userPort.findAll().toSet().size
             val initialBranchCount = branchPort.findAll().toSet().size
@@ -662,7 +662,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with duplicate data should not increase counts`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialUserCount = userPort.findAll().toSet().size
             val initialBranchCount = branchPort.findAll().toSet().size
@@ -691,7 +691,7 @@ internal class RepositoryServiceTest(
 
         @Test
         fun `update repository with empty data between updates should maintain counts`() {
-            testDataSetupService.clearAllData()
+            testDataSetupService.teardown()
 
             val initialUserCount = userPort.findAll().toSet().size
             val initialBranchCount = branchPort.findAll().toSet().size

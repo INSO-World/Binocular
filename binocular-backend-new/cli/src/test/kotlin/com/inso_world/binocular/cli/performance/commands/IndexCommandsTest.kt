@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.time.Duration
 import java.util.stream.Stream
 
-class IndexCommandsTest : PerformanceTest() {
+internal class IndexCommandsTest : PerformanceTest() {
 
     @Autowired
     lateinit var idxClient: Index

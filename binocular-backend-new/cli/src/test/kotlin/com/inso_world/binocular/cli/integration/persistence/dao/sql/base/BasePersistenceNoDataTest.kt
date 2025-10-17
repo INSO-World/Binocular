@@ -1,6 +1,6 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 
-import com.inso_world.binocular.cli.integration.TestDataSetupService
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.support.TransactionTemplate
 
-class BasePersistenceNoDataTest : BasePersistenceTest() {
+internal class BasePersistenceNoDataTest : BasePersistenceTest() {
     @PersistenceContext
     internal lateinit var entityManager: EntityManager
 
@@ -20,7 +20,7 @@ class BasePersistenceNoDataTest : BasePersistenceTest() {
     private lateinit var commitRepository: CommitInfrastructurePort
 
     @Autowired
-    private lateinit var testDataSetupService: TestDataSetupService
+    private lateinit var testDataSetupService: InfrastructureDataSetup
 
     @Autowired
     private lateinit var repositoryRepository: RepositoryInfrastructurePort
@@ -44,7 +44,7 @@ class BasePersistenceNoDataTest : BasePersistenceTest() {
             entityManager.flush()
             entityManager.clear()
         }
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 //        entityManager.clear()
 //        projectRepository.deleteAll()
 //        repositoryRepository.deleteAll()

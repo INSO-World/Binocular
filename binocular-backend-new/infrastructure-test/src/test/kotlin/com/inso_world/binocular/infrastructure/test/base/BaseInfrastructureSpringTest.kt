@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration
     classes = [LocalArangodbConfig::class, LocalPostgresConfig::class],
     initializers = [
         com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig.Initializer::class,
-        com.inso_world.binocular.infrastructure.sql.PostgresConfig.Initializer::class
+        com.inso_world.binocular.infrastructure.sql.SqlTestConfig.Initializer::class
     ]
 )
 @ComponentScan(basePackages = ["com.inso_world.binocular.infrastructure.test", "com.inso_world.binocular.core"])

@@ -1,5 +1,6 @@
 package com.inso_world.binocular.cli
 
+import com.inso_world.binocular.core.delegates.logger
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.WebApplicationType
@@ -11,14 +12,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
 import org.springframework.shell.command.annotation.CommandScan
 
-@SpringBootApplication(
-//    scanBasePackages = [
-//        "com.inso_world.binocular.cli",
-// //        make sure the ones below match the ones in WebApplication (and vice versa)
-//        "com.inso_world.binocular.core.persistence",
-//        "com.inso_world.binocular.core.service",
-//    ],
-)
+@SpringBootApplication
 @CommandScan(basePackages = ["com.inso_world.binocular.cli.commands"])
 @ComponentScan(
     basePackages = [
@@ -28,9 +22,9 @@ import org.springframework.shell.command.annotation.CommandScan
         "com.inso_world.binocular.core.service",
     ],
 )
-class BinocularCommandLineApplication {
+internal class BinocularCommandLineApplication {
     companion object {
-        private var logger: Logger = LoggerFactory.getLogger(BinocularCommandLineApplication::class.java)
+        private val logger by logger()
     }
 
 //  @Bean

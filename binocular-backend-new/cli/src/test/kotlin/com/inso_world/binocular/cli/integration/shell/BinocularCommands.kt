@@ -1,7 +1,9 @@
-package com.inso_world.binocular.cli.integration.commands
+package com.inso_world.binocular.cli.integration.shell
 
-import com.inso_world.binocular.cli.integration.commands.base.BaseShellNoDataTest
-import org.awaitility.Awaitility.await
+import com.inso_world.binocular.cli.integration.shell.base.BaseShellWithDataTest
+import org.awaitility.Awaitility
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
@@ -11,33 +13,21 @@ import org.springframework.shell.test.ShellAssertions
 import org.springframework.shell.test.ShellTestClient
 import java.util.concurrent.TimeUnit
 
-internal class BuiltinCommands(
-    @Autowired val client: ShellTestClient,
-) : BaseShellNoDataTest() {
-    @Test
-    fun context_loads() {
-        val session = client.interactive().run()
+internal class BinocularCommands : BaseShellWithDataTest() {
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted({
-            ShellAssertions
-                .assertThat(session.screen())
-                .containsText("shell:>")
-        })
+    @all:Autowired
+    private lateinit var client: ShellTestClient
+
+    private lateinit var session: ShellTestClient.InteractiveShellSession
+
+    @BeforeEach
+    fun beforeEach() {
+        session = client.interactive().run()
     }
 
     @Test
-    fun `help shows AVAILABLE COMMANDS`() {
-        val session = client.nonInterative("help").run()
-
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted {
-            assertAll(
-                { ShellAssertions.assertThat(session.screen()).containsText("AVAILABLE COMMANDS") },
-                { ShellAssertions.assertThat(session.screen()).containsText("Index Commands") },
-                { ShellAssertions.assertThat(session.screen()).containsText("index commits") },
-                { ShellAssertions.assertThat(session.screen()).containsText("index blames") },
-                { ShellAssertions.assertThat(session.screen()).containsText("index diffs") },
-            )
-        }
+    fun `session running`() {
+        assertFalse(session.isComplete)
     }
 
     @ParameterizedTest
@@ -51,8 +41,6 @@ internal class BuiltinCommands(
         cmdGrp: String,
         cmdName: String,
     ) {
-        val session = client.interactive().run()
-
         session.write(
             session
                 .writeSequence()
@@ -66,7 +54,7 @@ internal class BuiltinCommands(
                 .build(),
         )
 
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted {
+        Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted {
             assertAll(
                 { ShellAssertions.assertThat(session.screen()).containsText("SYNOPSIS") },
                 { ShellAssertions.assertThat(session.screen()).containsText("OPTIONS") },

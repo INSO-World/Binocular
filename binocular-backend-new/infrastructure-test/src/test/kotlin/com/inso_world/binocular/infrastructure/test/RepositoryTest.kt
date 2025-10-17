@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.test
 
+import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Project
@@ -7,6 +8,7 @@ import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -15,6 +17,13 @@ internal class RepositoryTest : BaseInfrastructureSpringTest() {
     lateinit var repositoryPort: RepositoryInfrastructurePort
 
     private lateinit var project: Project
+    private lateinit var mockData: MockTestDataProvider
+
+    @BeforeEach
+    fun setUp() {
+        mockData = MockTestDataProvider()
+        project = requireNotNull(mockData.projectsByName["proj-pg-0"])
+    }
 
     @Test
     fun `find all repositories, expect non empty list`() {

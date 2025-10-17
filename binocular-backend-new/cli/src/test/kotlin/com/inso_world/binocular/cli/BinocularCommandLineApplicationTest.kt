@@ -1,34 +1,22 @@
 package com.inso_world.binocular.cli
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
+import com.inso_world.binocular.cli.base.AbstractCliIntegrationTest
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Profile
-import org.testcontainers.containers.PostgreSQLContainer
+import org.springframework.test.context.junit.jupiter.EnabledIf
 
-// @ActiveProfiles("test")
-@SpringBootTest(
-    classes = [BinocularCommandLineApplication::class],
-)
-internal class BinocularCommandLineApplicationTest {
+internal class BinocularCommandLineApplicationTest : AbstractCliIntegrationTest() {
     @Test
     fun contextLoads() {
     }
 
     @Test
-    @Profile("postgres")
-    fun testEmbeddedPg() {
-        val pg = PostgreSQLContainer("postgres:17.5")
-        pg.start()
-
-        val rs = pg.createConnection("").createStatement().executeQuery(
-            pg.testQueryString
-        )
-        assertTrue(rs.next())
-        assertEquals(1, rs.getInt(1))
-        assertFalse(rs.next())
-        pg.stop()
+    @EnabledIf(
+        expression = "#{environment.acceptsProfiles('postgres')}",
+        reason = "🏋🏻‍ Because spring.profiles.active = postgres",
+        loadContext = true
+    )
+    fun checkPgContainerIsRunning() {
+        assertTrue(com.inso_world.binocular.infrastructure.sql.SqlTestConfig.pg.isRunning)
     }
 }

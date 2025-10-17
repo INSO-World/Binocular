@@ -1,15 +1,15 @@
 package com.inso_world.binocular.cli.integration.persistence.dao.sql.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
-import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.infrastructure.sql.SqlTestConfig
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
@@ -19,10 +19,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Lazy
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.transaction.support.TransactionTemplate
 
 @SpringBootTest(classes = [BinocularCommandLineApplication::class])
 @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+@ContextConfiguration(
+    initializers = [
+        SqlTestConfig.Initializer::class,
+    ]
+)
 class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     @Autowired @Lazy
     private lateinit var repoService: RepositoryService
@@ -31,7 +37,7 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
 //    protected lateinit var entityManager: EntityManager
 
     @Autowired
-    private lateinit var testDataSetupService: TestDataSetupService
+    private lateinit var testDataSetupService: InfrastructureDataSetup
 
     @Autowired
     lateinit var branchPort: BranchInfrastructurePort
@@ -89,11 +95,6 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
 
     @AfterEach
     fun cleanup() {
-        testDataSetupService.clearAllData()
-//        entityManager.clear()
-//        projectRepository.deleteAll()
-//        repositoryRepository.deleteAll()
-//        commitRepository.deleteAll()
-//        userRepository.deleteAll()
+        testDataSetupService.teardown()
     }
 }

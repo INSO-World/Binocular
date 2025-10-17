@@ -17,4 +17,4 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 )
 @Configuration
 @ComponentScan(basePackages = ["com.inso_world.binocular.infrastructure.sql", "com.inso_world.binocular.core"])
-class SqlRepositoryConfig
+class SqlAppConfig
