@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
 
 @Service
@@ -69,6 +70,7 @@ internal class BranchInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findAll(): Iterable<Branch> {
         val context: MutableMap<Long, Repository> = mutableMapOf()
 
@@ -88,6 +90,7 @@ internal class BranchInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findAll(repository: Repository): Iterable<Branch> =
         branchDao.findAll(repository).map { b ->
             branchMapper.toDomainFull(b, repository)
@@ -101,6 +104,7 @@ internal class BranchInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    @Transactional
     override fun deleteAll() {
         super.deleteAllEntities()
     }

@@ -5,7 +5,6 @@ import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * Interface for UserService.
@@ -36,6 +35,5 @@ interface UserInfrastructurePort : BinocularInfrastructurePort<User> {
      */
     fun findFilesByUserId(userId: String): List<File>
 
-    @Transactional(readOnly = true)
     fun findAll(repository: Repository): Iterable<User>
 }

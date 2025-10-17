@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
 
 /**
@@ -91,6 +92,7 @@ internal class UserInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findAll(): Iterable<User> {
         val context: MutableMap<Long, Repository> = mutableMapOf()
         val projectContext = mutableMapOf<String, Project>()
@@ -140,6 +142,7 @@ internal class UserInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    @Transactional
     override fun deleteAll() {
         super.deleteAllEntities()
     }

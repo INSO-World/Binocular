@@ -20,13 +20,12 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
 
 @Service
@@ -37,6 +36,7 @@ internal class RepositoryInfrastructurePortImpl :
     companion object {
         private val logger by logger()
     }
+
 
     @Autowired
     lateinit var repositoryMapper: RepositoryMapper
@@ -66,6 +66,7 @@ internal class RepositoryInfrastructurePortImpl :
     @Autowired
     private lateinit var projectDao: ProjectDao
 
+
     @PostConstruct
     fun init() {
         super.dao = repositoryDao
@@ -73,6 +74,7 @@ internal class RepositoryInfrastructurePortImpl :
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findByName(name: String): Repository? =
         this.repositoryDao.findByName(name)?.let {
             val project =
@@ -84,6 +86,7 @@ internal class RepositoryInfrastructurePortImpl :
         }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findAll(): Iterable<Repository> {
         val projectContext = mutableMapOf<String, Project>()
 
@@ -107,6 +110,7 @@ internal class RepositoryInfrastructurePortImpl :
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findById(id: String): Repository? =
         this.repositoryDao.findById(id.toLong())?.let {
             val project =
@@ -118,6 +122,7 @@ internal class RepositoryInfrastructurePortImpl :
         }
 
     @MappingSession
+    @Transactional
     override fun create(value: Repository): Repository {
         val projectId =
             value.project?.id?.toLong() ?: throw IllegalArgumentException("project.id of Repository must not be null")
@@ -153,6 +158,7 @@ internal class RepositoryInfrastructurePortImpl :
     }
 
     @MappingSession
+    @Transactional
     override fun update(value: Repository): Repository {
         val entity =
             run {
@@ -241,16 +247,19 @@ internal class RepositoryInfrastructurePortImpl :
         }
     }
 
+    @Transactional
     override fun updateAndFlush(value: Repository): Repository {
         val updated = update(value)
         repositoryDao.flush()
         return updated
     }
 
+    @Transactional
     override fun saveAll(values: Collection<Repository>): Iterable<Repository> {
         return values.map { this.create(it) }
     }
 
+    @Transactional
     override fun delete(value: Repository) {
         val mapped =
             this.repositoryDao.findByName(name = value.localPath)
@@ -258,46 +267,14 @@ internal class RepositoryInfrastructurePortImpl :
         this.repositoryDao.delete(mapped)
     }
 
+    @Transactional
     override fun deleteById(id: String) {
         this.repositoryDao.deleteById(id.toLong())
     }
 
+    @Transactional
     override fun deleteAll() {
         this.repositoryDao.deleteAll()
     }
 
-//    override fun findAllUser(repository: Repository): Iterable<User> {
-//        val commitContext = mutableMapOf<String, Commit>()
-//        val branchContext = mutableMapOf<String, Branch>()
-//        val userContext = mutableMapOf<String, User>()
-//
-//        val entities = this.repositoryDao.findAllUser(repository.name)
-//
-//        return entities.map {
-//            userMapper.toDomain(it, repository, userContext, commitContext, branchContext)
-//        }
-//    }
-//
-//    override fun findAllCommits(repository: Repository): Iterable<Commit> {
-//        val commitContext = mutableMapOf<String, Commit>()
-//        val branchContext = mutableMapOf<String, Branch>()
-//        val userContext = mutableMapOf<String, User>()
-//
-//        val entities = this.repositoryDao.findAllCommits(repository.name)
-//
-//        return entities.map {
-//            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
-//        }
-//    }
-//
-//    override fun findAllBranches(repository: Repository): Iterable<Branch> {
-//        val commitContext = mutableMapOf<String, Commit>()
-//        val branchContext = mutableMapOf<String, Branch>()
-//
-//        val entities = this.repositoryDao.findAllBranches(repository.name)
-//
-//        return entities.map {
-//            branchMapper.toDomain(it, repository, commitContext, branchContext)
-//        }
-//    }
 }

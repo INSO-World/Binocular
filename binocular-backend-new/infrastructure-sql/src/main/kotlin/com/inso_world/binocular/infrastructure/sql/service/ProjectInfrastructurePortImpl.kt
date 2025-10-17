@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
 
 @Service
@@ -38,11 +39,13 @@ internal class ProjectInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findByName(name: String): Project? =
         this.projectDao.findByName(name)?.let {
             this.projectMapper.toDomain(it)
         }
 
+    @Transactional
     override fun delete(value: Project) {
         val managedEntity =
             this.projectDao.findByName(value.name) ?: throw NotFoundException("Project ${value.name} not found")
@@ -51,6 +54,7 @@ internal class ProjectInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional
     override fun update(value: Project): Project {
         val managedEntity =
             this.projectDao.findByName(value.name) ?: throw NotFoundException("Project ${value.name} not found")
@@ -87,7 +91,7 @@ internal class ProjectInfrastructurePortImpl(
 //                }
 
                 // Case 4: No repo in either - nothing to do
-                else -> { }
+                else -> {}
             }
         }
 
@@ -98,6 +102,7 @@ internal class ProjectInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional
     override fun updateAndFlush(value: Project): Project {
         val managedEntity =
             this.projectDao.findByName(value.name) ?: throw NotFoundException("Project ${value.name} not found")
@@ -108,6 +113,7 @@ internal class ProjectInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional
     override fun create(value: Project): Project =
         super
             .create(
@@ -118,11 +124,20 @@ internal class ProjectInfrastructurePortImpl(
             }
 
     @MappingSession
+    @Transactional
     override fun saveAll(values: Collection<Project>): Iterable<Project> {
         return values.map { this.create(it) }
+//        return values.map {
+//            this.projectMapper.toEntity(it)
+//        }.let { entities ->
+//            return@let super.saveAll(entities)
+//        }.map {
+//            this.projectMapper.toDomain(it)
+//        }
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findAll(): Iterable<Project> =
         super<AbstractInfrastructurePort>.findAllEntities().map {
             this.projectMapper.toDomain(it)
@@ -133,15 +148,18 @@ internal class ProjectInfrastructurePortImpl(
     }
 
     @MappingSession
+    @Transactional(readOnly = true)
     override fun findById(id: String): Project? =
         super.findById(id.toLong())?.let {
             this.projectMapper.toDomain(it)
         }
 
+    @Transactional
     override fun deleteById(id: String) {
         super.deleteByEntityId(id)
     }
 
+    @Transactional
     override fun deleteAll() {
         super.deleteAllEntities()
     }

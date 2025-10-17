@@ -2,12 +2,11 @@ package com.inso_world.binocular.infrastructure.arangodb.startup
 
 import com.arangodb.entity.CollectionType
 import com.arangodb.model.CollectionCreateOptions
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import jakarta.annotation.PostConstruct
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import jakarta.annotation.PostConstruct
 
 /**
  * Ensures required ArangoDB collections exist when running with the "arangodb" profile.
@@ -17,11 +16,12 @@ import jakarta.annotation.PostConstruct
  * by proactively creating missing collections used by queries/entities.
  */
 @Component
-@Profile("arangodb")
 class ArangoCollectionInitializer(
     private val arangodbAppConfig: ArangodbAppConfig,
 ) {
-    private val logger: Logger = LoggerFactory.getLogger(ArangoCollectionInitializer::class.java)
+    companion object {
+        private val logger by logger()
+    }
 
     @PostConstruct
     fun ensureCollections() {

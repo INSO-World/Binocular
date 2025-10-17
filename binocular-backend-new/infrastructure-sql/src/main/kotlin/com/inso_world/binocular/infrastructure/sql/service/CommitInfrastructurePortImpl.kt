@@ -76,6 +76,7 @@ internal class CommitInfrastructurePortImpl
         }
 
         @MappingSession
+        @Transactional
         override fun create(value: Commit): Commit {
             val mapped =
                 run {
@@ -112,6 +113,7 @@ internal class CommitInfrastructurePortImpl
         }
 
         @MappingSession
+        @Transactional(readOnly = true)
         override fun findAll(): Iterable<Commit> {
             val values = this.commitDao.findAll()
             return values
@@ -131,6 +133,7 @@ internal class CommitInfrastructurePortImpl
         }
 
         @MappingSession
+        @Transactional(readOnly = true)
         override fun findById(id: String): Commit? =
             this.commitDao.findById(id.toLong())?.let {
                 val repository =
@@ -150,6 +153,7 @@ internal class CommitInfrastructurePortImpl
             }
 
         @MappingSession
+        @Transactional
         override fun update(value: Commit): Commit {
             val repositoryId =
                 value.repository?.id?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
@@ -339,6 +343,7 @@ internal class CommitInfrastructurePortImpl
         }
 
         @MappingSession
+        @Transactional(readOnly = true)
         override fun findAll(
             repo: Repository,
             pageable: Pageable,
@@ -365,6 +370,7 @@ internal class CommitInfrastructurePortImpl
         }
 
         @MappingSession
+        @Transactional(readOnly = true)
         override fun findAll(repository: Repository): Iterable<Commit> =
             this.commitDao
                 .findAll(repository)
@@ -374,6 +380,7 @@ internal class CommitInfrastructurePortImpl
                 }
 
         @MappingSession
+        @Transactional(readOnly = true)
         override fun findHeadForBranch(
             repo: Repository,
             branch: String,
@@ -395,6 +402,7 @@ internal class CommitInfrastructurePortImpl
         }
 
         @MappingSession
+        @Transactional(readOnly = true)
         override fun findAllLeafCommits(repo: Repository): Iterable<Commit> {
             val repoEntity =
                 repositoryDao.findByName(repo.localPath) ?: throw NotFoundException("Repository ${repo.localPath} not found")
