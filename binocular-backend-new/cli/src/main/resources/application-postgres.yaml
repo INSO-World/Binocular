@@ -17,7 +17,6 @@ spring:
       hibernate:
         jdbc:
           batch_size: 256
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 #        order_updates: true
 #        order_inserts: true
 #        batch_versioned_data: true

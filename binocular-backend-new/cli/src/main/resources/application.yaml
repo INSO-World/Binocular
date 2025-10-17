@@ -3,7 +3,7 @@ binocular:
     path: "/Users/rise/Repositories/test_repositories/Binocular"
 spring:
   profiles:
-    active: sql,postgres
+    active: postgres,gix
   application:
     name: binocular-cli
   shell:

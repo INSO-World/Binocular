@@ -108,7 +108,10 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
     @Transactional
     override fun saveAll(entities: Collection<T>): Iterable<T> = this.repository.saveAll(entities)
 
+    @Transactional
     override fun flush() {
+        logger.trace("EM flushing...")
         entityManager.flush()
+        logger.trace("EM flushed")
     }
 }
