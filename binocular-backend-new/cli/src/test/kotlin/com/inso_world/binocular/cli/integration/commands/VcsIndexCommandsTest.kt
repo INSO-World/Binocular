@@ -1,15 +1,17 @@
 package com.inso_world.binocular.cli.integration.commands
 
+import com.inso_world.binocular.cli.BinocularCommandLineApplication
 import com.inso_world.binocular.cli.commands.Index
-import com.inso_world.binocular.cli.index.vcs.VcsCommit
-import com.inso_world.binocular.cli.index.vcs.VcsPerson
-import com.inso_world.binocular.cli.integration.commands.base.BaseShellWithDataTest
 import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
+import com.inso_world.binocular.infrastructure.sql.SqlTestConfig
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,21 +21,43 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.transaction.support.TransactionTemplate
-import java.lang.IllegalStateException
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ContextConfiguration
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
-internal class VcsIndexCommandsTest(
-    @all:Autowired val idxClient: Index,
-//  @Autowired val client: ShellTestClient,
-    @all:Autowired val repoService: RepositoryService,
-    @all:Autowired val transactionTemplate: TransactionTemplate,
-) : BaseShellWithDataTest() {
+@SpringBootTest(
+    classes = [BinocularCommandLineApplication::class],
+    webEnvironment = SpringBootTest.WebEnvironment.NONE,
+)
+@ContextConfiguration(
+    initializers = [
+        SqlTestConfig.Initializer::class,
+    ]
+)
+internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
+
+    @all:Autowired
+    private lateinit var infrastructureDataSetup: InfrastructureDataSetup
+
+    @all:Autowired
+    private lateinit var repoService: RepositoryService
+
+    @all:Autowired
+    private lateinit var idxClient: Index
+
+    @AfterEach
+    fun cleanup() {
+        this.infrastructureDataSetup.teardown()
+    }
 
     @Nested
-    @Disabled
     inner class BinocularRepo {
+        @AfterEach
+        fun `cleanup inner`() {
+            cleanup()
+        }
+
         @Test
         fun `index branch origin-feature-5`() {
             idxClient.commits(
@@ -51,6 +75,7 @@ internal class VcsIndexCommandsTest(
                 "Binocular",
             )
         }
+
 
         @Test
         fun `index branch origin-feature-6 and then origin-feature-5`() {
@@ -112,6 +137,11 @@ internal class VcsIndexCommandsTest(
 
     @Nested
     inner class OctoRepo {
+        @AfterEach
+        fun `cleanup inner`() {
+            cleanup()
+        }
+
         @Test
         fun `index branch master`() {
             assertDoesNotThrow {
@@ -121,8 +151,10 @@ internal class VcsIndexCommandsTest(
                     OCTO_PROJECT_NAME,
                 )
             }
-            val repo = repoService.findRepo("$FIXTURES_PATH/$OCTO_REPO") ?: throw IllegalStateException("repo cannot be null here")
-            assertAll("check numbers",
+            val repo = repoService.findRepo("$FIXTURES_PATH/$OCTO_REPO")
+                ?: throw IllegalStateException("repo cannot be null here")
+            assertAll(
+                "check numbers",
                 { assertThat(repo).isNotNull() },
                 { assertThat(repo.branches).isNotEmpty() },
                 { assertThat(repo.branches).hasSize(1) },
@@ -189,20 +221,18 @@ internal class VcsIndexCommandsTest(
 
         // Check no 1.
 //    await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-        transactionTemplate.execute {
-            val repo1 = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+        val repo1 = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
 
-            assertAll(
-                { assertThat(repo1).isNotNull() },
+        assertAll(
+            { assertThat(repo1).isNotNull() },
 //                { assertThat(repo1?.id).isNotNull() },
-                { assertThat(repo1?.branches).isNotEmpty() },
-                { assertThat(repo1?.branches).hasSize(1) },
-                { assertThat(repo1?.branches?.map { it.name }).contains("origin/master") },
-                { assertThat(repo1?.commits).isNotEmpty() },
-                { assertThat(repo1?.commits).hasSize(13) },
-                { assertThat(repo1?.user).hasSize(3) },
-            )
-        }
+            { assertThat(repo1?.branches).isNotEmpty() },
+            { assertThat(repo1?.branches).hasSize(1) },
+            { assertThat(repo1?.branches?.map { it.name }).contains("origin/master") },
+            { assertThat(repo1?.commits).isNotEmpty() },
+            { assertThat(repo1?.commits).hasSize(13) },
+            { assertThat(repo1?.user).hasSize(3) },
+        )
 //    }
 
 //    session.write(
@@ -216,20 +246,18 @@ internal class VcsIndexCommandsTest(
         )
 //    await().atLeast(5, TimeUnit.SECONDS).atMost(20, TimeUnit.SECONDS)
 //      .untilAsserted {
-        transactionTemplate.execute {
-            val repo2 = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+        val repo2 = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
 
-            assertAll(
-                { assertThat(repo2).isNotNull() },
+        assertAll(
+            { assertThat(repo2).isNotNull() },
 //                { assertThat(repo2?.id).isNotNull() },
-                { assertThat(repo2?.branches).isNotEmpty() },
-                { assertThat(repo2?.branches).hasSize(2) },
-                { assertThat(repo2?.branches?.map { it.name }).containsAll(listOf("origin/master", "master")) },
-                { assertThat(repo2?.commits).isNotEmpty() },
-                { assertThat(repo2?.commits).hasSize(14) },
-                { assertThat(repo2?.user).hasSize(3) },
-            )
-        }
+            { assertThat(repo2?.branches).isNotEmpty() },
+            { assertThat(repo2?.branches).hasSize(2) },
+            { assertThat(repo2?.branches?.map { it.name }).containsAll(listOf("origin/master", "master")) },
+            { assertThat(repo2?.commits).isNotEmpty() },
+            { assertThat(repo2?.commits).hasSize(14) },
+            { assertThat(repo2?.user).hasSize(3) },
+        )
 //      }
     }
 
@@ -242,51 +270,37 @@ internal class VcsIndexCommandsTest(
         branchName: String,
         numberOfCommits: Int,
     ) {
-//    val session = client.interactive().run()
-//    session.write(
-//      session.writeSequence().text("index").space().text("commits").space().text("-b").space().text(branchName).space()
-//        .text("--repo_path").space().text("$FIXTURES_PATH/$SIMPLE_REPO").space().carriageReturn().build()
-//    )
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = branchName,
             SIMPLE_PROJECT_NAME,
         )
 
-//    var repo1: Repository? = null
-//    await().atMost(5, TimeUnit.MINUTES).untilAsserted {
         val repo1 =
-            transactionTemplate.execute {
-                val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+            run {
+                val repo = requireNotNull(
+                    this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
+                )
                 assertAll(
                     { assertThat(repo).isNotNull() },
-//                    { assertThat(repo?.id).isNotNull() },
-                    { assertThat(repo?.branches).isNotEmpty() },
-                    { assertThat(repo?.branches).hasSize(1) },
-                    { assertThat(repo?.branches?.map { it.name }).contains(branchName) },
-                    { assertThat(repo?.commits).isNotEmpty() },
-                    { assertThat(repo?.commits).hasSize(numberOfCommits) },
-                    { assertThat(repo?.user).hasSize(3) },
+                    { assertThat(repo.branches).isNotEmpty() },
+                    { assertThat(repo.branches).hasSize(1) },
+                    { assertThat(repo.branches.map { it.name }).contains(branchName) },
+                    { assertThat(repo.commits).isNotEmpty() },
+                    { assertThat(repo.commits).hasSize(numberOfCommits) },
+                    { assertThat(repo.user).hasSize(3) },
                 )
-//      repo1 = repo
                 repo
             }
-//    }
 
-//    session.write(
-//      session.writeSequence().text("index").space().text("commits").space().text("-b").space().text(branchName).space()
-//        .text("--repo_path").space().text("$FIXTURES_PATH/$SIMPLE_REPO").space().carriageReturn().build()
-//    )
         idxClient.commits(
             repoPath = "$FIXTURES_PATH/$SIMPLE_REPO",
             branchName = branchName,
             SIMPLE_PROJECT_NAME,
         )
 
-//    var repo2: Repository? = null
-//    await().atMost(2, TimeUnit.SECONDS).untilAsserted {
         val repo2 =
-            transactionTemplate.execute {
+            run {
                 val repo = this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
 
                 assertAll(
@@ -301,8 +315,8 @@ internal class VcsIndexCommandsTest(
                 )
                 repo
             }
-//    }
-        transactionTemplate.execute {
+
+        run {
             assertAll(
                 { assertThat(repo1).isNotNull() },
                 { assertThat(repo2).isNotNull() },
@@ -325,25 +339,25 @@ internal class VcsIndexCommandsTest(
         )
         val repo1: Repository =
 //    await().atMost(20, TimeUnit.SECONDS).untilAsserted {
-        run {
-            val repo = requireNotNull(this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO"))
-            assertThat(repo).isNotNull()
-            assertAll(
-                "branches",
-                { assertThat(repo.branches).isNotEmpty() },
-                { assertThat(repo.branches).hasSize(1) },
-                { assertThat(repo.branches.map { it.name }).contains("master") },
-                { assertThat(repo.branches.flatMap { it.commits }).hasSize(14) },
-            )
-            assertAll(
-                "commits",
-                { assertThat(repo.commits).isNotEmpty() },
-                { assertThat(repo.commits).hasSize(14) },
-            )
-            assertThat(repo.user).hasSize(3)
-            return@run repo
+            run {
+                val repo = requireNotNull(this.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO"))
+                assertThat(repo).isNotNull()
+                assertAll(
+                    "branches",
+                    { assertThat(repo.branches).isNotEmpty() },
+                    { assertThat(repo.branches).hasSize(1) },
+                    { assertThat(repo.branches.map { it.name }).contains("master") },
+                    { assertThat(repo.branches.flatMap { it.commits }).hasSize(14) },
+                )
+                assertAll(
+                    "commits",
+                    { assertThat(repo.commits).isNotEmpty() },
+                    { assertThat(repo.commits).hasSize(14) },
+                )
+                assertThat(repo.user).hasSize(3)
+                return@run repo
 //      }
-        }
+            }
 
         val newVcsCommit =
             run {
@@ -374,7 +388,7 @@ internal class VcsIndexCommandsTest(
                 branch.commits.add(child)
                 return@run child
             }
-       // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
+        // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")
         assertThat(
             repo1.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
         ).isNotNull()

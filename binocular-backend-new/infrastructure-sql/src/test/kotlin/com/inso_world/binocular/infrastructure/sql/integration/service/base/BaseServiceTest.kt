@@ -1,7 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.integration.service.base
 
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import com.inso_world.binocular.infrastructure.sql.PostgresConfig
+import com.inso_world.binocular.infrastructure.sql.SqlTestConfig
 import com.inso_world.binocular.infrastructure.sql.SqlInfrastructureDataSetup
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -9,11 +9,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.transaction.support.TransactionTemplate
@@ -21,9 +18,9 @@ import org.springframework.transaction.support.TransactionTemplate
 @SpringBootTest
 @EnableAutoConfiguration
 @ContextConfiguration(
-    classes = [PostgresConfig::class],
+    classes = [SqlTestConfig::class],
     initializers = [
-        PostgresConfig.Initializer::class,
+        SqlTestConfig.Initializer::class,
     ]
 )
 @ExtendWith(SpringExtension::class)

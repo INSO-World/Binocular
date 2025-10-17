@@ -1,12 +1,13 @@
-package com.inso_world.binocular.cli.integration.commands.base
+package com.inso_world.binocular.cli.integration.shell.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.infrastructure.sql.SqlTestConfig
 import com.inso_world.binocular.model.Project
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -15,22 +16,26 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.shell.test.autoconfigure.AutoConfigureShell
 import org.springframework.shell.test.autoconfigure.AutoConfigureShellTestClient
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ContextConfiguration
 
-@AutoConfigureShell
-@AutoConfigureShellTestClient
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(
     classes = [BinocularCommandLineApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
 )
-// @ContextConfiguration(classes = [BinocularCommandLineApplication::class])
-// @ShellTest
-internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
+@ContextConfiguration(
+    initializers = [
+        SqlTestConfig.Initializer::class,
+    ]
+)
+@AutoConfigureShell
+@AutoConfigureShellTestClient
+internal open class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
     @Autowired
     internal lateinit var commitRepository: CommitInfrastructurePort
 
     @Autowired
-    private lateinit var testDataSetupService: TestDataSetupService
+    private lateinit var testDataSetupService: InfrastructureDataSetup
 
     @Autowired
     internal lateinit var repositoryRepository: RepositoryInfrastructurePort
@@ -72,7 +77,7 @@ internal class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
 
     @AfterEach
     fun cleanup() {
-        testDataSetupService.clearAllData()
+        testDataSetupService.teardown()
 //        projectRepository.deleteAll()
 //        repositoryRepository.deleteAll()
 //        branchRepository.deleteAll()

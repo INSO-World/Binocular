@@ -22,7 +22,7 @@ internal class ContainerChecks : BaseInfrastructureSpringTest() {
         loadContext = true
     )
     fun checkPgContainerIsRunning() {
-        assertTrue(com.inso_world.binocular.infrastructure.sql.PostgresConfig.pg.isRunning)
+        assertTrue(com.inso_world.binocular.infrastructure.sql.SqlTestConfig.pg.isRunning)
     }
 }
 

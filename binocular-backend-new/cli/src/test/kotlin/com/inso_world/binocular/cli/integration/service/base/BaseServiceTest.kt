@@ -1,14 +1,15 @@
 package com.inso_world.binocular.cli.integration.service.base
 
 import com.inso_world.binocular.cli.BinocularCommandLineApplication
-import com.inso_world.binocular.cli.integration.TestDataSetupService
 import com.inso_world.binocular.cli.integration.utils.RealDataProvider
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.infrastructure.sql.SqlTestConfig
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
@@ -19,20 +20,25 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Lazy
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @SpringBootTest(
     classes = [BinocularCommandLineApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
 )
-@ExtendWith(SpringExtension::class)
+@ContextConfiguration(
+    initializers = [
+        SqlTestConfig.Initializer::class,
+    ]
+)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 internal class BaseServiceTest : BaseFixturesIntegrationTest() {
     @Autowired
     private lateinit var idx: GitIndexer
 
     @Autowired
-    private lateinit var testDataSetupService: TestDataSetupService
+    private lateinit var testDataSetupService: InfrastructureDataSetup
 
     @Autowired
     internal lateinit var commitPort: CommitInfrastructurePort
@@ -82,11 +88,6 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
 
     @AfterEach
     fun cleanup() {
-        testDataSetupService.clearAllData()
-//        projectRepository.deleteAll()
-//        repositoryRepository.deleteAll()
-//        branchRepository.deleteAll()
-//        commitRepository.deleteAll()
-//        userRepository.deleteAll()
+        testDataSetupService.teardown()
     }
 }

@@ -1,6 +1,4 @@
 spring:
-  datasource:
-    url: jdbc:tc:postgresql:17.5:///binocular-test
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
