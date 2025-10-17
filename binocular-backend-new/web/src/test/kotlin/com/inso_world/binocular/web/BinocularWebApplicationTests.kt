@@ -1,12 +1,9 @@
 package com.inso_world.binocular.web
 
+import com.inso_world.binocular.web.base.AbstractWebIntegrationTest
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest(
-    classes = [BinocularWebApplication::class],
-)
-internal class BinocularWebApplicationTests {
+internal class BinocularWebApplicationTests : AbstractWebIntegrationTest() {
     @Test
     fun contextLoads() {
     }

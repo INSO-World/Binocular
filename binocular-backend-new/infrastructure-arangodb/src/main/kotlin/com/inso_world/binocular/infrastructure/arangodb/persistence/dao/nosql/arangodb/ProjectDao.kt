@@ -10,6 +10,24 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class ProjectDao @Autowired constructor(
-    projectRepository: ProjectRepository,
+    private val projectRepository: ProjectRepository,
     projectMapper: ProjectMapper,
-) : MappedArangoDbDao<Project, ProjectEntity, String>(projectRepository, projectMapper), IProjectDao
+) : MappedArangoDbDao<Project, ProjectEntity, String>(projectRepository, projectMapper), IProjectDao {
+
+    @Autowired
+    private lateinit var repositoryDao: RepositoryDao
+
+    override fun findByName(name: String): Project? {
+        return this.projectRepository.findByName(name)?.let {
+            this.mapper.toDomain(it)
+        }
+    }
+
+    override fun create(entity: Project): Project {
+        val mappedEntity = mapper.toEntity(entity)
+        val savedEntity = projectRepository.save(mappedEntity)
+        val mappedDomain = mapper.toDomain(savedEntity)
+
+        return mappedDomain
+    }
+}
