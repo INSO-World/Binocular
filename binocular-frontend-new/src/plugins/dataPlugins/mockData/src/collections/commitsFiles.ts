@@ -2,8 +2,6 @@ import type { DataPluginCommitFile, DataPluginCommitsFiles } from '../../../../i
 
 export default class CommitsFiles implements DataPluginCommitsFiles {
   getAll(sha: string): Promise<DataPluginCommitFile[]> {
-    console.log("GETALL");
-    console.log(sha);
     switch (sha) {
       case '1':
         return Promise.resolve([
