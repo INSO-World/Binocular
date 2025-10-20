@@ -2,6 +2,7 @@ import { GraphQL } from './utils.ts';
 import { type ApolloQueryResult, gql } from '@apollo/client';
 import type {
   DataPluginCommit,
+  DataPluginCommitBuild,
   DataPluginCommits,
   DataPluginOwnership,
 } from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
@@ -34,6 +35,7 @@ export default class Commits implements DataPluginCommits {
   private graphQl;
   private owner;
   private name;
+
   constructor(apiKey: string, endpoint: string) {
     this.graphQl = new GraphQL(apiKey);
     this.owner = endpoint.split('/')[0];
@@ -120,7 +122,7 @@ export default class Commits implements DataPluginCommits {
           commitNodes.push({
             sha: commit.oid,
             shortSha: '',
-            files: { data: [] },
+            files: undefined,
             messageHeader: commit.messageHeadline,
             message: commit.message,
             user: {
@@ -151,6 +153,7 @@ export default class Commits implements DataPluginCommits {
   public async getOwnershipDataForCommits(): Promise<DataPluginOwnership[]> {
     return Promise.resolve([]);
   }
+
   public async getCommitDataForSha(_sha: string): Promise<DataPluginCommit> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
@@ -273,5 +276,15 @@ export default class Commits implements DataPluginCommits {
       variables: { owner: this.owner, name: this.name },
     });
     return resp.data.repository.defaultBranchRef.target.history.nodes[0].committedDate;
+  }
+
+  public async getCommitsWithBuilds(_from: string, _to: string): Promise<DataPluginCommitBuild[]> {
+    // not yet implemented
+    return Promise.resolve([]);
+  }
+
+  public async getCommitsWithFiles(_from: string, _to: string): Promise<DataPluginCommit[]> {
+    // not yet implemented
+    return Promise.resolve([]);
   }
 }
