@@ -1,6 +1,7 @@
-import type { RecommendedDashboard } from '../../../../../types/general/recommendedDashboardType.ts';
+import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
 
-const dashboard: RecommendedDashboard = {
+const dashboard: DashboardLayout = {
+  category: DashboardLayoutCategory.BASIC,
   name: 'Default',
   items: [
     {

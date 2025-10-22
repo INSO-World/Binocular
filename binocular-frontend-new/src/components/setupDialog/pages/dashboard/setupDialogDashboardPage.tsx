@@ -1,16 +1,15 @@
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
-import type { RecommendedDashboard } from '../../../../types/general/recommendedDashboardType.ts';
-import defaultDashboard from './recommendedDashboards/defaultDashboard.ts';
+import type { DashboardLayout } from '../../../../types/general/dashboardLayoutType.ts';
 import { setDashboardState } from '../../../../redux/reducer/general/dashboardReducer.ts';
 import { useState } from 'react';
-import ownershipDashboard from './recommendedDashboards/ownershipDashboard.ts';
 import { useSelector } from 'react-redux';
-import DashboardPreview from './dashboardPreview/dashboardPreview.tsx';
+import DashboardPreview from '../../../dashboard/dashboardPreview/dashboardPreview';
+import { recommendedDashboards } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
 
 function SetupDialogDashboardPage() {
   const dispatch: AppDispatch = useAppDispatch();
 
-  const recommendedDashboards: RecommendedDashboard[] = [defaultDashboard, ownershipDashboard];
+  const dashboards: DashboardLayout[] = recommendedDashboards;
 
   const [selectedDashboard, setSelectedDashboard] = useState<string>();
 
@@ -31,7 +30,7 @@ function SetupDialogDashboardPage() {
         <div>Select one of the following dashboards or press next and start with a blank dashboard.</div>
       )}
       <div className={'flex gap-4 w-full flex-wrap'}>
-        {recommendedDashboards.map((recommendedDashboard, i) => {
+        {dashboards.map((recommendedDashboard, i) => {
           return (
             <div key={'recommendedDashboard' + i} className={'card bg-base-100 w-96 shadow-xl'}>
               <div className={'card-body'}>

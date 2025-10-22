@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../../redux';
-import DashboardPreview from '../../dashboard/dashboardPreview/dashboardPreview.tsx';
+import DashboardPreview from '../../../../dashboard/dashboardPreview/dashboardPreview';
 
 function DashboardLayout() {
   const dashboardItems = useSelector((root: RootState) => root.dashboard.dashboardItems);
