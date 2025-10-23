@@ -34,6 +34,10 @@
   @apply bg-base-100;
 }
 
+.dashboardCard:hover{
+  scale: 1.1;
+}
+
 .dashboardCard>span{
   margin: 0.5rem;
   height: 2rem;

@@ -1,9 +1,9 @@
-import recommendedLayoutsStyles from './recommendedLayouts.module.scss';
+import layoutSelectorStyles from './layoutSelector.module.scss';
 import VisualizationsIcon from '../../../../assets/visualizations_white.svg';
 import { showLayoutOverview } from '../layoutOverview/layoutOverviewHelper';
 import { recommendLayouts } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
 import { DashboardLayoutCategory } from '../../../../types/general/dashboardLayoutType';
-import { clearDashboardAndSetState } from '../../../../redux/reducer/general/dashboardReducer';
+import { clearDashboard, setDashboardState } from '../../../../redux/reducer/general/dashboardReducer';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
 import { useSelector } from 'react-redux';
 import { useState } from 'react';
@@ -11,7 +11,7 @@ import { addCustomLayout } from '../../../../redux/reducer/general/layoutReducer
 import type { DashboardItemType } from '../../../../types/general/dashboardItemType';
 import { showConfirmationDialog } from '../../../confirmationDialog/confirmationDialog';
 
-function RecommendedLayouts(props: { orientation?: string }) {
+function LayoutSelector(props: { orientation?: string }) {
   const dispatch: AppDispatch = useAppDispatch();
   const defaultDataPluginItemId = useSelector((state: RootState) => state.settings.database.defaultDataPluginItemId);
   const dashboard = useSelector((state: RootState) => state.dashboard.dashboardItems);
@@ -38,9 +38,9 @@ function RecommendedLayouts(props: { orientation?: string }) {
     <div className="flex gap-2">
       <div
         className={
-          recommendedLayoutsStyles.selector +
+          layoutSelectorStyles.selector +
           ' ' +
-          (props.orientation === 'horizontal' ? recommendedLayoutsStyles.selectorHorizontal : recommendedLayoutsStyles.selectorVertical)
+          (props.orientation === 'horizontal' ? layoutSelectorStyles.selectorHorizontal : layoutSelectorStyles.selectorVertical)
         }>
         <div className="flex">
           {[...customLayouts.slice(0, 3), ...recommendLayouts.slice(0, 5 - Math.min(customLayouts.length, 3))]
@@ -48,7 +48,7 @@ function RecommendedLayouts(props: { orientation?: string }) {
             .map((layout, i) => (
               <button
                 key={`basicDashboard-${i}`}
-                className={recommendedLayoutsStyles.dashboardCard}
+                className={layoutSelectorStyles.dashboardCard}
                 onClick={(e) => {
                   const rect = (e.target as HTMLInputElement).getBoundingClientRect();
                   const dialogWidth = 350;
@@ -64,15 +64,20 @@ function RecommendedLayouts(props: { orientation?: string }) {
                       {
                         label: 'Yes',
                         icon: null,
-                        function: () =>
-                          dispatch(
-                            clearDashboardAndSetState(
-                              layout.items.map((item: DashboardItemType) => ({
-                                ...item,
-                                dataPluginId: defaultDataPluginItemId,
-                              })),
-                            ),
-                          ),
+                        function: () => {
+                          dispatch(clearDashboard());
+                          // set Timeout with 0 delays the execution by one event loop cycle to ensure the dashboard is cleared before setting the new state
+                          setTimeout(() => {
+                            dispatch(
+                              setDashboardState(
+                                layout.items.map((item: DashboardItemType) => ({
+                                  ...item,
+                                  dataPluginId: defaultDataPluginItemId,
+                                })),
+                              ),
+                            );
+                          }, 0);
+                        },
                       },
                       {
                         label: 'No',
@@ -123,4 +128,4 @@ function RecommendedLayouts(props: { orientation?: string }) {
   );
 }
 
-export default RecommendedLayouts;
+export default LayoutSelector;

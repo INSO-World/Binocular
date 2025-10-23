@@ -6,10 +6,11 @@ import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, store, useAppDispatch } from '../../redux';
 import {
   addDashboardItem,
-  clearDashboardAndSetState,
+  clearDashboard,
   deleteDashboardItem,
   moveDashboardItem,
   placeDashboardItem,
+  setDashboardState,
   updateDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
@@ -71,8 +72,9 @@ function Dashboard() {
 
   // eslint-disable-next-line prefer-const
   let [dashboardItems, setDashboardItems] = useState(store.getState().dashboard.dashboardItems);
+  // naming due to duplicate function setDashboardState in reducer
   // eslint-disable-next-line prefer-const
-  let [dashboardState, setDashboardState] = useState(store.getState().dashboard.dashboardState);
+  let [dashboardState1, setDashboardState1] = useState(store.getState().dashboard.dashboardState);
 
   const placeableItem: DashboardItemType = useSelector((state: RootState) => state.dashboard.placeableItem);
 
@@ -86,16 +88,18 @@ function Dashboard() {
         newDashboardItems.forEach((dashboardItem: DashboardItemType) => {
           moveResizeDashboardItem(dashboardItem, rowCount, gridMultiplier, columnCount);
           dashboardItems = newDashboardItems;
-          dashboardState = newDashboardState;
+          dashboardState1 = newDashboardState;
         });
         break;
-      case clearDashboardAndSetState.type:
+      case setDashboardState.type:
+      case clearDashboard.type:
       case placeDashboardItem.type:
       case addDashboardItem.type:
       case updateDashboardItem.type:
       case deleteDashboardItem.type:
         setDashboardItems(newDashboardItems);
-        setDashboardState(newDashboardState);
+        setDashboardState1(newDashboardState);
+
         break;
     }
   });
@@ -154,7 +158,7 @@ function Dashboard() {
           if (
             highlightDropArea(
               movingItem,
-              dashboardState,
+              dashboardState1,
               rowCount,
               columnCount,
               gridMultiplier,
@@ -193,7 +197,7 @@ function Dashboard() {
           if (
             highlightDropArea(
               movingItem,
-              dashboardState,
+              dashboardState1,
               rowCount,
               columnCount,
               gridMultiplier,
@@ -362,7 +366,7 @@ function Dashboard() {
                   gridMultiplier,
                   targetHeight,
                   placeableItem,
-                  dashboardState,
+                  dashboardState1,
                   rowCount,
                   columnCount,
                 );
@@ -385,7 +389,7 @@ function Dashboard() {
                   gridMultiplier,
                   targetHeight,
                   placeableItem,
-                  dashboardState,
+                  dashboardState1,
                   rowCount,
                   columnCount,
                 );

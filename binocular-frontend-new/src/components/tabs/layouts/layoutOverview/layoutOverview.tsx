@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { DashboardLayoutCategory } from '../../../../types/general/dashboardLayoutType';
 import { recommendLayouts } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
 import DashboardPreview from '../../../dashboard/dashboardPreview/dashboardPreview';
-import { setDashboardState } from '../../../../redux/reducer/general/dashboardReducer';
+import { clearDashboard, setDashboardState } from '../../../../redux/reducer/general/dashboardReducer';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
 import type { DashboardItemType } from '../../../../types/general/dashboardItemType';
@@ -60,12 +60,12 @@ function LayoutOverview() {
 
               return (
                 <div key={category}>
-                  <h2>{category}</h2>
+                  <h2 className={'mb-1'}>{category}</h2>
                   <div>
-                    <div className={`${layoutOverviewStyles.selectorRow} flex flex-wrap gap-1`}>
+                    <div className={`${layoutOverviewStyles.selectorRow} flex flex-wrap gap-2`}>
                       {filteredLayouts.map((layout, i) => {
                         return (
-                          <div key={'dashboardLayout' + i} className={'card bg-base-100 w-48 shadow-xl'}>
+                          <div key={'dashboardLayout' + i} className={'card bg-base-100 w-66 shadow-lg'}>
                             <div className={'card-body p-3'}>
                               <div className={'flex justify-between'}>
                                 <h2 className={'card-title'}>{layout.name}</h2>
@@ -87,7 +87,7 @@ function LayoutOverview() {
                                           {
                                             label: 'Yes',
                                             icon: null,
-                                            function: () => dispatch(dispatch(deleteCustomLayout(layout.id))),
+                                            function: () => dispatch(deleteCustomLayout(layout.id)),
                                           },
                                           {
                                             label: 'No',
@@ -103,14 +103,43 @@ function LayoutOverview() {
                               <button
                                 className={'btn btn-accent w-fit'}
                                 disabled={layout.name === selectedLayout}
-                                onClick={() => {
+                                onClick={(e) => {
                                   setSelectedLayout(layout.name);
-                                  dispatch(
-                                    setDashboardState(
-                                      layout.items.map((item: DashboardItemType) => {
-                                        return { ...item, dataPluginId: defaultDataPluginItemId };
-                                      }),
-                                    ),
+                                  const rect = (e.target as HTMLInputElement).getBoundingClientRect();
+                                  const dialogWidth = 350;
+                                  const dialogHeight = 90;
+                                  const x = rect.left + rect.width / 2 - dialogWidth / 2 + window.scrollX;
+                                  const y = rect.top + rect.height / 2 + dialogHeight / 2 + window.scrollY;
+                                  showConfirmationDialog(
+                                    x,
+                                    y,
+                                    dialogWidth,
+                                    `This will remove the current dashboard layout and will replace it with this one! Are you sure?`,
+                                    [
+                                      {
+                                        label: 'Yes',
+                                        icon: null,
+                                        function: () => {
+                                          dispatch(clearDashboard());
+                                          // set Timeout with 0 delays the execution by one event loop cycle to ensure the dashboard is cleared before setting the new state
+                                          setTimeout(() => {
+                                            dispatch(
+                                              setDashboardState(
+                                                layout.items.map((item: DashboardItemType) => ({
+                                                  ...item,
+                                                  dataPluginId: defaultDataPluginItemId,
+                                                })),
+                                              ),
+                                            );
+                                          }, 0);
+                                        },
+                                      },
+                                      {
+                                        label: 'No',
+                                        icon: null,
+                                        function: () => {},
+                                      },
+                                    ],
                                   );
                                 }}>
                                 Select

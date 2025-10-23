@@ -5,7 +5,7 @@ function DashboardPreview(props: { layout: DashboardLayout; small?: boolean }) {
   const baseItemSize = 100 / 40;
   let baseGridSize = '20rem';
   if (props.small) {
-    baseGridSize = '10rem';
+    baseGridSize = '15rem';
   }
   return (
     <>
@@ -21,11 +21,15 @@ function DashboardPreview(props: { layout: DashboardLayout; small?: boolean }) {
               width: baseItemSize * (item.width ? item.width : 0) + '%',
             }}>
             <div className={dashboardPreviewStyles.dashboardPreviewItem}>
-              <span>{item.pluginName}</span>
-              {props.small ? null : (
-                <span className="text-xs">
-                  {item.width}x{item.height}
-                </span>
+              {props.small ? (
+                <span className={'text-xs block flex text-center'}>{item.pluginName}</span>
+              ) : (
+                <>
+                  <span>{item.pluginName}</span>
+                  <span>
+                    {item.width}x{item.height}
+                  </span>
+                </>
               )}
             </div>
           </div>

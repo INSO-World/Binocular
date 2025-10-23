@@ -32,7 +32,7 @@ import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
 import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
 import { TabAlignment } from './types/general/tabType.ts';
-import LayoutSelector from './components/tabs/layouts/recommendedLayouts/recommendedLayouts.tsx';
+import LayoutSelector from './components/tabs/layouts/layoutSelector/layoutSelector.tsx';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
