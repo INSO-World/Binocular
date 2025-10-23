@@ -3,6 +3,16 @@ export interface VisualizationPluginMetadata {
   recommended?: boolean;
   description?: string;
   defaultSize?: [number, number];
+  compatibility?: VisualizationPluginCompatibility;
+}
+
+export interface VisualizationPluginCompatibility {
+  binocularBackend: boolean;
+  githubAPI: boolean;
+  mockData: boolean;
+  pouchDB: boolean;
+  github: boolean;
+  gitlab: boolean;
 }
 
 export enum VisualizationPluginMetadataCategory {

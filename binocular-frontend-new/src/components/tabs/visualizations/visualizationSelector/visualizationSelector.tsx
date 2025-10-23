@@ -22,6 +22,7 @@ function VisualizationSelector(props: { orientation?: string }) {
                 <VisualizationSelectorDragButton
                   key={'VisualizationSelectorV' + i}
                   plugin={plugin}
+                  disabled={false}
                   showHelp={false}></VisualizationSelectorDragButton>
               );
             })}

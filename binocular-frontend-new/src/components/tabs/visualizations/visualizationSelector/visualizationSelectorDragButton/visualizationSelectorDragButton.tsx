@@ -7,7 +7,8 @@ import { useSelector } from 'react-redux';
 import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType.ts';
 import HelpIcon from '../../../../../assets/help_blue.svg';
 import { showInfoTooltipp } from '../../../../infoTooltipp/infoTooltippHelper.ts';
-function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<unknown, unknown>; showHelp: boolean }) {
+
+function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<unknown, unknown>; disabled: boolean; showHelp: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const defaultDataPlugin = configuredDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0];
@@ -15,7 +16,8 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
   return (
     <button
       draggable={true}
-      className={visualizationSelectorStyles.visualizationButton}
+      disabled={props.disabled}
+      className={props.disabled ? visualizationSelectorStyles.disabledVisualizationButton : visualizationSelectorStyles.visualizationButton}
       onClick={() => {
         dispatch(
           addDashboardItem({
