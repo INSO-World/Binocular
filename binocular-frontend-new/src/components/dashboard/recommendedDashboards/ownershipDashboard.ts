@@ -22,6 +22,15 @@ const dashboard: DashboardLayout = {
       x: 0,
       y: 8,
     },
+    {
+      id: 0,
+      width: 20,
+      height: 8,
+      pluginName: 'Code Ownership',
+      dataPluginId: undefined,
+      x: 20,
+      y: 8,
+    },
   ],
 };
 
