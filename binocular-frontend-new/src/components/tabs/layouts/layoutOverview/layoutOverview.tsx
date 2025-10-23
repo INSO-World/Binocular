@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
 import type { DashboardItemType } from '../../../../types/general/dashboardItemType';
 import { deleteCustomLayout } from '../../../../redux/reducer/general/layoutReducer';
+import { showConfirmationDialog } from '../../../confirmationDialog/confirmationDialog';
 
 function LayoutOverview() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -71,7 +72,31 @@ function LayoutOverview() {
                                 {layout.category === DashboardLayoutCategory.CUSTOM && (
                                   <button
                                     className={layoutOverviewStyles.deleteButton}
-                                    onClick={() => dispatch(deleteCustomLayout(layout.id))}></button>
+                                    onClick={(e) => {
+                                      const rect = (e.target as HTMLInputElement).getBoundingClientRect();
+                                      const dialogWidth = 350;
+                                      const dialogHeight = 90;
+                                      const x = rect.left + rect.width / 2 - dialogWidth / 2 + window.scrollX;
+                                      const y = rect.top + rect.height / 2 + dialogHeight / 2 + window.scrollY;
+                                      showConfirmationDialog(
+                                        x,
+                                        y,
+                                        dialogWidth,
+                                        `This will remove the custom dashboard layout! Are you sure?`,
+                                        [
+                                          {
+                                            label: 'Yes',
+                                            icon: null,
+                                            function: () => dispatch(dispatch(deleteCustomLayout(layout.id))),
+                                          },
+                                          {
+                                            label: 'No',
+                                            icon: null,
+                                            function: () => {},
+                                          },
+                                        ],
+                                      );
+                                    }}></button>
                                 )}
                               </div>
                               <DashboardPreview layout={layout} small={true}></DashboardPreview>
