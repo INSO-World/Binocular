@@ -102,6 +102,37 @@ export const dashboardSlice = createSlice({
       state = action.payload;
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
+    clearDashboardAndSetState: (state, action: PayloadAction<DashboardItemType[]>) => {
+      state.dashboardState = Array.from({ length: state.dashboardState.length }, () =>
+        Array.from({ length: state.dashboardState[0].length }, () => 0),
+      );
+
+      state.dashboardItems = [];
+      state.dashboardItemCount = 0;
+      state.placeableItem = undefined;
+
+      // same as setDashboardState, but needs a refresh trigger for the dashboard (in dashboard.tsx)
+      const dashboardItems = action.payload.map((item, id) => {
+        item.id = id + 1;
+        state.dashboardItemCount = item.id;
+        return item;
+      });
+
+      dashboardItems.forEach((item) => {
+        if (item.x !== undefined && item.y !== undefined) {
+          for (let x = item.x; x < item.x + item.width; x++) {
+            for (let y = item.y; y < item.y + item.height; y++) {
+              state.dashboardState[y][x] = item.id;
+            }
+          }
+        }
+      });
+
+      state.dashboardItems = dashboardItems;
+      state.initialized = true;
+
+      localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
     setDashboardState: (state, action: PayloadAction<DashboardItemType[]>) => {
       const dashboardItems = action.payload.map((item, id) => {
         item.id = id + 1;
@@ -133,6 +164,7 @@ export const {
   updateDashboardItem,
   increasePopupCount,
   clearDashboardStorage,
+  clearDashboardAndSetState,
   importDashboardStorage,
   setDashboardState,
 } = dashboardSlice.actions;

@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, store, useAppDispatch } from '../../redux';
 import {
   addDashboardItem,
+  clearDashboardAndSetState,
   deleteDashboardItem,
   moveDashboardItem,
   placeDashboardItem,
@@ -88,6 +89,7 @@ function Dashboard() {
           dashboardState = newDashboardState;
         });
         break;
+      case clearDashboardAndSetState.type:
       case placeDashboardItem.type:
       case addDashboardItem.type:
       case updateDashboardItem.type:

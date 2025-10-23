@@ -4,12 +4,12 @@ import { setDashboardState } from '../../../../redux/reducer/general/dashboardRe
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import DashboardPreview from '../../../dashboard/dashboardPreview/dashboardPreview';
-import { recommendedDashboards } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
+import { recommendLayouts } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
 
 function SetupDialogDashboardPage() {
   const dispatch: AppDispatch = useAppDispatch();
 
-  const dashboards: DashboardLayout[] = recommendedDashboards;
+  const dashboards: DashboardLayout[] = recommendLayouts;
 
   const [selectedDashboard, setSelectedDashboard] = useState<string>();
 

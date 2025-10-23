@@ -32,8 +32,7 @@ import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
 import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
 import { TabAlignment } from './types/general/tabType.ts';
-import CustomLayouts from './components/tabs/layouts/customLayouts/customLayouts.tsx';
-import DefaultLayouts from './components/tabs/layouts/recommendedLayouts/recommendedLayouts.tsx';
+import LayoutSelector from './components/tabs/layouts/recommendedLayouts/recommendedLayouts.tsx';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -142,10 +141,7 @@ function App() {
           </Tab>
           <Tab displayName={'Layouts'} alignment={TabAlignment.top}>
             <TabSection name={'Layouts Selector'}>
-              <DefaultLayouts></DefaultLayouts>
-            </TabSection>
-            <TabSection name={'Custom Layouts'}>
-              <CustomLayouts></CustomLayouts>
+              <LayoutSelector></LayoutSelector>
             </TabSection>
           </Tab>
           <Tab displayName={'Authors'} alignment={TabAlignment.right}>

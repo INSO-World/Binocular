@@ -37,3 +37,14 @@
 .selectorRow{
 }
 
+.deleteButton{
+  background: url("../../../../assets/close_red.svg") no-repeat center center;
+  background-size: contain;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}

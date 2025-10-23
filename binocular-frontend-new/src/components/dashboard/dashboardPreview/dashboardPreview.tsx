@@ -1,7 +1,7 @@
 import dashboardPreviewStyles from './dashboardPreview.module.scss';
-import type { DashboardItemType } from '../../../types/general/dashboardItemType';
+import { type DashboardLayout } from '../../../types/general/dashboardLayoutType';
 
-function DashboardPreview(props: { dashboardItems: DashboardItemType[]; small?: boolean }) {
+function DashboardPreview(props: { layout: DashboardLayout; small?: boolean }) {
   const baseItemSize = 100 / 40;
   let baseGridSize = '20rem';
   if (props.small) {
@@ -10,7 +10,7 @@ function DashboardPreview(props: { dashboardItems: DashboardItemType[]; small?: 
   return (
     <>
       <div className={dashboardPreviewStyles.dashboardPreviewContainer} style={{ width: baseGridSize, height: baseGridSize }}>
-        {props.dashboardItems.map((item, j) => (
+        {props.layout.items.map((item, j) => (
           <div
             key={'dashboardItem' + j}
             className={dashboardPreviewStyles.dashboardPreviewItemContainer}

@@ -1,11 +1,13 @@
 import layoutOverviewStyles from './layoutOverview.module.scss';
 import { useState } from 'react';
 import { DashboardLayoutCategory } from '../../../../types/general/dashboardLayoutType';
-import { recommendedDashboards } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
+import { recommendLayouts } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
 import DashboardPreview from '../../../dashboard/dashboardPreview/dashboardPreview';
 import { setDashboardState } from '../../../../redux/reducer/general/dashboardReducer';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
+import type { DashboardItemType } from '../../../../types/general/dashboardItemType';
+import { deleteCustomLayout } from '../../../../redux/reducer/general/layoutReducer';
 
 function LayoutOverview() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -13,6 +15,10 @@ function LayoutOverview() {
 
   const [selectedLayout, setSelectedLayout] = useState<string>();
   const defaultDataPluginItemId = useSelector((state: RootState) => state.settings.database.defaultDataPluginItemId);
+
+  const customLayouts = useSelector((state: RootState) => state.layout.customLayouts);
+
+  const allLayouts = [...recommendLayouts, ...customLayouts];
 
   return (
     <dialog
@@ -45,7 +51,7 @@ function LayoutOverview() {
               </svg>
             </label>
             {Object.values(DashboardLayoutCategory).map((category) => {
-              const filteredLayouts = recommendedDashboards.filter(
+              const filteredLayouts = allLayouts.filter(
                 (layout) => layout.category === category && layout.name.toLocaleLowerCase().includes(search.toLowerCase()),
               );
 
@@ -60,8 +66,15 @@ function LayoutOverview() {
                         return (
                           <div key={'dashboardLayout' + i} className={'card bg-base-100 w-48 shadow-xl'}>
                             <div className={'card-body p-3'}>
-                              <h2 className={'card-title'}>{layout.name}</h2>
-                              <DashboardPreview dashboardItems={layout.items} small={true}></DashboardPreview>
+                              <div className={'flex justify-between'}>
+                                <h2 className={'card-title'}>{layout.name}</h2>
+                                {layout.category === DashboardLayoutCategory.CUSTOM && (
+                                  <button
+                                    className={layoutOverviewStyles.deleteButton}
+                                    onClick={() => dispatch(deleteCustomLayout(layout.id))}></button>
+                                )}
+                              </div>
+                              <DashboardPreview layout={layout} small={true}></DashboardPreview>
                               <button
                                 className={'btn btn-accent w-fit'}
                                 disabled={layout.name === selectedLayout}
@@ -69,7 +82,7 @@ function LayoutOverview() {
                                   setSelectedLayout(layout.name);
                                   dispatch(
                                     setDashboardState(
-                                      layout.items.map((item) => {
+                                      layout.items.map((item: DashboardItemType) => {
                                         return { ...item, dataPluginId: defaultDataPluginItemId };
                                       }),
                                     ),
