@@ -57,6 +57,7 @@ function VisualizationOverview() {
                   type="checkbox"
                   className="toggle toggle-accent toggle-sm"
                   defaultChecked={filterOptions.github}
+                  key={'github' + filterOptions.github}
                   onChange={(event) => {
                     console.log(event);
                     console.log(filterOptions);
@@ -77,6 +78,7 @@ function VisualizationOverview() {
                   type="checkbox"
                   className="toggle toggle-accent toggle-sm"
                   defaultChecked={filterOptions.gitlab}
+                  key={'gitlab' + filterOptions.gitlab}
                   onChange={(event) => {
                     setFilterOptions({
                       binocularBackend: filterOptions.binocularBackend,
@@ -95,6 +97,7 @@ function VisualizationOverview() {
                   type="checkbox"
                   className="toggle toggle-accent toggle-sm"
                   defaultChecked={filterOptions.binocularBackend}
+                  key={'binocularBackend' + filterOptions.binocularBackend}
                   onChange={(event) => {
                     setFilterOptions({
                       binocularBackend: event.target.checked,
@@ -113,6 +116,7 @@ function VisualizationOverview() {
                   type="checkbox"
                   className="toggle toggle-accent toggle-sm"
                   defaultChecked={filterOptions.pouchDB}
+                  key={'pouchDB' + filterOptions.pouchDB}
                   onChange={(event) => {
                     setFilterOptions({
                       binocularBackend: filterOptions.binocularBackend,
@@ -131,6 +135,7 @@ function VisualizationOverview() {
                   type="checkbox"
                   className="toggle toggle-accent toggle-sm"
                   defaultChecked={filterOptions.mockData}
+                  key={'mockData' + filterOptions.mockData}
                   onChange={(event) => {
                     setFilterOptions({
                       binocularBackend: filterOptions.binocularBackend,
@@ -149,6 +154,7 @@ function VisualizationOverview() {
                   type="checkbox"
                   className="toggle toggle-accent toggle-sm"
                   defaultChecked={filterOptions.githubAPI}
+                  key={'githubAPI' + filterOptions.githubAPI}
                   onChange={(event) => {
                     setFilterOptions({
                       binocularBackend: filterOptions.binocularBackend,

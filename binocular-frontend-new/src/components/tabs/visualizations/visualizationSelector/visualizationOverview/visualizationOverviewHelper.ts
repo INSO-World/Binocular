@@ -22,18 +22,19 @@ export function showVisualizationOverview(x: number, y: number) {
   }
 }
 
+// returns true if any boolean of filterOptions is true, while same boolean in pluginOptions is false
 export function disableVisualizationOverview(
   filterOptions: VisualizationPluginCompatibility,
   pluginOptions: VisualizationPluginCompatibility | undefined,
-  name?: string,
 ): boolean {
   if (!pluginOptions) return false;
+  let value = false;
   Object.keys(filterOptions).forEach((key) => {
     const typedKey = key as keyof VisualizationPluginCompatibility;
     if (filterOptions[typedKey] && pluginOptions && !pluginOptions[typedKey]) {
-      console.log('REJECTEDDDD' + name);
-      return true;
+      value = true;
+      return;
     }
   });
-  return false;
+  return value;
 }

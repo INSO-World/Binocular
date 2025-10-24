@@ -53,7 +53,12 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              showInfoTooltipp(e.clientX, e.clientY, { headline: props.plugin.name, text: props.plugin.metadata.description ?? '' });
+              showInfoTooltipp(
+                e.clientX,
+                e.clientY,
+                { headline: props.plugin.name, text: props.plugin.metadata.description ?? '' },
+                props.plugin.metadata.compatibility,
+              );
             }}>
             <img draggable={'false'} src={HelpIcon} alt={props.plugin.name} />
           </div>
