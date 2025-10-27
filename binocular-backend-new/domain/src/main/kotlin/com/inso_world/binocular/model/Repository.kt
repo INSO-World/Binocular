@@ -1,38 +1,113 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.model.validation.CommitValidation
-import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
-@CommitValidation
+/**
+ * Repository — domain entity representing a local Git repository scoped to a [Project].
+ *
+ * ### Identity & equality
+ * - Technical identity: immutable [iid] of type [Id] (generated at construction).
+ * - Business key: [uniqueKey] == [Key]([project].iid, [localPath].trim()).
+ * - Equality is identity-based (same [iid]); `hashCode()` derives from [iid].
+ *
+ * ### Construction & validation
+ * - Requires a non-blank [localPath] (`@field:NotBlank` + runtime `require`).
+ * - On construction, the repository **links itself** to the owning [project] via `project.repo = this`.
+ *
+ * ### Relationships & collections
+ * - [commits], [branches], and [user] are add-only, repository-consistent, de-duplicated sets backed by
+ *   `NonRemovingMutableSet`. See their KDoc for invariants and exceptions.
+ *
+ * ### Thread-safety
+ * - Instances are mutable and not thread-safe. Collections use concurrent maps for element-level ops,
+ *   but multi-step workflows are **not atomic**; coordinate externally.
+ *
+ * @property localPath Absolute or workspace-relative path to the repository; must be non-blank.
+ *   Participates in [uniqueKey] as `localPath.trim()`.
+ * @property project Owning [Project]; establishes the [Repository]↔[Project] association during `init`.
+ */
+@OptIn(ExperimentalUuidApi::class)
 data class Repository(
-    val id: String? = null,
     @field:NotBlank
     val localPath: String,
-    @field:NotNull // TODO conditional validation, only when coming out of infra
-    var project: Project? = null,
-    // TODO add remotes
-) : AbstractDomainObject() {
-    private val _commits: MutableSet<Commit> = mutableSetOf()
-    private val _branches: MutableSet<Branch> = mutableSetOf()
-    private val _user: MutableSet<User> = mutableSetOf()
+    val project: Project
+) : AbstractDomainObject<Repository.Id, Repository.Key>(
+    Id(Uuid.random())
+) {
+    @JvmInline
+    value class Id(val value: Uuid)
+
+    data class Key(val projectId: Project.Id, val localPath: String) // value object for lookups
+
+    // some database dependent id
+    @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))
+    var id: String? = null
+
+    init {
+        require(localPath.trim().isNotBlank()) { "localPath cannot be blank." }
+        project.repo = this
+    }
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
     }
 
-    @get:Valid
+    /**
+     * Commits that belong to this [Repository].
+     *
+     * ### Semantics
+     * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removal operations
+     *   (`remove`, `retainAll`, `clear`, iterator `remove`) are unsupported.
+     * - **Repository consistency:** A commit can be added only if `commit.repository == this@Repository`.
+     * - **No implicit graph wiring:** Adding a commit here **does not** establish parent/child/branch
+     *   relations; those must be handled explicitly elsewhere.
+     * - **Set semantics / de-duplication:** Membership is keyed by each commit’s `uniqueKey`
+     *   (business key). Re-adding an existing commit is a no-op (`false`). The first instance
+     *   for a given key becomes the canonical stored instance.
+     *
+     * ### Invariants enforced on insert
+     * - Precondition: `element.repository == this@Repository`.
+     * - Postcondition (on success / no exception):
+     *     - `element in commits`
+     *
+     * ### Bulk adds
+     * - `addAll` applies the same checks per element as `add`.
+     * - Returns `true` if at least one new commit was added.
+     * - **Not transactional:** If inserting one element fails, earlier successful inserts remain.
+     *
+     * ### Idempotency & recursion safety
+     * - Re-adding an already-present commit (same `uniqueKey`) is a no-op and does not trigger
+     *   any additional side effects. No mutual/back-linking occurs here, so there is no risk of
+     *   infinite recursion.
+     *
+     * ### Exceptions
+     * - Throws [IllegalArgumentException] if a commit from a different repository is added.
+     * - Any attempt to remove elements from this collection throws [UnsupportedOperationException].
+     *
+     * ### Thread-safety
+     * - Internally backed by a concurrent map; individual `add`/`contains` operations are safe
+     *   for concurrent use. Iteration is **weakly consistent**. Multi-step workflows are **not atomic**;
+     *   coordinate externally if you need stronger guarantees.
+     */
+
     val commits: MutableSet<Commit> =
-        object : MutableSet<Commit> by _commits {
+        object : NonRemovingMutableSet<Commit>() {
+            /**
+             * Adds a Commit to the repository. Relatives (parents, children) have to be added manually!
+             * @return true if the set was modified
+             */
             override fun add(element: Commit): Boolean {
-                val added = _commits.add(element)
-                if (added) {
-                    element.repository = this@Repository
+                // check if commit.repository is same as this
+                require(element.repository == this@Repository) {
+                    "$element cannot be added to a different repository."
                 }
+
+                val added = super.add(element)
                 return added
             }
 
@@ -46,14 +121,54 @@ data class Repository(
             }
         }
 
-    @get:Valid
+    /**
+     * Branches that belong to this [Repository].
+     *
+     * # Semantics
+     * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removal operations
+     *   (`remove`, `retainAll`, `clear`, iterator `remove`) are not supported.
+     * - **Repository consistency:** A branch can be added only if `branch.repository == this@Repository`.
+     *   This method **does not** mutate `branch.repository`; callers must ensure the branch is created
+     *   for this repository.
+     * - **No implicit graph wiring:** Adding a branch here does **not** touch its commits or any other
+     *   relations; those must be managed elsewhere.
+     * - **Set semantics / de-duplication:** Membership is keyed by each branch’s `uniqueKey`
+     *   (business key). Re-adding an existing branch is a no-op (`false`). The first instance for a
+     *   given key becomes the canonical stored element.
+     *
+     * # Invariants enforced on insert
+     * - Precondition: `element.repository == this@Repository`.
+     * - Postcondition (on success / no exception):
+     *     - `element in branches`
+     * - **No back-links:** This operation does not modify `element.commits` or other associations.
+     *
+     * # Bulk adds
+     * - `addAll` applies the same checks as `add`, element by element.
+     * - Returns `true` if at least one new branch was added.
+     * - **Not transactional:** If a later element fails (e.g., repo mismatch), earlier successful inserts remain.
+     *
+     * # Idempotency & recursion safety
+     * - Re-adding a branch already present (same `uniqueKey`) returns `false` and has no side effects.
+     * - No mutual/back-linking is performed here, so there is no risk of recursive `add` loops.
+     *
+     * # Exceptions
+     * - Throws [IllegalArgumentException] if a branch from a different repository is added.
+     * - Any attempt to remove elements throws [UnsupportedOperationException].
+     *
+     * # Thread-safety
+     * - Internally backed by a concurrent map; individual `add`/`contains` calls are safe for concurrent use.
+     *   Iteration is **weakly consistent**. Multi-step workflows are **not atomic**; coordinate externally if needed.
+     */
     val branches: MutableSet<Branch> =
-        object : MutableSet<Branch> by _branches {
+        object : NonRemovingMutableSet<Branch>() {
             override fun add(element: Branch): Boolean {
-                val added = _branches.add(element)
-                if (added) {
-                    element.repository = this@Repository
+                // check if branch has no repository set
+                require(element.repository == this@Repository) {
+                    "$element cannot be added to a different repository."
                 }
+
+                // Add to this repository
+                val added = super.add(element)
                 return added
             }
 
@@ -67,14 +182,53 @@ data class Repository(
             }
         }
 
-    @get:Valid
+    /**
+     * Users that belong to this [Repository].
+     *
+     * # Semantics
+     * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removal operations
+     *   (`remove`, `retainAll`, `clear`, iterator `remove`) are not supported.
+     * - **Repository consistency:** A user can be added only if `user.repository == this@Repository`.
+     *   This method **does not** mutate `user.repository`; callers must ensure the user
+     *   is created for this repository.
+     * - **No implicit graph wiring:** Adding a user here does **not** touch the user’s
+     *   authored/committed commits or any other relations.
+     * - **Set semantics / de-duplication:** Membership is keyed by each user’s `uniqueKey`
+     *   (business key). Re-adding an existing user is a no-op (`false`). The first instance
+     *   for a given key becomes the canonical stored element.
+     *
+     * # Invariants enforced on insert
+     * - Precondition: `element.repository == this@Repository`.
+     * - Postcondition (on success / no exception):
+     *     - `element in user`.
+     * - **No back-links:** This operation does not modify other associations on the user.
+     *
+     * # Bulk adds
+     * - `addAll` applies the same checks as `add`, element by element.
+     * - Returns `true` if at least one new user was added.
+     * - **Not transactional:** If a later element fails (e.g., repo mismatch), earlier successful inserts remain.
+     *
+     * # Idempotency & recursion safety
+     * - Re-adding a user already present (same `uniqueKey`) returns `false` and has no side effects.
+     * - No mutual/back-linking is performed here, so there is no risk of recursive `add` loops.
+     *
+     * # Exceptions
+     * - Throws [IllegalArgumentException] if a user from a different repository is added.
+     * - Any attempt to remove elements throws [UnsupportedOperationException].
+     *
+     * # Thread-safety
+     * - Internally backed by a concurrent map; individual `add`/`contains` calls are safe for concurrent use.
+     *   Iteration is **weakly consistent**. Multi-step workflows are **not atomic**; coordinate externally if needed.
+     */
     val user: MutableSet<User> =
-        object : MutableSet<User> by _user {
+        object : NonRemovingMutableSet<User>() {
             override fun add(element: User): Boolean {
-                val added = _user.add(element)
-                if (added) {
-                    element.repository = this@Repository
+                // check if user has no repository set
+                require(element.repository == this@Repository) {
+                    "$element cannot be added to a different repository."
                 }
+
+                val added = super.add(element)
                 return added
             }
 
@@ -88,7 +242,7 @@ data class Repository(
             }
         }
 
-    override fun toString(): String = "Repository(id=$id, localPath='$localPath')"
+    override fun toString(): String = "Repository(id=$id, iid=$iid, localPath='$localPath', project=$project)"
 
     fun removeCommitBySha(
         @Size(min = 40, max = 40)
@@ -111,11 +265,10 @@ data class Repository(
         )
     }
 
-    override fun uniqueKey(): String {
-        val project =
-            requireNotNull(this.project) {
-                "Repository project must not be null"
-            }
-        return "${project.uniqueKey()},$localPath"
-    }
+    override val uniqueKey: Key
+        get() = Key(project.iid, localPath.trim())
+
+    // Entities compare by immutable identity only
+    override fun equals(other: Any?) = super.equals(other)
+    override fun hashCode(): Int = super.hashCode()
 }

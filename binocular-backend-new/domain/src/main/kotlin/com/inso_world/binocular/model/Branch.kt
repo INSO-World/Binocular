@@ -2,43 +2,121 @@ package com.inso_world.binocular.model
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.NotNull
-import java.util.Objects
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
- * Domain model for a Branch, representing a branch in a Git repository.
- * This class is database-agnostic and contains no persistence-specific annotations.
+ * Branch — a named pointer within a Git [Repository].
+ *
+ * ### Identity & equality
+ * - Technical identity: immutable [iid] of type [Id] (assigned at construction).
+ * - Business key: [uniqueKey] == [Key]([repository].iid, [name]).
+ * - Equality delegates to [AbstractDomainObject] (identity-based); `hashCode()` derives from [iid].
+ *
+ * ### Construction & validation
+ * - Requires a non-blank [name] (`@field:NotBlank` + runtime `require`).
+ * - On initialization the instance registers itself in `repository.branches`
+ *   (idempotent, add-only set).
+ *
+ * ### Relationships & collections
+ * - [commits]: add-only, repository-consistent, bidirectionally maintained with `Commit.branches`.
+ * - [files]: add-only collection keyed by business keys of [File]; exposed as `Set` for read-only use.
+ *
+ * ### Thread-safety
+ * - The entity is mutable and not thread-safe. Collection fields use concurrent maps internally,
+ *   but multi-step workflows are **not** atomic; coordinate externally.
+ *
+ * @property name Branch name; must be non-blank and participates in the [uniqueKey].
+ * @property active Whether this branch is currently the active/checked-out branch.
+ * @property tracksFileRenames Whether file rename tracking is enabled when analyzing history.
+ * @property latestCommit Optional last known commit SHA associated with this branch.
+ * @property repository Owning repository; this branch registers itself to `repository.branches` in `init`.
  */
+@OptIn(ExperimentalUuidApi::class)
 data class Branch(
-    val id: String? = null,
     @field:NotBlank
     val name: String,
     val active: Boolean = false,
     val tracksFileRenames: Boolean = false,
     val latestCommit: String? = null,
-    // Relationships
-    val files: List<File> = emptyList(),
-    @field:NotNull
-    var repository: Repository? = null,
+    val repository: Repository,
+) : AbstractDomainObject<Branch.Id, Branch.Key>(
+    Id(Uuid.random())
 ) {
+    @JvmInline
+    value class Id(val value: Uuid)
+
+    data class Key(val repositoryId: Repository.Id, val name: String)
+
+    @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
+    var id: String? = null
+
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
     val branch: String = name
 
-    @field:NotEmpty
-    private val _commits: MutableSet<Commit> = mutableSetOf()
+    val files: Set<File> =
+        object : NonRemovingMutableSet<File>() {}
 
+    init {
+        require(name.isNotBlank()) { "name must not be blank" }
+        repository.branches.add(this)
+    }
+
+    /**
+     * The set of commits that belong to this [Branch].
+     *
+     * ### Semantics
+     * - **Add-only collection:** Backed by [NonRemovingMutableSet] — any removal operation
+     *   (`remove`, `retainAll`, `clear`, iterator `remove`) throws `UnsupportedOperationException`.
+     * - **Repository consistency:** Every added [Commit] must belong to the **same** `repository`
+     *   as this branch; otherwise the operation fails.
+     * - **Bidirectional link:** On a successful insert, this branch is also added to
+     *   `commit.branches`, keeping the relationship in sync.
+     * - **Set semantics / de-duplication:** Membership is keyed by each commit’s `uniqueKey`
+     *   (business key). Re-adding an already-present commit is a no-op (`false`).
+     *
+     * ### Validation
+     * - Annotated with `@get:NotEmpty`: bean-validation frameworks (Jakarta Validation)
+     *   will reject a [Branch] instance whose `commits` set is empty **at validation time**.
+     *   Note that the set starts empty; ensure at least one commit is added before validation/persist.
+     *
+     * ### Invariants enforced on insert
+     * - Precondition: `element.repository == this@Branch.repository`
+     * - Postcondition (on success / no exception):
+     *     - `element in commits`
+     *     - `this@Branch in element.branches`
+     *
+     * ### Bulk adds
+     * - `addAll` applies the same checks and back-linking as `add`, per element.
+     * - Returns `true` if at least one new commit was added.
+     * - **Not transactional:** if a later element fails (e.g., repo mismatch), previous
+     *   successful inserts remain.
+     *
+     * ### Idempotency & recursion safety
+     * - The back-link only runs when an element is newly added (`added == true`),
+     *   preventing infinite mutual `add` calls between `branch.commits` and `commit.branches`.
+     *
+     * ### Exceptions
+     * - Throws [IllegalArgumentException] if a commit from a different repository is added.
+     *
+     * ### Thread-safety
+     * - Backed by a concurrent map internally, but multi-step workflows aren’t atomic;
+     *   coordinate externally if mutated concurrently.
+     */
     @get:NotEmpty
     val commits: MutableSet<Commit> =
-        object : MutableSet<Commit> by _commits {
+        object : NonRemovingMutableSet<Commit>() {
             override fun add(element: Commit): Boolean {
-                // add to this commit’s parents…
-                val added = _commits.add(element)
+                require(element.repository == this@Branch.repository) {
+                    "Commit.repository (${element.repository}) doesn't match branch.repository (${this@Branch.repository})"
+                }
+
+                val added = super.add(element)
                 if (added) {
                     // …and back-link to this as a child
                     element.branches.add(this@Branch)
                 }
-                val parentsAdded = _commits.addAll(element.parents)
-                return added || parentsAdded
+                return added
             }
 
             override fun addAll(elements: Collection<Commit>): Boolean {
@@ -51,42 +129,17 @@ data class Branch(
             }
         }
 
-    fun uniqueKey(): String {
-        val repo =
-            requireNotNull(repository) {
-                "Cannot generate unique key for $javaClass when repository is null"
-            }
-        return "${repo.localPath},$name"
-    }
+    override val uniqueKey: Key
+        get() = Key(repository.iid, this.name)
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Branch
-
-        if (active != other.active) return false
-        if (tracksFileRenames != other.tracksFileRenames) return false
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (latestCommit != other.latestCommit) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = Objects.hashCode(active)
-        result = 31 * result + Objects.hashCode(tracksFileRenames)
-        result = 31 * result + Objects.hashCode(id)
-        result = 31 * result + Objects.hashCode(name)
-        result = 31 * result + Objects.hashCode(latestCommit)
-        return result
-    }
+    // Entities compare by immutable identity only
+    override fun equals(other: Any?) = super.equals(other)
+    override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "Branch(id=$id, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=${
+        "Branch(id=$id, iid=$iid, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=${
             commits.map {
                 it.sha
             }
-        }, repositoryId=${repository?.id})"
+        }, repositoryId=${repository.id})"
 }
