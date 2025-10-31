@@ -204,7 +204,8 @@ function runBackend() {
       }
 
       //writeConfigToFrontend
-      projectStructureHelper.writeContextToFrontend(ctx);
+      // TODO provide repo context; uncomment next line to make old frontend working, dont push to production, needs old frontend folder
+      // projectStructureHelper.writeContextToFrontend(ctx);
       // immediately run all indexers
       return (activeIndexingQueue = Promise.all([
         repoUpdateHandler(repository, context, gateway),
