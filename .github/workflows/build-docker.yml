@@ -150,6 +150,7 @@ jobs:
           tags: |
             ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
             ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
-            ${{ steps.docker_setup.outputs.docker_image_name }}${{ (github.ref_name == 'develop' || github.ref_name == 'main') && ':latest' || '' }}
+            ${{ (github.ref_name == 'develop' || github.ref_name == 'main') && steps.docker_setup.outputs.docker_image_name || '' }}${{ (github.ref_name == 'develop' || github.ref_name == 'main') && ':latest' || '' }}
+
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
