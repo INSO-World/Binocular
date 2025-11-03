@@ -27,6 +27,7 @@ jobs:
 
       - name: Debug echo env variables
         run: |
+          echo "Branch: ${{ github.ref_name }}"
           echo "########## Docker Tags ##########"
           echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
           echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
@@ -74,6 +75,7 @@ jobs:
 
       - name: Debug echo env variables
         run: |
+          echo "Branch: ${{ github.ref_name }}"
           echo "########## Docker Tags ##########"
           echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
           echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
@@ -119,6 +121,7 @@ jobs:
 
       - name: Debug echo env variables
         run: |
+          echo "Branch: ${{ github.ref_name }}"
           echo "########## Docker Tags ##########"
           echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
           echo ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
