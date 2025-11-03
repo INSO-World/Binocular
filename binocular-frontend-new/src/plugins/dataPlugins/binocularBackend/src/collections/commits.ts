@@ -29,7 +29,7 @@ export default class Commits implements DataPluginCommits {
               data {
                 sha
                 date
-                message
+                messageHeader
               }
             }
           }
@@ -43,16 +43,13 @@ export default class Commits implements DataPluginCommits {
       commitList.push(commit);
     });
 
-    console.log('listtttt');
-    console.log(commitList);
-
     return commitList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   public async getAll(from: string, to: string, sort: string = 'ASC') {
     console.log(`Getting Commits from ${from} to ${to}`);
+    const commitList: DataPluginCommit[] = [];
     try {
-      const commitList: DataPluginCommit[] = [];
       const getCommitsPage = (since?: string, until?: string, sort?: string) => async (page: number, perPage: number) => {
         const resp = await this.graphQl.client.query({
           query: gql`
@@ -104,7 +101,7 @@ export default class Commits implements DataPluginCommits {
       return commitList;
     } catch (e) {
       console.log(e);
-      return [];
+      return commitList;
     }
   }
 
