@@ -1,13 +1,15 @@
 import type {
   DataPluginCommit,
+  DataPluginCommitBuild,
   DataPluginCommits,
   DataPluginOwnership,
 } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
-import { findAllCommits, findCommit, findOwnershipData } from '../utils.js';
+import { findAllCommits, findAllCommitsWithBuilds, findCommit, findOwnershipData } from '../utils.js';
 import Database from '../database.ts';
 
 export default class Commits implements DataPluginCommits {
   private readonly database: Database | undefined;
+
   constructor(database: Database | undefined) {
     this.database = database;
   }
@@ -29,8 +31,8 @@ export default class Commits implements DataPluginCommits {
       });
     } else {
       return new Promise<DataPluginCommit[]>((resolve) => {
-        const users: DataPluginCommit[] = [];
-        resolve(users);
+        const commits: DataPluginCommit[] = [];
+        resolve(commits);
       });
     }
   }
@@ -106,6 +108,33 @@ export default class Commits implements DataPluginCommits {
     } else {
       return new Promise<string>((resolve) => {
         resolve('');
+      });
+    }
+  }
+
+  public async getCommitsWithFiles(from: string, to: string) {
+    return this.getAll(from, to);
+  }
+
+  public async getCommitsWithBuilds(from: string, to: string) {
+    console.log(`Getting Commits with Builds from ${from} to ${to}`);
+    // return all commits, filtering according to parameters can be added in the future
+    const first = new Date(from).getTime();
+    const last = new Date(to).getTime();
+    if (this.database && this.database.documentStore && this.database.edgeStore) {
+      return findAllCommitsWithBuilds(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+        res.docs = (res.docs as DataPluginCommitBuild[])
+          .filter((c) => new Date(c.date).getTime() >= first && new Date(c.date).getTime() <= last)
+          .sort((a, b) => {
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          });
+
+        return res.docs as unknown as DataPluginCommitBuild[];
+      });
+    } else {
+      return new Promise<DataPluginCommitBuild[]>((resolve) => {
+        const commits: DataPluginCommitBuild[] = [];
+        resolve(commits);
       });
     }
   }

@@ -37,17 +37,17 @@ services:
     environment:
       - DEBUG=idx*,importer*,git*,db*,context*
     command: [
-        "binocular",
-        "run",
-        # "--clean", # uncomment to truncate all documents
-        # "--no-vcs",
-        # "--no-ci",
-        # "--no-its",
-        # "--no-jobs",
-        "--no-frontend",
-        "--no-server",
-        "/app/binocular/repo/",
-      ]
+      "binocular",
+      "run",
+      # "--clean", # uncomment to truncate all documents
+      # "--no-vcs",
+      # "--no-ci",
+      # "--no-its",
+      # "--no-jobs",
+      "--no-frontend",
+      "--no-server",
+      "/app/binocular/repo/",
+    ]
     volumes: *binocular-volumes-backend
     networks:
       - binocular

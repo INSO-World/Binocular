@@ -39,6 +39,9 @@ function normalizeName(name: string) {
 
 export async function findBestUserMatchLeve(author: AccountUser) {
   const users = await User.findAll();
+  if (users.length === 0) {
+    return;
+  }
   let bestUser = new Entry<UserDataType>({} as UserDataType, { isNew: true });
   let highestScore = 0;
 

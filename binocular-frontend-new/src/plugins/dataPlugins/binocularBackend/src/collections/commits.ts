@@ -5,6 +5,7 @@ import type {
   DataPluginCommitBuild,
   DataPluginCommits,
   DataPluginFileOwnership,
+  DataPluginCommitShort,
 } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Commits implements DataPluginCommits {
@@ -14,10 +15,41 @@ export default class Commits implements DataPluginCommits {
     this.graphQl = new GraphQL(endpoint);
   }
 
+  public async getAllShort() {
+    console.log('Getting all commits short');
+    const commitList: DataPluginCommitShort[] = [];
+    const getCommitsPage = () => async (page: number, perPage: number) => {
+      const resp = await this.graphQl.client.query({
+        query: gql`
+          query ($page: Int, $perPage: Int) {
+            commits(page: $page, perPage: $perPage) {
+              count
+              page
+              perPage
+              data {
+                sha
+                date
+                messageHeader
+              }
+            }
+          }
+        `,
+        variables: { page, perPage },
+      });
+      return resp.data.commits;
+    };
+
+    await traversePages(getCommitsPage(), (commit: DataPluginCommitShort) => {
+      commitList.push(commit);
+    });
+
+    return commitList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
   public async getAll(from: string, to: string, sort: string = 'ASC') {
     console.log(`Getting Commits from ${from} to ${to}`);
+    const commitList: DataPluginCommit[] = [];
     try {
-      const commitList: DataPluginCommit[] = [];
       const getCommitsPage = (since?: string, until?: string, sort?: string) => async (page: number, perPage: number) => {
         const resp = await this.graphQl.client.query({
           query: gql`
@@ -43,6 +75,17 @@ export default class Commits implements DataPluginCommits {
                     additions
                     deletions
                   }
+                  files {
+                    data {
+                      file {
+                        path
+                      }
+                      stats {
+                        additions
+                        deletions
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -58,7 +101,7 @@ export default class Commits implements DataPluginCommits {
       return commitList;
     } catch (e) {
       console.log(e);
-      return [];
+      return commitList;
     }
   }
 
@@ -283,8 +326,8 @@ export default class Commits implements DataPluginCommits {
         variables: {
           page,
           perPage,
-          since: new Date(from).getTime() || undefined,
-          until: new Date(to).getTime() || undefined,
+          since: from ? new Date(from).getTime() : undefined,
+          until: to ? new Date(to).getTime() : undefined,
         },
       });
       return resp.data.commits;
@@ -357,7 +400,7 @@ export default class Commits implements DataPluginCommits {
 
     const commitFileList: DataPluginCommit[] = [];
 
-    await traversePages(getCommitsFilesPage(from, to), (commit: unknown) => {
+    await traversePages(getCommitsFilesPage(from, to), (commit: DataPluginCommit) => {
       // Create a copy of the commit
       const tempCommitFile: DataPluginCommit = { ...commit };
 

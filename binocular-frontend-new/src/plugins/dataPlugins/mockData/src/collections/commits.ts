@@ -1,17 +1,37 @@
-import {
+import type {
   DataPluginCommit,
   DataPluginCommits,
   DataPluginOwnership,
   DataPluginCommitBuild,
+  DataPluginCommitShort,
 } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import Builds from './builds.ts';
-import { DataPluginFileInCommit } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { DataPluginFileInCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default class Commits implements DataPluginCommits {
   private builds: Builds;
 
   constructor() {
     this.builds = new Builds();
+  }
+
+  public async getAllShort() {
+    console.log('Getting all commits short');
+    return new Promise<DataPluginCommitShort[]>((resolve) => {
+      const commits: DataPluginCommitShort[] = [
+        {
+          sha: '1',
+          date: '2024-06-01T12:00:00.000Z',
+          messageHeader: 'Commit 1',
+        },
+        {
+          sha: '2',
+          date: '2024-01-02T12:00:00.000Z',
+          messageHeader: 'Commit 2',
+        },
+      ];
+      resolve(commits);
+    });
   }
 
   public async getAll(from: string, to: string) {
@@ -21,7 +41,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000001',
           shortSha: '00001',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 1',
           message: 'This is the first Commit',
           user: {
@@ -38,7 +70,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000002',
           shortSha: '00002',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 2',
           message: 'This is the second Commit',
           user: {
@@ -55,7 +99,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000003',
           shortSha: '00003',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'src/app.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 3',
           message: 'This is the third Commit',
           user: {
@@ -72,7 +128,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000004',
           shortSha: '00004',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 4',
           message: 'This is the fourth Commit',
           user: {
@@ -89,7 +157,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000005',
           shortSha: '00005',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 5',
           message: 'This is the fifth Commit',
           user: {
@@ -106,7 +186,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000006',
           shortSha: '00006',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 6',
           message: 'This is the sixth Commit',
           user: {
@@ -123,7 +215,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000007',
           shortSha: '00007',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 7',
           message: 'This is the seventh Commit',
           user: {
@@ -140,7 +244,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000008',
           shortSha: '00008',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 8',
           message: 'This is the eighth Commit',
           user: {
@@ -157,7 +273,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000009',
           shortSha: '00009',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 9',
           message: 'This is the ninth Commit',
           user: {
@@ -174,7 +302,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000010',
           shortSha: '00010',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 10',
           message: 'This is the tenth Commit',
           user: {
@@ -192,7 +332,19 @@ export default class Commits implements DataPluginCommits {
         {
           sha: '0000000011',
           shortSha: '00011',
-          files: { data: [] },
+          files: {
+            data: [
+              {
+                file: {
+                  path: 'index.js',
+                  webUrl: '',
+                  maxLength: 0,
+                },
+                hunks: [],
+                stats: { additions: 500, deletions: 0 },
+              },
+            ],
+          },
           messageHeader: 'Commit 11',
           message: 'This is the eleventh Commit',
           user: {
@@ -980,7 +1132,7 @@ export default class Commits implements DataPluginCommits {
     });
 
     // Filter to only include commits with files
-    const filteredCommits = commitsWithFiles.filter((commit) => commit.files.data.length > 0);
+    const filteredCommits = commitsWithFiles.filter((commit) => commit.files && commit.files.data.length > 0);
 
     // Sort by date in descending order
     return filteredCommits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
