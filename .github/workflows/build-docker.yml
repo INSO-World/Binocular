@@ -147,6 +147,9 @@ jobs:
             NODE_VERSION=${{ steps.docker_setup.outputs.nvmrc_node_version }}
             NPM_BUILD_CMD=build:prod
           builder: ${{ steps.buildx.outputs.name }}
-          tags: ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
+          tags: |
+            ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
+            ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
+            ${{ steps.docker_setup.outputs.docker_image_name }}${{ (github.ref_name == 'develop' || github.ref_name == 'main') && ':latest' || '' }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
