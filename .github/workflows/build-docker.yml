@@ -148,8 +148,6 @@ jobs:
             NPM_BUILD_CMD=build:prod
           builder: ${{ steps.buildx.outputs.name }}
           tags: |
-            ${{ steps.docker_setup.outputs.docker_image_name }}:${{ steps.docker_setup.outputs.docker_image_tag }}
-            ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
             type=raw,value=latest,enable=${{ github.ref_name == 'develop' }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
