@@ -147,5 +147,6 @@ jobs:
             NODE_VERSION=${{ steps.docker_setup.outputs.nvmrc_node_version }}
             NPM_BUILD_CMD=build:prod
           builder: ${{ steps.buildx.outputs.name }}
+          tags: "test"
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
