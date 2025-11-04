@@ -103,6 +103,10 @@ export const settingsSlice = createSlice({
     setLocalDatabaseLoadingState: (state, action: PayloadAction<LocalDatabaseLoadingState>) => {
       state.localDatabaseLoadingState = action.payload;
     },
+    initializeSettingsState: (state) => {
+      state.initialized = true;
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
   },
 });
 
@@ -114,5 +118,6 @@ export const {
   clearSettingsStorage,
   importSettingsStorage,
   setLocalDatabaseLoadingState,
+  initializeSettingsState,
 } = settingsSlice.actions;
 export default settingsSlice.reducer;

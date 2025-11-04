@@ -12,6 +12,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 0,
+      settings: undefined,
     },
     {
       id: 0,
@@ -21,6 +22,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 20,
       y: 0,
+      settings: undefined,
     },
   ],
 };
