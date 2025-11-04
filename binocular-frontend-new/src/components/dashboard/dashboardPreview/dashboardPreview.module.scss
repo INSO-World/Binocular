@@ -1,9 +1,7 @@
-@reference "../../../../../index.scss";
+@reference "../../../index.scss";
 
 .dashboardPreviewContainer{
   position: relative;
-  width: 20rem;
-  height: 20rem;
   @apply bg-base-300;
   @apply rounded-md;
   @apply shadow-md;

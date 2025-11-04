@@ -6,7 +6,7 @@ import { type AppDispatch, type RootState, useAppDispatch } from '../../../../..
 import { useSelector } from 'react-redux';
 import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType.ts';
 import HelpIcon from '../../../../../assets/help_blue.svg';
-import { showInfoTooltipp } from '../../../../infoTooltipp/infoTooltipHelper.ts';
+import { showInfoTooltip } from '../../../../infoTooltip/infoTooltipHelper.ts';
 
 function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<unknown, unknown>; disabled: boolean; showHelp: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -53,7 +53,7 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              showInfoTooltipp(
+              showInfoTooltip(
                 e.clientX,
                 e.clientY,
                 { headline: props.plugin.name, text: props.plugin.metadata.description ?? '' },

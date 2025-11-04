@@ -11,7 +11,7 @@ FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.20 AS install
 
 WORKDIR /app/binocular
 
-RUN mkdir -p /app/binocular/binocular-frontend
+RUN mkdir -p /app/binocular/binocular-frontend-new
 RUN mkdir -p /app/binocular/binocular-backend
 
 RUN ls -l .
@@ -58,8 +58,9 @@ COPY --chown=node:node ./LICENSE ./LICENSE
 RUN npm install -g tsx mocha ts-node
 RUN npm link --ignore-scripts
 
-RUN mkdir -p /app/binocular/binocular-frontend/db_export
-RUN mkdir -p /app/binocular/binocular-frontend/config
+# TODO
+RUN mkdir -p /app/binocular/binocular-frontend-new/src/db_export
+RUN mkdir -p /app/binocular/binocular-frontend-new/config
 
 # RUN chown node:node -R /app/binocular/binocular-frontend
 

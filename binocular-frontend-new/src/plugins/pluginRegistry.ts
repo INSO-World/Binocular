@@ -1,5 +1,6 @@
 import Changes from './visualizationPlugins/changes';
 import Builds from './visualizationPlugins/builds';
+import CommitByFile from './visualizationPlugins/commitByFile';
 import Issues from './visualizationPlugins/issues';
 import TimeSpent from './visualizationPlugins/timeSpent';
 import CodeOwnership from './visualizationPlugins/code-ownership';
@@ -54,6 +55,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   ExampleStats,
   ExampleVisualization,
   ExampleComplex,
+  CommitByFile,
   CollaborationVisualization,
   KnowledgeRadar,
   CodeExpertise,
