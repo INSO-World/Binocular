@@ -18,10 +18,17 @@ export function showConfirmationDialog(x: number, y: number, width: number, text
   dialog.showModal();
 
   // Position logic
-  container.style.top = y >= window.innerHeight / 2 ? 'auto' : `${y}px`;
-  container.style.bottom = y >= window.innerHeight / 2 ? `${window.innerHeight - y}px` : 'auto';
-  container.style.left = x >= window.innerWidth / 2 ? 'auto' : `${x}px`;
-  container.style.right = x >= window.innerWidth / 2 ? `${window.innerWidth - x}px` : 'auto';
+  const containerRect = container.getBoundingClientRect();
+  const maxX = window.innerWidth - containerRect.width;
+  const maxY = window.innerHeight - containerRect.height;
+
+  const clampedX = Math.min(Math.max(0, x), maxX);
+  const clampedY = Math.min(Math.max(0, y), maxY);
+
+  container.style.top = clampedY >= window.innerHeight / 2 ? 'auto' : `${clampedY}px`;
+  container.style.bottom = clampedY >= window.innerHeight / 2 ? `${window.innerHeight - clampedY}px` : 'auto';
+  container.style.left = clampedX >= window.innerWidth / 2 ? 'auto' : `${clampedX}px`;
+  container.style.right = clampedX >= window.innerWidth / 2 ? `${window.innerWidth - clampedX}px` : 'auto';
   content.innerHTML = '';
 
   // window with
