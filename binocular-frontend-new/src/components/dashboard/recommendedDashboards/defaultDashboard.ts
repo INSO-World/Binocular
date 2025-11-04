@@ -1,6 +1,7 @@
-import type { RecommendedDashboard } from '../../../../../types/general/recommendedDashboardType.ts';
+import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
 
-const dashboard: RecommendedDashboard = {
+const dashboard: DashboardLayout = {
+  category: DashboardLayoutCategory.BASIC,
   name: 'Default',
   items: [
     {
@@ -11,6 +12,7 @@ const dashboard: RecommendedDashboard = {
       dataPluginId: undefined,
       x: 0,
       y: 0,
+      settings: undefined,
     },
     {
       id: 0,
@@ -20,6 +22,7 @@ const dashboard: RecommendedDashboard = {
       dataPluginId: undefined,
       x: 20,
       y: 0,
+      settings: undefined,
     },
   ],
 };

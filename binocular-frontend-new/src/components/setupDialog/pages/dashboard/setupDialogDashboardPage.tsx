@@ -1,22 +1,20 @@
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../../redux';
-import type { RecommendedDashboard } from '../../../../types/general/recommendedDashboardType.ts';
-import defaultDashboard from './recommendedDashboards/defaultDashboard.ts';
+import type { DashboardLayout } from '../../../../types/general/dashboardLayoutType.ts';
 import { setDashboardState } from '../../../../redux/reducer/general/dashboardReducer.ts';
 import { useState } from 'react';
-import ownershipDashboard from './recommendedDashboards/ownershipDashboard.ts';
 import { useSelector } from 'react-redux';
-import DashboardPreview from './dashboardPreview/dashboardPreview.tsx';
+import DashboardPreview from '../../../dashboard/dashboardPreview/dashboardPreview';
+import { recommendLayouts } from '../../../dashboard/recommendedDashboards/dashboardRegistry';
 
 function SetupDialogDashboardPage() {
   const dispatch: AppDispatch = useAppDispatch();
 
-  const recommendedDashboards: RecommendedDashboard[] = [defaultDashboard, ownershipDashboard];
+  const dashboards: DashboardLayout[] = recommendLayouts;
 
   const [selectedDashboard, setSelectedDashboard] = useState<string>();
 
   const dashboardInitialized = useSelector((state: RootState) => state.dashboard.initialized);
   const defaultDataPluginItemId = useSelector((state: RootState) => state.settings.database.defaultDataPluginItemId);
-  console.log(defaultDataPluginItemId);
   return (
     <>
       <h1>Setup Dashboard</h1>
@@ -31,12 +29,12 @@ function SetupDialogDashboardPage() {
         <div>Select one of the following dashboards or press next and start with a blank dashboard.</div>
       )}
       <div className={'flex gap-4 w-full flex-wrap'}>
-        {recommendedDashboards.map((recommendedDashboard, i) => {
+        {dashboards.map((recommendedDashboard, i) => {
           return (
             <div key={'recommendedDashboard' + i} className={'card bg-base-100 w-96 shadow-xl'}>
               <div className={'card-body'}>
                 <h2 className={'card-title'}>{recommendedDashboard.name}</h2>
-                <DashboardPreview dashboardItems={recommendedDashboard.items}></DashboardPreview>
+                <DashboardPreview layout={recommendedDashboard}></DashboardPreview>
                 <button
                   className={'btn btn-accent w-fit'}
                   disabled={recommendedDashboard.name === selectedDashboard}

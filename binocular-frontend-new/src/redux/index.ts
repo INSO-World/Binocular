@@ -14,6 +14,7 @@ import { createLogger } from 'redux-logger';
 import FilesReducer from './reducer/data/filesReducer.ts';
 import ActionsReducer from './reducer/general/actionsReducer.ts';
 import actionsMiddleware from './middelware/actions/actionsMiddleware.ts';
+import LayoutReducer from './reducer/general/layoutReducer';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -21,6 +22,7 @@ const logger = createLogger({
 export const store = configureStore({
   reducer: {
     dashboard: DashboardReducer,
+    layout: LayoutReducer,
     authors: AuthorsReducer,
     accounts: AccountsReducer,
     files: FilesReducer,
