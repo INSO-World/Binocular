@@ -4,6 +4,8 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BranchEntity
 import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -48,6 +50,7 @@ class BranchMapper
                             fileMapper.toDomain(fileEntity)
                         }
                     },
+                repository = Repository(localPath = "unknown", project = Project(name = "unknown"))
             )
 
         /**

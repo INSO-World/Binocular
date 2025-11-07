@@ -4,6 +4,8 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.UserEntity
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -26,6 +28,7 @@ class UserMapper
             UserEntity(
                 id = domain.id,
                 gitSignature = domain.gitSignature,
+                repositoryId = domain.repository?.id,
                 // Relationships are handled by ArangoDB through edges
             )
 
@@ -41,13 +44,8 @@ class UserMapper
                 id = entity.id,
                 name = entity.name,
                 email = entity.email,
-//                committedCommits = mutableSetOf<Commit>(),
-//                TODO
-//                    proxyFactory.createLazyList {
-//                        (entity.commits ?: emptyList()).map { commitEntity ->
-//                            commitMapper.toDomain(commitEntity)
-//                        }
-//                    },
+                repository = entity.repositoryId?.let { Repository(id = it, localPath = "unknown", project = Project(name = "unknown")) }
+                    ?: Repository(localPath = "unknown", project = Project(name = "unknown")),
                 issues =
                     proxyFactory.createLazyList {
                         entity.issues.map { issueEntity ->

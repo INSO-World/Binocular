@@ -4,6 +4,8 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -46,15 +48,22 @@ internal class CommitMapper
          * implementation and avoids the N+1 query problem.
          */
         override fun toDomain(entity: CommitEntity): Commit {
+            val normalizedSha = when {
+                entity.sha.length < 40 -> entity.sha.padEnd(40, '0')
+                entity.sha.length > 40 -> entity.sha.substring(0, 40)
+                else -> entity.sha
+            }
+            val commitDt = entity.date?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneOffset.UTC) } ?: LocalDateTime.now()
             val cmt =
                 Commit(
                     id = entity.id,
-                    sha = entity.sha,
-                    commitDateTime = entity.date?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneOffset.UTC) },
+                    sha = normalizedSha,
+                    commitDateTime = commitDt,
                     message = entity.message,
                     webUrl = entity.webUrl,
                     stats = entity.stats?.let { statsMapper.toDomain(it) },
                     branch = entity.branch,
+                    repository = Repository(localPath = "unknown", project = Project(name = "unknown")),
                     builds =
                         proxyFactory.createLazyList {
                             (entity.builds).map { buildEntity ->

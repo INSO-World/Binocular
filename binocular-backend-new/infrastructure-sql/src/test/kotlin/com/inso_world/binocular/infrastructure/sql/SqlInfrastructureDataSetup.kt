@@ -36,6 +36,12 @@ internal class SqlInfrastructureDataSetup(
         logger.info(">>> SqlInfrastructureDataSetup setup")
         this.mockTestData = MockTestDataProvider()
 
+        try { commitInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown commit failed: ${'$'}{ex.message}") }
+        try { userPort.deleteAll() } catch (ex: Exception) { logger.warn("teardown user failed: ${'$'}{ex.message}") }
+        try { branchInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown branch failed: ${'$'}{ex.message}") }
+        try { repositoryInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown repo failed: ${'$'}{ex.message}") }
+        try { projectInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown project failed: ${'$'}{ex.message}") }
+
         projectInfrastructurePort.saveAll(mockTestData.testProjects)
 //        repositoryInfrastructurePort.saveAll(mockTestData.testRepositories)
 
@@ -47,11 +53,11 @@ internal class SqlInfrastructureDataSetup(
     override fun teardown() {
         logger.info(">>> SqlInfrastructureDataSetup teardown")
 
-        projectInfrastructurePort.deleteAll()
-        repositoryInfrastructurePort.deleteAll()
-        branchInfrastructurePort.deleteAll()
-        commitInfrastructurePort.deleteAll()
-        userPort.deleteAll()
+        try { commitInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown commit failed: ${'$'}{ex.message}") }
+        try { userPort.deleteAll() } catch (ex: Exception) { logger.warn("teardown user failed: ${'$'}{ex.message}") }
+        try { branchInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown branch failed: ${'$'}{ex.message}") }
+        try { repositoryInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown repo failed: ${'$'}{ex.message}") }
+        try { projectInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown project failed: ${'$'}{ex.message}") }
 
         logger.info("<<< SqlInfrastructureDataSetup teardown")
     }

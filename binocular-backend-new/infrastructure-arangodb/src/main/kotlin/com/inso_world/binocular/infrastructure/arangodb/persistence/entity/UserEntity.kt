@@ -15,6 +15,7 @@ data class UserEntity(
     @Id
     var id: String? = null,
     var gitSignature: String,
+    var repositoryId: String? = null,
     @Relations(
         edges = [CommitUserConnectionEntity::class],
         lazy = true,

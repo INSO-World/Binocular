@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
@@ -19,10 +20,13 @@ internal class RepositoryTest : BaseInfrastructureSpringTest() {
     private lateinit var project: Project
     private lateinit var mockData: MockTestDataProvider
 
+    @Autowired
+    lateinit var projectPort: ProjectInfrastructurePort
+
     @BeforeEach
     fun setUp() {
         mockData = MockTestDataProvider()
-        project = requireNotNull(mockData.projectsByName["proj-pg-0"])
+        project = projectPort.create(Project(name = "proj-repo-rt-001"))
     }
 
     @Test

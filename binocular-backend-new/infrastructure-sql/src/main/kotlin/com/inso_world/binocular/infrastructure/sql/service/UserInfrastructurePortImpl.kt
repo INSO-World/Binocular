@@ -55,8 +55,14 @@ internal class UserInfrastructurePortImpl(
         super.dao = userDao
     }
 
+    @MappingSession
+    @Transactional(readOnly = true)
     override fun findById(id: String): User? {
-        TODO("Not yet implemented")
+        val entity = userDao.findById(id.toLong()) ?: return null
+        val repoEntity = entity.repository ?: return null
+        val project = projectMapper.toDomain(repoEntity.project)
+        val repository = repositoryMapper.toDomain(repoEntity, project)
+        return userMapper.toDomainFull(entity, repository)
     }
 
     override fun findCommitsByUserId(userId: String): List<Commit> {
@@ -71,25 +77,49 @@ internal class UserInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    @MappingSession
+    @Transactional
     override fun update(value: User): User {
-        TODO("Not yet implemented")
+        val id = value.id?.toLong() ?: throw NotFoundException("User id is required for update")
+        val managed = userDao.findById(id) ?: throw NotFoundException("User ${'$'}id not found")
+        managed.name = value.name
+        managed.email = value.email
+        userDao.update(managed)
+        userDao.flush()
+        val repoEntity = managed.repository ?: throw IllegalStateException("Repository cannot be null")
+        val project = projectMapper.toDomain(repoEntity.project)
+        val repository = repositoryMapper.toDomain(repoEntity, project)
+        return userMapper.toDomainFull(managed, repository)
     }
 
+    @Transactional
     override fun delete(value: User) {
-        TODO("Not yet implemented")
+        value.id?.let { deleteById(it) }
     }
 
-    override fun updateAndFlush(value: User): User {
-        TODO("Not yet implemented")
-    }
+    @Transactional
+    override fun updateAndFlush(value: User): User = update(value)
 
+    @MappingSession
+    @Transactional
     override fun create(value: User): User {
-        TODO("Not yet implemented")
+        val repo = value.repository ?: throw IllegalArgumentException("repository must not be null")
+        val repoId = repo.id?.toLong()
+        val repoEntity = when {
+            repoId != null -> repositoryDao.findById(repoId) ?: throw NotFoundException("Repository ${'$'}repoId not found")
+            else -> repositoryDao.findByName(repo.localPath) ?: throw NotFoundException("Repository ${'$'}{repo.localPath} not found")
+        }
+        val entity = userMapper.toEntity(value)
+        entity.repository = repoEntity
+        val created = userDao.create(entity)
+        userDao.flush()
+        val project = projectMapper.toDomain(repoEntity.project)
+        val repository = repositoryMapper.toDomain(repoEntity, project)
+        return userMapper.toDomainFull(created, repository)
     }
 
-    override fun saveAll(values: Collection<User>): Iterable<User> {
-        TODO("Not yet implemented")
-    }
+    @Transactional
+    override fun saveAll(values: Collection<User>): Iterable<User> = values.map { create(it) }
 
     @MappingSession
     @Transactional(readOnly = true)
