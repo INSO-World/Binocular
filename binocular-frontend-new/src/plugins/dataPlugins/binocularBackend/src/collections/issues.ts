@@ -91,7 +91,7 @@ export default class Issues implements DataPluginIssues {
       }: Omit<DataPluginIssue, 'commits'> & {
         commits: { data: { stats: DataPluginStats }[] };
       }) => {
-        issues.push({ ...issue, commits: commits.data.flatMap(d => d.stats) });
+        issues.push({ ...issue, commits: commits.data.flatMap((d) => d.stats) });
       },
     );
     return issues;
