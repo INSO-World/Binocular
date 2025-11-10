@@ -1,7 +1,4 @@
-import type {
-  DataPluginIssue,
-  DataPluginIssues,
-} from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import type { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 
 export default class Issues implements DataPluginIssues {
   constructor() {}
@@ -45,6 +42,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester1,
           assignees: [Tester1],
           commits: [{ additions: 1, deletions: 100 }],
+          labels: ['feature'],
         },
         {
           id: '002',
@@ -59,6 +57,7 @@ export default class Issues implements DataPluginIssues {
           assignee: null,
           assignees: [],
           commits: [{ additions: 1, deletions: 100 }],
+          labels: ['feature'],
         },
         {
           id: '003',
@@ -73,6 +72,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester1,
           assignees: [Tester1],
           commits: [{ additions: 1, deletions: 100 }],
+          labels: ['feature'],
         },
         {
           id: '004',
@@ -87,6 +87,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester1,
           assignees: [Tester1],
           commits: [{ additions: 1, deletions: 100 }],
+          labels: ['build'],
         },
         {
           id: '005',
@@ -101,6 +102,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester1,
           assignees: [Tester1],
           commits: [{ additions: 1, deletions: 100 }],
+          labels: ['test'],
         },
         {
           id: '006',
@@ -115,6 +117,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester2,
           assignees: [Tester1],
           commits: [{ additions: 1, deletions: 100 }],
+          labels: ['feat'],
         },
         {
           id: '007',
@@ -129,6 +132,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester1,
           assignees: [Tester1],
           commits: [{ additions: 1, deletions: 100 }],
+          labels: ['bug'],
         },
         {
           id: '008',
@@ -143,6 +147,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester2,
           assignees: [Tester1],
           commits: [{ additions: 0, deletions: 100 }],
+          labels: ['fix'],
         },
         {
           id: '009',
@@ -157,6 +162,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester2,
           assignees: [Tester1],
           commits: [{ additions: 1122, deletions: 32 }],
+          labels: ['chore', 'build'],
         },
         {
           id: '010',
@@ -171,6 +177,7 @@ export default class Issues implements DataPluginIssues {
           assignee: Tester1,
           assignees: [Tester1],
           commits: [{ additions: 123, deletions: 0 }],
+          labels: ['featre'],
         },
       ];
       resolve(issues);
