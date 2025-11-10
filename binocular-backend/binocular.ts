@@ -101,7 +101,7 @@ cli.parse(
   },
   (options) => {
     if (options.runIndexer) {
-      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
+      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
       const indexerOptions = {
         backend: true,
         frontend: false,
@@ -204,7 +204,8 @@ function runBackend() {
       }
 
       //writeConfigToFrontend
-      projectStructureHelper.writeContextToFrontend(ctx);
+      // TODO provide repo context; uncomment next line to make old frontend working, dont push to production, needs old frontend folder
+      // projectStructureHelper.writeContextToFrontend(ctx);
       // immediately run all indexers
       return (activeIndexingQueue = Promise.all([
         repoUpdateHandler(repository, context, gateway),
@@ -392,8 +393,8 @@ function runBackend() {
 
       // export db if required
       if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
-        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
+        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend-new/src');
       }
 
       if (activeProviders.length < 1) {

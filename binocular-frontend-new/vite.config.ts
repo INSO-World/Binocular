@@ -27,6 +27,10 @@ export default defineConfig({
     },
   },
   plugins: [nodePolyfills(), react(), ConditionalCompile(), viteSingleFile()],
+  build: {
+    emptyOutDir: true,
+    outDir: '../dist',
+  },
   optimizeDeps: {
     exclude: [],
     esbuildOptions: {

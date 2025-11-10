@@ -139,6 +139,7 @@ function TabController(props: {
           id={'tabBarRight'}
           className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarVertical + ' ' + tabControllerStyles.tabBarRight}
           style={{
+            display: dragState || tabCountRight > 0 ? 'block' : 'none',
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
           }}
@@ -160,6 +161,9 @@ function TabController(props: {
         <div
           id={'tabBarBottom'}
           className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarHorizontal + ' ' + tabControllerStyles.tabBarBottom}
+          style={{
+            display: dragState || tabCountBottom > 0 ? 'block' : 'none',
+          }}
           onDragOver={(event) => {
             event.stopPropagation();
             event.preventDefault();
@@ -179,6 +183,7 @@ function TabController(props: {
           id={'tabBarLeft'}
           className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarVertical + ' ' + tabControllerStyles.tabBarLeft}
           style={{
+            display: dragState || tabCountLeft > 0 ? 'block' : 'none',
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
           }}
@@ -470,7 +475,10 @@ function generateHandle(
         console.log(`Dragging: ${tab.displayName}`);
         setDragState(true);
         event.dataTransfer.clearData();
-        event.dataTransfer.setData('data', JSON.stringify({ dragDropElementType: DragDropElementType.Tab, tabName: tab.displayName }));
+        event.dataTransfer.setData(
+          'text/plain',
+          JSON.stringify({ dragDropElementType: DragDropElementType.Tab, tabName: tab.displayName }),
+        );
       }}
       onDragEnd={(event) => {
         setDragState(false);
@@ -489,7 +497,7 @@ function generateHandle(
       onDrop={(event) => {
         event.stopPropagation();
         document.getElementById('tab_' + tab.displayName)?.classList.remove(tabHandleStyles.tabHandleSwitch);
-        const transferredData = JSON.parse(event.dataTransfer.getData('data'));
+        const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
         if (transferredData.dragDropElementType === DragDropElementType.Tab) {
           switchTabs(transferredData.tabName, tab.displayName, tabList, setTabList, setDragState);
         } else {

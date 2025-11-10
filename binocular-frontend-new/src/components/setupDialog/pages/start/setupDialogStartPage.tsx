@@ -1,7 +1,7 @@
 function SetupDialogStartPage() {
   return (
     <>
-      <h1>Welcome zo Binocular</h1>
+      <h1>Welcome to Binocular</h1>
       <p>
         Binocular is a tool for visualizing data from various software-engineering tools. It works as a command-line tool run from a
         git-repository. When run, Binocular will gather data from the repository and the GitHub or GitLab API and persist it to a configured

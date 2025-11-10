@@ -3,9 +3,13 @@ import SetupDialogStartPage from './pages/start/setupDialogStartPage.tsx';
 import SetupDialogDatabasePage from './pages/database/setupDialogDatabasePage.tsx';
 import SetupDialogDashboardPage from './pages/dashboard/setupDialogDashboardPage.tsx';
 import SetupDialogSummaryPage from './pages/summary/setupDialogSummaryPage.tsx';
+import { type AppDispatch, useAppDispatch } from '../../redux';
+import { initializeDashboardState } from '../../redux/reducer/general/dashboardReducer';
+import { initializeSettingsState } from '../../redux/reducer/settings/settingsReducer';
 
 function SetupDialog() {
   const [page, setPage] = useState(1);
+  const dispatch: AppDispatch = useAppDispatch();
 
   const pageCount = 4;
 
@@ -52,7 +56,17 @@ function SetupDialog() {
             </button>
           )}
           {page >= pageCount ? (
-            <button className={'btn btn-sm btn-success'} onClick={() => location.reload()}>
+            <button
+              className="btn btn-sm btn-success"
+              onClick={() => {
+                // initialize settings and dashboard state
+                dispatch(initializeSettingsState());
+                dispatch(initializeDashboardState());
+                // timeout needed to get to next event loop tick
+                setTimeout(() => {
+                  location.reload();
+                });
+              }}>
               Save
             </button>
           ) : (

@@ -3,6 +3,9 @@ import type { DataPluginUser } from './dataPluginUsers.ts';
 
 export interface DataPluginCommits {
   getAll: (from: string, to: string) => Promise<DataPluginCommit[]>;
+  getAllShort: () => Promise<DataPluginCommitShort[]>;
+  getCommitsWithBuilds: (from: string, to: string) => Promise<DataPluginCommitBuild[]>;
+  getCommitsWithFiles: (from: string, to: string) => Promise<DataPluginCommit[]>;
   getOwnershipDataForCommits: () => Promise<DataPluginOwnership[]>;
   getCommitDataForSha: (sha: string) => Promise<DataPluginCommit | undefined>;
   getByFile: (file: string) => Promise<DataPluginCommit[]>;
@@ -21,7 +24,7 @@ export interface DataPluginCommit {
   parents: string[];
   webUrl: string;
   stats: DataPluginStats;
-  files: DataPluginCommitFilesData;
+  files?: DataPluginCommitFilesData;
 }
 
 export interface DataPluginCommitFilesData {
@@ -53,4 +56,26 @@ export interface DataPluginFileOwnership {
 export interface DataPluginStats {
   additions: number;
   deletions: number;
+}
+
+export interface DataPluginCommitShort {
+  sha: string;
+  date: string;
+  messageHeader: string;
+}
+
+export interface DataPluginCommitBuild extends DataPluginCommit {
+  builds: {
+    id: number;
+    status: string;
+    duration: string;
+    startedAt: string;
+    finishedAt: string;
+    jobs: {
+      id: number;
+      name: string;
+      status: string;
+      stage: string;
+    }[];
+  }[];
 }

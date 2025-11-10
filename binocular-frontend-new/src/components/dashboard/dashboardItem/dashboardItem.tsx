@@ -20,10 +20,10 @@ import type { DatabaseSettingsDataPluginType } from '../../../types/settings/dat
 import _ from 'lodash';
 import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
-
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
 import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import { refreshFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -44,7 +44,7 @@ const DashboardItem = memo(function DashboardItem(props: {
   const authorLists = useSelector((state: RootState) => state.authors.authorLists);
   const fileLists = useSelector((state: RootState) => state.files.fileLists);
   const sprintList = useSelector((state: RootState) => state.sprints.sprintList);
-  const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(false);
   const [doAutomaticUpdate, setDoAutomaticUpdate] = useState(false);
@@ -64,11 +64,11 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   useEffect(() => {
     if (props.item.dataPluginId !== undefined) {
-      setSelectedDataPlugin(avaliableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0]);
+      setSelectedDataPlugin(availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0]);
     } else {
-      setSelectedDataPlugin(avaliableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0]);
+      setSelectedDataPlugin(availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0]);
     }
-  }, [avaliableDataPlugins, props.item.dataPluginId]);
+  }, [availableDataPlugins, props.item.dataPluginId]);
 
   const [plugin] = useState(visualizationPlugins.filter((p) => p.name === props.item.pluginName)[0]);
 
@@ -82,6 +82,8 @@ const DashboardItem = memo(function DashboardItem(props: {
       DataPluginStorage.getDataPlugin(selectedDataPlugin)
         .then((newDataPlugin) => {
           if (newDataPlugin) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
             setDataPlugin(newDataPlugin);
           }
         })
@@ -98,9 +100,13 @@ const DashboardItem = memo(function DashboardItem(props: {
   const [files, setFiles] = useState([]);
   useEffect(() => {
     if (props.item.dataPluginId !== undefined) {
+      if (fileLists[props.item.dataPluginId] == undefined) {
+        const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
+        refreshFileList(dataPlugin, dispatch);
+      }
       setFiles(fileLists[props.item.dataPluginId]);
     }
-  }, [fileLists, props.item.dataPluginId]);
+  }, [availableDataPlugins, dispatch, fileLists, props.item.dataPluginId]);
   const [settings, setSettings] = useState(plugin.defaultSettings);
 
   /**
@@ -347,10 +353,22 @@ const DashboardItem = memo(function DashboardItem(props: {
             </div>
           </div>
           <div
+            className={dashboardItemStyles.dashboardItemResizeBarTopLeft}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top left');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeTopLeft);
+            }}></div>
+          <div
             className={dashboardItemStyles.dashboardItemResizeBarTop}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top');
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeTop);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarTopRight}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top right');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeTopRight);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarRight}
@@ -359,10 +377,22 @@ const DashboardItem = memo(function DashboardItem(props: {
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeRight);
             }}></div>
           <div
+            className={dashboardItemStyles.dashboardItemResizeBarBottomRight}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom right');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottomRight);
+            }}></div>
+          <div
             className={dashboardItemStyles.dashboardItemResizeBarBottom}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom');
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottom);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarBottomLeft}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom left');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottomLeft);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarLeft}

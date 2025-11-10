@@ -2,6 +2,7 @@ export interface VisualizationPluginMetadata {
   category: VisualizationPluginMetadataCategory;
   recommended?: boolean;
   description?: string;
+  defaultSize?: [number, number];
 }
 
 export enum VisualizationPluginMetadataCategory {
@@ -11,6 +12,8 @@ export enum VisualizationPluginMetadataCategory {
   Files = 'Files',
   Ownership = 'Ownership',
   AuthorBehaviour = 'Author Behaviour',
+  Statistics = 'Statistics',
   Examples = 'Examples',
   Unknown = 'Unknown',
+  Expertise = 'Expertise',
 }

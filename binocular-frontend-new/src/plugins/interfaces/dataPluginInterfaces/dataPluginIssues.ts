@@ -10,7 +10,7 @@ export interface DataPluginIssue {
   id: string;
   iid: number;
   title: string;
-  //description: string;
+  description: string;
   state: string;
   webUrl: string;
   createdAt: string;

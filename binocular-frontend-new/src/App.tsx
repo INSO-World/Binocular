@@ -32,6 +32,7 @@ import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
 import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
 import { TabAlignment } from './types/general/tabType.ts';
+import LayoutSelector from './components/tabs/layouts/layoutSelector/layoutSelector.tsx';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -41,7 +42,7 @@ function App() {
   const dispatch: AppDispatch = useAppDispatch();
   const parametersGeneral = useSelector((state: RootState) => state.parameters.parametersGeneral);
   const parametersDateRange = useSelector((state: RootState) => state.parameters.parametersDateRange);
-  const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
   const [authorsDataPlugin, setAuthorsDataPlugin] = useState();
 
@@ -51,15 +52,15 @@ function App() {
   useEffect(() => {
     setAuthorsDataPlugin(
       authorsDataPluginId !== undefined
-        ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === authorsDataPluginId)
+        ? availableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === authorsDataPluginId)
         : undefined,
     );
-  }, [authorsDataPluginId, avaliableDataPlugins]);
+  }, [authorsDataPluginId, availableDataPlugins]);
 
   const filesDataPluginId = useSelector((state: RootState) => state.files.dataPluginId);
   const filesDataPlugin =
     filesDataPluginId !== undefined
-      ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)
+      ? availableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)
       : undefined;
   const [fileSearch, setFileSearch] = useState('');
 
@@ -136,6 +137,11 @@ function App() {
             </TabSection>
             <TabSection name={'Add Sprint'}>
               <AddSprint></AddSprint>
+            </TabSection>
+          </Tab>
+          <Tab displayName={'Layouts'} alignment={TabAlignment.top}>
+            <TabSection name={'Layouts Selector'}>
+              <LayoutSelector></LayoutSelector>
             </TabSection>
           </Tab>
           <Tab displayName={'Authors'} alignment={TabAlignment.right}>

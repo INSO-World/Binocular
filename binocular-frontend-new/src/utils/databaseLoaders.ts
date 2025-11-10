@@ -37,6 +37,7 @@ import notes from '../db_export/notes.json';
 import issuesNotes from '../db_export/issues-notes.json';
 import mergeRequestsNotes from '../db_export/mergeRequests-notes.json';
 import notesAccounts from '../db_export/notes-accounts.json';
+import accountsUsers from '../db_export/accounts-users.json';
 import type { JSONObject } from '../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 const dbObjects: { [key: string]: JSONObject[] } = {
@@ -74,6 +75,7 @@ const dbObjects: { [key: string]: JSONObject[] } = {
   'issues-notes': issuesNotes,
   'mergeRequests-notes': mergeRequestsNotes,
   'notes-accounts': notesAccounts,
+  'accounts-users': accountsUsers,
 };
 
 export default abstract class DatabaseLoaders {

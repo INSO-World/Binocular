@@ -9,6 +9,8 @@ import type { DataPluginNotes } from './dataPluginInterfaces/dataPluginNotes.ts'
 import type { DataPluginAccounts } from './dataPluginInterfaces/dataPluginAccounts.ts';
 import type { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranches.ts';
 import type { DataPluginMergeRequests } from './dataPluginInterfaces/dataPluginMergeRequests.ts';
+import type { DataPluginAccountsIssues } from './dataPluginInterfaces/dataPluginAccountsIssues.ts';
+import type { DataPluginCommitsFiles } from './dataPluginInterfaces/dataPluginCommitsFiles.ts';
 
 export interface DataPlugin {
   name: string;
@@ -16,12 +18,14 @@ export interface DataPlugin {
   general: DataPluginGeneral;
   commits: DataPluginCommits;
   builds: DataPluginBuilds;
+  commitByFile: DataPluginCommitsFiles;
   issues: DataPluginIssues;
   mergeRequests: DataPluginMergeRequests;
   notes: DataPluginNotes;
   users: DataPluginUsers;
   accounts: DataPluginAccounts;
   files: DataPluginFiles;
+  accountsIssues: DataPluginAccountsIssues;
   branches?: DataPluginBranches;
   capabilities: string[];
   experimental: boolean;
