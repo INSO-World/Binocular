@@ -31,6 +31,7 @@ const Builds: VisualizationPlugin<BuildSettings, DataPluginBuild> = {
     category: VisualizationPluginMetadataCategory.Builds,
     recommended: true,
     description: 'A line chart that visualizes the amount of builds/pipeline runs and their state over time.',
+    compatibility: { binocularBackend: true, githubAPI: false, mockData: true, pouchDB: true, github: true, gitlab: true },
   },
   reducer: Reducer,
   saga: Saga,

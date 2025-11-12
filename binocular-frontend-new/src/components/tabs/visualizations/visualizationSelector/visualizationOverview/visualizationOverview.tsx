@@ -7,6 +7,7 @@ import { visualizationPlugins } from '../../../../../plugins/pluginRegistry.ts';
 import { useState } from 'react';
 import VisualizationSelectorDragButton from '../visualizationSelectorDragButton/visualizationSelectorDragButton.tsx';
 import { disableVisualizationOverview } from './visualizationOverviewHelper';
+import VisualizationFilter from '../visualizationFilter/visualizationFilter';
 
 function VisualizationOverview() {
   const [search, setSearch] = useState<string>('');
@@ -50,124 +51,7 @@ function VisualizationOverview() {
                 />
               </svg>
             </label>
-            <div>
-              <label className="label cursor-pointer flex w-full items-center mt-0.5">
-                <span className="label-text">Github data:</span>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-accent toggle-sm"
-                  defaultChecked={filterOptions.github}
-                  key={'github' + filterOptions.github}
-                  onChange={(event) => {
-                    console.log(event);
-                    console.log(filterOptions);
-                    setFilterOptions({
-                      binocularBackend: filterOptions.binocularBackend,
-                      githubAPI: filterOptions.githubAPI,
-                      mockData: filterOptions.mockData,
-                      pouchDB: filterOptions.pouchDB,
-                      github: event.target.checked,
-                      gitlab: filterOptions.gitlab,
-                    });
-                  }}
-                />
-              </label>
-              <label className="label cursor-pointer flex w-full items-center mt-0.5">
-                <span className="label-text">GitLab data:</span>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-accent toggle-sm"
-                  defaultChecked={filterOptions.gitlab}
-                  key={'gitlab' + filterOptions.gitlab}
-                  onChange={(event) => {
-                    setFilterOptions({
-                      binocularBackend: filterOptions.binocularBackend,
-                      githubAPI: filterOptions.githubAPI,
-                      mockData: filterOptions.mockData,
-                      pouchDB: filterOptions.pouchDB,
-                      github: filterOptions.github,
-                      gitlab: event.target.checked,
-                    });
-                  }}
-                />
-              </label>
-              <label className="label cursor-pointer flex w-full items-center mt-0.5">
-                <span className="label-text">Binocular Backend:</span>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-accent toggle-sm"
-                  defaultChecked={filterOptions.binocularBackend}
-                  key={'binocularBackend' + filterOptions.binocularBackend}
-                  onChange={(event) => {
-                    setFilterOptions({
-                      binocularBackend: event.target.checked,
-                      githubAPI: filterOptions.githubAPI,
-                      mockData: filterOptions.mockData,
-                      pouchDB: filterOptions.pouchDB,
-                      github: filterOptions.github,
-                      gitlab: filterOptions.gitlab,
-                    });
-                  }}
-                />
-              </label>
-              <label className="label cursor-pointer flex w-full items-center mt-0.5">
-                <span className="label-text">PouchDB:</span>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-accent toggle-sm"
-                  defaultChecked={filterOptions.pouchDB}
-                  key={'pouchDB' + filterOptions.pouchDB}
-                  onChange={(event) => {
-                    setFilterOptions({
-                      binocularBackend: filterOptions.binocularBackend,
-                      githubAPI: filterOptions.githubAPI,
-                      mockData: filterOptions.mockData,
-                      pouchDB: event.target.checked,
-                      github: filterOptions.github,
-                      gitlab: filterOptions.gitlab,
-                    });
-                  }}
-                />
-              </label>
-              <label className="label cursor-pointer flex w-full items-center mt-0.5">
-                <span className="label-text">Mock Data:</span>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-accent toggle-sm"
-                  defaultChecked={filterOptions.mockData}
-                  key={'mockData' + filterOptions.mockData}
-                  onChange={(event) => {
-                    setFilterOptions({
-                      binocularBackend: filterOptions.binocularBackend,
-                      githubAPI: filterOptions.githubAPI,
-                      mockData: event.target.checked,
-                      pouchDB: filterOptions.pouchDB,
-                      github: filterOptions.github,
-                      gitlab: filterOptions.gitlab,
-                    });
-                  }}
-                />
-              </label>
-              <label className="label cursor-pointer flex w-full items-center mt-0.5">
-                <span className="label-text">Github API:</span>
-                <input
-                  type="checkbox"
-                  className="toggle toggle-accent toggle-sm"
-                  defaultChecked={filterOptions.githubAPI}
-                  key={'githubAPI' + filterOptions.githubAPI}
-                  onChange={(event) => {
-                    setFilterOptions({
-                      binocularBackend: filterOptions.binocularBackend,
-                      githubAPI: event.target.checked,
-                      mockData: filterOptions.mockData,
-                      pouchDB: filterOptions.pouchDB,
-                      github: filterOptions.github,
-                      gitlab: filterOptions.gitlab,
-                    });
-                  }}
-                />
-              </label>
-            </div>
+            <VisualizationFilter filterOptions={filterOptions} setFilterOptions={setFilterOptions}></VisualizationFilter>
             {Object.values(VisualizationPluginMetadataCategory).map((category) => {
               const filteredPlugins = visualizationPlugins.filter(
                 (plugin) => plugin.metadata.category === category && plugin.name.toLocaleLowerCase().includes(search.toLowerCase()),

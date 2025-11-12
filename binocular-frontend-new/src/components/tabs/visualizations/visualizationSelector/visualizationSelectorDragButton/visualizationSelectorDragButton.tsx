@@ -15,19 +15,20 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
 
   return (
     <button
-      draggable={true}
-      disabled={props.disabled}
+      draggable={!props.disabled}
       className={props.disabled ? visualizationSelectorStyles.disabledVisualizationButton : visualizationSelectorStyles.visualizationButton}
       onClick={() => {
-        dispatch(
-          addDashboardItem({
-            id: 0,
-            width: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[0] : 12,
-            height: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[1] : 8,
-            pluginName: props.plugin.name,
-            dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-          }),
-        );
+        if (!props.disabled) {
+          dispatch(
+            addDashboardItem({
+              id: 0,
+              width: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[0] : 12,
+              height: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[1] : 8,
+              pluginName: props.plugin.name,
+              dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+            }),
+          );
+        }
       }}
       onDragStart={(event) => {
         event.dataTransfer.clearData();
