@@ -1,6 +1,9 @@
 import VisualizationFilterStyles from './visualizationFilter.module.scss';
 import { useState } from 'react';
-import { VisualizationPluginCompatibility } from '../../../../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata';
+import type { VisualizationPluginCompatibility } from '../../../../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata';
+import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../../redux';
 
 function VisualizationFilter(props: {
   filterOptions: VisualizationPluginCompatibility;
@@ -8,9 +11,24 @@ function VisualizationFilter(props: {
 }) {
   const [databases, setDatabases] = useState<boolean>(false);
   const [datatypes, setDatatypes] = useState<boolean>(false);
+  const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const defaultDataPlugin = configuredDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0];
 
   return (
     <div className={VisualizationFilterStyles.filters + ' tabs tabs-box'}>
+      <div
+        className="tab"
+        onClick={() => {
+          if (databases && datatypes) {
+            setDatabases(false);
+            setDatatypes(false);
+          } else {
+            setDatabases(true);
+            setDatatypes(true);
+          }
+        }}>
+        Filters:
+      </div>
       <div className="tabs-content">
         <a className={'tab no-underline ' + (datatypes ? 'tab-active' : '')} onClick={() => setDatatypes(!datatypes)}>
           Datatypes
@@ -143,8 +161,25 @@ function VisualizationFilter(props: {
           </div>
         )}
       </div>
+      <div className="tabs-content">
+        <a className={'tab no-underline'} onClick={() => setDefaultFilter(defaultDataPlugin)}>
+          Auto detect
+        </a>
+      </div>
     </div>
   );
+
+  function setDefaultFilter(defaultDataPlugin: DatabaseSettingsDataPluginType) {
+    props.setFilterOptions({
+      binocularBackend: defaultDataPlugin.name.includes('Binocular Backend'),
+      githubAPI: defaultDataPlugin.name.includes('Github'),
+      mockData: defaultDataPlugin.name.includes('Mock Data'),
+      pouchDB: defaultDataPlugin.name.includes('PouchDb'),
+      // a way to automatically detect data type is not implemented yet
+      github: false,
+      gitlab: false,
+    });
+  }
 }
 
 export default VisualizationFilter;
