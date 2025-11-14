@@ -1,11 +1,12 @@
-import { GraphQL } from './utils.ts';
+import { GraphQL } from '../utils.ts';
 import { type ApolloQueryResult, gql } from '@apollo/client';
 import type {
   DataPluginCommit,
   DataPluginCommitBuild,
+  DataPluginCommitShort,
   DataPluginCommits,
   DataPluginOwnership,
-} from '../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 interface CommitQueryResult {
   repository: {
@@ -284,6 +285,11 @@ export default class Commits implements DataPluginCommits {
   }
 
   public async getCommitsWithFiles(_from: string, _to: string): Promise<DataPluginCommit[]> {
+    // not yet implemented
+    return Promise.resolve([]);
+  }
+
+  public async getAllShort(): Promise<DataPluginCommitShort[]> {
     // not yet implemented
     return Promise.resolve([]);
   }

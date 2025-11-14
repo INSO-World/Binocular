@@ -9,7 +9,7 @@ export default class Branches implements DataPluginBranches {
     this.graphQl = new GraphQL(endpoint);
   }
 
-  async getAllBranches(): Promise<DataPluginBranch[]> {
+  async getAll(): Promise<DataPluginBranch[]> {
     return await this.graphQl.client
       .query({
         // variable tag not queried, because it cannot be found(maybe a keyword), not needed at the moment

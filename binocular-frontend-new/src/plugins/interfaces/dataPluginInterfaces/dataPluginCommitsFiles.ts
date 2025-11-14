@@ -1,4 +1,4 @@
-import { DataPluginStats } from './dataPluginCommits.ts';
+import type { DataPluginStats } from './dataPluginCommits.ts';
 
 export interface DataPluginCommitsFiles {
   getAll: (sha: string) => Promise<DataPluginCommitFile[]>;
