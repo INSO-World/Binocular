@@ -10,6 +10,7 @@ function HelpGeneral() {
           them (automatic placement) or by dragging them to the desired location. Every dashboard component can also be configured which
           database it uses, if it respects the global set parameters and its component specific parameters. Additionally each component can
           be popped out into a new window or exported as different data like svg.
+          <p>Holding the Shift key will let you quickly remove components from the dashboard.</p>
         </div>
       </div>
       <div className="collapse collapse-plus bg-base-200 mb-1">

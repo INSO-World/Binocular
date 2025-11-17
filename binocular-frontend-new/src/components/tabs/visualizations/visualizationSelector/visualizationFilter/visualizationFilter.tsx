@@ -176,6 +176,7 @@ function VisualizationFilter(props: {
       mockData: defaultDataPlugin.name.includes('Mock Data'),
       pouchDB: defaultDataPlugin.name.includes('PouchDb'),
       // a way to automatically detect data type is not implemented yet
+      // TODO: implement feature once implemented
       github: false,
       gitlab: false,
     });
