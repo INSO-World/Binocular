@@ -38,6 +38,7 @@ import issuesNotes from '../db_export/issues-notes.json';
 import mergeRequestsNotes from '../db_export/mergeRequests-notes.json';
 import notesAccounts from '../db_export/notes-accounts.json';
 import accountsUsers from '../db_export/accounts-users.json';
+import metadata from '../db_export/metadata.json';
 import type { JSONObject } from '../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 const dbObjects: { [key: string]: JSONObject[] } = {
@@ -80,11 +81,12 @@ const dbObjects: { [key: string]: JSONObject[] } = {
 
 export default abstract class DatabaseLoaders {
   public static async loadJsonFilesToPouchDB(dispatch: AppDispatch): Promise<void> {
+    console.log(`Loading preconfigured PouchDB from ${metadata.namespace} created at ${metadata.createdAt} from ${metadata.type}`);
     dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.loading));
     return PouchDB.init(undefined, undefined, { name: 'binocularDbExport', file: undefined, dbObjects: dbObjects }).then(() => {
       dispatch(
         addDataPlugin({
-          name: 'PouchDb',
+          name: metadata.namespace,
           color: '#8cadfc',
           id: 0,
           isDefault: true,

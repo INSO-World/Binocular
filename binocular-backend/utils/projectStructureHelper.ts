@@ -18,15 +18,24 @@ export function checkProjectStructureAndFix(context: typeof Context) {
   }
 }
 
-export function createAndFillDbExportFolder(db: Db, targetPath: string) {
-  fs.mkdirSync(targetPath + '/db_export');
+export function createAndFillDbExportFolder(db: Db, targetPath: string, projectNamespace: string, repositoryType: string) {
+  const exportPath = targetPath + '/db_export';
+  fs.mkdirSync(exportPath);
+
+  const metadata = {
+    namespace: projectNamespace,
+    createdAt: new Date().toISOString(),
+    type: repositoryType,
+  };
+  fs.writeFileSync(`${exportPath}/metadata.json`, JSON.stringify(metadata));
+
   utils.getDbExport(db).then((db) => {
     let i = 0;
     for (const collection of Object.keys(db)) {
       const collName = collection.replaceAll('_', '-');
       // make the json files smaller to help with offline performance
       const compressedObj = compressJson(collName, db[collection]);
-      fs.writeFileSync(targetPath + '/db_export/' + collName + '.json', JSON.stringify(compressedObj));
+      fs.writeFileSync(`${exportPath}/${collName}.json`, JSON.stringify(compressedObj));
       i++;
       console.log('Create Db export for offline execution: ' + Math.floor((100 / Object.keys(db).length) * i) + '%');
     }

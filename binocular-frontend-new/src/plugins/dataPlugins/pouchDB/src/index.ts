@@ -56,7 +56,9 @@ class PouchDb implements DataPlugin {
 
   public async init(_apiKey: string | undefined, _endpoint: string | undefined, file: FileConfig | undefined) {
     if (file !== undefined) {
-      await this.database.initDB(file);
+      const startTime = performance.now();
+      console.log(`Initializing PouchDB`);
+      await this.database.initDB(file, startTime);
       this.commits = new Commits(this.database);
       this.builds = new Builds(this.database);
       this.notes = new Notes(this.database);
