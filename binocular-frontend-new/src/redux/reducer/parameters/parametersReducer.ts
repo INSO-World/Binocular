@@ -9,7 +9,7 @@ const currentDateLastYear = new Date();
 currentDateLastYear.setFullYear(currentDate.getFullYear() - 1);
 
 export const parametersInitialState: ParametersType = {
-  parametersGeneral: { granularity: 'months', excludeMergeCommits: false },
+  parametersGeneral: { granularity: 'weeks', excludeMergeCommits: false },
   parametersDateRange: { from: currentDateLastYear.toISOString().split('.')[0], to: currentDate.toISOString().split('.')[0] },
 };
 
