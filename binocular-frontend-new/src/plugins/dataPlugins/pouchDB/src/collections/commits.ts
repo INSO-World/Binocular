@@ -1,6 +1,7 @@
 import type {
   DataPluginCommit,
   DataPluginCommitBuild,
+  DataPluginCommitShort,
   DataPluginCommits,
   DataPluginOwnership,
 } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
@@ -137,5 +138,10 @@ export default class Commits implements DataPluginCommits {
         resolve(commits);
       });
     }
+  }
+
+  public async getAllShort(): Promise<DataPluginCommitShort[]> {
+    // not yet implemented
+    return Promise.resolve([]);
   }
 }

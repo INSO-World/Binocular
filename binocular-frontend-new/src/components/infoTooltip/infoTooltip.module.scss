@@ -25,7 +25,17 @@
   @apply menu;
   @apply bg-base-100;
   @apply rounded;
-  @apply w-56;
+  @apply w-80;
   @apply text-neutral-content;
   box-shadow: $shadow-default;
+}
+
+.infoTooltip>div>div>div>div{
+  display: flex;
+  width: max-content;
+  justify-content: space-between;
+}
+
+.infoTooltip>div>div>div>div>*{
+  margin-right: 2rem;
 }

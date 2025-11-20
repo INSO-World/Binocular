@@ -10,7 +10,8 @@ export interface VisualizationPlugin<SettingsType, DataType> {
   chartComponent?: (props: VisualizationPluginProperties<SettingsType, DataType>) => ReactNode;
   settingsComponent: (props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) => ReactNode;
   helpComponent: () => ReactNode;
-  dataConnectionName?: string; //
+  // dataConnectionName and dataConverter only strictly needed when using the simpleVisualizationPlugin class
+  dataConnectionName?: string;
   dataConverter?: (
     data: DataType[],
     props: VisualizationPluginProperties<SettingsType, DataType>,

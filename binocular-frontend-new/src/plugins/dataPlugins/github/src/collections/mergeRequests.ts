@@ -1,4 +1,7 @@
-import type { DataPluginMergeRequest, DataPluginMergeRequests } from '../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
+import type {
+  DataPluginMergeRequest,
+  DataPluginMergeRequests,
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
 
 export default class MergeRequests implements DataPluginMergeRequests {
   constructor() {}

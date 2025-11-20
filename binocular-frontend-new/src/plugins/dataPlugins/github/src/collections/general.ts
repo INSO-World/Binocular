@@ -2,7 +2,7 @@ import {
   type DataPluginGeneral,
   type DataPluginIndexer,
   DataPluginIndexerState,
-} from '../../../interfaces/dataPluginInterfaces/dataPluginGeneral.ts';
+} from '../../../../interfaces/dataPluginInterfaces/dataPluginGeneral.ts';
 
 export default class General implements DataPluginGeneral {
   private owner;

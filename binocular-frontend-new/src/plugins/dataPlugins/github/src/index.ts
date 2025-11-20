@@ -1,13 +1,16 @@
-import Commits from './commits.ts';
+import Commits from './collections/commits.ts';
 import type { DataPlugin } from '../../../interfaces/dataPlugin.ts';
-import Users from './users.ts';
-import General from './general.ts';
-import Files from './files.ts';
-import Issues from './issues.ts';
-import Builds from './builds.ts';
-import Notes from './notes.ts';
-import Issues from './issues.ts';
-import Accounts from './accounts.ts';
+import Users from './collections/users.ts';
+import General from './collections/general.ts';
+import MergeRequests from './collections/mergeRequests';
+import Builds from './collections/builds.ts';
+import Notes from './collections/notes.ts';
+import Issues from './collections/issues.ts';
+import Accounts from './collections/accounts.ts';
+import Files from './collections/files.ts';
+import CommitByFile from './collections/commitsFiles';
+import AccountsIssues from './collections/accountsIssues';
+import Branches from './collections/branches';
 
 class Github implements DataPlugin {
   public name = 'Github';
@@ -27,7 +30,11 @@ class Github implements DataPlugin {
   public users;
   public accounts;
   public general;
+  public mergeRequests;
   public files = Files;
+  public commitByFile = CommitByFile;
+  public accountsIssues = AccountsIssues;
+  public branches = Branches;
 
   constructor() {
     this.commits = new Commits('', '');
@@ -35,6 +42,7 @@ class Github implements DataPlugin {
     this.notes = new Notes(); // Not implemented (questionable if needed in future)
     this.issues = new Issues(); // Not implemented (questionable if needed in future)
     this.accounts = new Accounts(); // Not implemented (questionable if needed in future)
+    this.mergeRequests = new MergeRequests(); // Not implemented (questionable if needed in future)
     this.users = new Users('', '');
     this.general = new General('');
   }
@@ -47,6 +55,7 @@ class Github implements DataPlugin {
       this.notes = new Notes(); // Not implemented (questionable if needed in future)
       this.issues = new Issues(); // Not implemented (questionable if needed in future)
       this.accounts = new Accounts(); // Not implemented (questionable if needed in future)
+      this.mergeRequests = new MergeRequests(); // Not implemented (questionable if needed in future)
       this.users = new Users(apiKey, 'INSO-TUWien/Binocular');
       this.general = new General('INSO-TUWien/Binocular');
     }
