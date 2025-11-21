@@ -87,7 +87,9 @@ export default class Database {
     const zip = await new JSZip().loadAsync(file);
 
     // Filter out folders
-    const fileEntries = Object.values(zip.files).filter((f) => !f.dir);
+    const fileEntries = Object.values(zip.files)
+      .filter((f) => !f.dir)
+      .filter((f) => !f.name.includes('metadata'));
     const totalFiles = fileEntries.length;
     let imported = 0;
 

@@ -83,7 +83,7 @@ export default abstract class DatabaseLoaders {
   public static async loadJsonFilesToPouchDB(dispatch: AppDispatch): Promise<void> {
     console.log(`Loading preconfigured PouchDB from ${metadata.namespace} created at ${metadata.createdAt} from ${metadata.type}`);
     dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.loading));
-    return PouchDB.init(undefined, undefined, { name: 'binocularDbExport', file: undefined, dbObjects: dbObjects }).then(() => {
+    return PouchDB.init(undefined, undefined, { name: metadata.namespace, file: undefined, dbObjects: dbObjects }).then(() => {
       dispatch(
         addDataPlugin({
           name: metadata.namespace,
@@ -93,7 +93,7 @@ export default abstract class DatabaseLoaders {
           parameters: {
             apiKey: undefined,
             endpoint: undefined,
-            fileName: 'binocularDbExport',
+            fileName: metadata.namespace,
             progressUpdate: undefined,
           },
         }),

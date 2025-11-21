@@ -105,6 +105,8 @@ jobs:
             ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}            
             ${{ (github.ref_name == 'develop' || github.ref_name == 'main') && steps.docker_setup.outputs.docker_image_name || '' }}${{ (github.ref_name == 'develop' || github.ref_name == 'main') && ':latest' || '' }}
             ${{ (github.ref_name == 'develop' || github.ref_name == 'main') && steps.docker_setup.outputs.docker_image_name || '' }}${{ (github.ref_name == 'develop' || github.ref_name == 'main') && ':production' || '' }}
+            ${{ steps.docker_setup.outputs.docker_image_name }}:production
+          # TODO remove before merge
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
@@ -153,6 +155,6 @@ jobs:
             ${{ steps.docker_setup.outputs.docker_image_name }}:${{ github.run_id }}
             ${{ (github.ref_name == 'develop' || github.ref_name == 'main') && steps.docker_setup.outputs.docker_image_name || '' }}${{ (github.ref_name == 'develop' || github.ref_name == 'main') && ':latest' || '' }}
             ${{ (github.ref_name == 'develop' || github.ref_name == 'main') && steps.docker_setup.outputs.docker_image_name || '' }}${{ (github.ref_name == 'develop' || github.ref_name == 'main') && ':production' || '' }}
-
+            ${{ steps.docker_setup.outputs.docker_image_name }}:production
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache

@@ -83,6 +83,7 @@ import NoteAccountConnection from './models/connections/NoteAccountConnection.ts
 import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
 import AccountUserConnection from './models/connections/AccountUserConnection.ts';
 import { findBestUserMatchLeve } from './models/utils.ts';
+import debug from 'debug';
 
 cli.parse(
   (targetPath, options) => {
@@ -719,6 +720,7 @@ function runBackend() {
 
   // this function is only used for matching one User to each account, not the other way around
   async function connectAccountsAndUsers() {
+    const log = debug('indexer:account-user-connection');
     const accounts = await Account.findAll();
     const accountUserConnections = await AccountUserConnection.findAll();
     for (const account of accounts) {
@@ -739,7 +741,7 @@ function runBackend() {
       }
       const user = await findBestUserMatchLeve(account.data);
       if (user && account) {
-        console.debug(`Connecting ${account.data.name} to ${user.data.gitSignature}`);
+        log(`Connecting ${account.data.name} to ${user.data.gitSignature}`);
         await AccountUserConnection.connect({}, { from: account, to: user });
       }
     }
