@@ -392,17 +392,6 @@ function runBackend() {
         return !provider || !provider.isStopping();
       });
 
-      // export db if required
-      if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
-        projectStructureHelper.createAndFillDbExportFolder(
-          context.db,
-          __dirname + '/../binocular-frontend-new/src',
-          context.vcsUrlProvider.baseUrl + context.vcsUrlProvider.project,
-          context.ciUrlProvider.provider,
-        );
-      }
-
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
         return;
@@ -425,6 +414,17 @@ function runBackend() {
       const executionTime = Moment(endTime).diff(startTime, 'seconds');
       console.log('Execution Time: ' + Math.floor(executionTime / 60) + ':' + (executionTime % 60));
       threadLog(indexingThread, 'Indexing finished');
+
+      // export db if required
+      if (context.argv.export) {
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
+        projectStructureHelper.createAndFillDbExportFolder(
+          context.db,
+          __dirname + '/../binocular-frontend-new/src',
+          context.vcsUrlProvider.baseUrl + context.vcsUrlProvider.project,
+          context.ciUrlProvider.provider,
+        );
+      }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'Gitlab401Error') {
         threadWarn(indexingThread, 'Unable to access GitLab API. Please configure a valid private access token in the UI.');

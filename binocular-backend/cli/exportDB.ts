@@ -71,14 +71,14 @@ export function exportDB(targetPath: string, options: any, projectNamespace: str
     if (options.database) {
       exportSpecificDatabase(options.database, db, targetPathFull, projectNamespace, repositoryType);
     } else {
-      const avaliableDatabases = await db.listDatabases();
+      const availableDatabases = await db.listDatabases();
       inquirer
         .prompt([
           {
             type: 'list',
             name: 'database',
             message: 'Select which database you want to export?',
-            choices: avaliableDatabases,
+            choices: availableDatabases,
           },
         ])
         .then((answers: { database: string }) => {
