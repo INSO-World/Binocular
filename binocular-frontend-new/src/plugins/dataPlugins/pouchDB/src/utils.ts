@@ -411,6 +411,7 @@ export async function findAllNotes(database: PouchDB.Database, relations: PouchD
 
   noteAccountConnections.forEach((noteAccount) => {
     const matchedAccount = accountUserConnections.find((accountUser) => accountUser.from === noteAccount.to);
+
     if (matchedAccount) {
       noteUserConnections.push({
         from: noteAccount.from as string,
@@ -425,11 +426,15 @@ export async function findAllNotes(database: PouchDB.Database, relations: PouchD
     return 0;
   });
 
-  notes.docs = await Promise.all(
-    notes.docs.map((n, index) =>
-      preprocessNotes(n, noteUserConnections[index], noteIssueConnections, noteMRConnections, users, mergeRequests, issues),
-    ),
-  );
+  if (noteUserConnections.length > 0) {
+    notes.docs = await Promise.all(
+      notes.docs.map((n, index) =>
+        preprocessNotes(n, noteUserConnections[index], noteIssueConnections, noteMRConnections, users, mergeRequests, issues),
+      ),
+    );
+  } else {
+    notes.docs = [];
+  }
   return notes;
 }
 
@@ -442,6 +447,8 @@ function preprocessNotes(
   mergeRequests: JSONObject[],
   issues: JSONObject[],
 ) {
+  console.log(users);
+  console.log(noteUserConnection);
   const rawUser = binarySearch(users, noteUserConnection.to, '_id');
   if (rawUser == null) {
     return _.assign(note, { manualRun: true });
