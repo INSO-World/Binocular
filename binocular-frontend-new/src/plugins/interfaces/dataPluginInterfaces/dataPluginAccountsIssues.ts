@@ -1,5 +1,6 @@
 import type { DataPluginIssue } from './dataPluginIssues.ts';
 
+// returns Issue[] per Account, TODO naming
 export interface DataPluginAccountsIssues {
   getAll: (from: string, to: string) => Promise<DataPluginAccountIssues[]>;
 }

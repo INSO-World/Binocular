@@ -421,7 +421,7 @@ function runBackend() {
         projectStructureHelper.createAndFillDbExportFolder(
           context.db,
           __dirname + '/../binocular-frontend-new/src',
-          context.vcsUrlProvider.baseUrl + context.vcsUrlProvider.project,
+          context.vcsUrlProvider.project,
           context.ciUrlProvider.provider,
         );
       }

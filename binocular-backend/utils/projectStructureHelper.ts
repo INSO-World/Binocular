@@ -22,6 +22,7 @@ export function createAndFillDbExportFolder(db: Db, targetPath: string, projectN
   const exportPath = targetPath + '/db_export';
   fs.mkdirSync(exportPath);
 
+  // metadata for frontend import, baseUrl not included because of possible / missing
   const metadata = {
     namespace: projectNamespace,
     createdAt: new Date().toISOString(),

@@ -57,8 +57,8 @@ class PouchDb implements DataPlugin {
   public async init(_apiKey: string | undefined, _endpoint: string | undefined, file: FileConfig | undefined) {
     if (file !== undefined) {
       const startTime = performance.now();
-      console.log(`Initializing PouchDB`);
-      await this.database.initDB(file, startTime);
+      const metadata = await this.database.initDB(file, startTime); // TODO save Metadata to plugin
+      console.log(metadata);
       this.commits = new Commits(this.database);
       this.builds = new Builds(this.database);
       this.notes = new Notes(this.database);

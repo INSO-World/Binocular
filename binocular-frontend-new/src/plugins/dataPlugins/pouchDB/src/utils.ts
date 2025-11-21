@@ -481,7 +481,7 @@ function preprocessNotes(
 
 export async function findAllUsers(database: PouchDB.Database, relations: PouchDB.Database) {
   const users = await findAll(database, 'users');
-  const accounts = (await findAll(database, 'accounts')).docs;
+  const accounts = sortByAttributeString((await findAll(database, 'accounts')).docs, '_id');
   const accountsUsersConnection = sortByAttributeString((await findAccountUserConnections(relations)).docs, 'to');
 
   users.docs = await Promise.all(users.docs.map((u) => preprocessUser(u, accountsUsersConnection, accounts)));
@@ -491,13 +491,13 @@ export async function findAllUsers(database: PouchDB.Database, relations: PouchD
 function preprocessUser(user: JSONObject, accountsUsersConnection: JSONObject[], accounts: JSONObject[]) {
   const accountUserRelation = binarySearch(accountsUsersConnection, user._id, 'to');
   if (accountUserRelation === null) {
-    return _.assign(user, { id: user._id, manualRun: true });
+    return _.assign(user, { id: user._id });
   }
   const account = binarySearch(accounts, accountUserRelation.from, '_id');
   if (account === null) {
-    return _.assign(user, { id: user._id, manualRun: true });
+    return _.assign(user, { id: user._id });
   }
-  return _.assign(user, { id: user._id, account: account });
+  return _.assign(user, { id: user._id, account: { id: account._id, name: account.name, user: null, platform: account.platform } });
 }
 
 // ###################### ACCOUNTS ######################
@@ -518,11 +518,11 @@ function preprocessAccount(account: JSONObject, accountsUsersConnection: JSONObj
     account.name = account.login;
   }
   if (accountUserRelation === null) {
-    return _.assign(account, { id: account._id, manualRun: true });
+    return _.assign(account, { id: account._id });
   }
   const user = binarySearch(users, accountUserRelation.to, '_id');
   if (user === null) {
-    return _.assign(account, { id: account._id, manualRun: true });
+    return _.assign(account, { id: account._id });
   }
   return _.assign(account, { id: account._id, user: user });
 }

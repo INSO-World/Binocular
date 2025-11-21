@@ -6,6 +6,7 @@ import JSZip from 'jszip';
 import { WorkerPouchDB } from './worker/WorkerPouchDB';
 import { decompressJson } from '../../../../../../utils/json-utils';
 import type { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles';
+import type { MetadataType } from '../../../../types/data/MetadataType';
 
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
@@ -86,7 +87,16 @@ export default class Database {
   async importFromZip(file: Blob, startTime?: number) {
     const zip = await new JSZip().loadAsync(file);
 
-    // Filter out folders
+    // Read metadata first
+    const metadataEntry = Object.values(zip.files).find((f) => !f.dir && f.name.includes('metadata'));
+
+    let metadata: MetadataType | null = null;
+    if (metadataEntry) {
+      const raw = await metadataEntry.async('string');
+      metadata = JSON.parse(raw) as MetadataType;
+    }
+
+    // Filter out folders and metadata
     const fileEntries = Object.values(zip.files)
       .filter((f) => !f.dir)
       .filter((f) => !f.name.includes('metadata'));
@@ -109,7 +119,7 @@ export default class Database {
       const end = performance.now();
       console.log(`${imported}/${totalFiles} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
     }
-    return true; // all files processed
+    return metadata;
   }
 
   async importFromObjects(dbObjects: Record<string, JSONObject[]>, startTime?: number) {
