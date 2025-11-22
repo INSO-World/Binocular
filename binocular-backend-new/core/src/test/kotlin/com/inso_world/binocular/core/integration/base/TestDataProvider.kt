@@ -3,9 +3,10 @@ package com.inso_world.binocular.core.integration.base
 import com.inso_world.binocular.data.MockTestDataProvider
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.model.Job
+import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.Job
 import com.inso_world.binocular.model.Mention
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
@@ -137,11 +138,11 @@ object TestDataProvider {
                 "v1.0.0",
                 "user2",
                 "User Two",
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
                 180,
                 listOf(
                     Job(
@@ -149,8 +150,8 @@ object TestDataProvider {
                         "build",
                         "failed",
                         "build",
-                        java.time.LocalDateTime.now(),
-                        java.time.LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
                         "https://example.com/jobs/job2",
                     ),
                 ),
@@ -210,9 +211,9 @@ object TestDataProvider {
                 102,
                 "Add new feature",
                 "Implement profile customization",
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
                 listOf("enhancement", "feature"),
                 "closed",
                 "https://example.com/issues/102",

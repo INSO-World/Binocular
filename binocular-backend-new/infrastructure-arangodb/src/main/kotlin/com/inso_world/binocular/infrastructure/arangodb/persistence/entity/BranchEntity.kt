@@ -22,5 +22,5 @@ data class BranchEntity(
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var files: List<FileEntity> = emptyList(),
+    var files: Set<FileEntity> = emptySet(),
 )
