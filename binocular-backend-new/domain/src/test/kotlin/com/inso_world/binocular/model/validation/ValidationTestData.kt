@@ -4,6 +4,7 @@ import com.inso_world.binocular.data.MockTestDataProvider
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import org.junit.jupiter.params.provider.Arguments
 import java.time.LocalDateTime
@@ -38,12 +39,14 @@ internal object ValidationTestData {
             Arguments.of(
                 run {
                     val repository = Repository(localPath = "test repo", project = Project(name = "test project"))
+                    val committer = User(name = "Test Committer", repository = repository).apply { email = "committer@test.com" }
                     val cmt = Commit(
                         sha = "a".repeat(40), // invalid: should be 40 chars
                         authorDateTime = LocalDateTime.now(),
                         commitDateTime = LocalDateTime.now(),
                         message = "Valid message",
                         repository = repository,
+                        committer = committer,
                     )
                     repository.commits.add(cmt)
 
@@ -57,12 +60,14 @@ internal object ValidationTestData {
             Arguments.of(
                 run {
                     val repository = Repository(localPath = "2222222", project = Project(name = "test project"))
+                    val committer = User(name = "Test Committer", repository = repository).apply { email = "committer@test.com" }
                     val cmt = Commit(
                         sha = "a".repeat(40),
                         authorDateTime = LocalDateTime.now(),
                         commitDateTime = LocalDateTime.now(),
                         message = "Valid message",
                         repository = repository,
+                        committer = committer,
                     )
                     repository.commits.add(cmt)
                     // invalid: should be 40 chars
@@ -76,12 +81,14 @@ internal object ValidationTestData {
             Arguments.of(
                 run {
                     val repository = Repository(localPath = "33333", project = Project(name = "test project"))
+                    val committer = User(name = "Test Committer", repository = repository).apply { email = "committer@test.com" }
                     val cmt = Commit(
                         sha = "a".repeat(40),
                         authorDateTime = LocalDateTime.now(),
                         commitDateTime = LocalDateTime.now(),
                         message = "Valid message",
                         repository = repository,
+                        committer = committer,
                     )
                     repository.commits.add(cmt)
 
@@ -95,12 +102,14 @@ internal object ValidationTestData {
             Arguments.of(
                 run {
                     val repository = Repository(localPath = "44444", project = Project(name = "test project"))
+                    val committer = User(name = "Test Committer", repository = repository).apply { email = "committer@test.com" }
                     val cmt = Commit(
                         sha = "c".repeat(40),
                         authorDateTime = LocalDateTime.now(),
                         commitDateTime = LocalDateTime.now(), // invalid: NotNull
                         message = "Valid message",
                         repository = repository,
+                        committer = committer,
                     )
                     setField(
                         cmt.javaClass.getDeclaredField("commitDateTime"),
@@ -117,12 +126,14 @@ internal object ValidationTestData {
                     Arguments.of(
                         run {
                             val repository = Repository(localPath = "5555", project = Project(name = "test project"))
+                            val committer = User(name = "Test Committer", repository = repository).apply { email = "committer@test.com" }
                             val cmt = Commit(
                                 sha = "c".repeat(40),
                                 authorDateTime = LocalDateTime.now(),
                                 commitDateTime = LocalDateTime.now(), // invalid: Future
                                 message = "Valid message",
                                 repository = repository,
+                                committer = committer,
                             )
                             setField(
                                 cmt.javaClass.getDeclaredField("commitDateTime"),
@@ -141,12 +152,14 @@ internal object ValidationTestData {
                     Arguments.of(
                         run {
                             val repository = Repository(localPath = "6666", project = Project(name = "test project"))
+                            val committer = User(name = "Test Committer", repository = repository).apply { email = "committer@test.com" }
                             val cmt = Commit(
                                 sha = "c".repeat(40),
                                 authorDateTime = LocalDateTime.now(), // invalid: Future
                                 commitDateTime = LocalDateTime.now(),
                                 message = "Valid message",
                                 repository = repository,
+                                committer = committer,
                             )
                             setField(
                                 cmt.javaClass.getDeclaredField("authorDateTime"),

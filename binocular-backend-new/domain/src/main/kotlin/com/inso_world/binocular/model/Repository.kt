@@ -1,5 +1,6 @@
 package com.inso_world.binocular.model
 
+import com.inso_world.binocular.model.vcs.Remote
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.slf4j.Logger
@@ -20,7 +21,7 @@ import kotlin.uuid.Uuid
  * - On construction, the repository **links itself** to the owning [project] via `project.repo = this`.
  *
  * ### Relationships & collections
- * - [commits], [branches], and [user] are add-only, repository-consistent, de-duplicated sets backed by
+ * - [commits], [branches], [user], and [remotes] are add-only, repository-consistent, de-duplicated sets backed by
  *   `NonRemovingMutableSet`. See their KDoc for invariants and exceptions.
  *
  * ### Thread-safety
@@ -34,8 +35,9 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class Repository(
     @field:NotBlank
+    @field:Size(max = 255)
     val localPath: String,
-    val project: Project
+    val project: Project,
 ) : AbstractDomainObject<Repository.Id, Repository.Key>(
     Id(Uuid.random())
 ) {
@@ -242,28 +244,66 @@ data class Repository(
             }
         }
 
-    override fun toString(): String = "Repository(id=$id, iid=$iid, localPath='$localPath', project=$project)"
+    /**
+     * Remotes that belong to this [Repository].
+     *
+     * # Semantics
+     * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removal operations
+     *   (`remove`, `retainAll`, `clear`, iterator `remove`) are not supported.
+     * - **Repository consistency:** A remote can be added only if `remote.repository == this@Repository`.
+     *   This method **does not** mutate `remote.repository`; callers must ensure the remote is created
+     *   for this repository.
+     * - **No implicit graph wiring:** Adding a remote here does **not** touch any other relations.
+     * - **Set semantics / de-duplication:** Membership is keyed by each remote's `uniqueKey`
+     *   (business key). Re-adding an existing remote is a no-op (`false`). The first instance for a
+     *   given key becomes the canonical stored element.
+     *
+     * # Invariants enforced on insert
+     * - Precondition: `element.repository == this@Repository`.
+     * - Postcondition (on success / no exception):
+     *     - `element in remotes`
+     * - **No back-links:** This operation does not modify other associations on the remote.
+     *
+     * # Bulk adds
+     * - `addAll` applies the same checks as `add`, element by element.
+     * - Returns `true` if at least one new remote was added.
+     * - **Not transactional:** If a later element fails (e.g., repo mismatch), earlier successful inserts remain.
+     *
+     * # Idempotency & recursion safety
+     * - Re-adding a remote already present (same `uniqueKey`) returns `false` and has no side effects.
+     * - No mutual/back-linking is performed here, so there is no risk of recursive `add` loops.
+     *
+     * # Exceptions
+     * - Throws [IllegalArgumentException] if a remote from a different repository is added.
+     * - Any attempt to remove elements throws [UnsupportedOperationException].
+     *
+     * # Thread-safety
+     * - Internally backed by a concurrent map; individual `add`/`contains` calls are safe for concurrent use.
+     *   Iteration is **weakly consistent**. Multi-step workflows are **not atomic**; coordinate externally if needed.
+     */
+    val remotes: MutableSet<Remote> =
+        object : NonRemovingMutableSet<Remote>() {
+            override fun add(element: Remote): Boolean {
+                // check if remote has no repository set
+                require(element.repository == this@Repository) {
+                    "$element cannot be added to a different repository."
+                }
 
-    fun removeCommitBySha(
-        @Size(min = 40, max = 40)
-        sha: String,
-    ) {
-        // Remove the commit from the repository's commits set
-        require(commits.removeIf { it.sha == sha })
-        // Remove the commit sha from all branches' commitShas sets
-        val affectedBranchNames = mutableListOf<String>()
-        branches.forEach { branch ->
-            if (branch.commits.removeIf { it.sha == sha }) {
-                affectedBranchNames.add(branch.name)
+                val added = super.add(element)
+                return added
+            }
+
+            override fun addAll(elements: Collection<Remote>): Boolean {
+                // for bulk-adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
             }
         }
-        logger.trace(
-            "Removed commit sha '{}' from {} branches: {}",
-            sha,
-            affectedBranchNames.size,
-            affectedBranchNames.joinToString(", "),
-        )
-    }
+
+    override fun toString(): String = "Repository(id=$id, iid=$iid, localPath='$localPath', project=$project)"
 
     override val uniqueKey: Key
         get() = Key(project.iid, localPath.trim())

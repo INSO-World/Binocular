@@ -33,7 +33,6 @@ class RemoveOperation {
                 return@run listOf(
                     cmt.children,
                     cmt.parents,
-                    cmt.branches,
 //                    cmt.issues,
 //                    cmt.files,
 //                    cmt.builds,
@@ -44,7 +43,6 @@ class RemoveOperation {
                 val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
 
                 return@run listOf(
-                    branch.commits,
                     branch.files,
                 ).map { Arguments.of(it) }.toTypedArray()
             },

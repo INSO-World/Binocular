@@ -1,10 +1,12 @@
 use crate::git::metrics::GitCommitMetric;
 use gix::actor::SignatureRef;
+use gix::refs::Reference;
 use gix::traverse::commit::topo::Sorting;
 use gix::traverse::commit::Parents;
-use gix::{Commit, Reference};
+use gix::Commit;
 use log::{debug, trace};
 use shared::signature::Sig;
+use std::collections::HashMap;
 
 pub fn traverse_from_to(
     repo: &gix::Repository,
@@ -65,45 +67,15 @@ pub fn traverse_from_to(
 
 pub fn traverse_commit_graph(
     repo: gix::Repository,
-    branches: Vec<String>,
+    references: Vec<Reference>,
     skip_merges: bool,
-) -> anyhow::Result<Vec<GitCommitMetric>> {
-    let prefixed_branches: Vec<String> = branches
-        .iter()
-        .map(|b| {
-            if b.contains("origin/") {
-                format!("refs/remotes/{b}")
-            } else {
-                format!("refs/heads/{b}")
-            }
-        })
-        .collect();
-    let references = repo.references()?;
+) -> anyhow::Result<HashMap<Reference, Vec<GitCommitMetric>>> {
+    let mut branch_commits_map: HashMap<Reference, Vec<GitCommitMetric>> = HashMap::new();
+    for reference in references {
+        let target = reference.clone().target.into_id();
 
-    let local_branches = references.local_branches()?;
-    let remote_branches = references.remote_branches()?;
-    let local_and_remote_branches = local_branches
-        .chain(remote_branches)
-        .flatten()
-        .collect::<Vec<Reference>>();
-    println!("local_and_remote_branches: {:?}", local_and_remote_branches);
-
-    let available_branches: Vec<&Reference> = local_and_remote_branches
-        .iter()
-        .filter(|r| prefixed_branches.contains(&r.name().as_bstr().to_string()))
-        .collect();
-    if available_branches.is_empty() {
-        // bail!("No branches with '{:?}' available", branches);
-        return Err(anyhow::anyhow!(
-            "No branches with '{:?}' available",
-            branches
-        ));
-    }
-
-    let mut commit_metric_vec: Vec<GitCommitMetric> = Vec::new();
-    for branch in available_branches {
-        let mut val: Vec<_> = if let Ok(id) = branch.clone().peel_to_commit() {
-            traverse_from_to(&repo, &id, &None)?
+        let val: Vec<_> = if let Ok(target_commit) = repo.find_commit(target) {
+            traverse_from_to(&repo, &target_commit, &None)?
         } else {
             Vec::new()
         }
@@ -117,12 +89,13 @@ pub fn traverse_commit_graph(
             };
         })
         .map(|mut gcm| {
-            gcm.branch = Option::from(branch.name().shorten().to_string());
+            gcm.branch = Option::from(reference.name.shorten().to_string());
             gcm
         })
         .collect();
-        commit_metric_vec.append(&mut val);
+        // branch_commits_map.append((branch.deref(), val));
+        branch_commits_map.insert(reference.clone(), val);
     }
 
-    Ok(commit_metric_vec)
+    Ok(branch_commits_map)
 }

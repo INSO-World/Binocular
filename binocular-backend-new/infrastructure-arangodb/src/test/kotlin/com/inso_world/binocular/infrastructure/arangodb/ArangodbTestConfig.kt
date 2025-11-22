@@ -16,12 +16,11 @@ import org.springframework.test.context.ContextConfiguration
 @ContextConfiguration(initializers = [ArangodbTestConfig.Initializer::class])
 @Import(ArangodbAppConfig::class)
 class ArangodbTestConfig {
-    companion object Companion {
+    companion object {
         val adbContainer =
             ArangoContainer("arangodb:3.12")
                 .apply { withExposedPorts(8529) }
                 .apply { withoutAuth() }
-                .apply { withReuse(true) }
     }
 
     class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {

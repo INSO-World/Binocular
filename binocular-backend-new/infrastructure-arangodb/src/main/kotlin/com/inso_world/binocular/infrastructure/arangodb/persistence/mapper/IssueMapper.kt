@@ -1,6 +1,8 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.IssueEntity
 import com.inso_world.binocular.model.Issue
@@ -10,8 +12,26 @@ import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.util.Date
 
+/**
+ * Mapper for Issue domain objects.
+ *
+ * Converts between Issue domain objects and IssueEntity persistence entities for ArangoDB.
+ * This mapper handles the conversion of issue metadata, labels, mentions, and uses lazy loading
+ * for related accounts, commits, milestones, notes, and users.
+ *
+ * ## Design Principles
+ * - **Single Responsibility**: Only converts Issue structure
+ * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships
+ * - **Date Conversion**: Converts between LocalDateTime and Date for ArangoDB storage
+ * - **Eager Mentions**: Eagerly maps mentions as they are typically accessed with the issue
+ * - **Context Management**: Uses MappingContext to prevent duplicate mappings
+ *
+ * ## Usage
+ * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
+ * mentions but uses lazy loading for accounts, commits, milestones, notes, and users to optimize performance.
+ */
 @Component
-class IssueMapper
+internal class IssueMapper
     @Autowired
     constructor(
         private val proxyFactory: RelationshipProxyFactory,
@@ -21,11 +41,28 @@ class IssueMapper
         @Lazy private val userMapper: UserMapper,
         private val mentionMapper: MentionMapper,
     ) : EntityMapper<Issue, IssueEntity> {
-        @Lazy @Autowired
+
+        @Autowired
+        private lateinit var ctx: MappingContext
+
+        @Lazy
+        @Autowired
         private lateinit var commitMapper: CommitMapper
 
+        companion object {
+            private val logger by logger()
+        }
+
         /**
-         * Converts a domain Issue to an ArangoDB IssueEntity
+         * Converts an Issue domain object to IssueEntity.
+         *
+         * Converts timestamp fields from LocalDateTime to Date for ArangoDB storage.
+         * Eagerly maps all mentions as they are typically accessed together with the issue.
+         * Relationships to accounts, commits, milestones, notes, and users are not persisted
+         * in the entity - they are only restored during toDomain through lazy loading.
+         *
+         * @param domain The Issue domain object to convert
+         * @return The IssueEntity with issue metadata, labels, and mentions
          */
         override fun toEntity(domain: Issue): IssueEntity =
             IssueEntity(
@@ -39,80 +76,82 @@ class IssueMapper
                 labels = domain.labels,
                 state = domain.state,
                 webUrl = domain.webUrl,
-                mentions = (domain.mentions).map { mention ->
-                    mentionMapper.toEntity(mention)
-                },
-                // Relationships are handled by ArangoDB through edges
+                mentions = domain.mentions.map { mentionMapper.toEntity(it) },
             )
 
         /**
-         * Converts an ArangoDB IssueEntity to a domain Issue
+         * Converts an IssueEntity to Issue domain object.
          *
-         * Uses lazy loading proxies for relationships, which will only be loaded
-         * when accessed. This provides a consistent API regardless of the database
-         * implementation and avoids the N+1 query problem.
+         * Converts timestamp fields from Date to LocalDateTime. Eagerly maps mentions
+         * and creates lazy-loaded proxies for accounts, commits, milestones, notes, and users
+         * to avoid loading unnecessary data.
+         *
+         * @param entity The IssueEntity to convert
+         * @return The Issue domain object with eager mentions and lazy relationships
          */
-        override fun toDomain(entity: IssueEntity): Issue =
-            Issue(
-                id = entity.id,
-                iid = entity.iid,
-                title = entity.title,
-                description = entity.description,
-                createdAt =
-                    entity.createdAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                closedAt =
-                    entity.closedAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                updatedAt =
-                    entity.updatedAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                labels = entity.labels,
-                state = entity.state,
-                webUrl = entity.webUrl,
-                mentions = (entity.mentions).map { mentionEntity ->
-                    mentionMapper.toDomain(mentionEntity)
-                },
-                accounts =
-                    proxyFactory.createLazyList {
-                        (entity.accounts ?: emptyList()).map { accountEntity ->
-                            accountMapper.toDomain(accountEntity)
-                        }
-                    },
-                commits =
-                    proxyFactory.createLazyList {
-                        (entity.commits ?: emptyList()).map { commitEntity ->
-                            commitMapper.toDomain(commitEntity)
-                        }
-                    },
-                milestones =
-                    proxyFactory.createLazyList {
-                        (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                            milestoneMapper.toDomain(milestoneEntity)
-                        }
-                    },
-                notes =
-                    proxyFactory.createLazyList {
-                        (entity.notes ?: emptyList()).map { noteEntity ->
-                            noteMapper.toDomain(noteEntity)
-                        }
-                    },
-                users =
-                    proxyFactory.createLazyList {
-                        (entity.users ?: emptyList()).map { userEntity ->
-                            userMapper.toDomain(userEntity)
-                        }
-                    },
-            )
+        override fun toDomain(entity: IssueEntity): Issue {
+            // Fast-path: Check if already mapped
+            ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
 
-        /**
-         * Converts a list of ArangoDB IssueEntity objects to a list of domain Issue objects
-         */
+            val domain =
+                Issue(
+                    id = entity.id,
+                    iid = entity.iid,
+                    title = entity.title,
+                    description = entity.description,
+                    createdAt =
+                        entity.createdAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    closedAt =
+                        entity.closedAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    updatedAt =
+                        entity.updatedAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    labels = entity.labels,
+                    state = entity.state,
+                    webUrl = entity.webUrl,
+                    mentions = entity.mentions.map { mentionMapper.toDomain(it) },
+                    accounts =
+                        proxyFactory.createLazyList {
+                            (entity.accounts ?: emptyList()).map { accountEntity ->
+                                accountMapper.toDomain(accountEntity)
+                            }
+                        },
+                    commits =
+                        proxyFactory.createLazyList {
+                            (entity.commits ?: emptyList()).map { commitEntity ->
+                                commitMapper.toDomain(commitEntity)
+                            }
+                        },
+                    milestones =
+                        proxyFactory.createLazyList {
+                            (entity.milestones ?: emptyList()).map { milestoneEntity ->
+                                milestoneMapper.toDomain(milestoneEntity)
+                            }
+                        },
+                    notes =
+                        proxyFactory.createLazyList {
+                            (entity.notes ?: emptyList()).map { noteEntity ->
+                                noteMapper.toDomain(noteEntity)
+                            }
+                        },
+                    users =
+                        proxyFactory.createLazyList {
+                            (entity.users ?: emptyList()).map { userEntity ->
+                                userMapper.toDomain(userEntity)
+                            }
+                        },
+                )
+
+            return domain
+        }
+
         override fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it) }
     }

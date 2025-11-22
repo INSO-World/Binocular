@@ -361,31 +361,33 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
         val newVcsCommit =
             run {
-                val branch = Branch(name = "master")
+                val parentCommitter = User(name = "User B", repository = repo1).apply { email = "b@test.com" }
+                val childCommitter = User(name = "User A", repository = repo1).apply { email = "a@test.com" }
+
                 val parent = Commit(
-                    id = null,
-                    "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
-                    "parent",
-                    null,
-                    null,
-                    "master",
-                )
-                parent.committer = User(name = "User B", email = "b@test.com")
+                    sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
+                    authorDateTime = LocalDateTime.now(),
+                    commitDateTime = LocalDateTime.now(),
+                    message = "parent",
+                    repository = repo1,
+                    committer = parentCommitter,
+                ).apply {
+                    id = null
+                    branch = "master"
+                }
+
                 val child = Commit(
-                    id = null,
-                    "123456789_123456789_123456789_123456789_",
-                    LocalDateTime.now(),
-                    LocalDateTime.now(),
-                    "msg1",
-                    null,
-                    null,
-                    null
-                )
-                child.committer = User(name = "User A", email = "a@test.com")
+                    sha = "123456789_123456789_123456789_123456789_",
+                    authorDateTime = LocalDateTime.now(),
+                    commitDateTime = LocalDateTime.now(),
+                    message = "msg1",
+                    repository = repo1,
+                    committer = childCommitter,
+                ).apply {
+                    id = null
+                }
+
                 child.parents.add(parent)
-                branch.commits.add(child)
                 return@run child
             }
         // TODO change to this.commitDao.findHeadForBranch(this.simpleRepo, "master")

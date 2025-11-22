@@ -1,7 +1,9 @@
 package com.inso_world.binocular.model
 
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -19,30 +21,30 @@ import kotlin.uuid.Uuid
  *   (idempotent, add-only set).
  *
  * ### Relationships & collections
- * - [commits]: add-only, repository-consistent, bidirectionally maintained with `Commit.branches`.
+ * - [commits]: complete history of all commits reachable from the [head] element on this [branch].
  * - [files]: add-only collection keyed by business keys of [File]; exposed as `Set` for read-only use.
  *
  * ### Thread-safety
  * - The entity is mutable and not thread-safe. Collection fields use concurrent maps internally,
  *   but multi-step workflows are **not** atomic; coordinate externally.
  *
- * @property name Branch name; must be non-blank and participates in the [uniqueKey].
+ * @property name Branch name used for domain identity (shortened ref).
+ * @property fullName Fully-qualified Git reference name (e.g., `refs/heads/main`).
+ * @property category Category/type of the reference as reported by gix.
  * @property active Whether this branch is currently the active/checked-out branch.
  * @property tracksFileRenames Whether file rename tracking is enabled when analyzing history.
  * @property latestCommit Optional last known commit SHA associated with this branch.
+ * @property head Last known commit SHA associated with this branch.
  * @property repository Owning repository; this branch registers itself to `repository.branches` in `init`.
  */
 @OptIn(ExperimentalUuidApi::class)
-data class Branch(
-    @field:NotBlank
-    val name: String,
-    val active: Boolean = false,
-    val tracksFileRenames: Boolean = false,
-    val latestCommit: String? = null,
-    val repository: Repository,
-) : AbstractDomainObject<Branch.Id, Branch.Key>(
-    Id(Uuid.random())
-) {
+class Branch(
+    @field:NotBlank val name: String,
+    @field:NotBlank val fullName: String,
+    override val category: ReferenceCategory,
+    override val repository: Repository,
+    head: Commit,
+) : Reference<Branch.Key>(category, repository), Cloneable {
     @JvmInline
     value class Id(val value: Uuid)
 
@@ -51,82 +53,120 @@ data class Branch(
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
 
+    @Deprecated("old")
+    var active: Boolean = false
+
+    @Deprecated("old")
+    var tracksFileRenames: Boolean = false
+
+    @Deprecated("", ReplaceWith("head.sha"))
+    val latestCommit: String
+        get() = head.sha
+
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
     val branch: String = name
 
-    val files: Set<File> =
-        object : NonRemovingMutableSet<File>() {}
+    var head: Commit = head
+        set(@NotNull value) {
+            require(value.repository == this@Branch.repository) {
+                "Head is from different repository (${value.repository}) than branch (${this@Branch.repository})"
+            }
+
+            field = value
+        }
+
+    val files: Set<File> = object : NonRemovingMutableSet<File>() {}
 
     init {
         require(name.isNotBlank()) { "name must not be blank" }
+        require(fullName.isNotBlank()) { "fullName must not be blank" }
+        // workaround since `this.head = head` does not call the setter, avoid duplicate logic
+        head.also { this.head = it }
         repository.branches.add(this)
     }
 
+
     /**
-     * The set of commits that belong to this [Branch].
+     * All commits reachable from this branch’s `head`, in **Git `--topo-order`**.
      *
      * ### Semantics
-     * - **Add-only collection:** Backed by [NonRemovingMutableSet] — any removal operation
-     *   (`remove`, `retainAll`, `clear`, iterator `remove`) throws `UnsupportedOperationException`.
-     * - **Repository consistency:** Every added [Commit] must belong to the **same** `repository`
-     *   as this branch; otherwise the operation fails.
-     * - **Bidirectional link:** On a successful insert, this branch is also added to
-     *   `commit.branches`, keeping the relationship in sync.
-     * - **Set semantics / de-duplication:** Membership is keyed by each commit’s `uniqueKey`
-     *   (business key). Re-adding an already-present commit is a no-op (`false`).
+     * - Produces a **children-before-parents** topological order: **no commit is shown before any of its descendants**
+     *   reachable from `head` (i.e., merges appear *before* their parents; `head` appears *first*).
+     * - When multiple parent branches are available, the traversal **prefers more recent parents first**
+     *   (by `commitDateTime`, tie-broken by `sha`) to emulate Git’s visual “non-crossing” branch flow.
+     * - The returned set preserves iteration order (via `LinkedHashSet`) and is recomputed on each access.
      *
      * ### Validation
-     * - Annotated with `@get:NotEmpty`: bean-validation frameworks (Jakarta Validation)
-     *   will reject a [Branch] instance whose `commits` set is empty **at validation time**.
-     *   Note that the set starts empty; ensure at least one commit is added before validation/persist.
+     * - Annotated with `@get:NotEmpty`: validation frameworks will reject an instance where this getter yields
+     *   an empty set. Inclusion of `head` normally guarantees non-emptiness.
      *
-     * ### Invariants enforced on insert
-     * - Precondition: `element.repository == this@Branch.repository`
-     * - Postcondition (on success / no exception):
-     *     - `element in commits`
-     *     - `this@Branch in element.branches`
+     * ### Invariants enforced on get
+     * - Result contains only commits reachable via `parents` starting at `head`.
      *
      * ### Bulk adds
-     * - `addAll` applies the same checks and back-linking as `add`, per element.
-     * - Returns `true` if at least one new commit was added.
-     * - **Not transactional:** if a later element fails (e.g., repo mismatch), previous
-     *   successful inserts remain.
+     * - N/A — this is a derived snapshot; the underlying model is not mutated.
      *
      * ### Idempotency & recursion safety
-     * - The back-link only runs when an element is newly added (`added == true`),
-     *   preventing infinite mutual `add` calls between `branch.commits` and `commit.branches`.
+     * - Uses **iterative** DFS with visited-tracking, then a **postorder-reverse** to achieve `--topo-order`
+     *   without recursion or stack overflows.
      *
      * ### Exceptions
-     * - Throws [IllegalArgumentException] if a commit from a different repository is added.
+     * - None intentionally; cycles (which should not exist for commits) are tolerated by visited-tracking.
      *
      * ### Thread-safety
-     * - Backed by a concurrent map internally, but multi-step workflows aren’t atomic;
-     *   coordinate externally if mutated concurrently.
+     * - Builds an ephemeral snapshot while iterating over mutable, add-only sets (`parents`).
+     *   Concurrent mutations may yield a **weakly consistent** snapshot; coordinate externally if needed.
+     *
+     * ### Complexity
+     * - Reachability + ordering is **O(V+E)** time and **O(V)** space over the reachable subgraph.
      */
     @get:NotEmpty
-    val commits: MutableSet<Commit> =
-        object : NonRemovingMutableSet<Commit>() {
-            override fun add(element: Commit): Boolean {
-                require(element.repository == this@Branch.repository) {
-                    "Commit.repository (${element.repository}) doesn't match branch.repository (${this@Branch.repository})"
-                }
+    val commits: Set<Commit>
+        get() {
+            // 1) Collect reachable nodes from head (iterative DFS on parents)
+            val reachable = LinkedHashSet<Commit>()
+            val stack = ArrayDeque<Commit>()
+            stack.addLast(head)
 
-                val added = super.add(element)
-                if (added) {
-                    // …and back-link to this as a child
-                    element.branches.add(this@Branch)
+            // prefer newer parents first to mimic git’s visual flow when branches diverge
+            fun parentOrder(c: Commit): List<Commit> =
+                c.parents.toList()
+                    .sortedWith(compareByDescending<Commit> { it.commitDateTime }.thenBy { it.sha })
+
+            while (stack.isNotEmpty()) {
+                val c = stack.removeLast()
+                if (reachable.add(c)) {
+                    val parents = parentOrder(c)
+                    for (i in parents.lastIndex downTo 0) {
+                        val p = parents[i]
+                        if (p !in reachable) stack.addLast(p)
+                    }
                 }
-                return added
             }
 
-            override fun addAll(elements: Collection<Commit>): Boolean {
-                // for bulk-adds make sure each one gets the same treatment
-                var anyAdded = false
-                for (e in elements) {
-                    if (add(e)) anyAdded = true
+            // 2) Postorder over parents, then reverse → children-before-parents (git --topo-order)
+            val seen = HashSet<Commit>(reachable.size)
+            val out = ArrayList<Commit>(reachable.size)
+            val work = ArrayDeque<Pair<Commit, Boolean>>() // (node, expanded?)
+            work.addLast(head to false)
+
+            while (work.isNotEmpty()) {
+                val (node, expanded) = work.removeLast()
+                if (!expanded) {
+                    if (!seen.add(node)) continue
+                    work.addLast(node to true) // post-visit marker
+                    val parents = parentOrder(node).filter { it in reachable }
+                    for (i in parents.lastIndex downTo 0) {
+                        val p = parents[i]
+                        if (p !in seen) work.addLast(p to false)
+                    }
+                } else {
+                    out.add(node) // postorder append
                 }
-                return anyAdded
             }
+
+            out.reverse() // reverse postorder ⇒ children before parents (git topo-order)
+            return LinkedHashSet(out)
         }
 
     override val uniqueKey: Key
@@ -137,9 +177,5 @@ data class Branch(
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "Branch(id=$id, iid=$iid, name='$name', active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, commitShas=${
-            commits.map {
-                it.sha
-            }
-        }, repositoryId=${repository.id})"
+        "Branch(id=$id, iid=$iid, name='$name', fullName='$fullName', category=$category, active=$active, tracksFileRenames=$tracksFileRenames, latestCommit=$latestCommit, head=${head.sha}, repositoryId=${repository.id})"
 }

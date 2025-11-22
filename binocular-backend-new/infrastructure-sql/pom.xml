@@ -52,6 +52,13 @@
             <artifactId>domain</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.inso-world.binocular</groupId>
+            <artifactId>domain</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
         <!-- Non binocular modules -->
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
@@ -96,8 +103,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.mockk</groupId>
-            <artifactId>mockk-jvm</artifactId>
+            <groupId>com.ninja-squad</groupId>
+            <artifactId>springmockk</artifactId>
+            <version>4.0.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

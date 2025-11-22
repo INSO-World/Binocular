@@ -1,6 +1,5 @@
 package com.inso_world.binocular.model
 
-import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Size
@@ -23,13 +22,15 @@ private fun Char.isHex(): Boolean =
  * ## Construction & validation
  * - [sha] must be exactly 40 hexadecimal characters (`[0-9a-fA-F]`).
  * - [commitDateTime] and [authorDateTime] (if present) must be past-or-present.
+ * - [committer] is required and must belong to the same repository.
  * - On initialization the instance registers itself in `repository.commits`
  *   (idempotent, add-only set). Parent/child/branch links are **not** wired automatically.
+ * - On initialization, this commit is added to `committer.committedCommits`.
  *
  * ## Relationships
- * - [author] / [committer]: set-once, non-null on assignment, repository-consistent; setting either
- *   also back-links this commit to the respective user collection.
- * - [parents], [children], [branches]: add-only, repository-consistent, bidirectionally maintained.
+ * - [committer]: required, immutable, repository-consistent; set at construction and back-linked automatically.
+ * - [author]: optional, set-once, repository-consistent; setting also back-links this commit to the user's authored commits.
+ * - [parents], [children]: add-only, repository-consistent, bidirectionally maintained.
  *   See their individual KDoc for invariants and exceptions.
  *
  * ## Thread-safety
@@ -41,6 +42,7 @@ private fun Char.isHex(): Boolean =
  * @property commitDateTime Commit timestamp; must be past-or-present.
  * @property message Optional commit message summary/body.
  * @property repository Owning repository; the commit registers itself to `repository.commits` in `init`.
+ * @property committer The user who committed this change; required, immutable, and repository-consistent.
  */
 @OptIn(ExperimentalUuidApi::class)
 data class Commit(
@@ -52,7 +54,10 @@ data class Commit(
     @field:NotNull
     val commitDateTime: LocalDateTime? = null,
     val message: String? = null,
+    @field:NotNull
     val repository: Repository,
+    @field:NotNull
+    val committer: User,
 ) : AbstractDomainObject<Commit.Id, Commit.Key>(
     Id(Uuid.random())
 ) {
@@ -83,59 +88,16 @@ data class Commit(
         require(commitDateTime?.isBefore(initDt) == true) {
             "commitDateTime ($commitDateTime) must be past or present ($initDt)"
         }
-        require(authorDateTime?.isBefore(initDt) == true) {
+        require(authorDateTime == null || authorDateTime.isBefore(initDt)) {
             "authorDateTime ($authorDateTime) must be past or present ($initDt)"
         }
+        require(committer.repository == this.repository) {
+            "Repository between $committer and Commit do not match: ${this.repository}"
+        }
         this.repository.commits.add(this)
+        committer.committedCommits.add(this)
     }
 
-    /**
-     * The committer of this [Commit].
-     *
-     * ### Semantics
-     * - **Set-once, non-null:** `committer` must never be set to `null`. Once assigned,
-     *   it cannot be changed to a different user. Re-assigning the *same* user (by `equals`)
-     *   is treated as a no-op.
-     * - **Repository consistency:** The assigned user's `repository` must be the same
-     *   as this commit's `repository`.
-     * - **Bidirectional link:** On successful assignment, this commit is added to
-     *   `committer.committedCommits`.
-     *
-     * ### Invariants enforced by the setter
-     * - Precondition:
-     *     - `value != null`
-     *     - `this.committer == null || this.committer == value`
-     *     - `value.repository == this.repository`
-     *
-     * ### Exceptions
-     * - Throws [IllegalArgumentException] if:
-     *   - A `null` value is provided.
-     *   - A different committer is assigned after one was already set.
-     *   - The user's repository differs from the commit's repository.
-     *
-     * ### Idempotency
-     * - If `value == this.committer` (according to `equals`), the call returns early
-     *   without side effects. This allows re-hydrating the same identity without churn.
-     *
-     * ### Thread-safety
-     * - No synchronization is performed; external coordination is required if this
-     *   entity can be mutated concurrently.
-     */
-    var committer: User? = null
-        set(value) {
-            requireNotNull(value) { "committer cannot be set to null" }
-            if (value == this.committer) {
-                return
-            }
-            if (this.committer != null) {
-                throw IllegalArgumentException("committer already set for Commit $sha: $committer")
-            }
-            if (value.repository != this.repository) {
-                throw IllegalArgumentException("Repository between $value and Commit do not match: ${this.repository}")
-            }
-            field = value
-            value.committedCommits.add(this)
-        }
 
     /**
      * The author of this [Commit].
@@ -218,8 +180,14 @@ data class Commit(
     val parents: MutableSet<Commit> =
         object : NonRemovingMutableSet<Commit>() {
             override fun add(element: Commit): Boolean {
-                if (element.repository != this@Commit.repository) {
-                    throw IllegalArgumentException("Repository between $element and Commit do not match: ${this@Commit.repository}")
+                require(element.repository == this@Commit.repository) {
+                    "Repository between $element and Commit do not match: ${this@Commit.repository}"
+                }
+                require(element != this@Commit) {
+                    "Commit cannot be its own parent"
+                }
+                require(!this@Commit.children.contains(element)) {
+                    "${element.sha} is already present in '${this@Commit.sha}' children collection. Cannot be added as parent too."
                 }
                 // add to this commit’s parents…
                 val added = super.add(element)
@@ -275,8 +243,14 @@ data class Commit(
     val children: MutableSet<Commit> =
         object : NonRemovingMutableSet<Commit>() {
             override fun add(element: Commit): Boolean {
-                if (element.repository != this@Commit.repository) {
-                    throw IllegalArgumentException("Repository between $element and Commit do not match: ${this@Commit.repository}")
+                require(element.repository == this@Commit.repository) {
+                    "Repository between $element and Commit do not match: ${this@Commit.repository}"
+                }
+                require(element != this@Commit) {
+                    "Commit cannot be its own child"
+                }
+                require(!this@Commit.parents.contains(element)) {
+                    "${element.sha} is already present in '${this@Commit.sha}' parent collection. Cannot be added as child too."
                 }
                 // add to this commit’s parents…
                 val added = super.add(element)
@@ -297,80 +271,13 @@ data class Commit(
             }
         }
 
-    /**
-     * The set of [Branch]es that reference this [Commit].
-     *
-     * ### Semantics
-     * - **Add-only collection:** Backed by [NonRemovingMutableSet] — any removal operation
-     *   (`remove`, `retainAll`, `clear`, iterator `remove`) throws `UnsupportedOperationException`.
-     * - **Repository consistency:** Each added branch must belong to the **same** `repository`
-     *   as this commit; otherwise the operation fails.
-     * - **Bidirectional link:** On successful insert, this commit is also added to
-     *   `branch.commits`, keeping the association in sync.
-     * - **Set semantics / de-duplication:** Membership is keyed by each branch’s `uniqueKey`
-     *   (business key). Re-adding an existing branch is a no-op (`false`).
-     *
-     * ### Validation
-     * - Annotated with `@get:NotEmpty`: bean-validation frameworks (Jakarta Validation)
-     *   will reject a [Commit] instance whose `branches` set is empty **at validation time**.
-     *   Note that the set starts empty; ensure at least one commit is added before validation/persist.
-     *
-     * ### Invariants enforced on insert
-     * - Precondition: `element.repository == this@Commit.repository`
-     * - Postcondition (on success / no exception):
-     *     - `element in branches`
-     *     - `this@Commit in element.commits`
-     *
-     * ### Bulk adds
-     * - `addAll` applies the same checks and back-linking as `add`, per element.
-     * - Returns `true` if at least one new branch was added.
-     * - **Not transactional:** if a later element fails (e.g., repo mismatch), prior
-     *   successful inserts remain.
-     *
-     * ### Idempotency & recursion safety
-     * - The back-link only runs when an element is newly added (`added == true`),
-     *   preventing infinite mutual `add` calls between `commit.branches` and `branch.commits`.
-     *
-     * ### Exceptions
-     * - Throws [IllegalArgumentException] if a branch from a different repository is added.
-     *
-     * ### Thread-safety
-     * - Internally uses a concurrent map for storage, but multi-step workflows aren’t atomic;
-     *   coordinate externally if mutated concurrently.
-     */
-    @get:NotEmpty
-    val branches: MutableSet<Branch> =
-        object : NonRemovingMutableSet<Branch>() {
-            override fun add(element: Branch): Boolean {
-                require(element.repository == this@Commit.repository) {
-                    "Branch.repository (${element.repository}) doesn't match commit.repository (${this@Commit.repository})"
-                }
-
-                val added = super.add(element)
-                if (added) {
-                    // …and back-link to this as a child
-                    element.commits.add(this@Commit)
-                }
-                return added
-            }
-
-            override fun addAll(elements: Collection<Branch>): Boolean {
-                // for bulk-adds make sure each one gets the same treatment
-                var anyAdded = false
-                for (e in elements) {
-                    if (add(e)) anyAdded = true
-                }
-                return anyAdded
-            }
-        }
-
     @Deprecated("Do not use")
     val users: List<User>
         get() =
             mutableListOf<User>()
                 .let { lst ->
                     author?.let { lst.add(it) }
-                    committer?.let { lst.add(it) }
+                    lst.add(committer)
                     lst
                 }
     override val uniqueKey: Key
@@ -381,5 +288,5 @@ data class Commit(
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, author=$author, committer=$committer, repositoryId=${repository?.id}, children=${children.map { it.sha }}, parents=${parents.map { it.sha }}, branches=${branches.map { it.toString() }})"
+        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, author=$author, committer=$committer, repositoryId=${repository?.id}, children=${children.map { it.sha }}, parents=${parents.map { it.sha }})"
 }

@@ -14,6 +14,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
+/**
+ * Integration tests for User persistence via UserInfrastructurePort.
+ * Tests verify that domain model semantics are preserved through the infrastructure layer.
+ */
 internal class UserTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var userPort: UserInfrastructurePort
@@ -45,7 +49,7 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `create user and load it by id`() {
-        val user = User(name = "Jane Doe", email = "jane@example.com", repository = repository)
+        val user = User(name = "Jane Doe", repository = repository).apply { email = "jane@example.com" }
         val created = userPort.create(user)
         val id = requireNotNull(created.id)
         assertNotNull(id)
@@ -60,12 +64,41 @@ internal class UserTest : BaseInfrastructureSpringTest() {
     }
 
     @Test
+    fun `create user, verify automatic registration with repository`() {
+        val user = User(name = "Alice", repository = repository).apply { email = "alice@example.com" }
+
+        // User auto-registers with repository during construction
+        assertEquals(1, repository.user.size)
+        assert(repository.user.contains(user))
+
+        val created = userPort.create(user)
+        val loaded = userPort.findById(requireNotNull(created.id))
+
+        assertNotNull(loaded)
+        assertEquals(user.name, loaded!!.name)
+        assertEquals(repository.id, loaded.repository?.id)
+    }
+
+    @Test
     fun `findAll returns created users`() {
-        val u1 = userPort.create(User(name = "A", email = "a@example.com", repository = repository))
-        val u2 = userPort.create(User(name = "B", email = "b@example.com", repository = repository))
+        val u1 = userPort.create(User(name = "A", repository = repository).apply { email = "a@example.com" })
+        val u2 = userPort.create(User(name = "B", repository = repository).apply { email = "b@example.com" })
         val all = userPort.findAll().toList()
         // at least 2 (could include other users if DB not fully isolated); ensure ours are present
         val ids = all.mapNotNull { it.id }.toSet()
         assert(ids.contains(u1.id) && ids.contains(u2.id))
+    }
+
+    @Test
+    fun `create user with blank email throws exception`() {
+        val user = User(name = "Bob", repository = repository)
+
+        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+            user.email = ""
+        }
+
+        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+            user.email = "   "
+        }
     }
 }

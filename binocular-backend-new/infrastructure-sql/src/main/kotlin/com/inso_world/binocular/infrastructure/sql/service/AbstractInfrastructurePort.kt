@@ -22,7 +22,8 @@ internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Seriali
     internal lateinit var dao: IDao<E, I>
 
     @Transactional(readOnly = true)
-    internal fun findById(id: I): E? = dao.findById(id)
+    internal fun findById(id: I): E? = throw UnsupportedOperationException("use findByIid instead of findById")
+//        dao.findById(id)
 
     @Transactional(readOnly = true)
     internal fun findAllEntities(): Iterable<E> = this.dao.findAll()
@@ -43,25 +44,25 @@ internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Seriali
     @Transactional
     internal fun delete(
         @Valid value: E,
-    ) {
-        this.dao.delete(value)
-    }
+    ): Nothing = throw UnsupportedOperationException()
+//    {
+//        this.dao.delete(value)
+//    }
 
     @Transactional
-    internal fun deleteByEntityId(id: String) {
-        val value = read(id)
-        this.dao.deleteById(value)
-    }
+    internal fun deleteByEntityId(id: String): Nothing = throw UnsupportedOperationException()
+//    {
+//        val value = read(id)
+//        this.dao.deleteById(value)
+//    }
 
     @Transactional
     internal fun updateAndFlush(
         @Valid value: E,
     ): E = this.dao.updateAndFlush(value)
 
-    @Transactional
-    internal fun deleteAllEntities() {
-        this.dao.deleteAll()
-    }
+//    @Transactional
+//    internal fun deleteAllEntities(): Nothing = throw UnsupportedOperationException()
 
     @Transactional
     internal fun create(

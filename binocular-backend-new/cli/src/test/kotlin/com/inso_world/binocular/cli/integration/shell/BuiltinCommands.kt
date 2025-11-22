@@ -6,16 +6,13 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.shell.test.ShellAssertions
 import org.springframework.shell.test.ShellTestClient
 import java.util.concurrent.TimeUnit
-import kotlin.run
 
-internal class BuiltinCommands(
-    @all:Autowired val client: ShellTestClient,
+internal class BuiltinCommands @Autowired constructor(
+    val client: ShellTestClient,
 ) : BaseShellNoDataTest() {
 
     private lateinit var session: ShellTestClient.InteractiveShellSession

@@ -1,9 +1,8 @@
 package com.inso_world.binocular.core.integration.base
 
+import com.inso_world.binocular.data.MockTestDataProvider
 import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Build
-import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Job
@@ -15,7 +14,6 @@ import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Platform
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import java.time.LocalDateTime
 
@@ -29,6 +27,11 @@ import java.time.LocalDateTime
     replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider")
 )
 object TestDataProvider {
+    private val project = Project(name = "proj-pg-0")
+    private val repository = Repository(localPath = "repo-pg-0", project = project)
+
+    private val mockTestDataProvider = MockTestDataProvider(repository)
+
     val testAccounts =
         listOf(
             Account(
@@ -49,47 +52,53 @@ object TestDataProvider {
             ),
         )
 
-    private val mainBranch = Branch("1", "main", true, true, "abc123")
-    private val newFeatureBranch =
-        Branch("2", "feature/new-feature", true, false, "def456")
-    val testBranches =
-        listOf(mainBranch, newFeatureBranch)
+//    private val mainBranch = Branch("main","abc123", repository = repository).apply {
+//        active = true
+//        tracksFileRenames = true
+//        this.id = "1"
+//    }
+//    private val newFeatureBranch =
+//        Branch( "feature/new-feature", true, false, "def456", repository = repository).apply {
+//            this.id = "2"
+//        }
+    val testBranches = mockTestDataProvider.branches
+//        listOf(mainBranch, newFeatureBranch)
 
-    val testCommits =
-        listOf(
-            run {
-                val cmt =
-                    Commit(
-                        "1",
-                        "abc123",
-                        LocalDateTime.now(),
-                        LocalDateTime.now(),
-                        "First commit",
-                        null,
-                        "https://example.com/commit/abc123",
-                        "main",
-                        Stats(10, 5),
-                    )
-                mainBranch.commits.add(cmt)
-                cmt
-            },
-            run {
-                val cmt =
-                    Commit(
-                        "2",
-                        "def456",
-                        java.time.LocalDateTime.now(),
-                        java.time.LocalDateTime.now(),
-                        "Second commit",
-                        null,
-                        "https://example.com/commit/def456",
-                        "main",
-                        Stats(7, 3),
-                    )
-                mainBranch.commits.add(cmt)
-                cmt
-            },
-        )
+    val testCommits = mockTestDataProvider.commits
+//        listOf(
+//            run {
+//                val cmt =
+//                    Commit(
+//                        "abc123",
+//                        LocalDateTime.now(),
+//                        LocalDateTime.now(),
+//                        "First commit",
+//                        repository = repository,
+//                    ).apply {
+//                        this.id = "1"
+//                        this.webUrl = "https://example.com/commit/abc123"
+//                        this.branch = "main"
+//                        this.stats = Stats(10, 5)
+//                    }
+//                cmt
+//            },
+//            run {
+//                val cmt =
+//                    Commit(
+//                        "def456",
+//                        java.time.LocalDateTime.now(),
+//                        java.time.LocalDateTime.now(),
+//                        "Second commit",
+//                        repository = repository
+//                    ).apply {
+//                        this.id = "2"
+//                        this.webUrl = "https://example.com/commit/def456"
+//                        this.branch = "main"
+//                        this.stats = Stats(7, 3)
+//                    }
+//                cmt
+//            },
+//        )
 
     val testBuilds =
         listOf(
@@ -154,21 +163,23 @@ object TestDataProvider {
             run {
                 val file =
                     File(
-                        "1",
                         "src/main/kotlin/com/example/Main.kt",
                         mutableSetOf(),
-                    )
-                file.webUrl = "https://example.com/files/Main.kt"
+                    ).apply {
+                        this.id = "1"
+                        this.webUrl = "https://example.com/files/Main.kt"
+                    }
                 return@run file
             },
             run {
                 val file =
                     File(
-                        "2",
                         "src/main/kotlin/com/example/Utils.kt",
                         mutableSetOf(),
-                    )
-                file.webUrl = "https://example.com/files/Utils.kt"
+                    ).apply {
+                        this.id = "2"
+                        this.webUrl = "https://example.com/files/Utils.kt"
+                    }
                 return@run file
             },
         )
@@ -265,23 +276,37 @@ object TestDataProvider {
 
     val testProjects =
         listOf(
-            Project(id = "1", name = "proj-pg-0"),
-            Project(id = "2", name = "proj-pg-1"),
-            Project(id = "3", name = "proj-pg-2"),
-            Project(id = "4", name = "proj-pg-3"),
-            Project(id = "5", name = "proj-pg-4"),
-            Project(id = "6", name = "proj-for-repos"),
+            Project(name = "proj-pg-0").apply { this.id = "1" },
+            Project(name = "proj-pg-1").apply { this.id = "2" },
+            Project(name = "proj-pg-2").apply { this.id = "3" },
+            Project(name = "proj-pg-3").apply { this.id = "4" },
+            Project(name = "proj-pg-4").apply { this.id = "5" },
+            Project(name = "proj-for-repos").apply {this.id = "6" },
         )
 
     val testRepositories =
         listOf(
-            Repository(id = "r1", localPath = "repo-pg-0", project = testProjects.last()),
-            Repository(id = "r2", localPath = "repo-pg-1", project = testProjects.last()),
-            Repository(id = "r3", localPath = "repo-pg-2", project = testProjects.last()),
-            Repository(id = "r4", localPath = "repo-pg-3", project = testProjects.last()),
-            Repository(id = "r5", localPath = "repo-pg-4", project = testProjects.last()),
-            Repository(id = "r6", localPath = "repo-pg-5", project = testProjects.last()),
-            Repository(id = "r7", localPath = "repo-pg-6", project = testProjects.last()),
+            Repository(localPath = "repo-pg-0", project = testProjects.last()).apply {
+                this.id = "r1"
+            },
+            Repository(localPath = "repo-pg-1", project = testProjects.last()).apply {
+                this.id = "r2"
+            },
+            Repository(localPath = "repo-pg-2", project = testProjects.last()).apply {
+                this.id = "r3"
+            },
+            Repository(localPath = "repo-pg-3", project = testProjects.last()).apply {
+                this.id = "r4"
+            },
+            Repository(localPath = "repo-pg-4", project = testProjects.last()).apply {
+                this.id = "r5"
+            },
+            Repository(localPath = "repo-pg-5", project = testProjects.last()).apply {
+                this.id = "r6"
+            },
+            Repository(localPath = "repo-pg-6", project = testProjects.last()).apply {
+                this.id = "r7"
+            },
         )
 
     val testNotes =
@@ -314,8 +339,14 @@ object TestDataProvider {
 
     val testUsers =
         listOf(
-            User("1", "John Doe", "john.doe@example.com"),
-            User("2", "Jane Smith", "jane.smith@example.com"),
+            User("John Doe", repository = repository).apply {
+                this.id = "1"
+                this.email = "john.doe@example.com"
+            },
+            User("Jane Smith", repository = repository).apply {
+                this.id = "2"
+                this.email = "jane.smith@example.com"
+            },
         )
 
     val testMilestones =

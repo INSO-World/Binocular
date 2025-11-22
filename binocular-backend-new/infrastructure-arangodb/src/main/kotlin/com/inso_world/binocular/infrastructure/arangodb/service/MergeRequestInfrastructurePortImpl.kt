@@ -68,10 +68,6 @@ class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(entity: MergeRequest): MergeRequest {
-        TODO("Not yet implemented")
-    }
-
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }

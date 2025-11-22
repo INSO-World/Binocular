@@ -68,25 +68,17 @@ class UserInfrastructurePortImpl : UserInfrastructurePort {
 
     override fun findAll(): Iterable<User> = this.userDao.findAll()
 
-    override fun create(entity: User): User = userDao.create(entity)
+    override fun create(value: User): User {
+        val repo = requireNotNull(value.repository)
+        val newUser = userDao.create(value)
+        repo.user.removeIf { it.email == value.email }
+        repo.user.add(newUser)
+        return newUser
+    }
 
     override fun saveAll(values: Collection<User>): Iterable<User> = userDao.saveAll(values)
 
-    override fun delete(value: User) = this.userDao.delete(value)
-
     override fun update(value: User): User {
         TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: User): User {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
-        this.userDao.deleteAll()
     }
 }

@@ -2,31 +2,34 @@ package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
+import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
+import com.inso_world.binocular.infrastructure.sql.persistence.dao.BranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.CommitDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.validation.annotation.Validated
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadRepositoryEntities
+import jakarta.validation.Valid
 
 @Service
 @Validated
@@ -37,9 +40,17 @@ internal class RepositoryInfrastructurePortImpl :
         private val logger by logger()
     }
 
+    @Autowired
+    private lateinit var userMapper: UserMapper
 
     @Autowired
-    lateinit var repositoryMapper: RepositoryMapper
+    private lateinit var branchDao: BranchDao
+
+    @Autowired
+    private lateinit var ctx: MappingContext
+
+    @Autowired
+    private lateinit var transactionTemplate: TransactionTemplate
 
     @Autowired
     @Lazy
@@ -47,14 +58,12 @@ internal class RepositoryInfrastructurePortImpl :
 
     @Autowired
     @Lazy
-    lateinit var projectMapper: ProjectMapper
-
-    @Autowired
-    @Lazy
     private lateinit var branchMapper: BranchMapper
 
     @Autowired
-    private lateinit var ctx: MappingContext
+    private lateinit var repositoryAssembler: RepositoryAssembler
+    @Autowired
+    private lateinit var repositoryMapper: RepositoryMapper
 
     @Autowired
     private lateinit var repositoryDao: RepositoryDao
@@ -66,7 +75,6 @@ internal class RepositoryInfrastructurePortImpl :
     @Autowired
     private lateinit var projectDao: ProjectDao
 
-
     @PostConstruct
     fun init() {
         super.dao = repositoryDao
@@ -77,204 +85,146 @@ internal class RepositoryInfrastructurePortImpl :
     @Transactional(readOnly = true)
     override fun findByName(name: String): Repository? =
         this.repositoryDao.findByName(name)?.let {
-            val project =
-                projectMapper.toDomain(
-                    it.project,
-                )
-
-            this.repositoryMapper.toDomain(it, project)
+            this.repositoryAssembler.toDomain(it)
         }
 
     @MappingSession
     @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Repository> {
-        val projectContext = mutableMapOf<String, Project>()
+    override fun findAll(): Iterable<Repository> =
+        loadRepositoryEntities(projectDao).map(repositoryAssembler::toDomain)
 
-        return findAllEntities().map {
-            val project =
-                projectContext.getOrPut(it.project.uniqueKey()) {
-                    projectMapper.toDomain(
-                        it.project,
-                    )
-                }
-
-            this.repositoryMapper.toDomain(it, project)
-        }
-    }
-
+    @MappingSession
+    @Transactional(readOnly = true)
     override fun findAll(pageable: Pageable): Page<Repository> {
-        TODO("Not yet implemented")
-//        return this.projectDao.findAll(pageable).map {
-//            this.projectMapper.toDomain(it)
-//        }
+        val page = this.repositoryDao.findAll(pageable)
+        val repositories = page.content.map { this.repositoryAssembler.toDomain(it) }
+
+        return Page(
+            content = repositories,
+            totalElements = page.totalElements,
+            pageable = pageable
+        )
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     @MappingSession
     @Transactional(readOnly = true)
     override fun findById(id: String): Repository? =
-        this.repositoryDao.findById(id.toLong())?.let {
-            val project =
-                projectMapper.toDomain(
-                    it.project,
-                )
+        findByIid(Repository.Id(Uuid.parse(id)))
 
-            this.repositoryMapper.toDomain(it, project)
+    @MappingSession
+    @Transactional(readOnly = true)
+    override fun findByIid(iid: Repository.Id): Repository? {
+        return this.repositoryDao.findByIid(iid)?.let {
+            repositoryAssembler.toDomain(it)
         }
+    }
 
     @MappingSession
     @Transactional
-    override fun create(value: Repository): Repository {
-        val projectId =
-            value.project?.id?.toLong() ?: throw IllegalArgumentException("project.id of Repository must not be null")
-        val project = projectDao.findById(projectId) ?: throw NotFoundException("Project ${value.project} not found")
+    override fun create(@Valid value: Repository): Repository {
+        val project = projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
 
         if (project.repo != null) {
             throw IllegalArgumentException("Selected project $project has already a Repository set")
         }
 
-        val mapped =
-            this.repositoryMapper.toEntity(
-                value,
-                project,
-            )
-//        val newEntity =
-        return try {
-            val newEntity = super.create(mapped)
-            repositoryDao.flush()
-            newEntity
-        } catch (e: DataIntegrityViolationException) {
-            entityManager.flush()
-            entityManager.clear()
-            logger.error(e.message)
-            throw e
-        }.let { newEntity ->
-            val project =
-                projectMapper.toDomain(
-                    newEntity.project,
-                )
+        val toPersist = this.repositoryAssembler.toEntity(value)
+        val persisted = super.create(toPersist)
 
-            return@let repositoryMapper.toDomain(newEntity, project)
-        }
+        // Refresh the input domain object with persisted values and return it
+        this.repositoryMapper.refreshDomain(value, persisted)
+        return value
     }
+
 
     @MappingSession
     @Transactional
     override fun update(value: Repository): Repository {
         val entity =
-            run {
-                value.id?.let {
-                    repositoryDao.findById(it.toLong())
-                } ?: run {
-                    val project =
-                        value.project?.id?.let { id ->
-                            this.projectDao.findById(id.toLong())
-                        } ?: throw NotFoundException("Project ${value.project} not found")
-
-                    this.repositoryMapper.toEntity(value, project)
-                }
-            }
-
+            repositoryDao.findByIid(value.iid)
+                ?: throw NotFoundException("Repository ${value.uniqueKey} not found")
         logger.debug("Repository Entity found")
+        ctx.remember(value, entity)
 
-        run {
-            // Synchronize commits: remove those not in value.commits
-            val valueCommitShas = value.commits.map { it.sha }.toSet()
-            entity.commits.removeIf { it.sha !in valueCommitShas }
-        }
-        logger.trace("Commits synchronized")
-        run {
-            // Synchronize branches: remove those not in value.branches
-            val valueBranchKeys = value.branches.map { "${entity.localPath},${it.name}" }.toSet()
-            entity.branches.removeIf { it.uniqueKey() !in valueBranchKeys }
-        }
-        logger.trace("Branches synchronized")
-        run {
-            // Synchronize user: remove those not in value.user
-            val valueUserKeys = value.user.map { it.uniqueKey() }.toSet()
-            entity.user.removeIf { it.uniqueKey() !in valueUserKeys }
-        }
-        logger.trace("User synchronized")
+        // Phase 0: Map existing entities to context (critical for idempotency!)
+        // This prevents creating duplicate entities for existing commits/users/branches
+        logger.trace("Mapping existing entities to context")
 
-        // build context after changes are synced
-        // TODO N+1 here
-        ctx.entity.commit.putAll(entity.commits.associateBy(CommitEntity::uniqueKey))
-        ctx.entity.branch.putAll(entity.branches.associateBy(BranchEntity::uniqueKey))
-        ctx.entity.user.putAll(entity.user.associateBy(UserEntity::uniqueKey))
-        logger.trace("Entity context built")
-
-//        wireup is done internally
-        commitMapper.toEntityFull(
-            (value.commits + value.commits.flatMap { it.parents } + value.commits.flatMap { it.children }),
-            entity,
-        )
-
-        logger.trace("Commits updated")
-        // Add or update branches
-        value.branches.forEach {
-            val key = "${entity.localPath},${it.name}"
-            if (!ctx.entity.branch.containsKey(key)) {
-                val newBranch = branchMapper.toEntity(it).also { b -> entity.addBranch(b) }
-                entity.branches.add(newBranch)
-                ctx.entity.branch.computeIfAbsent(key) { newBranch }
+        // Map existing users first (commits reference users)
+        entity.user.forEach { userEntity ->
+            val domainUser = value.user.find { it.email == userEntity.email && it.name == userEntity.name }
+            if (domainUser != null) {
+                ctx.remember(domainUser, userEntity)
             }
         }
+
+        // Map existing commits
+        entity.commits.forEach { commitEntity ->
+            val domainCommit = value.commits.find { it.sha == commitEntity.sha }
+            if (domainCommit != null) {
+                ctx.remember(domainCommit, commitEntity)
+            }
+        }
+
+        // Map existing branches
+        entity.branches.forEach { branchEntity ->
+            val domainBranch = value.branches.find { it.name == branchEntity.name }
+            if (domainBranch != null) {
+                ctx.remember(domainBranch, branchEntity)
+            }
+        }
+
+        // Phase 1: Map and wire Commits with their author/committer relationships
+        // Collect all commits including parents and children to ensure complete graph
+        logger.debug("Update commits")
+        val allCommits = (value.commits + value.commits.flatMap { it.parents } + value.commits.flatMap { it.children }).toSet()
+
+        allCommits.forEach { commit ->
+            // Map commit entity (or get existing from context)
+            val commitEntity = commitMapper.toEntity(commit)
+
+            // Only set relationships if not already set (for idempotency)
+            // Note: CommitEntity init block automatically adds entity to repository.commits
+            if (commitEntity.committer == null) {
+                // Wire author relationship if present
+                commit.author?.let { author ->
+                    val authorEntity = userMapper.toEntity(author)
+                    commitEntity.author = authorEntity
+                    entity.user.add(authorEntity)
+                }
+
+                // Wire committer relationship (required)
+                val committerEntity = userMapper.toEntity(commit.committer)
+                commitEntity.committer = committerEntity
+                entity.user.add(committerEntity)
+            }
+        }
+
+        // Add or update branches
+        logger.debug("Update branches")
+        value.branches.forEach { branch ->
+            val branchEntity = branchMapper.toEntity(branch)
+            // Only add if not already present (idempotency)
+            if (!entity.branches.contains(branchEntity)) {
+                entity.branches.add(branchEntity)
+            }
+        }
+
         logger.trace("Branches updated")
 
-        entity.commits.filter { it.id == null }.map { commit ->
-            commitDao.create(commit)
-        }
-
-        val updated = repositoryDao.update(entity).also { repositoryDao.flush() }
+        val updated = repositoryDao.update(entity)
 
         logger.trace("Update executed")
-
-        return run {
-            // Instead of refresh + lazy‐walk, grab a fully fetched instance:
-            val fullyLoaded =
-                repositoryDao
-                    .findByIdWithAllRelations(updated.id!!)
-                    ?: throw NotFoundException("Repository ${updated.id} disappeared")
-
-            logger.trace("Entity refreshed")
-            logger.trace("Domain context built")
-
-            val project = projectMapper.toDomain(fullyLoaded.project)
-            logger.trace("Domain project built")
-
-            val domain = repositoryMapper.toDomain(fullyLoaded, project)
-            logger.trace("Domain object built")
-            return@run domain
-        }
-    }
-
-    @Transactional
-    override fun updateAndFlush(value: Repository): Repository {
-        val updated = update(value)
-        repositoryDao.flush()
-        return updated
+        return repositoryMapper.refreshDomain(value, updated)
     }
 
     @Transactional
     override fun saveAll(values: Collection<Repository>): Iterable<Repository> {
-        return values.map { this.create(it) }
-    }
-
-    @Transactional
-    override fun delete(value: Repository) {
-        val mapped =
-            this.repositoryDao.findByName(name = value.localPath)
-                ?: throw NotFoundException("Repository ${value.localPath} not found")
-        this.repositoryDao.delete(mapped)
-    }
-
-    @Transactional
-    override fun deleteById(id: String) {
-        this.repositoryDao.deleteById(id.toLong())
-    }
-
-    @Transactional
-    override fun deleteAll() {
-        this.repositoryDao.deleteAll()
+        // Create each repository (which modifies them in place)
+        values.forEach { this.create(it) }
+        // Return the original collection with updated values
+        return values
     }
 
 }

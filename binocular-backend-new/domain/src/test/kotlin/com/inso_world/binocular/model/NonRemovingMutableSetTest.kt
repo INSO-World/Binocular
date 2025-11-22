@@ -1,153 +1,525 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+/**
+ * Comprehensive unit tests for [NonRemovingMutableSet].
+ *
+ * Tests cover:
+ * - Add operations and canonical instance preservation
+ * - Contains operations with uniqueKey-based membership
+ * - Size and empty state operations
+ * - Removal operations (all should fail)
+ * - Iterator operations and removal restrictions
+ * - Concurrent operations and thread safety
+ * - String representation and set equality semantics
+ * - Edge cases and boundary conditions
+ */
+@Tag("unit")
 class NonRemovingMutableSetTest {
 
-    private fun project(name: String = "P"): Project = Project(name)
-    private fun repo(localPath: String = "/tmp/repo", project: Project = project()) =
-        Repository(localPath = localPath, project = project)
+    /**
+     * Simple test entity for testing [NonRemovingMutableSet].
+     * Uses `name` as the uniqueKey for deduplication.
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    private data class TestEntity(
+        val id: String?,
+        val name: String,
+        val data: String = "test"
+    ) : AbstractDomainObject<Uuid, String>(Uuid.random()) {
+        override val uniqueKey: String get() = name
+    }
 
     @Nested
-    inner class Correctness_BusinessKeyDedupe {
+    @DisplayName("Add operations")
+    inner class AddOperations {
 
         @Test
-        fun `add multiple branches at once with duplicates, expect unique to be added`() {
-            val repository = repo()
+        fun `add should return true for new element`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
 
-            val branchA = Branch(name = "feature/branch-a", repository = repository)
-            val branchB = Branch(name = "feature/branch-b", repository = repository)
-            val branchC = Branch(name = "feature/branch-a", repository = repository) // duplicate by business key
-
-            val list = listOf(branchA, branchB, branchC)
-            assertThat(list).hasSize(3)
-
-            // NonRemovingMutableSet dedupes by uniqueKey (repo.iid + name) -> size 2
-            assertThat(repository.branches).hasSize(2)
-            assertThat(repository.branches.map { it.name }).containsExactlyInAnyOrder("feature/branch-a", "feature/branch-b")
+            assertThat(set.add(entity)).isTrue()
         }
 
         @Test
-        fun `same branch name across different repositories are independent`() {
-            val p = project()
-            val r1 = repo("/tmp/r1", p)
-            val r2 = repo("/tmp/r2", project())
-            setField(
-                r2.javaClass.getDeclaredField("project"),
-                r2,
-                r1.project,
+        fun `add should return false for duplicate uniqueKey`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity1 = TestEntity(null, "A", "first")
+            val entity2 = TestEntity(null, "A", "second")
+
+            set.add(entity1)
+
+            assertThat(set.add(entity2)).isFalse()
+        }
+
+        @Test
+        fun `add should preserve canonical instance when duplicate key is added`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity1 = TestEntity(null, "A", "first")
+            val entity2 = TestEntity(null, "A", "second")
+
+            set.add(entity1)
+            set.add(entity2)
+
+            val stored = set.first { it.name == "A" }
+            assertThat(stored.data).isEqualTo("first")
+            assertThat(stored).isSameAs(entity1)
+            assertThat(stored).isNotSameAs(entity2)
+        }
+
+        @Test
+        fun `add should handle multiple distinct elements`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entities = listOf(
+                TestEntity(null, "A"),
+                TestEntity(null, "B"),
+                TestEntity(null, "C")
             )
 
-            val b1 = Branch(name = "feature/x", repository = r1)
-            val b2 = Branch(name = "feature/x", repository = r2) // same name, different repo
+            val results = entities.map { set.add(it) }
 
-            assertThat(r1.branches).contains(b1)
-            assertThat(r2.branches).contains(b2)
-            assertThat(r1.branches).hasSize(1)
-            assertThat(r2.branches).hasSize(1)
+            assertThat(results).allMatch { it }
+            assertThat(set).hasSize(3)
         }
 
         @Test
-        fun `cannot add a Branch tied to repo_A into repo_B`() {
-            val rA = repo("/tmp/A")
-            val rB = repo("/tmp/B")
+        fun `add should handle adding same instance multiple times`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
 
-            val bA = Branch(name = "dev", repository = rA)
+            val firstAdd = set.add(entity)
+            val secondAdd = set.add(entity)
 
-            assertThatThrownBy { rB.branches.add(bA) }
-                .isInstanceOf(IllegalArgumentException::class.java)
-        }
-    }
-
-    @Nested
-    inner class Contract_NoRemovalAllowed {
-
-        @Test
-        fun `clear is not allowed`() {
-            val r = repo()
-            Branch("a", repository = r)
-            assertThatThrownBy { r.branches.clear() }
-                .isInstanceOf(UnsupportedOperationException::class.java)
+            assertThat(firstAdd).isTrue()
+            assertThat(secondAdd).isFalse()
+            assertThat(set).hasSize(1)
         }
 
         @Test
-        fun `remove and retain operations are not allowed`() {
-            val r = repo()
-            val b = Branch("a", repository = r)
-            assertThatThrownBy { r.branches.remove(b) }
-                .isInstanceOf(UnsupportedOperationException::class.java)
-            assertThatThrownBy { r.branches.removeAll(setOf(b)) }
-                .isInstanceOf(UnsupportedOperationException::class.java)
-            assertThatThrownBy { r.branches.retainAll(emptyList()) }
-                .isInstanceOf(UnsupportedOperationException::class.java)
-        }
+        fun `add should handle elements with different data but same uniqueKey`() {
+            val set = NonRemovingMutableSet<TestEntity>()
 
-        @Test
-        fun `iterator remove is not allowed`() {
-            val r = repo()
-            Branch("a", repository = r)
-            val it = r.branches.iterator()
-            assertTrue(it.hasNext())
-            assertThat(it.next()).isInstanceOf(Branch::class.java)
-            assertThatThrownBy { it.remove() }
-                .isInstanceOf(UnsupportedOperationException::class.java)
+            repeat(10) { i ->
+                set.add(TestEntity(null, "shared-key", "data-$i"))
+            }
+
+            assertThat(set).hasSize(1)
+            assertThat(set.first().data).isEqualTo("data-0") // First one wins
         }
     }
 
     @Nested
-    inner class Contains_Semantics {
+    @DisplayName("Contains operations")
+    inner class ContainsOperations {
 
         @Test
-        fun `contains uses business key, not object identity`() {
-            val r = repo()
-            val original = Branch("feat/same", repository = r)
-            val probe = Branch("feat/same", repository = r) // rejected from add, but shares same uniqueKey
+        fun `contains should return true for added element`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
 
-            // The second instance was not inserted, but contains must still be true via uniqueKey
-            assertTrue(r.branches.contains(probe))
-            assertThat(r.branches).hasSize(1)
-            assertThat(r.branches.first()).isEqualTo(original)
+            set.add(entity)
+
+            assertThat(set.contains(entity)).isTrue()
         }
 
         @Test
-        fun `containsAll should accept collections of elements with same unique keys`() {
-            val r = repo()
-            val b1 = Branch("a", repository = r)
-            val b2 = Branch("b", repository = r)
-            val probeA = Branch("a", repository = r) // not inserted; unique-key equal to b1
+        fun `contains should return true for different instance with same uniqueKey`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity1 = TestEntity(null, "A", "first")
+            val entity2 = TestEntity(null, "A", "second")
 
-            // Expected: true (once containsAll maps elements -> uniqueKey)
-            assertTrue(r.branches.containsAll(listOf(b1, probeA, b2)))
+            set.add(entity1)
+
+            assertThat(set.contains(entity2)).isTrue()
+        }
+
+        @Test
+        fun `contains should return false for non-existent element`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
+
+            assertThat(set.contains(entity)).isFalse()
+        }
+
+        @Test
+        fun `containsAll should return true when all elements present`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entities = listOf(
+                TestEntity(null, "A"),
+                TestEntity(null, "B"),
+                TestEntity(null, "C")
+            )
+            entities.forEach { set.add(it) }
+
+            assertThat(set.containsAll(entities)).isTrue()
+        }
+
+        @Test
+        fun `containsAll should return false when some elements missing`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+
+            val entities = listOf(
+                TestEntity(null, "A"),
+                TestEntity(null, "B")
+            )
+
+            assertThat(set.containsAll(entities)).isFalse()
+        }
+
+        @Test
+        fun `containsAll should work with different instances having same uniqueKeys`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A", "original-A"))
+            set.add(TestEntity(null, "B", "original-B"))
+
+            val probes = listOf(
+                TestEntity(null, "A", "probe-A"),
+                TestEntity(null, "B", "probe-B")
+            )
+
+            assertThat(set.containsAll(probes)).isTrue()
+        }
+
+        @Test
+        fun `containsAll should return true for empty collection`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+
+            assertThat(set.containsAll(emptyList())).isTrue()
         }
     }
 
     @Nested
-    inner class Concurrency_DeDuplication {
+    @DisplayName("Size and empty operations")
+    inner class SizeOperations {
 
         @Test
-        fun `concurrent inserts of same business keys do not produce duplicates`() {
-            val r = repo()
+        fun `isEmpty should return true for new set`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+
+            assertThat(set.isEmpty()).isTrue()
+        }
+
+        @Test
+        fun `isEmpty should return false after adding elements`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+
+            assertThat(set.isEmpty()).isFalse()
+        }
+
+        @Test
+        fun `size should return 0 for empty set`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+
+            assertThat(set.size).isEqualTo(0)
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = [1, 5, 10, 50, 100])
+        fun `size should return correct count after adding elements`(count: Int) {
+            val set = NonRemovingMutableSet<TestEntity>()
+            repeat(count) { set.add(TestEntity(null, "entity-$it")) }
+
+            assertThat(set.size).isEqualTo(count)
+        }
+
+        @Test
+        fun `size should not increase when adding duplicate keys`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A", "first"))
+            set.add(TestEntity(null, "A", "second"))
+            set.add(TestEntity(null, "A", "third"))
+
+            assertThat(set.size).isEqualTo(1)
+        }
+
+        @Test
+        fun `size should handle mix of unique and duplicate keys`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A", "v1"))
+            set.add(TestEntity(null, "B", "v1"))
+            set.add(TestEntity(null, "A", "v2")) // Duplicate
+            set.add(TestEntity(null, "C", "v1"))
+            set.add(TestEntity(null, "B", "v2")) // Duplicate
+
+            assertThat(set.size).isEqualTo(3) // Only A, B, C
+        }
+    }
+
+    @Nested
+    @DisplayName("Removal operations (should all fail)")
+    inner class RemovalOperations {
+
+        @Test
+        fun `remove should throw UnsupportedOperationException`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
+            set.add(entity)
+
+            val ex = assertThrows<UnsupportedOperationException> { set.remove(entity) }
+            assertThat(ex.message).isEqualTo("Removing objects is not allowed.")
+        }
+
+        @Test
+        fun `removeAll should throw UnsupportedOperationException`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+
+            val ex = assertThrows<UnsupportedOperationException> { set.removeAll(listOf(TestEntity(null, "A"))) }
+            assertThat(ex.message).isEqualTo("Removing objects is not allowed.")
+        }
+
+        @Test
+        fun `retainAll should throw UnsupportedOperationException`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+
+            val ex = assertThrows<UnsupportedOperationException> { set.retainAll(listOf(TestEntity(null, "A"))) }
+            assertThat(ex.message).isEqualTo("Removing objects is not allowed.")
+        }
+
+        @Test
+        fun `clear should throw UnsupportedOperationException`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+
+            val ex = assertThrows<UnsupportedOperationException> { set.clear() }
+            assertThat(ex.message).isEqualTo("Removing objects is not allowed.")
+        }
+
+        @Test
+        fun `removal operations should not modify set`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
+            set.add(entity)
+
+            // Attempt removal (will throw)
+            assertAll(
+                { assertThrows<UnsupportedOperationException> { set.remove(entity) } },
+                { assertThrows<UnsupportedOperationException> { set.clear() } },
+                { assertThrows<UnsupportedOperationException> { set.removeAll(listOf(entity)) } },
+                { assertThrows<UnsupportedOperationException> { set.retainAll(emptyList()) } },
+            )
+
+            // Verify set unchanged
+            assertAll(
+                { assertThat(set.size).isEqualTo(1) },
+                { assertThat(set.contains(entity)).isTrue() }
+            )
+        }
+
+        @Test
+        fun `clear should throw even on empty set`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+
+            val ex = assertThrows<UnsupportedOperationException> { set.clear() }
+            assertThat(ex.message).isEqualTo("Removing objects is not allowed.")
+        }
+    }
+
+    @Nested
+    @DisplayName("Iterator operations")
+    inner class IteratorOperations {
+
+        @Test
+        fun `iterator should iterate over all elements`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entities = listOf(
+                TestEntity(null, "A"),
+                TestEntity(null, "B"),
+                TestEntity(null, "C")
+            )
+            entities.forEach { set.add(it) }
+
+            val iterated = set.iterator().asSequence().toList()
+
+            assertThat(iterated).hasSize(3)
+            assertThat(iterated).containsExactlyInAnyOrderElementsOf(entities)
+        }
+
+        @Test
+        fun `iterator hasNext should return false for empty set`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+
+            assertThat(set.iterator().hasNext()).isFalse()
+        }
+
+        @Test
+        fun `iterator next should return elements`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
+            set.add(entity)
+
+            val iterator = set.iterator()
+
+            assertThat(iterator.hasNext()).isTrue()
+            assertThat(iterator.next()).isEqualTo(entity)
+            assertThat(iterator.hasNext()).isFalse()
+        }
+
+        @Test
+        fun `iterator remove should throw UnsupportedOperationException`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+            val iterator = set.iterator()
+            iterator.next()
+
+            assertThatThrownBy { iterator.remove() }
+                .isInstanceOf(UnsupportedOperationException::class.java)
+                .hasMessageContaining("Removing objects is not allowed")
+        }
+
+        @Test
+        fun `iterator should support multiple concurrent iterations`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            repeat(5) { set.add(TestEntity(null, "entity-$it")) }
+
+            val iter1 = set.iterator()
+            val iter2 = set.iterator()
+
+            assertThat(iter1.asSequence().toList()).hasSize(5)
+            assertThat(iter2.asSequence().toList()).hasSize(5)
+        }
+
+        @Test
+        fun `iterator should iterate only over canonical instances`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val first = TestEntity(null, "A", "first")
+            val second = TestEntity(null, "A", "second")
+
+            set.add(first)
+            set.add(second) // Not added due to duplicate key
+
+            val iterated = set.iterator().asSequence().toList()
+
+            assertThat(iterated).hasSize(1)
+            assertThat(iterated.first()).isSameAs(first)
+        }
+
+        @Test
+        fun `iterator remove should throw even before calling next`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+            val iterator = set.iterator()
+
+            assertThatThrownBy { iterator.remove() }
+                .isInstanceOf(UnsupportedOperationException::class.java)
+        }
+    }
+
+    @Nested
+    @DisplayName("Concurrent operations")
+    inner class ConcurrentOperations {
+
+        @Test
+        fun `concurrent adds should be thread-safe`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val threadCount = 10
+            val elementsPerThread = 100
+            val latch = CountDownLatch(threadCount)
+            val executor = Executors.newFixedThreadPool(threadCount)
+
+            repeat(threadCount) { threadId ->
+                executor.submit {
+                    repeat(elementsPerThread) { i ->
+                        set.add(TestEntity(null, "thread-$threadId-item-$i"))
+                    }
+                    latch.countDown()
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            assertThat(set.size).isEqualTo(threadCount * elementsPerThread)
+        }
+
+        @Test
+        fun `concurrent adds with same key should preserve first canonical instance`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val threadCount = 100
+            val latch = CountDownLatch(threadCount)
+            val executor = Executors.newFixedThreadPool(threadCount)
+
+            repeat(threadCount) { threadId ->
+                executor.submit {
+                    set.add(TestEntity(null, "shared-key", "thread-$threadId"))
+                    latch.countDown()
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            assertThat(set.size).isEqualTo(1)
+            assertThat(set.any { it.uniqueKey == "shared-key" }).isTrue()
+        }
+
+        @Test
+        fun `concurrent reads and writes should not cause errors`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val threadCount = 20
+            val latch = CountDownLatch(threadCount)
+            val executor = Executors.newFixedThreadPool(threadCount)
+
+            // Pre-populate
+            repeat(50) { set.add(TestEntity(null, "pre-$it")) }
+
+            repeat(threadCount) { threadId ->
+                executor.submit {
+                    // Mix reads and writes
+                    if (threadId % 2 == 0) {
+                        repeat(50) { set.add(TestEntity(null, "writer-$threadId-$it")) }
+                    } else {
+                        repeat(100) {
+                            set.contains(TestEntity(null, "pre-${it % 50}"))
+                            set.iterator().hasNext()
+                        }
+                    }
+                    latch.countDown()
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            // Verify no corruption occurred
+            assertThat(set.size).isGreaterThanOrEqualTo(50) // At least pre-populated items
+        }
+
+        @Test
+        fun `concurrent adds with partial key overlap should deduplicate correctly`() {
+            val set = NonRemovingMutableSet<TestEntity>()
             val pool = Executors.newFixedThreadPool(8)
             val start = CountDownLatch(1)
             val done = CountDownLatch(100)
 
             // Names with duplicates
             val names = listOf("a", "b", "c", "d", "e")
-            repeat(100) {
+            repeat(100) { i ->
                 pool.submit {
                     try {
                         start.await()
-                        // Choose a name deterministically
-                        val n = names[it % names.size]
-                        Branch(n, repository = r) // Branch init attempts to add
+                        val n = names[i % names.size]
+                        set.add(TestEntity(null, n, "data-$i"))
                     } finally {
                         done.countDown()
                     }
@@ -158,9 +530,145 @@ class NonRemovingMutableSetTest {
             done.await(10, TimeUnit.SECONDS)
             pool.shutdown()
 
-            assertThat(r.branches.map { it.name }.toSet())
+            assertThat(set.map { it.name }.toSet())
                 .containsExactlyInAnyOrderElementsOf(names)
-            assertThat(r.branches).hasSize(names.size)
+            assertThat(set).hasSize(names.size)
+        }
+    }
+
+    @Nested
+    @DisplayName("String representation and equality")
+    inner class StringAndEquality {
+
+        @Test
+        fun `toString should return string representation of values`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A", "test-data")
+            set.add(entity)
+
+            val result = set.toString()
+
+            assertThat(result).contains("A")
+        }
+
+        @Test
+        fun `toString should return empty collection format for empty set`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+
+            assertThat(set.toString()).isEqualTo("[]")
+        }
+
+        @Test
+        fun `should maintain set equality semantics`() {
+            val set1 = NonRemovingMutableSet<TestEntity>()
+            val set2 = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
+
+            set1.add(entity)
+            set2.add(entity)
+
+            assertThat(set1).isEqualTo(set2)
+        }
+
+        @Test
+        fun `sets with different elements should not be equal`() {
+            val set1 = NonRemovingMutableSet<TestEntity>()
+            val set2 = NonRemovingMutableSet<TestEntity>()
+
+            set1.add(TestEntity(null, "A"))
+            set2.add(TestEntity(null, "B"))
+
+            assertThat(set1).isNotEqualTo(set2)
+        }
+
+        @Test
+        fun `empty sets should be equal`() {
+            val set1 = NonRemovingMutableSet<TestEntity>()
+            val set2 = NonRemovingMutableSet<TestEntity>()
+
+            assertThat(set1).isEqualTo(set2)
+        }
+    }
+
+    @Nested
+    @DisplayName("Edge cases and boundary conditions")
+    inner class EdgeCases {
+
+        @Test
+        fun `should handle large number of elements`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val count = 10_000
+
+            repeat(count) { set.add(TestEntity(null, "entity-$it")) }
+
+            assertThat(set.size).isEqualTo(count)
+        }
+
+        @Test
+        fun `should handle elements with null id`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity(null, "A")
+
+            set.add(entity)
+
+            assertThat(set.contains(entity)).isTrue()
+        }
+
+        @Test
+        fun `should handle elements with non-null id`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            val entity = TestEntity("id-123", "A")
+
+            set.add(entity)
+
+            assertThat(set.contains(entity)).isTrue()
+        }
+
+        @Test
+        fun `should work with for-each loop`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+            set.add(TestEntity(null, "B"))
+
+            val collected = mutableListOf<String>()
+            for (entity in set) {
+                collected.add(entity.name)
+            }
+
+            assertThat(collected).containsExactlyInAnyOrder("A", "B")
+        }
+
+        @Test
+        fun `should work with collection operations`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+            set.add(TestEntity(null, "B"))
+
+            val filtered = set.filter { it.name == "A" }
+            val mapped = set.map { it.name }
+
+            assertThat(filtered).hasSize(1)
+            assertThat(mapped).containsExactlyInAnyOrder("A", "B")
+        }
+
+        @Test
+        fun `should handle add during iteration`() {
+            val set = NonRemovingMutableSet<TestEntity>()
+            set.add(TestEntity(null, "A"))
+            set.add(TestEntity(null, "B"))
+
+            // Iterator is weakly consistent - may or may not see new additions
+            val iterator = set.iterator()
+            set.add(TestEntity(null, "C"))
+
+            // Should not throw exception
+            var count = 0
+            while (iterator.hasNext()) {
+                iterator.next()
+                count++
+            }
+
+            assertThat(count).isGreaterThanOrEqualTo(2)
         }
     }
 }

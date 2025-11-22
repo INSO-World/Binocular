@@ -59,10 +59,6 @@ class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(entity: Milestone): Milestone {
-        TODO("Not yet implemented")
-    }
-
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }

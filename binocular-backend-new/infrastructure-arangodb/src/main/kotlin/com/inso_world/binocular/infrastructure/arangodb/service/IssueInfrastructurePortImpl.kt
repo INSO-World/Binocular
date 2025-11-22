@@ -82,10 +82,6 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(entity: Issue): Issue {
-        TODO("Not yet implemented")
-    }
-
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }

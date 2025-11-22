@@ -1,20 +1,19 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.UserInfrastructurePort
-import com.inso_world.binocular.core.service.exception.NotFoundException
+import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IUserDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
@@ -40,6 +39,8 @@ internal class UserInfrastructurePortImpl(
     @Autowired private var commitMapper: CommitMapper,
 ) : AbstractInfrastructurePort<User, UserEntity, Long>(Long::class),
     UserInfrastructurePort {
+    @Autowired
+    private lateinit var repositoryAssembler: RepositoryAssembler
     var logger: Logger = LoggerFactory.getLogger(UserInfrastructurePortImpl::class.java)
 
     @Autowired
@@ -75,13 +76,6 @@ internal class UserInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
-    override fun delete(value: User) {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(value: User): User {
-        TODO("Not yet implemented")
-    }
 
     override fun create(value: User): User {
         TODO("Not yet implemented")
@@ -94,31 +88,14 @@ internal class UserInfrastructurePortImpl(
     @MappingSession
     @Transactional(readOnly = true)
     override fun findAll(): Iterable<User> {
-        val context: MutableMap<Long, Repository> = mutableMapOf()
-        val projectContext = mutableMapOf<String, Project>()
+        val users = super<AbstractInfrastructurePort>.findAllEntities()
 
-        return super<AbstractInfrastructurePort>.findAllEntities().map { u ->
-            val repoEntity = u.repository
-            if (repoEntity == null) {
-                throw IllegalStateException("Repository cannot be null")
+        // Group users by repository to process related users together
+        return users
+            .groupBy { it.repository }
+            .flatMap { (repoEntity, _) ->
+                repositoryAssembler.toDomain(repoEntity).user
             }
-            val project =
-                projectContext.getOrPut(repoEntity.project.uniqueKey()) {
-                    projectMapper.toDomain(
-                        repoEntity.project,
-                    )
-                }
-
-            if (repoEntity.id == null) {
-                throw IllegalStateException("Id of repository cannot be null")
-            }
-
-            val repository =
-                context.getOrPut(repoEntity.id) {
-                    this.repositoryMapper.toDomain(repoEntity, project)
-                }
-            userMapper.toDomainFull(u, repository)
-        }
     }
 
     @MappingSession
@@ -136,14 +113,5 @@ internal class UserInfrastructurePortImpl(
 
     override fun findAll(pageable: Pageable): Page<User> {
         TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    @Transactional
-    override fun deleteAll() {
-        super.deleteAllEntities()
     }
 }

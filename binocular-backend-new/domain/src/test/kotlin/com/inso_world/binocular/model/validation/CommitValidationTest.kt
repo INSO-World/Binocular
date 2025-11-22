@@ -3,6 +3,7 @@ package com.inso_world.binocular.model.validation
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.validation.base.ValidationTest
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -17,11 +18,12 @@ internal class CommitValidationTest : ValidationTest() {
         val repository = invalidCommit.repository
         val dummyBranch =
             Branch(
+                fullName = "refs/heads/branch",
                 name = "branch",
-                repository = repository
+                repository = repository,
+                head = invalidCommit,
+                category = ReferenceCategory.LOCAL_BRANCH
             )
-        invalidCommit.branches.add(dummyBranch)
-        dummyBranch.commits.add(invalidCommit)
 
         repository.branches.add(dummyBranch)
         repository.commits.add(invalidCommit)
@@ -33,20 +35,6 @@ internal class CommitValidationTest : ValidationTest() {
                 violations.toList()[0]
             }
         assertThat(violation.propertyPath.toString()).isEqualTo(propertyPath)
-    }
-
-    @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.model.validation.ValidationTestData#mockCommitModels")
-    fun `valid commits but empty branches`(
-        commit: Commit,
-    ) {
-        val violation =
-            run {
-                val violations = validator.validate(commit)
-                assertThat(violations).hasSize(1)
-                violations.first()
-            }
-        assertThat(violation.propertyPath.toString()).isEqualTo("branches")
     }
 
 }

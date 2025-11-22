@@ -40,10 +40,6 @@ interface BinocularInfrastructurePort<T> {
         @Valid value: T,
     ): @Valid T
 
-    fun updateAndFlush(
-        @Valid value: T,
-    ): @Valid T
-
     /**
      * Save multiple entities
      */
@@ -53,9 +49,15 @@ interface BinocularInfrastructurePort<T> {
 
     fun delete(
         @Valid value: T,
-    )
+    ) {
+        throw UnsupportedOperationException("DELETE operations are not yet supported")
+    }
 
-    fun deleteById(id: String)
+    fun deleteById(id: String) {
+        throw UnsupportedOperationException("DELETE operations are not yet supported")
+    }
 
-    fun deleteAll()
+    fun deleteAll() {
+        throw UnsupportedOperationException("DELETE operations are not yet supported")
+    }
 }

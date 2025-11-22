@@ -1,12 +1,13 @@
 use crate::objects::file_diff::FileDiff;
 use gix::ObjectId;
+use commits::GitCommitMetric;
 use shared::signature::Sig;
 
 #[derive(Debug, Clone)]
 pub struct GitDiffOutcome {
     pub files: Vec<FileDiff>,
-    pub commit: ObjectId,
-    pub parent: Option<ObjectId>,
+    pub commit: GitCommitMetric,
+    pub parent: Option<GitCommitMetric>,
     pub committer: Option<Sig>,
     pub author: Option<Sig>,
 }
@@ -15,8 +16,8 @@ impl GitDiffOutcome {
     pub fn new(
         // change_map: HashMap<BString, (u32, u32, String)>,
         files: Vec<FileDiff>,
-        commit: ObjectId,
-        parent: Option<ObjectId>,
+        commit: GitCommitMetric,
+        parent: Option<GitCommitMetric>,
         committer: Option<Sig>,
         author: Option<Sig>,
     ) -> anyhow::Result<Self> {

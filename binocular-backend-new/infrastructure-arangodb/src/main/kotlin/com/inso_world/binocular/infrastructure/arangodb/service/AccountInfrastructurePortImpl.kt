@@ -68,8 +68,6 @@ class AccountInfrastructurePortImpl : AccountInfrastructurePort {
 
     override fun update(entity: Account): Account = this.accountDao.update(entity)
 
-    override fun updateAndFlush(entity: Account): Account = this.accountDao.updateAndFlush(entity)
-
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }

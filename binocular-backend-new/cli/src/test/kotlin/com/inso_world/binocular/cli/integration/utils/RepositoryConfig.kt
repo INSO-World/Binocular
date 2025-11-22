@@ -10,7 +10,7 @@ import kotlin.io.path.Path
 
 internal data class RepositoryConfig(
     val repo: Repository,
-    val startCommit: String,
+    val startCommit: Commit,
     val hashes: List<Commit>,
     val project: Project,
 )
@@ -18,27 +18,24 @@ internal data class RepositoryConfig(
 internal fun setupRepoConfig(
     path: String,
     startSha: String? = "HEAD",
-    branch: Branch,
+    branchName: String,
     projectName: String,
 ): RepositoryConfig {
     val ffi = BinocularFfi()
-    val repo = run {
-        val p = Path(path)
-        return@run ffi.findRepo(p)
-    }
-    require(repo.branches.add(branch))
-    val cmt = ffi.findCommit(repo, startSha ?: "HEAD")
-    val hashes = ffi.traverseBranch(repo,branch)
     val project =
         Project(
             name = projectName,
         )
-    project.repo = repo
-    repo.project = project
+    val repo = run {
+        val p = Path(path)
+        return@run ffi.findRepo(p, project)
+    }
+    val (branch, commits) = ffi.traverseBranch(repo, branchName)
+    val cmt = ffi.findCommit(repo, startSha ?: "HEAD")
     return RepositoryConfig(
         repo = repo,
         startCommit = cmt,
-        hashes = hashes,
+        hashes = commits,
         project = project,
     )
 }

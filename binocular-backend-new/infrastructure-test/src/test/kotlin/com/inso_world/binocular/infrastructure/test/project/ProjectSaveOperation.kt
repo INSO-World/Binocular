@@ -11,6 +11,7 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 
+/**
+ * Tests for saving projects through ProjectInfrastructurePort.
+ * Verifies that projects with and without repositories are persisted correctly.
+ */
 internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
     @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
@@ -33,12 +38,6 @@ internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
 
     @Autowired
     private lateinit var userPort: UserInfrastructurePort
-
-    private var repository =
-        Repository(
-            localPath = "test repository",
-        )
-
 
     @BeforeEach
     fun setup() {
@@ -70,18 +69,18 @@ internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
 
     @Test
     fun `save project with repository, expecting in database`() {
-        val createdProject =
-            projectPort.create(
-                Project(
-                    name = "test project",
-                    repo = repository,
-                ),
-            )
+        val project = Project(name = "test project")
+        val repository = Repository(
+            localPath = "test repository",
+            project = project,
+        )
+
+        val createdProject = projectPort.create(project)
 
         assertThat(projectPort.findAll()).hasSize(1)
         run {
             val elem = projectPort.findAll().toList()[0]
-            assertThat(elem.id).isEqualTo(elem.repo?.project?.id)
+            assertThat(elem).isSameAs(requireNotNull(elem.repo).project)
             assertThat(elem)
                 .usingRecursiveComparison()
                 .ignoringFields("id")
@@ -106,37 +105,30 @@ internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
 
     @Test
     fun `save project with repository and commits, expecting in database`() {
-        val user =
-            User(
-                name = "test",
-                email = "test@example.com",
-                repository = repository,
-            )
-        val branch =
-            Branch(
-                name = "test branch",
-                repository = repository,
-            )
-        val cmt =
-            Commit(
-                sha = "1234567890123456789012345678901234567890",
-                message = "test commit",
-                commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-            )
-        branch.commits.add(cmt)
-        user.committedCommits.add(cmt)
-        repository.user.add(user)
-        branch.commits.add(cmt)
-        repository.commits.add(cmt)
-        repository.branches.add(branch)
+        val project = Project(name = "test project")
+        val repository = Repository(
+            localPath = "test repository",
+            project = project,
+        )
+        val user = User(name = "test", repository = repository).apply {
+            email = "test@example.com"
+        }
+        val cmt = Commit(
+            sha = "1234567890123456789012345678901234567890",
+            message = "test commit",
+            commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
+            repository = repository,
+            committer = user,
+        )
+        val branch = Branch(
+            name = "test branch",
+            fullName = "refs/heads/test-branch",
+            category = ReferenceCategory.LOCAL_BRANCH,
+            repository = repository,
+            head = cmt,
+        )
 
-        val repositoryProject =
-            projectPort.create(
-                Project(
-                    name = "test project",
-                    repo = repository,
-                ),
-            )
+        val repositoryProject = projectPort.create(project)
 
         assertAll(
             "check database numbers",

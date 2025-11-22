@@ -2,15 +2,16 @@ package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.cli.exception.CliException
 import com.inso_world.binocular.cli.exception.ServiceException
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import kotlin.io.path.Path
 
 //
 @Service
@@ -18,16 +19,14 @@ class VcsService(
     @Autowired private val repoService: RepositoryService,
 ) {
     companion object {
-        private var logger: Logger = LoggerFactory.getLogger(VcsService::class.java)
+        private val logger by logger()
     }
 
     @Autowired
     private lateinit var gitIndexer: GitIndexer
 
-    @Autowired
-    private lateinit var ffiService: FfiService
-
     fun indexRepository(
+//        TODO make this a real Path
         repoPath: String?,
         branch: String,
         project: Project,
@@ -41,9 +40,7 @@ class VcsService(
                     },
                 ) ?: run {
                     logger.trace("Repository $repoPath not indexed, looking for .git path")
-                    val repo = this.ffiService.findRepo(repoPath)
-                    project.repo = repo
-                    repo.project = project
+                    val repo = this.gitIndexer.findRepo(Path(repoPath), project)
                     this.repoService.create(repo)
                 }
             } catch (e: ServiceException) {
@@ -57,17 +54,17 @@ class VcsService(
                 "Branch not found: $branch"
             }
 
-        val vcsCommits = this.ffiService.traverseAllOnBranch(vcsRepo, branch)
+        val vcsCommits = this.gitIndexer.traverseBranch(vcsRepo, branch)
 
-        val shas = vcsCommits.map { it.sha }
-        val parentShas = vcsCommits.flatMap { it.parents }
+        val shas = vcsCommits.second.map { it.sha }
+        val parentShas = vcsCommits.second.flatMap { it.parents }
 
         logger.debug(
             "Existing commits: ${shas.count()}+${parentShas.count()}=${
                 (shas + parentShas).distinct().count()
             } commit(s) found on branch $branch",
         )
-        this.repoService.addCommits(vcsRepo, vcsCommits)
+        this.repoService.addCommits(vcsRepo, vcsCommits.second)
         logger.trace("<<< indexRepository({}, {}, {})", repoPath, branch, project)
     }
 }

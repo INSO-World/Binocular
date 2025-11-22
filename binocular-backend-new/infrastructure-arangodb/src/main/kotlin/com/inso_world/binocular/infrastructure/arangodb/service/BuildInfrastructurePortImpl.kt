@@ -70,10 +70,6 @@ class BuildInfrastructurePortImpl : BuildInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(entity: Build): Build {
-        TODO("Not yet implemented")
-    }
-
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }

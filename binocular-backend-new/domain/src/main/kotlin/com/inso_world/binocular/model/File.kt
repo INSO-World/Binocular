@@ -1,21 +1,35 @@
 package com.inso_world.binocular.model
 
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 /**
  * Domain model for a File, representing a file in a Git repository.
  * This class is database-agnostic and contains no persistence-specific annotations.
  */
+@OptIn(ExperimentalUuidApi::class)
 data class File(
-    var id: String? = null,
     var path: String,
-    val states: MutableSet<FileState> = mutableSetOf(),
-) : AbstractDomainObject() {
+    val revisions: MutableSet<Revision> = mutableSetOf(),
+) : AbstractDomainObject<File.Id, File.Key>(
+    Id(Uuid.random())
+) {
+    @JvmInline
+    value class Id(val value: Uuid)
+
+    data class Key(val path: String) // value object for lookups
+
+    // some database dependent id
+    @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))
+    var id: String? = null
+
     @Deprecated("legacy")
     lateinit var webUrl: String
 
     @Deprecated("legacy")
     val maxLength: Int
         get() =
-            states
+            revisions
                 .mapNotNull { it.content?.length }
                 .takeIf { it.isNotEmpty() }
                 ?.reduce { acc, n -> if (n > acc) n else acc } ?: Int.MIN_VALUE
@@ -23,11 +37,10 @@ data class File(
     // Relationships
     @Deprecated("legacy")
     val commits: List<Commit>
-        get() = states.map { it.commit }
+        get() = revisions.map { it.commit }
 
     @Deprecated("legacy")
-    val branches: List<Branch>
-        get() = states.map { it.commit }.flatMap { it.branches }
+    val branches: List<Branch> = emptyList()
 
     @Deprecated("legacy")
     var modules: List<Module> = emptyList()
@@ -37,9 +50,10 @@ data class File(
 
     @Deprecated("legacy")
     val users: List<User>
-        get() = states.map { it.commit }.flatMap { it.users }
+        get() = revisions.map { it.commit }.flatMap { it.users }
 
-    override fun uniqueKey(): String = path
+    override val uniqueKey: Key
+        get() = Key(this.path)
 
-    override fun toString(): String = "File(states=$states, path='$path', id=$id)"
+    override fun toString(): String = "File(states=$revisions, path='$path', id=$id)"
 }

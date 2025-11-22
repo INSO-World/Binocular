@@ -89,6 +89,6 @@ data class Project(
         get() = Project.Key(this.name)
 
     // Entities compare by immutable identity only
-    override fun equals(other: Any?) = other is Project && other.iid == iid
-    override fun hashCode(): Int = iid.hashCode()
+    override fun equals(other: Any?) = super.equals(other)
+    override fun hashCode(): Int = super.hashCode()
 }
