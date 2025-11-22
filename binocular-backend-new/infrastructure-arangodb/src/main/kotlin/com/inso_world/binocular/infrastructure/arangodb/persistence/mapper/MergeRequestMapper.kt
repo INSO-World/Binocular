@@ -68,6 +68,7 @@ internal class MergeRequestMapper
                 state = domain.state,
                 webUrl = domain.webUrl,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
+                // Relationships are handled by ArangoDB through edges
             )
 
         /**
@@ -116,5 +117,8 @@ internal class MergeRequestMapper
             )
         }
 
+        /**
+         * Converts a list of ArangoDB MergeRequestEntity objects to a list of domain MergeRequest objects
+         */
         override fun toDomainList(entities: Iterable<MergeRequestEntity>): List<MergeRequest> = entities.map { toDomain(it) }
     }

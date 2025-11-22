@@ -28,14 +28,14 @@ data class UserEntity(
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var issues: List<IssueEntity> = emptyList(),
+    var issues: Set<IssueEntity> = emptySet(),
     @Relations(
         edges = [CommitFileUserConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var files: List<FileEntity> = emptyList(),
+    var files: Set<FileEntity> = emptySet(),
 ) {
     val name: String
         get() {
