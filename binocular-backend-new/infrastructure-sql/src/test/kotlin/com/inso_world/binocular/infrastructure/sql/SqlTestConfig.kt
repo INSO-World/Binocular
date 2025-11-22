@@ -12,7 +12,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 @Import(SqlAppConfig::class)
 class SqlTestConfig {
 
-    companion object Companion {
+    companion object {
         val pg: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:18-alpine")
             .apply { withDatabaseName("binocular_it") }
             .apply { withUsername("postgres") }

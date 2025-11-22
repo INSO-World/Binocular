@@ -1,5 +1,6 @@
 use base64::prelude::*;
 use gix::bstr::BString;
+use gix::Commit;
 use shared::signature::Sig;
 #[derive(Debug, Clone)]
 pub struct GitCommitMetric {
@@ -12,9 +13,8 @@ pub struct GitCommitMetric {
     pub file_tree: Vec<BString>,
 }
 
-impl From<gix::revision::walk::Info<'_>> for GitCommitMetric {
-    fn from(info: gix::revision::walk::Info) -> Self {
-        let commit = info.object().unwrap();
+impl From<Commit<'_>> for GitCommitMetric {
+    fn from(commit: Commit<'_>) -> Self {
         let commit_ref = commit.decode().unwrap();
         let parents = commit
             .parent_ids()
@@ -42,5 +42,12 @@ impl From<gix::revision::walk::Info<'_>> for GitCommitMetric {
             parents,
             file_tree,
         }
+    }
+}
+
+impl From<gix::revision::walk::Info<'_>> for GitCommitMetric {
+    fn from(info: gix::revision::walk::Info) -> Self {
+        let commit = info.object().unwrap();
+        GitCommitMetric::from(commit)
     }
 }

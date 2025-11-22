@@ -37,7 +37,7 @@ internal class ProjectDaoTest(
         @Test
         fun `project can exist without repository`() {
             // Given
-            val project = Project(name = "Standalone Project", description = "Project without repo")
+            val project = Project(name = "Standalone Project").apply { description = "Project without repo" }
 
             // When
             val savedProject = projectInfrastructurePort.create(project)
@@ -54,9 +54,10 @@ internal class ProjectDaoTest(
         @Test
         fun `project can exist with repository`() {
             // When
-            val savedProject = projectInfrastructurePort.create(Project(name = "Project With Repo", description = "Project with repo"))
+            val savedProject =
+                projectInfrastructurePort.create(Project(name = "Project With Repo").apply { description = "Project with repo" })
             savedProject.repo =
-                repositoryInfrastructurePort.create(Repository(id = null, localPath = "test-repo", project = savedProject))
+                repositoryInfrastructurePort.create(Repository(localPath = "test-repo", project = savedProject))
 
             // Then
             assertAll(
@@ -72,9 +73,17 @@ internal class ProjectDaoTest(
         fun `project deletion cascades to repository`() {
             // Given
             val savedProject =
-                projectInfrastructurePort.create(Project(name = "To Be Deleted", description = "Will be deleted with repo"))
+                projectInfrastructurePort.create(
+                    Project(
+                        name = "To Be Deleted",
+                    ).apply { description = "Will be deleted with repo" }
+                )
             savedProject.repo =
-                repositoryInfrastructurePort.create(Repository(id = null, localPath = "cascading-repo", project = savedProject))
+                repositoryInfrastructurePort.create(
+                    Repository(
+                        localPath = "cascading-repo",
+                        project = savedProject
+                    ))
             // updated dependencies, as not managed by JPA
             projectInfrastructurePort.update(savedProject)
 
@@ -93,7 +102,11 @@ internal class ProjectDaoTest(
             // When
             val savedProject = projectInfrastructurePort.create(Project(name = "Null Desc Project"))
             val savedRepo =
-                repositoryInfrastructurePort.create(Repository(id = null, localPath = "null-desc-repo", project = savedProject))
+                repositoryInfrastructurePort.create(
+                    Repository(
+                        localPath = "null-desc-repo",
+                        project = savedProject
+                    ))
             savedProject.repo = savedRepo
 
             // Then
@@ -109,7 +122,7 @@ internal class ProjectDaoTest(
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
         fun `project with invalid name should fail`(invalidName: String) {
             // Given
-            val project = Project(name = invalidName, description = "Empty name")
+            val project = Project(name = invalidName).apply { description = "Empty name" }
 
             // When & Then - This should fail due to validation constraint
             // Note: This test documents expected behavior for invalid data
@@ -123,18 +136,25 @@ internal class ProjectDaoTest(
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedStrings")
         fun `project with allowed names should be handled`(allowedName: String) {
             // When
-            val savedProject = projectInfrastructurePort.create(Project(name = allowedName, description = "Long name project"))
+            val savedProject =
+                projectInfrastructurePort.create(Project(name = allowedName).apply { description = "Long name project" })
             val savedRepo =
-                repositoryInfrastructurePort.create(Repository(id = null, localPath = "long-name-repo", project = savedProject))
+                repositoryInfrastructurePort.create(
+                    Repository(
+                        localPath = "long-name-repo",
+                        project = savedProject
+                    ))
             savedProject.repo = savedRepo
 
             // Then
-            assertAll("check entities",
+            assertAll(
+                "check entities",
                 { assertThat(savedProject.name).isEqualTo(allowedName) },
-                { assertThat(savedRepo.project).isNotNull },
+                { assertThat(savedRepo.project).isNotNull() },
                 { assertThat(savedRepo.project?.id).isEqualTo(savedProject.id) },
             )
-            assertAll("check database numbers",
+            assertAll(
+                "check database numbers",
                 { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
                 { assertThat(repositoryInfrastructurePort.findAll()).hasSize(1) },
             )
@@ -147,8 +167,7 @@ internal class ProjectDaoTest(
                 projectInfrastructurePort.create(
                     Project(
                         name = "Duplicate Name",
-                        description = "First project",
-                    ),
+                    ).apply { description = "First project" },
                 )
             }
 
@@ -156,8 +175,7 @@ internal class ProjectDaoTest(
                 projectInfrastructurePort.create(
                     Project(
                         name = "Duplicate Name",
-                        description = "Second project",
-                    ),
+                    ).apply { description = "Second project" },
                 )
             }
             assertThat(projectInfrastructurePort.findAll()).hasSize(1)

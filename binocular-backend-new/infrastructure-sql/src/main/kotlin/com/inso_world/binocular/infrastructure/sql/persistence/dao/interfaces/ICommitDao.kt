@@ -7,6 +7,8 @@ import com.inso_world.binocular.model.Repository
 import java.util.stream.Stream
 
 internal interface ICommitDao : IDao<CommitEntity, Long> {
+    fun findByIid(iid: com.inso_world.binocular.model.Commit.Id): CommitEntity?
+
     fun findExistingSha(
         repository: Repository,
         shas: List<String>,

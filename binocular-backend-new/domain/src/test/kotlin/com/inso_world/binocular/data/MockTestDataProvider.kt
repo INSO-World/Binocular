@@ -5,6 +5,7 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import java.time.LocalDateTime
 
 class MockTestDataProvider(
@@ -68,6 +69,12 @@ class MockTestDataProvider(
         val user = User(name = "User B", repository = repository).apply { this.email = "b@test.com" }
         user
     }, run {
+        val user = User(name = "User C", repository = repository).apply { this.email = "c@test.com" }
+        user
+    }, run {
+        val user = User(name = "User D", repository = repository).apply { this.email = "d@test.com" }
+        user
+    }, run {
         val user = User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" }
         user
     })
@@ -80,6 +87,7 @@ class MockTestDataProvider(
             commitDateTime = LocalDateTime.now().minusSeconds(1),
             authorDateTime = LocalDateTime.now().minusSeconds(1),
             repository = repository,
+            committer = userByEmail.getValue("a@test.com"),
         )
         cmt
     }, run {
@@ -89,6 +97,7 @@ class MockTestDataProvider(
             commitDateTime = LocalDateTime.now().minusSeconds(1),
             authorDateTime = LocalDateTime.now().minusSeconds(1),
             repository = repository,
+            committer = userByEmail.getValue("b@test.com"),
         ) // Empty parents list
         cmt
     }, run {
@@ -98,6 +107,7 @@ class MockTestDataProvider(
             commitDateTime = LocalDateTime.now().minusSeconds(1),
             authorDateTime = LocalDateTime.now().minusSeconds(1),
             repository = repository,
+            committer = userByEmail.getValue("c@test.com"),
         )
         cmt
     }, run {
@@ -107,6 +117,7 @@ class MockTestDataProvider(
             commitDateTime = LocalDateTime.now().minusSeconds(1),
             authorDateTime = LocalDateTime.now().minusSeconds(1),
             repository = repository,
+            committer = userByEmail.getValue("d@test.com"),
         )
         cmt
     })
@@ -114,11 +125,18 @@ class MockTestDataProvider(
 
     val branches = listOf(
         run {
-            val branch = Branch(name = "origin/feature/test", repository = repository)
+            val branch = Branch(
+                fullName = "refs/remotes/origin/feature/test",
+                name = "origin/feature/test",
+                repository = repository,
+                head = commitBySha.getValue("a".repeat(40)),
+                category = ReferenceCategory.REMOTE_BRANCH
+            )
             return@run branch
         },
         run {
-            val branch = Branch(name = "origin/fixme/123", repository = repository)
+            val branch =
+                Branch(fullName = "refs/remotes/origin/fixme/123",name = "origin/fixme/123", repository = repository, head = commitBySha.getValue("a".repeat(40)), category = ReferenceCategory.REMOTE_BRANCH)
             return@run branch
         })
 

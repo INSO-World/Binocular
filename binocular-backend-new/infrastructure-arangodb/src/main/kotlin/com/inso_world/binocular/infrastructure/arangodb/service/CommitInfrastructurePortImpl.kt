@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
@@ -39,7 +40,9 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     @Autowired private lateinit var commitUserConnectionRepository: ICommitUserConnectionDao
 
-    var logger: Logger = LoggerFactory.getLogger(CommitInfrastructurePortImpl::class.java)
+    companion object {
+        private val logger by logger()
+    }
 
     override fun findAll(pageable: Pageable): Page<Commit> {
         logger.trace("Getting all commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
@@ -116,13 +119,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = this.commitDao.saveAll(entities)
 
-    override fun delete(entity: Commit) = this.commitDao.delete(entity)
-
     override fun update(entity: Commit): Commit {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: Commit): Commit {
         TODO("Not yet implemented")
     }
 
@@ -149,14 +146,6 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     override fun findAllLeafCommits(repo: Repository): Iterable<Commit> {
         TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
-        this.commitDao.deleteAll()
     }
 
     override fun findAll(repo: Repository): Iterable<Commit> {

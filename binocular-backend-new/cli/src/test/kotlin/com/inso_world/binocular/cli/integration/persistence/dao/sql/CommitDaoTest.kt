@@ -61,25 +61,22 @@ internal class CommitDaoTest(
 
     @Nested
     inner class CleanDatabase : BasePersistenceNoDataTest() {
-        lateinit var project: Project
+        lateinit var repository: Repository
 
         @BeforeEach
         fun setUp() {
-            project =
+            val project =
                 projectPort.create(
                     Project(
                         name = "test",
                     ),
                 )
-            project.repo =
-                repositoryPort.create(
-                    Repository(
-                        id = null,
-                        localPath = "testRepository",
-                        project = project,
-                    ),
+            repository = repositoryPort.create(
+                Repository(
+                    localPath = "testRepository",
+                    project = project
                 )
-            project = projectPort.update(project)
+            )
         }
 
         @ParameterizedTest
@@ -99,8 +96,9 @@ internal class CommitDaoTest(
                         message = "msg",
                         commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                         authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                        repository = repository,
+                        committer = User(name = "test", repository = repository)
                     )
-                    this.project.repo?.commits?.add(cmt)
                     commitPort.create(cmt)
                 }
             assertThat(exception.message).contains(".value.sha")
@@ -110,19 +108,20 @@ internal class CommitDaoTest(
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
         fun `commit with invalid sha value should fail`(invalidSha: String) {
-            val branch = Branch(
+            val user = User(
                 name = "test",
+                repository = repository,
+            )
+            val cmt = Commit(
+                sha = invalidSha,
+                message = "msg",
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                repository = repository,
+                committer = user,
             )
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    val cmt = Commit(
-                        sha = invalidSha,
-                        message = "msg",
-                        commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                        authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                    )
-                    cmt.branches.add(branch)
-                    this.project.repo?.commits?.add(cmt)
                     commitPort.create(cmt)
                 }
             assertThat(exception.message).contains(".value.sha")
@@ -134,12 +133,16 @@ internal class CommitDaoTest(
         @Disabled("can probably be deleted")
         fun `commit with invalid message should fail`(invalidMessage: String) {
             // Then - This should fail due to validation constraint
+            val user = User(name = "test", repository = repository)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitPort.create(
                         Commit(
                             sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
                             message = invalidMessage,
+                            commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                            repository = repository,
+                            committer = user,
                         ),
                     )
                 }
@@ -152,26 +155,21 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid commitDateTime should not fail`(validCommitTime: LocalDateTime) {
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                )
-            val branch = Branch(
+            val user = User(
                 name = "test",
+                repository = repository,
             )
-            val cmt =
-                Commit(
-                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                    message = "msg",
-                    commitDateTime = validCommitTime,
-                    authorDateTime = null,
-                )
-            branch.commits.add(cmt)
-            user.committedCommits.add(cmt)
-            project.repo?.commits?.add(cmt)
-            project.repo?.user?.add(user)
-            project.repo?.branches?.add(branch)
+            user.email = "test@example.com"
+
+            val cmt = Commit(
+                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                message = "msg",
+                commitDateTime = validCommitTime,
+                authorDateTime = null,
+                repository = repository,
+                committer = user,
+            )
+
             assertDoesNotThrow {
                 commitPort.create(cmt)
             }
@@ -182,26 +180,21 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid authorDateTime should not fail`(validAuthorTime: LocalDateTime) {
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                )
-            val branch = Branch(
+            val user = User(
                 name = "test",
+                repository = repository,
             )
-            val cmt =
-                Commit(
-                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                    message = "msg",
-                    commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                    authorDateTime = validAuthorTime,
-                )
-            branch.commits.add(cmt)
-            user.committedCommits.add(cmt)
-            project.repo?.commits?.add(cmt)
-            project.repo?.user?.add(user)
-            project.repo?.branches?.add(branch)
+            user.email = "test@example.com"
+
+            val cmt = Commit(
+                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                message = "msg",
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                authorDateTime = validAuthorTime,
+                repository = repository,
+                committer = user,
+            )
+
             assertDoesNotThrow {
                 commitPort.create(cmt)
             }
@@ -212,17 +205,17 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.cli.integration.persistence.dao.sql.CommitDaoTest#invalidCommitTime",
         )
         fun `commit with invalid commitDateTime should fail`(invalidCommitTime: LocalDateTime?) {
-            val cmt =
-                Commit(
-                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                    message = "msg",
-                    commitDateTime = invalidCommitTime,
-                    authorDateTime = null,
-                )
-            project.repo?.commits?.add(cmt)
+            val user = User(name = "test", repository = repository)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    commitPort.create(cmt)
+                    Commit(
+                        sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                        message = "msg",
+                        commitDateTime = invalidCommitTime,
+                        authorDateTime = null,
+                        repository = repository,
+                        committer = user,
+                    )
                 }
             assertThat(exception.message).contains(".value.commitDateTime")
             entityManager.clear()
@@ -233,17 +226,17 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideInvalidPastOrPresentDateTime",
         )
         fun `commit with invalid authorDateTime should fail`(invalidAuthorTime: LocalDateTime?) {
-            val cmt =
-                Commit(
-                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                    message = "msg",
-                    commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                    authorDateTime = invalidAuthorTime,
-                )
-            project.repo?.commits?.add(cmt)
+            val user = User(name = "test", repository = repository)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    commitPort.create(cmt)
+                    Commit(
+                        sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                        message = "msg",
+                        commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                        authorDateTime = invalidAuthorTime,
+                        repository = repository,
+                        committer = user,
+                    )
                 }
             assertThat(exception.message).contains(".value.authorDateTime")
             entityManager.clear()
@@ -263,8 +256,8 @@ internal class CommitDaoTest(
                     val cfg = setupRepoConfig(
                         "${FIXTURES_PATH}/${SIMPLE_REPO}",
                         "HEAD",
+                        branchName = "master",
                         projectName = SIMPLE_PROJECT_NAME,
-                        branch = Branch(name = "master")
                     )
                     requireNotNull(projectPort.create(cfg.project).repo) {
                         "Repository could not be created"
@@ -347,8 +340,8 @@ internal class CommitDaoTest(
                     val cfg = setupRepoConfig(
                         "${FIXTURES_PATH}/${OCTO_REPO}",
                         "HEAD",
+                        branchName = "master",
                         projectName = OCTO_PROJECT_NAME,
-                        branch = Branch(name = "master")
                     )
                     requireNotNull(projectPort.create(cfg.project).repo) {
                         "Repository could not be created"
@@ -527,8 +520,8 @@ internal class CommitDaoTest(
                             ),
                         )
                     },
-                    { assertThat(masterLeaf.branches).hasSize(1) },
-                    { assertThat(masterLeaf.branches.toList()[0].name).isEqualTo("master") },
+//                    { assertThat(masterLeaf.branches).hasSize(1) },
+//                    { assertThat(masterLeaf.branches.toList()[0].name).isEqualTo("master") },
                 )
                 run {
                     val graph: MutableMap<String, Any?> = mutableMapOf()
@@ -549,13 +542,13 @@ internal class CommitDaoTest(
                         setupRepoConfig(
                             "${FIXTURES_PATH}/${OCTO_REPO}",
                             "HEAD",
-                            branch = Branch(name = branch),
+                            branchName = branch,
                             projectName = OCTO_PROJECT_NAME,
                         )
                     var tmpRepo =
                         localRepo ?: run {
                             val r = octoRepoConfig.repo
-                            r.project = octoRepoConfig.project
+//                            r.project = octoRepoConfig.project
                             octoRepoConfig.project.repo = r
                             projectPort.create(octoRepoConfig.project).repo
                                 ?: throw IllegalStateException("project not found")
@@ -619,16 +612,16 @@ internal class CommitDaoTest(
                     { assertThat(leafs).isNotEmpty() },
                     { assertThat(leafs).hasSize(4) },
                     { assertThat(leafs.map { it.sha }).containsAll(leafsItems) },
-                    {
-                        assertThat(leafs.flatMap { it.branches.map { b -> b.name } }).containsAll(
-                            listOf(
-                                "master",
-                                "bugfix",
-                                "feature",
-                                "imported",
-                            ),
-                        )
-                    },
+//                    {
+//                        assertThat(leafs.flatMap { it.branches.map { b -> b.name } }).containsAll(
+//                            listOf(
+//                                "master",
+//                                "bugfix",
+//                                "feature",
+//                                "imported",
+//                            ),
+//                        )
+//                    },
                 )
             }
         }

@@ -1,1529 +1,878 @@
 package com.inso_world.binocular.infrastructure.sql.integration.service
 
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.core.service.UserInfrastructurePort
+import com.inso_world.binocular.infrastructure.sql.TestData
 import com.inso_world.binocular.infrastructure.sql.integration.service.base.BaseServiceTest
-import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructurePortImpl
-import com.inso_world.binocular.infrastructure.sql.service.ProjectInfrastructurePortImpl
-import com.inso_world.binocular.infrastructure.sql.service.RepositoryInfrastructurePortImpl
-import com.inso_world.binocular.infrastructure.sql.service.UserInfrastructurePortImpl
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Revision
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import com.inso_world.binocular.model.vcs.ReferenceCategory
+import com.inso_world.binocular.model.vcs.Remote
+import jakarta.validation.ConstraintViolationException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.uuid.ExperimentalUuidApi
 
 internal class RepositoryInfrastructurePortImplTest : BaseServiceTest() {
     @Autowired
-    private lateinit var transactionTemplate: TransactionTemplate
-
-    @PersistenceContext
-    private lateinit var entityManager: EntityManager
+    private lateinit var projectPort: ProjectInfrastructurePort
 
     @Autowired
-    private lateinit var projectPort: ProjectInfrastructurePortImpl
+    private lateinit var repositoryPort: RepositoryInfrastructurePort
 
     @Autowired
-    private lateinit var repositoryPort: RepositoryInfrastructurePortImpl
+    private lateinit var commitPort: CommitInfrastructurePort
 
     @Autowired
-    private lateinit var commitPort: CommitInfrastructurePortImpl
-
-    @Autowired
-    private lateinit var userPort: UserInfrastructurePortImpl
+    private lateinit var userPort: UserInfrastructurePort
 
     @Autowired
     private lateinit var branchPort: BranchInfrastructurePort
 
-    private lateinit var repositoryProject: Project
+    private lateinit var testProject: Project
 
     @BeforeEach
-    @Transactional
     fun setup() {
-        repositoryProject =
-            projectPort.create(
-                Project(
-                    name = "test project",
-                ),
-            )
+//        setUp()
+        testProject = projectPort.create(TestData.Domain.testProject(name = "Test Project", id = null))
     }
 
     @AfterEach
-    fun teardown() {
-        transactionTemplate.execute { entityManager.clear() }
+    fun cleanup() {
+        tearDown()
+    }
+
+    private fun createCommit(
+        repository: Repository,
+        sha: String,
+        commitDateTime: LocalDateTime,
+        authorDateTime: LocalDateTime? = null,
+        message: String? = null,
+        committer: User? = null,
+    ): Commit {
+        val resolvedCommitter = committer ?: User(
+            name = "Committer-${sha.take(6)}", repository = repository
+        ).apply {
+            email = "${sha.take(6)}@integration.test"
+        }
+
+        return com.inso_world.binocular.model.Commit(
+            sha = sha,
+            authorDateTime = authorDateTime,
+            commitDateTime = commitDateTime,
+            message = message,
+            repository = repository,
+            committer = resolvedCommitter,
+        )
     }
 
     @Nested
-    inner class SaveOperation : BaseServiceTest() {
+    @DisplayName("Create Operations")
+    inner class CreateOperations {
         @Test
-        fun `save repository with one commit, expecting in database`() {
-            val savedRepo =
-                run {
-                    val repository =
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        )
-                    val user =
-                        User(
-                            name = "test",
-                            email = "test@example.com",
-                            repository = repository,
-                        )
+        fun `create empty repository with minimal required fields`() {
+            val repository = Repository(
+                localPath = "/path/to/repo", project = testProject
+            )
 
-                    repository.project = repositoryProject
-                    val branch =
-                        Branch(
-                            name = "test branch",
-                            repository = repository,
-                        )
-                    val cmt =
-                        Commit(
-                            sha = "1234567890123456789012345678901234567890",
-                            message = "test commit",
-                            commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        )
-                    branch.commits.add(cmt)
-                    user.committedCommits.add(cmt)
-
-                    branch.commits.add(cmt)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
-
-                    assertAll(
-                        "check model",
-                        { assertThat(branch.commits).hasSize(1) },
-                        { assertThat(cmt.branches).hasSize(1) },
-                        { assertThat(repository.branches).hasSize(1) },
-                        { assertThat(repository.user).hasSize(1) },
-                        { assertThat(repository.commits).hasSize(1) },
-                    )
-
-                    return@run repositoryPort.create(repository)
-                }
+            val created = repositoryPort.create(repository)
 
             assertAll(
-                "check database numbers",
-                { assertThat(projectPort.findAll()).hasSize(1) },
+                "Verify created repository",
+                { assertThat(created.localPath).isEqualTo("/path/to/repo") },
+                { assertThat(created.project).isEqualTo(testProject) },
+                { assertThat(created.id).isNotNull() },
+                { assertThat(created.iid).isNotNull() },
+                { assertThat(created.commits).isEmpty() },
+                { assertThat(created.branches).isEmpty() },
+                { assertThat(created.user).isEmpty() },
+                { assertThat(created.remotes).isEmpty() })
+
+            assertThat(repositoryPort.findAll()).hasSize(1)
+        }
+
+        @Test
+        fun `create repository with single commit`() {
+            val repository = Repository(
+                localPath = "/repo/path", project = testProject
+            )
+            val commit = createCommit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                authorDateTime = LocalDateTime.of(2024, 1, 1, 11, 0),
+                message = "Initial commit",
+                repository = repository
+            )
+
+            val created = repositoryPort.create(repository)
+
+            assertAll(
+                "Verify repository with commit",
+                { assertThat(created.commits).hasSize(1) },
+                { assertThat(created.commits.first().sha).isEqualTo("a".repeat(40)) },
+                { assertThat(created.commits.first().message).isEqualTo("Initial commit") })
+            assertThat(commitPort.findAll()).hasSize(1)
+        }
+
+        @Test
+        fun `create repository with commit, branch, and user`() {
+            val repository = Repository(
+                localPath = "/complex/repo", project = testProject
+            )
+            val user = User(name = "John Doe", repository = repository).apply {
+                email = "john@example.com"
+            }
+            val commit = createCommit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 2, 15, 10, 30),
+                message = "Feature commit",
+                repository = repository,
+                committer = user
+            )
+            commit.author = user
+
+            val branch = Branch(
+                name = "main",
+                fullName = "refs/heads/main",
+                category = ReferenceCategory.LOCAL_BRANCH,
+                repository = repository,
+                head = commit
+            )
+
+            val created = repositoryPort.create(repository)
+
+            assertAll(
+                "Verify complex repository structure",
+                { assertThat(created.commits).hasSize(1) },
+                { assertThat(created.branches).hasSize(1) },
+                { assertThat(created.user).hasSize(1) },
+                { assertThat(created.branches.first().name).isEqualTo("main") },
+                { assertThat(created.branches.first().head).isEqualTo(created.commits.first()) },
+                { assertThat(created.user.first().name).isEqualTo("John Doe") })
+            assertAll(
+                "Verify persistence layer counts",
                 { assertThat(repositoryPort.findAll()).hasSize(1) },
                 { assertThat(commitPort.findAll()).hasSize(1) },
                 { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-            assertThat(commitPort.findAll().toList()[0])
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(savedRepo.commits.toList()[0])
-            assertAll(
-                "check commit relationship",
-                { assertThat(commitPort.findAll().toList()[0].id).isNotNull() },
-                { assertThat(commitPort.findAll().toList()[0].repository).isNotNull() },
-                { assertThat(commitPort.findAll().toList()[0].repository?.id).isNotNull() },
-                { assertThat(commitPort.findAll().toList()[0].repository?.id).isEqualTo(savedRepo.id) },
-            )
+                { assertThat(userPort.findAll()).hasSize(1) })
         }
 
         @Test
-        fun `save repository with one commit with one parent, expecting both in database`() {
-            val savedRepo =
-                run {
-                    val repository =
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        )
-                    val user =
-                        User(
-                            name = "test",
-                            email = "test@example.com",
-                            repository = repository,
-                        )
-
-                    repository.project = repositoryProject
-                    val branch =
-                        Branch(
-                            name = "test branch",
-                            repository = repository,
-                        )
-                    val parent = Commit(
-                        sha = "0".repeat(40),
-                        message = "test commit 2",
-                        commitDateTime = LocalDateTime.of(2025, 5, 13, 1, 1),
-                    )
-                    branch.commits.add(parent)
-                    val cmt =
-                        Commit(
-                            sha = "1".repeat(40),
-                            message = "test commit",
-                            commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        )
-                    branch.commits.add(cmt)
-                    parent.children.add(cmt)
-                    user.committedCommits.add(cmt)
-                    user.committedCommits.add(parent)
-
-                    branch.commits.add(cmt)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
-
-                    assertAll(
-                        "check model",
-                        { assertThat(branch.commits).hasSize(2) },
-                        { assertThat(cmt.parents).hasSize(1) },
-                        { assertThat(cmt.branches).hasSize(1) },
-                        { assertThat(repository.branches).hasSize(1) },
-                        { assertThat(repository.user).hasSize(1) },
-                        { assertThat(repository.commits).hasSize(1) },
-                    )
-
-                    return@run repositoryPort.create(repository)
-                }
-
-            assertAll(
-                "check database numbers",
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(2) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
+        fun `create repository with parent-child commit relationship`() {
+            val repository = Repository(
+                localPath = "/parent-child/repo", project = testProject
             )
-//            assert parent
-            assertThat(commitPort.findAll().find { it.sha == "0".repeat(40) })
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(savedRepo.commits.find { it.sha == "0".repeat(40) })
-//            assert child
-            assertThat(commitPort.findAll().find { it.sha == "1".repeat(40) })
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(savedRepo.commits.find { it.sha == "1".repeat(40) })
-            assertAll(
-                "check commit relationship",
-                { assertThat(commitPort.findAll().map { it.id }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repository?.id }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repository?.id }).containsOnly(savedRepo.id) },
+            val parentCommit = createCommit(
+                sha = "1".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 10, 0),
+                message = "Parent",
+                repository = repository
             )
+            val childCommit = createCommit(
+                sha = "2".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 2, 10, 0),
+                message = "Child",
+                repository = repository
+            )
+            childCommit.parents.add(parentCommit)
+
+            val created = repositoryPort.create(repository)
+
+            assertAll("Verify parent-child relationship", { assertThat(created.commits).hasSize(2) }, {
+                val child = created.commits.find { it.sha == "2".repeat(40) }
+                assertThat(child?.parents).hasSize(1)
+            }, {
+                val parent = created.commits.find { it.sha == "1".repeat(40) }
+                assertThat(parent?.children).hasSize(1)
+            })
         }
 
         @Test
-        fun `save repository with one commit with two parents, expecting both in database`() {
-            val savedRepo =
-                run {
-                    val repository =
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        )
-                    val user =
-                        User(
-                            name = "test",
-                            email = "test@example.com",
-                            repository = repository,
-                        )
-
-                    repository.project = repositoryProject
-                    val branch =
-                        Branch(
-                            name = "test branch",
-                            repository = repository,
-                        )
-                    val parent1 = Commit(
-                        sha = "1".repeat(40),
-                        message = "parent1",
-                        commitDateTime = LocalDateTime.of(2025, 5, 13, 1, 1),
-                    )
-                    branch.commits.add(parent1)
-                    val parent2 = Commit(
-                        sha = "2".repeat(40),
-                        message = "parent2",
-                        commitDateTime = LocalDateTime.of(2025, 5, 13, 1, 1),
-                    )
-                    branch.commits.add(parent2)
-                    val cmt =
-                        Commit(
-                            sha = "c".repeat(40),
-                            message = "test commit",
-                            commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        )
-                    branch.commits.add(cmt)
-                    cmt.parents.addAll(listOf(parent1, parent2))
-                    parent1.children.add(cmt)
-                    parent2.children.add(cmt)
-                    user.committedCommits.add(cmt)
-                    user.committedCommits.add(parent1)
-                    user.committedCommits.add(parent2)
-
-                    branch.commits.add(cmt)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmt)
-                    repository.user.add(user)
-
-                    assertAll(
-                        "check model",
-                        { assertThat(branch.commits).hasSize(3) },
-                        { assertThat(cmt.parents).hasSize(2) },
-                        { assertThat(cmt.branches).hasSize(1) },
-                        { assertThat(repository.branches).hasSize(1) },
-                        { assertThat(repository.user).hasSize(1) },
-                        { assertThat(repository.commits).hasSize(1) },
-                    )
-
-                    return@run repositoryPort.create(repository)
-                }
-
-            assertAll(
-                "check database numbers",
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(3) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
+        fun `create repository with merge commit (two parents)`() {
+            val repository = Repository(
+                localPath = "/merge/repo", project = testProject
             )
-//            assert parent1
-            assertThat(commitPort.findAll().find { it.sha == "1".repeat(40) })
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(savedRepo.commits.find { it.sha == "1".repeat(40) })
-//            assert parent2
-            assertThat(commitPort.findAll().find { it.sha == "2".repeat(40) })
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(savedRepo.commits.find { it.sha == "2".repeat(40) })
-//            assert child
-            assertThat(commitPort.findAll().find { it.sha == "c".repeat(40) })
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(savedRepo.commits.find { it.sha == "c".repeat(40) })
-//            check relationship of child
-            run {
-                val child = savedRepo.commits.find { it.sha == "c".repeat(40) }
-                    ?: throw IllegalStateException("child must be found here")
-
-                assertThat(child.parents).hasSize(2)
-                assertThat(child.children).isEmpty()
-            }
-            assertAll(
-                "check commit relationship",
-                { assertThat(commitPort.findAll().map { it.id }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repository?.id }).doesNotContainNull() },
-                { assertThat(commitPort.findAll().map { it.repository?.id }).containsOnly(savedRepo.id) },
+            val parent1 = createCommit(
+                sha = "a".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 10, 0),
+                message = "Parent 1",
+                repository = repository
             )
+            val parent2 = createCommit(
+                sha = "b".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 11, 0),
+                message = "Parent 2",
+                repository = repository
+            )
+            val mergeCommit = createCommit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 2, 10, 0),
+                message = "Merge commit",
+                repository = repository
+            )
+            mergeCommit.parents.addAll(listOf(parent1, parent2))
+
+            val created = repositoryPort.create(repository)
+
+            assertAll("Verify merge commit structure", { assertThat(created.commits).hasSize(3) }, {
+                val merge = created.commits.find { it.sha == "c".repeat(40) }
+                assertThat(merge?.parents).hasSize(2)
+            }, {
+                val p1 = created.commits.find { it.sha == "a".repeat(40) }
+                assertThat(p1?.children).hasSize(1)
+            }, {
+                val p2 = created.commits.find { it.sha == "b".repeat(40) }
+                assertThat(p2?.children).hasSize(1)
+            })
         }
 
         @Test
-        fun `save plain repository, expecting in database`() {
-            val repository =
+        fun `create repository with multiple branches pointing to same commit`() {
+            val repository = Repository(
+                localPath = "/multi-branch/repo", project = testProject
+            )
+            val commit = createCommit(
+                sha = "f".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "Shared commit",
+                repository = repository
+            )
+            val branch1 = Branch(
+                name = "main",
+                fullName = "refs/heads/main",
+                category = ReferenceCategory.LOCAL_BRANCH,
+                repository = repository,
+                head = commit
+            )
+            val branch2 = Branch(
+                name = "develop",
+                fullName = "refs/heads/develop",
+                category = ReferenceCategory.LOCAL_BRANCH,
+                repository = repository,
+                head = commit
+            )
+
+            val created = repositoryPort.create(repository)
+
+            assertAll(
+                "Verify multiple branches",
+                { assertThat(created.commits).hasSize(1) },
+                { assertThat(created.branches).hasSize(2) },
+                {
+                    val branchNames = created.branches.map { it.name }
+                    assertThat(branchNames).containsExactlyInAnyOrder("main", "develop")
+                },
+                {
+                    created.branches.forEach { branch ->
+                        assertThat(branch.head.sha).isEqualTo("f".repeat(40))
+                    }
+                })
+        }
+
+        @Test
+        fun `create repository with remote`() {
+            val repository = Repository(
+                localPath = "/remote/repo", project = testProject
+            )
+            val remote = Remote(
+                name = "origin", url = "https://github.com/example/repo.git", repository = repository
+            )
+
+            val created = repositoryPort.create(repository)
+
+            assertAll(
+                "Verify remote",
+                { assertThat(created.remotes).hasSize(1) },
+                { assertThat(created.remotes.first().name).isEqualTo("origin") },
+                { assertThat(created.remotes.first().url).isEqualTo("https://github.com/example/repo.git") })
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Operations")
+    inner class UpdateOperations {
+        @Test
+        fun `update repository by adding new commit`() {
+            val repository = repositoryPort.create(
                 Repository(
-                    localPath = "test repository",
-                    project = repositoryProject,
+                    localPath = "/update/repo", project = testProject
                 )
+            )
 
-            repositoryProject.repo = repository
-            assertDoesNotThrow {
+            val newCommit = createCommit(
+                sha = "f".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 3, 1, 10, 0),
+                message = "New commit",
+                repository = repository
+            )
+
+            val updated = repositoryPort.update(repository)
+
+            assertAll(
+                "Verify updated repository",
+                { assertThat(updated.commits).hasSize(1) },
+                { assertThat(updated.commits.first().sha).isEqualTo("f".repeat(40)) })
+        }
+
+        @Test
+        fun `update repository by adding branch to existing commit`() {
+            val repository = Repository(
+                localPath = "/branch-update/repo", project = testProject
+            )
+            val commit = createCommit(
+                sha = "e".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "Commit",
+                repository = repository
+            )
+            val created = repositoryPort.create(repository)
+
+            val newBranch = Branch(
+                name = "feature",
+                fullName = "refs/heads/feature",
+                category = ReferenceCategory.LOCAL_BRANCH,
+                repository = created,
+                head = created.commits.first()
+            )
+
+            val updated = repositoryPort.update(created)
+
+            assertAll(
+                "Verify branch addition",
+                { assertThat(updated.branches).hasSize(1) },
+                { assertThat(updated.branches.first().name).isEqualTo("feature") },
+                { assertThat(updated.commits).hasSize(1) })
+        }
+
+        @Test
+        fun `update repository idempotency - updating with same data`() {
+            val repository = Repository(
+                localPath = "/idempotent/repo", project = testProject
+            )
+            val commit = createCommit(
+                sha = "e".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "Commit",
+                repository = repository
+            )
+            val created = repositoryPort.create(repository)
+
+            val firstUpdate = repositoryPort.update(created)
+            val secondUpdate = repositoryPort.update(firstUpdate)
+
+            assertAll(
+                "Verify idempotency",
+                { assertThat(firstUpdate.commits).hasSize(1) },
+                { assertThat(secondUpdate.commits).hasSize(1) },
+                { assertThat(commitPort.findAll()).hasSize(1) },
+                {
+                    assertThat(firstUpdate).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(secondUpdate)
+                })
+        }
+
+        @Test
+        fun `update repository with commit graph expansion`() {
+            val repository = Repository(
+                localPath = "/expand/repo", project = testProject
+            )
+            val commit1 = createCommit(
+                sha = "f".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 10, 0),
+                message = "First",
+                repository = repository
+            )
+            val created = repositoryPort.create(repository)
+
+            val commit2 = createCommit(
+                sha = "e".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 2, 10, 0),
+                message = "Second",
+                repository = created
+            )
+            commit2.parents.add(commit1)
+
+            val commit3 = createCommit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 3, 10, 0),
+                message = "Third",
+                repository = created
+            )
+            commit3.parents.add(commit2)
+
+            val updated = repositoryPort.update(created)
+
+            assertAll("Verify commit graph expansion", { assertThat(updated.commits).hasSize(3) }, {
+                val c3 = updated.commits.find { it.sha == "c".repeat(40) }
+                assertThat(c3?.parents).hasSize(1)
+                assertThat(c3?.parents?.first()?.sha).isEqualTo("e".repeat(40))
+            }, {
+                val c2 = updated.commits.find { it.sha == "e".repeat(40) }
+                assertThat(c2?.parents).hasSize(1)
+                assertThat(c2?.children).hasSize(1)
+            }, {
+                val c1 = updated.commits.find { it.sha == "f".repeat(40) }
+                assertThat(c1?.children).hasSize(1)
+            })
+        }
+
+        @Test
+        fun `update repository with multiple users`() {
+            val repository = Repository(
+                localPath = "/multi-user/repo", project = testProject
+            )
+            val user1 = User(name = "Alice", repository = repository).apply { email = "alice@example.com" }
+            val commit = createCommit(
+                sha = "e".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "Commit",
+                repository = repository,
+                committer = user1
+            )
+            commit.author = user1
+
+            val created = repositoryPort.create(repository)
+
+            val user2 = User(name = "Bob", repository = created).apply { email = "bob@example.com" }
+            val commit2 = createCommit(
+                sha = "c".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 2, 12, 0),
+                message = "Second commit",
+                repository = created,
+                committer = user2
+            )
+            commit2.author = user2
+
+            val updated = repositoryPort.update(created)
+
+            assertAll(
+                "Verify multiple users",
+                { assertThat(updated.user).hasSize(2) },
+                { assertThat(updated.commits).hasSize(2) },
+                {
+                    val userNames = updated.user.map { it.name }
+                    assertThat(userNames).containsExactlyInAnyOrder("Alice", "Bob")
+                })
+        }
+
+        @Test
+        fun `update repository by adding remote`() {
+            val repository = repositoryPort.create(
+                Repository(
+                    localPath = "/remote-update/repo", project = testProject
+                )
+            )
+
+            val remote = Remote(
+                name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository
+            )
+
+            val updated = repositoryPort.update(repository)
+
+            assertAll(
+                "Verify remote addition",
+                { assertThat(updated.remotes).hasSize(1) },
+                { assertThat(updated.remotes.first().name).isEqualTo("upstream") })
+        }
+    }
+
+    @Nested
+    @DisplayName("Read Operations")
+    inner class ReadOperations {
+        @Test
+        fun `findAll returns all repositories`() {
+            repositoryPort.create(Repository(localPath = "/repo1", project = testProject))
+            with(projectPort.create(testProject.copy(name = "Test 2"))) {
+                repositoryPort.create(Repository(localPath = "/repo2", project = this))
+            }
+            with(projectPort.create(testProject.copy(name = "Test 3"))) {
+                repositoryPort.create(Repository(localPath = "/repo3", project = this))
+            }
+
+            val all = repositoryPort.findAll()
+
+            assertThat(all).hasSize(3)
+        }
+
+        @Test
+        fun `findByIid returns correct repository`() {
+            val created = repositoryPort.create(
+                Repository(
+                    localPath = "/specific/repo", project = testProject
+                )
+            )
+
+            val found = repositoryPort.findByIid(created.iid)
+
+            assertAll(
+                "Verify found repository",
+                { assertThat(found).isNotNull },
+                { assertThat(found?.localPath).isEqualTo("/specific/repo") },
+                { assertThat(found?.iid).isEqualTo(created.iid) })
+        }
+
+        @OptIn(ExperimentalUuidApi::class)
+        @Test
+        fun `findByIid returns null for non-existent iid`() {
+            val nonExistentIid = Repository.Id(kotlin.uuid.Uuid.random())
+            val found = repositoryPort.findByIid(nonExistentIid)
+
+            assertThat(found).isNull()
+        }
+
+        @Test
+        fun `findByName returns correct repository`() {
+            repositoryPort.create(Repository(localPath = "target-repo", project = testProject))
+            with(projectPort.create(testProject.copy(name = "Test 2"))) {
+                repositoryPort.create(
+                    Repository(
+                        localPath = "other-repo",
+                        project = this
+                    )
+                )
+            }
+
+            val found = repositoryPort.findByName("target-repo")
+
+            assertAll(
+                "Verify found repository",
+                { assertThat(found).isNotNull },
+                { assertThat(found?.localPath).isEqualTo("target-repo") })
+        }
+
+        @Test
+        fun `findByName returns null for non-existent name`() {
+            val found = repositoryPort.findByName("non-existent")
+
+            assertThat(found).isNull()
+        }
+    }
+
+    @Nested
+    @DisplayName("Delete Operations")
+    inner class DeleteOperations {
+        @Test
+        fun `delete repository by entity`() {
+            val repository = repositoryPort.create(
+                Repository(
+                    localPath = "/delete/repo", project = testProject
+                )
+            )
+
+            assertThrows<UnsupportedOperationException> { repositoryPort.delete(repository) }
+
+//            assertAll(
+//                "Verify deletion",
+//                { assertThat(repositoryPort.findAll()).isEmpty() },
+//                { assertThat(repositoryPort.findByIid(repository.iid)).isNull() })
+        }
+
+        @Test
+        fun `delete repository by id`() {
+            val repository = repositoryPort.create(
+                Repository(
+                    localPath = "/delete-by-id/repo", project = testProject
+                )
+            )
+            val id = repository.id!!
+
+            assertThrows<UnsupportedOperationException> { repositoryPort.deleteById(id) }
+
+//            assertAll(
+//                "Verify deletion by id",
+//                { assertThat(repositoryPort.findAll()).isEmpty() },
+//                { assertThat(repositoryPort.findByIid(repository.iid)).isNull() })
+        }
+
+        @Test
+        fun `deleteAll removes all repositories`() {
+            repositoryPort.create(Repository(localPath = "/repo1", project = testProject))
+            with(testProject.copy(name = "Test 2")) {
+                projectPort.create(this)
+                repositoryPort.create(Repository(localPath = "/repo2", project = this))
+            }
+            with(testProject.copy(name = "Test 3")) {
+                projectPort.create(this)
+                repositoryPort.create(Repository(localPath = "/repo3", project = this))
+            }
+
+            assertThrows<UnsupportedOperationException> { repositoryPort.deleteAll() }
+
+//            assertThat(repositoryPort.findAll()).isEmpty()
+        }
+
+        @Test
+        fun `delete repository with commits deletes cascaded entities`() {
+            val repository = Repository(
+                localPath = "/cascade/repo", project = testProject
+            )
+            val commit = createCommit(
+                sha = "d".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "Commit",
+                repository = repository
+            )
+            val created = repositoryPort.create(repository)
+
+            assertThrows<UnsupportedOperationException> { repositoryPort.delete(created) }
+
+//            assertAll(
+//                "Verify cascaded deletion",
+//                { assertThat(repositoryPort.findAll()).isEmpty() },
+//                { assertThat(commitPort.findAll()).isEmpty() })
+        }
+    }
+
+
+    @Nested
+    @DisplayName("Domain Invariant Tests")
+    inner class DomainInvariantTests {
+        @Test
+        fun `repository enforces non-blank localPath`() {
+            assertThrows<IllegalArgumentException> {
+                Repository(
+                    localPath = "   ", project = testProject
+                )
+            }
+        }
+
+        @Test
+        fun `repository links itself to project on construction`() {
+            val project = projectPort.create(TestData.Domain.testProject(name = "Link Test", id = null))
+            val repository = Repository(
+                localPath = "/link/test", project = project
+            )
+
+            assertThat(project.repo).isEqualTo(repository)
+        }
+
+        @Test
+        fun `repository commits collection is add-only`() {
+            val repository = Repository(
+                localPath = "/add-only/repo", project = testProject
+            )
+            val commit = createCommit(
+                sha = "f".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "Test",
+                repository = repository
+            )
+
+            assertThrows<UnsupportedOperationException> {
+                repository.commits.remove(commit)
+            }
+        }
+
+        @Test
+        fun `repository rejects commit from different repository`() {
+            val repo1 = Repository(localPath = "/repo1", project = testProject)
+            val repo2 = with(testProject.copy(name = testProject.name + "2")) {
+                Repository(localPath = "/repo2", project = this)
+            }
+            val commit = createCommit(
+                sha = "f".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "Test",
+                repository = repo1
+            )
+
+            assertThrows<IllegalArgumentException> {
+                repo2.commits.add(commit)
+            }
+        }
+
+        @Test
+        fun `repository commits collection deduplicates by uniqueKey`() {
+            val repository = Repository(
+                localPath = "/dedup/repo", project = testProject
+            )
+            val commit1 = createCommit(
+                sha = "f".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "First",
+                repository = repository
+            )
+            val commit2 = createCommit(
+                sha = "f".repeat(40), // Same SHA
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0), message = "Second", repository = repository
+            )
+
+            val added1 = repository.commits.add(commit1)
+            val added2 = repository.commits.add(commit2)
+
+            assertAll(
+                "Verify deduplication",
+                { assertThat(commit1).isNotSameAs(commit2) },
+                { assertThat(repository.commits).hasSize(1) },
+                { assertThat(repository.commits.first()).isSameAs(commit1) },
+            )
+        }
+    }
+
+    @Nested
+    @DisplayName("Edge Cases and Boundary Conditions")
+    inner class EdgeCasesAndBoundaryConditions {
+        @Test
+        fun `create repository with 255 character long path, should succeed`() {
+            val longPath = "2".repeat(255)
+            val repository = Repository(
+                localPath = longPath, project = testProject
+            )
+
+            val created = repositoryPort.create(repository)
+
+            assertThat(created.localPath).isEqualTo(longPath)
+        }
+
+        @Test
+        fun `create repository with 256 character long path, should fail`() {
+            val longPath = "2".repeat(256)
+            val repository = Repository(
+                localPath = longPath, project = testProject
+            )
+
+            assertThrows<ConstraintViolationException> {
                 repositoryPort.create(repository)
             }
-
-            assertAll(
-                "check database numbers",
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-            )
         }
 
         @Test
-        fun `save repository with two commits, expecting in database`() {
-            val repository =
+        fun `create repository with special characters in path`() {
+            val specialPath = "/path/with-special_chars.@#$%/repo"
+            val repository = Repository(
+                localPath = specialPath, project = testProject
+            )
+
+            val created = repositoryPort.create(repository)
+
+            assertThat(created.localPath).isEqualTo(specialPath)
+        }
+
+        @Test
+        fun `create repository with complex commit graph`() {
+            val repository = Repository(
+                localPath = "/complex-graph/repo", project = testProject
+            )
+
+            // Create diamond-shaped commit graph
+            //     c1
+            //    /  \
+            //   c2  c3
+            //    \  /
+            //     c4
+            val c1 = createCommit(
+                sha = "1".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 10, 0),
+                message = "C1",
+                repository = repository
+            )
+            val c2 = createCommit(
+                sha = "2".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 2, 10, 0),
+                message = "C2",
+                repository = repository
+            )
+            val c3 = createCommit(
+                sha = "3".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 3, 10, 0),
+                message = "C3",
+                repository = repository
+            )
+            val c4 = createCommit(
+                sha = "4".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 4, 10, 0),
+                message = "C4",
+                repository = repository
+            )
+
+            c2.parents.add(c1)
+            c3.parents.add(c1)
+            c4.parents.addAll(listOf(c2, c3))
+
+            val created = repositoryPort.create(repository)
+
+            assertAll("Verify diamond graph structure", { assertThat(created.commits).hasSize(4) }, {
+                val commit1 = created.commits.find { it.sha == "1".repeat(40) }
+                assertThat(commit1?.children).hasSize(2)
+            }, {
+                val commit4 = created.commits.find { it.sha == "4".repeat(40) }
+                assertThat(commit4?.parents).hasSize(2)
+            })
+        }
+
+        @Test
+        fun `update repository with large number of commits`() {
+            val repository = repositoryPort.create(
                 Repository(
-                    localPath = "test repository",
-                    project = repositoryProject,
+                    localPath = "/large/repo", project = testProject
                 )
+            )
 
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-
-            repository.project = repositoryProject
-            val branch =
-                Branch(
-                    name = "test branch",
+            // Add 100 commits
+            repeat(100) { index ->
+                createCommit(
+                    sha = index.toString().padStart(40, '0'),
+                    commitDateTime = LocalDateTime.of(2024, 1, 1, 0, 0).plusMinutes(index.toLong()),
+                    message = "Commit $index",
                     repository = repository
                 )
-            val cmtA =
-                Commit(
-                    sha = "A".repeat(40),
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            branch.commits.add(cmtA)
-            val cmtB =
-                Commit(
-                    sha = "B".repeat(40),
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2024, 8, 13, 1, 1),
-                )
-            branch.commits.add(cmtB)
-            user.committedCommits.add(cmtA)
-            user.committedCommits.add(cmtB)
+            }
 
-            branch.commits.add(cmtA)
-            branch.commits.add(cmtB)
+            val updated = repositoryPort.update(repository)
 
-            repository.branches.add(branch)
-            repository.commits.addAll(listOf(cmtA, cmtB))
-            repository.user.add(user)
-
-            assertAll(
-                "check model",
-                { assertThat(branch.commits).hasSize(2) },
-                { assertThat(cmtA.branches).hasSize(1) },
-                { assertThat(cmtB.branches).hasSize(1) },
-                { assertThat(repository.branches).hasSize(1) },
-                { assertThat(repository.commits).hasSize(2) },
-                { assertThat(repository.user).hasSize(1) },
-            )
-
-            val savedEntity =
-                assertDoesNotThrow {
-                    repositoryPort.create(repository)
-                }
-
-            assertAll(
-                "check saved entity",
-                { assertThat(savedEntity.branches).hasSize(1) },
-                { assertThat(savedEntity.commits).hasSize(2) },
-            )
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(2) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-        }
-    }
-
-    @Nested
-    inner class UpdateOperations : BaseServiceTest() {
-        @Test
-        fun `save empty repository, update with two commits, one branch`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-            )
-            repository.project = repositoryProject
-
-            val branch =
-                Branch(
-                    name = "test branch",
-                    repository = repository,
-                )
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-            val cmtA =
-                Commit(
-                    sha = "A".repeat(40),
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            branch.commits.add(cmtA)
-            val cmtB =
-                Commit(
-                    sha = "B".repeat(40),
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2024, 8, 13, 1, 1),
-                )
-            branch.commits.add(cmtB)
-            user.committedCommits.add(cmtA)
-            user.committedCommits.add(cmtB)
-
-            branch.commits.addAll(listOf(cmtA, cmtB))
-
-            repository.branches.add(branch)
-            repository.commits.addAll(listOf(cmtA, cmtB))
-            repository.user.add(user)
-
-            assertAll(
-                "check model",
-                { assertThat(branch.commits).hasSize(2) },
-                { assertThat(repository.commits).hasSize(2) },
-                { assertThat(repository.branches).hasSize(1) },
-                { assertThat(repository.user).hasSize(1) },
-            )
-
-            val updatedEntity =
-                assertDoesNotThrow {
-                    repositoryPort.update(repository)
-                }
-            assertAll(
-                "Check updated entity",
-                { assertThat(updatedEntity.commits).hasSize(2) },
-                { assertThat(updatedEntity.branches).hasSize(1) },
-                { assertThat(updatedEntity.user).hasSize(1) },
-            )
-            assertThat(updatedEntity.branches.toList()[0].commits).hasSize(2)
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(2) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-
-            assertThat(repositoryPort.findAll().toList()[0])
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(updatedEntity)
+            assertThat(updated.commits).hasSize(100)
         }
 
         @Test
-        fun `save empty repository, update with one commit, no parent`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
+        fun `commit with null message is allowed`() {
+            val repository = Repository(
+                localPath = "/null-message/repo", project = testProject
+            )
+            val commit = createCommit(
+                sha = "e".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = null,
+                repository = repository
             )
 
-            val branch =
-                Branch(
-                    name = "test branch",
-                    repository = repository,
-                )
-            val cmt =
-                Commit(
-                    sha = "1234567890123456789012345678901234567890",
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            branch.commits.add(cmt)
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-            user.committedCommits.add(cmt)
-            branch.commits.add(cmt)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-            repository.user.add(user)
+            val created = repositoryPort.create(repository)
 
-            assertAll(
-                "Check model",
-                { assertThat(branch.commits).hasSize(1) },
-                { assertThat(repository.branches).hasSize(1) },
-                { assertThat(repository.commits).hasSize(1) },
-                { assertThat(repository.user).hasSize(1) },
-            )
-
-            val updatedEntity =
-                assertDoesNotThrow {
-                    repositoryPort.update(repository)
-                }
-            assertAll(
-                "Check updated entity",
-                { assertThat(updatedEntity.commits).hasSize(1) },
-                { assertThat(updatedEntity.branches).hasSize(1) },
-                { assertThat(updatedEntity.user).hasSize(1) },
-            )
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(1) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-
-            assertThat(repositoryPort.findAll().toList()[0])
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(updatedEntity)
+            assertThat(created.commits.first().message).isNull()
         }
 
         @Test
-        fun `save empty repository, update with one commit, one parent`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
+        fun `commit with empty string message is allowed`() {
+            val repository = Repository(
+                localPath = "/empty-message/repo", project = testProject
+            )
+            val commit = createCommit(
+                sha = "e".repeat(40),
+                commitDateTime = LocalDateTime.of(2024, 1, 1, 12, 0),
+                message = "",
+                repository = repository
             )
 
-            val branch =
-                Branch(
-                    name = "test branch",
-                    repository = repository,
-                )
-            val parent =
-                Commit(
-                    sha = "1".repeat(40),
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            branch.commits.add(parent)
-            val cmt =
-                Commit(
-                    sha = "c".repeat(40),
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            branch.commits.add(cmt)
-            cmt.parents.add(parent)
-//            parent.addChild(cmt)
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-            user.committedCommits.add(cmt)
-            user.committedCommits.add(parent)
-            branch.commits.add(cmt)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-            repository.user.add(user)
+            val created = repositoryPort.create(repository)
 
-            assertAll(
-                "Check model",
-                { assertThat(cmt.parents).hasSize(1) },
-                { assertThat(branch.commits).hasSize(2) },
-                { assertThat(repository.branches).hasSize(1) },
-                { assertThat(repository.commits).hasSize(1) },
-                { assertThat(repository.user).hasSize(1) },
-            )
-
-            val updatedEntity =
-                assertDoesNotThrow {
-                    repositoryPort.update(repository)
-                }
-            assertAll(
-                "Check updated entity",
-                { assertThat(updatedEntity.commits).hasSize(2) },
-                { assertThat(updatedEntity.branches).hasSize(1) },
-                { assertThat(updatedEntity.user).hasSize(1) },
-            )
-            assertAll(
-                "check child",
-                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.parents).hasSize(1) },
-                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.children).isEmpty() },
-            )
-            assertAll(
-                "check parent",
-                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.children).hasSize(1) },
-                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.parents).isEmpty() },
-            )
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(2) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-
-            assertThat(repositoryPort.findAll().toList()[0])
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(updatedEntity)
-        }
-
-        @Test
-        fun `save empty repository, update with one commit, two parents`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
-            )
-
-            val branch =
-                Branch(
-                    name = "test branch",
-                    repository = repository,
-                )
-            val parent1 =
-                Commit(
-                    sha = "1".repeat(40),
-                    message = "parent1",
-                    commitDateTime = LocalDateTime.of(2025, 6, 13, 1, 1),
-                )
-            branch.commits.add(parent1)
-            val parent2 =
-                Commit(
-                    sha = "2".repeat(40),
-                    message = "parent2",
-                    commitDateTime = LocalDateTime.of(2025, 6, 14, 1, 1),
-                )
-            branch.commits.add(parent2)
-            val cmt =
-                Commit(
-                    sha = "c".repeat(40),
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            branch.commits.add(cmt)
-            cmt.parents.addAll(mutableSetOf(parent1, parent2))
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-            user.committedCommits.add(cmt)
-            user.committedCommits.add(parent1)
-            user.committedCommits.add(parent2)
-            branch.commits.add(cmt)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-            repository.user.add(user)
-
-            assertAll(
-                "Check model",
-                { assertThat(cmt.parents).hasSize(2) },
-                { assertThat(branch.commits).hasSize(3) },
-                { assertThat(repository.branches).hasSize(1) },
-                { assertThat(repository.commits).hasSize(1) },
-                { assertThat(repository.user).hasSize(1) },
-            )
-
-            val updatedEntity =
-                assertDoesNotThrow {
-                    repositoryPort.update(repository)
-                }
-            assertAll(
-                "Check updated entity",
-                { assertThat(updatedEntity.commits).hasSize(3) },
-                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.parents).hasSize(2) },
-                { assertThat(updatedEntity.commits.find { it.sha == "c".repeat(40) }?.children).isEmpty() },
-                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.children).hasSize(1) },
-                { assertThat(updatedEntity.commits.find { it.sha == "1".repeat(40) }?.parents).isEmpty() },
-                { assertThat(updatedEntity.commits.find { it.sha == "2".repeat(40) }?.children).hasSize(1) },
-                { assertThat(updatedEntity.commits.find { it.sha == "2".repeat(40) }?.parents).isEmpty() },
-                { assertThat(updatedEntity.branches).hasSize(1) },
-                { assertThat(updatedEntity.user).hasSize(1) },
-            )
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(3) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-
-            assertThat(repositoryPort.findAll().toList()[0])
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(updatedEntity)
-        }
-
-        @Test
-        fun `save empty repository, update with one commit, update second time unchanged`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
-            )
-
-            val branch =
-                Branch(
-                    name = "test branch",
-                    repository = repository,
-                )
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-            val cmt =
-                Commit(
-                    sha = "1234567890123456789012345678901234567890",
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            branch.commits.add(cmt)
-            user.committedCommits.add(cmt)
-            branch.commits.add(cmt)
-            repository.branches.add(branch)
-            repository.commits.add(cmt)
-            repository.user.add(user)
-
-            assertDoesNotThrow {
-                repositoryPort.update(repository)
-            }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(1) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-
-            val updatedEntity =
-                assertDoesNotThrow {
-                    repositoryPort.update(repository)
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(1) },
-                { assertThat(branchPort.findAll()).hasSize(1) },
-                { assertThat(userPort.findAll()).hasSize(1) },
-            )
-
-            assertThat(repositoryPort.findAll().toList()[0])
-                .usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(updatedEntity)
-        }
-
-        @Test
-        fun `save empty repository, update with one commit, update again with new commit`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
-            )
-
-            val branch =
-                Branch(
-                    name = "test branch",
-                    repository = repository,
-                )
-
-            run {
-                val cmt =
-                    Commit(
-                        sha = "1234567890123456789012345678901234567890",
-                        message = "test commit",
-                        commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    )
-                branch.commits.add(cmt)
-                val user =
-                    User(
-                        name = "test",
-                        email = "test@example.com",
-                        repository = repository,
-                    )
-                user.committedCommits.add(cmt)
-                branch.commits.add(cmt)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
-
-                assertDoesNotThrow {
-                    repositoryPort.update(repository)
-                }
-
-                assertAll(
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-            }
-
-            run {
-                val cmt =
-                    Commit(
-                        sha = "B".repeat(40),
-                        message = "test commit 2",
-                        commitDateTime = LocalDateTime.of(2024, 1, 26, 1, 1),
-                    )
-                branch.commits.add(cmt)
-                val user =
-                    User(
-                        name = "test2",
-                        email = "test2@example.com",
-                        repository = repository,
-                    )
-                user.committedCommits.add(cmt)
-                branch.commits.add(cmt)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
-
-                val updatedEntity =
-                    assertDoesNotThrow {
-                        repositoryPort.update(repository)
-                    }
-
-                assertAll(
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(2) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(2) },
-                )
-
-                assertThat(repositoryPort.findAll().toList()[0])
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .isEqualTo(updatedEntity)
-            }
-        }
-
-        @Test
-        fun `save empty repository, update with two commits, two branches`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
-            )
-
-            run {
-                val branch =
-                    Branch(
-                        name = "test branch 1",
-                        repository = repository,
-                    )
-
-                val cmt =
-                    Commit(
-                        sha = "1234567890123456789012345678901234567890",
-                        message = "test commit",
-                        commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    )
-                branch.commits.add(cmt)
-                val user =
-                    User(
-                        name = "test",
-                        email = "test@example.com",
-                        repository = repository,
-                    )
-                user.committedCommits.add(cmt)
-                branch.commits.add(cmt)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
-
-                val updatedEntity =
-                    assertDoesNotThrow {
-                        repositoryPort.update(repository)
-                    }
-                assertAll(
-                    "Check updated entity",
-                    { assertThat(updatedEntity.commits).hasSize(1) },
-                    { assertThat(updatedEntity.branches).hasSize(1) },
-                    { assertThat(updatedEntity.user).hasSize(1) },
-                )
-
-                assertAll(
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-            }
-
-            run {
-                val branch =
-                    Branch(
-                        name = "test branch 2",
-                        repository = repository,
-                    )
-
-                val cmt =
-                    Commit(
-                        sha = "B".repeat(40),
-                        message = "test commit 2",
-                        commitDateTime = LocalDateTime.of(2024, 1, 26, 1, 1),
-                    )
-                branch.commits.add(cmt)
-                val user = // same as before
-                    User(
-                        name = "test",
-                        email = "test@example.com",
-                        repository = repository,
-                    )
-                user.committedCommits.add(cmt)
-                branch.commits.add(cmt)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
-
-                val updatedEntity =
-                    assertDoesNotThrow {
-                        repositoryPort.update(repository)
-                    }
-                assertAll(
-                    "Check updated entity",
-                    { assertThat(updatedEntity.commits).hasSize(2) },
-                    { assertThat(updatedEntity.branches).hasSize(2) },
-                    { assertThat(updatedEntity.user).hasSize(1) },
-                )
-
-                assertAll(
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(2) },
-                    { assertThat(branchPort.findAll()).hasSize(2) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-
-                assertThat(repositoryPort.findAll().toList()[0])
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .isEqualTo(updatedEntity)
-            }
-        }
-
-        @Test
-        fun `save empty repository, update with one commits, add new branch to commit`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                "Check database numbers",
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-            )
-
-            val cmt =
-                Commit(
-                    sha = "1234567890123456789012345678901234567890",
-                    message = "test commit",
-                    commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                )
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-            user.committedCommits.add(cmt)
-
-            run {
-                val branch =
-                    Branch(
-                        name = "test branch 1",
-                        repository = repository,
-                    )
-
-                cmt.branches.add(branch)
-                branch.commits.add(cmt)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-                repository.user.add(user)
-
-                assertAll(
-                    "check model",
-                    { assertThat(cmt.branches).hasSize(1) },
-                    { assertThat(branch.commits).hasSize(1) },
-                    { assertThat(repository.branches).hasSize(1) },
-                    { assertThat(repository.commits).hasSize(1) },
-                )
-
-                val updatedEntity =
-                    assertDoesNotThrow {
-                        repositoryPort.update(repository)
-                    }
-
-                assertAll(
-                    "check updated entity",
-                    { assertThat(updatedEntity.branches).hasSize(1) },
-                    { assertThat(updatedEntity.commits).hasSize(1) },
-                    { assertThat(updatedEntity.user).hasSize(1) },
-                )
-
-                assertAll(
-                    "Check database numbers",
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-            }
-
-            run {
-                val branch =
-                    Branch(
-                        name = "test branch 2",
-                        repository = repository,
-                    )
-
-                cmt.branches.add(branch)
-                branch.commits.add(cmt)
-                repository.branches.add(branch)
-                repository.commits.add(cmt)
-
-                assertAll(
-                    "check model",
-                    { assertThat(cmt.branches).hasSize(2) },
-                    { assertThat(branch.commits).hasSize(1) },
-                    { assertThat(repository.branches).hasSize(2) },
-                    { assertThat(repository.commits).hasSize(1) },
-                    { assertThat(repository.user).hasSize(1) },
-                )
-
-                val updatedEntity =
-                    assertDoesNotThrow {
-                        repositoryPort.update(repository)
-                    }
-                assertAll(
-                    "check updated entity",
-                    { assertThat(updatedEntity.branches).hasSize(2) },
-                    { assertThat(updatedEntity.commits).hasSize(1) },
-                    { assertThat(updatedEntity.commits.toList()[0].branches).hasSize(2) },
-                )
-
-                assertAll(
-                    "Check database numbers",
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(2) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-                assertThat(
-                    commitPort.findAll().toList()[0].branches,
-                ).hasSize(2)
-
-                assertThat(repositoryPort.findAll().toList()[0])
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .isEqualTo(updatedEntity)
-            }
-        }
-
-        @Test
-        fun `save empty repository, update with commit, update with same commit again`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                "Check database numbers",
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
-            )
-
-            val branch =
-                Branch(
-                    name = "test branch 1",
-                    repository = repository,
-                )
-            val user =
-                User(
-                    name = "test",
-                    email = "test@example.com",
-                    repository = repository,
-                )
-            run {
-                val cmt =
-                    Commit(
-                        sha = "1234567890123456789012345678901234567890",
-                        message = "test commit",
-                        commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    )
-                user.committedCommits.add(cmt)
-                assertAll(
-                    "Adding new commit",
-                    { assertTrue(branch.commits.add(cmt)) },
-                    { assertTrue(repository.branches.add(branch)) },
-                    { assertTrue(repository.commits.add(cmt)) },
-                    { assertFalse(repository.user.add(user)) },
-                )
-
-                assertDoesNotThrow {
-                    repositoryPort.update(repository)
-                }
-
-                assertAll(
-                    "Check database numbers",
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-            }
-
-            run {
-                val cmt =
-                    Commit(
-                        // same commit as above, but new object
-                        sha = "1234567890123456789012345678901234567890",
-                        message = "test commit",
-                        commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    )
-                branch.commits.add(cmt)
-                user.committedCommits.add(cmt)
-                assertAll(
-                    "Add same commit again, same hashCode",
-                    { assertFalse(branch.commits.add(cmt)) }, // sha already in
-                    { assertFalse(repository.branches.add(branch)) }, // branch already in
-                    { assertFalse(repository.commits.add(cmt)) }, // cmt is in based on hashCode
-                    { assertFalse(repository.user.add(user)) }, // user is in based on hashCode
-                )
-                assertThat(repository.commits).hasSize(1)
-                assertThat(repository.user).hasSize(1)
-
-                val savedRepo =
-                    assertDoesNotThrow {
-                        repositoryPort.update(repository)
-                    }
-
-                assertAll(
-                    "Check database numbers",
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-
-                assertThat(repositoryPort.findAll().toList()[0])
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .isEqualTo(savedRepo)
-            }
-        }
-
-        @Test
-        fun `save empty repository, update with commit, update with same commit again but changed`() {
-            val repository =
-                assertDoesNotThrow {
-                    repositoryPort.create(
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        ),
-                    )
-                }
-
-            assertAll(
-                "Check database numbers",
-                { assertThat(projectPort.findAll()).hasSize(1) },
-                { assertThat(repositoryPort.findAll()).hasSize(1) },
-                { assertThat(commitPort.findAll()).hasSize(0) },
-                { assertThat(branchPort.findAll()).hasSize(0) },
-                { assertThat(userPort.findAll()).hasSize(0) },
-            )
-
-            val branch =
-                Branch(
-                    name = "test branch 1",
-                    repository = repository,
-                )
-            val savedRepo = run {
-                val cmt =
-                    Commit(
-                        sha = "1234567890123456789012345678901234567890",
-                        message = "test commit",
-                        commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    )
-                val user =
-                    User(
-                        name = "test",
-                        email = "test@example.com",
-                        repository = repository,
-                    )
-                user.committedCommits.add(cmt)
-
-                assertAll(
-                    "Adding new commit",
-                    { assertTrue(branch.commits.add(cmt)) },
-                    { assertTrue(repository.branches.add(branch)) },
-                    { assertTrue(repository.commits.add(cmt)) },
-                    { assertFalse(repository.user.add(user)) },
-                )
-
-                val savedRepo =
-                    assertDoesNotThrow {
-                        repositoryPort.update(repository)
-                    }
-
-                assertAll(
-                    "Check database numbers",
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-
-                assertThat(repositoryPort.findAll().toList()[0])
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .isEqualTo(savedRepo)
-
-                return@run savedRepo
-            }
-
-            run {
-                val cmt =
-                    Commit(
-                        sha = "1234567890123456789012345678901234567890",
-                        message = "msg changed", // message property changed!
-                        commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                    )
-                branch.commits.add(cmt)
-                assertAll(
-                    "Add same commit again, same hashCode",
-                    { assertFalse(branch.commits.add(cmt)) }, // sha already in
-                    { assertFalse(repository.branches.add(branch)) }, // branch already in
-                    { assertFalse(repository.commits.add(cmt)) }, // cmt is in based on hashCode, changed message
-                )
-                assertThat(repository.commits).hasSize(1)
-
-                val updatedRepo =
-                    assertDoesNotThrow {
-                        repositoryPort.update(savedRepo)
-                    }
-
-                assertAll(
-                    "Check database numbers",
-                    { assertThat(projectPort.findAll()).hasSize(1) },
-                    { assertThat(repositoryPort.findAll()).hasSize(1) },
-                    { assertThat(commitPort.findAll()).hasSize(1) },
-                    { assertThat(branchPort.findAll()).hasSize(1) },
-                    { assertThat(userPort.findAll()).hasSize(1) },
-                )
-                assertThat(repositoryPort.findAll().toList()[0])
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .isEqualTo(updatedRepo)
-            }
-        }
-
-        @Test
-        fun `save repository with two commits, remove commit and update`() {
-            val savedRepo =
-                run {
-                    val repository =
-                        Repository(
-                            localPath = "test repository",
-                            project = repositoryProject,
-                        )
-                    val user =
-                        User(
-                            name = "test",
-                            email = "test@example.com",
-                            repository = repository,
-                        )
-                    val branch =
-                        Branch(
-                            name = "test branch 1",
-                            repository = repository,
-                        )
-
-                    val cmtA =
-                        Commit(
-                            sha = "A".repeat(40),
-                            message = "test commit",
-                            commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
-                        )
-                    branch.commits.add(cmtA)
-                    val cmtB =
-                        Commit(
-                            sha = "B".repeat(40),
-                            message = "test commit",
-                            commitDateTime = LocalDateTime.of(2024, 8, 13, 1, 1),
-                        )
-                    branch.commits.add(cmtB)
-                    user.committedCommits.add(cmtA)
-                    user.committedCommits.add(cmtB)
-
-                    branch.commits.add(cmtA)
-                    branch.commits.add(cmtB)
-                    repository.branches.add(branch)
-                    repository.commits.add(cmtA)
-                    repository.commits.add(cmtB)
-                    repository.user.add(user)
-
-                    assertAll(
-                        "check model",
-                        { assertThat(branch.commits).hasSize(2) },
-                        { assertThat(cmtA.branches).hasSize(1) },
-                        { assertThat(cmtB.branches).hasSize(1) },
-                        { assertThat(repository.branches).hasSize(1) },
-                        { assertThat(repository.commits).hasSize(2) },
-                        { assertThat(repository.user).hasSize(1) },
-                    )
-
-                    val updatedEntity =
-                        assertDoesNotThrow {
-                            repositoryPort.create(repository)
-                        }
-                    assertAll(
-                        "Check created entity",
-                        { assertThat(updatedEntity.commits).hasSize(2) },
-                        { assertThat(updatedEntity.branches).hasSize(1) },
-                    )
-
-                    assertAll(
-                        { assertThat(projectPort.findAll()).hasSize(1) },
-                        { assertThat(repositoryPort.findAll()).hasSize(1) },
-                        { assertThat(commitPort.findAll()).hasSize(2) },
-                        { assertThat(branchPort.findAll()).hasSize(1) },
-                        { assertThat(userPort.findAll()).hasSize(1) },
-                    )
-
-                    return@run updatedEntity
-                }
-
-            val updatedRepo =
-                run {
-                    assertDoesNotThrow {
-                        savedRepo.removeCommitBySha("A".repeat(40))
-                    }
-                    assertThat(savedRepo.commits).hasSize(1)
-                    assertThat(savedRepo.branches).hasSize(1)
-                    assertThat(savedRepo.user).hasSize(1)
-                    assertThat(savedRepo.branches.toList()[0].commits).hasSize(1)
-
-                    val updatedRepo =
-                        assertDoesNotThrow {
-                            return@assertDoesNotThrow repositoryPort.update(savedRepo)
-                        }
-
-                    assertThat(updatedRepo.commits).hasSize(1)
-                    assertThat(updatedRepo.branches).hasSize(1)
-                    assertThat(updatedRepo.user).hasSize(1)
-                    assertThat(updatedRepo.branches.toList()[0].commits).hasSize(1)
-
-                    return@run updatedRepo
-                }
-
-            assertThat(updatedRepo.commits).hasSize(1)
-            assertThat(updatedRepo.branches).hasSize(1)
-            assertThat(updatedRepo.user).hasSize(1)
-            assertThat(commitPort.findAll()).hasSize(1)
-            assertThat(userPort.findAll()).hasSize(1)
+            assertThat(created.commits.first().message).isEmpty()
         }
     }
 }

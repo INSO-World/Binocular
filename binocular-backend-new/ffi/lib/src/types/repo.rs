@@ -1,12 +1,13 @@
-use std::path::{Path, PathBuf};
-use gix::remote::Direction;
-use gix::Remote;
+use crate::types::remote::GixRemote;
+use crate::types::UniffiError;
+use gix::ThreadSafeRepository;
+use std::path::PathBuf;
 
 #[derive(Debug, uniffi::Record)]
-pub struct BinocularRepository {
+pub struct GixRepository {
     pub git_dir: String,
     pub work_tree: Option<String>,
-    pub origin: Option<RepositoryRemote>,
+    pub remotes: Vec<GixRemote>,
 }
 
 uniffi::custom_type!(PathBuf, String, {
@@ -15,31 +16,15 @@ uniffi::custom_type!(PathBuf, String, {
     try_lift: |r| Ok(PathBuf::from(r)),
 });
 
-#[derive(Debug, uniffi::Record)]
-pub struct RepositoryRemote {
-    pub name: Option<String>,
-    pub url: Option<String>,
-    pub path: Option<String>,
-}
+impl TryFrom<GixRepository> for ThreadSafeRepository {
+    type Error = UniffiError;
 
-impl From<Remote<'_>> for RepositoryRemote {
-    fn from(remote: Remote) -> Self {
-        let remote_url = remote
-            .url(Direction::Push)
-            .or_else(|| remote.url(Direction::Fetch));
-        RepositoryRemote {
-            name: remote.name().map(|s| s.as_bstr().to_string()),
-            url: remote_url.and_then(|e| e.host().map(|h| h.to_string())),
-            path: remote_url.and_then(|e| Option::from(e.path.to_string())),
-        }
+    fn try_from(gix_repo: GixRepository) -> Result<Self, Self::Error> {
+        discover_repo(gix_repo.git_dir)
     }
 }
 
-// uniffi::custom_type!(ThreadSafeRepository, BinocularRepository, {
-//     remote,
-//     lower: move |r| BinocularRepository {
-//
-//         git_dir: r.refs.git_dir().display().to_string()
-//     },
-//     try_lift: |r| Ok(gix::ThreadSafeRepository::discover(r.git_dir)?),
-// });
+pub fn discover_repo(path: String) -> Result<ThreadSafeRepository, UniffiError> {
+    ThreadSafeRepository::discover(path)
+        .map_err(|e| UniffiError::GixDiscoverError(e.to_string()))
+}

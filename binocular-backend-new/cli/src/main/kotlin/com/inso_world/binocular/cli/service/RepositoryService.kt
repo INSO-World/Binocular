@@ -1,9 +1,9 @@
 package com.inso_world.binocular.cli.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.slf4j.Logger
@@ -15,7 +15,7 @@ import java.nio.file.Paths
 @Service
 class RepositoryService {
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(RepositoryService::class.java)
+        private val logger by logger()
     }
 
     @Autowired
@@ -36,28 +36,27 @@ class RepositoryService {
         commits: Iterable<Commit>,
     ): Collection<Commit> {
         // --- canonical indexes from repository state
-        val commitsByKey = repo.commits.associateByTo(mutableMapOf<String, Commit>()) { it.uniqueKey() }
-        val usersByKey = repo.user.associateByTo(mutableMapOf<String, User>()) { it.uniqueKey() }
+        val commitsByKey = repo.commits.associateByTo(mutableMapOf<Commit.Key, Commit>()) { it.uniqueKey }
+        val usersByKey = repo.user.associateByTo(mutableMapOf<User.Key, User>()) { it.uniqueKey }
         val usersByEmail =
             repo.user
                 .mapNotNull { u -> normalizeEmail(u.email)?.let { it to u } }
                 .toMap(mutableMapOf())
 
-        val branchesByKey = repo.branches.associateByTo(mutableMapOf<String, Branch>()) { it.uniqueKey() }
+        val branchesByKey = repo.branches.associateByTo(mutableMapOf<Branch.Key, Branch>()) { it.uniqueKey }
 
         // --- seed indexes with any pre-attached users on incoming commits
         commits.forEach { c ->
             listOf(c.author, c.committer).forEach { u ->
                 if (u != null) {
-                    u.repository = repo
-                    usersByKey.putIfAbsent(u.uniqueKey(), u)
+                    usersByKey.putIfAbsent(u.uniqueKey, u)
                     normalizeEmail(u.email)?.let { usersByEmail.putIfAbsent(it, u) }
                 }
             }
         }
 
         fun canonicalizeCommit(incoming: Commit): Commit {
-            val key = incoming.uniqueKey()
+            val key = incoming.uniqueKey
             val existing = commitsByKey[key]
             if (existing != null) return existing
 
@@ -69,10 +68,9 @@ class RepositoryService {
 
         fun canonicalizeUser(u: User?): User? {
             if (u == null) return null
-            u.repository = repo
 
             // 1) prefer uniqueKey match
-            usersByKey[u.uniqueKey()]?.let { return it }
+            usersByKey[u.uniqueKey]?.let { return it }
 
             // 2) coalesce by email (case-insensitive)
             normalizeEmail(u.email)?.let { em ->
@@ -81,17 +79,16 @@ class RepositoryService {
 
             // 3) no match — register new canonical instance
             repo.user.add(u)
-            usersByKey[u.uniqueKey()] = u
+            usersByKey[u.uniqueKey] = u
             normalizeEmail(u.email)?.let { usersByEmail[it] = u }
             return u
         }
 
         fun canonicalizeBranch(b: Branch?): Branch? {
             if (b == null) return null
-            b.repository = repo
-            return branchesByKey[b.uniqueKey()] ?: run {
+            return branchesByKey[b.uniqueKey] ?: run {
                 repo.branches.add(b)
-                branchesByKey[b.uniqueKey()] = b
+                branchesByKey[b.uniqueKey] = b
                 b
             }
         }
@@ -104,12 +101,12 @@ class RepositoryService {
             if (target == null) return
             val current = c.author
             if (current === target) return
-            if (current != null && sameEmail(current, target)) {
-                // migrate to canonical: remove old back-link, then use setter
-                current.authoredCommits.remove(c)
-                // clear via reflection to allow setter without violating guard
-                setField(c, "author", null)
-            }
+//            if (current != null && sameEmail(current, target)) {
+//                // migrate to canonical: remove old back-link, then use setter
+//                current.authoredCommits.remove(c)
+//                // clear via reflection to allow setter without violating guard
+//                setField(c, "author", null)
+//            }
             if (c.author == null) c.author = target
         }
 
@@ -120,11 +117,11 @@ class RepositoryService {
             if (target == null) return
             val current = c.committer
             if (current === target) return
-            if (current != null && sameEmail(current, target)) {
-                current.committedCommits.remove(c)
-                setField(c, "committer", null)
-            }
-            if (c.committer == null) c.committer = target
+//            if (current != null && sameEmail(current, target)) {
+//                current.committedCommits.remove(c)
+//                setField(c, "committer", null)
+//            }
+//            if (c.committer == null) c.committer = target
         }
 
         // --- pass 1: ensure every commit has a canonical instance
@@ -150,9 +147,9 @@ class RepositoryService {
             forceSetAuthor(c, unifiedByEmail ?: authorCanon)
             forceSetCommitter(c, unifiedByEmail ?: committerCanon)
 
-            raw.branches.forEach { bRaw ->
-                canonicalizeBranch(bRaw)?.commits?.add(c)
-            }
+//            raw.branches.forEach { bRaw ->
+//                canonicalizeBranch(bRaw)?.commits?.add(c)
+//            }
         }
 
         // --- pass 3: parents / children
@@ -182,16 +179,6 @@ class RepositoryService {
     ): Boolean =
         normalizeEmail(a.email) != null &&
             normalizeEmail(a.email) == normalizeEmail(b.email)
-
-    private fun <T> setField(
-        target: Any,
-        fieldName: String,
-        value: T?,
-    ) {
-        val f = target.javaClass.getDeclaredField(fieldName)
-        f.isAccessible = true
-        f.set(target, value)
-    }
 
     private fun normalizePath(path: String): String =
         (if (path.endsWith(".git")) path else "$path/.git").let {
@@ -225,9 +212,9 @@ class RepositoryService {
     //    @Transactional
     fun addCommits(
         repo: Repository,
-        commitDtos: Collection<Commit>,
+        commits: Collection<Commit>,
     ): Repository {
-        val existingCommitEntities = this.commitService.checkExisting(repo, commitDtos)
+        val existingCommitEntities = this.commitService.checkExisting(repo, commits)
 
         logger.debug("Existing commits: ${existingCommitEntities.first.count()}")
         logger.trace("New commits to add: ${existingCommitEntities.second.count()}")
@@ -245,11 +232,12 @@ class RepositoryService {
 
             val newRepo = update(repo)
 
-            logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${repo.project?.name}")
+            logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${repo.project.name}")
             return newRepo
         } else {
             logger.info("No new commits were found, skipping update")
             return repo
         }
     }
+
 }

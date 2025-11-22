@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class CommitBuildConnectionDao
+internal class CommitBuildConnectionDao
     @Autowired
     constructor(
         private val repository: CommitBuildConnectionRepository,

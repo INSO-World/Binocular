@@ -1,0 +1,311 @@
+package com.inso_world.binocular.infrastructure.sql.assembler
+
+import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
+import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.RemoteMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
+import org.springframework.stereotype.Component
+
+/**
+ * Assembler for the Repository aggregate.
+ *
+ * Orchestrates the complete mapping of Repository aggregate including all owned entities
+ * (Commits, Branches, Users) while maintaining a reference to its parent Project aggregate.
+ * Repository is a secondary aggregate owned by Project, responsible for all SCM-related data.
+ *
+ * ## Aggregate Structure
+ * ```
+ * Repository (Secondary Aggregate, owned by Project)
+ *   ├── Commit* (owned children)
+ *   │     ├── parents → Commit* (graph relationships)
+ *   │     └── children → Commit* (graph relationships)
+ *   ├── Branch* (owned children)
+ *   ├── User* (owned children)
+ *   └── → Project (parent aggregate reference)
+ * ```
+ *
+ * ## Responsibilities
+ * - Convert Repository domain to RepositoryEntity using RepositoryMapper
+ * - Orchestrate mapping of all child entities (Commits, Branches, Users)
+ * - Wire bidirectional relationships within the aggregate:
+ *   - Commit author/committer relationships
+ *   - Commit parent/child graph relationships (two-pass assembly)
+ *   - Branch head references
+ * - Manage parent Project reference (creates minimal reference if not in context)
+ * - Coordinate with MappingContext to ensure identity preservation
+ *
+ * ## Design Principles
+ * - **Identity Preservation**: Returns identity-preserving objects for all children
+ * - **Aggregate Boundaries**: Does NOT fully build parent Project when assembled standalone
+ * - **Parent Reference**: If Project not in context, creates minimal Project structure (no Repository child)
+ * - **Top-Down Mapping**: Repository controls mapping of its owned children
+ * - **Two-Pass Graph Assembly**: Commits mapped first, then parent/child relationships wired second
+ * - **Context-Aware**: Uses MappingContext for identity map pattern
+ * - **Separation of Concerns**: Mappers do simple conversion, assembler orchestrates
+ *
+ * ## Usage Scenarios
+ *
+ * ### Scenario 1: Assembled via ProjectAssembler (typical)
+ * ```kotlin
+ * // Project is root aggregate, assembles everything
+ * val projectEntity = projectAssembler.toEntity(project)
+ * // Project is already in context when Repository is assembled
+ * ```
+ *
+ * ### Scenario 2: Assembled standalone
+ * ```kotlin
+ * // Repository assembled independently (e.g., for partial updates)
+ * val repositoryEntity = repositoryAssembler.toEntity(repository)
+ * // Creates minimal Project reference, doesn't build full Project aggregate
+ * ```
+ */
+@Component
+internal class RepositoryAssembler {
+    companion object {
+        private val logger by logger()
+    }
+
+    @Autowired
+    private lateinit var repositoryMapper: RepositoryMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var commitMapper: CommitMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var branchMapper: BranchMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var userMapper: UserMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var remoteMapper: RemoteMapper
+
+    @Autowired
+    private lateinit var projectMapper: ProjectMapper
+
+    @Autowired
+    private lateinit var ctx: MappingContext
+
+    /**
+     * Assembles a complete RepositoryEntity from a Repository domain aggregate.
+     *
+     * This method assembles the Repository and all its owned children (Commits, Branches, Users)
+     * with full identity preservation. It ensures a Project reference exists but does NOT
+     * fully build the parent Project aggregate when assembled standalone.
+     *
+     * ## Process
+     * 1. Check if Repository already assembled (identity preservation)
+     * 2. Ensure Project reference exists in context:
+     *    - If found: reuse existing (typical when called via ProjectAssembler)
+     *    - If not found: create minimal Project structure without Repository child
+     * 3. Map Repository structure using RepositoryMapper
+     * 4. Map all Commits (first pass):
+     *    - Convert Commit → CommitEntity using CommitMapper
+     *    - Wire author/committer relationships
+     *    - Add to RepositoryEntity
+     * 5. Wire commit parent/child relationships (second pass):
+     *    - Lookup all commits in MappingContext
+     *    - Wire bidirectional parent/child graph
+     * 6. Map all Branches and wire to RepositoryEntity
+     *
+     * @param domain The Repository domain aggregate to assemble
+     * @return The fully assembled RepositoryEntity with all children and identity preservation
+     */
+    fun toEntity(domain: Repository): RepositoryEntity {
+        logger.debug("Assembling RepositoryEntity for repository: ${domain.localPath}")
+
+        // Fast-path: Check if already assembled (identity preservation)
+        ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)?.let {
+            logger.trace("Repository already in context, returning cached entity")
+            return it
+        }
+
+        // Ensure Project reference exists in context (but don't assemble Repository child)
+        val projectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+            ?: run {
+                logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
+                projectMapper.toEntity(domain.project)
+            }
+
+        logger.trace("Project reference in context: id=${projectEntity.id}")
+
+        // Phase 1: Map Repository structure (without children)
+        val entity = repositoryMapper.toEntity(domain)
+        logger.trace("Mapped Repository structure: id=${entity.id}")
+
+        // Phase 2: Map and wire Commits (first pass: structure + author/committer)
+        logger.trace("Mapping ${domain.commits.size} commits")
+        domain.commits.forEach { commit ->
+            val commitEntity = commitMapper.toEntity(commit)
+            entity.commits.add(commitEntity)
+
+            // Map commit authors and committers
+            commit.author?.let { author ->
+                val authorEntity = userMapper.toEntity(author)
+                commitEntity.author = authorEntity
+                entity.user.add(authorEntity)
+            }
+
+            val committer = commit.committer
+            val committerEntity = userMapper.toEntity(committer)
+            commitEntity.committer = committerEntity
+            entity.user.add(committerEntity)
+        }
+
+        // Phase 2b: Wire parent/child commit relationships (second pass)
+        logger.trace("Wiring parent/child relationships for ${domain.commits.size} commits")
+        domain.commits.forEach { commit ->
+            val commitEntity = ctx.findEntity<Commit.Key, Commit, CommitEntity>(commit)
+                ?: throw IllegalStateException("CommitEntity for ${commit.sha} must be in context")
+
+            commit.parents.forEach { parentCommit ->
+                val parentEntity = ctx.findEntity<Commit.Key, Commit, CommitEntity>(parentCommit)
+                    ?: throw IllegalStateException("Parent CommitEntity for ${parentCommit.sha} must be in context")
+
+                // Wire bidirectional relationship (only if not already present)
+                if (!commitEntity.parents.contains(parentEntity)) {
+                    commitEntity.parents.add(parentEntity)
+                    parentEntity.children.add(commitEntity)
+                }
+            }
+        }
+
+        // Phase 3: Map and wire Branches
+        logger.trace("Mapping ${domain.branches.size} branches")
+        domain.branches.forEach { branch ->
+            val branchEntity = branchMapper.toEntity(branch)
+            entity.branches.add(branchEntity)
+        }
+
+        // Phase 4: Map and wire Remotes
+        logger.trace("Mapping ${domain.remotes.size} remotes")
+        domain.remotes.forEach { remote ->
+            val remoteEntity = remoteMapper.toEntity(remote)
+            entity.remotes.add(remoteEntity)
+        }
+
+        logger.debug(
+            "Assembled RepositoryEntity: id=${entity.id}, " +
+                    "commits=${entity.commits.size}, branches=${entity.branches.size}, remotes=${entity.remotes.size}, users=${entity.user.size}"
+        )
+
+        return entity
+    }
+
+    /**
+     * Assembles a complete Repository domain aggregate from a RepositoryEntity.
+     *
+     * This method assembles the Repository and all its owned children (Commits, Branches, Users)
+     * with full identity preservation. It ensures a Project reference exists but does NOT
+     * fully build the parent Project aggregate when assembled standalone.
+     *
+     * ## Process
+     * 1. Check if Repository already assembled (identity preservation)
+     * 2. Ensure Project reference exists in context:
+     *    - If found: reuse existing (typical when called via ProjectAssembler)
+     *    - If not found: create minimal Project structure without Repository child
+     * 3. Map Repository structure using RepositoryMapper
+     * 4. Map all Commits (first pass):
+     *    - Convert CommitEntity → Commit using CommitMapper
+     *    - Wire author/committer relationships
+     *    - Add to Repository
+     * 5. Wire commit parent/child relationships (second pass):
+     *    - Lookup all commits in MappingContext
+     *    - Wire bidirectional parent/child graph
+     *    - Note: Domain Commit.parents.add() automatically maintains bidirectionality
+     * 6. Map all BranchEntities to Branches and add to Repository
+     *
+     * @param entity The RepositoryEntity to convert
+     * @return The fully assembled Repository domain aggregate with identity preservation
+     */
+    fun toDomain(entity: RepositoryEntity): Repository {
+        logger.debug("Assembling Repository domain for entity id=${entity.id}")
+
+        // Fast-path: Check if already assembled (identity preservation)
+        ctx.findDomain<Repository, RepositoryEntity>(entity)?.let {
+            logger.trace("Repository already in context, returning cached domain")
+            return it
+        }
+
+        // Ensure Project reference exists in context (but don't assemble Repository child)
+        val project = ctx.findDomain<Project, ProjectEntity>(entity.project)
+            ?: run {
+                logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
+                projectMapper.toDomain(entity.project)
+            }
+
+        logger.trace("Project reference in context: ${project.name}")
+
+        // Phase 2: Map Repository structure
+        val domain = repositoryMapper.toDomain(entity)
+        logger.trace("Mapped Repository structure: ${domain.localPath}")
+
+        // Phase 3: Map and wire Commits (first pass: structure + author/committer)
+        logger.trace("Mapping ${entity.commits.size} commits")
+        entity.commits.forEach { commitEntity ->
+            // Note: commitMapper.toDomain now automatically maps the committer (required in constructor)
+            val commit = commitMapper.toDomain(commitEntity)
+            domain.commits.add(commit)
+
+            // Map commit author if present (author is optional and mutable)
+            commitEntity.author?.let { authorEntity ->
+                commit.author = userMapper.toDomain(authorEntity)
+            }
+        }
+
+        // Phase 3b: Wire parent/child commit relationships (second pass)
+        logger.trace("Wiring parent/child relationships for ${entity.commits.size} commits")
+        entity.commits.forEach { commitEntity ->
+            val commit = ctx.findDomain<Commit, CommitEntity>(commitEntity)
+                ?: throw IllegalStateException("Commit for ${commitEntity.sha} must be in context")
+
+            commitEntity.parents.forEach { parentEntity ->
+                val parentCommit = ctx.findDomain<Commit, CommitEntity>(parentEntity)
+                    ?: throw IllegalStateException("Parent Commit for ${parentEntity.sha} must be in context")
+
+                // Wire bidirectional relationship (only if not already present)
+                if (!commit.parents.contains(parentCommit)) {
+                    commit.parents.add(parentCommit)
+                    // Note: add() on commit.parents automatically adds to parentCommit.children
+                }
+            }
+        }
+
+        // Phase 4: Map and wire Branches
+        logger.trace("Mapping ${entity.branches.size} branches")
+        entity.branches.forEach { branchEntity ->
+            val branch = branchMapper.toDomain(branchEntity)
+            domain.branches.add(branch)
+        }
+
+        // Phase 5: Map and wire Remotes
+        logger.trace("Mapping ${entity.remotes.size} remotes")
+        entity.remotes.forEach { remoteEntity ->
+            val remote = remoteMapper.toDomain(remoteEntity)
+            domain.remotes.add(remote)
+        }
+
+        logger.debug(
+            "Assembled Repository domain: ${domain.localPath}, " +
+                    "commits=${domain.commits.size}, branches=${domain.branches.size}, remotes=${domain.remotes.size}"
+        )
+
+        return domain
+    }
+}

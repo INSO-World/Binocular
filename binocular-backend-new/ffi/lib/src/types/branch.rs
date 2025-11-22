@@ -1,16 +1,23 @@
-use gix::Reference;
+use gix::bstr::BString;
+use gix::refs::FullName;
+use gix::ObjectId;
+use crate::types::reference::GixReferenceCategory;
 
-#[derive(Debug, uniffi::Record)]
-pub struct BinocularBranch {
+#[derive(Eq, PartialEq, Hash, Debug, uniffi::Record)]
+pub struct GixBranch {
+    pub full_name: FullName,
     pub name: String,
-    pub commits: Vec<String>,
+    pub target: ObjectId,
+    pub category: GixReferenceCategory,
 }
 
-impl From<Reference<'_>> for BinocularBranch {
-    fn from(reference: Reference) -> Self {
-        Self {
-            name: reference.name().as_bstr().to_string(),
-            commits: vec![],
-        }
-    }
-}
+uniffi::custom_type!(FullName, BString, {
+    remote,
+    // Lowering our Rust SerializableStruct into a String.
+    lower: |s| s.into_inner(),
+    // Lifting our foreign String into our Rust SerializableStruct
+    try_lift: |s| {
+        let a = FullName::try_from(s)?;
+        Ok(a)
+    },
+});

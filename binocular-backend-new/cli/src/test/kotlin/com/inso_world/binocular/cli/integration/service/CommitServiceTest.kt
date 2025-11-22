@@ -6,6 +6,7 @@ import com.inso_world.binocular.cli.service.CommitService
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,9 +15,9 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.annotation.Transactional
 
-internal class CommitServiceTest private constructor(
-    @all:Autowired private val commitService: CommitService,
-    @all:Autowired private val commitDao: CommitInfrastructurePort,
+internal class CommitServiceTest @Autowired constructor(
+    private val commitService: CommitService,
+    private val commitDao: CommitInfrastructurePort,
 ) : BaseServiceTest() {
     @BeforeEach
     fun setup() {
@@ -56,18 +57,19 @@ internal class CommitServiceTest private constructor(
 
     @Test
     fun `check existing commits, passing head commit list, expect 1 existing commit`() {
+        val committer = simpleRepo.user.firstOrNull() ?: User(name = "Test Committer", repository = simpleRepo).apply { email = "committer@test.com" }
         val exitingHeadCommits =
             Commit(
-                id = null,
                 sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", // head of simple
                 message = "",
-                branch = "",
-//                committer = null,
-//                author = null,
                 commitDateTime = null,
                 authorDateTime = null,
-//                parents = mutableSetOf(),
-            )
+                repository = simpleRepo,
+                committer = committer,
+            ).apply {
+                id = null
+                branch = ""
+            }
         val existing = commitService.checkExisting(this.simpleRepo, listOf(exitingHeadCommits))
 
         assertAll(
@@ -79,28 +81,29 @@ internal class CommitServiceTest private constructor(
 
     @Test
     fun `check existing commits, passing new commit and existing, expect 1 new commit, 1 missing`() {
+        val committer = simpleRepo.user.firstOrNull() ?: User(name = "Test Committer", repository = simpleRepo).apply { email = "committer@test.com" }
         val headOfOctoRepo =
             Commit(
                 sha = "ed167f854e871a1566317302c158704f71f8d16c", // imported branch of octo repo
                 message = "",
-                branch = "",
-//                committer = null,
-//                author = null,
                 commitDateTime = null,
                 authorDateTime = null,
-//                parents = mutableSetOf(),
-            )
+                repository = simpleRepo,
+                committer = committer,
+            ).apply {
+                branch = ""
+            }
         val headOfSimpleRepo =
             Commit(
                 sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", // head of simple
                 message = "",
-                branch = "",
-//                committer = null,
-//                author = null,
                 commitDateTime = null,
                 authorDateTime = null,
-//                parents = mutableSetOf(),
-            )
+                repository = simpleRepo,
+                committer = committer,
+            ).apply {
+                branch = ""
+            }
         val existing = commitService.checkExisting(this.simpleRepo, listOf(headOfSimpleRepo, headOfOctoRepo))
 
         assertAll(
@@ -113,17 +116,18 @@ internal class CommitServiceTest private constructor(
 
     @Test
     fun `check existing commits, passing new commit, expect 1 new commit`() {
+        val committer = simpleRepo.user.firstOrNull() ?: User(name = "Test Committer", repository = simpleRepo).apply { email = "committer@test.com" }
         val exitingHeadCommits =
             Commit(
                 sha = "ed167f854e871a1566317302c158704f71f8d16c", // imported branch of octo repo
                 message = "",
-                branch = "",
-//                committer = null,
-//                author = null,
                 commitDateTime = null,
                 authorDateTime = null,
-//                parents = mutableSetOf(),
-            )
+                repository = simpleRepo,
+                committer = committer,
+            ).apply {
+                branch = ""
+            }
         val existing = commitService.checkExisting(this.simpleRepo, listOf(exitingHeadCommits))
 
         assertAll(
@@ -146,7 +150,7 @@ internal class CommitServiceTest private constructor(
     @Test
     fun `find all commits invalid repo`() {
         assertThrows<ServiceException> {
-            this.commitService.findAll(Repository(id = null, localPath = "invalid", project = simpleProject))
+            this.commitService.findAll(Repository(localPath = "invalid", project = simpleProject))
         }
     }
 }

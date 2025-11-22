@@ -1,20 +1,25 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Reference
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
-import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import org.hibernate.annotations.BatchSize
 
 /**
  * SQL-specific Branch entity.
@@ -28,65 +33,65 @@ import org.hibernate.annotations.BatchSize
     ],
 )
 internal data class BranchEntity(
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    var id: Long? = null,
     @Column(nullable = false)
     val name: String,
-    @BatchSize(size = 256)
-    @ManyToMany(mappedBy = "branches", fetch = FetchType.LAZY, cascade = [])
-    val commits: MutableSet<CommitEntity> = mutableSetOf(),
+    @Column(name = "full_name", nullable = false)
+    val fullName: String,
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 64)
+    val category: ReferenceCategory,
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "fk_commit_id", nullable = false, updatable = true)
+    val head: CommitEntity,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
-    var repository: RepositoryEntity? = null,
-) : AbstractEntity() {
-    @PreRemove
-    fun preRemove() {
-//        this.repository?.branches?.remove(this)
-//        this.repository = null
+    val repository: RepositoryEntity,
+    @Column(nullable = false, updatable = false, unique = true)
+    @Convert(KotlinUuidConverter::class)
+    val iid: Reference.Id
+) : AbstractEntity<Long, BranchEntity.Key>() {
+    data class Key(val repositoryIid: Repository.Id, val name: String)
+
+    init {
+        repository.branches.add(this)
     }
 
-    fun addCommit(commit: CommitEntity) {
-        this.commits.add(commit)
-        commit.branches.add(this)
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    override var id: Long? = null
 
-    fun toDomain(): Branch =
+    fun toDomain(repository: Repository, head: Commit): Branch =
         Branch(
-            id = this.id?.toString(),
             name = this.name,
-            repository = null,
-        )
+            fullName = this.fullName,
+            category = this.category,
+            repository = repository,
+            head = head,
+        ).apply {
+            this.id = this@BranchEntity.id?.toString()
+        }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as BranchEntity
-
-        if (id != other.id) return false
-        if (name != other.name) return false
-//        if (repository?.uniqueKey() != other.repository?.uniqueKey()) return false
-
-        return true
-    }
+    override fun equals(other: Any?): Boolean = super.equals(other)
 
     override fun hashCode(): Int = super.hashCode()
 
-    override fun toString(): String = "BranchEntity(id=$id, name='$name', commits=${commits.map { it.sha }})"
+    override fun toString(): String = "BranchEntity(id=$id, name='$name', headId=${head.id})"
 
-    override fun uniqueKey(): String {
-        val repo =
-            requireNotNull(this.repository) {
-                "RepositoryEntity required for uniqueKey"
-            }
-        return "${repo.localPath},$name"
-    }
+    override val uniqueKey: Key
+        get() = Key(
+            repository.iid,
+            name
+        )
 }
 
-internal fun Branch.toEntity(): BranchEntity =
+internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
     BranchEntity(
-        id = this.id?.toLong(),
+        iid = this.iid,
         name = this.name,
-        repository = null,
-    )
+        fullName = this.fullName,
+        category = this.category,
+        repository = repository,
+        head = head,
+    ).apply {
+        id = this@toEntity.id?.trim()?.toLongOrNull()
+    }

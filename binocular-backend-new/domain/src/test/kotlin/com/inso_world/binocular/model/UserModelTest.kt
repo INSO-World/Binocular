@@ -1,6 +1,7 @@
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.data.MockTestDataProvider
+import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -180,13 +181,13 @@ class UserModelTest {
             }
 
             @Test
-            fun `create user, add committedCommit, be added`() {
-                val mockCommit =
-                    MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
+            fun `create user, add committedCommit, not added since already done by constructor`() {
+                val mockTestDataProvider = MockTestDataProvider(this@UserModelTest.repository)
+                val mockCommit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
 
-                val user = User(name = "test-user", repository)
+                val user = mockTestDataProvider.userByEmail.getValue("a@test.com")
 
-                assertTrue(user.committedCommits.add(mockCommit))
+                assertFalse(user.committedCommits.add(mockCommit))
                 assertAll(
                     { assertThat(user.authoredCommits).hasSize(0) },
                     { assertThat(user.committedCommits).hasSize(1) },
@@ -196,11 +197,42 @@ class UserModelTest {
             }
 
             @Test
+            fun `create user, add committedCommit without committer set, should fail`() {
+                val mockCommit =
+                    MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
+
+                val user = User(name = "test-user", repository)
+
+                assertThrows<IllegalArgumentException> {
+                    user.committedCommits.add(mockCommit)
+                }
+            }
+
+            @Test
+            fun `create user, addAll committedCommit without committer set, should fail`() {
+                val mockCommit =
+                    MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
+
+                val user = User(name = "test-user", repository)
+
+                assertThrows<IllegalArgumentException> {
+                    user.committedCommits.addAll(listOf(mockCommit))
+                }
+            }
+
+            @Test
             fun `create user, add committedCommit twice, only added once`() {
                 val mockCommit =
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
 
                 val user = User(name = "test-user", repository)
+
+                // Set committer before adding to committedCommits
+                setField(
+                    mockCommit.javaClass.getDeclaredField("committer").apply { isAccessible = true },
+                    mockCommit,
+                    user
+                )
 
                 assertTrue(user.committedCommits.add(mockCommit))
                 assertFalse(user.committedCommits.add(mockCommit))
@@ -208,6 +240,7 @@ class UserModelTest {
                     { assertThat(user.authoredCommits).hasSize(0) },
                     { assertThat(user.committedCommits).hasSize(1) },
                     { assertThat(user.committedCommits).containsOnly(mockCommit) },
+                    { assertThat(mockCommit.committer).isSameAs(user) }
                 )
             }
 
@@ -217,6 +250,13 @@ class UserModelTest {
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("b".repeat(40))
 
                 val user = User(name = "test-user", repository)
+
+                // Set committer before adding to committedCommits
+                setField(
+                    mockCommit.javaClass.getDeclaredField("committer").apply { isAccessible = true },
+                    mockCommit,
+                    user
+                )
 
                 assertTrue(user.committedCommits.addAll(listOf(mockCommit)))
                 assertAll(
@@ -234,12 +274,20 @@ class UserModelTest {
 
                 val user = User(name = "test-user", repository)
 
+                // Set committer before adding to committedCommits
+                setField(
+                    mockCommit.javaClass.getDeclaredField("committer").apply { isAccessible = true },
+                    mockCommit,
+                    user
+                )
+
                 assertTrue(user.committedCommits.addAll(listOf(mockCommit)))
                 assertFalse(user.committedCommits.addAll(listOf(mockCommit)))
                 assertAll(
                     { assertThat(user.authoredCommits).hasSize(0) },
                     { assertThat(user.committedCommits).hasSize(1) },
                     { assertThat(user.committedCommits).containsOnly(mockCommit) },
+                    { assertThat(mockCommit.committer).isSameAs(user) }
                 )
             }
         }
@@ -372,6 +420,11 @@ class UserModelTest {
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("b".repeat(40))
 
                 val user = User(name = "test-user", repository)
+                setField(
+                    mockCommit.javaClass.getDeclaredField("committer").apply { isAccessible = true },
+                    mockCommit,
+                    user
+                )
 
                 assertAll(
                     { assertTrue(user.committedCommits.add(mockCommit)) },

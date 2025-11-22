@@ -1,6 +1,7 @@
 package com.inso_world.binocular.model
 
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -37,7 +38,7 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class User(
     @field:NotBlank val name: String,
-    val repository: Repository,
+    @field:NotNull val repository: Repository,
 ) : AbstractDomainObject<User.Id, User.Key>(
     Id(Uuid.random()),
 ) {
@@ -111,11 +112,10 @@ data class User(
             require(element.repository == this@User.repository) {
                 "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
             }
-            val added = super.add(element)
-            if (added) {
-                // …and back-link to this as a child
-                element.committer = this@User
+            require(element.committer == this@User) {
+                "Cannot add Commit $element to committedCommits since user is not committer of Commit."
             }
+            val added = super.add(element)
             return added
         }
 

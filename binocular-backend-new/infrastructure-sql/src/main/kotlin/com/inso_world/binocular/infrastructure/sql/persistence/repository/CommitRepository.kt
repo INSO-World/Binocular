@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.util.stream.Stream
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Repository
 internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpecificationExecutor<CommitEntity> {
@@ -30,13 +32,7 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
 
     @Query(
         """
-    SELECT c FROM CommitEntity c
-    JOIN c.branches b
-    WHERE (b.name = :branch)
-        AND (c.repository.id = :repoId)
-        AND c.sha NOT IN (
-            SELECT p.sha FROM CommitEntity c2 JOIN c2.parents p WHERE c2.repository.id = :repoId
-        )
+            SELECT b.head FROM BranchEntity b WHERE (b.name = :branch) AND (b.repository.id = :repoId)
  """,
     )
     fun findLeafCommitsByRepository(
@@ -46,11 +42,7 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
 
     @Query(
         """
-    SELECT c FROM CommitEntity c
-    WHERE (c.repository.id = :repoId)
-        AND c.sha NOT IN (
-            SELECT p.sha FROM CommitEntity c2 JOIN c2.parents p WHERE c2.repository.id = :repoId
-        )
+            SELECT b.head FROM BranchEntity b WHERE (b.repository.id = :repoId)
  """,
     )
     fun findAllLeafCommits(
@@ -63,6 +55,9 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
         sha: String,
     ): CommitEntity?
 
+    @OptIn(ExperimentalUuidApi::class)
+    fun findByIid(iid: Uuid): CommitEntity?
+
     @Query("""
             select ch from CommitEntity c 
             join c.children ch 
@@ -70,10 +65,12 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
         """)
         fun findChildrenBySha(@Param("sha") sha: String): Set<CommitEntity>
 
-        @Query("""
+    @Query(
+        """
                 select p from CommitEntity c 
                 join c.parents p 
                 where c.sha = :sha
-            """)
-            fun findParentsBySha(@Param("sha") sha: String): Set<CommitEntity>
+            """,
+    )
+    fun findParentsBySha(@Param("sha") sha: String): Set<CommitEntity>
 }

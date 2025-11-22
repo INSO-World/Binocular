@@ -1,27 +1,5 @@
 databaseChangeLog:
-  - include:
-      file: db/changelog/2025/09/18-01-changelog.yaml
-  - include:
-      file: db/changelog/2025/09/19-01-changelog.yaml
-  - include:
-      file: db/changelog/2025/09/19-02-changelog.yaml
-  - include:
-      file: db/changelog/2025/09/19-03-changelog.yaml
-  - include:
-      file: db/changelog/2025/09/19-04-changelog.yaml
-  - include:
-      file: db/changelog/2025/09/22-01-changelog.yaml
-  - include:
-      file: db/changelog/2025/09/23-01-changelog.yaml
-  - include:
-      file: db/changelog/2025/09/25-01-changelog.yaml
-#  - changeSet:
-#      id: prevent-cycles-trigger
-#      author: manuel
-#      dbms: postgresql
-#      changes:
-#        - sqlFile:
-#            path: ./trigger/prevent_cycles_trigger.sql
-#            relativeToChangelogFile: true
-#            splitStatements: false
-#            stripComments: true
+  - includeAll:
+      path: db/changelog/2025/09
+  - includeAll:
+      path: db/changelog/2025/11

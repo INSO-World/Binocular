@@ -1,9 +1,11 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -20,9 +22,9 @@ import org.hibernate.annotations.BatchSize
 @Entity
 @Table(name = "repositories")
 internal data class RepositoryEntity(
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    val id: Long? = null,
+    @Column(nullable = false, updatable = false, unique = true)
+    @Convert(KotlinUuidConverter::class)
+    val iid: Repository.Id,
     @Column(unique = true, nullable = false, updatable = false)
     @field:NotBlank
     var localPath: String,
@@ -52,45 +54,53 @@ internal data class RepositoryEntity(
         mappedBy = "repository",
     )
     var branches: MutableSet<BranchEntity> = mutableSetOf(),
+    @BatchSize(size = 256)
+    @OneToMany(
+        fetch = FetchType.LAZY,
+        targetEntity = RemoteEntity::class,
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        mappedBy = "repository",
+    )
+    var remotes: MutableSet<RemoteEntity> = mutableSetOf(),
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "fk_project", referencedColumnName = "id", updatable = false, nullable = false)
+    @JoinColumn(name = "fk_project_id")
     var project: ProjectEntity,
-) : AbstractEntity() {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+) : AbstractEntity<Long, RepositoryEntity.Key>() {
 
-        other as RepositoryEntity
+    data class Key(val projectIid: Project.Id, val localPath: String) // value object for lookups
 
-        if (id != other.id) return false
-        if (localPath != other.localPath) return false
-//        if (commits != other.commits) return false
-//        if (user != other.user) return false
-//        if (project.uniqueKey() != other.project.uniqueKey()) return false
-
-        return true
+    init {
+        project.repo = this
     }
 
-    fun addBranch(branch: BranchEntity): Boolean {
-        if (branch.repository != null && branch.repository != this) {
-            throw IllegalArgumentException("Trying to add a branch where branch.repository != this")
-        }
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    override var id: Long? = null
 
-        return this.branches.add(branch).also { added ->
-            if (added) branch.repository = this
-        }
+    override fun equals(other: Any?): Boolean = super.equals(other)
+
+    fun addBranch(branch: BranchEntity): Boolean {
+//        if (branch.repository != null && branch.repository != this) {
+//            throw IllegalArgumentException("Trying to add a branch where branch.repository != this")
+//        }
+
+        return this.branches.add(branch)
+//            .also { added ->
+//            if (added) branch.repository = this
+//        }
     }
 
     fun addCommit(commit: CommitEntity): Boolean {
-        if (commit.repository != null && commit.repository != this) {
-            throw IllegalArgumentException("Trying to add a commit where commit.repository != this")
-        }
+//        if (commit.repository != null && commit.repository != this) {
+//            throw IllegalArgumentException("Trying to add a commit where commit.repository != this")
+//        }
 
         return commits
             .add(commit)
-            .also { added ->
-                if (added) commit.repository = this
-            }
+//            .also { added ->
+//                if (added) commit.repository = this
+//            }
     }
 
     fun addUser(user: UserEntity): Boolean {
@@ -105,36 +115,33 @@ internal data class RepositoryEntity(
             }
     }
 
-    override fun uniqueKey(): String {
-        val project = this.project
-        return "${project.name},$localPath"
+    fun addRemote(remote: RemoteEntity): Boolean {
+        return this.remotes.add(remote)
     }
+
+    override val uniqueKey: Key
+        get() = Key(project.iid, localPath)
 
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String = "RepositoryEntity(id=$id, localPath='$localPath')"
 
-    fun toDomain(project: Project?): Repository {
+    fun toDomain(project: Project): Repository {
         val repo =
             Repository(
-                id = this.id?.toString(),
-                localPath = this.localPath,
-                project = project,
-            )
-        project?.repo = repo
+                localPath = this.localPath.trim(),
+                project = project
+            ).apply {
+                this.id = this@RepositoryEntity.id?.toString()
+            }
 
         return repo
-    }
-
-    @PreRemove
-    fun preRemove() {
-        project.repo = null
     }
 }
 
 internal fun Repository.toEntity(project: ProjectEntity): RepositoryEntity =
     RepositoryEntity(
-        id = this.id?.toLong(),
-        localPath = this.localPath,
+        iid = this.iid,
+        localPath = this.localPath.trim(),
         project = project,
-    )
+    ).apply { id = this@toEntity.id?.trim()?.toLongOrNull() }

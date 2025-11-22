@@ -11,13 +11,14 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class ProjectInfrastructurePortImpl : ProjectInfrastructurePort {
+internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort {
     companion object {
         val logger by logger()
     }
 
     @Autowired
     private lateinit var projectDao: ProjectDao
+
     override fun findAll(): Iterable<Project> {
         return this.projectDao.findAll()
     }
@@ -39,10 +40,6 @@ class ProjectInfrastructurePortImpl : ProjectInfrastructurePort {
         return this.projectDao.saveAll(values)
     }
 
-    override fun delete(value: Project) {
-        this.projectDao.delete(value)
-    }
-
     override fun findByName(name: String): Project? {
         return this.projectDao.findByName(name)
     }
@@ -51,15 +48,7 @@ class ProjectInfrastructurePortImpl : ProjectInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(value: Project): Project {
+    override fun findByIid(iid: Project.Id): Project? {
         TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        this.projectDao.deleteById(id)
-    }
-
-    override fun deleteAll() {
-        this.projectDao.deleteAll()
     }
 }

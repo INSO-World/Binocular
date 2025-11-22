@@ -82,10 +82,6 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(entity: File): File {
-        TODO("Not yet implemented")
-    }
-
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }

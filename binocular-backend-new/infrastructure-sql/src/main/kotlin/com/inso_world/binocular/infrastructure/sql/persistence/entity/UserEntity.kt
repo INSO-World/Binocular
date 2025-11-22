@@ -1,8 +1,12 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
+import com.inso_world.binocular.model.Reference
+import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -28,11 +32,8 @@ import java.util.Objects
     ],
 )
 internal data class UserEntity(
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    var id: Long? = null,
     @Column(nullable = false)
-    var name: String? = null,
+    var name: String,
     @Column(nullable = false)
     var email: String? = null,
     @BatchSize(size = 256)
@@ -43,12 +44,26 @@ internal data class UserEntity(
     var authoredCommits: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
-    var repository: RepositoryEntity? = null,
-) : AbstractEntity() {
-    override fun uniqueKey(): String {
-        val repo = requireNotNull(this.repository) { "RepositoryEntity required for uniqueKey" }
-        return "${repo.localPath},$email"
+    var repository: RepositoryEntity,
+    @Column(nullable = false, updatable = false, unique = true)
+    @Convert(KotlinUuidConverter::class)
+    val iid: User.Id
+) : AbstractEntity<Long, UserEntity.Key>() {
+    data class Key(val repositoryIid: Repository.Id, val email: String)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    override var id: Long? = null
+
+    init {
+        repository.user.add(this)
     }
+
+    override val uniqueKey: Key
+        get() = Key(
+            repositoryIid = repository.iid,
+            requireNotNull(email)
+        )
 
     @PreRemove
     fun preRemove() {
@@ -66,44 +81,30 @@ internal data class UserEntity(
         commit.author = this
     }
 
-    fun toDomain(): User =
+    fun toDomain(repository: Repository): User =
         User(
-            id = this.id?.toString(),
-            email = this.email,
             name = this.name,
-            repository = null,
-        )
+            repository = repository,
+        ).apply {
+            this.id = this@UserEntity.id?.toString()
+            this.email = this@UserEntity.email
+        }
 
-    override fun toString(): String = super.toString()
+    override fun toString(): String = "UserEntity(id=$id, name='$name', email='$email', repositoryId=${repository.id}, committedCommits=${committedCommits.map { it.sha }}, authoredCommits=${authoredCommits.map { it.sha }})"
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    override fun equals(other: Any?): Boolean = super.equals(other)
 
-        other as UserEntity
-
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (email != other.email) return false
-//        if (repository?.uniqueKey() != other.repository?.uniqueKey()) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = Objects.hashCode(id)
-        result = 31 * result + Objects.hashCode(name)
-        result = 31 * result + Objects.hashCode(email)
-        return result
-    }
+    override fun hashCode(): Int = super.hashCode()
 }
 
-internal fun User.toEntity(): UserEntity =
+internal fun User.toEntity(repository: RepositoryEntity): UserEntity =
     UserEntity(
-        id = this.id?.toLong(),
+        iid = this.iid,
         email = this.email,
         name = this.name,
-        repository = null,
+        repository = repository,
         committedCommits = mutableSetOf(),
         authoredCommits = mutableSetOf(),
-    )
+    ).apply {
+        id = this@toEntity.id?.trim()?.toLongOrNull()
+    }

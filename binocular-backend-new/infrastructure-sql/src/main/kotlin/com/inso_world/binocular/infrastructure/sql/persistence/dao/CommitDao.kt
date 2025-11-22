@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
 import java.util.stream.Stream
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * SQL implementation of ICommitDao.
@@ -25,6 +26,9 @@ internal class CommitDao(
         this.setClazz(CommitEntity::class.java)
         this.setRepository(repo)
     }
+
+    @OptIn(ExperimentalUuidApi::class)
+    override fun findByIid(iid: com.inso_world.binocular.model.Commit.Id): CommitEntity? = repo.findByIid(iid.value)
 
     private object CommitEntitySpecification {
         fun hasRepositoryId(repoId: Long): Specification<CommitEntity> =

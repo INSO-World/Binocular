@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class FileDao(
+internal class FileDao(
     @Autowired fileRepository: FileRepository,
     @Autowired fileMapper: FileMapper,
 ) : MappedArangoDbDao<File, FileEntity, String>(fileRepository, fileMapper),

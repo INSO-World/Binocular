@@ -1,21 +1,18 @@
 package com.inso_world.binocular.ffi
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.index.GitIndexer
-import com.inso_world.binocular.ffi.exception.FfiException
 import com.inso_world.binocular.ffi.extensions.toDomain
-import com.inso_world.binocular.ffi.extensions.toModel
-import com.inso_world.binocular.ffi.internal.AnyhowException
-import com.inso_world.binocular.ffi.internal.BinocularDiffInput
 import com.inso_world.binocular.ffi.internal.GixDiffAlgorithm
+import com.inso_world.binocular.ffi.internal.GixDiffInput
 import com.inso_world.binocular.ffi.pojos.toFfi
 import com.inso_world.binocular.ffi.pojos.toModel
 import com.inso_world.binocular.ffi.util.Utils
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.CommitDiff
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.inso_world.binocular.model.Stats
 import org.springframework.stereotype.Service
 import java.nio.file.Path
 import kotlin.math.min
@@ -24,7 +21,7 @@ import kotlin.streams.asSequence
 @Service
 class BinocularFfi : GitIndexer {
     companion object {
-        private var logger: Logger = LoggerFactory.getLogger(BinocularFfi::class.java)
+        private val logger by logger()
         private val ALGORITHM = GixDiffAlgorithm.HISTOGRAM
     }
 
@@ -40,58 +37,67 @@ class BinocularFfi : GitIndexer {
             .hello()
     }
 
-    @Throws(FfiException::class)
-    override fun findRepo(path: Path): Repository {
+    override fun findRepo(path: Path, project: Project): Repository {
         logger.trace("Searching repository... at '{}'", path)
-        try {
-            val repo =
-                com.inso_world.binocular.ffi.internal
-                    .findRepo(path.toString().trim())
-                    .toModel()
-            return repo
-        } catch (e: AnyhowException) {
-            throw FfiException(e)
-        }
+//        try {
+        val repo =
+            com.inso_world.binocular.ffi.internal
+                .findRepo(path.toString().trim())
+                .toModel(project)
+        return repo
+//        } catch (e: UniffiException) {
+////            throw FfiException(e)
+//            throw e
+//        }
     }
 
     override fun traverseBranch(
         repo: Repository,
-        branch: Branch,
-    ): List<Commit> {
-        val commitVec =
+        branchName: String,
+    ): Pair<Branch, List<Commit>> {
+        val branchTraversalResult =
             com.inso_world.binocular.ffi.internal
-                .traverseBranch(repo.toFfi(), branch.name)
+                .traverseBranch(repo.toFfi(), branchName)
 
-        val commits = commitVec.toDomain(repo)
-        branch.commits.addAll(commits)
+        val commits: List<Commit> = branchTraversalResult.commits.toDomain(repo)
+        val branch: Branch = with(commits.associateBy { it.sha }.getValue(branchTraversalResult.branch.target)) {
+            branchTraversalResult.branch.toDomain(
+                repo,
+                this
+            )
+        }
 
-        repo.branches.add(branch)
-        branch.repository = repo
-
-        return commits
+        return Pair(branch, commits)
     }
 
-    override fun findAllBranches(repo: Repository): List<Branch> =
-        com.inso_world.binocular.ffi.internal
-            .findAllBranches(repo.toFfi())
+    override fun findAllBranches(repo: Repository): List<Branch> {
+        val binocularRepo = repo.toFfi()
+        return com.inso_world.binocular.ffi.internal
+            .findAllBranches(binocularRepo)
             .map {
-                val branch = it.toModel()
+                val head = com.inso_world.binocular.ffi.internal.findCommit(
+                    binocularRepo, it.target
+                ).toDomain(repo)
+                val branch = it.toDomain(repo, head)
                 branch
             }
+    }
 
     override fun findCommit(
         repo: Repository,
         hash: String,
-    ): String =
+    ): Commit =
         com.inso_world.binocular.ffi.internal
             .findCommit(repo.toFfi(), hash)
+            .toDomain(repo)
 
     override fun traverse(
         repo: Repository,
-        sourceCmt: String,
-        trgtCmt: String?,
+        source: Commit,
+        target: Commit?,
     ): List<Commit> =
         com.inso_world.binocular.ffi.internal
-            .traverse(repo.toFfi(), sourceCmt, trgtCmt)
+            .traverseHistory(repo.toFfi(), source.sha, target?.sha)
             .toDomain(repo)
+
 }

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class ModuleFileConnectionDao
+internal class ModuleFileConnectionDao
     @Autowired
     constructor(
         private val repository: ModuleFileConnectionRepository,

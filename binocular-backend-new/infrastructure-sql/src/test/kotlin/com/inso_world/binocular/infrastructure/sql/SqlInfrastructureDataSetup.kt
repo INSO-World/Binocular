@@ -3,6 +3,7 @@ package com.inso_world.binocular.infrastructure.sql
 import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
+import com.inso_world.binocular.infrastructure.sql.integration.service.base.deleteAllEntities
 import com.inso_world.binocular.infrastructure.sql.service.BranchInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.ProjectInfrastructurePortImpl
@@ -47,11 +48,11 @@ internal class SqlInfrastructureDataSetup(
     override fun teardown() {
         logger.info(">>> SqlInfrastructureDataSetup teardown")
 
-        projectInfrastructurePort.deleteAll()
-        repositoryInfrastructurePort.deleteAll()
-        branchInfrastructurePort.deleteAll()
-        commitInfrastructurePort.deleteAll()
-        userPort.deleteAll()
+        projectInfrastructurePort.deleteAllEntities()
+        repositoryInfrastructurePort.deleteAllEntities()
+//        branchInfrastructurePort.deleteAll()
+//        commitInfrastructurePort.deleteAll()
+//        userPort.deleteAll()
 
         logger.info("<<< SqlInfrastructureDataSetup teardown")
     }

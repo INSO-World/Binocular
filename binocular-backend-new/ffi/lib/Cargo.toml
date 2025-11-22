@@ -27,7 +27,7 @@ members = [
 
 
 [workspace.dependencies]
-gix = { version = "=0.73.0", default-features = true, features = ["blame"] }
+gix = { version = "^0.74", default-features = true, features = ["blame"] }
 log = "0.4.28"
 env_logger = "0.11.8"
 anyhow = "1.0.100"
@@ -35,7 +35,7 @@ chrono = { version = "0.4.42" }
 thiserror = { version = "2.0.17", default-features = false }
 
 [dependencies]
-uniffi = { version = "0.29.4", features = ["cli"] }
+uniffi = { version = "0.30", features = ["cli"] }
 gix = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }

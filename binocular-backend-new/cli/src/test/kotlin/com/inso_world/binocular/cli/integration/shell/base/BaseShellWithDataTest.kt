@@ -56,22 +56,19 @@ internal open class BaseShellWithDataTest : BaseFixturesIntegrationTest() {
             this.projectRepository.create(
                 Project(
                     name = SIMPLE_PROJECT_NAME,
-                    description = "desc",
-                ),
+                ).apply { description = "desc" },
             )
         advancedProject =
             this.projectRepository.create(
                 Project(
                     name = ADVANCED_PROJECT_NAME,
-                    description = "desc",
-                ),
+                ).apply { description = "desc" },
             )
         octoProject =
             this.projectRepository.create(
                 Project(
                     name = OCTO_PROJECT_NAME,
-                    description = "desc",
-                ),
+                ).apply { description = "desc" },
             )
     }
 

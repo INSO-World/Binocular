@@ -72,10 +72,6 @@ class ModuleInfrastructurePortImpl : ModuleInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(entity: Module): Module {
-        TODO("Not yet implemented")
-    }
-
     override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }

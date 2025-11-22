@@ -143,6 +143,7 @@ internal class ArangodbInfrastructureDataSetup(
         this.mockTestData = MockTestDataProvider()
         // order: create parents first where necessary
         projectRepository.saveAll(mockTestData.testProjects)
+        val project = mockTestData.projectsByName.getValue("proj-for-repos")
         repositoryRepository.saveAll(mockTestData.testRepositories)
 
         commitRepository.saveAll(TestDataProvider.testCommits)

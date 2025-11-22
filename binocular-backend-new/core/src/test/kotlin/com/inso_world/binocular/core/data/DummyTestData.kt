@@ -4,6 +4,7 @@ import org.junit.jupiter.params.provider.Arguments
 import java.time.LocalDateTime
 import java.util.stream.Stream
 
+@Deprecated("", replaceWith = ReplaceWith("com.inso_world.binocular.data.DummyTestData"))
 class DummyTestData {
     companion object {
         @JvmStatic

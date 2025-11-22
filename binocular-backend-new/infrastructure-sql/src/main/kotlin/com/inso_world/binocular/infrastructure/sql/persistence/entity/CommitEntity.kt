@@ -1,8 +1,11 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Repository
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -14,18 +17,14 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.Lob
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
-import jakarta.persistence.PreRemove
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.BatchSize
 import java.time.LocalDateTime
-import java.util.Objects
 
-/**
- * SQL-specific Commit entity.
- */
 @Entity
 @Table(
     name = "commits",
@@ -33,14 +32,15 @@ import java.util.Objects
     uniqueConstraints = [],
 )
 internal data class CommitEntity(
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    var id: Long? = null,
+    @Column(nullable = false, updatable = false, unique = true)
+    @Convert(KotlinUuidConverter::class)
+    val iid: Commit.Id,
     @Column(unique = true, updatable = false)
     @field:Size(min = 40, max = 40)
     val sha: String,
     @Column(name = "author_dt")
-    val authorDateTime: LocalDateTime? = null,
+    // authorDateTime is var since it can change between two indexing sessions
+    var authorDateTime: LocalDateTime? = null,
     @Column(name = "commit_dt")
     val commitDateTime: LocalDateTime? = null,
     @Column(columnDefinition = "TEXT")
@@ -67,128 +67,90 @@ internal data class CommitEntity(
     @BatchSize(size = 256)
     @ManyToMany(mappedBy = "parents", fetch = FetchType.LAZY)
     var children: MutableSet<CommitEntity> = mutableSetOf(),
-    @BatchSize(size = 256)
-    @ManyToMany(targetEntity = BranchEntity::class, fetch = FetchType.LAZY, cascade = [])
-    @JoinTable(
-        name = "commit_branches",
-        joinColumns = [JoinColumn(name = "commit_id", nullable = false)],
-        inverseJoinColumns = [JoinColumn(name = "branch_id", nullable = false)],
-        uniqueConstraints = [
-            UniqueConstraint(columnNames = ["commit_id", "branch_id"]),
-        ],
-    )
-    var branches: MutableSet<BranchEntity> = mutableSetOf(),
-//    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = [CascadeType.PERSIST])
-//    var author: UserEntity? = null,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
-    var repository: RepositoryEntity? = null,
-) : AbstractEntity() {
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.PERSIST])
+    val repository: RepositoryEntity,
+) : AbstractEntity<Long, CommitEntity.Key>() {
+    data class Key(val sha: String) // value object for lookups
+
+    init {
+        this.repository.commits.add(this)
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    override var id: Long? = null
+
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.ALL])
     var committer: UserEntity? = null
-        set(value) {
+        set(@NotNull value) {
+            requireNotNull(value) { "committer cannot be set to null" }
             if (value == this.committer) {
                 return
             }
             if (this.committer != null) {
-                throw IllegalArgumentException("Committer already set for Commit $sha: $committer")
+                throw IllegalArgumentException("committer already set for Commit $sha: $committer")
+            }
+            if (value.repository != this.repository) {
+                throw IllegalArgumentException("Repository between $value and Commit do not match: ${this.repository}")
             }
             field = value
-            field!!.committedCommits.add(this)
-            field
+            value.committedCommits.add(this)
         }
-//        get() = field
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.PERSIST])
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.ALL])
     var author: UserEntity? = null
-        set(
-            @NotNull value,
-        ) {
+        set(@NotNull value) {
+            requireNotNull(value) { "author cannot be set to null" }
             if (value == this.author) {
                 return
             }
             if (this.author != null) {
-                throw IllegalArgumentException("Author already set for Commit $sha: $author")
+                throw IllegalArgumentException("committer already set for Commit $sha: $author")
+            }
+            if (value.repository != this.repository) {
+                throw IllegalArgumentException("Repository between $value and Commit do not match: ${this.repository}")
             }
             field = value
-            field!!.authoredCommits.add(this)
-            field
+            value.committedCommits.add(this)
         }
-//        get() = author
 
-    override fun uniqueKey(): String = this.sha
+    override val uniqueKey: Key
+        get() = Key(this.sha)
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is CommitEntity) return false
-        return sha != null && sha == other.sha
-    }
+    override fun equals(other: Any?): Boolean = super.equals(other)
 
-    fun addParent(parent: CommitEntity) {
-        this.parents.add(parent)
-        parent.children.add(this)
-    }
+    override fun hashCode(): Int = super.hashCode()
 
-    fun addChild(child: CommitEntity) {
-        this.children.add(child)
-        child.parents.add(this)
-    }
-
-    fun addBranch(branch: BranchEntity) {
-        this.branches.add(branch)
-        branch.commits.add(this)
-    }
-
-    override fun hashCode(): Int = Objects.hashCode(sha)
-
-    fun toDomain(): Commit =
+    fun toDomain(repository: Repository, committer: com.inso_world.binocular.model.User): Commit =
         Commit(
-            id = this.id?.toString(),
             sha = this.sha,
             commitDateTime = this.commitDateTime,
             authorDateTime = this.authorDateTime,
+            repository = repository,
             message = this.message,
-            webUrl = this.webUrl,
-        )
-
-    @PreRemove
-    fun preRemove() {
-        this.committer?.let { user ->
-            user.committedCommits.remove(this)
-            user.authoredCommits.remove(this)
+            committer = committer,
+            ).apply {
+            this.id = this@CommitEntity.id?.toString()
+            this.webUrl = this@CommitEntity.webUrl
         }
-        this.author?.let { user ->
-            user.committedCommits.remove(this)
-            user.authoredCommits.remove(this)
-        }
-
-        this.branches.forEach { branch ->
-            branch.commits.remove(this)
-        }
-
-        // Clear parent/child relationships
-        this.parents.clear()
-        this.children.forEach { child ->
-            child.parents.remove(this)
-        }
-    }
 
     override fun toString(): String =
         "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository?.localPath})"
 }
 
-internal fun Commit.toEntity(): CommitEntity =
+internal fun Commit.toEntity(repository: RepositoryEntity): CommitEntity =
     CommitEntity(
-        id = this.id?.toLong(),
+        iid = this.iid,
         sha = this.sha,
         commitDateTime = this.commitDateTime,
         authorDateTime = this.authorDateTime,
         message = this.message,
         webUrl = this.webUrl,
-        repository = null,
+        repository = repository,
         parents = mutableSetOf(),
         children = mutableSetOf(),
-        branches = mutableSetOf(),
-//        committer = null,
-//        author = null,
-    )
+    ).apply {
+        this.id = this@toEntity.id?.trim()?.toLongOrNull()
+    }
