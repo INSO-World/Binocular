@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import io.mockk.spyk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -57,8 +58,7 @@ internal class ProjectMapperTest : BaseMapperTest() {
             { assertThat(entity.id).isEqualTo(domain.id) },
             { assertThat(entity.name).isEqualTo(domain.name) },
             { assertThat(entity.description).isEqualTo(domain.description) },
-            { assertThat(entity.repository).isNotNull() },
-            { assertThat(entity.repository?.project).isSameAs(entity) },
+            { assertThat(entity.repository).isNull() },
         )
 
         assertThat(ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)).isEqualTo(entity)
@@ -66,10 +66,9 @@ internal class ProjectMapperTest : BaseMapperTest() {
             entity.repository
         )
 
-        verify(exactly = 1) { ctx.remember(domain, entity) }
-        verify(exactly = 1) { ctx.remember(requireNotNull(domain.repo), requireNotNull(entity.repository)) }
-        // will be called twice, as the second call breaks the cycle through the context
-        verify(exactly = 2) { projectMapper.toEntity(domain) }
-        verify(exactly = 1) { repositoryMapper.toEntity(requireNotNull(domain.repo)) }
+        verifyOrder {
+            ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)
+            ctx.remember(domain, entity)
+        }
     }
 }

@@ -9,7 +9,10 @@ data class RepositoryEntity(
     @Id
     var id: String? = null,
     var name: String,
-) {
     @Ref(lazy = true)
-    lateinit var project: ProjectEntity
+    val project: ProjectEntity
+) {
+    init {
+        this.project.repository = this
+    }
 }

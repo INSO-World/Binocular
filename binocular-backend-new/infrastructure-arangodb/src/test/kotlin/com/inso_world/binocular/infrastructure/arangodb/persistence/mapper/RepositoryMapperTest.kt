@@ -6,7 +6,9 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.Repos
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.base.BaseMapperTest
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import io.mockk.clearMocks
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,6 +26,17 @@ internal class RepositoryMapperTest : BaseMapperTest() {
     @Test
     fun `toEntity maps domain object to entity, with repository`() {
         val domain = requireNotNull(mockTestDataProvider.repositoriesByPath["repo-pg-0"])
+        with(domain.project) {
+            ctx.remember(
+                this, ProjectEntity(
+                    id = this.id,
+                    name = this.name,
+                    description = this.description,
+                )
+            )
+        }
+        // clean mock
+        clearMocks(ctx)
         val entity = repositoryMapper.toEntity(domain)
 
         assertAll(
@@ -37,10 +50,9 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         assertThat(ctx.findEntity<Project.Key, Project, ProjectEntity>(requireNotNull(domain.project))).isEqualTo(entity.project)
         assertThat(ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)).isEqualTo(entity)
 
-        verify(exactly = 1) { ctx.remember(domain, entity) }
-        verify(exactly = 1) { ctx.remember(requireNotNull(domain.project), requireNotNull(entity.project)) }
-        verify(exactly = 1) { projectMapper.toEntity(requireNotNull(domain.project)) }
-        // will be called twice, as the second call breaks the cycle through the context
-        verify(exactly = 2) { repositoryMapper.toEntity(domain) }
+        verifyOrder {
+            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)
+            ctx.remember(domain, entity)
+        }
     }
 }
