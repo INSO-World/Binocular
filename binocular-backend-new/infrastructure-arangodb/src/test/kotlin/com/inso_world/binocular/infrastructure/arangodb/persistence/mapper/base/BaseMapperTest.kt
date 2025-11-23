@@ -56,11 +56,6 @@ internal open class BaseMapperTest : BaseUnitTest() {
                 this,
                 ctx
             )
-            setField(
-                this.javaClass.getDeclaredField("userMapper"),
-                this,
-                userMapper
-            )
         }
 
         // wire up branchMapper

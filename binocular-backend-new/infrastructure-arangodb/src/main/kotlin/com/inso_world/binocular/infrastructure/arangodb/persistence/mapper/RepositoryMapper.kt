@@ -62,10 +62,9 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
 
         val entity = RepositoryEntity(
             id = domain.id,
-            name = domain.localPath.trim()
-        ).apply {
+            name = domain.localPath.trim(),
             project = projectEntity
-        }
+        )
 
         ctx.remember(domain, entity)
         return entity

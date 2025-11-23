@@ -1,6 +1,10 @@
 spring:
   profiles:
     active: test,arangodb
+  # Prevent Spring Boot from trying to configure SQL/JPA when running ArangoDB tests
+  # in IDEs that include all module outputs on classpath
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
 
 binocular:
   database:
