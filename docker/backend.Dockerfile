@@ -6,7 +6,7 @@ ARG BUILDPLATFORM=${BUILDPLATFORM:-amd64}
 ######################################################################
 # INSTALL image...
 ######################################################################
-FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.20 AS install
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.22 AS install
 # ENV APP_PATH=${APP_PATH_ARG}
 
 WORKDIR /app/binocular
@@ -26,7 +26,7 @@ RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
 ######################################################################
 # Final lean image...
 ######################################################################
-FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.20 AS builder
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.22 AS builder
 
 ENV APP_PATH=${APP_PATH_ARG}
 ENV NODE_ENV=production
