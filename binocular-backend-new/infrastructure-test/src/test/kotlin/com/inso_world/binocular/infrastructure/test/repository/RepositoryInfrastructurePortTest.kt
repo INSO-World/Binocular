@@ -119,7 +119,7 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
         // Mutation Tests - Testing edge cases and boundary conditions
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.core.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
         fun `repository with invalid name should fail`(invalidName: String) {
             // When
             val savedProject = projectPort.create(Project(name = "Valid Project").apply {
@@ -133,7 +133,7 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.core.data.DummyTestData#provideAllowedStrings")
+        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedStrings")
         fun `repository with allowed names should be handled`(allowedName: String) {
             // When
             val savedProject = projectPort.create(Project(name = "Valid Project").apply {
