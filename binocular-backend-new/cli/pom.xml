@@ -64,6 +64,13 @@
         </dependency>
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
+            <artifactId>domain</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <classifier>tests</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.inso-world.binocular</groupId>
             <artifactId>ffi</artifactId>
             <version>${project.version}</version>
         </dependency>
