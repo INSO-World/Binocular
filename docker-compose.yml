@@ -1,5 +1,5 @@
 x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest}
-x-node-image: &node-image node:22.13.1-alpine # check if same as in .nvmrc!
+x-node-image: &node-image node:22.21.1-alpine # check if same as in .nvmrc!
 x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
 x-binocular-depends-on: &binocular-depends-on
   - db
@@ -11,7 +11,7 @@ x-binocular-volumes-backend: &binocular-volumes-backend
   - /path_to_repo:/app/binocular/repo #TODO: change as required, e.g. ./ for local Binocular
   - ./.binocularrc-binocular:/app/binocular/.binocularrc
 x-binocular-build-args: &binocular-build-args
-  NODE_VERSION: "22.13.1" # check if same as in .nvmrc!
+  NODE_VERSION: "22.21.1" # check if same as in .nvmrc!
 
 networks:
   binocular:

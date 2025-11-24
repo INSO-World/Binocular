@@ -1,6 +1,11 @@
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
-import { clearSettingsStorage, importSettingsStorage, setGeneralSettings } from '../../../redux/reducer/settings/settingsReducer.ts';
+import {
+  clearSettingsStorage,
+  importSettingsStorage,
+  removeDataPlugin,
+  setGeneralSettings,
+} from '../../../redux/reducer/settings/settingsReducer.ts';
 import { SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
 import { clearAuthorsStorage, importAuthorsStorage } from '../../../redux/reducer/data/authorsReducer.ts';
 import { clearDashboardStorage, importDashboardStorage } from '../../../redux/reducer/general/dashboardReducer.ts';
@@ -11,6 +16,8 @@ import Config from '../../../config.ts';
 import { useState } from 'react';
 import { clearFileStorage } from '../../../redux/reducer/data/filesReducer.ts';
 import { clearAccountsStorage, importAccountsStorage } from '../../../redux/reducer/data/accountsReducer.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType';
+import DataPluginStorage from '../../../utils/dataPluginStorage';
 
 function GeneralSettings() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -22,6 +29,8 @@ function GeneralSettings() {
   const [fileImportSuccess, setFileImportSuccess] = useState<string>();
 
   const [storageCleared, setStorageCleared] = useState(false);
+
+  const dataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   return (
     <>
@@ -45,6 +54,21 @@ function GeneralSettings() {
               <button
                 className={'btn btn-outline w-full'}
                 onClick={() => {
+                  if (dataPlugins.length > 0) {
+                    Promise.all(
+                      dataPlugins
+                        .filter((p: DatabaseSettingsDataPluginType) => p.id !== undefined && p.parameters.fileName)
+                        .map((plugin: DatabaseSettingsDataPluginType) =>
+                          DataPluginStorage.getDataPlugin(plugin).then((dataPlugin) => {
+                            if (dataPlugin) {
+                              return dataPlugin.clearRemains().then(() => {
+                                dispatch(removeDataPlugin(plugin.id!));
+                              });
+                            }
+                          }),
+                        ),
+                    ).catch(console.log);
+                  }
                   dispatch(clearAccountsStorage());
                   dispatch(clearAuthorsStorage());
                   dispatch(clearDashboardStorage());

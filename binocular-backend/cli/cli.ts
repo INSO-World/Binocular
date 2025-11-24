@@ -92,10 +92,12 @@ function parse(run: (targetPath: string, options: runOptions) => void, build: (o
   cli
     .command('export')
     .addArgument(new Argument('[targetPath]', 'relative path to where the export should be saved'))
+    .addArgument(new Argument('[projectNamespace]', 'name of the project namespace'))
+    .addArgument(new Argument('[repositoryType]', 'type of the repository (github/gitlab)'))
     .description('export the database of binocular')
     .addOption(new Option('-db, --database <repo>', 'export specific database'))
-    .action((targetPath: string, options: exportOptions) => {
-      exportDB(targetPath, options).then((db: string) => {
+    .action((targetPath: string, projectNamespace: string, repositoryType: string, options: exportOptions) => {
+      exportDB(targetPath, options, projectNamespace, repositoryType).then((db: string) => {
         console.log(chalk.green('Export of ' + db + ' to ' + targetPath + '.'));
       });
     });

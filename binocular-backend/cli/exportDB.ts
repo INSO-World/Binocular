@@ -10,7 +10,7 @@ import Db from '../core/db/db';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-export function exportDB(targetPath: string, options: any): Promise<string> {
+export function exportDB(targetPath: string, options: any, projectNamespace: string, repositoryType: string): Promise<string> {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     let targetPathFull = __dirname + '/../../binocular-frontend';
@@ -69,20 +69,22 @@ export function exportDB(targetPath: string, options: any): Promise<string> {
     const db = setupDb.default({ host: arangoHost, port: arangoPort, user: arangoUser, password: arangoPassword });
 
     if (options.database) {
-      exportSpecificDatabase(options.database, db, targetPathFull);
+      exportSpecificDatabase(options.database, db, targetPathFull, projectNamespace, repositoryType);
     } else {
-      const avaliableDatabases = await db.listDatabases();
+      const availableDatabases = await db.listDatabases();
       inquirer
         .prompt([
           {
             type: 'list',
             name: 'database',
             message: 'Select which database you want to export?',
-            choices: avaliableDatabases,
+            choices: availableDatabases,
           },
         ])
         .then((answers: { database: string }) => {
-          exportSpecificDatabase(answers.database, db, targetPathFull).then(() => resolve(answers.database));
+          exportSpecificDatabase(answers.database, db, targetPathFull, projectNamespace, repositoryType).then(() =>
+            resolve(answers.database),
+          );
         })
         .catch((error: Error) => {
           reject(error);
@@ -92,7 +94,7 @@ export function exportDB(targetPath: string, options: any): Promise<string> {
   });
 }
 
-async function exportSpecificDatabase(name: string, database: Db, targetPath: string) {
+async function exportSpecificDatabase(name: string, database: Db, targetPath: string, projectNamespace: string, repositoryType: string) {
   console.log(chalk.blue(chalk.underline(`Export DB: ${name}`)));
   console.log(chalk.italic(`Target Path: ${targetPath}`));
 
@@ -103,6 +105,6 @@ async function exportSpecificDatabase(name: string, database: Db, targetPath: st
     })
     .then(function () {
       projectStructureHelper.deleteDbExport(targetPath);
-      projectStructureHelper.createAndFillDbExportFolder(database, targetPath);
+      projectStructureHelper.createAndFillDbExportFolder(database, targetPath, projectNamespace, repositoryType);
     });
 }
