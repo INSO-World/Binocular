@@ -31,7 +31,8 @@ internal class CommitValidationTest : ValidationTest() {
         val violation =
             run {
                 val violations = validator.validate(invalidCommit)
-                assertThat(violations).hasSize(1)
+                // when null both `Hexadecimal` and `Size` are violated
+                assertThat(violations).hasSizeBetween(1, 2)
                 violations.toList()[0]
             }
         assertThat(violation.propertyPath.toString()).isEqualTo(propertyPath)
