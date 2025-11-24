@@ -1,14 +1,13 @@
 package com.inso_world.binocular.model
 
+import com.inso_world.binocular.model.validation.Hexadecimal
+import com.inso_world.binocular.model.validation.isHex
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-
-private fun Char.isHex(): Boolean =
-    this in '0'..'9' || this in 'a'..'f' || this in 'A'..'F'
 
 /**
  * Commit — a Git snapshot that belongs to a [Repository].
@@ -47,6 +46,7 @@ private fun Char.isHex(): Boolean =
 @OptIn(ExperimentalUuidApi::class)
 data class Commit(
     @field:Size(min = 40, max = 40)
+    @field:Hexadecimal
     val sha: String,
     @field:PastOrPresent
     val authorDateTime: LocalDateTime? = null,
