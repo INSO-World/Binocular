@@ -6,6 +6,7 @@ import com.inso_world.binocular.infrastructure.test.config.LocalPostgresConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.test.context.ContextConfiguration
@@ -16,6 +17,7 @@ import org.springframework.test.context.ContextConfiguration
  * This base also ensures DB is populated with TestDataProvider data before each test.
  */
 @SpringBootTest
+@EnableAutoConfiguration
 @ContextConfiguration(
     classes = [LocalArangodbConfig::class, LocalPostgresConfig::class],
     initializers = [

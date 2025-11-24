@@ -13,12 +13,16 @@ import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import jakarta.validation.ConstraintViolationException
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.util.ReflectionUtils.setField
 import java.time.LocalDateTime
+import kotlin.reflect.jvm.javaField
 
 /**
  * Verifies that domain constraints are enforced via the infrastructure ports.
@@ -57,11 +61,11 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
         validRepository = repositoryPort.create(Repository(localPath = "repo-valid", project = validProject))
         validRepository.commits.add(
             Commit(
-                sha = "a".repeat(40),
+                sha = "af".repeat(20),
                 message = "message",
                 repository = validRepository,
                 commitDateTime = LocalDateTime.now(),
-                committer = User(name = "a", repository = validRepository),
+                committer = User(name = "a", repository = validRepository).apply { email = "a@a.a" },
             )
         )
         repositoryPort.update(validRepository)
@@ -69,74 +73,113 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
     }
 
     // Project validations
-    @Test
-    fun `project name must not be blank`() {
+    @ParameterizedTest
+    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    fun `project name must not be blank`(name: String) {
+        val project = Project(name = "name")
+        setField(Project::name.javaField!!.apply { isAccessible = true }, project, name)
         assertThrows(ConstraintViolationException::class.java) {
-            projectPort.create(Project(name = ""))
+            projectPort.create(project)
         }
     }
 
     // Repository validations
-    @Test
-    fun `repository name must not be blank`() {
-        assertThrows(ConstraintViolationException::class.java) {
-            repositoryPort.create(Repository(localPath = "", project = validProject))
+    @ParameterizedTest
+    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    fun `repository name must not be blank`(name: String) {
+        val repository = validRepository
+        setField(Repository::localPath.javaField!!.apply { isAccessible = true }, repository, name)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
+            repositoryPort.create(repository)
         }
+        assertThat(ex.constraintViolations.size).isEqualTo(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).isEqualTo("create.value.localPath")
     }
 
     // Branch validations
-    @Test
-    fun `branch name must not be blank`() {
-        assertThrows(ConstraintViolationException::class.java) {
-            branchPort.create(Branch(name = "", fullName = "asdf", repository = validRepository, category = ReferenceCategory.LOCAL_BRANCH, head = validCommit))
+    @ParameterizedTest
+    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    fun `branch name must not be blank`(name: String) {
+        val branch = Branch(
+            name = "name",
+            fullName = "asdf",
+            repository = validRepository,
+            category = ReferenceCategory.LOCAL_BRANCH,
+            head = validCommit
+        )
+        setField(Branch::name.javaField!!.apply { isAccessible = true }, branch, name)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
+            branchPort.create(branch)
         }
+        assertThat(ex.constraintViolations.size).isEqualTo(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).isEqualTo("create.value.name")
     }
 
     @Test
     fun `branch repository must not be null`() {
-        val branch = Branch(name = "main", fullName = "refs/heads/main", repository = validRepository, category = ReferenceCategory.LOCAL_BRANCH, head = validCommit)
-        setField(branch.javaClass.getDeclaredField("repository"), branch, null)
-        assertThrows(ConstraintViolationException::class.java) {
+        val branch = Branch(
+            name = "main",
+            fullName = "refs/heads/main",
+            repository = validRepository,
+            category = ReferenceCategory.LOCAL_BRANCH,
+            head = validCommit
+        )
+        setField(Branch::repository.javaField!!.apply { isAccessible = true }, branch, null)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
             branchPort.create(branch)
         }
+        assertThat(ex.constraintViolations.size).isEqualTo(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).isEqualTo("create.value.repository")
     }
 
     // Commit validations
-    @Test
-    fun `commit sha must be exactly 40 chars`() {
-        val committer = User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
-        assertThrows(ConstraintViolationException::class.java) {
-            commitPort.create(
-                Commit(
-                    sha = "abc", // invalid length
-                    authorDateTime = LocalDateTime.now(),
-                    commitDateTime = LocalDateTime.now(),
-                    repository = validRepository,
-                    committer = committer,
-                ),
+    @ParameterizedTest
+    @MethodSource("com.inso_world.binocular.model.validation.ValidationTestData#provideInvalidShaHex")
+    fun `commit sha must be exactly 40 chars`(sha: String) {
+        val commit = run {
+            val committer =
+                User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
+            return@run Commit(
+                sha = "a".repeat(40), // invalid length
+                authorDateTime = LocalDateTime.now(),
+                commitDateTime = LocalDateTime.now(),
+                repository = validRepository,
+                committer = committer,
             )
         }
+        setField(Commit::sha.javaField!!.apply { isAccessible = true }, commit, sha)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
+            commitPort.create(commit)
+        }
+
+        assertThat(ex.constraintViolations).hasSize(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).contains(".sha")
     }
 
     @Test
     fun `commit commitDateTime must not be null`() {
-        val committer = User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
-        assertThrows(ConstraintViolationException::class.java) {
-            commitPort.create(
-                Commit(
-                    sha = "a".repeat(40),
-                    authorDateTime = LocalDateTime.now(),
-                    commitDateTime = null, // invalid
-                    repository = validRepository,
-                    committer = committer,
-                ),
-            )
+        val committer =
+            User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
+        val commit = Commit(
+            sha = "fa".repeat(20),
+            authorDateTime = LocalDateTime.now(),
+            commitDateTime = LocalDateTime.now(),
+            repository = validRepository,
+            committer = committer,
+        )
+        // null is invalid
+        setField(Commit::commitDateTime.javaField!!.apply { isAccessible = true }, commit, null)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
+            commitPort.create(commit)
         }
+        assertThat(ex.constraintViolations.size).isEqualTo(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).isEqualTo("create.value.commitDateTime")
     }
 
     @Test
     fun `commit repository must not be null`() {
-        val committer = User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
+        val committer =
+            User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
         val commit = Commit(
             sha = "a".repeat(40),
             authorDateTime = LocalDateTime.now(),
@@ -146,37 +189,49 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
         )
 
         // invalid
-        setField(commit.javaClass.getDeclaredField("repository"), commit, null)
-        assertThrows(ConstraintViolationException::class.java) {
+        setField(Commit::repository.javaField!!.apply { isAccessible = true }, commit, null)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
             commitPort.create(commit)
         }
+        assertThat(ex.constraintViolations.size).isEqualTo(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).isEqualTo("create.value.repository")
     }
 
     // User validations
-    @Test
-    fun `user name must not be blank`() {
-        assertThrows(ConstraintViolationException::class.java) {
-            userPort.create(User(name = "", repository = validRepository).apply { email = "x@example.com" })
+    @ParameterizedTest
+    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    fun `user name must not be blank`(name: String) {
+        val user = User(name = "a", repository = validRepository).apply { email = "x@example.com" }
+        setField(User::name.javaField!!.apply { isAccessible = true }, user, name)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
+            userPort.create(user)
         }
+        assertThat(ex.constraintViolations.size).isEqualTo(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).isEqualTo("create.value.name")
     }
 
     @Test
     fun `user repository must not be null`() {
         val user = User(name = "Alice", repository = validRepository).apply { email = "a@example.com" }
 
-        setField(user.javaClass.getDeclaredField("repository"), user, null)
-        assertThrows(ConstraintViolationException::class.java) {
+        setField(User::repository.javaField!!.apply { isAccessible = true }, user, null)
+        val ex = assertThrows(ConstraintViolationException::class.java) {
             userPort.create(user)
         }
+        assertThat(ex.constraintViolations.size).isEqualTo(1)
+        assertThat(ex.constraintViolations.first().propertyPath.toString()).isEqualTo("create.value.repository")
     }
 
     @Test
     fun `commit author must belong to same repository as commit`() {
         val differentProject = projectPort.create(Project(name = "different-project"))
-        val differentRepository = repositoryPort.create(Repository(localPath = "different-repo", project = differentProject))
-        val authorFromDifferentRepo = User(name = "Different Author", repository = differentRepository).apply { email = "different@test.com" }
+        val differentRepository =
+            repositoryPort.create(Repository(localPath = "different-repo", project = differentProject))
+        val authorFromDifferentRepo =
+            User(name = "Different Author", repository = differentRepository).apply { email = "different@test.com" }
 
-        val committer = User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
+        val committer =
+            User(name = "Test Committer", repository = validRepository).apply { email = "committer@test.com" }
         val commit = Commit(
             sha = "b".repeat(40),
             commitDateTime = LocalDateTime.now(),
@@ -192,8 +247,10 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
     @Test
     fun `branch head must belong to same repository as branch`() {
         val differentProject = projectPort.create(Project(name = "different-project-2"))
-        val differentRepository = repositoryPort.create(Repository(localPath = "different-repo-2", project = differentProject))
-        val committerFromDifferentRepo = User(name = "Different Committer", repository = differentRepository).apply { email = "different@test.com" }
+        val differentRepository =
+            repositoryPort.create(Repository(localPath = "different-repo-2", project = differentProject))
+        val committerFromDifferentRepo =
+            User(name = "Different Committer", repository = differentRepository).apply { email = "different@test.com" }
 
         val headFromDifferentRepo = Commit(
             sha = "c".repeat(40),
