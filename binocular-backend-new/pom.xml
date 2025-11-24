@@ -51,7 +51,10 @@
         <kotlin.version>2.2.20</kotlin.version>
         <junit.version>5.13.1</junit.version>
         <mockk.version>1.14.4</mockk.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <!--        force set version of nested testcontainers to avoid docker bug:  -->
+        <!--        https://github.com/testcontainers/testcontainers-java/issues/11212-->
+        <testcontainers.version>2.0.2</testcontainers.version>
+        <sql-testcontainers.version>2.0.2</sql-testcontainers.version>
         <arangodb-testcontainer.version>4.0.0</arangodb-testcontainer.version>
     </properties>
     <modules>
@@ -138,9 +141,15 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>com.github.goodforgod</groupId>
+                <artifactId>arangodb-testcontainer</artifactId>
+                <version>${arangodb-testcontainer.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.testcontainers</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${testcontainers.version}</version>
+                <artifactId>testcontainers-postgresql</artifactId>
+                <version>${sql-testcontainers.version}</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
