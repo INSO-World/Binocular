@@ -15,7 +15,7 @@ import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTes
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.data.DummyTestData
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
@@ -30,10 +30,10 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
+import org.springframework.data.util.ReflectionUtils.setField
 import java.time.LocalDateTime
 import java.util.stream.Stream
 
@@ -54,7 +54,7 @@ internal class CommitDaoTest(
         @JvmStatic
         fun invalidCommitTime(): Stream<Arguments> =
             Stream.concat(
-                provideInvalidPastOrPresentDateTime(),
+                DummyTestData.provideInvalidPastOrPresentDateTime(),
                 Stream.of(null),
             )
     }
@@ -80,56 +80,32 @@ internal class CommitDaoTest(
         }
 
         @ParameterizedTest
-        @CsvSource(
-            value = [
-                "d9db3f4c2975616834504e9191a80fcd0f94ef", // 38 chars
-                "75c7762c536f491d3b7b4be1cfa8f22c808bdd2", // 39 chars
-                "cd1150dc719edcff6b660cf5ef25976445fb09b75", // 41 chars
-                "89e2d9a1f6c6dba6ede92619cd5935bb5b07420bef", // 42 chars
-            ],
-        )
-        fun `commit with invalid sha length should fail`(invalidSha: String) {
-            val exception =
-                assertThrows<jakarta.validation.ConstraintViolationException> {
-                    val cmt = Commit(
-                        sha = invalidSha,
-                        message = "msg",
-                        commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                        authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                        repository = repository,
-                        committer = User(name = "test", repository = repository)
-                    )
-                    commitPort.create(cmt)
-                }
-            assertThat(exception.message).contains(".value.sha")
-            entityManager.clear()
-        }
-
-        @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.model.validation.ValidationTestData#provideInvalidShaHex")
         fun `commit with invalid sha value should fail`(invalidSha: String) {
             val user = User(
                 name = "test",
                 repository = repository,
             )
             val cmt = Commit(
-                sha = invalidSha,
+                sha = "a".repeat(40),
                 message = "msg",
                 commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                 authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                 repository = repository,
                 committer = user,
             )
+            setField(Commit::class.java.getDeclaredField("sha"), cmt, invalidSha)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitPort.create(cmt)
                 }
-            assertThat(exception.message).contains(".value.sha")
+            assertThat(exception.constraintViolations).hasSize(1)
+            assertThat(exception.constraintViolations.first().propertyPath.toString()).contains("create.value.sha")
             entityManager.clear()
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
         @Disabled("can probably be deleted")
         fun `commit with invalid message should fail`(invalidMessage: String) {
             // Then - This should fail due to validation constraint
@@ -152,7 +128,7 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource(
-            "com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedPastOrPresentDateTime",
+            "com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid commitDateTime should not fail`(validCommitTime: LocalDateTime) {
             val user = User(
@@ -177,7 +153,7 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource(
-            "com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideAllowedPastOrPresentDateTime",
+            "com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid authorDateTime should not fail`(validAuthorTime: LocalDateTime) {
             val user = User(
@@ -205,17 +181,21 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.cli.integration.persistence.dao.sql.CommitDaoTest#invalidCommitTime",
         )
         fun `commit with invalid commitDateTime should fail`(invalidCommitTime: LocalDateTime?) {
-            val user = User(name = "test", repository = repository)
+            val commit = run {
+                val user = User(name = "test", repository = repository)
+                return@run Commit(
+                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                    message = "msg",
+                    commitDateTime = LocalDateTime.now(),
+                    authorDateTime = null,
+                    repository = repository,
+                    committer = user,
+                )
+            }
+            setField(Commit::class.java.getDeclaredField("commitDateTime"), commit, invalidCommitTime)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    Commit(
-                        sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                        message = "msg",
-                        commitDateTime = invalidCommitTime,
-                        authorDateTime = null,
-                        repository = repository,
-                        committer = user,
-                    )
+                    commitPort.create(commit)
                 }
             assertThat(exception.message).contains(".value.commitDateTime")
             entityManager.clear()
@@ -223,20 +203,24 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource(
-            "com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest#provideInvalidPastOrPresentDateTime",
+            "com.inso_world.binocular.data.DummyTestData#provideInvalidPastOrPresentDateTime",
         )
         fun `commit with invalid authorDateTime should fail`(invalidAuthorTime: LocalDateTime?) {
-            val user = User(name = "test", repository = repository)
+            val commit = run {
+                val user = User(name = "test", repository = repository)
+                return@run Commit(
+                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                    message = "msg",
+                    commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                    authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
+                    repository = repository,
+                    committer = user,
+                )
+            }
+            setField(Commit::class.java.getDeclaredField("authorDateTime"), commit, invalidAuthorTime)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    Commit(
-                        sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                        message = "msg",
-                        commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                        authorDateTime = invalidAuthorTime,
-                        repository = repository,
-                        committer = user,
-                    )
+                    commitPort.create(commit)
                 }
             assertThat(exception.message).contains(".value.authorDateTime")
             entityManager.clear()
