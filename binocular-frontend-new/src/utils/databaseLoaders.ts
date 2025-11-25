@@ -86,7 +86,7 @@ export default abstract class DatabaseLoaders {
     return PouchDB.init(undefined, undefined, { name: metadata.namespace, file: undefined, dbObjects: dbObjects }).then(() => {
       dispatch(
         addDataPlugin({
-          name: metadata.namespace,
+          name: 'PouchDb',
           color: '#8cadfc',
           id: 0,
           isDefault: true,
