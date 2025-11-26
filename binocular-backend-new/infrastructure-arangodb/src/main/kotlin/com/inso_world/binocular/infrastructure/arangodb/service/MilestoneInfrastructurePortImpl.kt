@@ -8,6 +8,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort {
+internal class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort {
     @Autowired private lateinit var milestoneDao: IMilestoneDao
 
     @Autowired private lateinit var issueMilestoneConnectionRepository: IIssueMilestoneConnectionDao
@@ -35,6 +36,10 @@ class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort {
     override fun findById(id: String): Milestone? {
         logger.trace("Getting milestone by id: $id")
         return milestoneDao.findById(id)
+    }
+
+    override fun findByIid(iid: Milestone.Id): @Valid Milestone? {
+        TODO("Not yet implemented")
     }
 
     override fun findIssuesByMilestoneId(milestoneId: String): List<Issue> {

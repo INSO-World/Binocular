@@ -17,8 +17,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -76,6 +75,10 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
     override fun findById(id: String): Commit? {
         logger.trace("Getting commit by id: $id")
         return commitDao.findById(id)
+    }
+
+    override fun findByIid(iid: Commit.Id): @Valid Commit? {
+        TODO("Not yet implemented")
     }
 
     override fun findBuildsByCommitId(commitId: String): List<Build> {

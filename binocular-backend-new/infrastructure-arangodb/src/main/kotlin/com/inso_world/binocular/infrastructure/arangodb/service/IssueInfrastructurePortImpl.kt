@@ -14,6 +14,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +22,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class IssueInfrastructurePortImpl : IssueInfrastructurePort {
+internal class IssueInfrastructurePortImpl : IssueInfrastructurePort {
     @Autowired private lateinit var issueDao: IIssueDao
 
     @Autowired private lateinit var issueAccountConnectionRepository: IIssueAccountConnectionDao
@@ -43,6 +44,10 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
     override fun findById(id: String): Issue? {
         logger.trace("Getting issue by id: $id")
         return issueDao.findById(id)
+    }
+
+    override fun findByIid(iid: Issue.Id): @Valid Issue? {
+        TODO("Not yet implemented")
     }
 
     override fun findAccountsByIssueId(issueId: String): List<Account> {

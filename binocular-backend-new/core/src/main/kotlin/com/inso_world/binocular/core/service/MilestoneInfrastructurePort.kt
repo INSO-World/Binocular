@@ -7,8 +7,16 @@ import com.inso_world.binocular.model.Milestone
 /**
  * Interface for MilestoneService.
  * Provides methods to retrieve milestones and their related entities.
+ *
+ * @deprecated Use [ProjectInfrastructurePort] instead. Milestone is part of the Project aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface MilestoneInfrastructurePort : BinocularInfrastructurePort<Milestone> {
+@Deprecated(
+    message = "Use ProjectInfrastructurePort instead. Milestone is part of the Project aggregate.",
+    replaceWith = ReplaceWith("ProjectInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface MilestoneInfrastructurePort : BinocularInfrastructurePort<Milestone, Milestone.Id> {
     /**
      * Find issues by milestone ID.
      *

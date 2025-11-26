@@ -58,7 +58,7 @@ internal class MergeRequestMapper
         override fun toEntity(domain: MergeRequest): MergeRequestEntity =
             MergeRequestEntity(
                 id = domain.id,
-                iid = domain.iid,
+                iid = domain.platformIid,
                 title = domain.title,
                 description = domain.description,
                 createdAt = domain.createdAt,
@@ -86,7 +86,7 @@ internal class MergeRequestMapper
 
             return MergeRequest(
                 id = entity.id,
-                iid = entity.iid,
+                platformIid = entity.iid,
                 title = entity.title,
                 description = entity.description,
                 createdAt = entity.createdAt,

@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Module
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-class ModuleInfrastructurePortImpl : ModuleInfrastructurePort {
+internal class ModuleInfrastructurePortImpl : ModuleInfrastructurePort {
     @Autowired private lateinit var moduleDao: IModuleDao
 
     @Autowired private lateinit var commitModuleConnectionRepository: ICommitModuleConnectionDao
@@ -38,6 +39,10 @@ class ModuleInfrastructurePortImpl : ModuleInfrastructurePort {
     override fun findById(id: String): com.inso_world.binocular.model.Module? {
         logger.trace("Getting module by id: $id")
         return moduleDao.findById(id)
+    }
+
+    override fun findByIid(iid: Module.Id): @Valid Module? {
+        TODO("Not yet implemented")
     }
 
     override fun findCommitsByModuleId(moduleId: String): List<Commit> {

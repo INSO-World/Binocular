@@ -67,7 +67,7 @@ internal class IssueMapper
         override fun toEntity(domain: Issue): IssueEntity =
             IssueEntity(
                 id = domain.id,
-                iid = domain.iid,
+                iid = domain.platformIid,
                 title = domain.title,
                 description = domain.description,
                 createdAt = domain.createdAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
@@ -96,7 +96,7 @@ internal class IssueMapper
             val domain =
                 Issue(
                     id = entity.id,
-                    iid = entity.iid,
+                    platformIid = entity.iid,
                     title = entity.title,
                     description = entity.description,
                     createdAt =

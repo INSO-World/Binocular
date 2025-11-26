@@ -11,8 +11,10 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IB
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
@@ -50,6 +52,10 @@ internal class BranchInfrastructurePortImpl(
     }
 
     override fun findById(id: String): Branch? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findByIid(iid: Reference.Id): @Valid Branch? {
         TODO("Not yet implemented")
     }
 

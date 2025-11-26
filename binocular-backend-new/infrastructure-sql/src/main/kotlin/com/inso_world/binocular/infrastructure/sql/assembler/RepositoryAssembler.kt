@@ -8,9 +8,12 @@ import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RemoteMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RemoteEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
@@ -307,5 +310,34 @@ internal class RepositoryAssembler {
         )
 
         return domain
+    }
+
+    fun refresh(domain: Repository, entity: RepositoryEntity) {
+        logger.trace("Refreshing Repository domain: ${domain.iid}")
+        this.repositoryMapper.refreshDomain(domain, entity)
+
+        with(entity.commits.associateBy(CommitEntity::iid)) {
+            domain.commits.parallelStream().forEach { commit ->
+                this@RepositoryAssembler.commitMapper.refreshDomain(commit, this.getValue(commit.iid))
+            }
+        }
+
+        with(entity.branches.associateBy(BranchEntity::iid)) {
+            domain.branches.parallelStream().forEach { branch ->
+                this@RepositoryAssembler.branchMapper.refreshDomain(branch, this.getValue(branch.iid))
+            }
+        }
+
+        with(entity.remotes.associateBy(RemoteEntity::iid)) {
+            domain.remotes.parallelStream().forEach { remotes ->
+                this@RepositoryAssembler.remoteMapper.refreshDomain(remotes, this.getValue(remotes.iid))
+            }
+        }
+
+        with(entity.user.associateBy(UserEntity::iid)) {
+            domain.user.parallelStream().forEach { user ->
+                this@RepositoryAssembler.userMapper.refreshDomain(user, this.getValue(user.iid))
+            }
+        }
     }
 }

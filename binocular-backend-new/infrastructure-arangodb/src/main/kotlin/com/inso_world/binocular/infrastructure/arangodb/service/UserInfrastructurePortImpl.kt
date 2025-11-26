@@ -5,13 +5,13 @@ import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueUserConnectionDao
-import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IUserDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.UserDao
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-class UserInfrastructurePortImpl : UserInfrastructurePort {
+internal class UserInfrastructurePortImpl : UserInfrastructurePort {
     @Autowired
     private lateinit var userDao: UserDao
 
@@ -45,6 +45,10 @@ class UserInfrastructurePortImpl : UserInfrastructurePort {
     override fun findById(id: String): User? {
         logger.trace("Getting user by id: $id")
         return userDao.findById(id)
+    }
+
+    override fun findByIid(iid: User.Id): @Valid User? {
+        TODO("Not yet implemented")
     }
 
     override fun findCommitsByUserId(userId: String): List<Commit> {
