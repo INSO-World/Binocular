@@ -16,9 +16,12 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.CommitDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadRepositoryEntities
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
@@ -26,10 +29,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.validation.annotation.Validated
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
-import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadRepositoryEntities
-import jakarta.validation.Valid
 
 @Service
 @Validated
@@ -39,6 +38,31 @@ internal class RepositoryInfrastructurePortImpl :
     companion object {
         private val logger by logger()
     }
+
+    /**
+     * Self-reference to this bean's proxy instance.
+     *
+     * **Workaround for Spring AOP + Kotlin Value Class Issue**
+     *
+     * This self-injection is required to work around a limitation where Spring AOP's aspect pointcut
+     * matching fails for methods with Kotlin value class parameters (inline classes) that require
+     * name mangling via `@JvmName`.
+     *
+     * **Problem**: When a method like `findByIid(iid: Repository.Id)` overrides an interface method and
+     * uses a value class parameter, Kotlin mangles the JVM method name (e.g., `findByIid-pip`).
+     * Spring AOP's `@annotation` pointcut cannot properly match `@MappingSession` on mangled methods,
+     * causing the `MappingSessionAspect` to not be triggered.
+     *
+     * **Solution**: Internal method calls bypass Spring's proxy. By injecting `self` and calling
+     * `self.findByIidInternal()`, we ensure the call goes through the Spring AOP proxy, allowing
+     * the aspect to intercept and establish the required mapping session scope.
+     *
+     * @see findByIid
+     * @see findByIidInternal
+     */
+    @Autowired
+    @Lazy
+    private lateinit var self: RepositoryInfrastructurePortImpl
 
     @Autowired
     private lateinit var userMapper: UserMapper
@@ -62,6 +86,7 @@ internal class RepositoryInfrastructurePortImpl :
 
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
+
     @Autowired
     private lateinit var repositoryMapper: RepositoryMapper
 
@@ -106,15 +131,43 @@ internal class RepositoryInfrastructurePortImpl :
         )
     }
 
-    @OptIn(ExperimentalUuidApi::class)
-    @MappingSession
-    @Transactional(readOnly = true)
-    override fun findById(id: String): Repository? =
-        findByIid(Repository.Id(Uuid.parse(id)))
-
-    @MappingSession
-    @Transactional(readOnly = true)
+    /**
+     * Finds a repository by its internal identifier (iid).
+     *
+     * **Implementation Note - Value Class Workaround**:
+     * This method delegates to [findByIidInternal] via [self] (the proxy instance) to ensure
+     * Spring AOP aspects are triggered. Direct implementation here would bypass the proxy due to
+     * Kotlin's value class name mangling preventing proper aspect pointcut matching.
+     *
+     * @param iid The repository's technical identifier
+     * @return The repository if found, null otherwise
+     * @see self
+     * @see findByIidInternal
+     */
     override fun findByIid(iid: Repository.Id): Repository? {
+        return self.findByIidInternal(iid)
+    }
+
+    /**
+     * Internal implementation of repository lookup by iid.
+     *
+     * **Why this method exists**:
+     * This separate method is required because Spring AOP cannot intercept methods with
+     * mangled signatures (caused by Kotlin value class parameters). By extracting
+     * the logic here with a normal method name, Spring AOP can properly intercept the call when
+     * invoked via [self], establishing the `@MappingSession` scope needed by [repositoryAssembler].
+     *
+     * **Visibility**: Must not be `private` to allow Spring CGLIB to create
+     * a proxy subclass that can override this method for aspect interception.
+     *
+     * @param iid The repository's technical identifier
+     * @return The repository if found, null otherwise
+     * @see findByIid
+     * @see MappingSession
+     */
+    @MappingSession
+    @Transactional(readOnly = true)
+    protected fun findByIidInternal(iid: Repository.Id): Repository? {
         return this.repositoryDao.findByIid(iid)?.let {
             repositoryAssembler.toDomain(it)
         }
@@ -123,7 +176,8 @@ internal class RepositoryInfrastructurePortImpl :
     @MappingSession
     @Transactional
     override fun create(@Valid value: Repository): Repository {
-        val project = projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
+        val project =
+            projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
 
         if (project.repo != null) {
             throw IllegalArgumentException("Selected project $project has already a Repository set")
@@ -178,7 +232,8 @@ internal class RepositoryInfrastructurePortImpl :
         // Phase 1: Map and wire Commits with their author/committer relationships
         // Collect all commits including parents and children to ensure complete graph
         logger.debug("Update commits")
-        val allCommits = (value.commits + value.commits.flatMap { it.parents } + value.commits.flatMap { it.children }).toSet()
+        val allCommits =
+            (value.commits + value.commits.flatMap { it.parents } + value.commits.flatMap { it.children }).toSet()
 
         allCommits.forEach { commit ->
             // Map commit entity (or get existing from context)
@@ -227,4 +282,86 @@ internal class RepositoryInfrastructurePortImpl :
         return values
     }
 
+    @Transactional(readOnly = true)
+    @MappingSession
+    override fun findExistingCommits(repo: Repository, shas: Set<String>): Sequence<Commit> {
+        TODO("Not yet implemented")
+    }
+
+    @MappingSession
+    override fun saveCommitDiffs(
+        repository: Repository,
+        diffs: Set<CommitDiff>,
+    ): Set<CommitDiff> {
+        TODO("Not yet implemented")
+//                val savedDiffs = commitDiffService.saveCommitDiffs(repoEntity, diffs)
+//        return savedDiffs
+//            .map {
+//                val domain = commitDiffMapper.toDomain(it)
+//
+//                val fileDiffs = it.files.map { fd -> fileDiffMapper.toDomain(fd) }
+//                domain.files = fileDiffs.toSet()
+//
+//                return@map domain
+//            }.map {
+//                it.repository = repository
+//                it
+//            }.toSet()
+    }
+
+    @MappingSession
+    override fun findAllDiffs(repository: Repository): Set<CommitDiff> {
+        TODO("Not yet implemented")
+//        val diffs = commitDiffDao.findAll()
+//        val value =
+//            (diffs.map { it.source } + diffs.mapNotNull { it.target }).toSet()
+//        commitMapper.toDomainGraph(value.asSequence())
+//
+//        return diffs
+//            .map {
+//                val domain = commitDiffMapper.toDomain(it)
+//
+//                val fileDiffs = it.files.map { fd -> fileDiffMapper.toDomain(fd) }
+//                domain.files = fileDiffs.toSet()
+//
+//                return@map domain
+//            }.map {
+//                it.repository = repository
+//                it
+//            }.toSet()
+    }
+    //    override fun findAllUser(repository: Repository): Iterable<User> {
+//        val commitContext = mutableMapOf<String, Commit>()
+//        val branchContext = mutableMapOf<String, Branch>()
+//        val userContext = mutableMapOf<String, User>()
+//
+//        val entities = this.repositoryDao.findAllUser(repository.name)
+//
+//        return entities.map {
+//            userMapper.toDomain(it, repository, userContext, commitContext, branchContext)
+//        }
+//    }
+//
+//    override fun findAllCommits(repository: Repository): Iterable<Commit> {
+//        val commitContext = mutableMapOf<String, Commit>()
+//        val branchContext = mutableMapOf<String, Branch>()
+//        val userContext = mutableMapOf<String, User>()
+//
+//        val entities = this.repositoryDao.findAllCommits(repository.name)
+//
+//        return entities.map {
+//            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
+//        }
+//    }
+//
+//    override fun findAllBranches(repository: Repository): Iterable<Branch> {
+//        val commitContext = mutableMapOf<String, Commit>()
+//        val branchContext = mutableMapOf<String, Branch>()
+//
+//        val entities = this.repositoryDao.findAllBranches(repository.name)
+//
+//        return entities.map {
+//            branchMapper.toDomain(it, repository, commitContext, branchContext)
+//        }
+//    }
 }

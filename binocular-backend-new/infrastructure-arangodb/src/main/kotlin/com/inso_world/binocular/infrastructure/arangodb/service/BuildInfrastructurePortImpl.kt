@@ -6,6 +6,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBuildDao
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +16,7 @@ import java.time.ZoneOffset
 import java.util.Date
 
 @Service
-class BuildInfrastructurePortImpl : BuildInfrastructurePort {
+internal class BuildInfrastructurePortImpl : BuildInfrastructurePort {
     @Autowired private lateinit var buildDao: IBuildDao
 
     @Autowired private lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao
@@ -51,6 +52,10 @@ class BuildInfrastructurePortImpl : BuildInfrastructurePort {
     override fun findById(id: String): Build? {
         logger.trace("Getting build by id: $id")
         return buildDao.findById(id)
+    }
+
+    override fun findByIid(iid: Build.Id): @Valid Build? {
+        TODO("Not yet implemented")
     }
 
     override fun findCommitsByBuildId(buildId: String): List<Commit> {

@@ -132,4 +132,14 @@ internal class ProjectAssembler {
         logger.debug("Assembled Project domain: ${domain.name}, hasRepository=${domain.repo != null}")
         return domain
     }
+
+    fun refresh(domain: Project, entity: ProjectEntity) {
+        logger.trace("Refreshing Repository domain: ${domain.iid}")
+        this.projectMapper.refreshDomain(domain, entity)
+        if (domain.repo != null) {
+            this.repositoryAssembler.refresh(requireNotNull(domain.repo), requireNotNull(entity.repo))
+        } else {
+            logger.debug("No repository to refresh")
+        }
+    }
 }

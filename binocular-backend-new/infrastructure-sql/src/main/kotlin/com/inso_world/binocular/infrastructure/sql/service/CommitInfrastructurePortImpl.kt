@@ -25,6 +25,7 @@ import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,6 +40,7 @@ import kotlin.uuid.Uuid
 
 @Service
 @Validated
+@Deprecated("Use domain aggregate `Repository`")
 internal class CommitInfrastructurePortImpl
 @Autowired
 constructor(
@@ -132,6 +134,10 @@ constructor(
 
             commitMapper.toDomain(it)
         }
+
+    override fun findByIid(iid: Commit.Id): @Valid Commit? {
+        TODO("Not yet implemented")
+    }
 
     @MappingSession
     @Transactional

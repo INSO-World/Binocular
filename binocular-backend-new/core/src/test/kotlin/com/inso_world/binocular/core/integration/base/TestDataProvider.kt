@@ -3,10 +3,9 @@ package com.inso_world.binocular.core.integration.base
 import com.inso_world.binocular.data.MockTestDataProvider
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
-import com.inso_world.binocular.model.Job
-import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Job
 import com.inso_world.binocular.model.Mention
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
@@ -354,7 +353,7 @@ object TestDataProvider {
         listOf(
             Milestone(
                 id = "1",
-                iid = 201,
+                platformIid = 201,
                 title = "Release 1.0",
                 description = "First stable release",
                 createdAt = "2023-01-01T10:00:00Z",
@@ -367,7 +366,7 @@ object TestDataProvider {
             ),
             Milestone(
                 id = "2",
-                iid = 202,
+                platformIid = 202,
                 title = "Release 2.0",
                 description = "Second major release",
                 createdAt = "2023-02-01T10:00:00Z",

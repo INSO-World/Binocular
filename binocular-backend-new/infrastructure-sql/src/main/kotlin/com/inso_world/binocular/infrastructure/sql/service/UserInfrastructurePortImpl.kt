@@ -17,6 +17,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,6 +58,10 @@ internal class UserInfrastructurePortImpl(
     }
 
     override fun findById(id: String): User? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findByIid(iid: User.Id): @Valid User? {
         TODO("Not yet implemented")
     }
 

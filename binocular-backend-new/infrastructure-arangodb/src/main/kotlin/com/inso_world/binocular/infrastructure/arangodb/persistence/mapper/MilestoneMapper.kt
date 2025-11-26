@@ -55,7 +55,7 @@ internal class MilestoneMapper
         override fun toEntity(domain: Milestone): MilestoneEntity =
             MilestoneEntity(
                 id = domain.id,
-                iid = domain.iid,
+                iid = domain.platformIid,
                 title = domain.title,
                 description = domain.description,
                 createdAt = domain.createdAt,
@@ -82,7 +82,7 @@ internal class MilestoneMapper
 
             return Milestone(
                 id = entity.id,
-                iid = entity.iid,
+                platformIid = entity.iid,
                 title = entity.title,
                 description = entity.description,
                 createdAt = entity.createdAt,
