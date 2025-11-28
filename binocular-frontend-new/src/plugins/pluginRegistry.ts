@@ -7,6 +7,7 @@ import CodeOwnership from './visualizationPlugins/code-ownership';
 import FileChanges from './visualizationPlugins/fileChanges';
 import RepositoryStats from './visualizationPlugins/respositoryStats';
 import MergeRequests from './visualizationPlugins/mergeRequests';
+import CodeHotspots from './visualizationPlugins/codeHotspots';
 
 import ExampleComplex from './visualizationPlugins/exampleComplex';
 import ExampleStats from './visualizationPlugins/exampleStats';
@@ -59,6 +60,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   CollaborationVisualization,
   KnowledgeRadar,
   CodeExpertise,
+  CodeHotspots,
 ];
 
 //Order = priority used when nothing selected by the user.
