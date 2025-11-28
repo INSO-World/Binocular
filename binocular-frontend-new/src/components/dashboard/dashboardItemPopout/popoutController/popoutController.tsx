@@ -1,5 +1,5 @@
-import { type ReactElement, useEffect, useState } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { type ReactElement, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { throttle } from 'throttle-debounce';
 
 /**
@@ -9,10 +9,8 @@ import { throttle } from 'throttle-debounce';
 
 interface PropsType {
   title: string;
-  url: string;
   onClosing: () => void;
   options: OptionsType;
-  window?: Window;
   containerId?: string;
   containerClassName?: string;
   children: ReactElement;
@@ -49,11 +47,67 @@ const DEFAULT_OPTIONS: OptionsType = {
 };
 
 export default function PopoutController(props: PropsType) {
-  const [popoutWindow, setPopoutWindow] = useState<Window>();
   const [container, setContainer] = useState<HTMLDivElement>();
-  const [root, setRoot] = useState<Root>();
+  const popoutWindow = useRef<Window>(null);
 
-  let interval: number;
+  const storedTheme = localStorage.getItem('theme');
+  const [theme] = useState(storedTheme || 'binocularLight');
+
+  useEffect(() => {
+    const newContainer: HTMLDivElement = document.createElement('div');
+    newContainer.style.height = '100vh';
+    newContainer.style.width = '100vw';
+    newContainer.setAttribute('data-theme', theme);
+    setContainer(newContainer);
+  }, []);
+
+  useEffect(() => {
+    if (container) {
+      popoutWindow.current = window.open('', props.title, createOptions());
+      popoutWindow.current?.document.body.setAttribute('style', 'margin:0');
+      popoutWindow.current?.document.body.appendChild(container);
+      popoutWindow.current?.addEventListener('beforeunload', popoutWindowUnloading);
+      popoutWindow.current?.addEventListener('resize', throttledResize);
+
+      const styleSheets = Array.from(document.styleSheets);
+      styleSheets.forEach((styleSheet) => {
+        try {
+          if (styleSheet.href) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = styleSheet.href;
+            popoutWindow.current?.document.head.appendChild(link);
+          } else if (styleSheet.cssRules) {
+            const style = document.createElement('style');
+            Array.from(styleSheet.cssRules).forEach((rule) => {
+              style.appendChild(document.createTextNode(rule.cssText));
+            });
+            popoutWindow.current?.document.head.appendChild(style);
+          }
+        } catch (e) {
+          console.warn('Could not copy stylesheet:', e);
+        }
+      });
+
+      const curWindow = popoutWindow.current;
+
+      return () => curWindow?.close();
+    }
+  }, [container]);
+
+  function popoutWindowUnloading() {
+    if (container) {
+      props.onClosing();
+    }
+  }
+
+  function createOptions() {
+    const mergedOptions = Object.assign({}, DEFAULT_OPTIONS, props.options);
+    console.log(Object.keys(mergedOptions).join(','));
+    return Object.keys(mergedOptions)
+      .map((key) => key + '=' + mergedOptions[key as keyof OptionsType])
+      .join(',');
+  }
 
   const throttledResize = throttle(
     1000,
@@ -63,129 +117,5 @@ export default function PopoutController(props: PropsType) {
     { noLeading: false, noTrailing: false },
   );
 
-  useEffect(() => {
-    const ownerWindow = props.window || window;
-
-    // May not exist if server-side rendering
-    if (ownerWindow) {
-      openPopoutWindow(ownerWindow);
-
-      // Close any open popouts when page unloads/refreshes
-      ownerWindow.addEventListener('beforeunload', mainWindowClosed);
-    }
-
-    return () => {
-      mainWindowClosed();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (container) {
-      renderToContainer(container, props.children);
-    }
-  }, [container, props.children]);
-
-  useEffect(() => {
-    if (popoutWindow === undefined) {
-      return;
-    }
-    popoutWindow.document.title = props.title;
-  }, [props]);
-
-  useEffect(() => {
-    if (popoutWindow) {
-      popoutWindow.addEventListener('load', popoutWindowLoaded);
-      popoutWindow.addEventListener('beforeunload', () => popoutWindowUnloading(container, root, props, interval));
-
-      checkForPopoutWindowClosure();
-    }
-  }, [popoutWindow]);
-
-  function openPopoutWindow(ownerWindow: Window) {
-    const popoutWindow = ownerWindow.open(props.url, props.title, createOptions(ownerWindow));
-    popoutWindow?.addEventListener('resize', throttledResize);
-    if (!popoutWindow) {
-      props.onError();
-      return;
-    }
-    setPopoutWindow(popoutWindow);
-  }
-
-  function createOptions(ownerWindow: Window) {
-    const mergedOptions = Object.assign({}, DEFAULT_OPTIONS, props.options);
-
-    return Object.keys(mergedOptions)
-      .map((key) => {
-        return (
-          key +
-          '=' +
-          (key === 'top'
-            ? (ownerWindow.innerHeight - mergedOptions.height) / 2 + ownerWindow.screenY
-            : key === 'left'
-              ? (ownerWindow.innerWidth - mergedOptions.width) / 2 + ownerWindow.screenX
-              : mergedOptions[key as keyof OptionsType])
-        );
-      })
-      .join(',');
-  }
-
-  function popoutWindowLoaded() {
-    if (!container && popoutWindow) {
-      // Popout window is passed from openPopoutWindow if no url is specified.
-      // In this case this.state.popoutWindow will not yet be set, so use the argument.
-      popoutWindow.document.title = props.title;
-      const container = popoutWindow.document.createElement('div');
-      container.id = props.containerId || '';
-      container.className = props.containerClassName || '';
-      container.style.width = '100%';
-      container.style.height = '100%';
-      popoutWindow.document.body.appendChild(container);
-
-      setContainer(container);
-      renderToContainer(container, props.children);
-    }
-  }
-
-  /**
-   * Use if a URL was passed to the popout window. Checks every 500ms if the window has been closed.
-   * Calls the onClosing() prop if the window is closed.
-   *
-   * @param popoutWindow
-   */
-  function checkForPopoutWindowClosure() {
-    interval = window.setInterval(() => {
-      if (popoutWindow && popoutWindow.closed) {
-        clearInterval(interval);
-        props.onClosing();
-      }
-    }, 500);
-  }
-
-  function mainWindowClosed() {
-    if (popoutWindow) popoutWindow.close();
-    (props.window || window).removeEventListener('beforeunload', mainWindowClosed);
-  }
-
-  function popoutWindowUnloading(container: HTMLDivElement | undefined, root: Root | undefined, props: PropsType, interval: number) {
-    if (container) {
-      clearInterval(interval);
-      if (root) {
-        root.unmount();
-      }
-      props.onClosing();
-    }
-  }
-
-  function renderToContainer(container: HTMLDivElement, children: React.ReactElement) {
-    // For SSR we might get updated but there will be no container.
-    if (container) {
-      if (!root) {
-        setRoot(createRoot(container));
-      } else {
-        root.render(children);
-      }
-    }
-  }
-
-  return null;
+  return container && createPortal(props.children, container);
 }

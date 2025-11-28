@@ -82,8 +82,6 @@ const DashboardItem = memo(function DashboardItem(props: {
       DataPluginStorage.getDataPlugin(selectedDataPlugin)
         .then((newDataPlugin) => {
           if (newDataPlugin) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             setDataPlugin(newDataPlugin);
           }
         })
@@ -206,7 +204,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                     event.stopPropagation();
                     setPoppedOut(false);
                   }}>
-                  <div>Dispatch Popout</div>
+                  <div>Close Popout</div>
                 </button>
               </div>
               {dataPlugin && store ? (
