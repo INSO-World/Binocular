@@ -5,12 +5,12 @@ import type { DataPluginCommit } from '../../../../interfaces/dataPluginInterfac
  * Extracts file paths touched by a specific developer
  */
 export function extractTouchedFiles(commits: DataPluginCommit[], developer: string): Set<string> {
-  const developerCommits = commits.filter((commit) => commit.user.gitSignature === developer);
+  const developerCommits = commits.filter((commit) => commit.user?.gitSignature === developer);
 
   const touchedFiles = new Set<string>();
 
   for (const commit of developerCommits) {
-    if (!commit.files.data || !Array.isArray(commit.files.data)) continue;
+    if (!commit.files?.data || !Array.isArray(commit.files.data)) continue;
 
     for (const fileEntry of commit.files.data) {
       if (fileEntry.file?.path) {
@@ -35,12 +35,13 @@ function filterNonMergeCommits(commits: DataPluginCommit[]): DataPluginCommit[] 
 function processCommitFiles(
   commits: DataPluginCommit[],
   developerTouchedFiles: Set<string>,
-): {
-  packageCommits: Map<string, DataPluginCommit[]>;
-} {
+):
+  Map<string, DataPluginCommit[]>
+{
   const packageCommits = new Map<string, DataPluginCommit[]>();
 
   for (const commit of commits) {
+    if (!commit.files) continue;
     for (const fileChange of commit.files.data) {
       if (!developerTouchedFiles.has(fileChange.file.path)) continue;
 
@@ -71,6 +72,7 @@ function calculateTotalCommits(commits: DataPluginCommit[]): Map<string, number>
   const totalPackageCommits = new Map<string, number>();
 
   for (const commit of commits) {
+    if (!commit.files) continue;
     for (const fileChange of commit.files.data) {
       const filePath = fileChange.file.path;
       const pathParts = filePath.split('/').filter((part) => part.length > 0);
@@ -154,7 +156,7 @@ export function buildPackageHierarchy(packageScores: Map<string, number>): Packa
         packageMap.set(currentPath, newPackage);
 
         if (parentPackage) {
-          parentPackage.subpackages.push(newPackage);
+          parentPackage.subpackages?.push(newPackage);
         } else if (index === 0) {
           rootPackages.push(newPackage as Package);
         }
@@ -178,7 +180,7 @@ function calculateAggregateScores(packages: (Package | SubPackage)[]): number {
   let count = 0;
 
   for (const pkg of packages) {
-    if (pkg.subpackages?.length > 0) {
+    if (pkg.subpackages && pkg.subpackages.length > 0) {
       // Update score based on children's average if needed
       const childScore = calculateAggregateScores(pkg.subpackages);
       if (pkg.score === 0) {
