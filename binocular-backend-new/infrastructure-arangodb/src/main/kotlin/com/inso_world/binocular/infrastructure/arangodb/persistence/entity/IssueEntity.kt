@@ -20,6 +20,7 @@ data class IssueEntity(
     var id: String? = null,
     @Field("iid")
     var iid: Int? = null,
+    val gid: String,
     var title: String? = null,
     var description: String? = null,
     var createdAt: Date? = null,

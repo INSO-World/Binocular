@@ -36,6 +36,18 @@
             </roles>
             <timezone>Europe/Vienna</timezone>
         </developer>
+        <developer>
+            <id>kastenmeierk</id>
+            <name>Kai Kastenmeier</name>
+            <email>kai.kastenmeier@inso-world.com</email>
+            <organization>INSO/BUSY</organization>
+            <organizationUrl>https://www.inso-world.com</organizationUrl>
+            <roles>
+                <role>researcher</role>
+                <role>developer</role>
+            </roles>
+            <timezone>Europe/Vienna</timezone>
+        </developer>
     </developers>
     <scm>
         <connection/>
@@ -66,6 +78,7 @@
         <module>infrastructure-test</module>
         <module>cli</module>
         <module>web</module>
+        <module>github</module>
     </modules>
     <dependencyManagement>
         <!--

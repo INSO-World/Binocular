@@ -1,3 +1,66 @@
+package com.inso_world.binocular.infrastructure.sql.persistence.dao
+
+import com.inso_world.binocular.core.persistence.exception.PersistenceException
+import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IIssueDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.repository.IssueRepository
+import com.inso_world.binocular.infrastructure.sql.persistence.repository.ProjectRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.jpa.domain.Specification
+import org.springframework.stereotype.Repository
+import java.util.stream.Stream
+
+@Repository
+internal class IssueDao(
+    @Autowired
+    private val repo: IssueRepository,
+    @Autowired
+    private val project: ProjectRepository,
+) : SqlDao<IssueEntity, Long>(),
+    IIssueDao {
+    init {
+        this.setClazz(IssueEntity::class.java)
+        this.setRepository(repo)
+    }
+
+    private object IssueEntitySpecification {
+        fun hasProjectId(projectId: Long): Specification<IssueEntity> =
+            Specification { root, _, cb ->
+                cb.equal(root.get<ProjectEntity>("project").get<Long>("id"), projectId)
+            }
+
+        fun hasGidIn(gids: List<String>): Specification<IssueEntity> =
+            Specification { root, _, cb ->
+                root.get<String>("gid").`in`(gids)
+            }
+    }
+
+    override fun findAllByUser(user: UserEntity): Stream<IssueEntity> {
+        return repo.findAllByUsersContaining(user)
+    }
+
+    override fun findExistingGid(
+        project: ProjectEntity,
+        ids: List<String>,
+    ): Iterable<IssueEntity> {
+        val projectId = project.id
+        if (projectId == null) throw PersistenceException("Cannot find project without valid ID")
+        val ids =
+            this.repo.findAll(
+                Specification.allOf(
+                    IssueEntitySpecification
+                        .hasProjectId(projectId.toLong())
+                        .and(IssueEntitySpecification.hasGidIn(ids))
+                )
+            )
+        return ids
+    }
+
+}
+
+
 // package com.inso_world.binocular.infrastructure.sql.persistence.dao
 //
 // import com.inso_world.binocular.core.persistence.dao.interfaces.IIssueDao

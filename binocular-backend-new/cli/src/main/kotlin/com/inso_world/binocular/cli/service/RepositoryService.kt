@@ -187,19 +187,24 @@ class RepositoryService {
 
     fun findRepo(gitDir: String): Repository? = this.repositoryPort.findByName(normalizePath(gitDir))
 
-    fun create(repository: Repository): Repository {
-        require(repository.id == null) { "Repository.id must be null to create repository" }
-        require(repository.project != null) { "Repository.project must not be null to create repository" }
-        require(repository.project?.repo == repository) { "Mismatch in Repository and Project configuration" }
-
-//        val find = this.findRepo(name)
-//        if (find == null) {
-//            logger.info("Repository does not exists, creating new repository")
-        return this.repositoryPort.create(repository)
-//        } else {
-//            logger.debug("Repository already exists, returning existing repository")
-//            return find
-//        }
+    fun getOrCreate(
+        gitDir: String,
+        p: Project,
+    ): Repository {
+        val find = this.findRepo(gitDir)
+        if (find == null) {
+            logger.info("Repository does not exist, creating new repository")
+            return this.repositoryPort.create(
+                Repository(
+                    id = null,
+                    name = normalizePath(gitDir),
+                    project = p,
+                ),
+            )
+        } else {
+            logger.debug("Repository already exists, returning existing repository")
+            return find
+        }
     }
 
     fun getHeadCommits(

@@ -14,6 +14,7 @@ import org.springframework.data.annotation.Id
 data class AccountEntity(
     @Id
     var id: String? = null,
+    val gid: String,
     var platform: PlatformEntity? = null,
     var login: String? = null,
     var name: String? = null,

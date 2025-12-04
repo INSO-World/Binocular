@@ -231,13 +231,17 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                 title = "Bug: Login fails",
                 description = "Users cannot login",
                 state = "open",
-                createdAt = LocalDateTime.of(2024, 1, 1, 10, 0)
+                createdAt = LocalDateTime.of(2024, 1, 1, 10, 0),
+                gid = "1",
+                project = project
             )
             val issue2 = Issue(
                 title = "Feature: Dark mode",
                 description = "Add dark mode support",
                 state = "open",
-                createdAt = LocalDateTime.of(2024, 1, 2, 10, 0)
+                createdAt = LocalDateTime.of(2024, 1, 2, 10, 0),
+                gid = "1",
+                project = project
             )
             project.issues.add(issue1)
             project.issues.add(issue2)
@@ -587,8 +591,12 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
             val project = projectPort.create(Project(name = "IssueUpdateTest"))
 
             // When: Adding issues
-            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now())
-            val issue2 = Issue(title = "Issue 2", state = "closed", createdAt = LocalDateTime.now())
+            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
+                gid = "1",
+                project = project)
+            val issue2 = Issue(title = "Issue 2", state = "closed", createdAt = LocalDateTime.now(),
+                gid = "1",
+                project = project)
             project.issues.add(issue1)
             project.issues.add(issue2)
             val updated = projectPort.update(project)
@@ -759,8 +767,12 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         fun `delete project with issues removes issues`() {
             // Given: A project with issues
             val project = projectPort.create(Project(name = "ProjectWithIssues"))
-            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now())
-            val issue2 = Issue(title = "Issue 2", state = "closed", createdAt = LocalDateTime.now())
+            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
+                gid = "1",
+                project = project)
+            val issue2 = Issue(title = "Issue 2", state = "closed", createdAt = LocalDateTime.now(),
+                gid = "1",
+                project = project)
             project.issues.add(issue1)
             project.issues.add(issue2)
             projectPort.update(project)
@@ -918,8 +930,12 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
             val project = Project(name = "MutableIssuesTest")
 
             // When: Adding issues
-            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now())
-            val issue2 = Issue(title = "Issue 2", state = "open", createdAt = LocalDateTime.now())
+            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
+                gid = "1",
+                project = project)
+            val issue2 = Issue(title = "Issue 2", state = "open", createdAt = LocalDateTime.now(),
+                gid = "1",
+                project = project)
             project.issues.add(issue1)
             project.issues.add(issue2)
 

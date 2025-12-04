@@ -33,4 +33,14 @@ interface AccountInfrastructurePort : BinocularInfrastructurePort<Account> {
      * @return List of notes associated with the account
      */
     fun findNotesByAccountId(accountId: String): List<Note>
+
+    /**
+     * Find existing GitHub Accounts via gid.
+     *
+     * @param gids The list of GitHub account IDs
+     * @return the Accounts associated with the IDs
+     */
+    fun findExistingGid(
+        gids: List<String>,
+    ): Iterable<Account>
 }

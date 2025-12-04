@@ -28,7 +28,8 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class Project(
     @field:NotBlank
-    val name: String
+    val name: String,
+    val accounts: MutableSet<Account> = mutableSetOf(),
 ) : AbstractDomainObject<Project.Id, Project.Key>(
     Id(Uuid.random())
 ) {
@@ -37,8 +38,27 @@ data class Project(
 
     data class Key(val name: String) // value object for lookups
 
-    val issues: MutableSet<Issue> = mutableSetOf()
-//        object : NonRemovingMutableSetSet<Issue>() {}
+    private val _issues: MutableSet<Issue> = mutableSetOf()
+
+    val issues: MutableSet<Issue> =
+        object : MutableSet<Issue> by _issues {
+            override fun add(element: Issue): Boolean {
+                val added = _issues.add(element)
+                if (added) {
+                    element.project = this@Project
+                }
+                return added
+            }
+
+            override fun addAll(elements: Collection<Issue>): Boolean {
+                // for bulk‐adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if(add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
 
     var description: String? = null
 

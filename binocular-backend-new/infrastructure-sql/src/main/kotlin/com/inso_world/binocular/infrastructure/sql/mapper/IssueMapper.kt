@@ -1,3 +1,101 @@
+package com.inso_world.binocular.infrastructure.sql.mapper
+
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
+import org.springframework.data.util.ReflectionUtils.setField
+import org.springframework.stereotype.Component
+
+@Component
+internal class IssueMapper {
+    private val logger: Logger = LoggerFactory.getLogger(IssueMapper::class.java)
+
+    @Autowired
+    private lateinit var ctx: MappingContext
+
+    @Autowired
+    @Lazy
+    private lateinit var userMapper: UserMapper
+
+    /**
+     * Converts a domain Issue to a SQL IssueEntity
+     */
+    fun toEntity(domain: Issue): IssueEntity {
+        ctx.findEntity<Issue.Key, Issue, IssueEntity>(domain)?.let { return it }
+
+        // IMPORTANT: Expect Project already in context (cross-aggregate reference).
+        // Do NOT auto-map Project here - that's a separate aggregate.
+        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+            ?: throw IllegalStateException(
+                "ProjectEntity must be mapped before RepositoryEntity. " +
+                        "Ensure ProjectEntity is in MappingContext before calling toEntity()."
+            )
+
+        val entity = domain.toEntity(owner)
+        ctx.remember(domain, entity)
+
+        return entity
+    }
+
+    /**
+     * Converts a SQL IssueEntity to a domain Issue
+     *
+     * Uses lazy loading proxies for relationships, which will only be loaded
+     * when accessed. This provides a consistent API regardless of the database
+     * implementation and avoids the N+1 query problem.
+     */
+    fun toDomain(entity: IssueEntity): Issue {
+        // Fast-path: Check if already mapped
+        ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
+
+        // IMPORTANT: Expect Project already in context (cross-aggregate reference).
+        // Do NOT auto-map Project here - that's a separate aggregate.
+        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
+            ?: throw IllegalStateException(
+                "Project must be mapped before Repository. " +
+                        "Ensure Project is in MappingContext before calling toDomain()."
+            )
+
+        val domain = entity.toDomain(owner)
+        setField(
+            domain.javaClass.superclass.getDeclaredField("iid"),
+            domain,
+            entity.iid
+        )
+
+        ctx.remember(domain, entity)
+
+        return domain
+    }
+
+    fun refreshDomain(target: Issue, entity: IssueEntity): Issue {
+        setField(
+            target.javaClass.getDeclaredField("id"),
+            target,
+            entity.id?.toString()
+        )
+
+        return target
+    }
+
+    /**
+     * Converts a list of SQL IssueEntity objects to a list of domain Issue objects
+     */
+    fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it) }
+}
+
+
+
 // package com.inso_world.binocular.infrastructure.sql.persistence.mapper
 //
 // import com.inso_world.binocular.core.persistence.mapper.EntityMapper

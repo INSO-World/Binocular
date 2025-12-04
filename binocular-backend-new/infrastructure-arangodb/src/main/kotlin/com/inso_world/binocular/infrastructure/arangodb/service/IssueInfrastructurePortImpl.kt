@@ -13,6 +13,7 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -68,6 +69,13 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
     override fun findUsersByIssueId(issueId: String): List<User> {
         logger.trace("Getting users for issue: $issueId")
         return issueUserConnectionRepository.findUsersByIssue(issueId)
+    }
+
+    override fun findExistingGid(
+        ids: List<String>,
+        project: Project
+    ): Iterable<Issue> {
+        TODO("Not yet implemented")
     }
 
     override fun findAll(): Iterable<Issue> = this.issueDao.findAll()

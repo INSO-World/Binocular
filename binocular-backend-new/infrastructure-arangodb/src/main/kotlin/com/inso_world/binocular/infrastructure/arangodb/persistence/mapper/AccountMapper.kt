@@ -58,7 +58,8 @@ internal class AccountMapper
         override fun toEntity(domain: Account): AccountEntity =
             AccountEntity(
                 id = domain.id,
-                platform = domain.platform?.let { toPlatformEntity(it) },
+                gid = domain.gid,
+                platform = toPlatformEntity(domain.platform),
                 login = domain.login,
                 name = domain.name,
                 avatarUrl = domain.avatarUrl,
@@ -81,29 +82,30 @@ internal class AccountMapper
             val domain =
                 Account(
                     id = entity.id,
+                    gid = entity.gid,
                     platform = entity.platform?.let { toPlatform(it) },
                     login = entity.login,
                     name = entity.name,
                     avatarUrl = entity.avatarUrl,
                     url = entity.url,
-                    issues =
-                        proxyFactory.createLazyList {
-                            (entity.issues ?: emptyList()).map { issueEntity ->
-                                issueMapper.toDomain(issueEntity)
-                            }
-                        },
+//                    issues =
+//                        proxyFactory.createLazyList {
+//                            (entity.issues ?: emptyList()).map { issueEntity ->
+//                                issueMapper.toDomain(issueEntity)
+//                            }
+//                        },
                     mergeRequests =
                         proxyFactory.createLazyList {
                             (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
                                 mergeRequestMapper.toDomain(mergeRequestEntity)
                             }
                         },
-                    notes =
-                        proxyFactory.createLazyList {
-                            (entity.notes ?: emptyList()).map { noteEntity ->
-                                noteMapper.toDomain(noteEntity)
-                            }
-                        },
+//                    notes =
+//                        proxyFactory.createLazyList {
+//                            (entity.notes ?: emptyList()).map { noteEntity ->
+//                                noteMapper.toDomain(noteEntity)
+//                            }
+//                        },
                 )
 
             return domain

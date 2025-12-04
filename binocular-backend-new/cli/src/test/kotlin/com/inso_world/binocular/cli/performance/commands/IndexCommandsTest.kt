@@ -59,11 +59,6 @@ internal class IndexCommandsTest : PerformanceTest() {
                 "origin/develop",
                 "fb873518b4c369a6ff3ac0ec4d829124f9278c9e",
                 2092
-            ),
-            Arguments.of(
-                "origin/feature/backend-new-gha",
-                "92b51617d96b2f32ec60512d5bba429272cb8c7a",
-                2238
             )
         )
     }
