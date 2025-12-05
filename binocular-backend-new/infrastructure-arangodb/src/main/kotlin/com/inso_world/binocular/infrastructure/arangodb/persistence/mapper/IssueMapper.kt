@@ -67,7 +67,7 @@ internal class IssueMapper
         override fun toEntity(domain: Issue): IssueEntity =
             IssueEntity(
                 id = domain.id,
-                iid = domain.iid,
+                //iid = domain.iid,
                 title = domain.title,
                 description = domain.description,
                 createdAt = domain.createdAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
@@ -76,7 +76,7 @@ internal class IssueMapper
                 labels = domain.labels,
                 state = domain.state,
                 webUrl = domain.webUrl,
-                mentions = domain.mentions,
+                //mentions = domain.mentions,
                 gid = domain.gid
                 // Relationships are handled by ArangoDB through edges
 //                mentions = domain.mentions.map { mentionMapper.toEntity(it) },
@@ -96,65 +96,7 @@ internal class IssueMapper
             // Fast-path: Check if already mapped
             ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
 
-            val domain =
-                Issue(
-                    id = entity.id,
-                    gid = entity.gid,
-                    iid = entity.iid,
-                    title = entity.title,
-                    description = entity.description,
-                    createdAt =
-                        entity.createdAt
-                            ?.toInstant()
-                            ?.atZone(ZoneOffset.UTC)
-                            ?.toLocalDateTime(),
-                    closedAt =
-                        entity.closedAt
-                            ?.toInstant()
-                            ?.atZone(ZoneOffset.UTC)
-                            ?.toLocalDateTime(),
-                    updatedAt =
-                        entity.updatedAt
-                            ?.toInstant()
-                            ?.atZone(ZoneOffset.UTC)
-                            ?.toLocalDateTime(),
-                    labels = entity.labels,
-                    state = entity.state,
-                    webUrl = entity.webUrl,
-                    mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-                    accounts =
-                        proxyFactory.createLazyList {
-                            (entity.accounts ?: emptyList()).map { accountEntity ->
-                                accountMapper.toDomain(accountEntity)
-                            }
-                        },
-                    commits =
-                        proxyFactory.createLazyList {
-                            (entity.commits ?: emptyList()).map { commitEntity ->
-                                commitMapper.toDomain(commitEntity)
-                            }
-                        },
-                    milestones =
-                        proxyFactory.createLazyList {
-                            (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                                milestoneMapper.toDomain(milestoneEntity)
-                            }
-                        },
-                    notes =
-                        proxyFactory.createLazyList {
-                            (entity.notes ?: emptyList()).map { noteEntity ->
-                                noteMapper.toDomain(noteEntity)
-                            }
-                        },
-                    users =
-                        proxyFactory.createLazyList {
-                            (entity.users ?: emptyList()).map { userEntity ->
-                                userMapper.toDomain(userEntity)
-                            }
-                        },
-                )
-
-            return domain
+            throw IllegalStateException("Issue mapping requires an existing domain Issue in MappingContext.")
         }
 
         override fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it) }

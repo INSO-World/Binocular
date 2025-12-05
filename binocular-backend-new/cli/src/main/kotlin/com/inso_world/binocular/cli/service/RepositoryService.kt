@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.slf4j.Logger
@@ -187,6 +188,23 @@ class RepositoryService {
 
     fun findRepo(gitDir: String): Repository? = this.repositoryPort.findByName(normalizePath(gitDir))
 
+    fun create(repository: Repository): Repository {
+        require(repository.id == null) { "Repository.id must be null to create repository" }
+        require(repository.project != null) { "Repository.project must not be null to create repository" }
+        require(repository.project?.repo == repository) { "Mismatch in Repository and Project configuration" }
+
+//        val find = this.findRepo(name)
+//        if (find == null) {
+//            logger.info("Repository does not exists, creating new repository")
+        return this.repositoryPort.create(repository)
+//        } else {
+//            logger.debug("Repository already exists, returning existing repository")
+//            return find
+//        }
+    }
+
+    // this is a leftover from older version, unsure if needed and correct
+    @Deprecated("Use create fun instead.")
     fun getOrCreate(
         gitDir: String,
         p: Project,
@@ -196,8 +214,8 @@ class RepositoryService {
             logger.info("Repository does not exist, creating new repository")
             return this.repositoryPort.create(
                 Repository(
-                    id = null,
-                    name = normalizePath(gitDir),
+                    //id = null,
+                    localPath = normalizePath(gitDir),
                     project = p,
                 ),
             )

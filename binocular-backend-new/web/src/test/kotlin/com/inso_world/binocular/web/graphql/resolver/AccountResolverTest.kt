@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -203,7 +204,8 @@ internal class AccountResolverTest : GraphQlControllerTest() {
         @Test
         fun `issues should return empty list when account id is null`() {
             // Arrange
-            val account = Account(id = null, gid = "AJDLJFLASfeD23048703", platform = Platform.GitHub, login = "test-user", name = "Test User")
+            val testProject = Project("Test")
+            val account = Account(id = null, gid = "AJDLJFLASfeD23048703", platform = Platform.GitHub, login = "test-user", name = "Test User", project = testProject)
 
             // Act
             val result = accountResolver.issues(account)
@@ -215,7 +217,8 @@ internal class AccountResolverTest : GraphQlControllerTest() {
         @Test
         fun `mergeRequests should return empty list when account id is null`() {
             // Arrange
-            val account = Account(id = null, gid = "AJDLJFasSKJD23048703", platform = Platform.GitHub, login = "test-user", name = "Test User")
+            val testProject = Project("Test")
+            val account = Account(id = null, gid = "AJDLJFasSKJD23048703", platform = Platform.GitHub, login = "test-user", name = "Test User", project = testProject)
 
             // Act
             val result = accountResolver.mergeRequests(account)
@@ -227,7 +230,8 @@ internal class AccountResolverTest : GraphQlControllerTest() {
         @Test
         fun `notes should return empty list when account id is null`() {
             // Arrange
-            val account = Account(id = null, gid = "AJDJFeKJD6423048703", platform = Platform.GitHub, login = "test-user", name = "Test User")
+            val testProject = Project("Test")
+            val account = Account(id = null, gid = "AJDJFeKJD6423048703", platform = Platform.GitHub, login = "test-user", name = "Test User", project = testProject)
 
             // Act
             val result = accountResolver.notes(account)

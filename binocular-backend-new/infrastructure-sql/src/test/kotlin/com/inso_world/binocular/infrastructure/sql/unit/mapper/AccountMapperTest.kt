@@ -3,12 +3,9 @@ package com.inso_world.binocular.infrastructure.sql.unit.mapper
 import com.inso_world.binocular.infrastructure.sql.TestData
 import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.unit.mapper.base.BaseMapperTest
 import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Platform
-import com.inso_world.binocular.model.Project
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll

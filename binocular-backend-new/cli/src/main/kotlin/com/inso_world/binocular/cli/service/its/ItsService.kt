@@ -28,7 +28,7 @@ class ItsService(
 
         return gitHubService.loadAllAssignableUsers(owner, repo)
             .map { users ->
-                users.map { it.toDomain() }
+                users.map { it.toDomain(project) }
             }.flatMap { accounts ->
                 val (existing, missing) = accountService.checkExisting(accounts)
                 logger.debug("Found ${existing.size} existing accounts, ${missing.size} new accounts to be added")

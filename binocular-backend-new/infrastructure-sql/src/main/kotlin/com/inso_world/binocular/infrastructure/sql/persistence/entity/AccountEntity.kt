@@ -2,10 +2,8 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
 import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Platform
 import com.inso_world.binocular.model.Project
-import com.inso_world.binocular.model.Repository
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
@@ -16,13 +14,10 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import java.util.Objects
 
 /**
  * SQL-specific Account entity.
@@ -45,7 +40,7 @@ internal data class AccountEntity(
     @Enumerated(EnumType.STRING)
     val platform: Platform,
     val login: String,
-    var name: String? = null,
+    var name: String?,
     @Column(name = "avatar_url")
     var avatarUrl: String? = null,
     var url: String? = null,

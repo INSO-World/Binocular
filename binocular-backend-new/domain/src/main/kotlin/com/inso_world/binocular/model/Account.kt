@@ -19,7 +19,7 @@ data class Account(
     val platform: Platform,
     @field:NotBlank
     val login: String,
-    var name: String? = null,
+    var name: String?,
     var avatarUrl: String? = null,
     var url: String? = null,
     // Relationships

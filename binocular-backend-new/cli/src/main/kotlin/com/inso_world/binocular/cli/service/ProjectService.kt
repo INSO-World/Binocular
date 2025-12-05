@@ -56,7 +56,7 @@ class ProjectService(
         if (existingIssueEntites.second.isNotEmpty()) {
             // if any new issues were found, get accounts from GitHub
             val accounts = gitHubService.loadAllAssignableUsers(owner, repo).block()
-                ?.map { it.toDomain() }
+                ?.map { it.toDomain(project) }
                 ?: emptyList()
 
             // check which accounts already exist in database
@@ -104,7 +104,7 @@ class ProjectService(
         // create a map of GitHub IDs to Issue entities for lookups
         val issueMap =
             issues.associate {
-                it.id to it.toDomain()
+                it.id to it.toDomain(project)
             }
 
         issueMap.forEach { (id, issue) ->

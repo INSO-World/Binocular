@@ -1,6 +1,7 @@
 package com.inso_world.binocular.github.dto.issue
 
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Project
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
@@ -20,20 +21,21 @@ data class ItsGitHubIssue(
     val assignees: ItsAssigneeWrapper?,
     val timelineItems: ItsTimelineItemWrapper?
 ) {
-    fun toDomain(): Issue {
+    fun toDomain(project: Project): Issue {
         fun parseDateTime(dt: String): LocalDateTime =
             OffsetDateTime.parse(dt).toLocalDateTime()
 
         return Issue(
             gid = id,
-            iid = number,
+            //iid = number,
             title = title,
             description = body,
             createdAt = parseDateTime(createdAt),
             closedAt = closedAt?.let { parseDateTime(it) },
             updatedAt = updatedAt?.let { parseDateTime(it) },
             state = state,
-            webUrl = url
+            webUrl = url,
+            project = project,
             // TODO map labels, author etc
         )
     }

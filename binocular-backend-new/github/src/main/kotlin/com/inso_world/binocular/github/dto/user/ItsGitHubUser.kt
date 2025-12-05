@@ -2,6 +2,7 @@ package com.inso_world.binocular.github.dto.user
 
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Project
 
 data class ItsGitHubUser(
     val id: String, // GitHub-ID for user
@@ -11,14 +12,15 @@ data class ItsGitHubUser(
     val url: String?,
     val avatarUrl: String?
 ) {
-    fun toDomain(): Account {
+    fun toDomain(project: Project): Account {
         val acc = Account(
             gid = this.id,
             login = this.login,
             name = this.name,
             url = this.url,
             avatarUrl = this.avatarUrl,
-            platform = Platform.GitHub
+            platform = Platform.GitHub,
+            project = project,
         )
         return acc
     }
