@@ -7,11 +7,13 @@ function DataPluginQuickSelect(props: {
   onChange: (dataPlugin: DatabaseSettingsDataPluginType) => void;
 }) {
   const currentDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const theme = localStorage.getItem('theme') || '';
+  
   return (
     <>
       <select
         className={'select select-bordered w-full max-w-xs'}
-        style={{ background: props.selected ? props.selected.color : 'white' }}
+        style={{ background: props.selected ? getHueFromRGBA(props.selected.color, theme) : 'white' }}
         disabled={currentDataPlugins.length === 0}
         value={props.selected ? props.selected.id : 0}
         onChange={(e) => {
@@ -26,6 +28,12 @@ function DataPluginQuickSelect(props: {
       </select>
     </>
   );
+}
+
+function getHueFromRGBA(rgba: string, theme: string){
+  const background = theme == 'binocularDark' ? 17 : 255
+  const alpha = parseInt(rgba.substring(7,9), 16) / 255;
+  return `rgba(${Math.round((1-alpha)*background + parseInt(rgba.substring(1,3), 16)*alpha)}, ${Math.round((1-alpha)*background + parseInt(rgba.substring(3,5), 16)*alpha)}, ${Math.round((1-alpha)*background + parseInt(rgba.substring(5,7), 16)*alpha)})`;
 }
 
 export default DataPluginQuickSelect;
