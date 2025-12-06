@@ -23,14 +23,13 @@ class BranchModelTest {
     @BeforeEach
     fun setup() {
         repository = Repository(localPath = "test repo", project = Project(name = "test project"))
-        val committer = User(name = "Test Committer", repository = repository).apply { email = "committer@test.com" }
+        val developer = Developer(name = "Test Developer", email = "dev@test.com", repository = repository)
+        val signature = Signature(developer = developer, timestamp = LocalDateTime.now().minusSeconds(1))
         head = Commit(
             sha = "a".repeat(40),
             message = "msg1",
-            commitDateTime = LocalDateTime.now().minusSeconds(1),
-            authorDateTime = LocalDateTime.now().minusSeconds(1),
+            authorSignature = signature,
             repository = repository,
-            committer = committer,
         )
     }
 

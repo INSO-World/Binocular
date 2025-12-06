@@ -42,6 +42,7 @@ class Branch(
     @field:NotBlank val name: String,
     @field:NotBlank val fullName: String,
     override val category: ReferenceCategory,
+    @field:NotNull
     override val repository: Repository,
     head: Commit,
 ) : Reference<Branch.Key>(category, repository), Cloneable {

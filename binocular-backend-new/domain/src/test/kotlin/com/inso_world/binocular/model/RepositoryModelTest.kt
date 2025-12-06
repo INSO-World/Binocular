@@ -35,7 +35,7 @@ class RepositoryModelTest {
         mockTestDataProvider = MockTestDataProvider(repository)
 
         // clear field via reflection
-        for (fieldName in listOf("user", "branches", "commits", "remotes")) {
+        for (fieldName in listOf("_legacyUsers", "developers", "branches", "commits", "remotes")) {
             val base = NonRemovingMutableSet::class.java
 
             val field = repository.javaClass.getDeclaredField(fieldName)

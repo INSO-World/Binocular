@@ -1,6 +1,7 @@
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.vcs.Remote
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.slf4j.Logger
@@ -161,7 +162,7 @@ data class Repository(
      * - Internally backed by a concurrent map; individual `add`/`contains` calls are safe for concurrent use.
      *   Iteration is **weakly consistent**. Multi-step workflows are **not atomic**; coordinate externally if needed.
      */
-    val branches: MutableSet<Branch> =
+    val branches: MutableSet<@Valid Branch> =
         object : NonRemovingMutableSet<Branch>() {
             override fun add(element: Branch): Boolean {
                 // check if branch has no repository set
@@ -187,55 +188,78 @@ data class Repository(
     /**
      * Users that belong to this [Repository].
      *
+     * @deprecated Use [developers] instead. This property is maintained for backwards compatibility.
+     */
+    @Deprecated("Use developers instead", ReplaceWith("developers"))
+    val user: MutableSet<User>
+        get() = _legacyUsers
+
+    private val _legacyUsers: MutableSet<User> =
+        object : NonRemovingMutableSet<User>() {
+            override fun add(element: User): Boolean {
+                require(element.repository == this@Repository) {
+                    "$element cannot be added to a different repository."
+                }
+                return super.add(element)
+            }
+
+            override fun addAll(elements: Collection<User>): Boolean {
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
+
+    /**
+     * Developers that belong to this [Repository].
+     *
      * # Semantics
      * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removal operations
      *   (`remove`, `retainAll`, `clear`, iterator `remove`) are not supported.
-     * - **Repository consistency:** A user can be added only if `user.repository == this@Repository`.
-     *   This method **does not** mutate `user.repository`; callers must ensure the user
+     * - **Repository consistency:** A developer can be added only if `developer.repository == this@Repository`.
+     *   This method **does not** mutate `developer.repository`; callers must ensure the developer
      *   is created for this repository.
-     * - **No implicit graph wiring:** Adding a user here does **not** touch the user’s
+     * - **No implicit graph wiring:** Adding a developer here does **not** touch the developer's
      *   authored/committed commits or any other relations.
-     * - **Set semantics / de-duplication:** Membership is keyed by each user’s `uniqueKey`
-     *   (business key). Re-adding an existing user is a no-op (`false`). The first instance
+     * - **Set semantics / de-duplication:** Membership is keyed by each developer's `uniqueKey`
+     *   (business key). Re-adding an existing developer is a no-op (`false`). The first instance
      *   for a given key becomes the canonical stored element.
      *
      * # Invariants enforced on insert
      * - Precondition: `element.repository == this@Repository`.
      * - Postcondition (on success / no exception):
-     *     - `element in user`.
-     * - **No back-links:** This operation does not modify other associations on the user.
+     *     - `element in developers`.
+     * - **No back-links:** This operation does not modify other associations on the developer.
      *
      * # Bulk adds
      * - `addAll` applies the same checks as `add`, element by element.
-     * - Returns `true` if at least one new user was added.
+     * - Returns `true` if at least one new developer was added.
      * - **Not transactional:** If a later element fails (e.g., repo mismatch), earlier successful inserts remain.
      *
      * # Idempotency & recursion safety
-     * - Re-adding a user already present (same `uniqueKey`) returns `false` and has no side effects.
+     * - Re-adding a developer already present (same `uniqueKey`) returns `false` and has no side effects.
      * - No mutual/back-linking is performed here, so there is no risk of recursive `add` loops.
      *
      * # Exceptions
-     * - Throws [IllegalArgumentException] if a user from a different repository is added.
+     * - Throws [IllegalArgumentException] if a developer from a different repository is added.
      * - Any attempt to remove elements throws [UnsupportedOperationException].
      *
      * # Thread-safety
      * - Internally backed by a concurrent map; individual `add`/`contains` calls are safe for concurrent use.
      *   Iteration is **weakly consistent**. Multi-step workflows are **not atomic**; coordinate externally if needed.
      */
-    val user: MutableSet<User> =
-        object : NonRemovingMutableSet<User>() {
-            override fun add(element: User): Boolean {
-                // check if user has no repository set
+    val developers: MutableSet<Developer> =
+        object : NonRemovingMutableSet<Developer>() {
+            override fun add(element: Developer): Boolean {
                 require(element.repository == this@Repository) {
                     "$element cannot be added to a different repository."
                 }
-
-                val added = super.add(element)
-                return added
+                return super.add(element)
             }
 
-            override fun addAll(elements: Collection<User>): Boolean {
-                // for bulk-adds make sure each one gets the same treatment
+            override fun addAll(elements: Collection<Developer>): Boolean {
                 var anyAdded = false
                 for (e in elements) {
                     if (add(e)) anyAdded = true

@@ -2,14 +2,15 @@ package com.inso_world.binocular.data
 
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import java.time.LocalDateTime
 
 class MockTestDataProvider(
-    // repository to be used by child elements of repository (e.g. commits, users, branches...)
     val repository: Repository
 ) {
     val testProjects = listOf(
@@ -26,119 +27,118 @@ class MockTestDataProvider(
     val testRepositories: List<Repository> = listOf(
         run {
             val project = projectsByName.getValue("proj-pg-0")
-            val repo = Repository(localPath = "repo-pg-0", project = project)
-            repo
+            Repository(localPath = "repo-pg-0", project = project)
         },
         run {
             val project = projectsByName.getValue("proj-pg-1")
-            val repo = Repository(localPath = "repo-pg-1", project = project)
-            repo
+            Repository(localPath = "repo-pg-1", project = project)
         },
         run {
             val project = projectsByName.getValue("proj-pg-2")
-            val repo = Repository(localPath = "repo-pg-2", project = project)
-            repo
+            Repository(localPath = "repo-pg-2", project = project)
         },
         run {
             val project = projectsByName.getValue("proj-pg-3")
-            val repo = Repository(localPath = "repo-pg-3", project = project)
-            repo
+            Repository(localPath = "repo-pg-3", project = project)
         },
         run {
             val project = projectsByName.getValue("proj-pg-4")
-            val repo = Repository(localPath = "repo-pg-4", project = project)
-            repo
+            Repository(localPath = "repo-pg-4", project = project)
         },
         run {
             val project = projectsByName.getValue("proj-for-repos")
-            val repo = Repository(localPath = "repo-pg-5", project = project)
-            repo
+            Repository(localPath = "repo-pg-5", project = project)
         },
         run {
             val project = projectsByName.getValue("proj-pg-5")
-            val repo = Repository(localPath = "repo-empty", project = project)
-            repo
+            Repository(localPath = "repo-empty", project = project)
         }
     )
     val repositoriesByPath = testRepositories.associateBy { requireNotNull(it.localPath) }
 
-    val users: List<User> = listOf(run {
-        val user = User(name = "User A", repository = repository).apply { this.email = "a@test.com" }
-        user
-    }, run {
-        val user = User(name = "User B", repository = repository).apply { this.email = "b@test.com" }
-        user
-    }, run {
-        val user = User(name = "User C", repository = repository).apply { this.email = "c@test.com" }
-        user
-    }, run {
-        val user = User(name = "User D", repository = repository).apply { this.email = "d@test.com" }
-        user
-    }, run {
-        val user = User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" }
-        user
-    })
+    // Legacy User support (deprecated)
+    @Deprecated("Use developers instead")
+    val users: List<User> = listOf(
+        User(name = "User A", repository = repository).apply { this.email = "a@test.com" },
+        User(name = "User B", repository = repository).apply { this.email = "b@test.com" },
+        User(name = "User C", repository = repository).apply { this.email = "c@test.com" },
+        User(name = "User D", repository = repository).apply { this.email = "d@test.com" },
+        User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" }
+    )
+
+    @Deprecated("Use developerByEmail instead")
     val userByEmail = users.associateBy { requireNotNull(it.email) }
 
-    val commits: List<Commit> = listOf(run {
-        val cmt = Commit(
-            sha = "a".repeat(40),
-            message = "msg1",
-            commitDateTime = LocalDateTime.now().minusSeconds(1),
-            authorDateTime = LocalDateTime.now().minusSeconds(1),
-            repository = repository,
-            committer = userByEmail.getValue("a@test.com"),
-        )
-        cmt
-    }, run {
-        val cmt = Commit(
-            sha = "b".repeat(40),
-            message = "msg2",
-            commitDateTime = LocalDateTime.now().minusSeconds(1),
-            authorDateTime = LocalDateTime.now().minusSeconds(1),
-            repository = repository,
-            committer = userByEmail.getValue("b@test.com"),
-        ) // Empty parents list
-        cmt
-    }, run {
-        val cmt = Commit(
-            sha = "c".repeat(40),
-            message = "msg1",
-            commitDateTime = LocalDateTime.now().minusSeconds(1),
-            authorDateTime = LocalDateTime.now().minusSeconds(1),
-            repository = repository,
-            committer = userByEmail.getValue("c@test.com"),
-        )
-        cmt
-    }, run {
-        val cmt = Commit(
-            sha = "d".repeat(40),
-            message = "msg-d",
-            commitDateTime = LocalDateTime.now().minusSeconds(1),
-            authorDateTime = LocalDateTime.now().minusSeconds(1),
-            repository = repository,
-            committer = userByEmail.getValue("d@test.com"),
-        )
-        cmt
-    })
+    // New Developer-based test data
+    val developers: List<Developer> = listOf(
+        Developer(name = "User A", email = "a@test.com", repository = repository),
+        Developer(name = "User B", email = "b@test.com", repository = repository),
+        Developer(name = "User C", email = "c@test.com", repository = repository),
+        Developer(name = "User D", email = "d@test.com", repository = repository),
+        Developer(name = "Author Only", email = "author@test.com", repository = repository)
+    )
+    val developerByEmail = developers.associateBy { it.email }
+
+    val commits: List<Commit> = listOf(
+        run {
+            val dev = developerByEmail.getValue("a@test.com")
+            val timestamp = LocalDateTime.now().minusSeconds(1)
+            Commit(
+                sha = "a".repeat(40),
+                message = "msg1",
+                authorSignature = Signature(developer = dev, timestamp = timestamp),
+                repository = repository,
+            )
+        },
+        run {
+            val dev = developerByEmail.getValue("b@test.com")
+            val timestamp = LocalDateTime.now().minusSeconds(1)
+            Commit(
+                sha = "b".repeat(40),
+                message = "msg2",
+                authorSignature = Signature(developer = dev, timestamp = timestamp),
+                repository = repository,
+            )
+        },
+        run {
+            val dev = developerByEmail.getValue("c@test.com")
+            val timestamp = LocalDateTime.now().minusSeconds(1)
+            Commit(
+                sha = "c".repeat(40),
+                message = "msg1",
+                authorSignature = Signature(developer = dev, timestamp = timestamp),
+                repository = repository,
+            )
+        },
+        run {
+            val dev = developerByEmail.getValue("d@test.com")
+            val timestamp = LocalDateTime.now().minusSeconds(1)
+            Commit(
+                sha = "d".repeat(40),
+                message = "msg-d",
+                authorSignature = Signature(developer = dev, timestamp = timestamp),
+                repository = repository,
+            )
+        }
+    )
     val commitBySha = commits.associateBy(Commit::sha)
 
     val branches = listOf(
-        run {
-            val branch = Branch(
-                fullName = "refs/remotes/origin/feature/test",
-                name = "origin/feature/test",
-                repository = repository,
-                head = commitBySha.getValue("a".repeat(40)),
-                category = ReferenceCategory.REMOTE_BRANCH
-            )
-            return@run branch
-        },
-        run {
-            val branch =
-                Branch(fullName = "refs/remotes/origin/fixme/123",name = "origin/fixme/123", repository = repository, head = commitBySha.getValue("a".repeat(40)), category = ReferenceCategory.REMOTE_BRANCH)
-            return@run branch
-        })
+        Branch(
+            fullName = "refs/remotes/origin/feature/test",
+            name = "origin/feature/test",
+            repository = repository,
+            head = commitBySha.getValue("a".repeat(40)),
+            category = ReferenceCategory.REMOTE_BRANCH
+        ),
+        Branch(
+            fullName = "refs/remotes/origin/fixme/123",
+            name = "origin/fixme/123",
+            repository = repository,
+            head = commitBySha.getValue("a".repeat(40)),
+            category = ReferenceCategory.REMOTE_BRANCH
+        )
+    )
 
     val branchByName = branches.associateBy(Branch::name)
 }
