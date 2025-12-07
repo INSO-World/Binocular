@@ -36,7 +36,7 @@ data class IssueEntity(
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var accounts: List<AccountEntity> = emptyList(),
+    var accounts: Set<AccountEntity> = emptySet(),
     @Relations(
         edges = [IssueCommitConnectionEntity::class],
         lazy = true,

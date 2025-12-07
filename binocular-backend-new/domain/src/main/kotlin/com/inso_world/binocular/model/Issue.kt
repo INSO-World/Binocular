@@ -25,7 +25,6 @@ data class Issue(
     var mentions: List<Mention> = emptyList(),
     // Relationships
     var project: Project,
-    // var accounts: List<Account> = emptyList(),
     var commits: List<Commit> = emptyList(),
     var milestones: List<Milestone> = emptyList(),
     var notes: List<Note> = emptyList(),

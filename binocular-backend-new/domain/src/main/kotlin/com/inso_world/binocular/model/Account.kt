@@ -22,10 +22,8 @@ data class Account(
     var name: String?,
     var avatarUrl: String? = null,
     var url: String? = null,
-    // Relationships
-    //var issues: List<Issue> = emptyList(),
-    var mergeRequests: List<MergeRequest> = emptyList(),
-    var notes: List<Note> = emptyList(),
+    var mergeRequests: Set<MergeRequest> = emptySet(),
+    var notes: Set<Note> = emptySet(),
     val project: Project,
 ) : AbstractDomainObject<Account.Id, Account.Key>(
     Id(Uuid.random())
