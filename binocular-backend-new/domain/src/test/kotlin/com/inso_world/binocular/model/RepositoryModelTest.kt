@@ -135,7 +135,7 @@ class RepositoryModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create repository with blank paths, should fail`(
         path: String,
     ) {
@@ -148,7 +148,7 @@ class RepositoryModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
     fun `create repository with allowed paths, should not fail`(
         path: String,
     ) {

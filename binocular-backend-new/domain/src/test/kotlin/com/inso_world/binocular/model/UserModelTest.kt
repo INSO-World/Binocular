@@ -92,7 +92,7 @@ class UserModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create user, update email with invalid strings, should fail`(
         email: String,
     ) {
@@ -104,7 +104,7 @@ class UserModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create user with invalid name, should fail`(
         name: String,
     ) {

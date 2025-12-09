@@ -11,7 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource
 internal class ProjectValidationTest : ValidationTest() {
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `should fail when localPath is blank`(
         name: String,
     ) {

@@ -128,7 +128,7 @@ internal class CommitDaoTest(
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
         @Disabled("can probably be deleted")
         fun `commit with invalid message should fail`(invalidMessage: String) {
             val exception =
@@ -147,7 +147,7 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource(
-            "com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime",
+            "com.inso_world.binocular.domain.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid commitDateTime should not fail`(validCommitTime: LocalDateTime) {
             val cmt = createTestCommit(
@@ -164,7 +164,7 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource(
-            "com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime",
+            "com.inso_world.binocular.domain.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid authorDateTime should not fail`(validAuthorTime: LocalDateTime) {
             val cmt = createTestCommit(
@@ -207,7 +207,7 @@ internal class CommitDaoTest(
 
         @ParameterizedTest
         @MethodSource(
-            "com.inso_world.binocular.data.DummyTestData#provideInvalidPastOrPresentDateTime",
+            "com.inso_world.binocular.domain.data.DummyTestData#provideInvalidPastOrPresentDateTime",
         )
         fun `commit with invalid authorDateTime should fail`(invalidAuthorTime: LocalDateTime?) {
             val commit = createTestCommit(

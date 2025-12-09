@@ -48,7 +48,7 @@ class SignatureModelTest {
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedPastOrPresentDateTime")
         fun `given valid past or present timestamp, when creating signature, then it should succeed`(timestamp: LocalDateTime) {
             // When & Then
             val signature = Signature(developer = developer, timestamp = timestamp)
@@ -56,7 +56,7 @@ class SignatureModelTest {
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideInvalidPastOrPresentDateTime")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideInvalidPastOrPresentDateTime")
         fun `given future timestamp, when creating signature, then it should throw IllegalArgumentException`(timestamp: LocalDateTime) {
             // When & Then
             assertThrows<IllegalArgumentException> {
