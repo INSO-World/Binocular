@@ -2,6 +2,7 @@ package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.validation.Hexadecimal
 import com.inso_world.binocular.model.validation.isHex
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
@@ -55,7 +56,10 @@ data class Commit(
     @field:Hexadecimal
     val sha: String,
     @field:NotNull
+    @field:Valid
     val authorSignature: Signature,
+    @field:Valid
+    @field:NotNull
     val committerSignature: Signature = authorSignature,
     val message: String? = null,
     @field:NotNull

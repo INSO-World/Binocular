@@ -97,7 +97,7 @@ data class Repository(
      *   for concurrent use. Iteration is **weakly consistent**. Multi-step workflows are **not atomic**;
      *   coordinate externally if you need stronger guarantees.
      */
-
+    @field:Valid
     val commits: MutableSet<Commit> =
         object : NonRemovingMutableSet<Commit>() {
             /**
@@ -162,7 +162,8 @@ data class Repository(
      * - Internally backed by a concurrent map; individual `add`/`contains` calls are safe for concurrent use.
      *   Iteration is **weakly consistent**. Multi-step workflows are **not atomic**; coordinate externally if needed.
      */
-    val branches: MutableSet<@Valid Branch> =
+    @field:Valid
+    val branches: MutableSet<Branch> =
         object : NonRemovingMutableSet<Branch>() {
             override fun add(element: Branch): Boolean {
                 // check if branch has no repository set
@@ -250,6 +251,7 @@ data class Repository(
      * - Internally backed by a concurrent map; individual `add`/`contains` calls are safe for concurrent use.
      *   Iteration is **weakly consistent**. Multi-step workflows are **not atomic**; coordinate externally if needed.
      */
+    @field:Valid
     val developers: MutableSet<Developer> =
         object : NonRemovingMutableSet<Developer>() {
             override fun add(element: Developer): Boolean {

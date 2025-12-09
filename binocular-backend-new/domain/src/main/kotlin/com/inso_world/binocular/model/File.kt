@@ -49,7 +49,7 @@ data class File(
     val relatedFiles: List<File> = emptyList()
 
     @Deprecated("legacy")
-    val users: List<User>
+    val users: List<Developer>
         get() = revisions.map { it.commit }.flatMap { it.users }
 
     override val uniqueKey: Key
