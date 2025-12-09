@@ -1,7 +1,7 @@
 package com.inso_world.binocular.model.validation
 
-import com.inso_world.binocular.data.DummyTestData
-import com.inso_world.binocular.data.MockTestDataProvider
+import com.inso_world.binocular.domain.data.DummyTestData
+import com.inso_world.binocular.domain.data.MockTestDataProvider
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
@@ -11,7 +11,6 @@ import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import org.junit.jupiter.params.provider.Arguments
 import java.time.LocalDateTime
 import java.util.stream.Stream
-import kotlin.streams.asSequence
 import kotlin.streams.asStream
 
 internal object ValidationTestData {

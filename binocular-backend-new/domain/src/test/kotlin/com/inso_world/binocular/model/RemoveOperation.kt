@@ -1,6 +1,6 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.data.MockTestDataProvider
+import com.inso_world.binocular.domain.data.MockTestDataProvider
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
