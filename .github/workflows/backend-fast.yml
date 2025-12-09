@@ -87,15 +87,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Psql
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,gix,sql,postgres -Psql
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,gix,sql,postgres -Psql
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
         if: always()
@@ -146,18 +146,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Parangodb
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
           ARANGODB_HOST=localhost \
-          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,nosql,arangodb -Parangodb
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
         run: |
           ARANGODB_HOST=localhost \
-          mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,nosql,arangodb -Parangodb
+          mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
         if: always()
