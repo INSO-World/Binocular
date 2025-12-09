@@ -24,22 +24,19 @@ pub fn blames(
     diff_algorithm: Option<crate::types::diff::GixDiffAlgorithm>,
     max_threads: u8,
 ) -> Result<Vec<crate::types::blame::GixBlameResult>, UniffiError> {
-
     use binocular_blame::process;
     use std::time::Instant;
 
+    log::debug!("blames: processing {} commit definitions", defines.len());
     let binding = ThreadSafeRepository::try_from(gix_repo)?.to_thread_local();
 
-    let mut start = Instant::now();
+    let start = Instant::now();
     let iterable = gix::hashtable::HashMap::from_iter(defines);
-    let mut duration = start.elapsed();
+    log::trace!("blames: from_iter() took {:?}", start.elapsed());
 
-    println!("Time elapsed in from_iter() is: {:?}", duration);
-
-    start = Instant::now();
+    let start = Instant::now();
     let result = process(&binding, iterable, diff_algorithm, max_threads as usize)?;
-    duration = start.elapsed();
-    println!("Time elapsed in process() is: {:?}", duration);
+    log::trace!("blames: process() took {:?}", start.elapsed());
 
     Ok(result
         .into_iter()

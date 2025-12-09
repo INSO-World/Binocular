@@ -3,7 +3,7 @@ use crate::types::UniffiError;
 use gix::ThreadSafeRepository;
 use std::path::PathBuf;
 
-#[derive(Debug, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GixRepository {
     pub git_dir: String,
     pub work_tree: Option<String>,

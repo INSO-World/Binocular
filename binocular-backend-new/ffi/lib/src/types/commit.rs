@@ -6,8 +6,8 @@ use gix::ObjectId;
 pub struct GixCommit {
     pub oid: gix::ObjectId,
     pub message: String,
-    pub committer: Option<crate::types::signature::GixSignature>,
-    pub author: Option<crate::types::signature::GixSignature>,
+    pub committer: crate::types::signature::GixSignature,
+    pub author: crate::types::signature::GixSignature,
     pub branch: Option<String>,
     pub parents: Vec<gix::ObjectId>,
     pub file_tree: Vec<BString>,

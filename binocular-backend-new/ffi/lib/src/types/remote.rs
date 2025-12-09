@@ -1,7 +1,7 @@
 use gix::remote::Direction;
 use gix::Remote;
 
-#[derive(Debug, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GixRemote {
     pub name: String,
     pub url: String,

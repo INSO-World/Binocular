@@ -9,15 +9,16 @@ use gix::ThreadSafeRepository;
 /// Discovers and opens a Git repository at the given path
 ///
 /// # Arguments
-/// * `path` - Path to the Git repository
+/// * `path` - Path to the Git repository (can be any path within the repository)
 ///
 /// # Returns
 /// A `GixRepository` containing repository metadata and remotes
 ///
 /// # Errors
-/// Returns `GixDiscoverError` if the repository cannot be discovered
+/// Returns `GixDiscoverError` if the repository cannot be discovered at the path
 #[uniffi::export]
 pub fn find_repo(path: String) -> Result<GixRepository, UniffiError> {
+    log::debug!("find_repo: discovering repository at '{}'", path);
     let repo = discover_repo(path)?;
 
     let binding = repo.to_thread_local();
@@ -46,10 +47,11 @@ pub fn find_repo(path: String) -> Result<GixRepository, UniffiError> {
 /// A vector of all branches found in the repository
 ///
 /// # Errors
-/// Returns `ReferenceError` if branch enumeration fails
+/// - `GixDiscoverError` if repository cannot be opened
+/// - `ReferenceError` if branch enumeration fails
 #[uniffi::export]
 pub fn find_all_branches(gix_repo: GixRepository) -> Result<Vec<GixBranch>, UniffiError> {
-    println!("repo at {:?}", gix_repo);
+    log::debug!("find_all_branches: repo at {:?}", gix_repo);
     let binding = ThreadSafeRepository::try_from(gix_repo)?.to_thread_local();
     
     let references = binding

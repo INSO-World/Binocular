@@ -1,37 +1,31 @@
 use crate::types::commit::GixCommit;
 use crate::types::error::UniffiError;
 use crate::types::repo::GixRepository;
-use commits::GitCommitMetric;
 use gix::{ObjectId, ThreadSafeRepository};
-use std::ops::Deref;
 
 /// Finds a specific commit by its hash
 ///
 /// # Arguments
 /// * `gix_repo` - The repository to search in
-/// * `hash` - The commit hash to find
+/// * `hash` - The commit hash to find (full or abbreviated) or any valid revision spec
+/// * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
 ///
 /// # Returns
 /// The commit metadata if found
 ///
 /// # Errors
-/// - `RevisionParseError` if the hash cannot be parsed
-/// - `ObjectError` if the object cannot be found or converted to a commit
+/// - `RevisionParseError` if the hash/revision spec is invalid or malformed
+/// - `ObjectError` if the object cannot be found or is not a commit
+/// - `CommitLookupError` if author/committer information cannot be read
 #[uniffi::export]
-pub fn find_commit(
-    gix_repo: GixRepository,
-    hash: String,
-) -> Result<GixCommit, UniffiError> {
-    println!("repo at {:?}", gix_repo);
+pub fn find_commit(gix_repo: GixRepository, hash: String, use_mailmap: bool) -> Result<GixCommit, UniffiError> {
+    log::debug!("find_commit: repo at {:?}", gix_repo);
     let repo = ThreadSafeRepository::try_from(gix_repo)?;
 
     let binding = repo.to_thread_local();
-    let commit = binding
-        .rev_parse_single(hash.deref())?
-        .object()?
-        .try_into_commit()?;
+    let gcm = commits::find_commit(&binding, hash, use_mailmap)?;
 
-    Ok(GixCommit::from(GitCommitMetric::from(commit)))
+    Ok(GixCommit::from(gcm))
 }
 
 /// Traverses commit history from a source commit to an optional target commit
@@ -53,6 +47,7 @@ pub fn traverse_history(
     gix_repo: &GixRepository,
     source_commit: ObjectId,
     target_commit: Option<ObjectId>,
+    use_mailmap: bool,
 ) -> Result<Vec<GixCommit>, UniffiError> {
     let repo = ThreadSafeRepository::discover(&gix_repo.git_dir)?;
 
@@ -63,7 +58,7 @@ pub fn traverse_history(
         Some(c) => Option::from(binding.find_commit(c)?),
     };
 
-    let result = commits::traversal::traverse_from_to(&binding, &cmt, &trgt)?;
+    let result = commits::traversal::traverse_from_to(&binding, &cmt, &trgt, use_mailmap)?;
 
     Ok(result.into_iter().map(|c| GixCommit::from(c)).collect())
 }

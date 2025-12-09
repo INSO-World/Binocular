@@ -1,5 +1,5 @@
 // Internal modules
-pub(crate) mod types {
+pub mod types {
     pub(crate) mod blame;
     pub(crate) mod branch;
     pub(crate) mod commit;
@@ -33,12 +33,14 @@ pub(crate) mod types {
         use crate::types::branch::GixBranch;
         use crate::types::commit::GixCommit;
 
-        #[derive(uniffi::Record)]
+        #[derive(Debug, uniffi::Record)]
         pub struct BranchTraversalResult {
-            pub(crate) branch: GixBranch,
-            pub(crate) commits: Vec<GixCommit>,
+            pub branch: GixBranch,
+            pub commits: Vec<GixCommit>,
         }
     }
+
+    pub use repo::GixRepository;
 }
 
 // FFI exports

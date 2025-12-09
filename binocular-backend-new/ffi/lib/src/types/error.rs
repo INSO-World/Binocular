@@ -78,6 +78,26 @@ impl From<anyhow::Error> for UniffiError {
     }
 }
 
+impl From<commits::CommitLookupError> for UniffiError {
+    fn from(err: commits::CommitLookupError) -> Self {
+        match &err {
+            commits::CommitLookupError::RevisionParseError { .. } => {
+                UniffiError::RevisionParseError(err.to_string())
+            }
+            commits::CommitLookupError::ObjectNotFound { .. } => {
+                UniffiError::ObjectError(err.to_string())
+            }
+            commits::CommitLookupError::NotACommit { .. } => {
+                UniffiError::ObjectError(err.to_string())
+            }
+            commits::CommitLookupError::AuthorReadError { .. }
+            | commits::CommitLookupError::CommitterReadError { .. } => {
+                UniffiError::CommitLookupError(err.to_string())
+            }
+        }
+    }
+}
+
 // Legacy error type - kept for compatibility
 #[derive(Debug, uniffi::Object, thiserror::Error)]
 #[uniffi::export(Debug, Display)]

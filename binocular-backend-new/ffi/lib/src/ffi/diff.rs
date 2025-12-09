@@ -24,21 +24,20 @@ pub fn diffs(
     max_threads: u8,
     diff_algorithm: Option<crate::types::diff::GixDiffAlgorithm>,
 ) -> Result<Vec<crate::types::diff::GixDiff>, UniffiError> {
+    log::debug!("diffs: processing {} commit pairs", commit_pairs.len());
     let binding = ThreadSafeRepository::try_from(gix_repo)?.to_thread_local();
 
     use binocular_diff::calculation::diff_pairs;
 
-    let r = diff_pairs(
+    let result = diff_pairs(
         &binding,
         commit_pairs.iter().map(|c| (c.suspect, c.target)).collect(),
         max_threads as usize,
         diff_algorithm,
     )?;
 
-    let mapped = r
+    Ok(result
         .into_iter()
         .map(crate::types::diff::GixDiff::from)
-        .collect();
-
-    Ok(mapped)
+        .collect())
 }
