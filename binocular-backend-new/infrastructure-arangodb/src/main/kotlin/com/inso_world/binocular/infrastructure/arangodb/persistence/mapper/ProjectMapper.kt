@@ -4,8 +4,10 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 
 /**
@@ -46,11 +48,7 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         // Fast-path: if this Project was already mapped in the current context, return it.
         ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)?.let { return it }
 
-        val entity = ProjectEntity(
-            id = domain.id,
-            name = domain.name,
-            description = domain.description
-        )
+        val entity = domain.toEntity()
 
         ctx.remember(domain, entity)
         return entity
@@ -65,16 +63,17 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
      * @param entity The ProjectEntity to convert
      * @return The Project domain object (structure only, without children)
      */
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: ProjectEntity): Project {
         // Fast-path: Check if already mapped
         ctx.findDomain<Project, ProjectEntity>(entity)?.let { return it }
 
-        val domain = Project(
-            name = entity.name
-        ).apply {
-            id = entity.id
-            description = entity.description
-        }
+        val domain = entity.toDomain()
+        setField(
+            domain.javaClass.superclass.getDeclaredField("iid"),
+            domain,
+            entity.iid
+        )
 
         ctx.remember(domain, entity)
         return domain
@@ -83,16 +82,13 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
     /**
      * Refreshes a Project domain object with data from the corresponding entity.
      *
-     * This method updates the domain object's ID and description from the entity after persistence.
+     * This method updates the domain object's ID from the entity after persistence.
      * It does NOT update nested objects - only top-level Project properties.
      *
      * @param target The Project domain object to refresh
      * @param entity The ProjectEntity with updated data
-     * @return The refreshed Project domain object
      */
-    fun refreshDomain(target: Project, entity: ProjectEntity): Project {
+    fun refreshDomain(target: Project, entity: ProjectEntity) {
         target.id = entity.id
-        target.description = entity.description
-        return target
     }
 }

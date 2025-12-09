@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import kotlin.uuid.ExperimentalUuidApi
 
 internal class RepositoryMapperTest : BaseMapperTest() {
     private lateinit var mockTestDataProvider: MockTestDataProvider
@@ -23,12 +24,14 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         mockTestDataProvider = MockTestDataProvider()
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     @Test
     fun `toEntity maps domain object to entity, with repository`() {
         val domain = requireNotNull(mockTestDataProvider.repositoriesByPath["repo-pg-0"])
         with(domain.project) {
             ctx.remember(
                 this, ProjectEntity(
+                    iid = this.iid.value,
                     id = this.id,
                     name = this.name,
                     description = this.description,
@@ -42,7 +45,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         assertAll(
             "check mappings",
             { assertThat(entity.id).isEqualTo(domain.id) },
-            { assertThat(entity.name).isEqualTo(domain.localPath) },
+            { assertThat(entity.localPath).isEqualTo(domain.localPath) },
             { assertThat(entity.project).isNotNull() },
             { assertThat(entity.project.repository).isSameAs(entity) }
         )
