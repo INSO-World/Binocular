@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,7 +23,13 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-internal class NoteInfrastructurePortImpl : NoteInfrastructurePort {
+internal class NoteInfrastructurePortImpl : NoteInfrastructurePort,
+    AbstractInfrastructurePort<Note, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = noteDao
+    }
     @Autowired private lateinit var noteDao: INoteDao
 
     @Autowired private lateinit var noteAccountConnectionRepository: INoteAccountConnectionDao

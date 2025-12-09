@@ -4,13 +4,21 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ProjectDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Project
+import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort {
+internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort,
+    AbstractInfrastructurePort<Project, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = projectDao
+    }
     companion object {
         val logger by logger()
     }

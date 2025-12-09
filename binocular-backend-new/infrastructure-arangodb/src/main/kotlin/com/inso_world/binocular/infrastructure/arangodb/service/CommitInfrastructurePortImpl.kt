@@ -10,6 +10,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueCommitConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.ICommitDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
@@ -17,6 +18,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
@@ -24,7 +26,13 @@ import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 
 @Service
-internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
+internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
+    AbstractInfrastructurePort<Commit, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = commitDao
+    }
     @Autowired private lateinit var commitDao: ICommitDao
 
     @Autowired private lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao

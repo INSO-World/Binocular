@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,7 +19,15 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class AccountInfrastructurePortImpl : AccountInfrastructurePort {
+internal class AccountInfrastructurePortImpl :
+    AccountInfrastructurePort,
+    AbstractInfrastructurePort<Account, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = accountDao
+    }
+
     @Autowired
     private lateinit var accountDao: IAccountDao
 

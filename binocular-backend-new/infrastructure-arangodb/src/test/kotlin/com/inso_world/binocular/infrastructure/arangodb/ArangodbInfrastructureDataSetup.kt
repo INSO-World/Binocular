@@ -47,6 +47,8 @@ import com.inso_world.binocular.infrastructure.arangodb.service.AccountInfrastru
 import com.inso_world.binocular.infrastructure.arangodb.service.BranchInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.arangodb.service.BuildInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.arangodb.service.CommitInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.FileInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.IssueInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.arangodb.service.MergeRequestInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.arangodb.service.MilestoneInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.arangodb.service.ModuleInfrastructurePortImpl
@@ -64,8 +66,8 @@ internal class ArangodbInfrastructureDataSetup(
     @Autowired private val accountRepository: AccountInfrastructurePortImpl,
     @Autowired private val branchRepository: BranchInfrastructurePortImpl,
     @Autowired private val buildRepository: BuildInfrastructurePortImpl,
-    @Autowired private val fileRepository: FileInfrastructurePort,
-    @Autowired private val issueRepository: IssueInfrastructurePort,
+    @Autowired private val fileRepository: FileInfrastructurePortImpl,
+    @Autowired private val issueRepository: IssueInfrastructurePortImpl,
     @Autowired private val mergeRequestRepository: MergeRequestInfrastructurePortImpl,
     @Autowired private val moduleRepository: ModuleInfrastructurePortImpl,
     @Autowired private val noteRepository: NoteInfrastructurePortImpl,
@@ -186,19 +188,19 @@ internal class ArangodbInfrastructureDataSetup(
         noteAccountConnectionRepository.deleteAll()
 
         // entities
-        commitRepository.deleteAll()
-        accountRepository.deleteAll()
-        branchRepository.deleteAll()
-        buildRepository.deleteAll()
-        fileRepository.deleteAll()
-        issueRepository.deleteAll()
-        mergeRequestRepository.deleteAll()
-        milestoneRepository.deleteAll()
-        moduleRepository.deleteAll()
-        noteRepository.deleteAll()
-        userRepository.deleteAll()
-        repositoryRepository.deleteAll()
-        projectRepository.deleteAll()
+        commitRepository.deleteAllEntities()
+        accountRepository.deleteAllEntities()
+        branchRepository.deleteAllEntities()
+        buildRepository.deleteAllEntities()
+        fileRepository.deleteAllEntities()
+        issueRepository.deleteAllEntities()
+        mergeRequestRepository.deleteAllEntities()
+        milestoneRepository.deleteAllEntities()
+        moduleRepository.deleteAllEntities()
+        noteRepository.deleteAllEntities()
+        userRepository.deleteAllEntities()
+        repositoryRepository.deleteAllEntities()
+        projectRepository.deleteAllEntities()
         logger.info("<<< ArangodbInfrastructureDataSetup teardown")
     }
 
