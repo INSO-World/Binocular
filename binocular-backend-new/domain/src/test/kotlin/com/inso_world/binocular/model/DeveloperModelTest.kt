@@ -56,7 +56,7 @@ class DeveloperModelTest {
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
         fun `given blank name, when creating developer, then it should throw IllegalArgumentException`(name: String) {
             // When & Then
             assertThrows<IllegalArgumentException> {
@@ -65,7 +65,7 @@ class DeveloperModelTest {
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
         fun `given blank email, when creating developer, then it should throw IllegalArgumentException`(email: String) {
             // When & Then
             assertThrows<IllegalArgumentException> {

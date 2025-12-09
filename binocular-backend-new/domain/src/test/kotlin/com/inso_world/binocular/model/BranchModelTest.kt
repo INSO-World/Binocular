@@ -52,7 +52,7 @@ class BranchModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
     fun `create branch with allowed names, should succeed`(
         name: String,
     ) {
@@ -65,7 +65,7 @@ class BranchModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create branch with blank name, should fail`(
         name: String,
     ) {
@@ -97,7 +97,7 @@ class BranchModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create branch with blank fullName should fail`(
         fullName: String,
     ) {

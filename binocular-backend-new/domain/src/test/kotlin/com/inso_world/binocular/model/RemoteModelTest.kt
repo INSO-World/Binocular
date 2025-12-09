@@ -117,7 +117,7 @@ class RemoteModelTest {
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
         fun `create remote with blank name, should fail`(name: String) {
             assertThrows<IllegalArgumentException> {
                 Remote(
@@ -129,7 +129,7 @@ class RemoteModelTest {
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
         fun `create remote with blank url, should fail`(url: String) {
             assertThrows<IllegalArgumentException> {
                 Remote(

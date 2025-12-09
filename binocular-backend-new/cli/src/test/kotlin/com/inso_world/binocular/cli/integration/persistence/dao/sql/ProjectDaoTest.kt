@@ -121,7 +121,7 @@ internal class ProjectDaoTest(
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
         fun `project with invalid name should fail`(invalidName: String) {
             // Given
             val project = Project(name = "invalidName").apply { description = "Empty name" }
@@ -141,7 +141,7 @@ internal class ProjectDaoTest(
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedStrings")
+        @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
         fun `project with allowed names should be handled`(allowedName: String) {
             // When
             val savedProject =

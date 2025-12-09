@@ -76,7 +76,7 @@ class ProjectModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create project with blank name, should fail`(
         name: String,
     ) {
@@ -84,7 +84,7 @@ class ProjectModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
     fun `create project with allowed names, should pass`(
         name: String,
     ) {

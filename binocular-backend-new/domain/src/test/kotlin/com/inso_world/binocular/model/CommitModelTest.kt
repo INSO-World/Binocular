@@ -103,7 +103,7 @@ class CommitModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideInvalidPastOrPresentDateTime")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideInvalidPastOrPresentDateTime")
     fun `create commit, invalid timestamp in signature`(
         timestamp: LocalDateTime,
     ) {
@@ -114,7 +114,7 @@ class CommitModelTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedPastOrPresentDateTime")
     fun `create commit, valid timestamp in signature`(
         timestamp: LocalDateTime,
     ) {
