@@ -1,12 +1,14 @@
 package com.inso_world.binocular.ffi.unit.lib
 
+import com.inso_world.binocular.ffi.BinocularConfig
+import com.inso_world.binocular.ffi.GixConfig
 import com.inso_world.binocular.ffi.internal.GixRepository
 import com.inso_world.binocular.ffi.internal.UniffiException
 import com.inso_world.binocular.ffi.internal.findAllBranches
 import com.inso_world.binocular.ffi.internal.findCommit
 import com.inso_world.binocular.ffi.internal.findRepo
-import com.inso_world.binocular.ffi.internal.traverseHistory
 import com.inso_world.binocular.ffi.internal.traverseBranch
+import com.inso_world.binocular.ffi.internal.traverseHistory
 import com.inso_world.binocular.ffi.unit.lib.base.BaseLibraryUnitTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -38,6 +40,10 @@ import org.junit.jupiter.params.provider.ValueSource
 @DisplayName("Commit Operations")
 class CommitOperationsTest : BaseLibraryUnitTest() {
 
+    private val cfg: BinocularConfig = BinocularConfig().apply {
+        gix = GixConfig(skipMerges = false, useMailmap = true)
+    }
+
     private lateinit var testRepoPath: String
     private lateinit var repo: GixRepository
 
@@ -57,7 +63,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertAll(
                 { assertThat(result).isNotNull },
@@ -72,7 +81,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val headCommit = branches.first().target
             val shortHash = headCommit.toString().substring(0, 7)
 
-            val result = findCommit(repo, shortHash)
+            val result = findCommit(
+                repo, shortHash,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertThat(result).isNotNull()
         }
@@ -83,7 +95,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertAll(
                 { assertThat(result.oid).isNotNull() },
@@ -99,12 +114,15 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertAll(
-                { assertThat(result.author?.name).isNotEmpty() },
-                { assertThat(result.author?.email).isNotEmpty() },
-                { assertThat(result.author?.time).isNotNull() }
+                { assertThat(result.author.name).isNotEmpty() },
+                { assertThat(result.author.email).isNotEmpty() },
+                { assertThat(result.author.time).isNotNull() }
             )
         }
 
@@ -114,7 +132,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertAll(
                 { assertThat(result.committer?.name).isNotEmpty() },
@@ -129,7 +150,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertThat(result.message).isNotEmpty()
         }
@@ -140,7 +164,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             // Note: Root commits have no parents
             assertThat(result.parents).isNotNull()
@@ -157,7 +184,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = traverseHistory(repo, headCommit, null)
+            val result = traverseHistory(
+                repo, headCommit, null,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertAll(
                 { assertThat(result).isNotNull() },
@@ -171,13 +201,16 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             // Tests history traversal between source and target commits
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
-            val commits = traverseHistory(repo, headCommit, null)
+            val commits = traverseHistory(
+                repo, headCommit, null,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             if (commits.size >= 2) {
                 val sourceCommit = commits[0].oid
                 val targetCommit = commits[commits.size - 1].oid
 
-                val result = traverseHistory(repo, sourceCommit, targetCommit)
+                val result = traverseHistory(repo, sourceCommit, targetCommit, useMailmap = cfg.gix.useMailmap)
 
                 assertAll(
                     { assertThat(result).isNotEmpty() },
@@ -192,7 +225,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = traverseHistory(repo, headCommit, null)
+            val result = traverseHistory(
+                repo, headCommit, null,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             result.forEach { commit ->
                 assertAll(
@@ -210,7 +246,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = traverseHistory(repo, headCommit, null)
+            val result = traverseHistory(
+                repo, headCommit, null,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             if (result.size >= 2) {
                 // First commit should be the source (newest)
@@ -224,7 +263,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = traverseHistory(repo, headCommit, null)
+            val result = traverseHistory(
+                repo, headCommit, null,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertThat(result.map { it.oid }).contains(headCommit)
         }
@@ -235,7 +277,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = traverseHistory(repo, headCommit, null)
+            val result = traverseHistory(
+                repo, headCommit, null,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             // Merge commits may have multiple parents
             val mergeCommits = result.filter { it.parents.size > 1 }
@@ -254,7 +299,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val branchName = branches.first().fullName
 
-            val result = traverseBranch(repo, branchName)
+            val result = traverseBranch(
+                repo, branchName,
+                useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges
+            )
 
             assertAll(
                 { assertThat(result).isNotNull() },
@@ -269,7 +317,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val branchName = branches.first().name
 
-            val result = traverseBranch(repo, branchName)
+            val result = traverseBranch(
+                repo, branchName,
+                useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges
+            )
 
             assertThat(result.branch.name).isEqualTo(branchName)
         }
@@ -280,7 +331,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val branchName = branches.first().name
 
-            val result = traverseBranch(repo, branchName)
+            val result = traverseBranch(
+                repo, branchName,
+                useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges
+            )
 
             result.commits.forEach { commit ->
                 assertAll(
@@ -297,7 +351,11 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val branch = branches.first()
 
-            val result = traverseBranch(repo, branch.name)
+            val result = traverseBranch(
+                repo, branch.name,
+                skipMerges = cfg.gix.skipMerges,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertThat(result.commits.map { it.oid }).contains(branch.target)
         }
@@ -313,7 +371,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertAll(
                 { assertThat(result.oid.toString()).hasSize(40) },
@@ -327,10 +388,13 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             assertAll(
-                { assertThat(result.author?.time?.seconds).isGreaterThan(0) },
+                { assertThat(result.author.time?.seconds).isGreaterThan(0) },
                 { assertThat(result.committer?.time?.seconds).isGreaterThan(0) }
             )
         }
@@ -341,7 +405,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             // Message should not be null or empty
             assertThat(result.message).isNotBlank()
@@ -353,7 +420,10 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val branches = findAllBranches(repo)
             val headCommit = branches.first().target
 
-            val result = findCommit(repo, headCommit.toString())
+            val result = findCommit(
+                repo, headCommit,
+                useMailmap = cfg.gix.useMailmap
+            )
 
             result.parents.forEach { parentOid ->
                 assertAll(
@@ -374,7 +444,7 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val invalidHash = "invalid_hash_123"
 
             val exception = assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, invalidHash)
+                findCommit(repo, invalidHash, useMailmap = cfg.gix.useMailmap)
             }
 
             assertThat(exception.v1).isNotEmpty()
@@ -386,24 +456,26 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val nonExistentHash = "0000000000000000000000000000000000000000"
 
             val exception = assertThrows<UniffiException> {
-                findCommit(repo, nonExistentHash)
+                findCommit(repo, nonExistentHash, useMailmap = cfg.gix.useMailmap)
             }
 
             assertThat(exception).isNotNull()
         }
 
         @ParameterizedTest
-        @ValueSource(strings = [
-            "",
-            "   ",
-            "abc",
-            "zzzzz",
-            "!@#$%"
-        ])
+        @ValueSource(
+            strings = [
+                "",
+                "   ",
+                "abc",
+                "zzzzz",
+                "!@#$%"
+            ]
+        )
         fun `throws exception for various invalid hash formats`(invalidHash: String) {
             // Ensures consistent error handling across different invalid inputs
             assertThrows<UniffiException> {
-                findCommit(repo, invalidHash)
+                findCommit(repo, invalidHash, useMailmap = cfg.gix.useMailmap)
             }
         }
 
@@ -413,7 +485,7 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val invalidBranch = "refs/heads/non_existent_branch_" + System.currentTimeMillis()
 
             val exception = assertThrows<UniffiException.ReferenceException> {
-                traverseBranch(repo, invalidBranch)
+                traverseBranch(repo, invalidBranch, skipMerges = cfg.gix.skipMerges, useMailmap = cfg.gix.useMailmap)
             }
 
             assertThat(exception.v1).isNotEmpty()
@@ -425,7 +497,7 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
             val invalidCommit = "0000000000000000000000000000000000000000"
 
             assertThrows<UniffiException> {
-                traverseHistory(repo, invalidCommit, null)
+                traverseHistory(repo, invalidCommit, null, useMailmap = cfg.gix.useMailmap)
             }
         }
 
@@ -433,7 +505,7 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
         fun `exception messages are descriptive`() {
             // Ensures exception messages provide useful debugging information
             val exception = assertThrows<UniffiException> {
-                findCommit(repo, "invalid")
+                findCommit(repo, "invalid", useMailmap = cfg.gix.useMailmap)
             }
 
             assertAll(

@@ -1,5 +1,6 @@
 package com.inso_world.binocular.ffi.integration
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.ffi.BinocularFfiTestApplication
@@ -28,9 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
 import kotlin.io.path.Path
 
@@ -59,6 +62,7 @@ import kotlin.io.path.Path
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
+
     @Autowired
     private lateinit var indexer: GitIndexer
 
@@ -467,6 +471,17 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
     inner class Integration {
 
         @Test
+        fun `complete workflow - Binocular`() {
+            val repo = indexer.findRepo(Path("./"), project)
+            assertThat(repo).isNotNull()
+
+            val (branch, branchCommits) = indexer.traverseBranch(repo, "origin/main")
+            assertAll(
+                { assertThat(branchCommits).hasSize(1881) }
+            )
+        }
+
+        @Test
         fun `complete workflow - find repo, traverse branch, find commits`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${SIMPLE_REPO}"), project)
             assertThat(repo).isNotNull()
@@ -574,7 +589,90 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
         }
     }
 
+    @Nested
+    inner class CompareToGit {
+        @ParameterizedTest
+        @CsvSource(
+            value = [
+                "origin/main",
+                "origin/develop"
+            ]
+        )
+        fun `Binocular, traverse branch, check committer`(branchName: String) {
+            logger.info(branchName)
+            val repo = indexer.findRepo(Path("./"), project)
+            assertThat(repo).isNotNull()
+
+            val (_, branchCommits) = indexer.traverseBranch(repo, branchName)
+            // localPath points to .git directory, so get the parent for git commands
+            val repoDir = File(repo.localPath).parentFile
+
+            val committerGroups = branchCommits.groupBy { it.committer }
+            for ((committer, commits) in committerGroups) {
+                val gitLogProcess = ProcessBuilder(
+                    "git", "log", "--use-mailmap", "--pretty=format:'%cN <%cE>'",
+                    branchName
+                )
+                    .directory(repoDir)
+                    .redirectErrorStream(true)
+                    .start()
+                logger.debug("{}", gitLogProcess.info())
+
+                val lineCount = gitLogProcess.inputStream.bufferedReader().useLines { lines ->
+                    lines.count { it.contains(committer.email.orEmpty()) }
+                }
+                gitLogProcess.waitFor(5, TimeUnit.SECONDS)
+
+                logger.info("Committer: ${committer.email} - Commits: $lineCount")
+                assertThat(committer.committedCommits.size).isEqualTo(lineCount)
+            }
+        }
+
+        @ParameterizedTest
+        @CsvSource(
+            value = [
+                "origin/main",
+                "origin/develop"
+            ]
+        )
+        fun `Binocular, traverse branch, check authors`(branchName: String) {
+            logger.info(branchName)
+            val repo = indexer.findRepo(Path("./"), project)
+            assertThat(repo).isNotNull()
+
+            val (_, branchCommits) = indexer.traverseBranch(repo, branchName)
+            // localPath points to .git directory, so get the parent for git commands
+            val repoDir = File(repo.localPath).parentFile
+
+            val authorGroups = branchCommits.filter { it.author != null }.groupBy { requireNotNull(it.author) }
+            for ((author, commits) in authorGroups) {
+                val gitLogProcess = ProcessBuilder(
+                    "git", "log", "--use-mailmap", "--pretty=format:'%aN <%aE>'",
+                    branchName
+                )
+                    .directory(repoDir)
+                    .redirectErrorStream(true)
+                    .start()
+                logger.debug("{}", gitLogProcess.info())
+
+                val lineCount = gitLogProcess.inputStream.bufferedReader().useLines { lines ->
+                    lines.count { it.contains(author.email.orEmpty()) }
+                }
+                gitLogProcess.waitFor(5, TimeUnit.SECONDS)
+
+                logger.info("Author: ${author.email} - Commits: $lineCount")
+                assertAll(
+                    { assertThat(author.authoredCommits).hasSameSizeAs(commits) },
+                    { assertThat(author.authoredCommits).containsExactlyInAnyOrder(*commits.toTypedArray()) },
+                    { assertThat(author.authoredCommits.size).isEqualTo(lineCount) }
+                )
+            }
+        }
+    }
+
     companion object {
+        private val logger by logger()
+
         private fun normalizeBranchName(refName: String): String =
             refName
                 .removePrefix("refs/heads/")
@@ -592,13 +690,30 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
                 ),
                 Arguments.of(
                     OCTO_REPO,
-                    listOf("bugfix", "feature", "imported", "master", "octo1", "octo2", "octo3").map { "refs/heads/$it" },
+                    listOf(
+                        "bugfix",
+                        "feature",
+                        "imported",
+                        "master",
+                        "octo1",
+                        "octo2",
+                        "octo3"
+                    ).map { "refs/heads/$it" },
                     emptyList<String>(),
                     7
                 ),
                 Arguments.of(
                     ADVANCED_REPO,
-                    listOf("bugfix", "extra", "feature", "imported", "master", "octo1", "octo2", "octo3").map { "refs/heads/$it" },
+                    listOf(
+                        "bugfix",
+                        "extra",
+                        "feature",
+                        "imported",
+                        "master",
+                        "octo1",
+                        "octo2",
+                        "octo3"
+                    ).map { "refs/heads/$it" },
                     emptyList<String>(),
                     8
                 )
