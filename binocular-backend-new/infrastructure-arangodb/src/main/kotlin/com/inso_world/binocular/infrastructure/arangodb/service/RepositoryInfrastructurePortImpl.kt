@@ -8,16 +8,24 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.ar
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitDiffMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
+import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort {
+internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
+    AbstractInfrastructurePort<Repository, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = repositoryDao
+    }
     companion object {
         val logger by logger()
     }

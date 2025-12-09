@@ -5,17 +5,25 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class BranchInfrastructurePortImpl : BranchInfrastructurePort {
+internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
+    AbstractInfrastructurePort<Branch, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = branchDao
+    }
     @Autowired private lateinit var branchDao: IBranchDao
 
     @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao

@@ -6,11 +6,13 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.UserDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,7 +25,13 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-internal class UserInfrastructurePortImpl : UserInfrastructurePort {
+internal class UserInfrastructurePortImpl : UserInfrastructurePort,
+    AbstractInfrastructurePort<User, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = userDao
+    }
     @Autowired
     private lateinit var userDao: UserDao
 

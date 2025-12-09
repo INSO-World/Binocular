@@ -14,6 +14,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,7 +23,13 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class IssueInfrastructurePortImpl : IssueInfrastructurePort {
+internal class IssueInfrastructurePortImpl : IssueInfrastructurePort,
+    AbstractInfrastructurePort<Issue, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = issueDao
+    }
     @Autowired private lateinit var issueDao: IIssueDao
 
     @Autowired private lateinit var issueAccountConnectionRepository: IIssueAccountConnectionDao
