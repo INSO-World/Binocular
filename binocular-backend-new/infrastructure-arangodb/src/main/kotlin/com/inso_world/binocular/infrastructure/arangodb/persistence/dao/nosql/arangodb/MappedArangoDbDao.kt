@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
 import org.springframework.data.domain.Pageable
@@ -66,6 +67,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds a page of entities and converts them to domain models
      */
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<D> {
         val result = repository.findAll(pageable)
         val content = toDomainList(result.content)

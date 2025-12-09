@@ -8,6 +8,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.ar
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitDiffMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
+import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
@@ -112,4 +113,11 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort {
     }
 
     override fun findAllDiffs(repository: Repository): Set<CommitDiff> = commitDiffDao.findAll().toSet()
+
+    override fun findBranch(
+        repository: Repository,
+        name: String
+    ): Branch? {
+        TODO("Not yet implemented")
+    }
 }

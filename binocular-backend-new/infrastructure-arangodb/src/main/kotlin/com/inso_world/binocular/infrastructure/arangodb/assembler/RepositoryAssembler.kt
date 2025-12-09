@@ -7,8 +7,8 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.Repos
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -92,7 +92,7 @@ internal class RepositoryAssembler {
 
     @Autowired
     @Lazy
-    private lateinit var userMapper: UserMapper
+    private lateinit var developerMapper: DeveloperMapper
 
     @Autowired
     private lateinit var projectMapper: ProjectMapper
@@ -162,11 +162,8 @@ internal class RepositoryAssembler {
             commitMapper.toEntity(commit)
 
             // Map commit authors and committers
-            commit.author?.let { author ->
-                userMapper.toEntity(author)
-            }
-
-            userMapper.toEntity(commit.committer)
+            developerMapper.toEntity(commit.author)
+            developerMapper.toEntity(commit.committer)
         }
 
         // Phase 3: Map Branches
