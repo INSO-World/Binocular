@@ -1,4 +1,4 @@
-package com.inso_world.binocular.data
+package com.inso_world.binocular.domain.data
 
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit

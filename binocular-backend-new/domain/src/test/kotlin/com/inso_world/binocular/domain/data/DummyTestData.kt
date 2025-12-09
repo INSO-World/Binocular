@@ -1,4 +1,4 @@
-package com.inso_world.binocular.data
+package com.inso_world.binocular.domain.data
 
 import org.junit.jupiter.params.provider.Arguments
 import java.time.LocalDateTime

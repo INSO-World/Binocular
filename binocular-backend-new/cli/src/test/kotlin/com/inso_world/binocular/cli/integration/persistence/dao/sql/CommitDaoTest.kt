@@ -15,7 +15,7 @@ import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTes
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.data.DummyTestData
+import com.inso_world.binocular.domain.data.DummyTestData
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
