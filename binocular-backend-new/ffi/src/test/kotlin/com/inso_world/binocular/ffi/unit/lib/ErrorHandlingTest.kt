@@ -1,5 +1,7 @@
 package com.inso_world.binocular.ffi.unit.lib
 
+import com.inso_world.binocular.ffi.BinocularConfig
+import com.inso_world.binocular.ffi.GixConfig
 import com.inso_world.binocular.ffi.internal.UniffiException
 import com.inso_world.binocular.ffi.internal.findAllBranches
 import com.inso_world.binocular.ffi.internal.findCommit
@@ -38,6 +40,10 @@ import kotlin.io.path.createTempDirectory
  */
 //@DisplayName("Error Handling and Exceptions")
 class ErrorHandlingTest : BaseLibraryUnitTest() {
+
+    private val cfg: BinocularConfig = BinocularConfig().apply {
+        gix = GixConfig(skipMerges = false, useMailmap = true)
+    }
 
     @Nested
     @DisplayName("GixDiscoverException scenarios")
@@ -124,7 +130,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val malformedHash = "not_a_valid_hash"
 
             val exception = assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, malformedHash)
+                findCommit(repo, malformedHash, useMailmap = cfg.gix.useMailmap)
             }
 
             assertThat(exception.v1).isNotEmpty()
@@ -142,7 +148,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val repo = findRepo(System.getProperty("user.dir"))
 
             assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, hash)
+                findCommit(repo, hash, useMailmap = cfg.gix.useMailmap)
             }
         }
 
@@ -152,7 +158,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val repo = findRepo(System.getProperty("user.dir"))
 
             val exception = assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, "invalid_commit_ref")
+                findCommit(repo, "invalid_commit_ref", useMailmap = cfg.gix.useMailmap)
             }
 
             assertAll(
@@ -173,7 +179,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val nonExistentHash = "0000000000000000000000000000000000000000"
 
             val exception = assertThrows<UniffiException> {
-                findCommit(repo, nonExistentHash)
+                findCommit(repo, nonExistentHash, useMailmap = cfg.gix.useMailmap)
             }
 
             assertThat(exception).isNotNull()
@@ -186,7 +192,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val invalidOid = "1111111111111111111111111111111111111111"
 
             val exception = assertThrows<UniffiException> {
-                findCommit(repo, invalidOid)
+                findCommit(repo, invalidOid, useMailmap = cfg.gix.useMailmap)
             }
 
             assertThat(exception.message).isNotEmpty()
@@ -236,7 +242,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val invalidBranch = "refs/heads/does_not_exist_" + System.currentTimeMillis()
 
             val exception = assertThrows<UniffiException.ReferenceException> {
-                traverseBranch(repo, invalidBranch)
+                traverseBranch(repo, invalidBranch, useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
             }
 
             assertThat(exception.v1).isNotEmpty()
@@ -249,7 +255,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val invalidBranch = "invalid_branch_ref"
 
             val exception = assertThrows<UniffiException.ReferenceException> {
-                traverseBranch(repo, invalidBranch)
+                traverseBranch(repo, invalidBranch, useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
             }
 
             assertAll(
@@ -273,7 +279,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val repo = findRepo(System.getProperty("user.dir"))
 
             assertThrows<UniffiException> {
-                traverseBranch(repo, invalidRef)
+                traverseBranch(repo, invalidRef, useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
             }
         }
     }
@@ -295,13 +301,13 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
 
             // Test RevisionParseException
             val parseEx = assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, "invalid")
+                findCommit(repo, "invalid", useMailmap = cfg.gix.useMailmap)
             }
             assertThat(parseEx.message).isNotEmpty()
 
             // Test TraversalException
             val traversalEx = assertThrows<UniffiException.ReferenceException> {
-                traverseBranch(repo, "invalid_branch")
+                traverseBranch(repo, "invalid_branch", useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
             }
             assertThat(traversalEx.message).isNotEmpty()
         }
@@ -320,7 +326,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
 
             val repo = findRepo(System.getProperty("user.dir"))
             try {
-                findCommit(repo, "bad_hash")
+                findCommit(repo, "bad_hash", useMailmap = cfg.gix.useMailmap)
             } catch (e: UniffiException) {
                 exceptions.add(e)
             }
@@ -380,13 +386,13 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
 
             val repo = findRepo(System.getProperty("user.dir"))
             try {
-                findCommit(repo, "invalid")
+                findCommit(repo, "invalid", useMailmap = cfg.gix.useMailmap)
             } catch (e: Exception) {
                 exceptions.add(e)
             }
 
             try {
-                traverseBranch(repo, "invalid")
+                traverseBranch(repo, "invalid", useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
             } catch (e: Exception) {
                 exceptions.add(e)
             }
@@ -424,7 +430,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
 
             val repo = findRepo(System.getProperty("user.dir"))
             try {
-                findCommit(repo, "bad")
+                findCommit(repo, "bad", useMailmap = cfg.gix.useMailmap)
             } catch (e: UniffiException.RevisionParseException) {
                 parseError = true
             }

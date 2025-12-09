@@ -24,13 +24,9 @@ private fun String.validateSha(): String {
  *
  * ### Semantics
  * - Reuses an existing [Commit] from [Repository.commits] by `sha`, otherwise creates one.
- * - Sets scalars (`sha`, `authorDateTime`, `commitDateTime`, `message`).
- * - Sets `author` / `committer` if provided (respecting set-once + repository consistency).
+ * - Sets scalars (`sha`, `authorSignature`, `committerSignature`, `message`).
+ * - `committerSignature` defaults to author when they are identical; otherwise uses distinct signatures.
  * - Does **not** wire parents; the batch mapper handles graph wiring.
- *
- * ### Timestamp requirements
- * - `commitDateTime` is **required**: Must have `committer.time` present.
- * - `authorDateTime` is **optional**: Set directly from `author.time` if present, else `null`.
  *
  * ### Performance note
  * This single-item mapper uses O(n) lookup when no index is provided. For batch operations,
@@ -47,13 +43,8 @@ internal fun GixCommit.toDomain(
     // Validate SHA format early at boundary
     this.oid.validateSha()
 
-    val author = this.author?.toDomain(repository)
-    val committer = this.committer?.toDomain(repository)
-
-    val authorDt = this.author?.time?.toLocalDateTime()
-    val commitDt = requireNotNull(this.committer?.time) {
-        "Commit ${this.oid} requires committer timestamp"
-    }.toLocalDateTime()
+    val authorSignature = this.author.toSignature(repository)
+    val committerSignature = this.committer.toSignature(repository)
 
     // Use index if provided (O(1)), otherwise fall back to linear search (O(n))
     val existing = shaIndex?.get(this.oid)
@@ -62,15 +53,11 @@ internal fun GixCommit.toDomain(
     val commit =
         existing ?: Commit(
             sha = this.oid,
-            authorDateTime = authorDt,
-            commitDateTime = commitDt,
+            authorSignature = authorSignature,
+            committerSignature = if (authorSignature == committerSignature) authorSignature else committerSignature,
             message = this.message,
             repository = repository,
-            committer = requireNotNull(this.committer).toDomain(repository)
         )
-
-    // set-once; idempotent if already equal
-    author?.let { if (commit.author == null) commit.author = it }
 
     return commit
 }

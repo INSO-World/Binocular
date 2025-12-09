@@ -5,11 +5,12 @@ import com.inso_world.binocular.ffi.extensions.toDomain
 import com.inso_world.binocular.ffi.internal.GixBranch
 import com.inso_world.binocular.ffi.internal.GixReferenceCategory
 import com.inso_world.binocular.model.Branch
-import com.inso_world.binocular.model.vcs.ReferenceCategory
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Signature
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -45,18 +46,18 @@ class BranchTest : BaseUnitTest() {
             localPath = "/path/to/repo",
             project = project
         )
-        val testCommitter = User(name = "Test Committer", repository = repository)
+        val developer = Developer(name = "Test Committer", email = "committer@test.com", repository = repository)
+        val signatureA = Signature(developer = developer, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0))
+        val signatureB = Signature(developer = developer, timestamp = LocalDateTime.of(2024, 1, 2, 0, 0))
         headCommit = Commit(
             sha = "a".repeat(40),
-            commitDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
+            authorSignature = signatureA,
             repository = repository,
-            committer = testCommitter
         )
         anotherCommit = Commit(
             sha = "b".repeat(40),
-            commitDateTime = LocalDateTime.of(2024, 1, 2, 0, 0),
+            authorSignature = signatureB,
             repository = repository,
-            committer = testCommitter
         )
     }
 
@@ -211,12 +212,11 @@ class BranchTest : BaseUnitTest() {
 
         @Test
         fun `toDomain updates head multiple times on repeated calls with different commits`() {
-            val testCommitter = User(name = "Test Committer", repository = repository)
+            val committer = Developer(name = "Test Committer", email = "committer@test.com", repository = repository)
             val thirdCommit = Commit(
                 sha = "c".repeat(40),
-                commitDateTime = LocalDateTime.of(2024, 1, 3, 0, 0),
+                authorSignature = Signature(developer = committer, timestamp = LocalDateTime.of(2024, 1, 3, 0, 0)),
                 repository = repository,
-                committer = testCommitter
             )
 
             val existingBranch = branch(name = "main")
@@ -245,12 +245,11 @@ class BranchTest : BaseUnitTest() {
         fun `toDomain throws exception when head commit belongs to different repository`() {
             val project2 = Project(name = "another-project")
             val repository2 = Repository(localPath = "/path/to/repo2", project = project2)
-            val testCommitter2 = User(name = "Test Committer", repository = repository2)
+            val testCommitter2 = Developer(name = "Test Committer", email = "commit2@test.com", repository = repository2)
             val commitFromDifferentRepo = Commit(
                 sha = "d".repeat(40),
-                commitDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
+                authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
                 repository = repository2,
-                committer = testCommitter2
             )
 
             val ffiBranch = gixBranch(name = "main")
@@ -268,12 +267,11 @@ class BranchTest : BaseUnitTest() {
 
             val project2 = Project(name = "another-project")
             val repository2 = Repository(localPath = "/path/to/repo2", project = project2)
-            val testCommitter2 = User(name = "Test Committer", repository = repository2)
+            val testCommitter2 = Developer(name = "Test Committer", email = "commit2@test.com", repository = repository2)
             val commitFromDifferentRepo = Commit(
                 sha = "d".repeat(40),
-                commitDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
+                authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
                 repository = repository2,
-                committer = testCommitter2
             )
 
             val ffiBranch = gixBranch(name = "main")
@@ -385,12 +383,11 @@ class BranchTest : BaseUnitTest() {
     fun `toDomain branches are scoped to specific repository`() {
         val project2 = Project(name = "another-project")
         val repository2 = Repository(localPath = "/path/to/repo2", project = project2)
-        val testCommitter2 = User(name = "Test Committer", repository = repository2)
+        val testCommitter2 = Developer(name = "Test Committer", email = "commit2@test.com", repository = repository2)
         val commit2 = Commit(
             sha = "e".repeat(40),
-            commitDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
+            authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
             repository = repository2,
-            committer = testCommitter2
         )
 
         val ffiBranch = gixBranch(name = "main")
