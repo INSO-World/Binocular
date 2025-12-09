@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi.unit.lib
 
-import com.inso_world.binocular.ffi.BinocularConfig
+import com.inso_world.binocular.ffi.FfiConfig
 import com.inso_world.binocular.ffi.GixConfig
 import com.inso_world.binocular.ffi.internal.GixRepository
 import com.inso_world.binocular.ffi.internal.UniffiException
@@ -40,7 +40,7 @@ import org.junit.jupiter.params.provider.ValueSource
 @DisplayName("Commit Operations")
 class CommitOperationsTest : BaseLibraryUnitTest() {
 
-    private val cfg: BinocularConfig = BinocularConfig().apply {
+    private val cfg: FfiConfig = FfiConfig().apply {
         gix = GixConfig(skipMerges = false, useMailmap = true)
     }
 

@@ -25,7 +25,7 @@ import kotlin.streams.asSequence
 class GixIndexer : GitIndexer {
 
     @Autowired
-    private lateinit var cfg: BinocularConfig
+    private lateinit var cfg: FfiConfig
 
     companion object Companion {
         private val logger by logger()
