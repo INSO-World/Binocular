@@ -4,7 +4,6 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -250,21 +249,4 @@ class RepositoryService {
 //        }
     }
 
-    /**
-     * Add commit diffs to a repository.
-     *
-     * @param repo The repository
-     * @param diffs The diffs to add
-     */
-    fun addDiffs(
-        repo: Repository,
-        diffs: Set<CommitDiff>,
-    ) {
-        val existingDiffs: Set<CommitDiff> = repositoryPort.findAllDiffs(repo)
-        val diffsToStore = diffs - existingDiffs
-        if (diffsToStore.isEmpty()) {
-            return
-        }
-        repositoryPort.saveCommitDiffs(repo, diffs)
-    }
 }

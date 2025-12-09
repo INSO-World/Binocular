@@ -3,18 +3,14 @@ package com.inso_world.binocular.ffi
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.ffi.extensions.toDomain
-import com.inso_world.binocular.ffi.internal.GixDiffAlgorithm
-import com.inso_world.binocular.ffi.internal.GixDiffInput
 import com.inso_world.binocular.ffi.pojos.toFfi
 import com.inso_world.binocular.ffi.pojos.toModel
 import com.inso_world.binocular.ffi.util.Utils
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Stats
-import com.inso_world.binocular.model.vcs.BlameEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.nio.file.Path
@@ -29,7 +25,6 @@ class GixIndexer : GitIndexer {
 
     companion object Companion {
         private val logger by logger()
-        private val ALGORITHM = GixDiffAlgorithm.HISTOGRAM
     }
 
     init {
@@ -117,88 +112,4 @@ class GixIndexer : GitIndexer {
                 useMailmap = cfg.gix.useMailmap
             )
             .toDomain(repo)
-
-    override fun calculateDiff(
-        repo: Repository,
-        pairs: Set<Pair<Commit, Commit?>>,
-    ): Sequence<CommitDiff> {
-        val threadsInUse = getThreadsInUse()
-
-        logger.info("Using $threadsInUse threads to calculate diffs")
-
-        val inputPairs =
-            pairs.map { c ->
-                return@map GixDiffInput(c.first.sha, c.second?.sha)
-            }
-        val commitCache =
-            pairs
-                .map { it.first }
-                .union(pairs.mapNotNull { it.second })
-                .associateBy(Commit::sha)
-
-        val ffiRepo = repo.toFfi()
-
-        val diffs =
-            com.inso_world.binocular.ffi.internal
-                .diffs(
-                    ffiRepo,
-                    commitPairs = inputPairs.toList(),
-                    maxThreads = threadsInUse.toUByte(),
-                    diffAlgorithm = ALGORITHM,
-                ).parallelStream()
-                .map {
-                    val child =
-                        requireNotNull(commitCache[it.commit.oid]) {
-                            "Child commit ${it.commit} not present in cache"
-                        }
-                    val parent = commitCache[it.parent?.oid]
-
-                    val changes =
-                        it.files
-                            .map { f ->
-
-                                val stats =
-                                    Stats(
-                                        additions = f.insertions.toLong(),
-                                        deletions = f.deletions.toLong(),
-                                    )
-
-                                return@map f.toDomain(stats, child, parent)
-                            }.toSet()
-
-                    CommitDiff(
-                        source = child,
-                        target = parent,
-                        files = changes,
-                        repo,
-                    )
-                }
-        return diffs.asSequence()
-    }
-
-    override fun calculateBlames(repo: Repository): Sequence<BlameEntry> {
-        val threadsInUse = getThreadsInUse()
-        logger.info("Using $threadsInUse threads to calculate diffs")
-
-        val ffiRepo = repo.toFfi()
-
-        TODO()
-//        val values =
-//            com.inso_world.binocular.ffi.internal
-//                .blames(
-//                    ffiRepo,
-//                    emptyMap(),
-//                    maxThreads = threadsInUse.toUByte(),
-//                    diffAlgorithm = ALGORITHM,
-//                ).parallelStream()
-//                .map { it }
-//
-//        return values
-    }
-
-    private fun getThreadsInUse(): Int =
-        run {
-            val cores = Runtime.getRuntime().availableProcessors()
-            min(cores, 12)
-        }
 }

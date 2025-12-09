@@ -4,9 +4,10 @@ import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Signature
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -74,13 +75,12 @@ internal class RepositoryTest : BaseInfrastructureSpringTest() {
     @Test
     fun `repository commits collection is add-only`() {
         val repo = Repository(localPath = "repo-rt-003", project = Project(name = "test-project-2"))
-        val committer = User(name = "Test Committer", repository = repo).apply { email = "committer@test.com" }
+        val developer = Developer(name = "Test Committer", email = "committer@test.com", repository = repo)
         val commit = Commit(
             sha = "d".repeat(40),
             message = "test commit",
-            commitDateTime = LocalDateTime.now(),
+            authorSignature = Signature(developer = developer, timestamp = LocalDateTime.now()),
             repository = repo,
-            committer = committer,
         )
 
         // Commits auto-register with repository during construction
