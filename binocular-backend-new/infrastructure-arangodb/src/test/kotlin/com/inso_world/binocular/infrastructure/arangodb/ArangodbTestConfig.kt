@@ -21,6 +21,7 @@ class ArangodbTestConfig {
             ArangoContainer("arangodb:3.12")
                 .apply { withExposedPorts(8529) }
                 .apply { withoutAuth() }
+                .apply { withReuse(true) }
     }
 
     class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -29,9 +30,9 @@ class ArangodbTestConfig {
             adbContainer.start()
 
             TestPropertyValues.of(
-                "binocular.database.database_name=infrastructure_arangodb_it",
-                "binocular.database.host=${adbContainer.host}",
-                "binocular.database.port=${adbContainer.firstMappedPort}"
+                "binocular.arangodb.database.name=infrastructure_arangodb_it",
+                "binocular.arangodb.database.host=${adbContainer.host}",
+                "binocular.arangodb.database.port=${adbContainer.firstMappedPort}"
             ).applyTo(ctx.environment)
         }
     }

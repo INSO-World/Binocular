@@ -7,13 +7,13 @@ spring:
     exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
 
 binocular:
-  database:
-    database_name: "binocular-web-test"
-#    host: ${ARANGODB_HOST:localhost}
-    host: localhost
-    port: ${ARANGODB_PORT:5432}
-    user: TODO
-    password: TODO
+  arangodb:
+    database:
+      name: "binocular-web-test"
+      host: localhost
+      port: ${ARANGODB_PORT:5432}
+      user: TODO
+      password: TODO
 logging:
   charset:
     console: utf-8

@@ -1,11 +1,10 @@
 package com.inso_world.binocular.ffi
 
-import org.springframework.boot.context.properties.ConfigurationProperties
+import com.inso_world.binocular.core.BinocularConfig
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ConfigurationProperties(prefix = "binocular")
-internal open class BinocularConfig {
+internal open class FfiConfig : BinocularConfig() {
     lateinit var gix: GixConfig
 }
 

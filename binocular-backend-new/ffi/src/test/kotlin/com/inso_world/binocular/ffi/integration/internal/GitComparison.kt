@@ -2,7 +2,7 @@ package com.inso_world.binocular.ffi.integration.internal
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import com.inso_world.binocular.ffi.BinocularConfig
+import com.inso_world.binocular.ffi.FfiConfig
 import com.inso_world.binocular.ffi.BinocularFfiTestApplication
 import com.inso_world.binocular.ffi.internal.findRepo
 import com.inso_world.binocular.ffi.internal.traverseBranch
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 class GitComparison : BaseIntegrationTest() {
 
     @Autowired
-    private lateinit var cfg: BinocularConfig
+    private lateinit var cfg: FfiConfig
 
     companion object {
         private val logger by logger()

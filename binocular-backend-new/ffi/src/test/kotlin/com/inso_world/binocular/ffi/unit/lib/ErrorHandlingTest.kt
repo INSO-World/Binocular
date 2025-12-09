@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi.unit.lib
 
-import com.inso_world.binocular.ffi.BinocularConfig
+import com.inso_world.binocular.ffi.FfiConfig
 import com.inso_world.binocular.ffi.GixConfig
 import com.inso_world.binocular.ffi.internal.UniffiException
 import com.inso_world.binocular.ffi.internal.findAllBranches
@@ -41,7 +41,7 @@ import kotlin.io.path.createTempDirectory
 //@DisplayName("Error Handling and Exceptions")
 class ErrorHandlingTest : BaseLibraryUnitTest() {
 
-    private val cfg: BinocularConfig = BinocularConfig().apply {
+    private val cfg: FfiConfig = FfiConfig().apply {
         gix = GixConfig(skipMerges = false, useMailmap = true)
     }
 

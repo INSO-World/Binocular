@@ -1,7 +1,7 @@
 package com.inso_world.binocular.ffi.integration
 
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
-import com.inso_world.binocular.ffi.BinocularConfig
+import com.inso_world.binocular.ffi.FfiConfig
 import com.inso_world.binocular.ffi.BinocularFfiTestApplication
 import com.inso_world.binocular.ffi.internal.*
 import com.inso_world.binocular.ffi.util.Utils
@@ -51,7 +51,7 @@ import java.util.stream.Stream
 internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
     @Autowired
-    private lateinit var cfg: BinocularConfig
+    private lateinit var cfg: FfiConfig
 
     companion object {
         private lateinit var simpleRepo: GixRepository
