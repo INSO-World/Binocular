@@ -5,9 +5,11 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 
 /**
@@ -54,19 +56,16 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val projectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
             ?: throw IllegalStateException(
                 "ProjectEntity must be mapped before RepositoryEntity. " +
                         "Ensure ProjectEntity is in MappingContext before calling toEntity()."
             )
 
-        val entity = RepositoryEntity(
-            id = domain.id,
-            name = domain.localPath.trim(),
-            project = projectEntity
-        )
-
+        // Create entity and remember in context
+        val entity = domain.toEntity(owner)
         ctx.remember(domain, entity)
+
         return entity
     }
 
@@ -83,26 +82,28 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
      * @return The Repository domain object (structure only, without children)
      * @throws IllegalStateException if Project is not in MappingContext
      */
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: RepositoryEntity): Repository {
         // Fast-path: Check if already mapped
         ctx.findDomain<Repository, RepositoryEntity>(entity)?.let { return it }
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val project = ctx.findDomain<Project, ProjectEntity>(entity.project)
+        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
             ?: throw IllegalStateException(
                 "Project must be mapped before Repository. " +
                         "Ensure Project is in MappingContext before calling toDomain()."
             )
 
-        val domain = Repository(
-            localPath = entity.name.trim(),
-            project = project
-        ).apply {
-            id = entity.id
-        }
+        val domain = entity.toDomain(owner)
+        setField(
+            domain.javaClass.superclass.getDeclaredField("iid"),
+            domain,
+            entity.iid
+        )
 
         ctx.remember(domain, entity)
+
         return domain
     }
 
@@ -117,7 +118,12 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
      * @return The refreshed Repository domain object
      */
     fun refreshDomain(target: Repository, entity: RepositoryEntity): Repository {
-        target.id = entity.id
+        setField(
+            target.javaClass.getDeclaredField("id"),
+            target,
+            entity.id
+        )
+
         return target
     }
 }

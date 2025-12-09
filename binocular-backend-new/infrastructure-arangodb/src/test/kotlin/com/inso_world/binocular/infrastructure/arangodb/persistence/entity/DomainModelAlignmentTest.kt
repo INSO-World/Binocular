@@ -4,6 +4,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Job
@@ -12,8 +13,11 @@ import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -45,6 +49,10 @@ class DomainModelAlignmentTest {
         Platform::class.java to PlatformEntity::class.java,
         Stats::class.java to StatsEntity::class.java,
         User::class.java to UserEntity::class.java,
+        Developer::class.java to DeveloperEntity::class.java,
+        Repository::class.java to RepositoryEntity::class.java,
+        ReferenceCategory::class.java to String::class.java,
+        Project::class.java to ProjectEntity::class.java,
     );
 
     companion object {
@@ -65,6 +73,10 @@ class DomainModelAlignmentTest {
                 Arguments.of(Note::class.java, NoteEntity::class.java),
                 Arguments.of(Stats::class.java, StatsEntity::class.java),
                 Arguments.of(User::class.java, UserEntity::class.java),
+                Arguments.of(Developer::class.java, DeveloperEntity::class.java),
+                Arguments.of(Repository::class.java, RepositoryEntity::class.java),
+                Arguments.of(ReferenceCategory::class.java, String::class.java),
+                Arguments.of(Project::class.java, ProjectEntity::class.java),
             )
     }
 

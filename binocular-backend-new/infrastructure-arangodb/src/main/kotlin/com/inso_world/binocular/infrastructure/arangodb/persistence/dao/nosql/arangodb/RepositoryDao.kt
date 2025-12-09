@@ -35,7 +35,7 @@ internal class RepositoryDao @Autowired constructor(
 //    private lateinit var projectMapper: ProjectMapper
 
     override fun findByName(name: String): RepositoryEntity? {
-        return this.repositoryRepository.findByName(name)
+        return this.repositoryRepository.findByLocalPath(name)
     }
 
     fun create(entity: RepositoryEntity): RepositoryEntity {

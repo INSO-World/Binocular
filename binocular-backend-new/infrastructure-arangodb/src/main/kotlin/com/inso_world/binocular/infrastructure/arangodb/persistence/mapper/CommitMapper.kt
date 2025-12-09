@@ -4,11 +4,21 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Signature
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Date
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Commit domain objects.
@@ -28,7 +38,16 @@ import java.util.Date
  * that cannot be reconstructed from the entity alone.
  */
 @Component
-internal class CommitMapper: EntityMapper<Commit, CommitEntity> {
+internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
+
+    @Autowired
+    private lateinit var developerMapper: DeveloperMapper
+
+    @Autowired
+    private lateinit var repositoryMapper: RepositoryMapper
+
+    @Autowired
+    private lateinit var projectMapper: ProjectMapper
 
     @Autowired
     private lateinit var statsMapper: StatsMapper
@@ -56,16 +75,25 @@ internal class CommitMapper: EntityMapper<Commit, CommitEntity> {
         // Fast-path: if this Commit was already mapped in the current context, return it.
         ctx.findEntity<Commit.Key, Commit, CommitEntity>(domain)?.let { return it }
 
+        // Ensure the owning project is mapped before the repository
+        ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.repository.project)
+            ?: projectMapper.toEntity(domain.repository.project)
+
+        val repositoryEntity = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+            ?: repositoryMapper.toEntity(domain.repository)
+        val author = developerMapper.toEntity(domain.author)
+        val committer = developerMapper.toEntity(domain.committer)
+
         val entity =
-            CommitEntity(
-                id = domain.id,
-                sha = domain.sha,
-                date = domain.commitDateTime?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
-                message = domain.message,
-                webUrl = domain.webUrl,
-                stats = domain.stats?.let { statsMapper.toEntity(it) },
-                branch = domain.branch,
-            )
+            domain.toEntity(
+                repository = repositoryEntity,
+                author = author,
+                committer = committer,
+            ).apply {
+                date = domain.commitDateTime.let { Date.from(it.toInstant(ZoneOffset.UTC)) }
+                branch = domain.branch
+                stats = domain.stats?.let { statsMapper.toEntity(it) }
+            }
 
         ctx.remember(domain, entity)
         return entity
@@ -85,14 +113,75 @@ internal class CommitMapper: EntityMapper<Commit, CommitEntity> {
      * @return The Commit domain object from MappingContext
      * @throws IllegalStateException if Commit is not already in MappingContext
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: CommitEntity): Commit {
         // Fast-path: Check if already mapped - required for repository and committer references
-        ctx.findDomain<Commit, CommitEntity>(entity)?.let { return it }
+        ctx.findDomain<Commit, CommitEntity>(entity)?.let { domain ->
+            domain.id = entity.id
+            domain.branch = entity.branch
+            domain.webUrl = entity.webUrl
+            domain.stats = entity.stats?.let { statsMapper.toDomain(it) }
 
-        throw IllegalStateException(
-            "Commit mapping requires an existing domain Commit in MappingContext. " +
-                    "Ensure Commit is created with repository and committer before calling toDomain()."
+            setField(
+                domain.javaClass.superclass.getDeclaredField("iid"),
+                domain,
+                entity.iid,
+            )
+            ctx.remember(domain, entity)
+            return domain
+        }
+
+        // Map owning project/repository first to satisfy commit invariants
+        val project = ctx.findDomain<Project, ProjectEntity>(entity.repository.project)
+            ?: projectMapper.toDomain(entity.repository.project)
+        // Ensure repository mapping sees an already mapped project
+        val repository = ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
+            ?: repositoryMapper.toDomain(entity.repository)
+
+        // Derive developer information from related users if available; otherwise fall back to a placeholder
+        val developer =
+            entity.users.firstOrNull()?.let { user ->
+                Developer(
+                    name = user.name,
+                    email = user.email,
+                    repository = repository,
+                )
+            } ?: Developer(
+                name = "unknown",
+                email = "unknown@example.com",
+                repository = repository,
+            )
+
+        val timestamp =
+            entity.date
+                ?.toInstant()
+                ?.atZone(ZoneOffset.UTC)
+                ?.toLocalDateTime()
+                ?: LocalDateTime.now()
+
+        val signature = Signature(developer = developer, timestamp = timestamp)
+
+        val domain =
+            Commit(
+                sha = entity.sha,
+                authorSignature = signature,
+                committerSignature = signature,
+                repository = repository,
+                message = entity.message,
+            ).apply {
+                id = entity.id
+                webUrl = entity.webUrl
+                branch = entity.branch
+                stats = entity.stats?.let { statsMapper.toDomain(it) }
+            }
+
+        setField(
+            domain.javaClass.superclass.getDeclaredField("iid"),
+            domain,
+            Commit.Id(entity.iid),
         )
+        ctx.remember(domain, entity)
+        return domain
     }
 
     override fun toDomainList(entities: Iterable<CommitEntity>): List<Commit> = entities.map { toDomain(it) }
