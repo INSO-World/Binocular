@@ -690,15 +690,15 @@ internal object UniffiLib {
     ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_find_all_branches(`gixRepo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun uniffi_gix_binocular_fn_func_find_commit(`gixRepo`: RustBuffer.ByValue,`hash`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun uniffi_gix_binocular_fn_func_find_commit(`gixRepo`: RustBuffer.ByValue,`hash`: RustBuffer.ByValue,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_find_repo(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_hello(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    external fun uniffi_gix_binocular_fn_func_traverse_branch(`gixRepo`: RustBuffer.ByValue,`branch`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun uniffi_gix_binocular_fn_func_traverse_branch(`gixRepo`: RustBuffer.ByValue,`branch`: RustBuffer.ByValue,`skipMerges`: Byte,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun uniffi_gix_binocular_fn_func_traverse_history(`gixRepo`: RustBuffer.ByValue,`sourceCommit`: RustBuffer.ByValue,`targetCommit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun uniffi_gix_binocular_fn_func_traverse_history(`gixRepo`: RustBuffer.ByValue,`sourceCommit`: RustBuffer.ByValue,`targetCommit`: RustBuffer.ByValue,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun ffi_gix_binocular_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -825,22 +825,22 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_gix_binocular_checksum_func_diffs() != 34571.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_find_all_branches() != 5622.toShort()) {
+    if (lib.uniffi_gix_binocular_checksum_func_find_all_branches() != 347.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_find_commit() != 8632.toShort()) {
+    if (lib.uniffi_gix_binocular_checksum_func_find_commit() != 47044.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_find_repo() != 41117.toShort()) {
+    if (lib.uniffi_gix_binocular_checksum_func_find_repo() != 7719.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_gix_binocular_checksum_func_hello() != 44428.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_traverse_branch() != 63803.toShort()) {
+    if (lib.uniffi_gix_binocular_checksum_func_traverse_branch() != 40308.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_traverse_history() != 44995.toShort()) {
+    if (lib.uniffi_gix_binocular_checksum_func_traverse_history() != 2463.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_gix_binocular_checksum_method_procerrorinterface_message() != 46837.toShort()) {
@@ -1881,9 +1881,9 @@ data class GixCommit (
     , 
     var `message`: kotlin.String
     , 
-    var `committer`: GixSignature?
+    var `committer`: GixSignature
     , 
-    var `author`: GixSignature?
+    var `author`: GixSignature
     , 
     var `branch`: kotlin.String?
     , 
@@ -1906,8 +1906,8 @@ public object FfiConverterTypeGixCommit: FfiConverterRustBuffer<GixCommit> {
         return GixCommit(
             FfiConverterTypeObjectId.read(buf),
             FfiConverterString.read(buf),
-            FfiConverterOptionalTypeGixSignature.read(buf),
-            FfiConverterOptionalTypeGixSignature.read(buf),
+            FfiConverterTypeGixSignature.read(buf),
+            FfiConverterTypeGixSignature.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterSequenceTypeObjectId.read(buf),
             FfiConverterSequenceTypeBString.read(buf),
@@ -1917,8 +1917,8 @@ public object FfiConverterTypeGixCommit: FfiConverterRustBuffer<GixCommit> {
     override fun allocationSize(value: GixCommit) = (
             FfiConverterTypeObjectId.allocationSize(value.`oid`) +
             FfiConverterString.allocationSize(value.`message`) +
-            FfiConverterOptionalTypeGixSignature.allocationSize(value.`committer`) +
-            FfiConverterOptionalTypeGixSignature.allocationSize(value.`author`) +
+            FfiConverterTypeGixSignature.allocationSize(value.`committer`) +
+            FfiConverterTypeGixSignature.allocationSize(value.`author`) +
             FfiConverterOptionalString.allocationSize(value.`branch`) +
             FfiConverterSequenceTypeObjectId.allocationSize(value.`parents`) +
             FfiConverterSequenceTypeBString.allocationSize(value.`fileTree`)
@@ -1927,8 +1927,8 @@ public object FfiConverterTypeGixCommit: FfiConverterRustBuffer<GixCommit> {
     override fun write(value: GixCommit, buf: ByteBuffer) {
             FfiConverterTypeObjectId.write(value.`oid`, buf)
             FfiConverterString.write(value.`message`, buf)
-            FfiConverterOptionalTypeGixSignature.write(value.`committer`, buf)
-            FfiConverterOptionalTypeGixSignature.write(value.`author`, buf)
+            FfiConverterTypeGixSignature.write(value.`committer`, buf)
+            FfiConverterTypeGixSignature.write(value.`author`, buf)
             FfiConverterOptionalString.write(value.`branch`, buf)
             FfiConverterSequenceTypeObjectId.write(value.`parents`, buf)
             FfiConverterSequenceTypeBString.write(value.`fileTree`, buf)
@@ -2803,38 +2803,6 @@ public object FfiConverterOptionalTypeGixCommit: FfiConverterRustBuffer<GixCommi
 /**
  * @suppress
  */
-public object FfiConverterOptionalTypeGixSignature: FfiConverterRustBuffer<GixSignature?> {
-    override fun read(buf: ByteBuffer): GixSignature? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeGixSignature.read(buf)
-    }
-
-    override fun allocationSize(value: GixSignature?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeGixSignature.allocationSize(value)
-        }
-    }
-
-    override fun write(value: GixSignature?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeGixSignature.write(value, buf)
-        }
-    }
-}
-
-
-
-
-/**
- * @suppress
- */
 public object FfiConverterOptionalTypeGixDiffAlgorithm: FfiConverterRustBuffer<GixDiffAlgorithm?> {
     override fun read(buf: ByteBuffer): GixDiffAlgorithm? {
         if (buf.get().toInt() == 0) {
@@ -3371,7 +3339,8 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
          * A vector of all branches found in the repository
          *
          * # Errors
-         * Returns `ReferenceError` if branch enumeration fails
+         * - `GixDiscoverError` if repository cannot be opened
+         * - `ReferenceError` if branch enumeration fails
          */
     @Throws(UniffiException::class) fun `findAllBranches`(`gixRepo`: GixRepository): List<GixBranch> {
             return FfiConverterSequenceTypeGixBranch.lift(
@@ -3389,21 +3358,23 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
          *
          * # Arguments
          * * `gix_repo` - The repository to search in
-         * * `hash` - The commit hash to find
+         * * `hash` - The commit hash to find (full or abbreviated) or any valid revision spec
+         * * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
          *
          * # Returns
          * The commit metadata if found
          *
          * # Errors
-         * - `RevisionParseError` if the hash cannot be parsed
-         * - `ObjectError` if the object cannot be found or converted to a commit
+         * - `RevisionParseError` if the hash/revision spec is invalid or malformed
+         * - `ObjectError` if the object cannot be found or is not a commit
+         * - `CommitLookupError` if author/committer information cannot be read
          */
-    @Throws(UniffiException::class) fun `findCommit`(`gixRepo`: GixRepository, `hash`: kotlin.String): GixCommit {
+    @Throws(UniffiException::class) fun `findCommit`(`gixRepo`: GixRepository, `hash`: kotlin.String, `useMailmap`: kotlin.Boolean): GixCommit {
             return FfiConverterTypeGixCommit.lift(
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.uniffi_gix_binocular_fn_func_find_commit(
     
-        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterString.lower(`hash`),_status)
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterString.lower(`hash`),FfiConverterBoolean.lower(`useMailmap`),_status)
 }
     )
     }
@@ -3413,13 +3384,13 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
          * Discovers and opens a Git repository at the given path
          *
          * # Arguments
-         * * `path` - Path to the Git repository
+         * * `path` - Path to the Git repository (can be any path within the repository)
          *
          * # Returns
          * A `GixRepository` containing repository metadata and remotes
          *
          * # Errors
-         * Returns `GixDiscoverError` if the repository cannot be discovered
+         * Returns `GixDiscoverError` if the repository cannot be discovered at the path
          */
     @Throws(UniffiException::class) fun `findRepo`(`path`: kotlin.String): GixRepository {
             return FfiConverterTypeGixRepository.lift(
@@ -3449,21 +3420,24 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
          *
          * # Arguments
          * * `gix_repo` - The repository containing the branch
-         * * `branch` - The name of the branch to traverse
+         * * `branch` - The name of the branch to traverse (e.g., "refs/heads/main" or "main")
+         * * `skip_merges` - Whether to skip merge commits in the result
+         * * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
          *
          * # Returns
          * A `BranchTraversalResult` containing the branch metadata and all commits
          *
          * # Errors
+         * - `GixDiscoverError` if repository cannot be opened
+         * - `ReferenceError` if the branch reference cannot be found
          * - `TraversalError` if the traversal fails or returns unexpected results
-         * - `OperationFailed` for other traversal errors
          */
-    @Throws(UniffiException::class) fun `traverseBranch`(`gixRepo`: GixRepository, `branch`: kotlin.String): BranchTraversalResult {
+    @Throws(UniffiException::class) fun `traverseBranch`(`gixRepo`: GixRepository, `branch`: kotlin.String, `skipMerges`: kotlin.Boolean, `useMailmap`: kotlin.Boolean): BranchTraversalResult {
             return FfiConverterTypeBranchTraversalResult.lift(
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.uniffi_gix_binocular_fn_func_traverse_branch(
     
-        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterString.lower(`branch`),_status)
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterString.lower(`branch`),FfiConverterBoolean.lower(`skipMerges`),FfiConverterBoolean.lower(`useMailmap`),_status)
 }
     )
     }
@@ -3485,12 +3459,12 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
          * - `CommitLookupError` if commits cannot be found
          * - `GixError` for other traversal errors
          */
-    @Throws(UniffiException::class) fun `traverseHistory`(`gixRepo`: GixRepository, `sourceCommit`: ObjectId, `targetCommit`: ObjectId?): List<GixCommit> {
+    @Throws(UniffiException::class) fun `traverseHistory`(`gixRepo`: GixRepository, `sourceCommit`: ObjectId, `targetCommit`: ObjectId?, `useMailmap`: kotlin.Boolean): List<GixCommit> {
             return FfiConverterSequenceTypeGixCommit.lift(
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.uniffi_gix_binocular_fn_func_traverse_history(
     
-        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterTypeObjectId.lower(`sourceCommit`),FfiConverterOptionalTypeObjectId.lower(`targetCommit`),_status)
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterTypeObjectId.lower(`sourceCommit`),FfiConverterOptionalTypeObjectId.lower(`targetCommit`),FfiConverterBoolean.lower(`useMailmap`),_status)
 }
     )
     }
