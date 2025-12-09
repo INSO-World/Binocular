@@ -1,6 +1,6 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.data.MockTestDataProvider
+import com.inso_world.binocular.domain.data.MockTestDataProvider
 import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat

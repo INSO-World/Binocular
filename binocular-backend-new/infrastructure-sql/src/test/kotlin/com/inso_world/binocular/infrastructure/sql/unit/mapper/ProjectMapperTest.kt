@@ -1,6 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.unit.mapper
 
-import com.inso_world.binocular.data.MockTestDataProvider
+import com.inso_world.binocular.domain.data.MockTestDataProvider
 import com.inso_world.binocular.infrastructure.sql.TestData
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
