@@ -2,15 +2,16 @@ package com.inso_world.binocular.infrastructure.test.project
 
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -68,6 +69,23 @@ internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
     }
 
     @Test
+    fun `save project with repository, check identities`() {
+        val project = Project(name = "test project")
+        val repository = Repository(
+            localPath = "test repository",
+            project = project,
+        )
+
+        val createdProject = projectPort.create(project)
+
+        assertAll(
+            { assertThat(createdProject).isSameAs(project) },
+            { assertThat(createdProject.repo).isSameAs(project.repo) },
+            { assertThat(createdProject.repo).isSameAs(repository) },
+        )
+    }
+
+    @Test
     fun `save project with repository, expecting in database`() {
         val project = Project(name = "test project")
         val repository = Repository(
@@ -79,18 +97,16 @@ internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
 
         assertThat(projectPort.findAll()).hasSize(1)
         run {
-            val elem = projectPort.findAll().toList()[0]
+            val elem = projectPort.findAll().first()
             assertThat(elem).isSameAs(requireNotNull(elem.repo).project)
             assertThat(elem)
                 .usingRecursiveComparison()
-                .ignoringFields("id")
                 .isEqualTo(createdProject)
             assertThat(elem.repo).isNotNull()
             assertThat(elem.repo?.id).isNotNull()
             assertThat(elem.repo)
                 .usingRecursiveComparison()
                 .ignoringCollectionOrder()
-                .ignoringFields("id", "project")
                 .isEqualTo(repository)
         }
         assertAll(
@@ -110,15 +126,12 @@ internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
             localPath = "test repository",
             project = project,
         )
-        val user = User(name = "test", repository = repository).apply {
-            email = "test@example.com"
-        }
+        val developer = Developer(name = "test", email = "test@example.com", repository = repository)
         val cmt = Commit(
             sha = "1234567890123456789012345678901234567890",
             message = "test commit",
-            commitDateTime = LocalDateTime.of(2025, 7, 13, 1, 1),
+            authorSignature = Signature(developer = developer, timestamp = LocalDateTime.of(2025, 7, 13, 1, 1)),
             repository = repository,
-            committer = user,
         )
         val branch = Branch(
             name = "test branch",
@@ -152,14 +165,18 @@ internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
             ).usingRecursiveComparison()
                 .ignoringCollectionOrder()
                 .ignoringFieldsMatchingRegexes(".*id", ".*repositoryId", ".*project")
-                .isEqualTo(repositoryProject.repo?.commits?.toList()[0])
+                .isEqualTo(repositoryProject.repo?.commits?.toList()?.get(0))
         }
-        assertAll(
-            "check ids",
-            { assertThat(commitPort.findAll().toList()[0].id).isNotNull() },
-            { assertThat(commitPort.findAll().toList()[0].repository).isNotNull() },
-            { assertThat(commitPort.findAll().toList()[0].repository?.id).isNotNull() },
-            { assertThat(commitPort.findAll().toList()[0].repository?.id).isEqualTo(repositoryProject.repo?.id) },
-        )
+        val allCommits = commitPort.findAll()
+        assertThat(allCommits).hasSize(1)
+        with(allCommits.first()) {
+            assertAll(
+                "check ids",
+                { assertThat(this.id).isNotNull() },
+                { assertThat(this.repository).isNotNull() },
+                { assertThat(this.repository.id).isNotNull() },
+                { assertThat(this.repository.id).isEqualTo(repositoryProject.repo?.id) },
+            )
+        }
     }
 }

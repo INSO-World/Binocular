@@ -153,17 +153,6 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
             )
         }
 
-        @Test
-        @Disabled
-        fun `index branch origin-feature-6, calculate diffs`() {
-            val projectName = "Binocular"
-            idxClient.commits(
-                repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                branchName = "origin/feature/6",
-                projectName = projectName,
-            )
-            idxClient.diffs(projectName)
-        }
 
         @Test
         fun `index branch origin-feature-6 and then origin-feature-5`() {

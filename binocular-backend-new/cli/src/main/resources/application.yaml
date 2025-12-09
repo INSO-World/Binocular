@@ -1,6 +1,6 @@
 binocular:
   index:
-    path: "/Users/rise/Repositories/test_repositories/Binocular"
+    path: ""
 spring:
   profiles:
     active: postgres,gix

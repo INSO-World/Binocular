@@ -32,7 +32,7 @@ internal class ProjectTest : BaseInfrastructureSpringTest() {
         val created = projectPort.create(project)
         assertNotNull(created.id)
 
-        val loaded = projectPort.findById(requireNotNull(created.id))
+        val loaded = projectPort.findByIid(created.iid)
         assertNotNull(loaded)
         assertEquals(created.id, loaded!!.id)
         assertEquals(project.name, loaded.name)

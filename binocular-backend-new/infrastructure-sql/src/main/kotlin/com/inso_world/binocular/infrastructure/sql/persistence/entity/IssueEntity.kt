@@ -13,6 +13,7 @@ import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import java.time.LocalDateTime
 import java.util.Objects
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 
 /**
  * SQL-specific Issue entity.
@@ -72,7 +73,7 @@ internal data class IssueEntity(
         joinColumns = [JoinColumn(name = "issue_id")],
         inverseJoinColumns = [JoinColumn(name = "user_id")],
     )
-    var users: MutableList<UserEntity> = mutableListOf(),
+    var developers: MutableList<DeveloperEntity> = mutableListOf(),
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -89,10 +90,10 @@ internal data class IssueEntity(
         if (updatedAt != other.updatedAt) return false
         if (state != other.state) return false
         if (webUrl != other.webUrl) return false
-        if (users != other.users) return false
+        if (developers != other.developers) return false
 
         return true
     }
 
-    override fun hashCode(): Int = Objects.hash(id, iid, title, description, createdAt, closedAt, updatedAt, state, webUrl, users)
+    override fun hashCode(): Int = Objects.hash(id, iid, title, description, createdAt, closedAt, updatedAt, state, webUrl, developers)
 }

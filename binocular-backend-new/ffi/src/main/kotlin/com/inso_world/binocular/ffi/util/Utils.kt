@@ -39,7 +39,7 @@ internal class Utils {
                 (os.contains("nux") || os.contains("nix")) && arch == "aarch64" -> "aarch64-unknown-linux-gnu"
 
                 // Windows
-                os.contains("win") && (arch == "x86_64" || arch == "amd64") -> "x86_64-pc-windows-msvc"
+                os.contains("win") && (arch == "x86_64" || arch == "amd64") -> "x86_64-pc-windows-gnu"
                 os.contains("win") && arch == "aarch64" -> "aarch64-pc-windows-msvc"
 
                 else -> throw UnsupportedOperationException("Unsupported OS/Arch combination: $os/$arch")

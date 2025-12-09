@@ -2,15 +2,16 @@ package com.inso_world.binocular.infrastructure.test.repository
 
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -22,7 +23,7 @@ import java.time.LocalDateTime
 
 /**
  * Tests for saving repositories through RepositoryInfrastructurePort.
- * Verifies that repositories with commits, branches, and users are persisted correctly
+ * Verifies that repositories with commits, branches, and developers are persisted correctly
  * while maintaining domain model semantics.
  */
 internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
@@ -72,15 +73,12 @@ internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
     @Test
     fun `save repository with one commit, expecting in database`() {
         val repository = Repository(localPath = "path/to/repo-2", project = project)
-        val user = User(name = "test-user-a", repository = repository).apply {
-            email = "a@test.com"
-        }
+        val developer = Developer(name = "test-user-a", email = "a@test.com", repository = repository)
         val commit = Commit(
             sha = "a".repeat(40),
             message = "Initial commit",
-            commitDateTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+            authorSignature = Signature(developer = developer, timestamp = LocalDateTime.of(2020, 1, 1, 0, 0, 0)),
             repository = repository,
-            committer = user,
         )
         val branch = Branch(
             name = "main",
@@ -108,34 +106,28 @@ internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
             "check commit relationship",
             { assertThat(commitPort.findAll().toList()[0].id).isNotNull() },
             { assertThat(commitPort.findAll().toList()[0].repository).isNotNull() },
-            { assertThat(commitPort.findAll().toList()[0].repository?.id).isNotNull() },
-            { assertThat(commitPort.findAll().toList()[0].repository?.id).isEqualTo(savedRepo.id) },
+            { assertThat(commitPort.findAll().toList()[0].repository.id).isNotNull() },
+            { assertThat(commitPort.findAll().toList()[0].repository.id).isEqualTo(savedRepo.id) },
         )
     }
 
     @Test
     fun `save repository with one commit with one parent, expecting both in database`() {
         val repository = Repository(localPath = "path/to/repo-3", project = project)
-        val userA = User(name = "user-a", repository = repository).apply {
-            email = "a@test.com"
-        }
-        val userB = User(name = "user-b", repository = repository).apply {
-            email = "b@test.com"
-        }
+        val developerA = Developer(name = "user-a", email = "a@test.com", repository = repository)
+        val developerB = Developer(name = "user-b", email = "b@test.com", repository = repository)
 
         val cmtB = Commit(
             sha = "b".repeat(40),
             message = "Parent commit",
-            commitDateTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+            authorSignature = Signature(developer = developerB, timestamp = LocalDateTime.of(2020, 1, 1, 0, 0, 0)),
             repository = repository,
-            committer = userB,
         )
         val cmtA = Commit(
             sha = "a".repeat(40),
             message = "Child commit",
-            commitDateTime = LocalDateTime.of(2020, 1, 2, 0, 0, 0),
+            authorSignature = Signature(developer = developerA, timestamp = LocalDateTime.of(2020, 1, 2, 0, 0, 0)),
             repository = repository,
-            committer = userA,
         )
         cmtA.parents.add(cmtB)
 
@@ -173,46 +165,35 @@ internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
         assertAll(
             "check commit relationship",
             { assertThat(commitPort.findAll().map { it.id }).doesNotContainNull() },
-            { assertThat(commitPort.findAll().map { it.repository?.id }).doesNotContainNull() },
-            { assertThat(commitPort.findAll().map { it.repository?.id }).containsOnly(savedRepo.id) },
+            { assertThat(commitPort.findAll().map { it.repository.id }).doesNotContainNull() },
+            { assertThat(commitPort.findAll().map { it.repository.id }).containsOnly(savedRepo.id) },
         )
     }
 
     @Test
     fun `save repository with one commit with two parents, expecting all in database`() {
         val repository = Repository(localPath = "path/to/repo-4", project = project)
-        val userA = User(name = "user-a", repository = repository).apply {
-            email = "a@test.com"
-        }
-        val userB = User(name = "user-b", repository = repository).apply {
-            email = "b@test.com"
-        }
-        val userC = User(name = "user-c", repository = repository).apply {
-            email = "author@test.com"
-        }
+        val developerA = Developer(name = "user-a", email = "a@test.com", repository = repository)
+        val developerB = Developer(name = "user-b", email = "b@test.com", repository = repository)
+        val developerC = Developer(name = "user-c", email = "author@test.com", repository = repository)
 
         val cmtB = Commit(
             sha = "b".repeat(40),
             message = "Parent 1",
-            commitDateTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+            authorSignature = Signature(developer = developerB, timestamp = LocalDateTime.of(2020, 1, 1, 0, 0, 0)),
             repository = repository,
-            committer = userB,
         )
         val cmtC = Commit(
             sha = "c".repeat(40),
             message = "Parent 2",
-            commitDateTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+            authorSignature = Signature(developer = developerC, timestamp = LocalDateTime.of(2020, 1, 1, 0, 0, 0)),
             repository = repository,
-            committer = userC,
-        ).apply {
-            author = userC
-        }
+        )
         val cmtA = Commit(
             sha = "a".repeat(40),
             message = "Merge commit",
-            commitDateTime = LocalDateTime.of(2020, 1, 2, 0, 0, 0),
+            authorSignature = Signature(developer = developerA, timestamp = LocalDateTime.of(2020, 1, 2, 0, 0, 0)),
             repository = repository,
-            committer = userA,
         )
         cmtA.parents.add(cmtB)
         cmtA.parents.add(cmtC)
@@ -225,7 +206,7 @@ internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
             head = cmtA,
         )
 
-        assertThat(repository.user).hasSize(3)
+        assertThat(repository.developers).hasSize(3)
 
         val savedRepo = repositoryPort.create(repository)
 
@@ -261,26 +242,20 @@ internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
     fun `save repository with two commits, expecting in database`() {
         val repository = Repository(localPath = "path/to/repo-5", project = project)
 
-        val userA = User(name = "user-a", repository = repository).apply {
-            email = "a@test.com"
-        }
-        val userB = User(name = "user-b", repository = repository).apply {
-            email = "b@test.com"
-        }
+        val developerA = Developer(name = "user-a", email = "a@test.com", repository = repository)
+        val developerB = Developer(name = "user-b", email = "b@test.com", repository = repository)
 
         val cmtA = Commit(
             sha = "a".repeat(40),
             message = "First commit",
-            commitDateTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+            authorSignature = Signature(developer = developerA, timestamp = LocalDateTime.of(2020, 1, 1, 0, 0, 0)),
             repository = repository,
-            committer = userA,
         )
         val cmtB = Commit(
             sha = "b".repeat(40),
             message = "Second commit",
-            commitDateTime = LocalDateTime.of(2020, 1, 2, 0, 0, 0),
+            authorSignature = Signature(developer = developerB, timestamp = LocalDateTime.of(2020, 1, 2, 0, 0, 0)),
             repository = repository,
-            committer = userB,
         )
 
         // Make cmtB a child of cmtA
@@ -299,7 +274,7 @@ internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
             { assertThat(branch.commits).hasSize(2).withFailMessage("branch.commits should contain both commits") },
             { assertThat(repository.branches).hasSize(1).withFailMessage("repository.branches") },
             { assertThat(repository.commits).hasSize(2).withFailMessage("repository.commits") },
-            { assertThat(repository.user).hasSize(2).withFailMessage("repository.user") },
+            { assertThat(repository.developers).hasSize(2).withFailMessage("repository.developers") },
         )
 
         val savedEntity = assertDoesNotThrow {

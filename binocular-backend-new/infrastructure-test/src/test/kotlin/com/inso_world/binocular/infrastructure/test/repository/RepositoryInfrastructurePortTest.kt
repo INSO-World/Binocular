@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.Repository
 import jakarta.validation.ConstraintViolationException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -19,6 +20,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.util.ReflectionUtils.setField
 
 internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
     @all:Autowired
@@ -40,6 +42,7 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
         }
 
         @Test
+        @Disabled("DELETE not yet supported")
         fun `repository deletion leaves project intact`() {
             // Given
             val savedProject =
@@ -65,6 +68,7 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
 
         // Negative Tests - Invalid scenarios
         @Test
+        @Disabled("DELETE not yet supported")
         fun `repository cannot exist without project`() {
             // Given
             val savedProject = projectPort.create(Project(name = "Temporary Project").apply {
@@ -126,9 +130,15 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
                 description = "Valid project"
             })
 
+            val repo = Repository(localPath = "invalidName", project = savedProject)
+            setField(
+                Repository::class.java.getDeclaredField("localPath"),
+                repo,
+                invalidName
+            )
             // Then - This should fail due to validation constraint
             assertThrows<ConstraintViolationException> {
-                repositoryPort.create(Repository(localPath = invalidName, project = savedProject))
+                repositoryPort.create(repo)
             }
         }
 

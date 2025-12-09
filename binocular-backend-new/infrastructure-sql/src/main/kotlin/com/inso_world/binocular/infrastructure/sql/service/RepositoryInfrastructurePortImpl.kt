@@ -16,7 +16,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
@@ -90,7 +89,6 @@ internal class RepositoryInfrastructurePortImpl :
     @PostConstruct
     fun init() {
         super.dao = repositoryDao
-//        super.mapper = repositoryMapper
     }
 
     @MappingSession
@@ -279,80 +277,4 @@ internal class RepositoryInfrastructurePortImpl :
         }
     }
 
-    @MappingSession
-    override fun saveCommitDiffs(
-        repository: Repository,
-        diffs: Set<CommitDiff>,
-    ): Set<CommitDiff> {
-        TODO("Not yet implemented")
-//                val savedDiffs = commitDiffService.saveCommitDiffs(repoEntity, diffs)
-//        return savedDiffs
-//            .map {
-//                val domain = commitDiffMapper.toDomain(it)
-//
-//                val fileDiffs = it.files.map { fd -> fileDiffMapper.toDomain(fd) }
-//                domain.files = fileDiffs.toSet()
-//
-//                return@map domain
-//            }.map {
-//                it.repository = repository
-//                it
-//            }.toSet()
-    }
-
-    @MappingSession
-    override fun findAllDiffs(repository: Repository): Set<CommitDiff> {
-        TODO("Not yet implemented")
-//        val diffs = commitDiffDao.findAll()
-//        val value =
-//            (diffs.map { it.source } + diffs.mapNotNull { it.target }).toSet()
-//        commitMapper.toDomainGraph(value.asSequence())
-//
-//        return diffs
-//            .map {
-//                val domain = commitDiffMapper.toDomain(it)
-//
-//                val fileDiffs = it.files.map { fd -> fileDiffMapper.toDomain(fd) }
-//                domain.files = fileDiffs.toSet()
-//
-//                return@map domain
-//            }.map {
-//                it.repository = repository
-//                it
-//            }.toSet()
-    }
-    //    override fun findAllUser(repository: Repository): Iterable<User> {
-//        val commitContext = mutableMapOf<String, Commit>()
-//        val branchContext = mutableMapOf<String, Branch>()
-//        val userContext = mutableMapOf<String, User>()
-//
-//        val entities = this.repositoryDao.findAllUser(repository.name)
-//
-//        return entities.map {
-//            userMapper.toDomain(it, repository, userContext, commitContext, branchContext)
-//        }
-//    }
-//
-//    override fun findAllCommits(repository: Repository): Iterable<Commit> {
-//        val commitContext = mutableMapOf<String, Commit>()
-//        val branchContext = mutableMapOf<String, Branch>()
-//        val userContext = mutableMapOf<String, User>()
-//
-//        val entities = this.repositoryDao.findAllCommits(repository.name)
-//
-//        return entities.map {
-//            commitMapper.toDomain(it, repository, commitContext, branchContext, userContext)
-//        }
-//    }
-//
-//    override fun findAllBranches(repository: Repository): Iterable<Branch> {
-//        val commitContext = mutableMapOf<String, Commit>()
-//        val branchContext = mutableMapOf<String, Branch>()
-//
-//        val entities = this.repositoryDao.findAllBranches(repository.name)
-//
-//        return entities.map {
-//            branchMapper.toDomain(it, repository, commitContext, branchContext)
-//        }
-//    }
 }
