@@ -2,7 +2,6 @@ package com.inso_world.binocular.core.integration.base
 
 import com.inso_world.binocular.core.delegates.logger
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import java.io.File
 import java.nio.file.FileSystems
@@ -17,7 +16,7 @@ import kotlin.io.path.walk
 
 open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
     companion object {
-        val logger by logger()
+        private val logger by logger()
 
         /**
          * Absolute path to the fixtures directory.
@@ -104,6 +103,8 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
                 builder.command(*cmd)
             }
             builder.directory(File(FIXTURES_PATH))
+            logger.info("Executing command: ${builder.command()}")
+            logger.info("In directory: ${builder.directory()}")
             val process = builder.start()
             val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println, path)
             val executorService = Executors.newFixedThreadPool(1)
@@ -111,7 +112,10 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
 
             val exitCode = process.waitFor()
             assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) }
-            assertEquals(0, exitCode)
+            require(0 == exitCode, {
+                logger.error("Command failed: ${builder.command()}")
+                logger.error("Command failed: exit code=$exitCode")
+            })
         }
 
         @kotlin.jvm.JvmStatic
