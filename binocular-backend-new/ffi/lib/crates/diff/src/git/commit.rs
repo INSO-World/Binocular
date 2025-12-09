@@ -4,13 +4,13 @@ use gix::Commit;
 use log::{error, info, trace, warn};
 
 pub(crate) fn prepare_commit_list(
-    repo: &gix::Repository,
+    repo: &'_ gix::Repository,
     commitlist: Vec<String>,
     skip_merges: bool,
     breadth_first: bool,
     follow: bool,
     limit: Option<usize>,
-) -> anyhow::Result<Vec<Commit>> {
+) -> anyhow::Result<Vec<Commit<'_>>> {
     let result_limit = limit.unwrap_or(usize::MAX);
     // Do not calculate anything if limit is set to <= 0
     if result_limit <= 0 {

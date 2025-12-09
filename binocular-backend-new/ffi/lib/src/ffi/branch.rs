@@ -9,19 +9,25 @@ use gix::ThreadSafeRepository;
 ///
 /// # Arguments
 /// * `gix_repo` - The repository containing the branch
-/// * `branch` - The name of the branch to traverse
+/// * `branch` - The name of the branch to traverse (e.g., "refs/heads/main" or "main")
+/// * `skip_merges` - Whether to skip merge commits in the result
+/// * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
 ///
 /// # Returns
 /// A `BranchTraversalResult` containing the branch metadata and all commits
 ///
 /// # Errors
+/// - `GixDiscoverError` if repository cannot be opened
+/// - `ReferenceError` if the branch reference cannot be found
 /// - `TraversalError` if the traversal fails or returns unexpected results
-/// - `OperationFailed` for other traversal errors
 #[uniffi::export]
 pub fn traverse_branch(
     gix_repo: GixRepository,
     branch: String,
+    skip_merges: bool,
+    use_mailmap: bool,
 ) -> Result<BranchTraversalResult, UniffiError> {
+    log::debug!("traverse_branch: traversing branch '{}'", branch);
     let binding = ThreadSafeRepository::try_from(gix_repo)?.to_thread_local();
 
     let reference = binding
@@ -29,7 +35,7 @@ pub fn traverse_branch(
         .map_err(|e| UniffiError::ReferenceError(format!("Failed to get references: {}", e)))?
         .detach();
 
-    match commits::traversal::main(binding, vec![reference], false) {
+    match commits::traversal::main(binding, vec![reference], skip_merges, use_mailmap) {
         Ok(r) => {
             // If you really expect exactly one:
             if r.len() != 1 {

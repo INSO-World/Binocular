@@ -1,19 +1,24 @@
 use crate::git::metrics::GitCommitMetric;
-use gix::actor::SignatureRef;
+use crate::git::utils::apply_mailmap;
+use gix::mailmap::Snapshot;
 use gix::refs::Reference;
+use gix::revision::walk::Info;
 use gix::traverse::commit::topo::Sorting;
 use gix::traverse::commit::Parents;
 use gix::Commit;
 use log::{debug, trace};
-use shared::signature::Sig;
 use std::collections::HashMap;
 
 pub fn traverse_from_to(
     repo: &gix::Repository,
     source_commit: &Commit,
     target_commit: &Option<Commit>,
+    use_mailmap: bool,
 ) -> anyhow::Result<Vec<GitCommitMetric>> {
-    let mailmap = repo.open_mailmap();
+    let mut mailmap: Option<Snapshot> = None;
+    if use_mailmap {
+        mailmap = Some(repo.open_mailmap())
+    }
     let tc_id = match target_commit {
         None => {
             debug!("No Target commit specified");
@@ -23,10 +28,6 @@ pub fn traverse_from_to(
             debug!("Target commit specified");
             Some(vec![to.id])
         }
-    };
-
-    let apply_mailmap = |gix_sig: Result<SignatureRef<'_>, _>| {
-        gix_sig.ok().map(|sig| Sig::from(mailmap.resolve(sig)))
     };
 
     let sorting = Sorting::TopoOrder;
@@ -41,41 +42,52 @@ pub fn traverse_from_to(
             .build()?
             .filter_map(|info| {
                 info.ok()
-                    .and_then(|info| Some(gix::revision::walk::Info::new(info, &repo)))
+                    .and_then(|info| Some(Info::new(info, &repo)))
             });
 
     let walk_result: Vec<_> = traverse_result
         .map(|a| {
             let commit = &a.object().unwrap();
-            let mut gcm = GitCommitMetric::from(a);
-            match apply_mailmap(commit.committer()) {
-                None => {}
-                Some(mailmap_committer) => gcm.committer = Some(mailmap_committer),
-            }
 
-            match apply_mailmap(commit.author()) {
-                None => {}
-                Some(mailmap_author) => gcm.author = Some(mailmap_author),
-            }
-
-            gcm
+            to_metric(mailmap.clone(), a, commit)
         })
         .collect();
 
     Ok(walk_result)
 }
 
+fn to_metric(mailmap: Option<Snapshot>, a: Info, commit: &Commit) -> GitCommitMetric {
+    let mut gcm = GitCommitMetric::from(a);
+    match mailmap {
+        None => {}
+        Some(mm) => {
+            match apply_mailmap(commit.committer(), &mm) {
+                None => {}
+                Some(mailmap_committer) => gcm.committer = mailmap_committer,
+            }
+
+            match apply_mailmap(commit.author(), &mm) {
+                None => {}
+                Some(mailmap_author) => gcm.author = mailmap_author,
+            }
+        }
+    }
+
+    gcm
+}
+
 pub fn traverse_commit_graph(
     repo: gix::Repository,
     references: Vec<Reference>,
     skip_merges: bool,
+    use_mailmap: bool,
 ) -> anyhow::Result<HashMap<Reference, Vec<GitCommitMetric>>> {
     let mut branch_commits_map: HashMap<Reference, Vec<GitCommitMetric>> = HashMap::new();
     for reference in references {
         let target = reference.clone().target.into_id();
 
         let val: Vec<_> = if let Ok(target_commit) = repo.find_commit(target) {
-            traverse_from_to(&repo, &target_commit, &None)?
+            traverse_from_to(&repo, &target_commit, &None, use_mailmap)?
         } else {
             Vec::new()
         }
