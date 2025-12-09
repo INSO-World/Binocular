@@ -7,16 +7,14 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
-import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.BranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.CommitDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadRepositoryEntities
+import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.CommitDiff
 import com.inso_world.binocular.model.Repository
@@ -27,7 +25,6 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.validation.annotation.Validated
 
 @Service
@@ -65,24 +62,14 @@ internal class RepositoryInfrastructurePortImpl :
     private lateinit var self: RepositoryInfrastructurePortImpl
 
     @Autowired
-    private lateinit var userMapper: UserMapper
+    private lateinit var ctx: MappingContext
 
     @Autowired
     private lateinit var branchDao: BranchDao
 
     @Autowired
-    private lateinit var ctx: MappingContext
-
-    @Autowired
-    private lateinit var transactionTemplate: TransactionTemplate
-
-    @Autowired
     @Lazy
     lateinit var commitMapper: CommitMapper
-
-    @Autowired
-    @Lazy
-    private lateinit var branchMapper: BranchMapper
 
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
@@ -115,8 +102,9 @@ internal class RepositoryInfrastructurePortImpl :
 
     @MappingSession
     @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Repository> =
-        loadRepositoryEntities(projectDao).map(repositoryAssembler::toDomain)
+    override fun findAll(): Iterable<Repository> {
+        return this.repositoryDao.findAll().map(repositoryAssembler::toDomain)
+    }
 
     @MappingSession
     @Transactional(readOnly = true)
@@ -176,12 +164,14 @@ internal class RepositoryInfrastructurePortImpl :
     @MappingSession
     @Transactional
     override fun create(@Valid value: Repository): Repository {
-        val project =
+        val projectEntity =
             projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
 
-        if (project.repo != null) {
-            throw IllegalArgumentException("Selected project $project has already a Repository set")
+        if (projectEntity.repo != null) {
+            throw IllegalArgumentException("Selected project $projectEntity has already a Repository set")
         }
+
+        ctx.remember(value.project, projectEntity)
 
         val toPersist = this.repositoryAssembler.toEntity(value)
         val persisted = super.create(toPersist)
@@ -194,84 +184,65 @@ internal class RepositoryInfrastructurePortImpl :
 
     @MappingSession
     @Transactional
-    override fun update(value: Repository): Repository {
+    override fun update(@Valid value: Repository): Repository {
         val entity =
-            repositoryDao.findByIid(value.iid)
-                ?: throw NotFoundException("Repository ${value.uniqueKey} not found")
-        logger.debug("Repository Entity found")
-        ctx.remember(value, entity)
+            projectDao.findByIid(value.project.iid)
+                ?: throw NotFoundException("Project ${value.project.uniqueKey} not found")
+        logger.debug("Project Entity found")
+        ctx.remember(value.project, entity)
 
-        // Phase 0: Map existing entities to context (critical for idempotency!)
-        // This prevents creating duplicate entities for existing commits/users/branches
-        logger.trace("Mapping existing entities to context")
+        val mapped = repositoryAssembler.toEntity(value)
 
-        // Map existing users first (commits reference users)
-        entity.user.forEach { userEntity ->
-            val domainUser = value.user.find { it.email == userEntity.email && it.name == userEntity.name }
-            if (domainUser != null) {
-                ctx.remember(domainUser, userEntity)
-            }
+        // Phase 1: Save commits first (without branches and without parent/child relationships)
+        // This ensures commits have database IDs before branches reference them
+        val branches = mapped.branches.toMutableSet()
+        mapped.branches.clear()
+
+        // Store and clear parent/child relationships
+        val commitParentMap = mapped.commits.associateWith { it.parents.toSet() }
+        mapped.commits.forEach {
+            it.parents.clear()
+            it.children.clear()
         }
 
-        // Map existing commits
-        entity.commits.forEach { commitEntity ->
-            val domainCommit = value.commits.find { it.sha == commitEntity.sha }
-            if (domainCommit != null) {
-                ctx.remember(domainCommit, commitEntity)
-            }
-        }
+        // Persist commits
+        val intermediateRepo = repositoryDao.update(mapped)
+        entityManager.flush()
+        logger.trace("Phase 1: Commits persisted")
 
-        // Map existing branches
-        entity.branches.forEach { branchEntity ->
-            val domainBranch = value.branches.find { it.name == branchEntity.name }
-            if (domainBranch != null) {
-                ctx.remember(domainBranch, branchEntity)
-            }
-        }
+        // Phase 2: Wire parent/child relationships (commits now have IDs)
+        val commitsBySha = intermediateRepo.commits.associateBy { it.sha }
+        intermediateRepo.commits.forEach { commitEntity ->
+            // Find the original entity in the map to get its parents
+            val originalEntity = mapped.commits.find { it.sha == commitEntity.sha }
+            val originalParents = originalEntity?.let { commitParentMap[it] } ?: emptySet()
 
-        // Phase 1: Map and wire Commits with their author/committer relationships
-        // Collect all commits including parents and children to ensure complete graph
-        logger.debug("Update commits")
-        val allCommits =
-            (value.commits + value.commits.flatMap { it.parents } + value.commits.flatMap { it.children }).toSet()
-
-        allCommits.forEach { commit ->
-            // Map commit entity (or get existing from context)
-            val commitEntity = commitMapper.toEntity(commit)
-
-            // Only set relationships if not already set (for idempotency)
-            // Note: CommitEntity init block automatically adds entity to repository.commits
-            if (commitEntity.committer == null) {
-                // Wire author relationship if present
-                commit.author?.let { author ->
-                    val authorEntity = userMapper.toEntity(author)
-                    commitEntity.author = authorEntity
-                    entity.user.add(authorEntity)
+            originalParents.forEach { parentEntity ->
+                val persistedParent = commitsBySha[parentEntity.sha]
+                if (persistedParent != null && !commitEntity.parents.contains(persistedParent)) {
+                    commitEntity.parents.add(persistedParent)
+                    persistedParent.children.add(commitEntity)
                 }
-
-                // Wire committer relationship (required)
-                val committerEntity = userMapper.toEntity(commit.committer)
-                commitEntity.committer = committerEntity
-                entity.user.add(committerEntity)
             }
         }
+        entityManager.flush()
+        logger.trace("Phase 2: Parent/child relationships wired")
 
-        // Add or update branches
-        logger.debug("Update branches")
-        value.branches.forEach { branch ->
-            val branchEntity = branchMapper.toEntity(branch)
-            // Only add if not already present (idempotency)
-            if (!entity.branches.contains(branchEntity)) {
-                entity.branches.add(branchEntity)
-            }
+        // Phase 3: Add branches (commits are now persisted with IDs)
+        branches.forEach { branch ->
+            val persistedHead = commitsBySha[branch.head.sha]
+                ?: throw IllegalStateException("Head commit ${branch.head.sha} not found for branch ${branch.name}")
+
+            // Create new branch entity pointing to persisted commit
+            val newBranch = branch.copy(head = persistedHead)
+            intermediateRepo.branches.add(newBranch)
         }
 
-        logger.trace("Branches updated")
+        val updated = repositoryDao.update(intermediateRepo)
+        entityManager.flush()
+        logger.trace("Phase 3: Branches persisted")
 
-        val updated = repositoryDao.update(entity)
-
-        logger.trace("Update executed")
-        return repositoryMapper.refreshDomain(value, updated)
+        return repositoryAssembler.refresh(value, updated)
     }
 
     @Transactional
@@ -285,7 +256,27 @@ internal class RepositoryInfrastructurePortImpl :
     @Transactional(readOnly = true)
     @MappingSession
     override fun findExistingCommits(repo: Repository, shas: Set<String>): Sequence<Commit> {
-        TODO("Not yet implemented")
+        val entity =
+            repositoryDao.findByIid(repo.iid)
+                ?: throw NotFoundException("Repository ${repo.uniqueKey} not found")
+        logger.debug("Repository Entity found")
+        ctx.remember(repo, entity)
+
+        return this.commitDao.findExistingSha(repo, shas).map { commitEntity ->
+            commitMapper.toDomain(commitEntity)
+        }.asSequence()
+    }
+
+    @Transactional(readOnly = true)
+    @MappingSession
+    override fun findBranch(
+        repository: Repository,
+        name: String
+    ): Branch? {
+        return this.repositoryDao.findByIid(repository.iid)?.let {
+            this.branchDao.findByName(it, name)
+            repositoryAssembler.toDomain(it).branches.find { branch -> branch.name == name }
+        }
     }
 
     @MappingSession

@@ -2,8 +2,10 @@ package com.inso_world.binocular.core.data
 
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import java.time.LocalDateTime
@@ -61,59 +63,61 @@ class MockTestDataProvider {
     val repositoriesByPath = testRepositories.associateBy { requireNotNull(it.localPath) }
     private val repository: Repository = repositoriesByPath.getValue("repo-pg-0")
 
-    val users: List<User> = listOf(run {
-        val user = User(name = "User A", repository = repository).apply { this.email = "a@test.com" }
-        user
-    }, run {
-        val user = User(name = "User B", repository = repository).apply { this.email = "b@test.com" }
-        user
-    }, run {
-        val user = User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" }
-        user
-    })
+    @Deprecated("Use developers instead")
+    val users: List<User> = listOf(
+        User(name = "User A", repository = repository).apply { this.email = "a@test.com" },
+        User(name = "User B", repository = repository).apply { this.email = "b@test.com" },
+        User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" },
+    )
+
+    @Deprecated("Use developerByEmail instead")
     val userByEmail = users.associateBy { requireNotNull(it.email) }
 
-    val commits: List<Commit> = listOf(run {
-        val cmt = Commit(
+    val developers: List<Developer> = listOf(
+        Developer(name = "User A", email = "a@test.com", repository = repository),
+        Developer(name = "User B", email = "b@test.com", repository = repository),
+        Developer(name = "Author Only", email = "author@test.com", repository = repository),
+    )
+    val developerByEmail = developers.associateBy { it.email }
+
+    val commits: List<Commit> = listOf(
+        Commit(
             sha = "a".repeat(40),
             message = "msg1",
-            commitDateTime = LocalDateTime.now(),
-            authorDateTime = LocalDateTime.now(),
+            authorSignature = Signature(
+                developer = developerByEmail.getValue("a@test.com"),
+                timestamp = LocalDateTime.now().minusSeconds(1)
+            ),
             repository = repository,
-            committer = userByEmail.getValue("a@test.com"),
-        )
-        cmt
-    }, run {
-        val cmt = Commit(
+        ),
+        Commit(
             sha = "b".repeat(40),
             message = "msg2",
-            commitDateTime = LocalDateTime.now(),
-            authorDateTime = LocalDateTime.now(),
+            authorSignature = Signature(
+                developer = developerByEmail.getValue("b@test.com"),
+                timestamp = LocalDateTime.now().minusSeconds(1)
+            ),
             repository = repository,
-            committer = userByEmail.getValue("b@test.com"),
-        ) // Empty parents list
-        cmt
-    }, run {
-        val cmt = Commit(
+        ),
+        Commit(
             sha = "c".repeat(40),
             message = "msg1",
-            commitDateTime = LocalDateTime.now(),
-            authorDateTime = LocalDateTime.now(),
+            authorSignature = Signature(
+                developer = developerByEmail.getValue("a@test.com"),
+                timestamp = LocalDateTime.now().minusSeconds(1)
+            ),
             repository = repository,
-            committer = userByEmail.getValue("a@test.com"),
-        )
-        cmt
-    }, run {
-        val cmt = Commit(
+        ),
+        Commit(
             sha = "d".repeat(40),
             message = "msg-d",
-            commitDateTime = LocalDateTime.now(),
-            authorDateTime = LocalDateTime.now(),
+            authorSignature = Signature(
+                developer = developerByEmail.getValue("b@test.com"),
+                timestamp = LocalDateTime.now().minusSeconds(1)
+            ),
             repository = repository,
-            committer = userByEmail.getValue("b@test.com"),
         )
-        cmt
-    })
+    )
     val commitBySha = commits.associateBy(Commit::sha)
 
     val branches = listOf(

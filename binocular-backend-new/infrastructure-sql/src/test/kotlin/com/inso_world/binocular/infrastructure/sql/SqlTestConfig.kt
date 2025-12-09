@@ -13,7 +13,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 class SqlTestConfig {
 
     companion object {
-        val pg: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:18-alpine")
+        val pg: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
             .apply { withDatabaseName("binocular_it") }
             .apply { withUsername("postgres") }
             .apply { withPassword("postgres") }

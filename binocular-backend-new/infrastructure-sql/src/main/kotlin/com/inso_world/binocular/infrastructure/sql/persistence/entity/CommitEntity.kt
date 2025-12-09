@@ -2,8 +2,9 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
 import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
-import jakarta.persistence.CascadeType
+import com.inso_world.binocular.model.Signature
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
@@ -17,12 +18,12 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.Lob
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.BatchSize
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 import java.time.LocalDateTime
 
 @Entity
@@ -38,11 +39,10 @@ internal data class CommitEntity(
     @Column(unique = true, updatable = false)
     @field:Size(min = 40, max = 40)
     val sha: String,
-    @Column(name = "author_dt")
-    // authorDateTime is var since it can change between two indexing sessions
-    var authorDateTime: LocalDateTime? = null,
-    @Column(name = "commit_dt")
-    val commitDateTime: LocalDateTime? = null,
+    @Column(name = "author_dt", nullable = false)
+    var authorDateTime: LocalDateTime,
+    @Column(name = "commit_dt", nullable = false)
+    var commitDateTime: LocalDateTime,
     @Column(columnDefinition = "TEXT")
     @Lob
     var message: String? = null,
@@ -68,10 +68,19 @@ internal data class CommitEntity(
     @ManyToMany(mappedBy = "parents", fetch = FetchType.LAZY)
     var children: MutableSet<CommitEntity> = mutableSetOf(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "author_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    var author: DeveloperEntity,
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "committer_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    var committer: DeveloperEntity,
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repository_id", nullable = false, updatable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     val repository: RepositoryEntity,
 ) : AbstractEntity<Long, CommitEntity.Key>() {
-    data class Key(val sha: String) // value object for lookups
+    data class Key(val sha: String)
 
     init {
         this.repository.commits.add(this)
@@ -81,41 +90,6 @@ internal data class CommitEntity(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     override var id: Long? = null
 
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.ALL])
-    var committer: UserEntity? = null
-        set(@NotNull value) {
-            requireNotNull(value) { "committer cannot be set to null" }
-            if (value == this.committer) {
-                return
-            }
-            if (this.committer != null) {
-                throw IllegalArgumentException("committer already set for Commit $sha: $committer")
-            }
-            if (value.repository != this.repository) {
-                throw IllegalArgumentException("Repository between $value and Commit do not match: ${this.repository}")
-            }
-            field = value
-            value.committedCommits.add(this)
-        }
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = [CascadeType.ALL])
-    var author: UserEntity? = null
-        set(@NotNull value) {
-            requireNotNull(value) { "author cannot be set to null" }
-            if (value == this.author) {
-                return
-            }
-            if (this.author != null) {
-                throw IllegalArgumentException("committer already set for Commit $sha: $author")
-            }
-            if (value.repository != this.repository) {
-                throw IllegalArgumentException("Repository between $value and Commit do not match: ${this.repository}")
-            }
-            field = value
-            value.committedCommits.add(this)
-        }
-
     override val uniqueKey: Key
         get() = Key(this.sha)
 
@@ -123,34 +97,51 @@ internal data class CommitEntity(
 
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(repository: Repository, committer: com.inso_world.binocular.model.User): Commit =
-        Commit(
+    fun toDomain(
+        repository: Repository,
+        author: Developer,
+        committer: Developer,
+    ): Commit {
+        val authorSignature = Signature(developer = author, timestamp = authorDateTime)
+        val committerSignature =
+            if (committer == author && commitDateTime == authorDateTime) {
+                authorSignature
+            } else {
+                Signature(developer = committer, timestamp = commitDateTime)
+            }
+        return Commit(
             sha = this.sha,
-            commitDateTime = this.commitDateTime,
-            authorDateTime = this.authorDateTime,
+            authorSignature = authorSignature,
+            committerSignature = committerSignature,
             repository = repository,
             message = this.message,
-            committer = committer,
-            ).apply {
+        ).apply {
             this.id = this@CommitEntity.id?.toString()
             this.webUrl = this@CommitEntity.webUrl
         }
+    }
 
     override fun toString(): String =
-        "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository?.localPath})"
+        "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository.localPath})"
 }
 
-internal fun Commit.toEntity(repository: RepositoryEntity): CommitEntity =
+internal fun Commit.toEntity(
+    repository: RepositoryEntity,
+    author: DeveloperEntity,
+    committer: DeveloperEntity,
+): CommitEntity =
     CommitEntity(
         iid = this.iid,
         sha = this.sha,
-        commitDateTime = this.commitDateTime,
-        authorDateTime = this.authorDateTime,
+        authorDateTime = this.authorSignature.timestamp,
+        commitDateTime = (this.committerSignature ?: this.authorSignature).timestamp,
         message = this.message,
         webUrl = this.webUrl,
         repository = repository,
         parents = mutableSetOf(),
         children = mutableSetOf(),
+        author = author,
+        committer = committer,
     ).apply {
         this.id = this@toEntity.id?.trim()?.toLongOrNull()
     }

@@ -1,8 +1,10 @@
 package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.cli.exception.ServiceException
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.exception.BinocularInfrastructureException
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.exception.NotFoundException
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
@@ -15,31 +17,37 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.util.stream.Collectors
+import java.util.stream.Stream
+import kotlin.streams.asSequence
 
 @Service
 class CommitService(
     @Autowired private val commitPort: CommitInfrastructurePort,
+    @Autowired private val repositoryPort: RepositoryInfrastructurePort,
 ) {
-    private val logger: Logger = LoggerFactory.getLogger(CommitService::class.java)
+    companion object {
+        val logger by logger()
+    }
 
     fun checkExisting(
         repo: Repository,
         minedCommits: Collection<Commit>,
     ): Pair<Collection<Commit>, Collection<Commit>> {
-        val allShas: List<String> =
+        val allShas: Set<String> =
             minedCommits
                 .stream()
                 .map { m -> m.sha }
-                .collect(Collectors.toList())
+                .collect(Collectors.toSet())
 
-        val existingEntities: Iterable<Commit> =
+        val existingEntities: Sequence<Commit> =
             try {
-                commitPort.findExistingSha(repo, allShas)
+                repositoryPort.findExistingCommits(repo, allShas)
+//                commitPort.findExistingSha(repo, allShas)
             } catch (_: NotFoundException) {
-                emptyList()
+                sequenceOf()
             }
 
-        val refIdsToRemove = existingEntities.map { it.sha }
+        val refIdsToRemove = existingEntities.map { it.sha }.asSequence()
         val missingShas = minedCommits.filterNot { it.sha in refIdsToRemove } // .stream().collect(Collectors.toSet())
 
         return Pair(existingEntities.toList(), missingShas.toList())

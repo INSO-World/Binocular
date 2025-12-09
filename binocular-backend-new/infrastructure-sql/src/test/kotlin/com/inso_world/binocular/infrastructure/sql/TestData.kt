@@ -2,15 +2,17 @@ package com.inso_world.binocular.infrastructure.sql
 
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RemoteEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.vcs.Remote
 import com.inso_world.binocular.model.vcs.ReferenceCategory
@@ -57,11 +59,16 @@ internal object TestData {
          */
         fun testCommitEntity(
             sha: String,
-            authorDateTime: LocalDateTime?,
-            commitDateTime: LocalDateTime?,
+            authorDateTime: LocalDateTime,
+            commitDateTime: LocalDateTime = authorDateTime,
             message: String?,
             repository: RepositoryEntity,
-            committer: UserEntity? = testUserEntity(
+            author: DeveloperEntity = testDeveloperEntity(
+                name = "Author-${sha.take(6)}",
+                email = "author-${sha.take(6)}@example.com",
+                repository = repository,
+            ),
+            committer: DeveloperEntity? = testDeveloperEntity(
                 name = "Committer-${sha.take(6)}",
                 email = "${sha.take(6)}@example.com",
                 repository = repository,
@@ -74,29 +81,30 @@ internal object TestData {
             commitDateTime = commitDateTime,
             message = message,
             repository = repository,
-            iid = iid
+            iid = iid,
+            author = author,
+            committer = committer ?: author
         ).apply {
             this.id = id
-            committer?.let { this.committer = it }
         }
 
         /**
-         * Creates a test UserEntity persistence entity with customizable parameters.
+         * Creates a test DeveloperEntity persistence entity with customizable parameters.
          *
-         * @param name The name of the user.
-         * @param email The email address of the user.
-         * @param repository The RepositoryEntity this user belongs to.
+         * @param name The name of the developer.
+         * @param email The email address of the developer.
+         * @param repository The RepositoryEntity this developer belongs to.
          * @param iid The internal immutable identifier.
          * @param id The Long database identifier, or null.
-         * @return A UserEntity configured with the specified values.
+         * @return A DeveloperEntity configured with the specified values.
          */
-        fun testUserEntity(
+        fun testDeveloperEntity(
             name: String,
             email: String,
             repository: RepositoryEntity,
-            iid: User.Id = User.Id(Uuid.random()),
+            iid: Developer.Id = Developer.Id(Uuid.random()),
             id: Long? = null
-        ): UserEntity = UserEntity(
+        ): DeveloperEntity = DeveloperEntity(
             name = name,
             email = email,
             repository = repository,
@@ -104,6 +112,15 @@ internal object TestData {
         ).apply {
             this.id = id
         }
+
+        @Deprecated("Use testDeveloperEntity", ReplaceWith("testDeveloperEntity(name,email,repository,iid,id)"))
+        fun testUserEntity(
+            name: String,
+            email: String,
+            repository: RepositoryEntity,
+            iid: Developer.Id = Developer.Id(Uuid.random()),
+            id: Long? = null
+        ): DeveloperEntity = testDeveloperEntity(name, email, repository, iid, id)
 
         /**
          * Creates a test RepositoryEntity persistence entity with default or customizable parameters.
@@ -212,25 +229,30 @@ internal object TestData {
          */
         fun testCommit(
             sha: String,
-            authorDateTime: LocalDateTime?,
+            authorDateTime: LocalDateTime,
             commitDateTime: LocalDateTime?,
             message: String?,
             repository: Repository,
-            committer: User = testUser(
-                name = "Committer-${sha.take(6)}",
-                email = "${sha.take(6)}@example.com",
-                repository = repository,
+            author: Developer = testDeveloper(
+                name = "Author-${sha.take(6)}",
+                email = "author-${sha.take(6)}@example.com",
+                repository = repository
             ),
+            committer: Developer = author,
             id: String? = null,
-        ): Commit = Commit(
-            sha = sha,
-            authorDateTime = authorDateTime,
-            commitDateTime = commitDateTime,
-            message = message,
-            repository = repository,
-            committer = committer,
-        ).apply {
-            this.id = id
+        ): Commit {
+            val authorSignature = Signature(developer = author, timestamp = authorDateTime)
+            val committerSignature = commitDateTime?.let { Signature(developer = committer, timestamp = it) } ?: authorSignature
+
+            return Commit(
+                sha = sha,
+                authorSignature = authorSignature,
+                committerSignature = committerSignature,
+                message = message,
+                repository = repository,
+            ).apply {
+                this.id = id
+            }
         }
 
         /**
@@ -261,26 +283,35 @@ internal object TestData {
         }
 
         /**
-         * Creates a test User domain object with customizable parameters.
+         * Creates a test Developer domain object with customizable parameters.
          *
-         * @param name The name of the user.
-         * @param email The email address of the user.
-         * @param repository The Repository this user belongs to.
-         * @param id The string identifier for the user, or null.
-         * @return A User domain object configured with the specified values.
+         * @param name The name of the developer.
+         * @param email The email address of the developer.
+         * @param repository The Repository this developer belongs to.
+         * @param id The string identifier for the developer, or null.
+         * @return A Developer domain object configured with the specified values.
          */
+        fun testDeveloper(
+            name: String,
+            email: String,
+            repository: Repository,
+            id: String? = null
+        ): Developer =
+            Developer(
+                name = name,
+                email = email,
+                repository = repository
+            ).apply {
+                this.id = id
+            }
+
+        @Deprecated("Use testDeveloper", ReplaceWith("testDeveloper(name,email,repository,id)"))
         fun testUser(
             name: String,
             email: String,
             repository: Repository,
             id: String? = null
-        ): User = User(
-            name = name,
-            repository = repository
-        ).apply {
-            this.id = id
-            this.email = email
-        }
+        ): Developer = testDeveloper(name, email, repository, id)
 
         /**
          * Creates a test Branch domain object with customizable parameters.

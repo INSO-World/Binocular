@@ -3,6 +3,7 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
@@ -39,12 +40,12 @@ internal data class RepositoryEntity(
     @BatchSize(size = 256)
     @OneToMany(
         fetch = FetchType.LAZY,
-        targetEntity = UserEntity::class,
+        targetEntity = DeveloperEntity::class,
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
         mappedBy = "repository",
     )
-    var user: MutableSet<UserEntity> = mutableSetOf(),
+    var developers: MutableSet<DeveloperEntity> = mutableSetOf(),
     @BatchSize(size = 256)
     @OneToMany(
         fetch = FetchType.LAZY,
@@ -103,16 +104,12 @@ internal data class RepositoryEntity(
 //            }
     }
 
-    fun addUser(user: UserEntity): Boolean {
-        if (user.repository != null && user.repository != this) {
-            throw IllegalArgumentException("Trying to add a user where user.repository != this")
+    fun addDeveloper(developer: DeveloperEntity): Boolean {
+        if (developer.repository != this) {
+            throw IllegalArgumentException("Trying to add a developer where developer.repository != this")
         }
 
-        return this.user
-            .add(user)
-            .also { added ->
-                if (added) user.repository = this
-            }
+        return this.developers.add(developer)
     }
 
     fun addRemote(remote: RemoteEntity): Boolean {

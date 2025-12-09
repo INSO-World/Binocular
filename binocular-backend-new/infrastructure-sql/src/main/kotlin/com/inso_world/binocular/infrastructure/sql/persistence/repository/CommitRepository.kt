@@ -1,18 +1,17 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.repository
 
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
-import org.springframework.data.jpa.repository.EntityGraph
+import com.inso_world.binocular.model.Repository
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
-import org.springframework.stereotype.Repository
 import java.util.stream.Stream
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import org.springframework.stereotype.Repository as SpringRepository
 
-@Repository
+@SpringRepository
 internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpecificationExecutor<CommitEntity> {
     /**
      * Fetches only the SHAs that actually exist in the database.
@@ -24,46 +23,51 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
     ): Set<CommitEntity>
 
     @Suppress("ktlint:standard:function-naming")
-    fun findAllByRepository_Id(repoId: Long): Stream<CommitEntity>
+    fun findAllByRepository_Iid(iid: Repository.Id): Stream<CommitEntity>
 
     @Query("SELECT c FROM CommitEntity c")
 //    @EntityGraph("Commit.full")
     fun findAllAsStream(): Stream<CommitEntity>
 
+    @OptIn(ExperimentalUuidApi::class)
     @Query(
         """
-            SELECT b.head FROM BranchEntity b WHERE (b.name = :branch) AND (b.repository.id = :repoId)
+            SELECT b.head FROM BranchEntity b WHERE (b.name = :branch) AND (b.repository.iid = :repoIid)
  """,
     )
     fun findLeafCommitsByRepository(
-        @Param("repoId") repoId: Long,
+        @Param("repoIid") repoId: Uuid,
         @Param("branch") branch: String,
     ): CommitEntity?
 
+    @OptIn(ExperimentalUuidApi::class)
     @Query(
         """
-            SELECT b.head FROM BranchEntity b WHERE (b.repository.id = :repoId)
+            SELECT b.head FROM BranchEntity b WHERE (b.repository.iid = :repoIid)
  """,
     )
     fun findAllLeafCommits(
-        @Param("repoId") repoId: Long,
+        @Param("repoIid") repoIid: Uuid,
     ): Iterable<CommitEntity>
 
+    @OptIn(ExperimentalUuidApi::class)
     @Suppress("ktlint:standard:function-naming")
-    fun findByRepository_IdAndSha(
-        repoId: Long,
+    fun findByRepository_IidAndSha(
+        iid: Uuid,
         sha: String,
     ): CommitEntity?
 
     @OptIn(ExperimentalUuidApi::class)
     fun findByIid(iid: Uuid): CommitEntity?
 
-    @Query("""
+    @Query(
+        """
             select ch from CommitEntity c 
             join c.children ch 
             where c.sha = :sha
-        """)
-        fun findChildrenBySha(@Param("sha") sha: String): Set<CommitEntity>
+        """
+    )
+    fun findChildrenBySha(@Param("sha") sha: String): Set<CommitEntity>
 
     @Query(
         """

@@ -31,12 +31,27 @@ open class Index(
 
     @Command(command = ["commits"])
     open fun commits(
-        @Option(longNames = ["repo_path"], required = false) repoPath: String?,
+        repoPath: String,
         @Option(
             longNames = ["branch"],
             shortNames = ['b'],
             required = true,
-        ) branchName: String,
+        ) @NotNull @NotEmpty branchName: String,
+        @Option(
+            longNames = ["project_name"],
+            shortNames = ['n'],
+            required = true,
+            description = "Custom name of the project.",
+        ) @NotNull @NotEmpty projectName: String,
+    ) {
+        val path = repoPath.let { Paths.get(it).toRealPath() }
+        logger.trace(">>> index($path, $branchName)")
+        logger.debug("Project '$projectName'")
+        val project = this.projectService.getOrCreateProject(projectName)
+        vcsService.indexRepository(path.toString(), branchName, project)
+        logger.trace("<<< index($path, $branchName)")
+    }
+
         @Option(
             longNames = ["project_name"],
             shortNames = ['n'],
