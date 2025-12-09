@@ -1,6 +1,8 @@
 binocular:
-  index:
-    path: ""
+  cli:
+    index:
+      scm:
+        path: "../../.git"
 spring:
   profiles:
     active: postgres,gix
