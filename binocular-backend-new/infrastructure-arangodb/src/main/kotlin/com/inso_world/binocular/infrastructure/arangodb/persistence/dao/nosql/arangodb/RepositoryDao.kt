@@ -27,6 +27,12 @@ internal class RepositoryDao @Autowired constructor(
     @Autowired @Lazy
     private lateinit var projectDao: ProjectDao
 
+//    fun findAll(): Iterable<Repository> {
+//        return this.repositoryRepository.findAll()
+//    }
+
+//    @Autowired
+//    private lateinit var projectMapper: ProjectMapper
 
     override fun findByName(name: String): RepositoryEntity? {
         return this.repositoryRepository.findByName(name)
