@@ -81,6 +81,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * @param entity The domain model to create an entity from
      * @return The created domain model
      */
+    @MappingSession
     override fun create(entity: D): D {
         val mappedEntity = mapper.toEntity(entity)
         val savedEntity = repository.save(mappedEntity)
@@ -92,6 +93,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * @param entity The domain model to update an entity from
      * @return The updated domain model
      */
+    @MappingSession
     override fun update(entity: D): D {
         val mappedEntity = mapper.toEntity(entity)
         val savedEntity = repository.save(mappedEntity)
@@ -139,6 +141,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Save multiple entities
      */
+    @MappingSession
     override fun saveAll(entities: Collection<D>): Iterable<D> = entities.map { create(it) }
 
     override fun findAllAsStream(): Stream<D> {
