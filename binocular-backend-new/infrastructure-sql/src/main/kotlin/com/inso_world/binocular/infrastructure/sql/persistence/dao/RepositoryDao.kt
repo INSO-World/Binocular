@@ -1,8 +1,10 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IRepositoryDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.RepositoryRepository
+import jakarta.validation.constraints.Size
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository

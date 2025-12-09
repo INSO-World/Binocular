@@ -4,14 +4,36 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.CommitDiff
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.nio.file.Paths
 
+/**
+ * Service for managing repository operations including commit canonicalization and persistence.
+ *
+ * This service handles the coordination between the Git indexer output (commits with their
+ * signatures and developers already set) and the persistence layer. With the new domain model
+ * using [Developer] and [com.inso_world.binocular.model.Signature], commits come pre-built
+ * with immutable author/committer information.
+ *
+ * ## Key Responsibilities
+ * - Canonicalize commits against existing repository state
+ * - Wire parent-child relationships
+ * - Deduplicate developers by git signature
+ * - Persist repository changes
+ *
+ * ## Domain Model Integration
+ * The new domain model auto-registers entities:
+ * - [Commit] → [Repository.commits] and developer's authored/committed collections
+ * - [Developer] → [Repository.developers]
+ * - [Branch] → [Repository.branches]
+ *
+ * This means transformCommits focuses on deduplication and parent wiring rather than
+ * establishing back-links.
+ */
 @Service
 class RepositoryService {
     companion object {
@@ -24,192 +46,180 @@ class RepositoryService {
     @Autowired
     private lateinit var commitService: CommitService
 
+    fun findBranch(repo: Repository, name: String): Branch? {
+        return this.repositoryPort.findBranch(repo, name)
+    }
+
     /**
-     * Deduplicate incoming commits against the repository by uniqueKey() and
-     * wire up relationships (author/committer, branches, parents/children)
-     * so that all references point to the canonical objects in `repo`.
+     * Canonicalizes incoming commits against the repository's existing state.
      *
-     * Returns the canonicalized commits corresponding to the input order.
+     * With the new domain model where [Commit]s use immutable [com.inso_world.binocular.model.Signature]s,
+     * this method focuses on:
+     * 1. Deduplicating commits by SHA (uniqueKey)
+     * 2. Deduplicating developers by git signature
+     * 3. Wiring parent-child relationships between commits
+     *
+     * Note: Since commits are created with their signatures already set, we cannot
+     * "rewrite" author/committer. Instead, we ensure consistency by using canonical
+     * developer instances from the repository.
+     *
+     * @param repo The repository to canonicalize commits into
+     * @param commits The incoming commits (already with signatures set)
+     * @return The canonicalized commits corresponding to input order
      */
     internal fun transformCommits(
         repo: Repository,
         commits: Iterable<Commit>,
     ): Collection<Commit> {
-        // --- canonical indexes from repository state
-        val commitsByKey = repo.commits.associateByTo(mutableMapOf<Commit.Key, Commit>()) { it.uniqueKey }
-        val usersByKey = repo.user.associateByTo(mutableMapOf<User.Key, User>()) { it.uniqueKey }
-        val usersByEmail =
-            repo.user
-                .mapNotNull { u -> normalizeEmail(u.email)?.let { it to u } }
-                .toMap(mutableMapOf())
+        // Build index of canonical commits from repository
+        val commitsByKey = repo.commits.associateByTo(mutableMapOf()) { it.uniqueKey }
 
-        val branchesByKey = repo.branches.associateByTo(mutableMapOf<Branch.Key, Branch>()) { it.uniqueKey }
+        // Build index of canonical developers by git signature
+        val developersBySignature = repo.developers.associateByTo(mutableMapOf()) { it.gitSignature }
 
-        // --- seed indexes with any pre-attached users on incoming commits
-        commits.forEach { c ->
-            listOf(c.author, c.committer).forEach { u ->
-                if (u != null) {
-                    usersByKey.putIfAbsent(u.uniqueKey, u)
-                    normalizeEmail(u.email)?.let { usersByEmail.putIfAbsent(it, u) }
-                }
-            }
-        }
+        // Also index by email for coalescing (case-insensitive)
+        val developersByEmail = repo.developers
+            .mapNotNull { dev -> normalizeEmail(dev.email)?.let { it to dev } }
+            .toMap(mutableMapOf())
 
+        // Build index of canonical branches
+        val branchesByKey = repo.branches.associateByTo(mutableMapOf()) { it.uniqueKey }
+
+        /**
+         * Get or register the canonical commit for a given incoming commit.
+         * If the commit already exists in the repo, returns the existing one.
+         * Otherwise, registers the new commit.
+         */
         fun canonicalizeCommit(incoming: Commit): Commit {
             val key = incoming.uniqueKey
             val existing = commitsByKey[key]
             if (existing != null) return existing
 
-            // Add to repo first to establish repository back-link
-            repo.commits.add(incoming)
+            // Commit is new - it should already be registered via its init block
+            // when created by GitIndexer, but let's ensure it's in our index
             commitsByKey[key] = incoming
             return incoming
         }
 
-        fun canonicalizeUser(u: User?): User? {
-            if (u == null) return null
+        /**
+         * Get or register the canonical developer for a given developer.
+         * Uses git signature as primary key, with email as fallback for coalescing.
+         */
+        fun canonicalizeDeveloper(dev: Developer): Developer {
+            // First check by git signature
+            developersBySignature[dev.gitSignature]?.let { return it }
 
-            // 1) prefer uniqueKey match
-            usersByKey[u.uniqueKey]?.let { return it }
-
-            // 2) coalesce by email (case-insensitive)
-            normalizeEmail(u.email)?.let { em ->
-                usersByEmail[em]?.let { existing -> return existing }
+            // Then check by email (case-insensitive)
+            normalizeEmail(dev.email)?.let { email ->
+                developersByEmail[email]?.let { return it }
             }
 
-            // 3) no match — register new canonical instance
-            repo.user.add(u)
-            usersByKey[u.uniqueKey] = u
-            normalizeEmail(u.email)?.let { usersByEmail[it] = u }
-            return u
+            // New developer - register in indices
+            developersBySignature[dev.gitSignature] = dev
+            normalizeEmail(dev.email)?.let { developersByEmail[it] = dev }
+            return dev
         }
 
-        fun canonicalizeBranch(b: Branch?): Branch? {
-            if (b == null) return null
-            return branchesByKey[b.uniqueKey] ?: run {
-                repo.branches.add(b)
-                branchesByKey[b.uniqueKey] = b
-                b
-            }
+        /**
+         * Get or register the canonical branch.
+         */
+        fun canonicalizeBranch(branch: Branch?): Branch? {
+            if (branch == null) return null
+            return branchesByKey.getOrPut(branch.uniqueKey) { branch }
         }
 
-        // Helpers to *safely* rebind author/committer to canonical instances
-        fun forceSetAuthor(
-            c: Commit,
-            target: User?,
-        ) {
-            if (target == null) return
-            val current = c.author
-            if (current === target) return
-//            if (current != null && sameEmail(current, target)) {
-//                // migrate to canonical: remove old back-link, then use setter
-//                current.authoredCommits.remove(c)
-//                // clear via reflection to allow setter without violating guard
-//                setField(c, "author", null)
-//            }
-            if (c.author == null) c.author = target
-        }
-
-        fun forceSetCommitter(
-            c: Commit,
-            target: User?,
-        ) {
-            if (target == null) return
-            val current = c.committer
-            if (current === target) return
-//            if (current != null && sameEmail(current, target)) {
-//                current.committedCommits.remove(c)
-//                setField(c, "committer", null)
-//            }
-//            if (c.committer == null) c.committer = target
-        }
-
-        // --- pass 1: ensure every commit has a canonical instance
+        // --- Pass 1: Ensure every incoming commit has a canonical instance ---
+        // Commits from GitIndexer already have their signatures set, so we just
+        // ensure they're tracked in our index
         val canonicalInOrder = commits.map { canonicalizeCommit(it) }
 
-        // --- pass 2: users + branches
-        commits.forEach { raw ->
-            val c = canonicalizeCommit(raw)
-
-            val authorCanon = canonicalizeUser(raw.author)
-            val committerCanon = canonicalizeUser(raw.committer)
-
-            // If both emails are equal, unify to the same instance (prefer author’s instance)
-            val unifiedByEmail =
-                if (authorCanon != null && committerCanon != null &&
-                    sameEmail(authorCanon, committerCanon)
-                ) {
-                    authorCanon
-                } else {
-                    null
-                }
-
-            forceSetAuthor(c, unifiedByEmail ?: authorCanon)
-            forceSetCommitter(c, unifiedByEmail ?: committerCanon)
-
-//            raw.branches.forEach { bRaw ->
-//                canonicalizeBranch(bRaw)?.commits?.add(c)
-//            }
+        // --- Pass 2: Canonicalize developers ---
+        // While we can't change the developer on an existing commit (immutable signature),
+        // we ensure the developer instances are properly indexed for future lookups
+        commits.forEach { incoming ->
+            canonicalizeDeveloper(incoming.author)
+            canonicalizeDeveloper(incoming.committer)
         }
 
-        // --- pass 3: parents / children
-        commits.forEach { raw ->
-            val c = canonicalizeCommit(raw)
+        // --- Pass 3: Wire parent-child relationships ---
+        // The domain model handles bidirectional linking automatically
+        commits.forEach { incoming ->
+            val canonicalCommit = canonicalizeCommit(incoming)
 
-            raw.parents.forEach { pRaw ->
-                val p = canonicalizeCommit(pRaw)
-                c.parents.add(p) // back-links to children are handled by domain model
+            // Wire parents from incoming commit's parent list
+            incoming.parents.forEach { parentRaw ->
+                val canonicalParent = canonicalizeCommit(parentRaw)
+                // Domain model handles children back-link automatically
+                if (!canonicalCommit.parents.contains(canonicalParent)) {
+                    canonicalCommit.parents.add(canonicalParent)
+                }
             }
-            raw.children.forEach { chRaw ->
-                val ch = canonicalizeCommit(chRaw)
-                c.children.add(ch)
+
+            // Wire children from incoming commit's children list (if any)
+            incoming.children.forEach { childRaw ->
+                val canonicalChild = canonicalizeCommit(childRaw)
+                if (!canonicalCommit.children.contains(canonicalChild)) {
+                    canonicalCommit.children.add(canonicalChild)
+                }
             }
         }
 
         return canonicalInOrder
     }
 
-    // ---------- small utilities ----------
+    // ---------- Utilities ----------
 
     private fun normalizeEmail(email: String?): String? = email?.trim()?.lowercase()
 
-    private fun sameEmail(
-        a: User,
-        b: User,
-    ): Boolean =
+    private fun sameEmail(a: Developer, b: Developer): Boolean =
         normalizeEmail(a.email) != null &&
-            normalizeEmail(a.email) == normalizeEmail(b.email)
+                normalizeEmail(a.email) == normalizeEmail(b.email)
 
     private fun normalizePath(path: String): String =
         (if (path.endsWith(".git")) path else "$path/.git").let {
             Paths.get(it).toRealPath().toString()
         }
 
+    /**
+     * Find a repository by its normalized git directory path.
+     */
     fun findRepo(gitDir: String): Repository? = this.repositoryPort.findByName(normalizePath(gitDir))
 
+    /**
+     * Create a new repository in the persistence layer.
+     *
+     * @throws IllegalArgumentException if repository.id is not null (already persisted)
+     * @throws IllegalArgumentException if repository.project is null
+     * @throws IllegalArgumentException if project.repo doesn't match the repository
+     */
     fun create(repository: Repository): Repository {
         require(repository.id == null) { "Repository.id must be null to create repository" }
         require(repository.project != null) { "Repository.project must not be null to create repository" }
-        require(repository.project?.repo == repository) { "Mismatch in Repository and Project configuration" }
+        require(repository.project.repo == repository) { "Mismatch in Repository and Project configuration" }
 
-//        val find = this.findRepo(name)
-//        if (find == null) {
-//            logger.info("Repository does not exists, creating new repository")
         return this.repositoryPort.create(repository)
-//        } else {
-//            logger.debug("Repository already exists, returning existing repository")
-//            return find
-//        }
     }
 
+    /**
+     * Get the HEAD commit for a specific branch.
+     */
     fun getHeadCommits(
         repo: Repository,
         branch: String,
     ): Commit? = this.commitService.findHeadForBranch(repo, branch)
 
-    fun update(repo: Repository): Repository = this.repositoryPort.update(repo)
-
-    //    @Transactional
+    /**
+     * Add commits to a repository, checking for existing commits first.
+     *
+     * This method:
+     * 1. Checks which commits already exist in the repository
+     * 2. Canonicalizes new commits (wires relationships)
+     * 3. Persists the updated repository
+     *
+     * @param repo The repository to add commits to
+     * @param commits The commits to add
+     * @return The updated repository
+     */
     fun addCommits(
         repo: Repository,
         commits: Collection<Commit>,
@@ -219,25 +229,42 @@ class RepositoryService {
         logger.debug("Existing commits: ${existingCommitEntities.first.count()}")
         logger.trace("New commits to add: ${existingCommitEntities.second.count()}")
 
-        if (existingCommitEntities.second.isNotEmpty()) {
-            // these commits are new so always added, also to an existing branch
-            this.transformCommits(repo, existingCommitEntities.second)
+//        if (existingCommitEntities.second.isNotEmpty()) {
+        // Canonicalize new commits and wire relationships
+        this.transformCommits(repo, existingCommitEntities.second)
 
-            logger.debug("Commit transformation finished")
-            logger.debug("${repo.commits.count { it.message?.isEmpty() == true }} Commits have empty messages")
-            logger.trace(
-                "Empty message commits: {}",
-                repo.commits.filter { it.message?.isEmpty() == true }.map { it.sha },
-            )
+        logger.debug("Commit transformation finished")
+        logger.debug("${repo.commits.count { it.message?.isEmpty() == true }} Commits have empty messages")
+        logger.trace(
+            "Empty message commits: {}",
+            repo.commits.filter { it.message?.isEmpty() == true }.map { it.sha },
+        )
 
-            val newRepo = update(repo)
+        val newRepo = this.repositoryPort.update(repo)
 
-            logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${repo.project.name}")
-            return newRepo
-        } else {
-            logger.info("No new commits were found, skipping update")
-            return repo
-        }
+        logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${repo.project.name}")
+        return newRepo
+//        } else {
+//            logger.info("No new commits were found, skipping update")
+//            return repo
+//        }
     }
 
+    /**
+     * Add commit diffs to a repository.
+     *
+     * @param repo The repository
+     * @param diffs The diffs to add
+     */
+    fun addDiffs(
+        repo: Repository,
+        diffs: Set<CommitDiff>,
+    ) {
+        val existingDiffs: Set<CommitDiff> = repositoryPort.findAllDiffs(repo)
+        val diffsToStore = diffs - existingDiffs
+        if (diffsToStore.isEmpty()) {
+            return
+        }
+        repositoryPort.saveCommitDiffs(repo, diffs)
+    }
 }

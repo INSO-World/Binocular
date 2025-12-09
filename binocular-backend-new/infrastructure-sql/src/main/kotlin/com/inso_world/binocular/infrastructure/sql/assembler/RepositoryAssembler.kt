@@ -7,14 +7,15 @@ import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RemoteMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RemoteEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -93,7 +94,7 @@ internal class RepositoryAssembler {
 
     @Autowired
     @Lazy
-    private lateinit var userMapper: UserMapper
+    private lateinit var developerMapper: DeveloperMapper
 
     @Autowired
     @Lazy
@@ -131,48 +132,39 @@ internal class RepositoryAssembler {
      * @return The fully assembled RepositoryEntity with all children and identity preservation
      */
     fun toEntity(domain: Repository): RepositoryEntity {
-        logger.debug("Assembling RepositoryEntity for repository: ${domain.localPath}")
+        logger.trace("Assembling RepositoryEntity for repository: ${domain.localPath}")
 
         // Fast-path: Check if already assembled (identity preservation)
-        ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)?.let {
-            logger.trace("Repository already in context, returning cached entity")
-            return it
-        }
+//        ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)?.let {
+//            logger.debug("Repository already in context, returning cached entity")
+//            return it
+//        }
 
         // Ensure Project reference exists in context (but don't assemble Repository child)
-        val projectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
-            ?: run {
-                logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
-                projectMapper.toEntity(domain.project)
-            }
-
-        logger.trace("Project reference in context: id=${projectEntity.id}")
+//        val projectEntity = requireNotNull(
+//            ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+//        ) {
+//            "ProjectEntity must be in context to assemble repository"
+//        }
+//            ?: run {
+//                logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
+//                projectMapper.toEntity(domain.project)
+//            }
+//        logger.debug("Project reference in context: id=${projectEntity.id}")
 
         // Phase 1: Map Repository structure (without children)
         val entity = repositoryMapper.toEntity(domain)
-        logger.trace("Mapped Repository structure: id=${entity.id}")
+        logger.debug("Mapped Repository structure: id=${entity.id}")
 
-        // Phase 2: Map and wire Commits (first pass: structure + author/committer)
-        logger.trace("Mapping ${domain.commits.size} commits")
+        // Phase 2: Map Commits (developer signatures handled inside CommitMapper)
+        logger.debug("Mapping ${domain.commits.size} commits")
         domain.commits.forEach { commit ->
             val commitEntity = commitMapper.toEntity(commit)
             entity.commits.add(commitEntity)
-
-            // Map commit authors and committers
-            commit.author?.let { author ->
-                val authorEntity = userMapper.toEntity(author)
-                commitEntity.author = authorEntity
-                entity.user.add(authorEntity)
-            }
-
-            val committer = commit.committer
-            val committerEntity = userMapper.toEntity(committer)
-            commitEntity.committer = committerEntity
-            entity.user.add(committerEntity)
         }
 
         // Phase 2b: Wire parent/child commit relationships (second pass)
-        logger.trace("Wiring parent/child relationships for ${domain.commits.size} commits")
+        logger.debug("Wiring parent/child relationships for ${domain.commits.size} commits")
         domain.commits.forEach { commit ->
             val commitEntity = ctx.findEntity<Commit.Key, Commit, CommitEntity>(commit)
                 ?: throw IllegalStateException("CommitEntity for ${commit.sha} must be in context")
@@ -190,22 +182,29 @@ internal class RepositoryAssembler {
         }
 
         // Phase 3: Map and wire Branches
-        logger.trace("Mapping ${domain.branches.size} branches")
+        logger.debug("Mapping ${domain.branches.size} branches")
         domain.branches.forEach { branch ->
             val branchEntity = branchMapper.toEntity(branch)
             entity.branches.add(branchEntity)
         }
 
         // Phase 4: Map and wire Remotes
-        logger.trace("Mapping ${domain.remotes.size} remotes")
+        logger.debug("Mapping ${domain.remotes.size} remotes")
         domain.remotes.forEach { remote ->
             val remoteEntity = remoteMapper.toEntity(remote)
             entity.remotes.add(remoteEntity)
         }
 
-        logger.debug(
+        // Phase 5: Map and wire Developers
+        logger.debug("Mapping ${domain.developers.size} developers")
+        domain.developers.forEach { developer ->
+            val developerEntity = developerMapper.toEntity(developer)
+            entity.developers.add(developerEntity)
+        }
+
+        logger.trace(
             "Assembled RepositoryEntity: id=${entity.id}, " +
-                    "commits=${entity.commits.size}, branches=${entity.branches.size}, remotes=${entity.remotes.size}, users=${entity.user.size}"
+                    "commits=${entity.commits.size}, branches=${entity.branches.size}, remotes=${entity.remotes.size}, developers=${entity.developers.size}"
         )
 
         return entity
@@ -238,42 +237,45 @@ internal class RepositoryAssembler {
      * @return The fully assembled Repository domain aggregate with identity preservation
      */
     fun toDomain(entity: RepositoryEntity): Repository {
-        logger.debug("Assembling Repository domain for entity id=${entity.id}")
+        logger.trace("Assembling Repository domain for entity id=${entity.id}")
 
         // Fast-path: Check if already assembled (identity preservation)
         ctx.findDomain<Repository, RepositoryEntity>(entity)?.let {
-            logger.trace("Repository already in context, returning cached domain")
+            logger.debug("Repository already in context, returning cached domain")
             return it
         }
 
         // Ensure Project reference exists in context (but don't assemble Repository child)
         val project = ctx.findDomain<Project, ProjectEntity>(entity.project)
             ?: run {
-                logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
+                logger.debug("Project not in context, mapping minimal Project structure (no Repository child)")
                 projectMapper.toDomain(entity.project)
             }
 
-        logger.trace("Project reference in context: ${project.name}")
+        logger.debug("Project reference in context: ${project.name}")
 
         // Phase 2: Map Repository structure
         val domain = repositoryMapper.toDomain(entity)
-        logger.trace("Mapped Repository structure: ${domain.localPath}")
+        logger.debug("Mapped Repository structure: ${domain.localPath}")
 
-        // Phase 3: Map and wire Commits (first pass: structure + author/committer)
-        logger.trace("Mapping ${entity.commits.size} commits")
-        entity.commits.forEach { commitEntity ->
-            // Note: commitMapper.toDomain now automatically maps the committer (required in constructor)
-            val commit = commitMapper.toDomain(commitEntity)
-            domain.commits.add(commit)
-
-            // Map commit author if present (author is optional and mutable)
-            commitEntity.author?.let { authorEntity ->
-                commit.author = userMapper.toDomain(authorEntity)
-            }
+        // Phase 3: Map Developers
+        logger.debug("Mapping ${entity.developers.size} developers")
+        entity.developers.forEach { developerEntity ->
+            val developer = developerMapper.toDomain(developerEntity)
+            domain.developers.add(developer)
         }
 
-        // Phase 3b: Wire parent/child commit relationships (second pass)
-        logger.trace("Wiring parent/child relationships for ${entity.commits.size} commits")
+        // Phase 4: Map Commits (developers/signatures handled by mapper)
+        logger.debug("Mapping ${entity.commits.size} commits")
+        entity.commits.forEach { commitEntity ->
+            val commit = commitMapper.toDomain(commitEntity)
+            domain.commits.add(commit)
+            domain.developers.add(commit.author)
+            domain.developers.add(commit.committer)
+        }
+
+        // Phase 4b: Wire parent/child commit relationships (second pass)
+        logger.debug("Wiring parent/child relationships for ${entity.commits.size} commits")
         entity.commits.forEach { commitEntity ->
             val commit = ctx.findDomain<Commit, CommitEntity>(commitEntity)
                 ?: throw IllegalStateException("Commit for ${commitEntity.sha} must be in context")
@@ -282,29 +284,27 @@ internal class RepositoryAssembler {
                 val parentCommit = ctx.findDomain<Commit, CommitEntity>(parentEntity)
                     ?: throw IllegalStateException("Parent Commit for ${parentEntity.sha} must be in context")
 
-                // Wire bidirectional relationship (only if not already present)
                 if (!commit.parents.contains(parentCommit)) {
                     commit.parents.add(parentCommit)
-                    // Note: add() on commit.parents automatically adds to parentCommit.children
                 }
             }
         }
 
-        // Phase 4: Map and wire Branches
-        logger.trace("Mapping ${entity.branches.size} branches")
+        // Phase 5: Map and wire Branches
+        logger.debug("Mapping ${entity.branches.size} branches")
         entity.branches.forEach { branchEntity ->
             val branch = branchMapper.toDomain(branchEntity)
             domain.branches.add(branch)
         }
 
-        // Phase 5: Map and wire Remotes
-        logger.trace("Mapping ${entity.remotes.size} remotes")
+        // Phase 6: Map and wire Remotes
+        logger.debug("Mapping ${entity.remotes.size} remotes")
         entity.remotes.forEach { remoteEntity ->
             val remote = remoteMapper.toDomain(remoteEntity)
             domain.remotes.add(remote)
         }
 
-        logger.debug(
+        logger.trace(
             "Assembled Repository domain: ${domain.localPath}, " +
                     "commits=${domain.commits.size}, branches=${domain.branches.size}, remotes=${domain.remotes.size}"
         )
@@ -312,7 +312,7 @@ internal class RepositoryAssembler {
         return domain
     }
 
-    fun refresh(domain: Repository, entity: RepositoryEntity) {
+    fun refresh(domain: Repository, entity: RepositoryEntity) : Repository {
         logger.trace("Refreshing Repository domain: ${domain.iid}")
         this.repositoryMapper.refreshDomain(domain, entity)
 
@@ -334,10 +334,12 @@ internal class RepositoryAssembler {
             }
         }
 
-        with(entity.user.associateBy(UserEntity::iid)) {
-            domain.user.parallelStream().forEach { user ->
-                this@RepositoryAssembler.userMapper.refreshDomain(user, this.getValue(user.iid))
+        with(entity.developers.associateBy(DeveloperEntity::iid)) {
+            domain.developers.forEach { developer ->
+                this@RepositoryAssembler.developerMapper.refreshDomain(developer, this.getValue(developer.iid))
             }
         }
+
+        return domain
     }
 }

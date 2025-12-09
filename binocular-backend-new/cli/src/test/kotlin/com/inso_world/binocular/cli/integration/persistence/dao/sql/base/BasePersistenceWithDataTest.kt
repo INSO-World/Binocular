@@ -4,6 +4,7 @@ import com.inso_world.binocular.cli.BinocularCommandLineApplication
 import com.inso_world.binocular.cli.integration.utils.RepositoryConfig
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
@@ -32,28 +33,16 @@ import org.springframework.transaction.support.TransactionTemplate
 )
 class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
     @Autowired @Lazy
-    private lateinit var repoService: RepositoryService
-
-//    @PersistenceContext
-//    protected lateinit var entityManager: EntityManager
+    private lateinit var indexer: GitIndexer
 
     @Autowired
     private lateinit var testDataSetupService: InfrastructureDataSetup
-
-    @Autowired
-    lateinit var branchPort: BranchInfrastructurePort
-
-//    @Autowired
-//    lateinit var userRepository: UserRepository
 
     @Autowired
     internal lateinit var repositoryPort: RepositoryInfrastructurePort
 
     @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
-
-    @Autowired
-    private lateinit var transactionTemplate: TransactionTemplate
 
     protected lateinit var simpleRepo: Repository
     protected lateinit var octoRepo: Repository
@@ -70,6 +59,7 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
 
         prepare(
             setupRepoConfig(
+                indexer,
                 "${FIXTURES_PATH}/${SIMPLE_REPO}",
                 "HEAD",
                 projectName = SIMPLE_PROJECT_NAME,
@@ -83,6 +73,7 @@ class BasePersistenceWithDataTest : BaseFixturesIntegrationTest() {
 
         prepare(
             setupRepoConfig(
+                indexer,
                 "${FIXTURES_PATH}/${OCTO_REPO}",
                 "HEAD",
                 projectName = OCTO_PROJECT_NAME,

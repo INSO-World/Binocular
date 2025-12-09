@@ -3,10 +3,10 @@ package com.inso_world.binocular.cli.integration.persistence.dao.sql
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceNoDataTest
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceTest
 import com.inso_world.binocular.cli.integration.persistence.dao.sql.base.BasePersistenceWithDataTest
-import com.inso_world.binocular.cli.integration.utils.generateCommits
 import com.inso_world.binocular.cli.integration.utils.setupRepoConfig
 import com.inso_world.binocular.cli.integration.utils.traverseGraph
 import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.FIXTURES_PATH
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.OCTO_PROJECT_NAME
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest.Companion.OCTO_REPO
@@ -17,9 +17,10 @@ import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.data.DummyTestData
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Signature
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -40,6 +41,10 @@ import java.util.stream.Stream
 internal class CommitDaoTest(
     @Autowired private val commitPort: CommitInfrastructurePort,
 ) : BasePersistenceTest() {
+
+    @Autowired
+    private lateinit var indexer: GitIndexer
+
     @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
 
@@ -57,6 +62,31 @@ internal class CommitDaoTest(
                 DummyTestData.provideInvalidPastOrPresentDateTime(),
                 Stream.of(null),
             )
+    }
+
+    /**
+     * Creates a test commit using the new Signature-based constructor.
+     */
+    private fun createTestCommit(
+        sha: String,
+        message: String?,
+        repository: Repository,
+        developerName: String = "test",
+        developerEmail: String = "test@example.com",
+        timestamp: LocalDateTime = LocalDateTime.now().minusHours(1)
+    ): Commit {
+        val developer = Developer(
+            name = developerName,
+            email = developerEmail,
+            repository = repository
+        )
+        val signature = Signature(developer = developer, timestamp = timestamp)
+        return Commit(
+            sha = sha,
+            message = message,
+            authorSignature = signature,
+            repository = repository,
+        )
     }
 
     @Nested
@@ -82,17 +112,10 @@ internal class CommitDaoTest(
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.model.validation.ValidationTestData#provideInvalidShaHex")
         fun `commit with invalid sha value should fail`(invalidSha: String) {
-            val user = User(
-                name = "test",
-                repository = repository,
-            )
-            val cmt = Commit(
+            val cmt = createTestCommit(
                 sha = "a".repeat(40),
                 message = "msg",
-                commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                 repository = repository,
-                committer = user,
             )
             setField(Commit::class.java.getDeclaredField("sha"), cmt, invalidSha)
             val exception =
@@ -108,18 +131,14 @@ internal class CommitDaoTest(
         @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
         @Disabled("can probably be deleted")
         fun `commit with invalid message should fail`(invalidMessage: String) {
-            // Then - This should fail due to validation constraint
-            val user = User(name = "test", repository = repository)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitPort.create(
-                        Commit(
+                        createTestCommit(
                             sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
                             message = invalidMessage,
-                            commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
                             repository = repository,
-                            committer = user,
-                        ),
+                        )
                     )
                 }
             assertThat(exception.message).contains(".value.message")
@@ -131,23 +150,15 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid commitDateTime should not fail`(validCommitTime: LocalDateTime) {
-            val user = User(
-                name = "test",
-                repository = repository,
-            )
-            user.email = "test@example.com"
-
-            val cmt = Commit(
+            val cmt = createTestCommit(
                 sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
                 message = "msg",
-                commitDateTime = validCommitTime,
-                authorDateTime = null,
                 repository = repository,
-                committer = user,
+                timestamp = validCommitTime,
             )
 
             assertDoesNotThrow {
-                commitPort.create(cmt)
+                repositoryPort.update(repository)
             }
         }
 
@@ -156,23 +167,15 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid authorDateTime should not fail`(validAuthorTime: LocalDateTime) {
-            val user = User(
-                name = "test",
-                repository = repository,
-            )
-            user.email = "test@example.com"
-
-            val cmt = Commit(
+            val cmt = createTestCommit(
                 sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
                 message = "msg",
-                commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                authorDateTime = validAuthorTime,
                 repository = repository,
-                committer = user,
+                timestamp = validAuthorTime,
             )
 
             assertDoesNotThrow {
-                commitPort.create(cmt)
+                repositoryPort.update(repository)
             }
         }
 
@@ -181,23 +184,24 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.cli.integration.persistence.dao.sql.CommitDaoTest#invalidCommitTime",
         )
         fun `commit with invalid commitDateTime should fail`(invalidCommitTime: LocalDateTime?) {
-            val commit = run {
-                val user = User(name = "test", repository = repository)
-                return@run Commit(
-                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                    message = "msg",
-                    commitDateTime = LocalDateTime.now(),
-                    authorDateTime = null,
-                    repository = repository,
-                    committer = user,
-                )
+            val commit = createTestCommit(
+                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                message = "msg",
+                repository = repository,
+            )
+            run {
+                val sigField = Commit::class.java.getDeclaredField("committerSignature")
+                sigField.isAccessible = true
+                val sig = sigField.get(commit) as Signature
+                val tsField = Signature::class.java.getDeclaredField("timestamp")
+                tsField.isAccessible = true
+                tsField.set(sig, invalidCommitTime)
             }
-            setField(Commit::class.java.getDeclaredField("commitDateTime"), commit, invalidCommitTime)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    commitPort.create(commit)
+                    repositoryPort.update(repository)
                 }
-            assertThat(exception.message).contains(".value.commitDateTime")
+            assertThat(exception.message).contains("timestamp")
             entityManager.clear()
         }
 
@@ -206,23 +210,25 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.data.DummyTestData#provideInvalidPastOrPresentDateTime",
         )
         fun `commit with invalid authorDateTime should fail`(invalidAuthorTime: LocalDateTime?) {
-            val commit = run {
-                val user = User(name = "test", repository = repository)
-                return@run Commit(
-                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                    message = "msg",
-                    commitDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                    authorDateTime = LocalDateTime.of(2024, 1, 1, 1, 1),
-                    repository = repository,
-                    committer = user,
-                )
+            val commit = createTestCommit(
+                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                message = "msg",
+                repository = repository,
+            )
+            // Note: With the new model, timestamp is in the Signature
+            if (invalidAuthorTime != null) {
+                val sigField = Commit::class.java.getDeclaredField("authorSignature")
+                sigField.isAccessible = true
+                val sig = sigField.get(commit) as Signature
+                val tsField = Signature::class.java.getDeclaredField("timestamp")
+                tsField.isAccessible = true
+                tsField.set(sig, invalidAuthorTime)
             }
-            setField(Commit::class.java.getDeclaredField("authorDateTime"), commit, invalidAuthorTime)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
-                    commitPort.create(commit)
+                    repositoryPort.update(repository)
                 }
-            assertThat(exception.message).contains(".value.authorDateTime")
+            assertThat(exception.message).contains("timestamp")
             entityManager.clear()
         }
 
@@ -230,7 +236,6 @@ internal class CommitDaoTest(
         inner class SimpleRepo {
             @BeforeEach
             fun setup() {
-//                cleanup the stuff from upper class
                 cleanup()
             }
 
@@ -238,6 +243,7 @@ internal class CommitDaoTest(
             fun `index repo, expect all commits in database`() {
                 val repo = run {
                     val cfg = setupRepoConfig(
+                        indexer,
                         "${FIXTURES_PATH}/${SIMPLE_REPO}",
                         "HEAD",
                         branchName = "master",
@@ -253,7 +259,6 @@ internal class CommitDaoTest(
                 val allCommits = commitPort.findAll()
                 assertThat(allCommits).hasSize(14)
                 run {
-//                    check relationship for HEAD
                     val cmt = allCommits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
                         ?: throw IllegalStateException("must find commit here")
                     val child = allCommits.find { it.sha == "3d28b65c324cc8ee0bb7229fb6ac5d7f64129e90" }
@@ -265,7 +270,6 @@ internal class CommitDaoTest(
                     assertThat(child.children.toList()[0]).isSameAs(cmt)
                 }
                 run {
-//                    check relationship for somewhere in the middle
                     val suspect = allCommits.find { it.sha == "97babe02ece29439d6f71201067b2c71d3352a81" }
                         ?: throw IllegalStateException("must find commit here")
                     val child = allCommits.find { it.sha == "2403472fd3b2c4487f66961929f1e5895c5013e1" }
@@ -314,7 +318,6 @@ internal class CommitDaoTest(
         inner class OctoRepo {
             @BeforeEach
             fun setup() {
-                //                cleanup the stuff from upper class
                 cleanup()
             }
 
@@ -322,6 +325,7 @@ internal class CommitDaoTest(
             fun `index repo, expect all commits in database`() {
                 val repo = run {
                     val cfg = setupRepoConfig(
+                        indexer,
                         "${FIXTURES_PATH}/${OCTO_REPO}",
                         "HEAD",
                         branchName = "master",
@@ -337,7 +341,6 @@ internal class CommitDaoTest(
                 val allCommits = commitPort.findAll()
                 assertThat(allCommits).hasSize(19)
                 run {
-//                    check relationship for HEAD
                     val suspect = allCommits.find { it.sha == "4dedc3c738eee6b69c43cde7d89f146912532cff" }
                         ?: throw IllegalStateException("must find suspect commit here")
                     val parents = run {
@@ -384,7 +387,6 @@ internal class CommitDaoTest(
                     )
                 }
                 run {
-//                    check relationship for somewhere in the middle
                     val suspect = allCommits.find { it.sha == "e236fdb066254a9a6acfbc5517b3865c09586831" }
                         ?: throw IllegalStateException("must find commit here")
                     val child = allCommits.find { it.sha == "abe9605d4e1fe269089f615aee4736103b5318ca" }
@@ -462,7 +464,6 @@ internal class CommitDaoTest(
                 assertAll(
                     { assertThat(masterLeaf).isNotEmpty() },
                     { assertThat(masterLeaf).hasSize(1) },
-//                { assertThat(masterLeaf[0].repository!!.id).isEqualTo(this.simpleRepo.id) },
                     { assertThat(masterLeaf[0].id).isNotNull() },
                     { assertThat(masterLeaf[0].sha).isEqualTo("b51199ab8b83e31f64b631e42b2ee0b1c7e3259a") },
                 )
@@ -490,7 +491,6 @@ internal class CommitDaoTest(
                     ) ?: throw IllegalStateException("Head commit of master branch must be found here")
                 assertAll(
                     { assertThat(masterLeaf).isNotNull() },
-//                { assertThat(masterLeaf!!.repository!!.id).isEqualTo(this.octoRepo.id) },
                     { assertThat(masterLeaf.id).isNotNull() },
                     { assertThat(masterLeaf.sha).isEqualTo("4dedc3c738eee6b69c43cde7d89f146912532cff") },
                     { assertThat(masterLeaf.parents).hasSize(4) },
@@ -504,8 +504,6 @@ internal class CommitDaoTest(
                             ),
                         )
                     },
-//                    { assertThat(masterLeaf.branches).hasSize(1) },
-//                    { assertThat(masterLeaf.branches.toList()[0].name).isEqualTo("master") },
                 )
                 run {
                     val graph: MutableMap<String, Any?> = mutableMapOf()
@@ -517,49 +515,45 @@ internal class CommitDaoTest(
             @Test
             fun `octoRepo, check all leaf nodes`() {
                 cleanup()
+                assertAll(
+                    { assertThat(repositoryPort.findAll()).isEmpty() },
+                    { assertThat(commitPort.findAll()).isEmpty() },
+                )
 
-                fun genBranchCommits(
-                    localRepo: Repository?,
-                    branch: String,
-                ): Repository {
-                    val octoRepoConfig =
-                        setupRepoConfig(
-                            "${FIXTURES_PATH}/${OCTO_REPO}",
-                            "HEAD",
-                            branchName = branch,
-                            projectName = OCTO_PROJECT_NAME,
-                        )
-                    var tmpRepo =
-                        localRepo ?: run {
-                            val r = octoRepoConfig.repo
-//                            r.project = octoRepoConfig.project
-                            octoRepoConfig.project.repo = r
-                            projectPort.create(octoRepoConfig.project).repo
-                                ?: throw IllegalStateException("project not found")
-                        }
-                    generateCommits(repoService, octoRepoConfig, tmpRepo)
-                    tmpRepo = repositoryPort.update(tmpRepo)
-                    return tmpRepo
+                val localRepo = run {
+                    val project = Project(name = "octo-2")
+                    Repository("${FIXTURES_PATH}/${OCTO_REPO}", project)
+
+                    return@run requireNotNull(projectPort.create(project).repo)
                 }
 
-                var localRepo = genBranchCommits(null, "master")
+                fun genBranchCommits(
+                    branch: String,
+                ): Repository {
+                    indexer.traverseBranch(localRepo, branch)
+
+                    repositoryPort.update(localRepo)
+                    return localRepo
+                }
+
+                genBranchCommits("master")
                 assertAll(
                     "check localRepo",
                     { assertThat(localRepo.commits).hasSize(19) },
                     { assertThat(localRepo.branches).hasSize(1) },
                     { assertThat(localRepo.branches.find { it.name == "master" }?.commits).hasSize(19) },
-                    { assertThat(localRepo.user).hasSize(3) },
+                    { assertThat(localRepo.developers).hasSize(3) },
                 )
-                localRepo = genBranchCommits(localRepo, "bugfix")
+                genBranchCommits("bugfix")
                 assertAll(
                     "check localRepo",
                     { assertThat(localRepo.commits).hasSize(19 /*master*/ + 2 /*new on bugfix*/) },
                     { assertThat(localRepo.branches.find { it.name == "master" }?.commits).hasSize(19) },
                     { assertThat(localRepo.branches.find { it.name == "bugfix" }?.commits).hasSize(17) },
                     { assertThat(localRepo.branches).hasSize(2) },
-                    { assertThat(localRepo.user).hasSize(3) },
+                    { assertThat(localRepo.developers).hasSize(3) },
                 )
-                localRepo = genBranchCommits(localRepo, "feature")
+                genBranchCommits("feature")
                 assertAll(
                     "check localRepo",
                     { assertThat(localRepo.commits).hasSize(19 /*master*/ + 2 /*new on bugfix*/ + 2 /*new on feature*/) },
@@ -567,9 +561,9 @@ internal class CommitDaoTest(
                     { assertThat(localRepo.branches.find { it.name == "bugfix" }?.commits).hasSize(17) },
                     { assertThat(localRepo.branches.find { it.name == "feature" }?.commits).hasSize(17) },
                     { assertThat(localRepo.branches).hasSize(3) },
-                    { assertThat(localRepo.user).hasSize(3) },
+                    { assertThat(localRepo.developers).hasSize(3) },
                 )
-                localRepo = genBranchCommits(localRepo, "imported")
+                genBranchCommits("imported")
                 assertAll(
                     "check localRepo",
                     { assertThat(localRepo.commits).hasSize(19 /*master*/ + 2 /*bugfix*/ + 2 /*feature*/ + 1 /*imported*/) },
@@ -578,7 +572,7 @@ internal class CommitDaoTest(
                     { assertThat(localRepo.branches.find { it.name == "feature" }?.commits).hasSize(17) },
                     { assertThat(localRepo.branches.find { it.name == "imported" }?.commits).hasSize(1) },
                     { assertThat(localRepo.branches).hasSize(4) },
-                    { assertThat(localRepo.user).hasSize(4) },
+                    { assertThat(localRepo.developers).hasSize(4) },
                 )
 
                 val leafs =
@@ -596,16 +590,6 @@ internal class CommitDaoTest(
                     { assertThat(leafs).isNotEmpty() },
                     { assertThat(leafs).hasSize(4) },
                     { assertThat(leafs.map { it.sha }).containsAll(leafsItems) },
-//                    {
-//                        assertThat(leafs.flatMap { it.branches.map { b -> b.name } }).containsAll(
-//                            listOf(
-//                                "master",
-//                                "bugfix",
-//                                "feature",
-//                                "imported",
-//                            ),
-//                        )
-//                    },
                 )
             }
         }

@@ -9,10 +9,14 @@ import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructureP
 import com.inso_world.binocular.infrastructure.sql.service.ProjectInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.RepositoryInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.UserInfrastructurePortImpl
+import jakarta.persistence.EntityManager
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.transaction.support.TransactionTemplate
 
 @Component
 internal class SqlInfrastructureDataSetup(
+    private val entityManager: EntityManager,
     private val projectInfrastructurePort: ProjectInfrastructurePortImpl,
     private val commitInfrastructurePort: CommitInfrastructurePortImpl,
     private val repositoryInfrastructurePort: RepositoryInfrastructurePortImpl,
@@ -28,7 +32,11 @@ internal class SqlInfrastructureDataSetup(
 //    private val milestoneRepository: MilestoneInfrastructurePort,
 ) : InfrastructureDataSetup {
 
+    @Autowired
+    private lateinit var transactionTemplate: TransactionTemplate
+
     private lateinit var mockTestData: MockTestDataProvider
+
     companion object {
         private val logger by logger()
     }
@@ -48,11 +56,15 @@ internal class SqlInfrastructureDataSetup(
     override fun teardown() {
         logger.info(">>> SqlInfrastructureDataSetup teardown")
 
-        projectInfrastructurePort.deleteAllEntities()
-        repositoryInfrastructurePort.deleteAllEntities()
+        transactionTemplate.execute {
+            projectInfrastructurePort.deleteAllEntities()
+            repositoryInfrastructurePort.deleteAllEntities()
 //        branchInfrastructurePort.deleteAll()
 //        commitInfrastructurePort.deleteAll()
 //        userPort.deleteAll()
+            entityManager.flush()
+        }
+
 
         logger.info("<<< SqlInfrastructureDataSetup teardown")
     }

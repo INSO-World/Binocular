@@ -11,16 +11,16 @@ internal interface ICommitDao : IDao<CommitEntity, Long> {
 
     fun findExistingSha(
         repository: Repository,
-        shas: List<String>,
+        shas: Collection<String>,
     ): Iterable<CommitEntity>
 
     // TODO branch should be required!
     fun findHeadForBranch(
-        repository: Repository,
+        repository: RepositoryEntity,
         branch: String,
     ): CommitEntity?
 
-    fun findAllLeafCommits(repository: Repository): Iterable<CommitEntity>
+    fun findAllLeafCommits(repository: RepositoryEntity): Iterable<CommitEntity>
 
     fun findBySha(
 //        TODO change to repository: Repository, after refactoring @Commit

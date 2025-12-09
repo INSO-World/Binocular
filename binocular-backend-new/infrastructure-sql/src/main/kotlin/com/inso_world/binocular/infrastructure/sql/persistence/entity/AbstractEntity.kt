@@ -5,7 +5,7 @@ abstract class AbstractEntity<Id, Key> {
 
     abstract val uniqueKey: Key
 
-    override fun hashCode(): Int = id.hashCode()
+    override fun hashCode(): Int = uniqueKey.hashCode()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -13,8 +13,8 @@ abstract class AbstractEntity<Id, Key> {
 
         other as AbstractEntity<*, *>
 
+        if (uniqueKey == other.uniqueKey) return true
         if (id != other.id) return false
-        if (uniqueKey != other.uniqueKey) return false
 
         return true
     }

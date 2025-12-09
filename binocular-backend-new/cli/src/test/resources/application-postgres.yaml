@@ -11,6 +11,7 @@ spring:
     defer-datasource-initialization: false
     hibernate:
       ddl-auto: none
+    show-sql: true
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     drop-first: true

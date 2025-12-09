@@ -29,12 +29,12 @@ import org.springframework.stereotype.Component
  * is also supported for `refreshDomain` operations after persistence.
  */
 @Component
-internal class CommitMapper  : EntityMapper<Commit, CommitEntity> {
+internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
     @Autowired
     private lateinit var ctx: MappingContext
 
     @Autowired
-    private lateinit var userMapper: UserMapper
+    private lateinit var developerMapper: DeveloperMapper
 
     companion object {
         private val logger by logger()
@@ -65,7 +65,14 @@ internal class CommitMapper  : EntityMapper<Commit, CommitEntity> {
                         "Ensure CommitEntity is in MappingContext before calling toDomain()."
             )
 
-        val entity = domain.toEntity(owner)
+        val authorEntity = developerMapper.toEntity(domain.author)
+        val committerEntity = developerMapper.toEntity(domain.committer)
+
+        val entity = domain.toEntity(
+            repository = owner,
+            author = authorEntity,
+            committer = committerEntity,
+        )
         ctx.remember(domain, entity)
 
         return entity
@@ -95,14 +102,10 @@ internal class CommitMapper  : EntityMapper<Commit, CommitEntity> {
                         "Ensure Repository is in MappingContext before calling toDomain()."
             )
 
-        // Map the committer (required for Commit constructor)
-        val committer = entity.committer?.let { userMapper.toDomain(it) }
-            ?: throw IllegalStateException(
-                "CommitEntity.committer must not be null for commit ${entity.sha}. " +
-                        "Ensure committer is set before mapping."
-            )
+        val author = developerMapper.toDomain(entity.author)
+        val committer = developerMapper.toDomain(entity.committer)
 
-        val domain = entity.toDomain(owner, committer)
+        val domain = entity.toDomain(owner, author, committer)
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,

@@ -50,4 +50,23 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
         ctx.remember(domain, entity)
         return domain
     }
+
+    /**
+     * Refreshes a Remote domain object with data from the corresponding entity.
+     *
+     * This method updates the domain object's ID from the entity after persistence.
+     * It does NOT update nested objects - only top-level Remote properties.
+     *
+     * @param target The Remote domain object to refresh
+     * @param entity The RemoteEntity with updated data
+     * @return The refreshed Remote domain object
+     */
+    fun refreshDomain(target: Remote, entity: RemoteEntity): Remote {
+        setField(
+            RemoteEntity::class.java.getDeclaredField("id"),
+            target,
+            entity.id?.toString()
+        )
+        return target
+    }
 }
