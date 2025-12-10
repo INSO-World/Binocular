@@ -71,7 +71,7 @@ function App() {
     // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
     DatabaseLoaders.loadJsonFilesToPouchDB(dispatch)
       .then(() => {
-        console.log('PUCHDB LOADED');
+        console.log('POUCHDB LOADED');
       })
       .catch((error) => {
         console.log('ERROR LOADING POUCHDB');

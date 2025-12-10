@@ -1,145 +1,67 @@
-'use strict';
 import PouchDB from 'pouchdb-browser';
 import PouchDBFind from 'pouchdb-find';
 import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-import WorkerPouch from 'worker-pouch';
+import JSZip from 'jszip';
+
+import { WorkerPouchDB } from './worker/WorkerPouchDB';
+import { decompressJson } from '../../../../../../utils/json-utils';
+import type { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles';
+import type { MetadataType } from '../../../../types/data/MetadataType';
+
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBAdapterMemory);
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-PouchDB.adapter('worker', WorkerPouch);
-import JSZip from 'jszip';
-import { decompressJson } from '../../../../../../utils/json-utils.ts';
-import type { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 
 export default class Database {
-  public documentStore: PouchDB.Database | undefined;
-  public edgeStore: PouchDB.Database | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public documentStore: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public edgeStore: any;
 
-  constructor() {}
+  async initDB(file: FileConfig, startTime?: number) {
+    if (!file.name) return;
 
-  public initDB(file: FileConfig) {
-    if (file.name) {
-      return this.createDB(file.name).then((newDatabaseInitialized: boolean) => {
-        if (newDatabaseInitialized && file.file !== undefined) {
-          return new Promise((resolve) => {
-            const jszip = new JSZip();
-            let collectionsImported = 0;
-            if (file.file) {
-              jszip
-                .loadAsync(file.file)
-                .then((zip) => {
-                  const dbCollectionCount = Object.keys(zip.files).length;
-                  zip.forEach((fileName: string) => {
-                    zip
-                      .file(fileName)
-                      ?.async('string')
-                      .then((content) => {
-                        const name = fileName.slice(0, fileName.length - 5).split('/')[1];
-                        const JSONContent = JSON.parse(content);
-                        if (name.includes('-')) {
-                          this.importEdge(name, JSONContent)
-                            .then(() => {
-                              collectionsImported++;
-                              if (collectionsImported >= dbCollectionCount) {
-                                resolve(true);
-                              }
-                            })
-                            .catch((e) => console.log(e));
-                        } else {
-                          this.importDocument(name, JSONContent)
-                            .then(() => {
-                              collectionsImported++;
-                              if (collectionsImported >= dbCollectionCount) {
-                                resolve(true);
-                              }
-                            })
-                            .catch((e) => console.log(e));
-                        }
-                      })
-                      .catch((e) => console.log(e));
-                  });
-                })
-                .catch((e) => console.log(e));
-            }
-          });
-        } else if (newDatabaseInitialized && file.dbObjects !== undefined) {
-          return new Promise((resolve) => {
-            let collectionsImported = 0;
-            if (file.dbObjects !== undefined) {
-              const dbCollectionCount = Object.keys(file.dbObjects).length;
-              Object.keys(file.dbObjects).forEach((name: string) => {
-                if (name.includes('-')) {
-                  if (file.dbObjects !== undefined) {
-                    this.importEdge(name, file.dbObjects[name])
-                      .then(() => {
-                        collectionsImported++;
-                        if (collectionsImported >= dbCollectionCount) {
-                          resolve(true);
-                        }
-                      })
-                      .catch((e) => console.log(e));
-                  }
-                } else {
-                  if (file.dbObjects !== undefined) {
-                    this.importDocument(name, file.dbObjects[name])
-                      .then(() => {
-                        collectionsImported++;
-                        if (collectionsImported >= dbCollectionCount) {
-                          resolve(true);
-                        }
-                      })
-                      .catch((e) => console.log(e));
-                  }
-                }
-              });
-            }
-          });
-        }
-      });
+    const initialized = await this.createDB(file.name);
+
+    if (!initialized) return false;
+
+    if (file.file) {
+      return this.importFromZip(file.file, startTime);
+    }
+
+    if (file.dbObjects) {
+      return this.importFromObjects(file.dbObjects, startTime);
     }
   }
 
-  public async delete() {
-    if (this.documentStore) {
-      await this.documentStore.destroy();
-    }
-    if (this.edgeStore) {
-      await this.edgeStore.destroy();
-    }
+  async delete() {
+    await this.documentStore?.destroy();
+    await this.edgeStore?.destroy();
   }
 
   private async createDB(name: string) {
-    // check if web workers are supported
-    if (window.Worker) {
-      // using web workers does not block the main thread, making the UI load faster.
-      // note: worker adapter does not support custom indices!
-      return this.createDBStore(name, 'worker');
+    const useWorker = typeof Worker !== 'undefined';
+
+    if (useWorker) {
+      this.documentStore = new WorkerPouchDB(`${name}_documents`);
+      this.edgeStore = new WorkerPouchDB(`${name}_edges`);
     } else {
-      return this.createDBStore(name, 'memory');
+      this.documentStore = new PouchDB(`${name}_documents`, { adapter: 'memory' });
+      this.edgeStore = new PouchDB(`${name}_edges`, { adapter: 'memory' });
     }
+
+    const d = await this.documentStore.info();
+    const e = await this.edgeStore.info();
+
+    return !(d.doc_count > 0 && e.doc_count > 0);
   }
 
-  /*
-  Return true when a new database was initialized and false when the database already existed
-   */
-  async createDBStore(name: string, adapter: string): Promise<boolean> {
-    this.documentStore = new PouchDB(`${name}_documents`, { adapter: adapter });
-    this.edgeStore = new PouchDB(`${name}_edges`, { adapter: adapter });
-    const documentStoreInfo = await this.documentStore.info();
-    const edgeStoreInfo = await this.edgeStore.info();
-    return !(documentStoreInfo.doc_count > 0 && edgeStoreInfo.doc_count > 0);
-  }
-
-  preprocessCollection(coll: JSONObject[]) {
+  preprocess(coll: JSONObject[]) {
     return coll.map((row) => {
       // key and rev not needed for pouchDB
       delete row._key;
       delete row._rev;
       // rename _from/_to if this is a connection
-      if (row._from !== undefined) {
+      if (row._from) {
         row.from = row._from;
         row.to = row._to;
         delete row._from;
@@ -149,39 +71,75 @@ export default class Database {
     });
   }
 
-  importDocument(name: string, content: JSONObject[]) {
-    return new Promise((resolve, reject) => {
-      // first decompress the json file, then remove attributes that are not needed by PouchDB
-      if (this.documentStore) {
-        this.documentStore
-          .bulkDocs(this.preprocessCollection(decompressJson(name, content)))
-          .then(() => {
-            console.log(`${name} imported successfully`);
-            resolve(true);
-          })
-          .catch(() => {
-            console.log(`error importing ${name}`);
-            reject();
-          });
-      }
-    });
+  async importDocument(name: string, content: JSONObject[]) {
+    // first decompress the json file, then remove attributes that are not needed by PouchDB
+    const docs = this.preprocess(decompressJson(name, content));
+    await this.documentStore.bulkDocs(docs);
   }
 
-  importEdge(name: string, content: JSONObject[]) {
-    return new Promise((resolve, reject) => {
-      // first decompress the json file, then remove attributes that are not needed by PouchDB
-      if (this.edgeStore) {
-        this.edgeStore
-          .bulkDocs(this.preprocessCollection(decompressJson(name, content)))
-          .then(() => {
-            console.log(`${name} imported successfully`);
-            resolve(true);
-          })
-          .catch(() => {
-            console.log(`error importing ${name}`);
-            reject();
-          });
+  async importEdge(name: string, content: JSONObject[]) {
+    // first decompress the json file, then remove attributes that are not needed by PouchDB
+    const docs = this.preprocess(decompressJson(name, content));
+    await this.edgeStore.bulkDocs(docs);
+  }
+
+  // both import functions are not running in parallel to avoid overloading pouchDB(testing necessary before changing to parallel)
+  async importFromZip(file: Blob, startTime?: number) {
+    const zip = await new JSZip().loadAsync(file);
+
+    // Read metadata first
+    const metadataEntry = Object.values(zip.files).find((f) => !f.dir && f.name.includes('metadata'));
+
+    let metadata: MetadataType | null = null;
+    if (metadataEntry) {
+      const raw = await metadataEntry.async('string');
+      metadata = JSON.parse(raw) as MetadataType;
+    }
+
+    // Filter out folders and metadata
+    const fileEntries = Object.values(zip.files)
+      .filter((f) => !f.dir)
+      .filter((f) => !f.name.includes('metadata'));
+    const totalFiles = fileEntries.length;
+    let imported = 0;
+
+    for (const fileEntry of fileEntries) {
+      const raw = await fileEntry.async('string');
+      const json = JSON.parse(raw);
+
+      const name = fileEntry.name.split('/')[1].replace('.json', '');
+
+      if (name.includes('-')) {
+        await this.importEdge(name, json);
+      } else {
+        await this.importDocument(name, json);
       }
+
+      imported++;
+      const end = performance.now();
+      console.log(`${imported}/${totalFiles} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
+    }
+    return metadata;
+  }
+
+  async importFromObjects(dbObjects: Record<string, JSONObject[]>, startTime?: number) {
+    const keys = Object.keys(dbObjects);
+    let imported = 0;
+
+    return new Promise((resolve) => {
+      keys.forEach(async (name) => {
+        if (name.includes('-')) {
+          await this.importEdge(name, dbObjects[name]);
+        } else {
+          await this.importDocument(name, dbObjects[name]);
+        }
+
+        imported++;
+        const end = performance.now();
+        console.log(`${imported}/${keys.length} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
+
+        if (imported >= keys.length) resolve(true);
+      });
     });
   }
 }

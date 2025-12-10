@@ -2,7 +2,17 @@ export interface VisualizationPluginMetadata {
   category: VisualizationPluginMetadataCategory;
   recommended?: boolean;
   description?: string;
-  defaultSize?: [number, number];
+  defaultSize?: [number, number]; // default values: [12,8]
+  compatibility?: VisualizationPluginCompatibility;
+}
+
+export interface VisualizationPluginCompatibility {
+  binocularBackend: boolean;
+  githubAPI: boolean;
+  mockData: boolean;
+  pouchDB: boolean;
+  github: boolean;
+  gitlab: boolean;
 }
 
 export enum VisualizationPluginMetadataCategory {

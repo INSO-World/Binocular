@@ -1,3 +1,5 @@
+import type { VisualizationPluginCompatibility } from '../../../../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata';
+
 export function showVisualizationOverview(x: number, y: number) {
   (document.getElementById('visualizationOverview') as HTMLDialogElement).showModal();
   const visualizationOverviewWidth = (document.getElementById('visualizationOverviewPositionController') as HTMLDialogElement).offsetWidth;
@@ -18,4 +20,21 @@ export function showVisualizationOverview(x: number, y: number) {
       `${Math.max(x - visualizationOverviewWidth / 2, 10)}px`;
     (document.getElementById('visualizationOverviewPositionController') as HTMLDivElement).style.right = `auto`;
   }
+}
+
+// returns true if any boolean of filterOptions is true, while same boolean in pluginOptions is false
+export function disableVisualizationOverview(
+  filterOptions: VisualizationPluginCompatibility,
+  pluginOptions: VisualizationPluginCompatibility | undefined,
+): boolean {
+  if (!pluginOptions) return false;
+  let value = false;
+  Object.keys(filterOptions).forEach((key) => {
+    const typedKey = key as keyof VisualizationPluginCompatibility;
+    if (filterOptions[typedKey] && pluginOptions && !pluginOptions[typedKey]) {
+      value = true;
+      return;
+    }
+  });
+  return value;
 }

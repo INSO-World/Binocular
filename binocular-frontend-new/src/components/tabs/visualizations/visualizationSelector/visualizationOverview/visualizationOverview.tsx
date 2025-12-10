@@ -1,11 +1,25 @@
 import visualizationOverviewStyles from './visualizationOverview.module.scss';
-import { VisualizationPluginMetadataCategory } from '../../../../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import {
+  type VisualizationPluginCompatibility,
+  VisualizationPluginMetadataCategory,
+} from '../../../../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 import { visualizationPlugins } from '../../../../../plugins/pluginRegistry.ts';
 import { useState } from 'react';
 import VisualizationSelectorDragButton from '../visualizationSelectorDragButton/visualizationSelectorDragButton.tsx';
+import { disableVisualizationOverview } from './visualizationOverviewHelper';
+import VisualizationFilter from '../visualizationFilter/visualizationFilter';
 
 function VisualizationOverview() {
   const [search, setSearch] = useState<string>('');
+
+  const [filterOptions, setFilterOptions] = useState<VisualizationPluginCompatibility>({
+    binocularBackend: false,
+    githubAPI: false,
+    mockData: false,
+    pouchDB: false,
+    github: false,
+    gitlab: false,
+  });
 
   return (
     <dialog
@@ -37,11 +51,11 @@ function VisualizationOverview() {
                 />
               </svg>
             </label>
+            <VisualizationFilter filterOptions={filterOptions} setFilterOptions={setFilterOptions}></VisualizationFilter>
             {Object.values(VisualizationPluginMetadataCategory).map((category) => {
               const filteredPlugins = visualizationPlugins.filter(
                 (plugin) => plugin.metadata.category === category && plugin.name.toLocaleLowerCase().includes(search.toLowerCase()),
               );
-
               if (filteredPlugins.length === 0) return null;
 
               return (
@@ -54,6 +68,7 @@ function VisualizationOverview() {
                           <VisualizationSelectorDragButton
                             key={'VisualizationSelectorV' + i}
                             plugin={plugin}
+                            disabled={disableVisualizationOverview(filterOptions, plugin.metadata.compatibility)}
                             showHelp={true}></VisualizationSelectorDragButton>
                         );
                       })}

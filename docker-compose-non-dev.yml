@@ -7,7 +7,7 @@ x-binocular-volumes-backend: &binocular-volumes-backend
   - /path_to_repo:/app/binocular/repo
   - ./.binocularrc-binocular:/app/binocular/repo/.binocularrc
 x-binocular-build-args: &binocular-build-args
-  NODE_VERSION: "22.13.1" # check if same as in .nvmrc!
+  NODE_VERSION: "22.21.1" # check if same as in .nvmrc!
 
 networks:
   binocular:

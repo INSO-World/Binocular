@@ -1,9 +1,11 @@
+import { type VisualizationPluginCompatibility } from '../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata';
+
 export interface infoTooltipContent {
   headline: string;
   text: string;
 }
 
-export function showInfoTooltip(x: number, y: number, content: infoTooltipContent) {
+export function showInfoTooltip(x: number, y: number, content: infoTooltipContent, compatibilityInfo?: VisualizationPluginCompatibility) {
   (document.getElementById('infoTooltip') as HTMLDialogElement).showModal();
   if (y >= window.innerHeight / 2) {
     (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.top = `auto`;
@@ -20,11 +22,31 @@ export function showInfoTooltip(x: number, y: number, content: infoTooltipConten
     (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.right = `auto`;
   }
 
-  (document.getElementById('infoTooltipContent') as HTMLDivElement).innerHTML = '';
+  const contentElement = document.getElementById('infoTooltipContent') as HTMLDivElement;
+  contentElement.innerHTML = '';
   const headline = document.createElement('h1');
   headline.innerText = content.headline;
   const text = document.createElement('p');
   text.innerText = content.text;
-  (document.getElementById('infoTooltipContent') as HTMLDivElement).appendChild(headline);
-  (document.getElementById('infoTooltipContent') as HTMLDivElement).appendChild(text);
+  contentElement.appendChild(headline);
+  contentElement.appendChild(text);
+  if (compatibilityInfo) {
+    const compatibility = document.createElement('div');
+    compatibility.innerHTML = `<h3>Compatibility</h3>
+      <div id="compatibility">
+        <div>
+          <p><b>Datatypes</b></p>
+          <p>GitHub: ${compatibilityInfo.github ? 'yes' : 'no'}<br>
+          GitLab: ${compatibilityInfo.gitlab ? 'yes' : 'no'}</p>
+        </div>
+        <div>
+          <p><b>Databases</b></p>
+          <p>Binocular Backend: ${compatibilityInfo.binocularBackend ? 'yes' : 'no'}<br>
+          PouchDB: ${compatibilityInfo.pouchDB ? 'yes' : 'no'}<br>
+          Mock Data: ${compatibilityInfo.mockData ? 'yes' : 'no'}<br>
+          GitHub API: ${compatibilityInfo.githubAPI ? 'yes' : 'no'}</p>
+        </div>
+      </div>`;
+    contentElement.appendChild(compatibility);
+  }
 }

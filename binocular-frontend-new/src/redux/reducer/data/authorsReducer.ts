@@ -76,6 +76,7 @@ export const authorsSlice = createSlice({
         state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
           if (a.parent === action.payload.author || a.id === action.payload.author) {
             a.parent = action.payload.parent;
+            a.selected = state.authorLists[state.dataPluginId].find((a: AuthorType) => a.id === a.id)?.selected;
           }
           return a;
         });
@@ -97,7 +98,7 @@ export const authorsSlice = createSlice({
     },
     switchAuthorSelection: (state, action: PayloadAction<number>) => {
       state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
-        if (a.id === action.payload) {
+        if (a.id === action.payload || a.parent === action.payload) {
           a.selected = !a.selected;
         }
         return a;

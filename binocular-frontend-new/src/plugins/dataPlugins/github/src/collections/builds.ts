@@ -1,4 +1,4 @@
-import type { DataPluginBuild, DataPluginBuilds } from '../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
+import type { DataPluginBuild, DataPluginBuilds } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 
 export default class Builds implements DataPluginBuilds {
   constructor() {}

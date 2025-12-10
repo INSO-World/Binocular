@@ -1,5 +1,5 @@
 export interface DataPluginBranches {
-  getAllBranches: () => Promise<DataPluginBranch[]>;
+  getAll: () => Promise<DataPluginBranch[]>;
 }
 
 export interface DataPluginBranch {

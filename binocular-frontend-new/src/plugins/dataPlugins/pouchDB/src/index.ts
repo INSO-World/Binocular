@@ -12,6 +12,7 @@ import Accounts from './collections/accounts.ts';
 import Branches from './collections/branches.ts';
 import MergeRequests from './collections/mergeRequests.ts';
 import AccountsIssues from './collections/accounts-issues';
+import CommitsFiles from './collections/commitsFiles';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
@@ -36,6 +37,7 @@ class PouchDb implements DataPlugin {
   public issues;
   public accountsIssues;
   public mergeRequests;
+  public commitByFile;
 
   private readonly database;
 
@@ -52,11 +54,14 @@ class PouchDb implements DataPlugin {
     this.database = new Database();
     this.branches = new Branches(undefined);
     this.accountsIssues = new AccountsIssues(undefined);
+    this.commitByFile = new CommitsFiles(); // not yet implemented
   }
 
   public async init(_apiKey: string | undefined, _endpoint: string | undefined, file: FileConfig | undefined) {
     if (file !== undefined) {
-      await this.database.initDB(file);
+      const startTime = performance.now();
+      const metadata = await this.database.initDB(file, startTime); // TODO save Metadata to plugin
+      console.log(metadata);
       this.commits = new Commits(this.database);
       this.builds = new Builds(this.database);
       this.notes = new Notes(this.database);

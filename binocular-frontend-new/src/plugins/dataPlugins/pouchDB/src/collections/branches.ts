@@ -9,7 +9,7 @@ export default class Branches implements DataPluginBranches {
     this.database = database;
   }
 
-  public async getAllBranches(): Promise<DataPluginBranch[]> {
+  public async getAll(): Promise<DataPluginBranch[]> {
     if (this.database && this.database.documentStore) {
       const branches = (await findAll(this.database.documentStore, 'branches')).docs;
       return branches as unknown as DataPluginBranch[];
