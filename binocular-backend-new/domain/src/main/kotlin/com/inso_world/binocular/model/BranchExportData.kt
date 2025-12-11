@@ -1,20 +1,41 @@
 package com.inso_world.binocular.model
 
+import java.time.LocalDateTime
+
 data class BranchExportData(
     // Branch Information
     val branchName: String,
-    val latestCommitSha: String,
 
-    // Parent/Latest Commit Information (Embedded)
-    val parentCommitId: String,
-    val parentCommitterId: String,
+    // Latest Commit Information
+    val commitSha: String,
+    val commitId: String,
+    val committerId: String,
+    val message: String,
+//    val commitDateTime: LocalDateTime,
+//    val authorDateTime: LocalDateTime,
 
-    // Child Commits Information (Embedded List)
+    //Link to the Commit's Content Snapshot
+    val fileContents: List<FileContent>,
+
+    // Child Commits Information
     val childrenCommits: List<ChildCommitDetail>
 )
 
 // A simple inner class or nested data class for the repeating child items
 data class ChildCommitDetail(
     val commitId: String,
-    val committerId: String
+    val committerId: String,
+    val message: String,
+//    val commitDateTime: LocalDateTime,
+//    val authorDateTime: LocalDateTime,
+)
+
+data class FileContent (
+    val filePath: String,
+    val content: List<Content>
+)
+
+data class Content (
+    val id: String?,
+    val content: String?
 )

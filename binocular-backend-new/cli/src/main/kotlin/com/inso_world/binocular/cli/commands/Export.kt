@@ -32,8 +32,8 @@ open class Export (
             description = "ID of the branch.",
         ) branchId: String,
     ) {
-        val toBeNamed = this.branchService.getBranchExportData(branchId)
-        val jsonLdString = expMapper.map(toBeNamed)
+        val exportData = this.branchService.getBranchExportData(branchId)
+        val jsonLdString = expMapper.map(exportData)
 
         logger.info("\n--- JSON-LD EXPORT OUTPUT (branch_id: $branchId) ---")
         println("$jsonLdString\n---------------------------------------------------")

@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.exception.BinocularInfrastructureException
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.exception.NotFoundException
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -98,5 +99,9 @@ class CommitService(
 
     fun findBySha(sha: String): Commit? {
             return commitPort.findBySha(sha)
+    }
+
+    fun findFilesByCommitId(commitId: String): List<File> {
+        return commitPort.findFilesByCommitId(commitId)
     }
 }

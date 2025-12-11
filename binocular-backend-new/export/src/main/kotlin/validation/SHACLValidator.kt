@@ -19,9 +19,9 @@ class SHACLValidator {
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(SHACLValidator::class.java)
-        private const val SHACL_SHAPES_PATH = "branchExportShape.ttl"
-        private const val CONTEXT_URL = "https://schemas.inso-world.com/binocular/v1/context.jsonld"
-        private const val LOCAL_CONTEXT_PATH = "context.jsonld"
+        private const val SHACL_SHAPES_PATH = "branchExportShapeTestForGit.ttl"
+        private const val CONTEXT_URL = "https://schemas.inso-world.com/binocular/v1/contextTestForGit.jsonld"
+        private const val LOCAL_CONTEXT_PATH = "contextTestForGit.jsonld"
 
         // Load the context file content as a JsonNode containing only the definitions (no outer @context)
         private val localContextContent: ObjectNode by lazy {
