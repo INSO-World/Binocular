@@ -3,9 +3,9 @@ import Builds from './visualizationPlugins/builds';
 import CommitByFile from './visualizationPlugins/commitByFile';
 import Issues from './visualizationPlugins/issues';
 import TimeSpent from './visualizationPlugins/timeSpent';
-import CodeOwnership from './visualizationPlugins/code-ownership';
+import CodeOwnership from './visualizationPlugins/codeOwnership';
 import FileChanges from './visualizationPlugins/fileChanges';
-import RepositoryStats from './visualizationPlugins/respositoryStats';
+import RepositoryStats from './visualizationPlugins/repositoryStats';
 import MergeRequests from './visualizationPlugins/mergeRequests';
 
 import ExampleComplex from './visualizationPlugins/exampleComplex';
@@ -31,8 +31,9 @@ import type { ChangesSettings } from './visualizationPlugins/changes/src/setting
 import type { DataPluginMergeRequest } from './interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
 import type { MergeRequestsSettings } from './visualizationPlugins/mergeRequests/src/settings/settings.tsx';
 import CollaborationVisualization from './visualizationPlugins/collaboration';
-import KnowledgeRadar from './visualizationPlugins/knowledge-radar';
-import CodeExpertise from './visualizationPlugins/code-expertise';
+import KnowledgeRadar from './visualizationPlugins/knowledgeRadar';
+import CodeExpertise from './visualizationPlugins/codeExpertise';
+import RepositoryActivity from './visualizationPlugins/repositoryActivity2';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
