@@ -18,16 +18,18 @@ const initialState: FilesInitialState = {
   selectedFileTreeElement: undefined,
 };
 
+const opfsRoot = await navigator.storage.getDirectory();
+const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
+
 export const filesSlice = createSlice({
   name: 'files',
   initialState: () => {
-    const storedState = localStorage.getItem(`${filesSlice.name}StateV${Config.localStorageVersion}`);
-    if (storedState === null) {
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(initialState));
-      return initialState;
-    } else {
-      return JSON.parse(storedState);
-    }
+    fileHandle.getFile().then((files) => {
+      if (files !== null) {
+        files.text().then((list) => setFileList(JSON.parse(list)));
+      }
+    });
+    return initialState;
   },
   reducers: {
     setFileList: (state, action: PayloadAction<{ dataPluginId: number; fileTree: FileTreeElementType; files: FileListElementType[] }>) => {
@@ -37,23 +39,25 @@ export const filesSlice = createSlice({
         state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
         state.fileLists[action.payload.dataPluginId] = action.payload.files;
       }
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+      const data = JSON.stringify(state);
+      console.log('writing fileList');
+      fileHandle.createWritable().then((access) => access.write(data).then(() => access.close()));
     },
     setFilesDataPluginId: (state, action: PayloadAction<number>) => {
       state.dataPluginId = action.payload;
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+      //localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     updateFileListElement: (state, action: PayloadAction<FileTreeElementType & { update?: boolean }>) => {
-      const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId], action.payload);
+      const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], action.payload);
       if (action.payload.update) {
-        state.fileLists[state.dataPluginId] = state.fileLists[state.dataPluginId].map((f: FileListElementType) => {
+        state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
           if (updatedPaths.includes(f.element.path)) {
             f.checked = action.payload.checked;
           }
           return f;
         });
       }
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+      //localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     showFileTreeElementInfo: (state, action: PayloadAction<FileTreeElementType>) => {
       (document.getElementById('fileTreeElementInfoDialog') as HTMLDialogElement).showModal();
