@@ -43,14 +43,15 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
         fun `save one account, expecting it in database`() {
             val accounts = listOf(
                 Account(
-                    gid = "abc123",
-                    platform = Platform.GitHub,
-                    login = "testuser",
-                    name = "Test User",
-                    avatarUrl = "https://example.com/avatar.png",
-                    url = "https://github.com/testuser",
+                    "MDQ9JXMlcjY5MoB7Nah4",
+                    Platform.GitHub,
+                    "user1",
                     project = testProject
-                )
+                ).apply {
+                    this.name = "User One"
+                    this.avatarUrl = "https://example.com/avatars/user1.png"
+                    this.url = "https://github.com/user1"
+                }
             )
 
             val savedAccounts = accountPort.saveAll(accounts)
@@ -78,20 +79,22 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser",
-                    name = "Test User",
-                    avatarUrl = "https://example.com/avatar.png",
-                    url = "https://github.com/testuser",
                     project = testProject
-                ),
+                ).apply {
+                    this.name = "User One"
+                    this.avatarUrl = "https://example.com/avatars/user1.png"
+                    this.url = "https://github.com/user1"
+                },
                 Account(
                     gid = "cba321",
                     platform = Platform.GitHub,
                     login = "testuser2",
-                    name = "Test User2",
-                    avatarUrl = "https://example.com/avatar2.png",
-                    url = "https://github.com/testuser2",
                     project = testProject
-                )
+                ).apply {
+                    this.name = "User Two"
+                    this.avatarUrl = "https://example.com/avatars/user2.png"
+                    this.url = "https://github.com/user2"
+                }
             )
 
             val saved = accountPort.saveAll(accounts)
@@ -121,20 +124,22 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser",
-                    name = "Test User",
-                    avatarUrl = "https://example.com/avatar.png",
-                    url = "https://github.com/testuser",
                     project = testProject
-                ),
+                ).apply {
+                    this.name = "User One"
+                    this.avatarUrl = "https://example.com/avatars/user1.png"
+                    this.url = "https://github.com/user1"
+                },
                 Account(
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser2",
-                    name = "Test User2",
-                    avatarUrl = "https://example.com/avatar2.png",
-                    url = "https://github.com/testuser2",
                     project = testProject
-                )
+                ).apply {
+                    this.name = "User Two"
+                    this.avatarUrl = "https://example.com/avatars/user2.png"
+                    this.url = "https://github.com/user2"
+                }
             )
 
             assertAll(
@@ -162,20 +167,22 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser",
-                    name = "Test User",
-                    avatarUrl = "https://example.com/avatar.png",
-                    url = "https://github.com/testuser",
                     project = testProject
-                ),
+                ).apply {
+                    this.name = "User One"
+                    this.avatarUrl = "https://example.com/avatars/user1.png"
+                    this.url = "https://github.com/user1"
+                },
                 Account(
                     gid = "cba321",
                     platform = Platform.GitHub,
                     login = "testuser2",
-                    name = "Test User2",
-                    avatarUrl = "https://example.com/avatar2.png",
-                    url = "https://github.com/testuser2",
                     project = testProject
-                )
+                ).apply {
+                    this.name = "User Two"
+                    this.avatarUrl = "https://example.com/avatars/user2.png"
+                    this.url = "https://github.com/user2"
+                }
             )
 
             val saved = accountPort.saveAll(accounts)

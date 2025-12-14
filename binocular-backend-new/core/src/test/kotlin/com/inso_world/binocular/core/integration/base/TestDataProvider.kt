@@ -35,25 +35,25 @@ object TestDataProvider {
     val testAccounts =
         listOf(
             Account(
-                "1",
                 "MDQ9JXMlcjY5MoB7Nah4",
                 Platform.GitHub,
                 "user1",
-                "User One",
-                "https://example.com/avatars/user1.png",
-                "https://github.com/user1",
                 project = project
-            ),
+            ).apply {
+                this.name = "User One"
+                this.avatarUrl = "https://example.com/avatars/user1.png"
+                this.url = "https://github.com/user1"
+            },
             Account(
-                "2",
                 "MDQ9JXjIMjY5MoB7Nah4",
                 Platform.GitLab,
                 "user2",
-                "User Two",
-                "https://example.com/avatars/user2.png",
-                "https://gitlab.com/user2",
                 project = project
-            ),
+            ).apply {
+                this.name = "User Two"
+                this.avatarUrl = "https://example.com/avatars/user2.png"
+                this.url = "https://github.com/user2"
+            },
         )
 
 //    private val mainBranch = Branch("main","abc123", repository = repository).apply {

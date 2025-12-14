@@ -113,15 +113,16 @@ internal class AccountMapperTest : BaseMapperTest() {
             )
 
             val domainAccount = Account(
-                id = "1",
                 gid = "MDQ9JXMlcjY5MoB7Nah4",
-                name = "Alice",
                 login = "alice123",
-                url = "https://github.com/alice123",
-                avatarUrl = "https://avatars.githubusercontent.com/alice123",
                 platform = Platform.GitHub,
                 project = project
-            )
+            ).apply {
+                this.id = "1"
+                this.name = "Alice"
+                this.url = "https://github.com/alice123"
+                this.avatarUrl = "https://avatars.githubusercontent.com/alice123"
+            }
 
             val accountEntity = accountMapper.toEntity(domainAccount)
 
