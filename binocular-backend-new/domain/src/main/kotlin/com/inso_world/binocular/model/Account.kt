@@ -12,64 +12,73 @@ import kotlin.uuid.Uuid
  */
 @OptIn(ExperimentalUuidApi::class)
 data class Account(
-    // TODO implement iid (uuid)
 
-    @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
-    var id: String? = null,
     @field:NotBlank
     val gid: String,
     @field:NotNull
     val platform: Platform,
     @field:NotBlank
     val login: String,
-    var name: String?,
-    var avatarUrl: String? = null,
-    var url: String? = null,
-    var mergeRequests: Set<MergeRequest> = emptySet(),
-    var notes: Set<Note> = emptySet(),
+    @field:NotNull
     val project: Project,
+
 ) : AbstractDomainObject<Account.Id, Account.Key>(
     Id(Uuid.random())
 ) {
+    var name: String? = null
+    var avatarUrl: String? = null
+    var url: String? = null
+
+    // TODO MRs and notes (those are still like in the old implementation)
+    var mergeRequests: Set<MergeRequest> = emptySet()
+    var notes: Set<Note> = emptySet()
+
+    @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
+    var id: String? = null
+
     @JvmInline
     value class Id(val value: Uuid)
 
-    data class Key(val projectId: Project.Id, val gid: String) // value object for lookups
-    private val _issues: MutableSet<Issue> = mutableSetOf()
+    data class Key(val platform: Platform, val gid: String) // value object for lookups
 
-    val issues: MutableSet<Issue> =
-        object: MutableSet<Issue> by _issues {
-            override fun add(element: Issue): Boolean {
-                val added = _issues.add(element)
-                if (added) {
-                    element.accounts.add(this@Account)
-                }
-                return added
+    val issues: MutableSet<Issue> = object : NonRemovingMutableSet<Issue>() {
+        override fun add(element: Issue): Boolean {
+            require(element.project == this@Account.project) {
+                "Issue.project (${element.project}) doesn't match the accounts project (${this@Account.project})."
             }
+            val added = super.add(element)
+            return added
         }
 
-    fun uniqueKey(): String {
-        return "${this.platform}:${this.gid}"
+        override fun addAll(elements: Collection<Issue>): Boolean {
+            var anyAdded = false
+            for (element in elements) {
+                if (add(element)) anyAdded = true
+            }
+            return anyAdded
+        }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+//    private val _issues: MutableSet<Issue> = mutableSetOf()
+//    val issues: MutableSet<Issue> =
+//        object: MutableSet<Issue> by _issues {
+//            override fun add(element: Issue): Boolean {
+//                val added = _issues.add(element)
+//                if (added) {
+//                    element.accounts.add(this@Account)
+//                }
+//                return added
+//            }
+//        }
 
-        other as Account
-        if (id != other.id) return false
-        if (platform != other.platform) return false
-        if (gid != other.gid) return false
+    override val uniqueKey: Key
+        get() = Key(platform, gid.trim())
 
-        return true
-    }
-
-    override fun hashCode(): Int = Objects.hashCode("${this.platform}:${this.gid}")
+    override fun hashCode(): Int = super.hashCode()
+    override fun equals(other: Any?) = super.equals(other)
 
     fun format(): String {
         return "Account(id=$gid, login=$login, name=$name)"
     }
 
-    override val uniqueKey: Key
-        get() = Key(project.iid, gid)
 }
