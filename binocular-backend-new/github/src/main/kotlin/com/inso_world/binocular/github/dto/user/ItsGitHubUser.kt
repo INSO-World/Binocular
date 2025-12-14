@@ -16,12 +16,13 @@ data class ItsGitHubUser(
         val acc = Account(
             gid = this.id,
             login = this.login,
-            name = this.name,
-            url = this.url,
-            avatarUrl = this.avatarUrl,
             platform = Platform.GitHub,
             project = project,
-        )
+        ).apply {
+            this.name = this@ItsGitHubUser.name
+            this.url = this@ItsGitHubUser.url
+            this.avatarUrl = this@ItsGitHubUser.avatarUrl
+        }
         return acc
     }
 }
