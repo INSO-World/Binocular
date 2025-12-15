@@ -36,6 +36,7 @@ internal data class AccountEntity(
     @Column(nullable = false, updatable = false, unique = true)
     @Convert(KotlinUuidConverter::class)
     val iid: Account.Id,
+    //@Column(nullable = false, updatable = false, unique = true)
     val gid: String,
     @Enumerated(EnumType.STRING)
     val platform: Platform,
@@ -81,14 +82,16 @@ internal data class AccountEntity(
     override fun hashCode(): Int = super.hashCode()
 
     fun toDomain(project: Project): Account = Account(
-        id = id.toString(),
         gid = this.gid,
         platform = this.platform,
         login = this.login,
-        name = this.name,
-        avatarUrl = this.avatarUrl,
-        url = this.url,
-        project = project,
+        project = project
+    ).apply {
+        this.id = this@AccountEntity.id?.toString()
+        this.name = this@AccountEntity.name
+        this.avatarUrl = this@AccountEntity.avatarUrl
+        this.url = this@AccountEntity.url
+    }
         //TODO relationships (maybe needs mapping context)
 
         // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
@@ -107,7 +110,7 @@ internal data class AccountEntity(
 //                        { entity.notes },
 //                        { noteMapper.toDomain(it) },
 //                    ),
-    )
+
 }
 
 internal fun Account.toEntity(project: ProjectEntity): AccountEntity =
