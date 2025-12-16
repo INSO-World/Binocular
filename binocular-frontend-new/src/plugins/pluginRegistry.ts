@@ -1,21 +1,8 @@
-import Changes from './visualizationPlugins/changes';
-import Builds from './visualizationPlugins/builds';
-import CommitByFile from './visualizationPlugins/commitByFile';
-import Issues from './visualizationPlugins/issues';
-import TimeSpent from './visualizationPlugins/timeSpent';
-import CodeOwnership from './visualizationPlugins/codeOwnership';
-import FileChanges from './visualizationPlugins/fileChanges';
-import RepositoryStats from './visualizationPlugins/repositoryStats';
-import MergeRequests from './visualizationPlugins/mergeRequests';
-
-import ExampleComplex from './visualizationPlugins/exampleComplex';
-import ExampleStats from './visualizationPlugins/exampleStats';
-import ExampleVisualization from './visualizationPlugins/exampleVisualization';
-
 import type { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import type { DataPluginBuild } from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import type { DataPluginIssue } from './interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import type { DataPluginNote } from './interfaces/dataPluginInterfaces/dataPluginNotes.ts';
+import type { DataPluginMergeRequest } from './interfaces/dataPluginInterfaces/dataPluginMergeRequests';
 
 import MockData from './dataPlugins/mockData';
 import BinocularBackend from './dataPlugins/binocularBackend';
@@ -24,16 +11,27 @@ import PouchDb from './dataPlugins/pouchDB';
 
 import type { VisualizationPlugin } from './interfaces/visualizationPlugin.ts';
 import createVisualizationPlugin from './visualizationPlugins/simpleVisualizationPlugin';
-import type { IssueSettings } from './visualizationPlugins/issues/src/settings/settings.tsx';
-import type { BuildSettings } from './visualizationPlugins/builds/src/settings/settings.tsx';
-import type { TimeSpentSettings } from './visualizationPlugins/timeSpent/src/settings/settings.tsx';
-import type { ChangesSettings } from './visualizationPlugins/changes/src/settings/settings.tsx';
-import type { DataPluginMergeRequest } from './interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
-import type { MergeRequestsSettings } from './visualizationPlugins/mergeRequests/src/settings/settings.tsx';
-import CollaborationVisualization from './visualizationPlugins/collaboration';
-import KnowledgeRadar from './visualizationPlugins/knowledgeRadar';
-import CodeExpertise from './visualizationPlugins/codeExpertise';
-import RepositoryActivity from './visualizationPlugins/repositoryActivity2';
+import type { IssueSettings } from './visualizationPlugins/issues/issues/src/settings/settings.tsx';
+import type { BuildSettings } from './visualizationPlugins/builds/builds/src/settings/settings.tsx';
+import type { TimeSpentSettings } from './visualizationPlugins/authorBehaviour/timeSpent/src/settings/settings.tsx';
+import type { ChangesSettings } from './visualizationPlugins/commits/changes/src/settings/settings.tsx';
+import type { MergeRequestsSettings } from './visualizationPlugins/issues/mergeRequests/src/settings/settings.tsx';
+import Builds from './visualizationPlugins/builds/builds';
+import Changes from './visualizationPlugins/commits/changes/src/index.tsx';
+import Issues from './visualizationPlugins/issues/issues';
+import MergeRequests from './visualizationPlugins/issues/mergeRequests';
+import TimeSpent from './visualizationPlugins/authorBehaviour/timeSpent';
+import RepositoryStats from './visualizationPlugins/stats/repositoryStats';
+import CodeOwnership from './visualizationPlugins/ownership/codeOwnership';
+import FileChanges from './visualizationPlugins/commits/fileChanges';
+import ExampleStats from './visualizationPlugins/example/exampleStats';
+import ExampleVisualization from './visualizationPlugins/example/exampleVisualization';
+import ExampleComplex from './visualizationPlugins/example/exampleComplex';
+import CommitByFile from './visualizationPlugins/commits/commitByFile';
+import CollaborationVisualization from './visualizationPlugins/authorBehaviour/collaboration';
+import KnowledgeRadar from './visualizationPlugins/expertise/knowledgeRadar';
+import CodeExpertise from './visualizationPlugins/expertise/codeExpertise';
+import RepositoryActivity from './visualizationPlugins/authorBehaviour/repositoryActivity';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
@@ -60,6 +58,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   CollaborationVisualization,
   KnowledgeRadar,
   CodeExpertise,
+  RepositoryActivity,
 ];
 
 //Order = priority used when nothing selected by the user.
