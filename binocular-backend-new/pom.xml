@@ -63,6 +63,7 @@
         <module>infrastructure-test</module>
         <module>cli</module>
         <module>web</module>
+        <module>jgit</module>
     </modules>
     <dependencyManagement>
         <!--
