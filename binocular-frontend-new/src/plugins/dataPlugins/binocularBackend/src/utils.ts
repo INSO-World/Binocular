@@ -7,7 +7,7 @@ class GraphQL {
   constructor(endpoint: string) {
     this.client = new ApolloClient({
       link: new HttpLink({
-        uri: endpoint
+        uri: endpoint,
       }),
       cache: new InMemoryCache(),
     });

@@ -24,6 +24,7 @@ import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
 import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
 import { refreshFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities';
+import type { FileListElementType } from '../../../types/data/fileListType.ts';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -97,7 +98,7 @@ const DashboardItem = memo(function DashboardItem(props: {
       setAuthors(authorLists[props.item.dataPluginId]);
     }
   }, [authorLists, props.item.dataPluginId]);
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<FileListElementType[]>([]);
   useEffect(() => {
     if (props.item.dataPluginId !== undefined) {
       if (fileLists[props.item.dataPluginId] == undefined) {

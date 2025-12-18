@@ -8,7 +8,7 @@ function DataPluginQuickSelect(props: {
 }) {
   const currentDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const theme = localStorage.getItem('theme') || '';
-  
+
   return (
     <>
       <select
@@ -30,10 +30,10 @@ function DataPluginQuickSelect(props: {
   );
 }
 
-function getHueFromRGBA(rgba: string, theme: string){
-  const background = theme == 'binocularDark' ? 17 : 255
-  const alpha = parseInt(rgba.substring(7,9), 16) / 255;
-  return `rgba(${Math.round((1-alpha)*background + parseInt(rgba.substring(1,3), 16)*alpha)}, ${Math.round((1-alpha)*background + parseInt(rgba.substring(3,5), 16)*alpha)}, ${Math.round((1-alpha)*background + parseInt(rgba.substring(5,7), 16)*alpha)})`;
+function getHueFromRGBA(rgba: string, theme: string) {
+  const background = theme == 'binocularDark' ? 17 : 255;
+  const alpha = parseInt(rgba.substring(7, 9), 16) / 255;
+  return `rgba(${Math.round((1 - alpha) * background + parseInt(rgba.substring(1, 3), 16) * alpha)}, ${Math.round((1 - alpha) * background + parseInt(rgba.substring(3, 5), 16) * alpha)}, ${Math.round((1 - alpha) * background + parseInt(rgba.substring(5, 7), 16) * alpha)})`;
 }
 
 export default DataPluginQuickSelect;

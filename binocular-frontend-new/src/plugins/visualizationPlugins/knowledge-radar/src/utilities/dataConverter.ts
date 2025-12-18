@@ -32,12 +32,7 @@ function filterNonMergeCommits(commits: DataPluginCommit[]): DataPluginCommit[] 
 /**
  * Processes file paths for a developer's commits
  */
-function processCommitFiles(
-  commits: DataPluginCommit[],
-  developerTouchedFiles: Set<string>,
-):
-  Map<string, DataPluginCommit[]>
-{
+function processCommitFiles(commits: DataPluginCommit[], developerTouchedFiles: Set<string>): Map<string, DataPluginCommit[]> {
   const packageCommits = new Map<string, DataPluginCommit[]>();
 
   for (const commit of commits) {
