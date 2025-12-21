@@ -69,13 +69,13 @@ internal data class AccountEntity(
     var project: ProjectEntity,
 ) : AbstractEntity<Long, AccountEntity.Key>() {
 
-    data class Key(val projectIid: Project.Id, val gid: String) // value object for lookups
+    data class Key(val platform: Platform, val gid: String) // value object for lookups
 
     //    override fun uniqueKey(): String {
 //        return "${this.platform}:${this.gid}"
 //    }
     override val uniqueKey: Key
-        get() = Key(project.iid, gid)
+        get() = Key(platform, gid)
 
     override fun equals(other: Any?) = super.equals(other)
 
