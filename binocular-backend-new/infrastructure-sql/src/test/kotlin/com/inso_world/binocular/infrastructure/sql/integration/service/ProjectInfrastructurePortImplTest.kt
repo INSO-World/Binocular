@@ -240,7 +240,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                 description = "Add dark mode support",
                 state = "open",
                 createdAt = LocalDateTime.of(2024, 1, 2, 10, 0),
-                gid = "1",
+                gid = "2",
                 project = project
             )
             project.issues.add(issue1)
@@ -934,7 +934,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                 gid = "1",
                 project = project)
             val issue2 = Issue(title = "Issue 2", state = "open", createdAt = LocalDateTime.now(),
-                gid = "1",
+                gid = "2",
                 project = project)
             project.issues.add(issue1)
             project.issues.add(issue2)
