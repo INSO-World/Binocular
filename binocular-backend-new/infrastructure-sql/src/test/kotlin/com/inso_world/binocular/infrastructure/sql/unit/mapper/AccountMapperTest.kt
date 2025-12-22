@@ -38,7 +38,7 @@ internal class AccountMapperTest : BaseMapperTest() {
                 avatarUrl = "https://avatars.githubusercontent.com/test",
                 platform = Platform.GitHub,
                 iid = Account.Id(Uuid.random()),
-                project = projectEntity
+//                project = projectEntity
             )
 
             // map to domain
@@ -71,7 +71,7 @@ internal class AccountMapperTest : BaseMapperTest() {
                     avatarUrl = "https://avatars.githubusercontent.com/alice123",
                     platform = Platform.GitHub,
                     iid = Account.Id(Uuid.random()),
-                    project = projectEntity
+//                    project = projectEntity
                 ),
                 AccountEntity(
                     id = 2L,
@@ -82,7 +82,7 @@ internal class AccountMapperTest : BaseMapperTest() {
                     avatarUrl = "https://avatars.githubusercontent.com/bob456",
                     platform = Platform.GitHub,
                     iid = Account.Id(Uuid.random()),
-                    project = projectEntity
+//                    project = projectEntity
                 )
             )
 
@@ -116,7 +116,7 @@ internal class AccountMapperTest : BaseMapperTest() {
                 gid = "MDQ9JXMlcjY5MoB7Nah4",
                 login = "alice123",
                 platform = Platform.GitHub,
-                project = project
+//                project = project
             ).apply {
                 this.id = "1"
                 this.name = "Alice"
