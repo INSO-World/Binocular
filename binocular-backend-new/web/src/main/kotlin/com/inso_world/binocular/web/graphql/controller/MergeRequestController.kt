@@ -14,7 +14,7 @@ import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
 @Controller
-@SchemaMapping(typeName = "MergeRequest")
+@SchemaMapping(typeName = "mergeRequest")
 class MergeRequestController(
     @Autowired private val mergeRequestService: MergeRequestInfrastructurePort,
 ) {
