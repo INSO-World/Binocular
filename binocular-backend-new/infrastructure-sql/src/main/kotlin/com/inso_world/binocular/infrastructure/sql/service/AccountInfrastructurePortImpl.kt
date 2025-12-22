@@ -66,6 +66,7 @@ import org.springframework.validation.annotation.Validated
         TODO("Not yet implemented")
     }
 
+    @Deprecated("Save accounts via project instead.")
     @Transactional
     @MappingSession
     override fun saveAll(values: Collection<@Valid Account>): Iterable<@Valid Account> {
@@ -74,11 +75,11 @@ import org.springframework.validation.annotation.Validated
 
 
         val entities = values.map {
-            val projectEntity =
-                projectDao.findByIid(it.project.iid)
-                    ?: throw NotFoundException("Project ${it.project.iid} not found")
-
-            ctx.remember(it.project, projectEntity)
+//            val projectEntity =
+//                projectDao.findByIid(it.project.iid)
+//                    ?: throw NotFoundException("Project ${it.project.iid} not found")
+//
+//            ctx.remember(it.project, projectEntity)
 
             accountMapper.toEntity(it)
         }
@@ -102,18 +103,9 @@ import org.springframework.validation.annotation.Validated
     @Transactional(readOnly = true)
     @MappingSession
     override fun findExistingGid(gids: List<String>): Iterable<Account> {
-        return this.accountDao
+        return accountDao
             .findExistingGid(gids)
-            .map {
-                val projectEntity =
-                    projectDao.findByIid(it.project.iid)
-                        ?: throw NotFoundException("Project ${it.project.iid} not found")
-
-                val domain = projectMapper.toDomain(it.project)
-
-                ctx.remember(domain, projectEntity)
-
-                this.accountMapper.toDomain(it)
-            }
+            .map(accountMapper::toDomain)
     }
+
 }

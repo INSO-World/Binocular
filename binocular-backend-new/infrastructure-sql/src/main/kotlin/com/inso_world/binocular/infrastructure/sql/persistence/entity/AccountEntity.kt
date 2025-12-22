@@ -14,6 +14,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -64,9 +65,8 @@ internal data class AccountEntity(
     //    )
     //    var notes: MutableList<NoteEntity> = mutableListOf(),
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "fk_project_id")
-    var project: ProjectEntity,
+    @ManyToMany(mappedBy = "accounts", fetch = FetchType.LAZY)
+    var projects: MutableSet<ProjectEntity> = mutableSetOf()
 ) : AbstractEntity<Long, AccountEntity.Key>() {
 
     data class Key(val platform: Platform, val gid: String) // value object for lookups
@@ -81,11 +81,11 @@ internal data class AccountEntity(
 
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(project: Project): Account = Account(
+    fun toDomain( ): Account = Account(
         gid = this.gid,
         platform = this.platform,
         login = this.login,
-        project = project
+//        projects = mutableSetOf(project)
     ).apply {
         this.id = this@AccountEntity.id?.toString()
         this.name = this@AccountEntity.name
@@ -113,7 +113,7 @@ internal data class AccountEntity(
 
 }
 
-internal fun Account.toEntity(project: ProjectEntity): AccountEntity =
+internal fun Account.toEntity( ): AccountEntity =
     AccountEntity(
         iid = this.iid,
         gid = this.gid,
@@ -122,7 +122,7 @@ internal fun Account.toEntity(project: ProjectEntity): AccountEntity =
         name = this.name,
         avatarUrl = this.avatarUrl,
         url = this.url,
-        project = project,
+//        project = project,
         // Note: Relationships are not directly mapped in SQL entity
     ).apply {
         id = this@toEntity.id?.trim()?.toLongOrNull()

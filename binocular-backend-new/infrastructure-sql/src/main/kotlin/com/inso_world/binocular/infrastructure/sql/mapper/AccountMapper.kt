@@ -11,8 +11,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
  import com.inso_world.binocular.model.Account
  import com.inso_world.binocular.model.Project
  import com.inso_world.binocular.model.Repository
- import org.slf4j.Logger
- import org.slf4j.LoggerFactory
  import org.springframework.beans.factory.annotation.Autowired
  import org.springframework.data.util.ReflectionUtils.setField
  import org.springframework.stereotype.Component
@@ -31,9 +29,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
      @Autowired
      private lateinit var ctx: MappingContext
 
-//        @Autowired
-//        private lateinit var ctx: MappingContext
-
      companion object {
          private val logger by logger()
      }
@@ -46,27 +41,17 @@ package com.inso_world.binocular.infrastructure.sql.mapper
             // Fast-path: if this Repository was already mapped in the current context, return it.
             ctx.findEntity<Account.Key, Account, AccountEntity>(domain)?.let { return it }
 
-//            return AccountEntity(
-//                id = domain.id?.toLong(),
-//                gid = domain.gid,
-//                platform = domain.platform,
-//                login = domain.login,
-//                name = domain.name,
-//                avatarUrl = domain.avatarUrl,
-//                url = domain.url,
-//                // Note: Relationships are not directly mapped in SQL entity
-//            )
+            val entity = domain.toEntity()
 
-            // IMPORTANT: Expect Project already in context (cross-aggregate reference).
-            // Do NOT auto-map Project here - that's a separate aggregate.
-            val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
-                ?: throw IllegalStateException(
-                    "ProjectEntity must be mapped before RepositoryEntity. " +
-                            "Ensure ProjectEntity is in MappingContext before calling toEntity()."
-                )
+//            // IMPORTANT: Expect Project already in context (cross-aggregate reference).
+//            // Do NOT auto-map Project here - that's a separate aggregate.
+//            val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+//                ?: throw IllegalStateException(
+//                    "ProjectEntity must be mapped before RepositoryEntity. " +
+//                            "Ensure ProjectEntity is in MappingContext before calling toEntity()."
+//                )
 
             // Create entity and remember in context
-            val entity = domain.toEntity(owner)
             ctx.remember(domain, entity)
 
             // Delegate to overload with explicit owner
@@ -88,13 +73,13 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
             // IMPORTANT: Expect Project already in context (cross-aggregate reference).
             // Do NOT auto-map Project here - that's a separate aggregate.
-            val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
-                ?: throw IllegalStateException(
-                    "Project must be mapped before Repository. " +
-                            "Ensure Project is in MappingContext before calling toDomain()."
-                )
+//            val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
+//                ?: throw IllegalStateException(
+//                    "Project must be mapped before Repository. " +
+//                            "Ensure Project is in MappingContext before calling toDomain()."
+//                )
 
-            val domain = entity.toDomain(owner)
+            val domain = entity.toDomain()
             setField(
                 domain.javaClass.superclass.getDeclaredField("iid"),
                 domain,
@@ -102,7 +87,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
             )
 
             ctx.remember(domain, entity)
-
             return domain
         }
 

@@ -17,7 +17,7 @@ data class ItsGitHubUser(
             gid = this.id,
             login = this.login,
             platform = Platform.GitHub,
-            project = project,
+            projects = mutableSetOf(project),
         ).apply {
             this.name = this@ItsGitHubUser.name
             this.url = this@ItsGitHubUser.url

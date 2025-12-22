@@ -20,7 +20,7 @@ data class Account(
     @field:NotBlank
     val login: String,
     @field:NotNull
-    val project: Project,
+    val projects: MutableSet<Project> = mutableSetOf(),
 
 ) : AbstractDomainObject<Account.Id, Account.Key>(
     Id(Uuid.random())
@@ -43,8 +43,8 @@ data class Account(
 
     val issues: MutableSet<Issue> = object : NonRemovingMutableSet<Issue>() {
         override fun add(element: Issue): Boolean {
-            require(element.project == this@Account.project) {
-                "Issue.project (${element.project}) doesn't match the accounts project (${this@Account.project})."
+            require(element.project in this@Account.projects) {
+                "Issue.project (${element.project}) doesn't match any of the account's projects (${this@Account.projects})."
             }
             val added = super.add(element)
             return added

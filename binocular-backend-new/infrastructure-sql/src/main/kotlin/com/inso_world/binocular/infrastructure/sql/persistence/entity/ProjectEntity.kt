@@ -13,6 +13,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
@@ -67,12 +69,13 @@ internal data class ProjectEntity(
         orphanRemoval = true,
     ) var issues: MutableSet<IssueEntity> = mutableSetOf()
 
-    @OneToMany(
-        fetch = FetchType.LAZY,
-        cascade = [CascadeType.ALL],
-        mappedBy = "project",
-        orphanRemoval = true,
-    ) var accounts: MutableSet<AccountEntity> = mutableSetOf()
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "project_account",
+        joinColumns = [JoinColumn(name = "fk_project_id")],
+        inverseJoinColumns = [JoinColumn(name = "fk_account_id")]
+    )
+    var accounts: MutableSet<AccountEntity> = mutableSetOf()
 
     fun addIssue(issue: IssueEntity): Boolean {
         if (issue.project != null && issue.project != this) {
@@ -83,6 +86,15 @@ internal data class ProjectEntity(
             if (added) issue.project = this
         }
     }
+
+    fun addAccount(account: AccountEntity): Boolean {
+        val added = accounts.add(account)
+        if (added) {
+            account.projects.add(this)
+        }
+        return added
+    }
+
 
     override fun toString(): String = "ProjectEntity(id=$id, iid=$iid, name=$name, description=$description, repo=$repo)"
 
