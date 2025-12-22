@@ -29,28 +29,39 @@ class TimestampScalar {
                             when (dataFetcherResult) {
                                 is Long -> dataFetcherResult
                                 is Int -> dataFetcherResult.toLong()
-                                else -> throw CoercingSerializeException("Expected a Long or Int")
+                                is String -> parseStringToMillis(dataFetcherResult)
+                                else -> throw CoercingSerializeException("Expected a Long/Int/String (ISO-8601 or epoch millis)")
                             }
 
                         override fun parseValue(input: Any): Long =
                             when (input) {
                                 is Long -> input
                                 is Int -> input.toLong()
-                                is String ->
-                                    try {
-                                        input.toLong()
-                                    } catch (e: NumberFormatException) {
-                                        throw CoercingParseValueException("Expected a Long value but was $input")
-                                    }
-                                else -> throw CoercingParseValueException("Expected a Long value but was $input")
+                                is String -> parseStringToMillis(input)
+                                else -> throw CoercingParseValueException("Expected a Long/Int/String (ISO-8601 or epoch millis) but was $input")
                             }
 
                         override fun parseLiteral(input: Any): Long {
-                            if (input is IntValue) {
-                                return input.value.toLong()
+                            return when (input) {
+                                is IntValue -> input.value.toLong()
+                                is graphql.language.StringValue -> parseStringToMillis(input.value)
+                                else -> throw CoercingParseLiteralException("Expected a Long/Int/String literal but was $input")
                             }
-                            throw CoercingParseLiteralException("Expected a Long value but was $input")
                         }
+
+                        private fun parseStringToMillis(value: String): Long =
+                            value.trim().let { v ->
+                                // If numeric, parse directly
+                                v.toLongOrNull()?.let { return it }
+                                // Try ISO-8601 with timezone (e.g., 2025-12-17T21:50:38.008Z)
+                                kotlin.runCatching { java.time.Instant.parse(v).toEpochMilli() }.getOrNull()
+                                    ?: kotlin.runCatching {
+                                        // Try ISO date-time without zone, assume UTC
+                                        java.time.LocalDateTime.parse(v, java.time.format.DateTimeFormatter.ISO_DATE_TIME)
+                                            .toInstant(java.time.ZoneOffset.UTC).toEpochMilli()
+                                    }.getOrNull()
+                                    ?: throw CoercingParseValueException("Expected epoch millis or ISO-8601 timestamp but was '$value'")
+                            }
                     },
                 ).build()
 
