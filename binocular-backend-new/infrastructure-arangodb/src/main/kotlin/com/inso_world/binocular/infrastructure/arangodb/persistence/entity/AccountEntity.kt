@@ -5,6 +5,7 @@ import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.NoteAccountConnectionEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.ProjectAccountConnectionEntity
 import com.inso_world.binocular.model.Project
 import org.springframework.data.annotation.Id
 
@@ -21,7 +22,13 @@ data class AccountEntity(
     var name: String? = null,
     var avatarUrl: String? = null,
     var url: String? = null,
-    val project: Project, // (maybe temporary) fix for build failure after merge
+    @Relations(
+        edges = [ProjectAccountConnectionEntity::class],
+        direction = Relations.Direction.INBOUND,
+        lazy = true,
+        maxDepth = 1
+    )
+    val projects: Set<ProjectEntity> = emptySet(),
     @Relations(
         edges = [IssueAccountConnectionEntity::class],
         lazy = true,

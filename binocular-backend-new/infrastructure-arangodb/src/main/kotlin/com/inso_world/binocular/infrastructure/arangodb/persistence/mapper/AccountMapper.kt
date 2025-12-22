@@ -64,7 +64,7 @@ constructor(
             name = domain.name,
             avatarUrl = domain.avatarUrl,
             url = domain.url,
-            project = domain.project,
+            //project = domain.project,
         )
 
     /**
