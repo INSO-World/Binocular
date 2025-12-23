@@ -9,12 +9,12 @@ enum Sort {
 }
 
 type Query {
-  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedCommit!
+  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedCommit!
   accounts(page: Int, perPage: Int): PaginatedAccount!
   branches(page: Int, perPage: Int): PaginatedBranch!
   builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedBuild!
   files(page: Int, perPage: Int): PaginatedFile!
-  issues(page: Int, perPage: Int): PaginatedIssue!
+  issues(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedIssue!
   mergeRequests(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedmergeRequest!
   milestones(page: Int, perPage: Int): PaginatedMilestone!
   modules(page: Int, perPage: Int): PaginatedModule!
@@ -92,7 +92,7 @@ type Account {
   name: String
   avatarUrl: String
   url: String
-  issues: [Issue]
+  issues(from: Timestamp, to: Timestamp): [Issue]
   mergeRequests: [mergeRequest]
   notes: [Note]
 }
