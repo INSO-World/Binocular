@@ -37,7 +37,7 @@ type Commit {
   id: ID
   sha: String
   shortSha: String
-  date: String
+  date: Timestamp
   message: String
   messageHeader: String
   webUrl: String
@@ -114,11 +114,11 @@ type Build {
   tag: String
   user: String
   userFullName: String
-  createdAt: String
-  updatedAt: String
-  startedAt: String
-  finishedAt: String
-  committedAt: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  startedAt: Timestamp
+  finishedAt: Timestamp
+  committedAt: Timestamp
   duration: Int
   jobs: [Job]
   webUrl: String
@@ -131,8 +131,8 @@ type Job {
   name: String
   status: String
   stage: String
-  createdAt: String
-  finishedAt: String
+  createdAt: Timestamp
+  finishedAt: Timestamp
   webUrl: String
 }
 
@@ -153,9 +153,9 @@ type Issue {
   iid: Int
   title: String
   description: String
-  createdAt: String
-  closedAt: String
-  updatedAt: String
+  createdAt: Timestamp
+  closedAt: Timestamp
+  updatedAt: Timestamp
   labels: [String]
   state: String
   webUrl: String
@@ -169,7 +169,7 @@ type Issue {
 
 type Mention {
   commit: String
-  createdAt: String
+  createdAt: Timestamp
   closes: Boolean
 }
 
@@ -178,9 +178,9 @@ type mergeRequest {
   iid: Int
   title: String
   description: String
-  createdAt: String
-  closedAt: String
-  updatedAt: String
+  createdAt: Timestamp
+  closedAt: Timestamp
+  updatedAt: Timestamp
   labels: [String]
   state: String
   webUrl: String
@@ -195,10 +195,10 @@ type Milestone {
   iid: Int
   title: String
   description: String
-  createdAt: String
-  updatedAt: String
-  startDate: String
-  dueDate: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  startDate: Timestamp
+  dueDate: Timestamp
   state: String
   expired: Boolean
   webUrl: String
@@ -218,8 +218,8 @@ type Module {
 type Note {
   id: ID
   body: String
-  createdAt: String
-  updatedAt: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
   system: Boolean
   resolvable: Boolean
   confidential: Boolean
