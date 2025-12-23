@@ -16,7 +16,7 @@ export interface DataPluginIssue {
   createdAt: string;
   closedAt: string | null;
   labels: string[];
-  author: DataPluginAccount;
+  author: DataPluginAccount | null;
   assignee: DataPluginAccount | null;
   assignees: DataPluginAccount[];
   notes: DataPluginNote[];
