@@ -3,11 +3,16 @@ Scalar type for timestamp values (milliseconds since epoch)
 """
 scalar Timestamp
 
+enum Sort {
+  ASC
+  DESC
+}
+
 type Query {
   commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedCommit!
   accounts(page: Int, perPage: Int): PaginatedAccount!
   branches(page: Int, perPage: Int): PaginatedBranch!
-  builds(page: Int, perPage: Int, until: Timestamp, sort: Sort): PaginatedBuild!
+  builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedBuild!
   files(page: Int, perPage: Int): PaginatedFile!
   issues(page: Int, perPage: Int): PaginatedIssue!
   mergeRequests(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedmergeRequest!
@@ -17,7 +22,7 @@ type Query {
   users(page: Int, perPage: Int): PaginatedUser!
 
   # Single item queries
-  commit(id: ID!): Commit
+  commit(sha: String!): Commit
   account(id: ID!): Account
   branch(id: ID!): Branch
   build(id: ID!): Build
