@@ -7,6 +7,7 @@ import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import org.springframework.data.domain.Pageable
 
@@ -44,6 +45,16 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * @return List of files associated with the commit
      */
     fun findFilesByCommitId(commitId: String): List<File>
+
+    /**
+     * Return commit-level stats for a given commit.
+     */
+    fun findCommitStatsByCommitId(commitId: String): Stats
+
+    /**
+     * Return per-file stats for a given commit, keyed by file.id
+     */
+    fun findFileStatsByCommitId(commitId: String): Map<String, Stats>
 
     /**
      * Find modules by commit ID.

@@ -10,6 +10,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.F
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.edges.CommitFileConnectionRepository
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Stats
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
@@ -45,6 +46,36 @@ class CommitFileConnectionDao
         override fun findCommitsByFile(fileId: String): List<Commit> {
             val commitEntities = repository.findCommitsByFile(fileId)
             return commitEntities.map { commitMapper.toDomain(it) }
+        }
+
+        /**
+        * Find aggregated stats for a commit
+        */
+        override fun findCommitStatsByCommit(commitId: String): Stats {
+            val row = repository.findCommitStats(commitId).firstOrNull()
+                ?: return Stats(additions = 0, deletions = 0)
+
+            return Stats(
+                additions = (row["additions"] as? Number)?.toLong() ?: 0L,
+                deletions = (row["deletions"] as? Number)?.toLong() ?: 0L
+            )
+        }
+
+        /**
+        * Find stats per file for a commit
+        */
+        override fun findFileStatsByCommit(commitId: String): Map<String, Stats> {
+            val rows = repository.findFileStatsByCommit(commitId)
+
+            return rows.associate { row ->
+                val fileId = row["fileId"]?.toString()
+                    ?: error("Missing fileId in commit file stats row: $row")
+
+                val additions = (row["additions"] as? Number)?.toLong() ?: 0L
+                val deletions = (row["deletions"] as? Number)?.toLong() ?: 0L
+
+                fileId to Stats(additions = additions, deletions = deletions)
+            }
         }
 
         /**

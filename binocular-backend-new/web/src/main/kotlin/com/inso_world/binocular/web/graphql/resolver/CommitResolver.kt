@@ -7,10 +7,14 @@ import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Stats
+import com.inso_world.binocular.web.graphql.model.CommitFile
+import com.inso_world.binocular.web.graphql.model.CommitFileConnection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
+import java.time.LocalDateTime
 
 @Controller
 class CommitResolver(
@@ -45,12 +49,25 @@ class CommitResolver(
      * @return A list of files associated with the commit, or an empty list if the commit ID is null
      */
     @SchemaMapping(typeName = "Commit", field = "files")
-    fun files(commit: Commit): List<File> {
-        val id = commit.id ?: return emptyList()
+    fun files(commit: Commit): CommitFileConnection {
+        val id = commit.id ?: return CommitFileConnection(emptyList())
+
         logger.info("Resolving files for commit: $id")
-        // Get all connections for this commit and extract the files
-        return commitService.findFilesByCommitId(id)
+
+        val files = commitService.findFilesByCommitId(id)
+        val fileStatsById = commitService.findFileStatsByCommitId(id)
+
+        val data = files.map { f ->
+            val stats = f.id?.let { fileStatsById[it] } ?: Stats(additions = 0, deletions = 0)
+            CommitFile(
+                file = f,
+                stats = stats
+            )
+        }
+
+        return CommitFileConnection(data)
     }
+
 
     /**
      * Resolves the modules field for a Commit in GraphQL.
@@ -117,15 +134,9 @@ class CommitResolver(
     fun parents(commit: Commit): List<String> {
         val id = commit.id ?: return emptyList()
         logger.info("Resolving parent commits for commit: $id")
-        // Get all connections for this commit and extract the parent commits
+        // Get all parent commits for this commit and return their SHAs
         val parentCommits = commitService.findParentCommitsByChildCommitId(id)
-        // Convert each parent commit to a string representation
-        return parentCommits.map { parentCommit ->
-            val parentId = parentCommit.id ?: "null"
-            val parentSha = parentCommit.sha ?: "null"
-            val parentShortSha = parentCommit.sha?.take(7) ?: "null"
-            "Commit{id: $parentId, sha: $parentSha, shortSha: $parentShortSha}"
-        }
+        return parentCommits.map { it.sha }
     }
 
     /**
@@ -177,6 +188,15 @@ class CommitResolver(
         logger.info("Resolving messageHeader for commit: ${commit.id}")
         // Return the first line of the message
         return message.split("\n").first()
+    }
+
+    /**
+     * Resolves the date field for a Commit in GraphQL.
+     * commit.commitDateTime => date
+     */
+    @SchemaMapping(typeName = "Commit", field = "date")
+    fun date(commit: Commit): LocalDateTime? {
+        return commit.commitDateTime
     }
 
     /**

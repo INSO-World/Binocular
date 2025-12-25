@@ -3,6 +3,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfa
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileConnection
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Stats
 
 /**
  * Interface for CommitFileConnection DAO operations.
@@ -18,6 +19,16 @@ internal interface ICommitFileConnectionDao {
      * Find all commits connected to a file
      */
     fun findCommitsByFile(fileId: String): List<Commit>
+
+    /**
+     * Return stats (additions/deletions) for a given commit
+     */
+    fun findCommitStatsByCommit(commitId: String): Stats
+
+    /**
+     * Return stats per file for a given commit, keyed by file id
+     */
+    fun findFileStatsByCommit(commitId: String): Map<String, Stats>
 
     /**
      * Save a commit-file connection

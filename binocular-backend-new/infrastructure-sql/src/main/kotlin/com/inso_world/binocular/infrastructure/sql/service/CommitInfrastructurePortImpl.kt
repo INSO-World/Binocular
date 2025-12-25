@@ -25,6 +25,7 @@ import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
 import org.slf4j.Logger
@@ -308,6 +309,14 @@ internal class CommitInfrastructurePortImpl
         }
 
         override fun findIssuesByCommitId(commitId: String): List<Issue> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findCommitStatsByCommitId(commitId: String): Stats {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileStatsByCommitId(commitId: String): Map<String, Stats> {
             TODO("Not yet implemented")
         }
 

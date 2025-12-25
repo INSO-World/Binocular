@@ -8,7 +8,7 @@ enum Sort {
   DESC
 }
 
-type Query {
+ type Query {
   commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedCommit!
   accounts(page: Int, perPage: Int): PaginatedAccount!
   branches(page: Int, perPage: Int): PaginatedBranch!
@@ -65,7 +65,7 @@ type Commit {
   """
   children: [Commit]
   builds: [Build]
-  files: [File]
+  files: PaginatedFileInCommit
   modules: [Module]
   users: [User]
   user: User
@@ -242,6 +242,15 @@ type User {
   commits: [Commit]
   issues: [Issue]
   files: [File]
+}
+
+type FileInCommit {
+  file: File
+  stats: Stats
+}
+
+type PaginatedFileInCommit {
+  data: [FileInCommit]!
 }
 
 """
