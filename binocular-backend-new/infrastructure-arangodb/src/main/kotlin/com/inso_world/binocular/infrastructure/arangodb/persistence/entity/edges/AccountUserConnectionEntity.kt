@@ -4,15 +4,15 @@ import com.arangodb.springframework.annotation.Edge
 import com.arangodb.springframework.annotation.From
 import com.arangodb.springframework.annotation.To
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.AccountEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MergeRequestEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.UserEntity
 import org.springframework.data.annotation.Id
 
 /**
- * ArangoDB-specific entity for a connection between a MergeRequest and an Account.
+ * ArangoDB-specific entity for a connection between an Account and a User.
  */
-@Edge(value = "mergeRequests-accounts")
-data class MergeRequestAccountConnectionEntity(
+@Edge(value = "accounts-users")
+data class AccountUserConnectionEntity(
     @Id var id: String? = null,
-    @From var from: MergeRequestEntity,
-    @To var to: AccountEntity,
+    @From var from: AccountEntity,
+    @To var to: UserEntity,
 )

@@ -8,6 +8,7 @@ import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
@@ -37,14 +38,42 @@ class MergeRequestController(
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument since: Long?,
+        @Argument until: Long?,
     ): PageDto<MergeRequest> {
-        logger.info("Getting all merge requests...")
+        logger.info("Getting all merge requests with page=$page, perPage=$perPage, since=$since, until=$until")
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        val mergeRequestsPage = mergeRequestService.findAll(pageable)
+        return findMergeRequestsInternal(pageable = pageable, since = since, until = until)
+    }
 
-        return PageDto(mergeRequestsPage)
+    // TODO: fix this and filter in db
+    private fun findMergeRequestsInternal(
+        pageable: Pageable,
+        since: Long?,
+        until: Long?,
+    ): PageDto<MergeRequest> {
+        fun MergeRequest.createdMillis(): Long? = try {
+            this.createdAt?.let { java.time.Instant.parse(it).toEpochMilli() }
+        } catch (e: Exception) { null }
+
+        val filtered = mergeRequestService.findAll()
+            .asSequence()
+            .filter { mr ->
+                val ts = mr.createdMillis() ?: return@filter true
+                (since == null || ts >= since) && (until == null || ts <= until)
+            }
+            .toList()
+
+        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(filtered.size)
+        val to = (from + pageable.pageSize).coerceAtMost(filtered.size)
+
+        return PageDto(
+            count = filtered.size,
+            pageable = pageable,
+            data = filtered.subList(from, to)
+        )
     }
 
     /**

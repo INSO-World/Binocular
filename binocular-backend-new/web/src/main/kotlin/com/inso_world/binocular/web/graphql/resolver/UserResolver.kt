@@ -1,6 +1,8 @@
 package com.inso_world.binocular.web.graphql.resolver
 
+import com.inso_world.binocular.core.service.AccountInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Controller
 @Controller
 class UserResolver(
     private val userService: UserInfrastructurePort,
+    private val accountService: AccountInfrastructurePort,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(UserResolver::class.java)
 
@@ -66,4 +69,13 @@ class UserResolver(
         // Get all connections for this user and extract the files
         return userService.findFilesByUserId(id)
     }
+
+    @SchemaMapping(typeName = "User", field = "account")
+    fun account(user: User): Account? {
+        val userId = user.id ?: return null
+        logger.info("Resolving account for user: ${'$'}userId")
+        val accounts = accountService.findAccountsByUserId(userId)
+        return accounts.firstOrNull()
+    }
+
 }

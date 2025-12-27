@@ -8,6 +8,7 @@ import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
@@ -37,14 +38,43 @@ class IssueController(
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument since: Long?,
+        @Argument until: Long?,
     ): PageDto<Issue> {
-        logger.info("Getting all issues...")
+        logger.info("Getting all issues with page=$page, perPage=$perPage, since=$since, until=$until")
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        val issuesPage = issueService.findAll(pageable)
+        return findIssuesInternal(pageable = pageable, since = since, until = until)
+    }
 
-        return PageDto(issuesPage)
+    // TODO: filter in db not here
+    private fun findIssuesInternal(
+        pageable: Pageable,
+        since: Long?,
+        until: Long?,
+    ): PageDto<Issue> {
+        fun Issue.createdMillis(): Long? = this.createdAt
+            ?.atOffset(java.time.ZoneOffset.UTC)
+            ?.toInstant()
+            ?.toEpochMilli()
+
+        val filtered = issueService.findAll()
+            .asSequence()
+            .filter { issue ->
+                val ts = issue.createdMillis() ?: return@filter true
+                (since == null || ts >= since) && (until == null || ts <= until)
+            }
+            .toList()
+
+        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(filtered.size)
+        val to = (from + pageable.pageSize).coerceAtMost(filtered.size)
+
+        return PageDto(
+            count = filtered.size,
+            pageable = pageable,
+            data = filtered.subList(from, to)
+        )
     }
 
     /**
