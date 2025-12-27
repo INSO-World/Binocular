@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
 class IssuesMergeRequestsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
@@ -85,23 +86,11 @@ class IssuesMergeRequestsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() 
         assertEquals("MERGED", first.get("state").asText(), "data[0].state")
         assertEquals("https://github.com/INSO-World/Binocular/pull/254", first.get("webUrl").asText(), "data[0].webUrl")
         val createdAt = first.get("createdAt").asText()
-        assertTrue(
-            createdAt == "2024-09-14T10:54:33Z" ||
-                    createdAt == "2024-09-14T10:54:33.000Z",
-            "data[0].createdAt"
-        )
+        assertIsoInstantEquals(createdAt, "2024-09-14T10:54:33Z", "data[0].createdAt")
         val closedAt = first.get("closedAt").asText()
-        assertTrue(
-            closedAt == "2024-09-25T08:22:36Z" ||
-                    closedAt == "2024-09-25T08:22:36.000Z",
-            "data[0].closedAt"
-        )
+        assertIsoInstantEquals(closedAt, "2024-09-25T08:22:36Z", "data[0].closedAt")
         val updatedAt = first.get("updatedAt").asText()
-        assertTrue(
-            updatedAt == "2024-09-25T08:22:37Z" ||
-                    updatedAt == "2024-09-25T08:22:37.000Z",
-            "data[0].updatedAt"
-        )
+        assertIsoInstantEquals(updatedAt, "2024-09-25T08:22:37Z", "data[0].updatedAt")
 
         assertTrue(first.get("sourceBranch").isNull, "data[0].sourceBranch should be null")
         assertTrue(first.get("targetBranch").isNull, "data[0].targetBranch should be null")

@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
 class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
@@ -88,7 +89,7 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals(1, parents.size(), "parents size")
         assertEquals("e6c685f88ddf315c7081f9b17d9dbc680437a491", parents.get(0).asText(), "parents[0]")
 
-        assertEquals("2024-08-08T14:21:21.000Z", first.get("date").asText(), "date")
+        assertIsoInstantEquals(first.get("date").asText(), "2024-08-08T14:21:21.000Z", "date")
         assertEquals("https://github.com/INSO-World/Binocular/commit/c44daad5df789734ed8d3867c24bf5ad06152268", first.get("webUrl").asText(), "webUrl")
 
         val stats = first.get("stats")
@@ -244,23 +245,11 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals("CLOSED", first.get("state").asText(), "issue.state")
         assertEquals("https://github.com/INSO-World/Binocular/issues/252", first.get("webUrl").asText(), "issue.webUrl")
         val createdAt = first.get("createdAt").asText()
-        assertTrue(
-            createdAt == "2024-08-08T06:55:09Z" ||
-                    createdAt == "2024-08-08T06:55:09.000Z",
-            "issue.createdAt was $createdAt"
-        )
+        assertIsoInstantEquals(createdAt, "2024-08-08T06:55:09Z", "issue.createdAt was $createdAt")
         val closedAt = first.get("closedAt").asText()
-        assertTrue(
-            closedAt == "2025-09-08T12:15:08Z" ||
-                    closedAt == "2025-09-08T12:15:08.000Z",
-            "issue.closedAt was $closedAt"
-        )
+        assertIsoInstantEquals(closedAt, "2025-09-08T12:15:08Z", "issue.closedAt was $closedAt")
         val updatedAt = first.get("updatedAt").asText()
-        assertTrue(
-            updatedAt == "2025-09-08T12:15:08Z" ||
-                    updatedAt == "2025-09-08T12:15:08.000Z",
-            "issue.updatedAt was $updatedAt"
-        )
+        assertIsoInstantEquals(updatedAt, "2025-09-08T12:15:08Z", "issue.updatedAt was $updatedAt")
         assertEquals("Issue", first.get("__typename").asText(), "issue.__typename")
 
         val author = first.get("author")
@@ -355,10 +344,10 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
         val first = data.get(0)
         // assertEquals("6660824", first.get("id").asText(), "build.id")
-        assertEquals("2024-10-17T12:47:21.000Z", first.get("committedAt").asText(), "build.committedAt")
-        assertEquals("2024-10-17T12:47:31.000Z", first.get("createdAt").asText(), "build.createdAt")
+        assertIsoInstantEquals(first.get("committedAt").asText(), "2024-10-17T12:47:21.000Z", "build.committedAt")
+        assertIsoInstantEquals(first.get("createdAt").asText(), "2024-10-17T12:47:31.000Z", "build.createdAt")
         assertEquals(46, first.get("duration").asInt(), "build.duration")
-        assertEquals("2024-10-17T12:48:18.000Z", first.get("finishedAt").asText(), "build.finishedAt")
+        assertIsoInstantEquals(first.get("finishedAt").asText(), "2024-10-17T12:48:18.000Z", "build.finishedAt")
 
         val jobs = first.get("jobs")
         assertEquals(1, jobs.size(), "build.jobs size")
@@ -367,13 +356,13 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals("bastianferch", job0.get("name").asText(), "build.jobs[0].name")
         assertEquals("success", job0.get("status").asText(), "build.jobs[0].status")
         assertEquals("success", job0.get("stage").asText(), "build.jobs[0].stage")
-        assertEquals("2024-10-17T12:47:32.000Z", job0.get("createdAt").asText(), "build.jobs[0].createdAt")
-        assertEquals("2024-10-17T12:48:18.000Z", job0.get("finishedAt").asText(), "build.jobs[0].finishedAt")
+        assertIsoInstantEquals(job0.get("createdAt").asText(), "2024-10-17T12:47:32.000Z", "build.jobs[0].createdAt")
+        assertIsoInstantEquals(job0.get("finishedAt").asText(), "2024-10-17T12:48:18.000Z", "build.jobs[0].finishedAt")
         assertEquals("Job", job0.get("__typename").asText(), "build.jobs[0].__typename")
 
-        assertEquals("2024-10-17T12:47:31.000Z", first.get("startedAt").asText(), "build.startedAt")
+        assertIsoInstantEquals(first.get("startedAt").asText(), "2024-10-17T12:47:31.000Z", "build.startedAt")
         assertEquals("success", first.get("status").asText(), "build.status")
-        assertEquals("2025-11-22T08:59:56.000Z", first.get("updatedAt").asText(), "build.updatedAt")
+        assertIsoInstantEquals(first.get("updatedAt").asText(), "2025-11-22T08:59:56.000Z", "build.updatedAt")
 
         val commit = first.get("commit")
         val user = commit.get("user")
@@ -441,26 +430,9 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals("Feature/251 Additional Tests", first.get("title").asText(), "data[0].title")
         assertEquals("MERGED", first.get("state").asText(), "data[0].state")
         assertEquals("https://github.com/INSO-World/Binocular/pull/254", first.get("webUrl").asText(), "data[0].webUrl")
-        val createdAt = first.get("createdAt").asText()
-        assertTrue(
-            createdAt == "2024-09-14T10:54:33Z" ||
-                    createdAt == "2024-09-14T10:54:33.000Z",
-            "data[0].createdAt was $createdAt"
-        )
-
-        val closedAt = first.get("closedAt").asText()
-        assertTrue(
-            closedAt == "2024-09-25T08:22:36Z" ||
-                    closedAt == "2024-09-25T08:22:36.000Z",
-            "data[0].closedAt was $closedAt"
-        )
-
-        val updatedAt = first.get("updatedAt").asText()
-        assertTrue(
-            updatedAt == "2024-09-25T08:22:37Z" ||
-                    updatedAt == "2024-09-25T08:22:37.000Z",
-            "data[0].updatedAt was $updatedAt"
-        )
+        assertIsoInstantEquals(first.get("createdAt").asText(), "2024-09-14T10:54:33Z", "data[0].createdAt was $createdAt")
+        assertIsoInstantEquals(first.get("closedAt").asText(), "2024-09-25T08:22:36Z", "data[0].closedAt was $closedAt")
+        assertIsoInstantEquals(first.get("updatedAt").asText(), "2024-09-25T08:22:37Z", "data[0].updatedAt was $updatedAt")
         assertTrue(first.get("sourceBranch").isNull, "data[0].sourceBranch should be null")
         assertTrue(first.get("targetBranch").isNull, "data[0].targetBranch should be null")
 
@@ -480,4 +452,5 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals("mergeRequest", first.get("__typename").asText(), "data[0].__typename")
         assertEquals("PaginatedmergeRequest", mr.get("__typename").asText(), "mergeRequests.__typename")
     }
+
 }

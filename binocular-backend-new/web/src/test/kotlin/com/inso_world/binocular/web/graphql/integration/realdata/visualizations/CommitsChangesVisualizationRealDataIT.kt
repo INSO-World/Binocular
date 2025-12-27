@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.integration.realdata.visualizations
 import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQlCompatibilityIT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
 class CommitsChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
@@ -88,7 +89,7 @@ class CommitsChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals(1, parents.size(), "parents size")
         assertEquals("e6c685f88ddf315c7081f9b17d9dbc680437a491", parents.get(0).asText(), "parents[0]")
 
-        assertEquals("2024-08-08T14:21:21.000Z", first.get("date").asText(), "date")
+        assertIsoInstantEquals(first.get("date").asText(), "2024-08-08T14:21:21.000Z", "date")
         assertEquals("https://github.com/INSO-World/Binocular/commit/c44daad5df789734ed8d3867c24bf5ad06152268", first.get("webUrl").asText(), "webUrl")
 
         val stats = first.get("stats")
