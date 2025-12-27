@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.NoteDao
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.enums.IssueAccountRole
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
@@ -43,6 +44,10 @@ internal class IssueInfrastructurePortImpl(
                 repository = Repository(localPath = "unknown", project = Project(name = "unknown"))
             )
         }
+
+    override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> =
+        // TODO: role filter
+        findAccountsByIssueId(issueId)
 
     override fun findMilestonesByIssueId(issueId: String): List<Milestone> =
         linkDao.findMilestoneIdsByIssueId(issueId).map { Milestone(id = it) }

@@ -95,6 +95,7 @@ type Account {
   issues(from: Timestamp, to: Timestamp): [Issue]
   mergeRequests: [mergeRequest]
   notes: [Note]
+  user: User
 }
 
 enum Platform {
@@ -170,6 +171,9 @@ type Issue {
   milestones: [Milestone]
   notes: [Note]
   users: [User]
+  author: Account
+  assignee: Account
+  assignees: [Account]
 }
 
 type Mention {
@@ -193,6 +197,11 @@ type mergeRequest {
   accounts: [Account]
   milestones: [Milestone]
   notes: [Note]
+  sourceBranch: String
+  targetBranch: String
+  author: Account
+  assignee: Account
+  assignees: [Account]
 }
 
 type Milestone {
@@ -234,6 +243,7 @@ type Note {
   accounts: [Account]
   issues: [Issue]
   mergeRequests: [mergeRequest]
+  author: Account
 }
 
 type User {
@@ -242,6 +252,7 @@ type User {
   commits: [Commit]
   issues: [Issue]
   files: [File]
+  account: Account
 }
 
 type FileInCommit {

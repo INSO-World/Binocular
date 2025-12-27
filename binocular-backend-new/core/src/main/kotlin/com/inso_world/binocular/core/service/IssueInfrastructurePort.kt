@@ -3,6 +3,7 @@ package com.inso_world.binocular.core.service
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.enums.IssueAccountRole
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
@@ -19,6 +20,11 @@ interface IssueInfrastructurePort : BinocularInfrastructurePort<Issue> {
      * @return List of accounts associated with the issue
      */
     fun findAccountsByIssueId(issueId: String): List<Account>
+
+    /**
+     * Find accounts by issue ID and role on the edge (e.g., IssueAccountRole.AUTHOR).
+     */
+    fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account>
 
     /**
      * Find commits by issue ID.

@@ -15,4 +15,5 @@ data class Account(
     var issues: List<Issue> = emptyList(),
     var mergeRequests: List<MergeRequest> = emptyList(),
     var notes: List<Note> = emptyList(),
+    var users: List<User> = emptyList(),
 )

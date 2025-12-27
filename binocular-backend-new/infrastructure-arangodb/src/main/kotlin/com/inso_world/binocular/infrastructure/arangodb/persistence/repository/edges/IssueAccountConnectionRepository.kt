@@ -23,6 +23,17 @@ interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnec
     @Query(
         """
     FOR c IN `issues-accounts`
+        FILTER c._from == CONCAT('issues/', @issueId) AND c.role == @role
+        FOR a IN accounts
+            FILTER a._id == c._to
+            RETURN a
+""",
+    )
+    fun findAccountsByIssueAndRole(issueId: String, role: String): List<AccountEntity>
+
+    @Query(
+        """
+    FOR c IN `issues-accounts`
         FILTER c._to == CONCAT('accounts/', @accountId)
         FOR i IN issues
             FILTER i._id == c._from

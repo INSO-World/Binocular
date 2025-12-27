@@ -10,6 +10,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.I
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.edges.IssueAccountConnectionRepository
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.enums.IssueAccountRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
@@ -35,6 +36,14 @@ class IssueAccountConnectionDao
          */
         override fun findAccountsByIssue(issueId: String): List<Account> {
             val accountEntities = repository.findAccountsByIssue(issueId)
+            return accountEntities.map { accountMapper.toDomain(it) }
+        }
+
+        /**
+        * Finds all accounts connected to the given issue with the specified role.
+        */
+        override fun findAccountsByIssue(issueId: String, role: IssueAccountRole): List<Account> {
+            val accountEntities = repository.findAccountsByIssueAndRole(issueId, role.value)
             return accountEntities.map { accountMapper.toDomain(it) }
         }
 
@@ -66,6 +75,7 @@ class IssueAccountConnectionDao
                     id = connection.id,
                     from = issueEntity,
                     to = accountEntity,
+                    role = connection.role?.value,
                 )
 
             // Save using the repository

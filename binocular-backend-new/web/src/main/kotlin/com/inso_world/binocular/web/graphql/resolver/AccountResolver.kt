@@ -5,6 +5,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.SchemaMapping
@@ -66,4 +67,26 @@ class AccountResolver(
         // Get all connections for this account and extract the notes
         return accountService.findNotesByAccountId(id)
     }
+
+    /**
+     * Resolves the user field for an Account in GraphQL.
+     *
+     * This method retrieves the user explicitly linked to the given account.
+     * Only direct relations are considered; no heuristic or fallback matching is applied.
+     *
+     * If the account ID is null or no linked user exists, null is returned.
+     *
+     * @param account The account for which to resolve the user
+     * @return The linked user for the account, or null if no explicit relation exists
+     */
+    @SchemaMapping(typeName = "Account", field = "user")
+    fun user(account: Account): User? {
+        logger.info("Resolving user for account: ${account.id}")
+        val id = account.id ?: return null
+        // Get account-to-user relation data
+        return accountService
+            .findUsersByAccountId(id)
+            .firstOrNull()
+    }
+
 }

@@ -14,6 +14,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.enums.IssueAccountRole
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,6 +49,11 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
     override fun findAccountsByIssueId(issueId: String): List<Account> {
         logger.trace("Getting accounts for issue: $issueId")
         return issueAccountConnectionRepository.findAccountsByIssue(issueId)
+    }
+
+    override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> {
+        logger.trace("Getting accounts for issue: $issueId with role: ${'$'}role")
+        return issueAccountConnectionRepository.findAccountsByIssue(issueId, role)
     }
 
     override fun findCommitsByIssueId(issueId: String): List<Commit> {

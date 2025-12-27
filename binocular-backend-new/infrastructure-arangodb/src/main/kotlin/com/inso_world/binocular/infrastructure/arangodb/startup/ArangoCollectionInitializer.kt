@@ -46,6 +46,7 @@ class ArangoCollectionInitializer(
         ensureDocumentCollection(dbName, "accounts")
 
         // Edge collections
+        ensureEdgeCollection(dbName, "accounts-users")
         ensureEdgeCollection(dbName, "branches-files")
         ensureEdgeCollection(dbName, "branch-files-files")
         ensureEdgeCollection(dbName, "commits-builds")
@@ -59,9 +60,9 @@ class ArangoCollectionInitializer(
         ensureEdgeCollection(dbName, "issues-milestones")
         ensureEdgeCollection(dbName, "issues-notes")
         ensureEdgeCollection(dbName, "issues-users")
-        ensureEdgeCollection(dbName, "merge-requests-accounts")
-        ensureEdgeCollection(dbName, "merge-requests-milestones")
-        ensureEdgeCollection(dbName, "merge-requests-notes")
+        ensureEdgeCollection(dbName, "mergeRequests-accounts")
+        ensureEdgeCollection(dbName, "mergeRequests-milestones")
+        ensureEdgeCollection(dbName, "mergeRequests-notes")
         ensureEdgeCollection(dbName, "modules-files")
         ensureEdgeCollection(dbName, "modules-modules")
         ensureEdgeCollection(dbName, "notes-accounts")
