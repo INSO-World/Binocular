@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
 class OwnerShipVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
@@ -134,7 +135,7 @@ class OwnerShipVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
         assertEquals("main", first.get("branch").asText(), "commit.branch")
         assertEquals(0, first.get("parents").size(), "commit.parents should be empty for initial commit")
-        assertEquals("2016-11-16T13:22:07.000Z", first.get("date").asText(), "commit.date")
+        assertIsoInstantEquals(first.get("date").asText(), "2016-11-16T13:22:07.000Z", "commit.date")
         assertEquals("https://github.com/INSO-World/Binocular/commit/945935697466022f2ddf7b1ea4f8cf9587b12a18", first.get("webUrl").asText(), "commit.webUrl")
 
         val stats = first.get("stats")

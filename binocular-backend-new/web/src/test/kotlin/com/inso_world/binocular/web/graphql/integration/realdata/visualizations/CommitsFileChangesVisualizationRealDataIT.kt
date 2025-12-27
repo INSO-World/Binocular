@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
 class CommitsFileChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
@@ -67,7 +68,7 @@ class CommitsFileChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals(":memo: Add documentation\n\nIssue: #65 - Add some documentation\n", commit.get("message").asText(), "commit.message")
         assertEquals(":memo: Add documentation", commit.get("messageHeader").asText(), "commit.messageHeader")
         assertEquals("main", commit.get("branch").asText(), "commit.branch")
-        assertEquals("2018-03-27T08:18:46.000Z", commit.get("date").asText(), "commit.date")
+        assertIsoInstantEquals(commit.get("date").asText(), "2018-03-27T08:18:46.000Z", "commit.date")
         assertEquals("https://github.com/INSO-World/Binocular/commit/61903bc02d5c48923c1274800dfee13168d17f93", commit.get("webUrl").asText(), "commit.webUrl")
         assertEquals("Commit", commit.get("__typename").asText(), "commit.__typename")
 

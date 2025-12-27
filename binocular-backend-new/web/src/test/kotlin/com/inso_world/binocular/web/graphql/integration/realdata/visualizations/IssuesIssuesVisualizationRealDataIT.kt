@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
 class IssuesIssuesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
@@ -84,24 +85,9 @@ class IssuesIssuesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals("Classification of Commit Characteristics with GPT 4", first.get("title").asText(), "issue.title")
         assertEquals("CLOSED", first.get("state").asText(), "issue.state")
         assertEquals("https://github.com/INSO-World/Binocular/issues/252", first.get("webUrl").asText(), "issue.webUrl")
-        val createdAt = first.get("createdAt").asText()
-        assertTrue(
-            createdAt == "2024-08-08T06:55:09Z" ||
-                    createdAt == "2024-08-08T06:55:09.000Z",
-            "issue.createdAt"
-        )
-        val closedAt = first.get("closedAt").asText()
-        assertTrue(
-            closedAt == "2025-09-08T12:15:08Z" ||
-                    closedAt == "2025-09-08T12:15:08.000Z",
-            "issue.closedAt"
-        )
-        val updatedAt = first.get("updatedAt").asText()
-        assertTrue(
-            updatedAt == "2025-09-08T12:15:08Z" ||
-                    updatedAt == "2025-09-08T12:15:08.000Z",
-            "issue.updatedAt"
-        )
+        assertIsoInstantEquals(first.get("createdAt").asText(), "2024-08-08T06:55:09Z", "issue.createdAt")
+        assertIsoInstantEquals(first.get("closedAt").asText(), "2025-09-08T12:15:08Z", "issue.closedAt")
+        assertIsoInstantEquals(first.get("updatedAt").asText(), "2025-09-08T12:15:08Z", "issue.updatedAt")
         assertEquals("Issue", first.get("__typename").asText(), "issue.__typename")
 
         val author = first.get("author")

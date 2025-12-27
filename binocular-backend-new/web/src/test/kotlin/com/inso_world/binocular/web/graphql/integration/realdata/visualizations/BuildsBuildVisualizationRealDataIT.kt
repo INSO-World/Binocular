@@ -4,6 +4,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
 class BuildsBuildVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
@@ -79,10 +80,10 @@ class BuildsBuildVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
         val first = data.get(0)
         // assertEquals("6660824", first.get("id").asText(), "build.id")
-        assertEquals("2024-10-17T12:47:21.000Z", first.get("committedAt").asText(), "build.committedAt")
-        assertEquals("2024-10-17T12:47:31.000Z", first.get("createdAt").asText(), "build.createdAt")
+        assertIsoInstantEquals(first.get("committedAt").asText(), "2024-10-17T12:47:21.000Z", "build.committedAt")
+        assertIsoInstantEquals(first.get("createdAt").asText(), "2024-10-17T12:47:31.000Z", "build.createdAt")
+        assertIsoInstantEquals(first.get("finishedAt").asText(), "2024-10-17T12:48:18.000Z", "build.finishedAt")
         assertEquals(46, first.get("duration").asInt(), "build.duration")
-        assertEquals("2024-10-17T12:48:18.000Z", first.get("finishedAt").asText(), "build.finishedAt")
 
         val jobs = first.get("jobs")
         assertEquals(1, jobs.size(), "build.jobs size")
@@ -91,13 +92,13 @@ class BuildsBuildVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals("bastianferch", job0.get("name").asText(), "build.jobs[0].name")
         assertEquals("success", job0.get("status").asText(), "build.jobs[0].status")
         assertEquals("success", job0.get("stage").asText(), "build.jobs[0].stage")
-        assertEquals("2024-10-17T12:47:32.000Z", job0.get("createdAt").asText(), "build.jobs[0].createdAt")
-        assertEquals("2024-10-17T12:48:18.000Z", job0.get("finishedAt").asText(), "build.jobs[0].finishedAt")
+        assertIsoInstantEquals(job0.get("createdAt").asText(), "2024-10-17T12:47:32.000Z", "build.jobs[0].createdAt")
+        assertIsoInstantEquals(job0.get("finishedAt").asText(), "2024-10-17T12:48:18.000Z", "build.jobs[0].finishedAt")
         assertEquals("Job", job0.get("__typename").asText(), "build.jobs[0].__typename")
 
-        assertEquals("2024-10-17T12:47:31.000Z", first.get("startedAt").asText(), "build.startedAt")
+        assertIsoInstantEquals(first.get("startedAt").asText(), "2024-10-17T12:47:31.000Z", "build.startedAt")
+        assertIsoInstantEquals(first.get("updatedAt").asText(), "2025-11-22T08:59:56.000Z", "build.updatedAt")
         assertEquals("success", first.get("status").asText(), "build.status")
-        assertEquals("2025-11-22T08:59:56.000Z", first.get("updatedAt").asText(), "build.updatedAt")
 
         val commit = first.get("commit")
         val user = commit.get("user")
