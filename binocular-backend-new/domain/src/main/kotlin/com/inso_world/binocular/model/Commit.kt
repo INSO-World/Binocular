@@ -38,6 +38,38 @@ data class Commit(
     val issues: List<Issue> = emptyList(),
 ) : AbstractDomainObject(),
     Cloneable {
+
+    /**
+     * Parent SHAs in the original order (useful for tree rendering).
+     *
+     * Kotlin sets do not preserve parent order. JGit does.
+     */
+    var parentShasOrdered: List<String> = emptyList()
+
+    companion object {
+        /**
+         * Java friendly factory for creating a commit with sane defaults.
+         *
+         * Reason: Kotlin default parameters are cumbersome to call from Java.
+         */
+        @JvmStatic
+        fun create(
+            sha: String,
+            commitDateTime: LocalDateTime,
+            repository: Repository,
+            authorDateTime: LocalDateTime? = null,
+            message: String? = null,
+            webUrl: String? = null,
+        ): Commit =
+            Commit(
+                sha = sha,
+                authorDateTime = authorDateTime,
+                commitDateTime = commitDateTime,
+                message = message,
+                repository = repository,
+                webUrl = webUrl,
+            )
+    }
     // 1) private backing set
     private val _parents = ConcurrentHashMap.newKeySet<Commit>()
     private val _children = ConcurrentHashMap.newKeySet<Commit>()

@@ -57,6 +57,7 @@ internal fun Collection<BinocularCommitVec>.toDomain(repository: Repository): Li
         bin.author?.let { commit.author = usersByKey.getValue(it.userKey(repository)) }
 
         // parents (and implicit children back-links via domain)
+        commit.parentShasOrdered = bin.parents
         for (pSha in bin.parents) {
             val parent =
                 commitsBySha.computeIfAbsent(pSha) {

@@ -19,6 +19,17 @@ data class User(
     val issues: List<Issue> = emptyList(),
     val files: List<File> = emptyList(),
 ) : AbstractDomainObject() {
+
+    companion object {
+        /** Java friendly factory. */
+        @JvmStatic
+        fun create(
+            name: String?,
+            email: String?,
+            repository: Repository,
+        ): User = User(name = name, email = email, repository = repository)
+    }
+
     private val _committedCommits = ConcurrentHashMap.newKeySet<Commit>()
     private val _authoredCommits = ConcurrentHashMap.newKeySet<Commit>()
 

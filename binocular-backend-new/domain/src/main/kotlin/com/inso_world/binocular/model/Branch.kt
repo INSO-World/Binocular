@@ -21,6 +21,25 @@ data class Branch(
     @field:NotNull
     var repository: Repository? = null,
 ) {
+
+    companion object {
+        /** Java friendly factory. */
+        @JvmStatic
+        fun create(
+            name: String,
+            repository: Repository,
+            active: Boolean = false,
+            tracksFileRenames: Boolean = false,
+            latestCommit: String? = null,
+        ): Branch =
+            Branch(
+                name = name,
+                active = active,
+                tracksFileRenames = tracksFileRenames,
+                latestCommit = latestCommit,
+                repository = repository,
+            )
+    }
     @Deprecated("legacy, use name property instead", replaceWith = ReplaceWith("name"))
     val branch: String = name
 

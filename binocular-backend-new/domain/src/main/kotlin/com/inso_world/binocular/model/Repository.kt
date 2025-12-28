@@ -23,6 +23,13 @@ data class Repository(
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
+
+        /** Java friendly factory. */
+        @JvmStatic
+        fun create(
+            localPath: String,
+            project: Project? = null,
+        ): Repository = Repository(localPath = localPath, project = project)
     }
 
     @get:Valid
