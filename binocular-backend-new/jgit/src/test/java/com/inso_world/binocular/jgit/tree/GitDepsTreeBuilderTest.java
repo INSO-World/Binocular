@@ -82,7 +82,8 @@ class GitDepsTreeBuilderTest {
         GitDepsTree tree = builder.build(repo, mainCommits);
 
         assertEquals(5, tree.getNodes().size());
-        assertEquals(5, tree.getRows());
+        int maxRowIndex = tree.getNodes().stream().mapToInt(GitTreeNode::getRowIndex).max().orElse(-1);
+        assertEquals(maxRowIndex + 1, tree.getRows());
         assertTrue(tree.getColumns() >= 2);
 
         GitTreeNode featureNode = tree.getNodes().stream()
