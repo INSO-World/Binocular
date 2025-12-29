@@ -1,9 +1,11 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge
 
+import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileConnection
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Stats
+import org.springframework.data.domain.Pageable
 
 /**
  * Interface for CommitFileConnection DAO operations.
@@ -16,9 +18,19 @@ internal interface ICommitFileConnectionDao {
     fun findFilesByCommit(commitId: String): List<File>
 
     /**
+     * Find files connected to a commit paginated.
+     */
+    fun findFilesByCommitPaged(commitId: String, pageable: Pageable): Page<File>
+
+    /**
      * Find all commits connected to a file
      */
     fun findCommitsByFile(fileId: String): List<Commit>
+
+    /**
+     * Find commits connected to a file paginated.
+     */
+    fun findCommitsByFilePaged(fileId: String, pageable: Pageable): Page<Commit>
 
     /**
      * Return stats (additions/deletions) for a given commit

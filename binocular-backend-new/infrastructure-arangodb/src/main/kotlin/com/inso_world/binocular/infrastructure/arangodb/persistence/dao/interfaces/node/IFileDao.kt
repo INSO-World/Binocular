@@ -3,4 +3,8 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfa
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
 import com.inso_world.binocular.model.File
 
-internal interface IFileDao : IDao<File, String>
+internal interface IFileDao : IDao<File, String> {
+
+    fun findByPath(path: String): File?
+
+}

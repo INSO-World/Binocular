@@ -11,6 +11,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -53,7 +54,12 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
         return commitFileConnectionRepository.findCommitsByFile(fileId)
     }
 
-    override fun findModulesByFileId(fileId: String): List<com.inso_world.binocular.model.Module> {
+    override fun findCommitsByFileId(fileId: String, pageable: Pageable): Page<Commit> {
+        logger.trace("Getting commits for file: $fileId with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
+        return commitFileConnectionRepository.findCommitsByFilePaged(fileId, pageable)
+    }
+
+    override fun findModulesByFileId(fileId: String): List<Module> {
         logger.trace("Getting modules for file: $fileId")
         return moduleFileConnectionRepository.findModulesByFile(fileId)
     }
@@ -66,6 +72,11 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
     override fun findUsersByFileId(fileId: String): List<User> {
         logger.trace("Getting users for file: $fileId")
         return commitFileUserConnectionRepository.findUsersByFile(fileId)
+    }
+
+    override fun findByPath(path: String): File? {
+        logger.trace("Finding file by path: $path")
+        return fileDao.findByPath(path)
     }
 
     override fun findAll(): Iterable<File> = fileDao.findAll()

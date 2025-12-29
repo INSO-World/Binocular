@@ -83,6 +83,11 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         return commitFileConnectionRepository.findFilesByCommit(commitId)
     }
 
+    override fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File> {
+        logger.trace("Getting files for commit: $commitId with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
+        return commitFileConnectionRepository.findFilesByCommitPaged(commitId, pageable)
+    }
+
     override fun findModulesByCommitId(commitId: String): List<Module> {
         logger.trace("Getting modules for commit: $commitId")
         return commitModuleConnectionRepository.findModulesByCommit(commitId)

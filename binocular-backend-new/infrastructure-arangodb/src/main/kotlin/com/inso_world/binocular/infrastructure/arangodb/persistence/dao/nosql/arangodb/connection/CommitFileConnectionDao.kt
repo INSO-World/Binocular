@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitFileConnectionEntity
@@ -12,6 +13,7 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Stats
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 
 /**
@@ -41,11 +43,35 @@ class CommitFileConnectionDao
         }
 
         /**
+        * Find all files connected to a commit with pagination support.
+        */
+        override fun findFilesByCommitPaged(commitId: String, pageable: Pageable): Page<File> {
+            val offset = pageable.offset.toInt()
+            val limit = pageable.pageSize
+            val total = repository.countFilesByCommit(commitId).firstOrNull() ?: 0L
+            val fileEntities = if (limit > 0) repository.findFilesByCommitOrdered(commitId, offset, limit) else emptyList()
+            val content = fileEntities.map { fileMapper.toDomain(it) }
+            return Page(content, total, pageable)
+        }
+
+        /**
          * Find all commits connected to a file
          */
         override fun findCommitsByFile(fileId: String): List<Commit> {
             val commitEntities = repository.findCommitsByFile(fileId)
             return commitEntities.map { commitMapper.toDomain(it) }
+        }
+
+        /**
+        * Find all commits connected to a file with pagination support.
+        */
+        override fun findCommitsByFilePaged(fileId: String, pageable: Pageable): Page<Commit> {
+            val offset = pageable.offset.toInt()
+            val limit = pageable.pageSize
+            val total = repository.countCommitsByFile(fileId).firstOrNull() ?: 0L
+            val commitEntities = if (limit > 0) repository.findCommitsByFileOrdered(fileId, offset, limit) else emptyList()
+            val content = commitEntities.map { commitMapper.toDomain(it) }
+            return Page(content, total, pageable)
         }
 
         /**

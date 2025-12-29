@@ -300,6 +300,10 @@ internal class CommitInfrastructurePortImpl
             TODO("Not yet implemented")
         }
 
+        override fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File> {
+            TODO("Not yet implemented")
+        }
+
         override fun findModulesByCommitId(commitId: String): List<Module> {
             TODO("Not yet implemented")
         }

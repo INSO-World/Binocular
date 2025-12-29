@@ -48,20 +48,31 @@ class FileController(
     }
 
     /**
-     * Find a file by its ID.
+     * Find a file by its ID or path.
      *
      * This method retrieves a single file based on the provided ID.
      * If no file is found with the given ID, an exception is thrown.
      *
      * @param id The unique identifier of the file to retrieve.
+     * @param path The unique path of the file to retrieve.
      * @return The file with the specified ID.
      * @throws GraphQLException if no file is found with the given ID.
      */
     @QueryMapping(name = "file")
-    fun findById(
-        @Argument id: String,
+    fun findByIdOrPath(
+        @Argument id: String?,
+        @Argument path: String?,
     ): File {
-        logger.info("Getting file by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(fileService.findById(id), "File", id)
+        if (id != null) {
+            logger.info("Getting file by id: $id")
+            return GraphQLValidationUtils.requireEntityExists(fileService.findById(id), "File", id)
+        }
+        if (path != null) {
+            logger.info("Getting file by path: $path")
+            val match = fileService.findByPath(path)
+            return GraphQLValidationUtils.requireEntityExists(match, "File", path)
+        }
+        throw IllegalArgumentException("Either id or path must be provided")
     }
+
 }

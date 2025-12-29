@@ -47,6 +47,11 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
     fun findFilesByCommitId(commitId: String): List<File>
 
     /**
+     * Find files by commit ID with pagination.
+     */
+    fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File>
+
+    /**
      * Return commit-level stats for a given commit.
      */
     fun findCommitStatsByCommitId(commitId: String): Stats
