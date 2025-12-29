@@ -26,7 +26,7 @@ enum Sort {
   account(id: ID!): Account
   branch(id: ID!): Branch
   build(id: ID!): Build
-  file(id: ID!): File
+  file(id: ID, path: String): File
   issue(id: ID!): Issue
   mergeRequest(id: ID!): mergeRequest
   milestone(id: ID!): Milestone
@@ -65,7 +65,7 @@ type Commit {
   """
   children: [Commit]
   builds: [Build]
-  files: PaginatedFileInCommit
+  files(page: Int, perPage: Int): PaginatedFileInCommit
   modules: [Module]
   users: [User]
   user: User
@@ -147,7 +147,7 @@ type File {
   path: String
   webUrl: String
   maxLength: Int
-  commits: [Commit]
+  commits(page: Int, perPage: Int): PaginatedCommitInFile
   branches: [Branch]
   modules: [Module]
   relatedFiles: [File]
@@ -255,13 +255,29 @@ type User {
   account: Account
 }
 
+type Hunk {
+  newStart: Int
+  newLines: Int
+  oldStart: Int
+  oldLines: Int
+}
+
 type FileInCommit {
   file: File
   stats: Stats
+  hunks: [Hunk]!
 }
 
 type PaginatedFileInCommit {
   data: [FileInCommit]!
+}
+
+type CommitInFile {
+  commit: Commit
+}
+
+type PaginatedCommitInFile {
+  data: [CommitInFile]!
 }
 
 """

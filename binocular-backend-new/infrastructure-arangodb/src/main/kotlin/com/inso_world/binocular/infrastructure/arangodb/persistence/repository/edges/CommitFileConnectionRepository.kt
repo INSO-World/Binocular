@@ -22,6 +22,18 @@ interface CommitFileConnectionRepository : ArangoRepository<CommitFileConnection
 
     @Query(
         """
+    FOR c IN `commits-files`
+        FILTER c._from == CONCAT('commits/', @commitId)
+        FOR f IN files
+            FILTER f._id == c._to
+            LIMIT @offset, @limit
+            RETURN f
+""",
+    )
+    fun findFilesByCommitOrdered(commitId: String, offset: Int, limit: Int): List<FileEntity>
+
+    @Query(
+        """
 FOR c IN commits
   FILTER c._key == @commitId
   RETURN {
@@ -48,6 +60,16 @@ FOR c IN commits
     @Query(
         """
     FOR c IN `commits-files`
+        FILTER c._from == CONCAT('commits/', @commitId)
+        COLLECT WITH COUNT INTO length
+        RETURN length
+""",
+    )
+    fun countFilesByCommit(commitId: String): List<Long>
+
+    @Query(
+        """
+    FOR c IN `commits-files`
         FILTER c._to == CONCAT('files/', @fileId)
         FOR cm IN commits
             FILTER cm._id == c._from
@@ -55,4 +77,27 @@ FOR c IN commits
 """,
     )
     fun findCommitsByFile(fileId: String): List<CommitEntity>
+
+    @Query(
+        """
+    FOR c IN `commits-files`
+        FILTER c._to == CONCAT('files/', @fileId)
+        FOR cm IN commits
+            FILTER cm._id == c._from
+            SORT (cm.date == null) ASC, cm.date ASC, cm.sha ASC
+            LIMIT @offset, @limit
+            RETURN cm
+""",
+    )
+    fun findCommitsByFileOrdered(fileId: String, offset: Int, limit: Int): List<CommitEntity>
+
+    @Query(
+        """
+    FOR c IN `commits-files`
+        FILTER c._to == CONCAT('files/', @fileId)
+        COLLECT WITH COUNT INTO length
+        RETURN length
+""",
+    )
+    fun countCommitsByFile(fileId: String): List<Long>
 }

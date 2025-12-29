@@ -3,16 +3,19 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.web.graphql.model.CommitFile
 import com.inso_world.binocular.web.graphql.model.CommitFileConnection
+import com.inso_world.binocular.web.graphql.model.Hunk
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.graphql.data.method.annotation.SchemaMapping
+import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.stereotype.Controller
 import java.time.LocalDateTime
 
@@ -49,19 +52,35 @@ class CommitResolver(
      * @return A list of files associated with the commit, or an empty list if the commit ID is null
      */
     @SchemaMapping(typeName = "Commit", field = "files")
-    fun files(commit: Commit): CommitFileConnection {
+    fun files(commit: Commit, @Argument page: Int?, @Argument perPage: Int?): CommitFileConnection {
         val id = commit.id ?: return CommitFileConnection(emptyList())
 
-        logger.info("Resolving files for commit: $id")
+        logger.info("Resolving files for commit: $id (page=$page, perPage=$perPage)")
 
-        val files = commitService.findFilesByCommitId(id)
         val fileStatsById = commitService.findFileStatsByCommitId(id)
 
-        val data = files.map { f ->
+        val pageSize = (perPage ?: Int.MAX_VALUE)
+        val sort = Sort.by(Sort.Order.desc("id"))
+        val currentPage = (page ?: 1).coerceAtLeast(1)
+        val pageable = PageRequest.of(currentPage - 1, pageSize, sort)
+        val pageResult = commitService.findFilesByCommitId(id, pageable)
+
+        val data = pageResult.content.map { f ->
             val stats = f.id?.let { fileStatsById[it] } ?: Stats(additions = 0, deletions = 0)
+            val additions = (stats.additions ?: 0).toInt()
+            val deletions = (stats.deletions ?: 0).toInt()
+            val hunks = listOf(
+                Hunk(
+                    newStart = 1,
+                    newLines = additions,
+                    oldStart = 0,
+                    oldLines = deletions,
+                )
+            )
             CommitFile(
                 file = f,
-                stats = stats
+                stats = stats,
+                hunks = hunks,
             )
         }
 
@@ -212,9 +231,19 @@ class CommitResolver(
     fun user(commit: Commit): User? {
         val id = commit.id ?: return null
         logger.info("Resolving user for commit: $id")
-        // Get all users for this commit and return the first one
+        commit.author?.let {
+            logger.info("Commit $id user resolved to AUTHOR: id=${it.id}, sig=${it.gitSignature}")
+            return it
+        }
+        // should always be author, committer is from the old graphql impl
+        commit.committer?.let {
+            logger.info("Commit $id user resolved to COMMITTER: id=${it.id}, sig=${it.gitSignature}")
+            return it
+        }
         val users = commitService.findUsersByCommitId(id)
-        return users.firstOrNull()
+        val selected = users.firstOrNull()
+        logger.info("Commit $id user resolved to FIRST_ASSOCIATED: id=${selected?.id}, sig=${selected?.gitSignature}")
+        return selected
     }
 
     /**

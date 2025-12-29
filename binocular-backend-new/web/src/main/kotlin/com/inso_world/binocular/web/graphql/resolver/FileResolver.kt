@@ -5,10 +5,16 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.web.graphql.model.CommitInFile
+import com.inso_world.binocular.web.graphql.model.PaginatedCommitInFileDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.graphql.data.method.annotation.SchemaMapping
+import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.stereotype.Controller
+import java.time.LocalDateTime
 
 @Controller
 class FileResolver(
@@ -43,11 +49,29 @@ class FileResolver(
      * @return A list of commits associated with the file, or an empty list if the file ID is null
      */
     @SchemaMapping(typeName = "File", field = "commits")
-    fun commits(file: File): List<Commit> {
-        val id = file.id ?: return emptyList()
+    fun commits(file: File, @Argument page: Int?, @Argument perPage: Int?): PaginatedCommitInFileDto {
+        val id = file.id ?: return PaginatedCommitInFileDto(
+            count = 0,
+            page = page ?: 1,
+            perPage = perPage ?: 20,
+            data = emptyList()
+        )
         logger.info("Resolving commits for file: $id")
-        // Get all connections for this file and extract the commits
-        return fileService.findCommitsByFileId(id)
+        val currentPage = (page ?: 1).coerceAtLeast(1)
+        val pageSize = perPage ?: Int.MAX_VALUE
+        val sort = Sort.by(Sort.Order.asc("commitDateTime"), Sort.Order.asc("sha"),)
+        val pageable = PageRequest.of(currentPage - 1, pageSize, sort)
+        val commitsPage = fileService.findCommitsByFileId(id, pageable)
+
+        logger.info("First 5 commit SHAs for file $id: ${commitsPage.content.take(5).joinToString(",") { it.sha.substring(0,7) }}")
+
+        val data = commitsPage.content.map { c -> CommitInFile(commit = c) }
+        return PaginatedCommitInFileDto(
+            count = commitsPage.totalElements.toInt(),
+            page = currentPage,
+            perPage = pageSize,
+            data = data,
+        )
     }
 
     /**
@@ -100,4 +124,5 @@ class FileResolver(
         // Get all connections for this file and extract the users
         return fileService.findUsersByFileId(id)
     }
+
 }

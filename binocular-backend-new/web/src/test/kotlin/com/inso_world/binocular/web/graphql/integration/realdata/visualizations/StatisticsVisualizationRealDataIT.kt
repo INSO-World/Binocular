@@ -430,9 +430,9 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertEquals("Feature/251 Additional Tests", first.get("title").asText(), "data[0].title")
         assertEquals("MERGED", first.get("state").asText(), "data[0].state")
         assertEquals("https://github.com/INSO-World/Binocular/pull/254", first.get("webUrl").asText(), "data[0].webUrl")
-        assertIsoInstantEquals(first.get("createdAt").asText(), "2024-09-14T10:54:33Z", "data[0].createdAt was $createdAt")
-        assertIsoInstantEquals(first.get("closedAt").asText(), "2024-09-25T08:22:36Z", "data[0].closedAt was $closedAt")
-        assertIsoInstantEquals(first.get("updatedAt").asText(), "2024-09-25T08:22:37Z", "data[0].updatedAt was $updatedAt")
+        assertIsoInstantEquals(first.get("createdAt").asText(), "2024-09-14T10:54:33Z", "data[0].createdAt")
+        assertIsoInstantEquals(first.get("closedAt").asText(), "2024-09-25T08:22:36Z", "data[0].closedAt")
+        assertIsoInstantEquals(first.get("updatedAt").asText(), "2024-09-25T08:22:37Z", "data[0].updatedAt")
         assertTrue(first.get("sourceBranch").isNull, "data[0].sourceBranch should be null")
         assertTrue(first.get("targetBranch").isNull, "data[0].targetBranch should be null")
 
