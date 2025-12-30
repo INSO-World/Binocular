@@ -9,7 +9,7 @@
     "check": "eslint .",
     "dev": "tsx watch binocular.ts run ../ --no-frontend",
     "dev:no-indexing": "tsx watch binocular.ts run ../ --no-frontend --no-vcs --no-ci --no-its",
-    "dev:db-export": "tsx watch binocular.ts run ../ --no-frontend --no-vcs --no-ci --no-its --export",
+    "dev:db-export": "tsx watch binocular.ts run ../ --no-frontend --no-vcs --no-ci --no-its --no-server --export",
     "fix": "eslint --fix ."
   },
   "bin": {
