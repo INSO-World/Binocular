@@ -108,4 +108,9 @@ internal class BranchInfrastructurePortImpl(
     override fun deleteAll() {
         super.deleteAllEntities()
     }
+
+    override fun findByName(name: String): Branch? {
+        TODO("Not yet implemented")
+    }
+
 }

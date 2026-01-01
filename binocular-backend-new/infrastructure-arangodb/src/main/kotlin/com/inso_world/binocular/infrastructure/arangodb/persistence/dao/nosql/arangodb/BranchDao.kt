@@ -18,7 +18,12 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class BranchDao(
-    @Autowired branchRepository: BranchRepository,
-    @Autowired branchMapper: BranchMapper,
+    @Autowired private val branchRepository: BranchRepository,
+    @Autowired private val branchMapper: BranchMapper,
 ) : MappedArangoDbDao<Branch, BranchEntity, String>(branchRepository, branchMapper),
-    IBranchDao
+    IBranchDao {
+
+    override fun findByName(name: String): Branch? =
+        branchRepository.findByBranch(name)?.let { branchMapper.toDomain(it) }
+
+    }

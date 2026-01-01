@@ -216,24 +216,35 @@ class OwnerShipVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
         val root = client.execute(query)
         val branch = root.get("branch")
+        assertEquals("Branch", branch.get("__typename").asText(), "branch.__typename")
+
         val files = branch.get("files")
+        assertEquals("PaginatedFileInBranch", files.get("__typename").asText(), "branch.files.__typename")
+
         val data = files.get("data")
         assertTrue(data.size() >= 2, "branch.files.data should contain at least two items for snapshot checks")
 
-        run {
-            val item = data.get(0)
-            val file = item.get("file")
-            assertEquals("binocular-backend-new/web/src/test/kotlin/com/inso_world/binocular/web/graphql/integration/realdata/GraphQLIntegrationTestRealData.kt", file.get("path").asText(), "files[0].file.path")
-            assertEquals("File", file.get("__typename").asText(), "files[0].file.__typename")
-            assertEquals("FileInBranch", item.get("__typename").asText(), "files[0].__typename")
+        // order should not matter
+        val filesByPath = data.associateBy {
+            it.get("file").get("path").asText()
         }
 
-        run {
-            val item = data.get(1)
+        fun assertFile(path: String) {
+            val item = filesByPath[path]
+                ?: error("Missing expected file in branch snapshot: $path")
+
             val file = item.get("file")
-            assertEquals("binocular-backend-new/infrastructure-sql/src/main/resources/db/changelog/2025/11/04-issues-and-mrs.yaml", file.get("path").asText(), "files[1].file.path")
-            assertEquals("File", file.get("__typename").asText(), "files[1].file.__typename")
-            assertEquals("FileInBranch", item.get("__typename").asText(), "files[1].__typename")
+            assertEquals("File", file.get("__typename").asText(), "file.__typename for $path")
+            assertEquals("FileInBranch", item.get("__typename").asText(), "__typename for $path")
         }
+
+        assertFile(
+            "binocular-backend-new/web/src/test/kotlin/com/inso_world/binocular/web/graphql/integration/realdata/GraphQLIntegrationTestRealData.kt"
+        )
+
+        assertFile(
+            "binocular-backend-new/infrastructure-sql/src/main/resources/db/changelog/2025/11/04-issues-and-mrs.yaml"
+        )
     }
+
 }

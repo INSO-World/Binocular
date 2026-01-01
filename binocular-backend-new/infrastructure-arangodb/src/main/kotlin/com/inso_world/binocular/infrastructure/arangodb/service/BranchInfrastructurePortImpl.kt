@@ -14,7 +14,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class BranchInfrastructurePortImpl : BranchInfrastructurePort {
+class BranchInfrastructurePortImpl : BranchInfrastructurePort { 
     @Autowired private lateinit var branchDao: IBranchDao
 
     @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
@@ -62,4 +62,10 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
     override fun findAll(repository: Repository): Iterable<Branch> {
         TODO("Not yet implemented")
     }
+
+    override fun findByName(name: String): Branch? {
+        logger.trace("Getting branch by name: $name")
+        return branchDao.findByName(name)
+    }
+
 }

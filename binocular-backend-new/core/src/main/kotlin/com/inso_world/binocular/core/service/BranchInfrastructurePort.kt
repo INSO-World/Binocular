@@ -18,4 +18,10 @@ interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch> {
     fun findFilesByBranchId(branchId: String): List<File>
 
     fun findAll(repository: Repository): Iterable<Branch>
+
+    /**
+     * Find a branch by its name.
+     * Implementations should query the database rather than scanning in memory.
+     */
+    fun findByName(name: String): Branch?
 }
