@@ -5,4 +5,8 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.Branc
 import org.springframework.stereotype.Repository
 
 @Repository
-interface BranchRepository : ArangoRepository<BranchEntity, String>
+interface BranchRepository : ArangoRepository<BranchEntity, String> {
+
+    fun findByBranch(branch: String): BranchEntity?
+
+}

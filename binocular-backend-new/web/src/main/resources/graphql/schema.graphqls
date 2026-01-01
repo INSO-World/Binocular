@@ -11,7 +11,7 @@ enum Sort {
  type Query {
   commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedCommit!
   accounts(page: Int, perPage: Int): PaginatedAccount!
-  branches(page: Int, perPage: Int): PaginatedBranch!
+  branches(page: Int, perPage: Int, sort: String): PaginatedBranch!
   builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedBuild!
   files(page: Int, perPage: Int): PaginatedFile!
   issues(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedIssue!
@@ -24,7 +24,7 @@ enum Sort {
   # Single item queries
   commit(sha: String!): Commit
   account(id: ID!): Account
-  branch(id: ID!): Branch
+  branch(id: ID, branchName: String): Branch
   build(id: ID!): Build
   file(id: ID, path: String): File
   issue(id: ID!): Issue
@@ -109,7 +109,7 @@ type Branch {
   active: Boolean
   tracksFileRenames: Boolean
   latestCommit: String
-  files: [File]
+  files: PaginatedFileInBranch
 }
 
 type Build {
@@ -278,6 +278,14 @@ type CommitInFile {
 
 type PaginatedCommitInFile {
   data: [CommitInFile]!
+}
+
+type FileInBranch {
+  file: File
+}
+
+type PaginatedFileInBranch {
+  data: [FileInBranch]!
 }
 
 """
