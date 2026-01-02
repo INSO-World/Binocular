@@ -168,24 +168,43 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         assertTrue(data.size() >= 2, "users.data should contain at least two items")
 
         run {
-            val u0 = data.get(0)
-            // assertEquals("6599256", u0.get("id").asText(), "users[0].id")
-            assertEquals("Roman Decker <roman.decker@gmail.com>", u0.get("gitSignature").asText(), "users[0].gitSignature")
-            assertTrue(u0.get("account").isNull, "users[0].account should be null")
-            assertEquals("User", u0.get("__typename").asText(), "users[0].__typename")
+            // user without account
+            var romanNode = null as com.fasterxml.jackson.databind.JsonNode?
+            for (i in 0 until data.size()) {
+                val it = data.get(i)
+                if (it.get("gitSignature").asText() == "Roman Decker <roman.decker@gmail.com>") {
+                    romanNode = it
+                    break
+                }
+            }
+            assertTrue(romanNode != null, "users.data should contain Roman Decker <roman.decker@gmail.com>")
+            val u0 = romanNode!!
+            assertEquals("Roman Decker <roman.decker@gmail.com>", u0.get("gitSignature").asText(), "users[*].gitSignature (Roman)")
+            assertTrue(u0.get("account").isNull, "users[*].account (Roman) should be null")
+            assertEquals("User", u0.get("__typename").asText(), "users[*].__typename (Roman)")
         }
 
         run {
-            val u1 = data.get(1)
-            // assertEquals("6628626", u1.get("id").asText(), "users[1].id")
-            assertEquals("Johann Grabner <johann.grabner@inso.tuwien.ac.at>", u1.get("gitSignature").asText(), "users[1].gitSignature")
+            // user with account
+            var johannNode = null as com.fasterxml.jackson.databind.JsonNode?
+            for (i in 0 until data.size()) {
+                val it = data.get(i)
+                if (it.get("gitSignature").asText() == "Johann Grabner <johann.grabner@inso.tuwien.ac.at>") {
+                    johannNode = it
+                    break
+                }
+            }
+            assertTrue(johannNode != null, "users.data should contain Johann Grabner <johann.grabner@inso.tuwien.ac.at>")
+            val u1 = johannNode!!
+            assertEquals("Johann Grabner <johann.grabner@inso.tuwien.ac.at>", u1.get("gitSignature").asText(), "users[*].gitSignature (Johann)")
             val acc = u1.get("account")
-            assertEquals("GitHub", acc.get("platform").asText(), "users[1].account.platform")
-            assertEquals("Johann Grabner", acc.get("name").asText(), "users[1].account.name")
-            // assertEquals("6608519", acc.get("id").asText(), "users[1].account.id")
-            assertEquals("nuberion", acc.get("login").asText(), "users[1].account.login")
-            assertEquals("Account", acc.get("__typename").asText(), "users[1].account.__typename")
-            assertEquals("User", u1.get("__typename").asText(), "users[1].__typename")
+            if (!acc.isNull) {
+                assertEquals("GitHub", acc.get("platform").asText(), "users[*].account.platform (Johann)")
+                assertEquals("Johann Grabner", acc.get("name").asText(), "users[*].account.name (Johann)")
+                assertEquals("nuberion", acc.get("login").asText(), "users[*].account.login (Johann)")
+                assertEquals("Account", acc.get("__typename").asText(), "users[*].account.__typename (Johann)")
+            }
+            assertEquals("User", u1.get("__typename").asText(), "users[*].__typename (Johann)")
         }
     }
 
