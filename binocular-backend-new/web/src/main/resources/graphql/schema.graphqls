@@ -6,13 +6,15 @@ scalar Timestamp
 enum Sort {
   ASC
   DESC
+  asc
+  desc
 }
 
  type Query {
-  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedCommit!
+  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: String): PaginatedCommit!
   accounts(page: Int, perPage: Int): PaginatedAccount!
   branches(page: Int, perPage: Int, sort: String): PaginatedBranch!
-  builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedBuild!
+  builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: String): PaginatedBuild!
   files(page: Int, perPage: Int): PaginatedFile!
   issues(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedIssue!
   mergeRequests(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedmergeRequest!
