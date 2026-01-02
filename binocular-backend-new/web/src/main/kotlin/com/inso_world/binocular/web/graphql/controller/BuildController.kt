@@ -4,7 +4,6 @@ import com.inso_world.binocular.core.service.BuildInfrastructurePort
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
-import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,7 +42,7 @@ class BuildController(
         @Argument perPage: Int?,
         @Argument since: Long?,
         @Argument until: Long?,
-        @Argument sort: Sort?,
+        @Argument sort: String?,
     ): PageDto<Build> {
         logger.info(
             "Getting builds with page={}, perPage={}, since={}, until={}, sort={}",
@@ -83,7 +82,7 @@ class BuildController(
         pageable: Pageable,
         since: Long?,
         until: Long?,
-        sort: Sort?
+        sort: String?
     ): PageDto<Build> {
 
         fun Build.createdMillis() =
@@ -109,9 +108,9 @@ class BuildController(
                             (until == null || ts <= until)
                 }
                 .let {
-                    when (sort) {
-                        Sort.ASC -> it.sortedWith(comparatorAsc)
-                        Sort.DESC -> it.sortedWith(comparatorAsc.reversed())
+                    when (sort?.uppercase()) {
+                        "ASC" -> it.sortedWith(comparatorAsc)
+                        "DESC" -> it.sortedWith(comparatorAsc.reversed())
                         else -> it
                     }
                 }

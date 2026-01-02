@@ -12,6 +12,7 @@ import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
+import java.time.ZoneOffset
 
 @Controller
 @SchemaMapping(typeName = "Commit")
@@ -41,13 +42,41 @@ class CommitController(
         @Argument perPage: Int?,
         @Argument since: Long?,
         @Argument until: Long?,
+        @Argument sort: String?,
     ): PageDto<Commit> {
         logger.info("Getting commits with page=$page, perPage=$perPage, since=$since, until=$until")
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        val commitsPage = commitService.findAll(pageable, since, until)
+        // TODO: should be done in db directly not here
+        if (sort != null) {
+            fun Commit.commitMillis(): Long? = this.commitDateTime?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
+            val comparatorAsc = compareBy<Commit>({ it.commitMillis() }, { it.sha })
 
+            val all = commitService.findAll().toList()
+            val filtered = all.asSequence().filter { c ->
+                val ts = c.commitMillis() ?: return@filter true
+                (since == null || ts >= since) && (until == null || ts <= until)
+            }.toList()
+
+            val sorted = when (sort.uppercase()) {
+                "ASC" -> filtered.sortedWith(comparatorAsc)
+                "DESC" -> filtered.sortedWith(comparatorAsc.reversed())
+                else -> filtered
+            }
+
+            val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
+            val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
+            val slice = if (from < to) sorted.subList(from, to) else emptyList()
+            return PageDto(
+                count = sorted.size,
+                page = pageable.pageNumber + 1,
+                perPage = pageable.pageSize,
+                data = slice,
+            )
+        }
+
+        val commitsPage = commitService.findAll(pageable, since, until)
         return PageDto(commitsPage)
     }
 
