@@ -5,5 +5,8 @@ package com.inso_world.binocular.web.graphql.model
  * Note: current GraphQL schema only exposes the data array for this type.
  */
 data class PaginatedFileInBranchDto(
+    val count: Int,
+    val page: Int,
+    val perPage: Int,
     val data: List<FileInBranchDto>,
 )
