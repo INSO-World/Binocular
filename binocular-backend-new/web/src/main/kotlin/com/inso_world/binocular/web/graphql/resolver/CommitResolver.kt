@@ -53,7 +53,17 @@ class CommitResolver(
      */
     @SchemaMapping(typeName = "Commit", field = "files")
     fun files(commit: Commit, @Argument page: Int?, @Argument perPage: Int?): CommitFileConnection {
-        val id = commit.id ?: return CommitFileConnection(emptyList())
+        if (commit.id == null) {
+            val pageSize = perPage ?: Int.MAX_VALUE
+            val currentPage = (page ?: 1).coerceAtLeast(1)
+            return CommitFileConnection(
+                count = 0,
+                page = currentPage,
+                perPage = pageSize,
+                data = emptyList()
+            )
+        }
+        val id = requireNotNull(commit.id)
 
         logger.info("Resolving files for commit: $id (page=$page, perPage=$perPage)")
 
@@ -84,7 +94,12 @@ class CommitResolver(
             )
         }
 
-        return CommitFileConnection(data)
+        return CommitFileConnection(
+            count = pageResult.totalElements.toInt(),
+            page = currentPage,
+            perPage = pageSize,
+            data = data
+        )
     }
 
 
