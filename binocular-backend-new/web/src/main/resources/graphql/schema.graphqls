@@ -1,27 +1,28 @@
 """
-Scalar type for timestamp values (milliseconds since epoch)
+Timestamp scalar representing moments in time.
+- Input: epoch milliseconds or ISO-8601 date-time string (UTC assumed if zone is missing).
+- Output: ISO-8601 UTC string with milliseconds (e.g. 2025-01-02T03:04:05.678Z).
 """
 scalar Timestamp
 
-enum Sort {
-  ASC
-  DESC
-  asc
-  desc
-}
+"""
+Sort direction (ASC or DESC, case-insensitive).
+Accepted values: ASC, DESC (case-insensitive)
+"""
+scalar Sort
 
  type Query {
-  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: String): PaginatedCommit!
-  accounts(page: Int, perPage: Int): PaginatedAccount!
-  branches(page: Int, perPage: Int, sort: String): PaginatedBranch!
-  builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: String): PaginatedBuild!
-  files(page: Int, perPage: Int): PaginatedFile!
-  issues(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedIssue!
-  mergeRequests(page: Int, perPage: Int, since: Timestamp, until: Timestamp): PaginatedmergeRequest!
-  milestones(page: Int, perPage: Int): PaginatedMilestone!
-  modules(page: Int, perPage: Int): PaginatedModule!
-  notes(page: Int, perPage: Int): PaginatedNote!
-  users(page: Int, perPage: Int): PaginatedUser!
+  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedCommit!
+  accounts(page: Int, perPage: Int, sort: Sort): PaginatedAccount!
+  branches(page: Int, perPage: Int, sort: Sort): PaginatedBranch!
+  builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedBuild!
+  files(page: Int, perPage: Int, sort: Sort): PaginatedFile!
+  issues(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedIssue!
+  mergeRequests(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedmergeRequest!
+  milestones(page: Int, perPage: Int, sort: Sort): PaginatedMilestone!
+  modules(page: Int, perPage: Int, sort: Sort): PaginatedModule!
+  notes(page: Int, perPage: Int, sort: Sort): PaginatedNote!
+  users(page: Int, perPage: Int, sort: Sort): PaginatedUser!
 
   # Single item queries
   commit(sha: String!): Commit
@@ -111,7 +112,7 @@ type Branch {
   active: Boolean
   tracksFileRenames: Boolean
   latestCommit: String
-  files: PaginatedFileInBranch
+  files(page: Int, perPage: Int): PaginatedFileInBranch
 }
 
 type Build {
@@ -271,6 +272,9 @@ type FileInCommit {
 }
 
 type PaginatedFileInCommit {
+  count: Int!
+  page: Int!
+  perPage: Int!
   data: [FileInCommit]!
 }
 
@@ -279,6 +283,9 @@ type CommitInFile {
 }
 
 type PaginatedCommitInFile {
+  count: Int!
+  page: Int!
+  perPage: Int!
   data: [CommitInFile]!
 }
 
@@ -287,6 +294,9 @@ type FileInBranch {
 }
 
 type PaginatedFileInBranch {
+  count: Int!
+  page: Int!
+  perPage: Int!
   data: [FileInBranch]!
 }
 
