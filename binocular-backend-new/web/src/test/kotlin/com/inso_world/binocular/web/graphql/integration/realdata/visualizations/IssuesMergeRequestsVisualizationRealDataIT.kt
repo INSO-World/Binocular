@@ -10,14 +10,14 @@ class IssuesMergeRequestsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() 
 
     @Test
     fun `merge requests query returns expected snapshot for first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp
             ) {
-              mergeRequests(page: ${'$'}page, perPage: ${'$'}perPage, since: ${'$'}since, until: ${'$'}until) {
+              mergeRequests(page: $page, perPage: $perPage, since: $since, until: $until) {
                 page
                 perPage
                 count

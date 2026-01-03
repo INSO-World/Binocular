@@ -9,14 +9,14 @@ class AuthorBehaviourCollaborationVisualizationRealDataIT : BaseGraphQlCompatibi
 
     @Test
     fun `accounts issues query returns expected snapshot for first account`() {
-        val query = """
+        val query = $$"""
             query getAccountsIssues(
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}from: Timestamp,
-              ${'$'}to: Timestamp
+              $page: Int,
+              $perPage: Int,
+              $from: Timestamp,
+              $to: Timestamp
             ) {
-              accounts(page: ${'$'}page, perPage: ${'$'}perPage) {
+              accounts(page: $page, perPage: $perPage) {
                 count
                 page
                 perPage
@@ -26,7 +26,7 @@ class AuthorBehaviourCollaborationVisualizationRealDataIT : BaseGraphQlCompatibi
                   name
                   url
                   avatarUrl
-                  issues(from: ${'$'}from, to: ${'$'}to) {
+                  issues(from: $from, to: $to) {
                     id
                     iid
                     title

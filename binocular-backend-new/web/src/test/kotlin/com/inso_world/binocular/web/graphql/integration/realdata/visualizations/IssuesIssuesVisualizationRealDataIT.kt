@@ -10,14 +10,14 @@ class IssuesIssuesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `issues query returns expected snapshot for first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp
             ) {
-              issues(page: ${'$'}page, perPage: ${'$'}perPage, since: ${'$'}since, until: ${'$'}until) {
+              issues(page: $page, perPage: $perPage, since: $since, until: $until) {
                 page
                 perPage
                 count

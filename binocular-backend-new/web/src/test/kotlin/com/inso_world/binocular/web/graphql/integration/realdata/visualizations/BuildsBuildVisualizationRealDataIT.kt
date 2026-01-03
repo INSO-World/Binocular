@@ -10,20 +10,20 @@ class BuildsBuildVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `builds query returns expected snapshot for first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp,
-              ${'$'}sort: Sort
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp,
+              $sort: Sort
             ) {
               builds(
-                page: ${'$'}page
-                perPage: ${'$'}perPage
-                since: ${'$'}since
-                until: ${'$'}until
-                sort: ${'$'}sort
+                page: $page
+                perPage: $perPage
+                since: $since
+                until: $until
+                sort: $sort
               ) {
                 count
                 page
@@ -103,7 +103,11 @@ class BuildsBuildVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         val commit = first.get("commit")
         val user = commit.get("user")
         // assertEquals("6861170", user.get("id").asText(), "build.commit.user.id")
-        assertEquals("Bastian Ferch <bastian.ferch@gmail.com>", user.get("gitSignature").asText(), "build.commit.user.gitSignature")
+        assertEquals(
+            "Bastian Ferch <bastian.ferch@gmail.com>",
+            user.get("gitSignature").asText(),
+            "build.commit.user.gitSignature"
+        )
         assertEquals("User", user.get("__typename").asText(), "build.commit.user.__typename")
         assertEquals("Commit", commit.get("__typename").asText(), "build.commit.__typename")
 

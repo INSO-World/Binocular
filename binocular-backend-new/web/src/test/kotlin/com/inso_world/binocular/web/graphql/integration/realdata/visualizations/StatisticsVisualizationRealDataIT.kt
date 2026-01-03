@@ -10,20 +10,20 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `statistics commits snapshot returns expected first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp,
-              ${'$'}sort: Sort
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp,
+              $sort: Sort
             ) {
               commits(
-                page: ${'$'}page
-                perPage: ${'$'}perPage
-                since: ${'$'}since
-                until: ${'$'}until
-                sort: ${'$'}sort
+                page: $page
+                perPage: $perPage
+                since: $since
+                until: $until
+                sort: $sort
               ) {
                 count
                 page
@@ -132,12 +132,12 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `statistics users snapshot returns expected first two items`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int
+              $page: Int,
+              $perPage: Int
             ) {
-              users(page: ${'$'}page, perPage: ${'$'}perPage) {
+              users(page: $page, perPage: $perPage) {
                 count
                 page
                 perPage
@@ -210,14 +210,14 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `statistics issues snapshot returns expected first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp
             ) {
-              issues(page: ${'$'}page, perPage: ${'$'}perPage, since: ${'$'}since, until: ${'$'}until) {
+              issues(page: $page, perPage: $perPage, since: $since, until: $until) {
                 page
                 perPage
                 count
@@ -306,20 +306,20 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `statistics builds snapshot returns expected first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp,
-              ${'$'}sort: Sort
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp,
+              $sort: Sort
             ) {
               builds(
-                page: ${'$'}page
-                perPage: ${'$'}perPage
-                since: ${'$'}since
-                until: ${'$'}until
-                sort: ${'$'}sort
+                page: $page
+                perPage: $perPage
+                since: $since
+                until: $until
+                sort: $sort
               ) {
                 count
                 page
@@ -395,14 +395,14 @@ class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `statistics mergeRequests snapshot returns expected first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp
             ) {
-              mergeRequests(page: ${'$'}page, perPage: ${'$'}perPage, since: ${'$'}since, until: ${'$'}until) {
+              mergeRequests(page: $page, perPage: $perPage, since: $since, until: $until) {
                 page
                 perPage
                 count
