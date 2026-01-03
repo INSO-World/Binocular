@@ -9,14 +9,14 @@ class CommitsChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `commits query returns expected real data snapshot for first item`() {
-        val query = """
-            query (${'$'}page: Int, ${'$'}perPage: Int, ${'$'}since: Timestamp, ${'$'}until: Timestamp, ${'$'}sort: Sort) {
+        val query = $$"""
+            query ($page: Int, $perPage: Int, $since: Timestamp, $until: Timestamp, $sort: Sort) {
               commits(
-                page: ${'$'}page
-                perPage: ${'$'}perPage
-                since: ${'$'}since
-                until: ${'$'}until
-                sort: ${'$'}sort
+                page: $page
+                perPage: $perPage
+                since: $since
+                until: $until
+                sort: $sort
               ) {
                 count
                 page

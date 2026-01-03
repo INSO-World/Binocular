@@ -60,20 +60,20 @@ class OwnerShipVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `full commits ascending returns expected earliest commit snapshot including files`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}since: Timestamp,
-              ${'$'}until: Timestamp,
-              ${'$'}sort: Sort
+              $page: Int,
+              $perPage: Int,
+              $since: Timestamp,
+              $until: Timestamp,
+              $sort: Sort
             ) {
               commits(
-                page: ${'$'}page
-                perPage: ${'$'}perPage
-                since: ${'$'}since
-                until: ${'$'}until
-                sort: ${'$'}sort
+                page: $page
+                perPage: $perPage
+                since: $since
+                until: $until
+                sort: $sort
               ) {
                 count
                 page

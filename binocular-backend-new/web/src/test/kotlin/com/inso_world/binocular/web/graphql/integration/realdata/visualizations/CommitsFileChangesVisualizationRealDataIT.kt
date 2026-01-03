@@ -10,14 +10,14 @@ class CommitsFileChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `file commits for README md returns expected snapshot for first item`() {
-        val query = """
+        val query = $$"""
             query (
-              ${'$'}page: Int,
-              ${'$'}perPage: Int,
-              ${'$'}file: String!
+              $page: Int,
+              $perPage: Int,
+              $file: String!
             ) {
-              file(path: ${'$'}file) {
-                commits(page: ${'$'}page, perPage: ${'$'}perPage) {
+              file(path: $file) {
+                commits(page: $page, perPage: $perPage) {
                   data {
                     commit {
                       sha

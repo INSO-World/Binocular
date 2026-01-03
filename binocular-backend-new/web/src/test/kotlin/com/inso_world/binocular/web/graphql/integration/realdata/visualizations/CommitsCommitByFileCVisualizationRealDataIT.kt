@@ -10,9 +10,9 @@ class CommitsCommitByFileCVisualizationRealDataIT : BaseGraphQlCompatibilityIT()
 
     @Test
     fun `page 1 commits summary returns expected snapshot header items`() {
-        val query = """
-            query (${'$'}page: Int, ${'$'}perPage: Int) {
-              commits(page: ${'$'}page, perPage: ${'$'}perPage) {
+        val query = $$"""
+            query ($page: Int, $perPage: Int) {
+              commits(page: $page, perPage: $perPage) {
                 count
                 page
                 perPage
@@ -114,10 +114,10 @@ class CommitsCommitByFileCVisualizationRealDataIT : BaseGraphQlCompatibilityIT()
 
     @Test
     fun `GetCommitFiles returns expected files and pagination`() {
-        val query = """
-            query GetCommitFiles(${'$'}page: Int, ${'$'}perPage: Int, ${'$'}sha: String!) {
-              commit(sha: ${'$'}sha) {
-                files(page: ${'$'}page, perPage: ${'$'}perPage) {
+        val query = $$"""
+            query GetCommitFiles($page: Int, $perPage: Int, $sha: String!) {
+              commit(sha: $sha) {
+                files(page: $page, perPage: $perPage) {
                   data {
                     file { path __typename }
                     stats { additions deletions __typename }
