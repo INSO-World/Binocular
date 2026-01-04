@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,16 +23,13 @@ class MergeRequestController(
     private var logger: Logger = LoggerFactory.getLogger(MergeRequestController::class.java)
 
     /**
-     * Find all merge requests with pagination.
-     *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of merge requests for the current page
+     * Find all merge requests with pagination and optional time-range filtering.
      *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param since Optional timestamp (epoch millis) to include only merge requests created at or after this moment.
+     * @param until Optional timestamp (epoch millis) to include only merge requests created at or before this moment.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to ASC when not provided.
      * @return A Page object containing the merge requests and pagination metadata.
      */
     @QueryMapping(name = "mergeRequests")
@@ -40,12 +38,13 @@ class MergeRequestController(
         @Argument perPage: Int?,
         @Argument since: Long?,
         @Argument until: Long?,
+        @Argument sort: Sort?,
     ): PageDto<MergeRequest> {
-        logger.info("Getting all merge requests with page=$page, perPage=$perPage, since=$since, until=$until")
+        logger.info("Getting all merge requests with page=$page, perPage=$perPage, since=$since, until=$until, sort=$sort")
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        return findMergeRequestsInternal(pageable = pageable, since = since, until = until)
+        return findMergeRequestsInternal(pageable = pageable, since = since, until = until, sort = sort)
     }
 
     // TODO: fix this and filter in db
@@ -53,26 +52,32 @@ class MergeRequestController(
         pageable: Pageable,
         since: Long?,
         until: Long?,
+        sort: Sort?,
     ): PageDto<MergeRequest> {
         fun MergeRequest.createdMillis(): Long? = try {
             this.createdAt?.let { java.time.Instant.parse(it).toEpochMilli() }
         } catch (e: Exception) { null }
 
-        val filtered = mergeRequestService.findAll()
+        val base = mergeRequestService.findAll()
             .asSequence()
             .filter { mr ->
                 val ts = mr.createdMillis() ?: return@filter true
                 (since == null || ts >= since) && (until == null || ts <= until)
             }
-            .toList()
+        val comparatorAsc = compareBy<MergeRequest>({ it.createdAt }, { it.id ?: "" })
+        val effectiveSort = sort ?: Sort.ASC
+        val sorted = when (effectiveSort) {
+            Sort.ASC -> base.sortedWith(comparatorAsc)
+            Sort.DESC -> base.sortedWith(comparatorAsc.reversed())
+        }.toList()
 
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(filtered.size)
-        val to = (from + pageable.pageSize).coerceAtMost(filtered.size)
+        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
+        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
 
         return PageDto(
-            count = filtered.size,
+            count = sorted.size,
             pageable = pageable,
-            data = filtered.subList(from, to)
+            data = sorted.subList(from, to)
         )
     }
 
@@ -93,4 +98,5 @@ class MergeRequestController(
         logger.info("Getting merge request by id: $id")
         return GraphQLValidationUtils.requireEntityExists(mergeRequestService.findById(id), "MergeRequest", id)
     }
+
 }
