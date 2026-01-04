@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.FileInfrastructurePort
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,28 +24,37 @@ class FileController(
     /**
      * Find all files with pagination.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of files for the current page
-     *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to DESC when not provided.
      * @return A Page object containing the files and pagination metadata.
      */
     @QueryMapping(name = "files")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument sort: Sort?,
     ): PageDto<File> {
-        logger.info("Getting all files...")
+        logger.info("Getting all files... sort={}", sort)
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        val filesPage = fileService.findAll(pageable)
-
-        return PageDto(filesPage)
+        val all = fileService.findAll().toList()
+        val comparatorAsc = compareBy<File>({ it.path }, { it.id ?: "" })
+        val effectiveSort = sort ?: Sort.DESC
+        val sorted = when (effectiveSort) {
+            Sort.ASC -> all.sortedWith(comparatorAsc)
+            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
+        }
+        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
+        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
+        val slice = if (from < to) sorted.subList(from, to) else emptyList()
+        return PageDto(
+            count = sorted.size,
+            page = pageable.pageNumber + 1,
+            perPage = pageable.pageSize,
+            data = slice,
+        )
     }
 
     /**

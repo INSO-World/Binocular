@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,30 +24,49 @@ class UserController(
     /**
      * Find all users with pagination.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of users for the current page
-     *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to DESC when not provided.
      * @return A Page object containing the users and pagination metadata.
      */
     @QueryMapping(name = "users")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument sort: Sort?,
     ): PageDto<User> {
-        logger.info("Getting all users...")
+        logger.info("Getting all users... sort={}", sort)
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        val usersPage = userService.findAll(pageable)
-
-        return PageDto(usersPage)
+        val all = userService.findAll().toList()
+        val comparatorAsc = compareBy<User>({ it.name ?: "" }, { it.id ?: "" })
+        val effectiveSort = sort ?: Sort.DESC
+        val sorted = when (effectiveSort) {
+            Sort.ASC -> all.sortedWith(comparatorAsc)
+            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
+        }
+        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
+        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
+        val slice = if (from < to) sorted.subList(from, to) else emptyList()
+        return PageDto(
+            count = sorted.size,
+            page = pageable.pageNumber + 1,
+            perPage = pageable.pageSize,
+            data = slice,
+        )
     }
 
+    /**
+     * Find a user by its ID.
+     *
+     * Retrieves a single user based on the provided unique identifier. If the user cannot be found,
+     * a GraphQLException is thrown.
+     *
+     * @param id the unique identifier of the user to retrieve
+     * @return the user with the specified ID
+     * @throws graphql.GraphQLException if no user exists with the given ID
+     */
     @QueryMapping(name = "user")
     fun findById(
         @Argument id: String,
@@ -54,4 +74,5 @@ class UserController(
         logger.info("Getting user by id: $id")
         return GraphQLValidationUtils.requireEntityExists(userService.findById(id), "User", id)
     }
+
 }

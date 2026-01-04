@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.AccountInfrastructurePort
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,28 +24,53 @@ class AccountController(
     /**
      * Find all accounts with pagination.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of accounts for the current page
-     *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to ASC when not provided.
      * @return A Page object containing the accounts and pagination metadata.
      */
     @QueryMapping(name = "accounts")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument sort: Sort?,
     ): PageDto<Account> {
-        logger.info("Getting all accounts...")
+        logger.info("Getting all accounts... sort={}", sort)
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        val accountsPage = accountService.findAll(pageable)
+        val all = accountService.findAll().toList()
 
-        return PageDto(accountsPage)
+        // Legacy ordering expected by visualization snapshots:
+        // 1) login (case-insensitive)
+        // 2) name (case-insensitive)
+        // 3) id
+        fun idNumKey(a: Account): Long = a.id?.toLongOrNull() ?: Long.MAX_VALUE
+        fun idStrKey(a: Account): String = a.id ?: "\uFFFF"
+        fun loginKey(a: Account): String = a.login?.lowercase() ?: "\uFFFF"
+        val comparatorAsc = compareBy<Account>(
+            { idNumKey(it) },
+            { idStrKey(it) },
+            { loginKey(it) }
+        )
+        val effectiveSort = sort ?: Sort.ASC
+        val sorted = when (effectiveSort) {
+            Sort.ASC -> all.sortedWith(comparatorAsc)
+            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
+        }
+        run {
+            val preview = sorted.take(5).joinToString { it.login ?: "<null>" }
+            logger.info("Accounts sorted (effectiveSort={}): firstLogins=[{}]", effectiveSort, preview)
+        }
+        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
+        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
+        val slice = if (from < to) sorted.subList(from, to) else emptyList()
+        return PageDto(
+            count = sorted.size,
+            page = pageable.pageNumber + 1,
+            perPage = pageable.pageSize,
+            data = slice,
+        )
     }
 
     /**
@@ -64,4 +90,5 @@ class AccountController(
         logger.info("Getting account by id: $id")
         return GraphQLValidationUtils.requireEntityExists(accountService.findById(id), "Account", id)
     }
+
 }

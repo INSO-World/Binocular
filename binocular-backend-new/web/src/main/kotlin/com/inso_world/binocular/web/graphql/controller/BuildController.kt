@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.BuildInfrastructurePort
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,17 +24,13 @@ class BuildController(
     private var logger: Logger = LoggerFactory.getLogger(BuildController::class.java)
 
     /**
-     * Find all builds with pagination and optional timestamp filter.
-     *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of builds for the current page
+     * Find all builds with pagination and optional time-range filtering.
      *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
-     * @param until Optional timestamp to filter builds (only include builds before this timestamp)
+     * @param since Optional timestamp (epoch millis) to include only builds created at or after this moment.
+     * @param until Optional timestamp (epoch millis) to include only builds created at or before this moment.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to DESC when not provided.
      * @return A Page object containing the builds and pagination metadata.
      */
     @QueryMapping(name = "builds")
@@ -42,7 +39,7 @@ class BuildController(
         @Argument perPage: Int?,
         @Argument since: Long?,
         @Argument until: Long?,
-        @Argument sort: String?,
+        @Argument sort: Sort?,
     ): PageDto<Build> {
         logger.info(
             "Getting builds with page={}, perPage={}, since={}, until={}, sort={}",
@@ -77,12 +74,24 @@ class BuildController(
         return GraphQLValidationUtils.requireEntityExists(buildService.findById(id), "Build", id)
     }
 
+    /**
+     * Internal helper that applies optional time-window filtering and sorting, then paginates in-memory.
+     *
+     * Note: This currently performs filtering/sorting on the application side. Consider moving
+     * these concerns into the database layer for performance and consistency.
+     *
+     * @param pageable Spring pageable (0-based) used to slice the result
+     * @param since include only items with createdAt >= since (epoch millis) when provided
+     * @param until include only items with createdAt <= until (epoch millis) when provided
+     * @param sort desired sort direction (defaults handled by caller)
+     * @return a PageDto containing the sliced results and pagination metadata
+     */
     // TODO: idk if this is good, should be done in the db i guess
     private fun findBuildsInternal(
         pageable: Pageable,
         since: Long?,
         until: Long?,
-        sort: String?
+        sort: Sort?
     ): PageDto<Build> {
 
         fun Build.createdMillis() =
@@ -107,11 +116,11 @@ class BuildController(
                     (since == null || ts >= since) &&
                             (until == null || ts <= until)
                 }
-                .let {
-                    when (sort?.uppercase()) {
-                        "ASC" -> it.sortedWith(comparatorAsc)
-                        "DESC" -> it.sortedWith(comparatorAsc.reversed())
-                        else -> it
+                .let { seq ->
+                    val effectiveSort = sort ?: Sort.DESC
+                    when (effectiveSort) {
+                        Sort.ASC -> seq.sortedWith(comparatorAsc)
+                        Sort.DESC -> seq.sortedWith(comparatorAsc.reversed())
                     }
                 }
                 .toList()

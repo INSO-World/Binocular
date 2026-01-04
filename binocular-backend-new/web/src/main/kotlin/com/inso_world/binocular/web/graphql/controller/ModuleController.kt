@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.ModuleInfrastructurePort
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,28 +23,37 @@ class ModuleController(
     /**
      * Find all modules with pagination.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of modules for the current page
-     *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to DESC when not provided.
      * @return A Page object containing the modules and pagination metadata.
      */
     @QueryMapping(name = "modules")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument sort: Sort?,
     ): PageDto<com.inso_world.binocular.model.Module> {
-        logger.info("Getting all modules...")
+        logger.info("Getting all modules... sort={}", sort)
 
         val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
 
-        val modulesPage = moduleService.findAll(pageable)
-
-        return PageDto(modulesPage)
+        val all = moduleService.findAll().toList()
+        val comparatorAsc = compareBy<com.inso_world.binocular.model.Module>({ it.path }, { it.id ?: "" })
+        val effectiveSort = sort ?: Sort.DESC
+        val sorted = when (effectiveSort) {
+            Sort.ASC -> all.sortedWith(comparatorAsc)
+            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
+        }
+        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
+        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
+        val slice = if (from < to) sorted.subList(from, to) else emptyList()
+        return PageDto(
+            count = sorted.size,
+            page = pageable.pageNumber + 1,
+            perPage = pageable.pageSize,
+            data = slice,
+        )
     }
 
     /**
@@ -63,4 +73,5 @@ class ModuleController(
         logger.info("Getting module by id: $id")
         return GraphQLValidationUtils.requireEntityExists(moduleService.findById(id), "Module", id)
     }
+
 }
