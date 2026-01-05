@@ -35,26 +35,24 @@ class NoteController(
         @Argument perPage: Int?,
         @Argument sort: Sort?,
     ): PageDto<Note> {
-        logger.info("Getting all notes... sort={}", sort)
+        logger.info("Getting all notes...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        val all = noteService.findAll().toList()
-        val comparatorAsc = compareBy<Note>({ it.createdAt }, { it.updatedAt }, { it.id ?: "" })
-        val effectiveSort = sort ?: Sort.DESC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> all.sortedWith(comparatorAsc)
-            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
-        }
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-        val slice = if (from < to) sorted.subList(from, to) else emptyList()
-        return PageDto(
-            count = sorted.size,
-            page = pageable.pageNumber + 1,
-            perPage = pageable.pageSize,
-            data = slice,
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.DESC,
+            sortBy = "createdAt",
         )
+
+        logger.debug(
+            "Getting all notes with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
+
+        val result = noteService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**

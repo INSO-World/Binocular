@@ -34,7 +34,7 @@ class ModuleController(
         @Argument perPage: Int?,
         @Argument sort: Sort?,
     ): PageDto<com.inso_world.binocular.model.Module> {
-        logger.info("Getting all modules... sort={}", sort)
+        logger.info("Getting all modules...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
             page = page,
