@@ -51,6 +51,10 @@ internal class MergeRequestInfrastructurePortImpl(
         return Page(content, total, pageable)
     }
 
+    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<MergeRequest> {
+        TODO("Not yet implemented")
+    }
+
     override fun update(value: MergeRequest): MergeRequest = mrDao.update(value)
 
     override fun updateAndFlush(value: MergeRequest): MergeRequest = update(value)

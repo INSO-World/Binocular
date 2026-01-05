@@ -40,45 +40,24 @@ class MergeRequestController(
         @Argument until: Long?,
         @Argument sort: Sort?,
     ): PageDto<MergeRequest> {
-        logger.info("Getting all merge requests with page=$page, perPage=$perPage, since=$since, until=$until, sort=$sort")
+        logger.info("Getting all merge requests with since=$since, until=$until")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        return findMergeRequestsInternal(pageable = pageable, since = since, until = until, sort = sort)
-    }
-
-    // TODO: fix this and filter in db
-    private fun findMergeRequestsInternal(
-        pageable: Pageable,
-        since: Long?,
-        until: Long?,
-        sort: Sort?,
-    ): PageDto<MergeRequest> {
-        fun MergeRequest.createdMillis(): Long? = try {
-            this.createdAt?.let { java.time.Instant.parse(it).toEpochMilli() }
-        } catch (e: Exception) { null }
-
-        val base = mergeRequestService.findAll()
-            .asSequence()
-            .filter { mr ->
-                val ts = mr.createdMillis() ?: return@filter true
-                (since == null || ts >= since) && (until == null || ts <= until)
-            }
-        val comparatorAsc = compareBy<MergeRequest>({ it.createdAt }, { it.id ?: "" })
-        val effectiveSort = sort ?: Sort.ASC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> base.sortedWith(comparatorAsc)
-            Sort.DESC -> base.sortedWith(comparatorAsc.reversed())
-        }.toList()
-
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-
-        return PageDto(
-            count = sorted.size,
-            pageable = pageable,
-            data = sorted.subList(from, to)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.ASC,
+            sortBy = "createdAt",
         )
+
+        logger.debug(
+            "Getting all merge requests with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
+
+        val result = mergeRequestService.findAll(pageable, since, until)
+        return PageDto(result)
     }
 
     /**
