@@ -41,19 +41,24 @@ class BuildController(
         @Argument until: Long?,
         @Argument sort: Sort?,
     ): PageDto<Build> {
-        logger.info(
-            "Getting builds with page={}, perPage={}, since={}, until={}, sort={}",
-            page, perPage, since, until, sort
+        logger.info("Getting all builds...")
+
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.DESC,
+            sortBy = "id",
         )
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        return findBuildsInternal(
-            pageable = pageable,
-            since = since,
-            until = until,
-            sort = sort
+        logger.debug(
+            "Getting all builds with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
         )
+
+        val result = buildService.findAll(pageable, since, until)
+        return PageDto(result)
     }
 
     /**
@@ -74,67 +79,5 @@ class BuildController(
         return GraphQLValidationUtils.requireEntityExists(buildService.findById(id), "Build", id)
     }
 
-    /**
-     * Internal helper that applies optional time-window filtering and sorting, then paginates in-memory.
-     *
-     * Note: This currently performs filtering/sorting on the application side. Consider moving
-     * these concerns into the database layer for performance and consistency.
-     *
-     * @param pageable Spring pageable (0-based) used to slice the result
-     * @param since include only items with createdAt >= since (epoch millis) when provided
-     * @param until include only items with createdAt <= until (epoch millis) when provided
-     * @param sort desired sort direction (defaults handled by caller)
-     * @return a PageDto containing the sliced results and pagination metadata
-     */
-    // TODO: idk if this is good, should be done in the db i guess
-    private fun findBuildsInternal(
-        pageable: Pageable,
-        since: Long?,
-        until: Long?,
-        sort: Sort?
-    ): PageDto<Build> {
-
-        fun Build.createdMillis() =
-            createdAt?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
-
-        val comparatorAsc: Comparator<Build> =
-            Comparator { a, b ->
-                compareValuesBy(
-                    a, b,
-                    { it.createdAt?.toInstant(ZoneOffset.UTC)?.toEpochMilli() },
-                    { it.committedAt?.toInstant(ZoneOffset.UTC)?.toEpochMilli() },
-                    { it.id?.toLongOrNull() ?: Long.MAX_VALUE },
-                    { it.id ?: "" }
-                )
-            }
-
-        val filteredAndSorted =
-            buildService.findAll()
-                .asSequence()
-                .filter { build ->
-                    val ts = build.createdMillis() ?: return@filter true
-                    (since == null || ts >= since) &&
-                            (until == null || ts <= until)
-                }
-                .let { seq ->
-                    val effectiveSort = sort ?: Sort.DESC
-                    when (effectiveSort) {
-                        Sort.ASC -> seq.sortedWith(comparatorAsc)
-                        Sort.DESC -> seq.sortedWith(comparatorAsc.reversed())
-                    }
-                }
-                .toList()
-
-        val from = (pageable.pageNumber * pageable.pageSize)
-            .coerceAtMost(filteredAndSorted.size)
-        val to = (from + pageable.pageSize)
-            .coerceAtMost(filteredAndSorted.size)
-
-        return PageDto(
-            count = filteredAndSorted.size,
-            pageable = pageable,
-            data = filteredAndSorted.subList(from, to)
-        )
-    }
 
 }
