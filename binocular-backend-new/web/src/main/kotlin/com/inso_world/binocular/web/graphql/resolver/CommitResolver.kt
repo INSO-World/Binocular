@@ -10,10 +10,10 @@ import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.web.graphql.model.CommitFile
 import com.inso_world.binocular.web.graphql.model.CommitFileConnection
 import com.inso_world.binocular.web.graphql.model.Hunk
+import com.inso_world.binocular.web.graphql.model.Sort
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.stereotype.Controller
@@ -52,10 +52,10 @@ class CommitResolver(
      * @return A list of files associated with the commit, or an empty list if the commit ID is null
      */
     @SchemaMapping(typeName = "Commit", field = "files")
-    fun files(commit: Commit, @Argument page: Int?, @Argument perPage: Int?): CommitFileConnection {
+    fun files(commit: Commit, @Argument page: Int?, @Argument perPage: Int?, @Argument sort: Sort?): CommitFileConnection {
+        val currentPage = (page ?: 1).coerceAtLeast(1)
+        val pageSize = perPage ?: 1000
         if (commit.id == null) {
-            val pageSize = perPage ?: Int.MAX_VALUE
-            val currentPage = (page ?: 1).coerceAtLeast(1)
             return CommitFileConnection(
                 count = 0,
                 page = currentPage,
@@ -65,14 +65,16 @@ class CommitResolver(
         }
         val id = requireNotNull(commit.id)
 
-        logger.info("Resolving files for commit: $id (page=$page, perPage=$perPage)")
+        logger.info("Resolving files for commit: $id (page=$page, perPage=$perPage, sort=$sort)")
 
         val fileStatsById = commitService.findFileStatsByCommitId(id)
 
-        val pageSize = (perPage ?: Int.MAX_VALUE)
-        val sort = Sort.by(Sort.Order.desc("id"))
-        val currentPage = (page ?: 1).coerceAtLeast(1)
-        val pageable = PageRequest.of(currentPage - 1, pageSize, sort)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = currentPage,
+            size = pageSize,
+            sort = sort ?: Sort.DESC,
+            sortBy = "id",
+        )
         val pageResult = commitService.findFilesByCommitId(id, pageable)
 
         val data = pageResult.content.map { f ->
