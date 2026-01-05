@@ -35,26 +35,24 @@ class UserController(
         @Argument perPage: Int?,
         @Argument sort: Sort?,
     ): PageDto<User> {
-        logger.info("Getting all users... sort={}", sort)
+        logger.info("Getting all users...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        val all = userService.findAll().toList()
-        val comparatorAsc = compareBy<User>({ it.name ?: "" }, { it.id ?: "" })
-        val effectiveSort = sort ?: Sort.DESC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> all.sortedWith(comparatorAsc)
-            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
-        }
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-        val slice = if (from < to) sorted.subList(from, to) else emptyList()
-        return PageDto(
-            count = sorted.size,
-            page = pageable.pageNumber + 1,
-            perPage = pageable.pageSize,
-            data = slice,
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.ASC,
+            sortBy = "gitSignature",
         )
+
+        logger.debug(
+            "Getting all users with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
+
+        val result = userService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**
