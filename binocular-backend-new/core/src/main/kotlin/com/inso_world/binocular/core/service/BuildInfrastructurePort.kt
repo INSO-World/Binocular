@@ -19,6 +19,7 @@ interface BuildInfrastructurePort : BinocularInfrastructurePort<Build> {
      */
     fun findAll(
         pageable: Pageable,
+        since: Long?,
         until: Long?,
     ): Page<Build>
 

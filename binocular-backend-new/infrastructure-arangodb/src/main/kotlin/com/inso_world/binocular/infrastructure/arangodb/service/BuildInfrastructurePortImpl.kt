@@ -28,24 +28,11 @@ class BuildInfrastructurePortImpl : BuildInfrastructurePort {
 
     override fun findAll(
         pageable: Pageable,
+        since: Long?,
         until: Long?,
     ): Page<Build> {
-        logger.trace("Getting builds with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}, until=$until")
-
-        if (until == null) {
-            return findAll(pageable)
-        }
-
-        val allBuilds = buildDao.findAll(pageable)
-        val filteredBuilds =
-            allBuilds.content.filter { build ->
-                // TODO replace with build.createdAt?.toEpochSecond(ZoneOffset.UTC)
-                Date.from(build.committedAt?.toInstant(ZoneOffset.UTC))?.time?.let { committedTime ->
-                    committedTime <= until
-                } ?: true // Include builds with null committedAt
-            }
-
-        return Page(filteredBuilds, filteredBuilds.size.toLong(), pageable)
+        logger.trace("Getting builds with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}, since=$since, until=$until")
+        return buildDao.findAll(pageable, since, until)
     }
 
     override fun findById(id: String): Build? {
