@@ -1,11 +1,14 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb
 
+import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BranchRepository
 import com.inso_world.binocular.model.Branch
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 
 /**
@@ -26,4 +29,20 @@ class BranchDao(
     override fun findByName(name: String): Branch? =
         branchRepository.findByBranch(name)?.let { branchMapper.toDomain(it) }
 
+    override fun findAll(pageable: Pageable): Page<Branch> {
+        val offset = pageable.offset.toInt()
+        val limit = pageable.pageSize
+        val firstOrder = pageable.sort.firstOrNull()
+        val asc = firstOrder?.direction == Sort.Direction.ASC
+
+        val entities = if (asc) {
+            branchRepository.findAllSortedAsc(offset, limit)
+        } else {
+            branchRepository.findAllSortedDesc(offset, limit)
+        }
+        val content = entities.map { branchMapper.toDomain(it) }
+        val total = repository.count()
+        return Page(content, total, pageable)
     }
+
+}
