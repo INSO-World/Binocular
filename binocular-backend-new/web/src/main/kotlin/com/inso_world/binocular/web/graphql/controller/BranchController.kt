@@ -35,26 +35,24 @@ class BranchController(
         @Argument perPage: Int?,
         @Argument sort: Sort?,
     ): PageDto<Branch> {
-        logger.info("Getting all branches... sort={}", sort)
+        logger.info("Getting all branches...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        // TODO: filter and sort in db
-        val all = branchService.findAll().toList()
-        val effectiveSort = sort ?: Sort.DESC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> all.sortedWith(branchComparator)
-            Sort.DESC -> all.sortedWith(branchComparator.reversed())
-        }
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-        val slice = if (from < to) sorted.subList(from, to) else emptyList()
-        return PageDto(
-            count = sorted.size,
-            page = pageable.pageNumber + 1,
-            perPage = pageable.pageSize,
-            data = slice,
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.ASC,
+            sortBy = "branch",
         )
+
+        logger.debug(
+            "Getting all branches with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
+
+        val result = branchService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**
@@ -92,37 +90,5 @@ class BranchController(
             branchName)
     }
 
-    // TODO: should be done in db directly
-    // also the logic is reverse engineered based on the tests for the old graphql impl
-    private val branchComparator = Comparator<Branch> { a, b ->
-        fun rankOf(n: String): Int {
-            val isNum = n.all(Char::isDigit)
-            val isFeature = n.startsWith("feature/")
-            val hasDash = isFeature && '-' in n.substringAfter("feature/")
-            return when {
-                isNum -> 0
-                hasDash -> 1
-                isFeature -> 2
-                else -> 3
-            }
-        }
-        fun jiraPriority(n: String): Int = if (n.contains("jira", ignoreCase = true)) 0 else 1
-        fun numValue(n: String): Int {
-            val isNum = n.all(Char::isDigit)
-            return Regex("^feature/(\\d+)").find(n)?.groupValues?.get(1)?.toIntOrNull()
-                ?: n.takeIf { isNum }?.toIntOrNull()
-                ?: Int.MAX_VALUE
-        }
-
-        val na = a.name
-        val nb = b.name
-        val rCmp = rankOf(na).compareTo(rankOf(nb))
-        if (rCmp != 0) return@Comparator rCmp
-        val jCmp = jiraPriority(na).compareTo(jiraPriority(nb))
-        if (jCmp != 0) return@Comparator jCmp
-        val nCmp = numValue(na).compareTo(numValue(nb))
-        if (nCmp != 0) return@Comparator nCmp
-        return@Comparator na.compareTo(nb)
-    }
 
 }
