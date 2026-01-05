@@ -35,6 +35,11 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
         return branchFileConnectionRepository.findFilesByBranch(branchId)
     }
 
+    override fun findFilesByBranchId(branchId: String, pageable: Pageable): Page<File> {
+        logger.trace("Getting files for branch: $branchId with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
+        return branchFileConnectionRepository.findFilesByBranch(branchId, pageable)
+    }
+
     override fun findAll(): Iterable<Branch> = this.branchDao.findAll()
 
     override fun create(entity: Branch): Branch = this.branchDao.save(entity)

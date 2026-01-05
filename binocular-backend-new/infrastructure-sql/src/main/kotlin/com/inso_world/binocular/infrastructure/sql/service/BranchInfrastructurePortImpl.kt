@@ -45,6 +45,10 @@ internal class BranchInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    override fun findFilesByBranchId(branchId: String, pageable: Pageable): Page<File> {
+        TODO("Not yet implemented")
+    }
+
     override fun findById(id: String): Branch? {
         TODO("Not yet implemented")
     }

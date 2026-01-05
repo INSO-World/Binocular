@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.BranchFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.BranchFileConnectionEntity
@@ -11,6 +12,8 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.e
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 
 /**
@@ -44,6 +47,25 @@ class BranchFileConnectionDao
         override fun findBranchesByFile(fileId: String): List<Branch> {
             val branchEntities = repository.findBranchesByFile(fileId)
             return branchEntities.map { branchMapper.toDomain(it) }
+        }
+
+        /**
+        * Find all files by branch paginated
+        */
+        override fun findFilesByBranch(branchId: String, pageable: Pageable): Page<File> {
+            val offset = pageable.offset.toInt()
+            val size = pageable.pageSize
+            val firstOrder = pageable.sort.firstOrNull()
+            val asc = firstOrder?.direction != Sort.Direction.DESC
+
+            val entities = if (asc) {
+                repository.findFilesByBranchAsc(branchId, offset, size)
+            } else {
+                repository.findFilesByBranchDesc(branchId, offset, size)
+            }
+            val content = entities.map { fileMapper.toDomain(it) }
+            val total = repository.countFilesByBranch(branchId)
+            return Page(content, total, pageable)
         }
 
         /**
