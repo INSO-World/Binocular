@@ -35,42 +35,24 @@ class AccountController(
         @Argument perPage: Int?,
         @Argument sort: Sort?,
     ): PageDto<Account> {
-        logger.info("Getting all accounts... sort={}", sort)
+        logger.info("Getting all accounts...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        val all = accountService.findAll().toList()
-
-        // Legacy ordering expected by visualization snapshots:
-        // 1) login (case-insensitive)
-        // 2) name (case-insensitive)
-        // 3) id
-        fun idNumKey(a: Account): Long = a.id?.toLongOrNull() ?: Long.MAX_VALUE
-        fun idStrKey(a: Account): String = a.id ?: "\uFFFF"
-        fun loginKey(a: Account): String = a.login?.lowercase() ?: "\uFFFF"
-        val comparatorAsc = compareBy<Account>(
-            { idNumKey(it) },
-            { idStrKey(it) },
-            { loginKey(it) }
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.ASC,
+            sortBy = "id",
         )
-        val effectiveSort = sort ?: Sort.ASC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> all.sortedWith(comparatorAsc)
-            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
-        }
-        run {
-            val preview = sorted.take(5).joinToString { it.login ?: "<null>" }
-            logger.info("Accounts sorted (effectiveSort={}): firstLogins=[{}]", effectiveSort, preview)
-        }
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-        val slice = if (from < to) sorted.subList(from, to) else emptyList()
-        return PageDto(
-            count = sorted.size,
-            page = pageable.pageNumber + 1,
-            perPage = pageable.pageSize,
-            data = slice,
+
+        logger.debug(
+            "Getting all accounts with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
         )
+
+        val result = accountService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**
