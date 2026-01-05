@@ -35,7 +35,7 @@ class MilestoneController(
         @Argument perPage: Int?,
         @Argument sort: Sort?,
     ): PageDto<Milestone> {
-        logger.info("Getting all milestones... sort={}", sort)
+        logger.info("Getting all milestones...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
             page = page,
