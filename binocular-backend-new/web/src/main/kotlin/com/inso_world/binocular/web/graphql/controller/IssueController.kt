@@ -40,46 +40,24 @@ class IssueController(
         @Argument until: Long?,
         @Argument sort: Sort?,
     ): PageDto<Issue> {
-        logger.info("Getting all issues with page=$page, perPage=$perPage, since=$since, until=$until, sort=$sort")
+        logger.info("Getting all issues with since=$since, until=$until")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        return findIssuesInternal(pageable = pageable, since = since, until = until, sort = sort)
-    }
-
-    // TODO: filter in db not here
-    private fun findIssuesInternal(
-        pageable: Pageable,
-        since: Long?,
-        until: Long?,
-        sort: Sort?,
-    ): PageDto<Issue> {
-        fun Issue.createdMillis(): Long? = this.createdAt
-            ?.atOffset(java.time.ZoneOffset.UTC)
-            ?.toInstant()
-            ?.toEpochMilli()
-
-        val base = issueService.findAll()
-            .asSequence()
-            .filter { issue ->
-                val ts = issue.createdMillis() ?: return@filter true
-                (since == null || ts >= since) && (until == null || ts <= until)
-            }
-        val comparatorAsc = compareBy<Issue>({ it.createdAt }, { it.id ?: "" })
-        val effectiveSort = sort ?: Sort.ASC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> base.sortedWith(comparatorAsc)
-            Sort.DESC -> base.sortedWith(comparatorAsc.reversed())
-        }.toList()
-
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-
-        return PageDto(
-            count = sorted.size,
-            pageable = pageable,
-            data = sorted.subList(from, to)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.ASC,
+            sortBy = "createdAt",
         )
+
+        logger.debug(
+            "Getting all issues with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
+
+        val result = issueService.findAll(pageable, since, until)
+        return PageDto(result)
     }
 
     /**

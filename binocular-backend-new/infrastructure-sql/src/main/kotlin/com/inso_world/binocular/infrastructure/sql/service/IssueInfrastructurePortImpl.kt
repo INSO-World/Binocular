@@ -82,6 +82,10 @@ internal class IssueInfrastructurePortImpl(
         return Page(content, total, pageable)
     }
 
+    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Issue> {
+        TODO("Not yet implemented")
+    }
+
     override fun deleteById(id: String) {
         linkDao.deleteLinksByIssueId(id)
         issueDao.deleteById(id)
