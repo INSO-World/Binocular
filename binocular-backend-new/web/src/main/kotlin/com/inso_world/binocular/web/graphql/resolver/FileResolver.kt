@@ -7,10 +7,10 @@ import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.web.graphql.model.CommitInFile
 import com.inso_world.binocular.web.graphql.model.PaginatedCommitInFileDto
+import com.inso_world.binocular.web.graphql.model.Sort
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.stereotype.Controller
@@ -49,21 +49,24 @@ class FileResolver(
      * @return A list of commits associated with the file, or an empty list if the file ID is null
      */
     @SchemaMapping(typeName = "File", field = "commits")
-    fun commits(file: File, @Argument page: Int?, @Argument perPage: Int?): PaginatedCommitInFileDto {
+    fun commits(file: File, @Argument page: Int?, @Argument perPage: Int?, @Argument sort: Sort?): PaginatedCommitInFileDto {
+        val currentPage = (page ?: 1).coerceAtLeast(1)
+        val pageSize = perPage ?: 1000
         val id = file.id ?: return PaginatedCommitInFileDto(
             count = 0,
-            page = page ?: 1,
-            perPage = perPage ?: 20,
+            page = currentPage,
+            perPage = pageSize,
             data = emptyList()
         )
-        logger.info("Resolving commits for file: $id")
-        val currentPage = (page ?: 1).coerceAtLeast(1)
-        val pageSize = perPage ?: Int.MAX_VALUE
-        val sort = Sort.by(Sort.Order.asc("commitDateTime"), Sort.Order.asc("sha"),)
-        val pageable = PageRequest.of(currentPage - 1, pageSize, sort)
-        val commitsPage = fileService.findCommitsByFileId(id, pageable)
+        logger.info("Resolving commits for file: $id (page=$page, perPage=$perPage, sort=$sort)")
 
-        logger.info("First 5 commit SHAs for file $id: ${commitsPage.content.take(5).joinToString(",") { it.sha.substring(0,7) }}")
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = currentPage,
+            size = pageSize,
+            sort = sort ?: Sort.ASC,
+            sortBy = "commitDateTime",
+        )
+        val commitsPage = fileService.findCommitsByFileId(id, pageable)
 
         val data = commitsPage.content.map { c -> CommitInFile(commit = c) }
         return PaginatedCommitInFileDto(
