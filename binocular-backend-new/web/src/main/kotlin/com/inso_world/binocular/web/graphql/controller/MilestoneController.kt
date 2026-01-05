@@ -37,24 +37,22 @@ class MilestoneController(
     ): PageDto<Milestone> {
         logger.info("Getting all milestones... sort={}", sort)
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        val all = milestoneService.findAll().toList()
-        val comparatorAsc = compareBy<Milestone>({ it.dueDate ?: it.startDate ?: it.createdAt ?: "" }, { it.id ?: "" })
-        val effectiveSort = sort ?: Sort.DESC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> all.sortedWith(comparatorAsc)
-            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
-        }
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-        val slice = if (from < to) sorted.subList(from, to) else emptyList()
-        return PageDto(
-            count = sorted.size,
-            page = pageable.pageNumber + 1,
-            perPage = pageable.pageSize,
-            data = slice,
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.DESC,
+            sortBy = "dueDate",
         )
+
+        logger.debug(
+            "Getting all milestones with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
+
+        val result = milestoneService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**
