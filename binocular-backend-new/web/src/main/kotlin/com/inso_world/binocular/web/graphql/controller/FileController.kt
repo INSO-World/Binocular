@@ -35,26 +35,24 @@ class FileController(
         @Argument perPage: Int?,
         @Argument sort: Sort?,
     ): PageDto<File> {
-        logger.info("Getting all files... sort={}", sort)
+        logger.info("Getting all files...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
-
-        val all = fileService.findAll().toList()
-        val comparatorAsc = compareBy<File>({ it.path }, { it.id ?: "" })
-        val effectiveSort = sort ?: Sort.DESC
-        val sorted = when (effectiveSort) {
-            Sort.ASC -> all.sortedWith(comparatorAsc)
-            Sort.DESC -> all.sortedWith(comparatorAsc.reversed())
-        }
-        val from = (pageable.pageNumber * pageable.pageSize).coerceAtMost(sorted.size)
-        val to = (from + pageable.pageSize).coerceAtMost(sorted.size)
-        val slice = if (from < to) sorted.subList(from, to) else emptyList()
-        return PageDto(
-            count = sorted.size,
-            page = pageable.pageNumber + 1,
-            perPage = pageable.pageSize,
-            data = slice,
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.DESC,
+            sortBy = "path",
         )
+
+        logger.debug(
+            "Getting all files with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
+
+        val result = fileService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**
