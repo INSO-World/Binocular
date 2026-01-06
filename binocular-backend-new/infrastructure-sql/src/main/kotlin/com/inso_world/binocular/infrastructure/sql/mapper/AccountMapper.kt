@@ -18,14 +18,7 @@ package com.inso_world.binocular.infrastructure.sql.mapper
  import kotlin.getValue
 
 @Component
- internal class AccountMapper
-    @Autowired
-    constructor(
-        private val proxyFactory: RelationshipProxyFactory,
-//        @Lazy private val issueMapper: IssueMapper,
-//        @Lazy private val mergeRequestMapper: MergeRequestMapper,
-//        @Lazy private val noteMapper: NoteMapper,
-    ) : EntityMapper<Account, AccountEntity> {
+ internal class AccountMapper : EntityMapper<Account, AccountEntity> {
      @Autowired
      private lateinit var ctx: MappingContext
 

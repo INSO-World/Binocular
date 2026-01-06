@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.sql.unit.mapper.base
 
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.unit.base.BaseUnitTest
+import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
@@ -20,11 +21,13 @@ internal open class BaseMapperTest : BaseUnitTest() {
     lateinit var remoteMapper: RemoteMapper
     lateinit var userMapper: UserMapper
     lateinit var commitMapper: CommitMapper
+    lateinit var accountMapper: AccountMapper
 
     @BeforeEach
     fun setUp() {
         ctx = spyk(MappingContext())
 
+        accountMapper = spyk(AccountMapper())
         commitMapper = spyk(CommitMapper())
         branchMapper = spyk(BranchMapper())
         remoteMapper = spyk(RemoteMapper())
@@ -91,6 +94,15 @@ internal open class BaseMapperTest : BaseUnitTest() {
 
         // wire up userMapper
         with(userMapper) {
+            setField(
+                this.javaClass.getDeclaredField("ctx"),
+                this,
+                ctx
+            )
+        }
+
+        // wire up accountMapper
+        with(accountMapper) {
             setField(
                 this.javaClass.getDeclaredField("ctx"),
                 this,

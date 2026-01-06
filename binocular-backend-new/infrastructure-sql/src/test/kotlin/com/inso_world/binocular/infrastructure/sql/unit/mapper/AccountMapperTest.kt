@@ -16,8 +16,6 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 internal class AccountMapperTest : BaseMapperTest() {
-    @Autowired
-    private lateinit var accountMapper: AccountMapper
 
     @Nested
     inner class ToDomainMapperTest {
