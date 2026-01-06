@@ -37,7 +37,7 @@ interface BranchRepository : ArangoRepository<BranchEntity, String> {
           LET isNum     = REGEX_TEST(br, '^[0-9]+$')
           LET isFeature = STARTS_WITH(br, 'feature/')
           LET featRema  = SUBSTRING(br, 8)
-          LET hasDash   = isFeature && POSITION(featRema, '-', true) != -1
+          LET hasDash   = isFeature && CONTAINS(featRema, '-')
 
           LET rank =
             isNum     ? 0 :
@@ -88,7 +88,7 @@ interface BranchRepository : ArangoRepository<BranchEntity, String> {
           LET isNum     = REGEX_TEST(br, '^[0-9]+$')
           LET isFeature = STARTS_WITH(br, 'feature/')
           LET featRema  = SUBSTRING(br, 8)
-          LET hasDash   = isFeature && POSITION(featRema, '-', true) != -1
+          LET hasDash   = isFeature && CONTAINS(featRema, '-')
 
           LET rank =
             isNum     ? 0 :
