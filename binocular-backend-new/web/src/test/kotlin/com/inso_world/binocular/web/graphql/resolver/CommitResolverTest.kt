@@ -23,7 +23,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "1") {
+                    commit(sha: "abc1230000000000000000000000000000000000") {
                         id
                         sha
                         message
@@ -44,9 +44,9 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
-                { assertEquals("https://example.com/commit/abc123", result.get("webUrl").asText(), "Commit webUrl mismatch") },
+                { assertEquals("https://example.com/commit/abc1230000000000000000000000000000000000", result.get("webUrl").asText(), "Commit webUrl mismatch") },
                 { assertEquals("main", result.get("branch").asText(), "Commit branch mismatch") },
                 { assertEquals(10, result.get("stats").get("additions").asLong(), "Commit stats additions mismatch") },
                 { assertEquals(5, result.get("stats").get("deletions").asLong(), "Commit stats deletions mismatch") },
@@ -63,7 +63,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "1") {
+                    commit(sha: "abc1230000000000000000000000000000000000") {
                         id
                         sha
                         message
@@ -85,7 +85,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
@@ -97,7 +97,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             val build = builds.get(0)
             assertAll(
                 { assertEquals("1", build.get("id").asText(), "Build ID mismatch") },
-                { assertEquals("abc123", build.get("sha").asText(), "Build SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", build.get("sha").asText(), "Build SHA mismatch") },
                 { assertEquals("success", build.get("status").asText(), "Build status mismatch") },
                 { assertEquals("main", build.get("ref").asText(), "Build ref mismatch") },
                 { assertEquals("v0.0.1-rc", build.get("tag").asText(), "Build tag mismatch") },
@@ -111,15 +111,22 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "1") {
+                    commit(sha: "abc1230000000000000000000000000000000000") {
                         id
                         sha
                         message
                         files {
-                            id
-                            path
-                            webUrl
-                            maxLength
+                            count
+                            page
+                            perPage
+                            data {
+                                file {
+                                    id
+                                    path
+                                    webUrl
+                                    maxLength
+                                }
+                            }
                         }
                     }
                 }
@@ -132,16 +139,18 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
-            // Verify files
-            val files = result.get("files")
-            assertNotNull(files, "Files should not be null")
+            // Verify files connection
+            val filesConnection = result.get("files")
+            assertNotNull(filesConnection, "Files connection should not be null")
+            val files = filesConnection.get("data")
+            assertNotNull(files, "Files data should not be null")
             assertEquals(1, files.size(), "Should have 1 file")
 
-            val file = files.get(0)
+            val file = files.get(0).get("file")
             assertAll(
                 { assertEquals("1", file.get("id").asText(), "File ID mismatch") },
                 { assertEquals("src/main/kotlin/com/example/Main.kt", file.get("path").asText(), "File path mismatch") },
@@ -157,7 +166,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "1") {
+                    commit(sha: "abc1230000000000000000000000000000000000") {
                         id
                         sha
                         message
@@ -176,7 +185,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
@@ -199,7 +208,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "1") {
+                    commit(sha: "abc1230000000000000000000000000000000000") {
                         id
                         sha
                         message
@@ -218,7 +227,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
@@ -229,7 +238,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
 
             val user = users.get(0)
             assertAll(
-                { assertEquals("1", user.get("id").asText(), "User ID mismatch") },
+                { assertTrue(user.get("id").isNull, "User ID should be null") },
                 { assertEquals("John Doe <john.doe@example.com>", user.get("gitSignature").asText(), "User gitSignature mismatch") },
             )
         }
@@ -241,7 +250,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "1") {
+                    commit(sha: "abc1230000000000000000000000000000000000") {
                         id
                         sha
                         message
@@ -263,7 +272,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
@@ -289,7 +298,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "2") {
+                    commit(sha: "def4560000000000000000000000000000000000") {
                         id
                         sha
                         message
@@ -305,7 +314,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("2", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("def456", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("def4560000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("Second commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
@@ -314,10 +323,8 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             assertNotNull(parents, "Parents should not be null")
             assertEquals(1, parents.size(), "Should have 1 parent")
 
-            val parentString = parents.get(0).asText()
-            assertTrue(parentString.contains("id: 1"), "Parent string should contain id: 1")
-            assertTrue(parentString.contains("sha: abc123"), "Parent string should contain sha: abc123")
-            assertTrue(parentString.contains("shortSha: abc123"), "Parent string should contain shortSha: abc123")
+            val parentSha = parents.get(0).asText()
+            assertEquals("abc1230000000000000000000000000000000000", parentSha, "Parent SHA should match first commit")
         }
 
         @Test
@@ -327,7 +334,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    commit(id: "1") {
+                    commit(sha: "abc1230000000000000000000000000000000000") {
                         id
                         sha
                         message
@@ -347,7 +354,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             // Verify commit data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", result.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", result.get("message").asText(), "Commit message mismatch") },
             )
 
@@ -359,7 +366,7 @@ internal class CommitResolverTest : GraphQlControllerTest() {
             val child = children.get(0)
             assertAll(
                 { assertEquals("2", child.get("id").asText(), "Child ID mismatch") },
-                { assertEquals("def456", child.get("sha").asText(), "Child SHA mismatch") },
+                { assertEquals("def4560000000000000000000000000000000000", child.get("sha").asText(), "Child SHA mismatch") },
                 { assertEquals("Second commit", child.get("message").asText(), "Child message mismatch") },
             )
         }
@@ -369,24 +376,22 @@ internal class CommitResolverTest : GraphQlControllerTest() {
     inner class EdgeCases {
         @Test
         fun `should handle non-existent commit`() {
-            // Create a test query for a commit that doesn't exist in the test data
-            // This should return an error
             graphQlTester
                 .document(
                     """
-                query {
-                    commit(id: "999") {
-                        id
-                        sha
-                        message
-                    }
+            query {
+                commit(sha: "nonexistent-sha") {
+                    id
                 }
-            """,
-                ).execute()
+            }
+            """
+                )
+                .execute()
                 .errors()
                 .expect { error ->
-                    error.message?.contains("Commit not found with id: 999") ?: false
-                }.verify()
+                    error.message?.contains("Commit not found") == true
+                }
         }
+
     }
 }

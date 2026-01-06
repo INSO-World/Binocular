@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 /**
  * Test class for MilestoneController.
@@ -58,98 +59,100 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
             val milestonesData = result.get("data")
             assertEquals(2, milestonesData.size(), "Expected 2 milestones, but got ${milestonesData.size()}")
 
-            // Check that the milestones match the test data
-            TestDataProvider.testMilestones.forEachIndexed { index, expectedMilestone ->
-                val actualMilestone = milestonesData.get(index)
-
+            // Check that the milestones match the test data (order-independent)
+            val expectedById = TestDataProvider.testMilestones.associateBy { it.id }
+            milestonesData.forEach { node ->
+                val id = node.get("id").asText()
+                val expectedMilestone = expectedById[id]
                 assertAll(
                     {
                         assertEquals(
-                            expectedMilestone.id,
-                            actualMilestone.get("id").asText(),
-                            "Milestone ID mismatch: expected ${expectedMilestone.id}, got ${actualMilestone.get("id").asText()}",
+                            expectedMilestone?.id,
+                            node.get("id").asText(),
+                            "Milestone ID mismatch: expected ${expectedMilestone?.id}, got ${node.get("id").asText()}",
                         )
                     },
                     {
                         assertEquals(
-                            expectedMilestone.iid,
-                            actualMilestone.get("iid").asInt(),
-                            "Milestone iid mismatch: expected ${expectedMilestone.iid}, got ${actualMilestone.get("iid").asInt()}",
+                            expectedMilestone?.iid,
+                            node.get("iid").asInt(),
+                            "Milestone iid mismatch: expected ${expectedMilestone?.iid}, got ${node.get("iid").asInt()}",
                         )
                     },
                     {
                         assertEquals(
-                            expectedMilestone.title,
-                            actualMilestone.get("title").asText(),
-                            "Milestone title mismatch: expected ${expectedMilestone.title}, got ${actualMilestone.get("title").asText()}",
+                            expectedMilestone?.title,
+                            node.get("title").asText(),
+                            "Milestone title mismatch: expected ${expectedMilestone?.title}, got ${node.get("title").asText()}",
                         )
                     },
                     {
                         assertEquals(
-                            expectedMilestone.description,
-                            actualMilestone.get("description").asText(),
-                            "Milestone description mismatch: expected ${expectedMilestone.description}, got ${actualMilestone.get(
+                            expectedMilestone?.description,
+                            node.get("description").asText(),
+                            "Milestone description mismatch: expected ${expectedMilestone?.description}, got ${node.get(
                                 "description",
                             ).asText()}",
                         )
                     },
                     {
+                        // Compare instants to tolerate fractional seconds formatting differences
+                        val expected = Instant.parse(expectedMilestone?.createdAt)
+                        val actual = Instant.parse(node.get("createdAt").asText())
                         assertEquals(
-                            expectedMilestone.createdAt,
-                            actualMilestone.get("createdAt").asText(),
-                            "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get(
-                                "createdAt",
-                            ).asText()}",
+                            expected,
+                            actual,
+                            "Milestone createdAt mismatch: expected ${expectedMilestone?.createdAt}, got ${node.get("createdAt").asText()}",
+                        )
+                    },
+                    {
+                        val expected = Instant.parse(expectedMilestone?.updatedAt)
+                        val actual = Instant.parse(node.get("updatedAt").asText())
+                        assertEquals(
+                            expected,
+                            actual,
+                            "Milestone updatedAt mismatch: expected ${expectedMilestone?.updatedAt}, got ${node.get("updatedAt").asText()}",
+                        )
+                    },
+                    {
+                        val expected = Instant.parse(expectedMilestone?.startDate)
+                        val actual = Instant.parse(node.get("startDate").asText())
+                        assertEquals(
+                            expected,
+                            actual,
+                            "Milestone startDate mismatch: expected ${expectedMilestone?.startDate}, got ${node.get("startDate").asText()}",
+                        )
+                    },
+                    {
+                        val expected = Instant.parse(expectedMilestone?.dueDate)
+                        val actual = Instant.parse(node.get("dueDate").asText())
+                        assertEquals(
+                            expected,
+                            actual,
+                            "Milestone dueDate mismatch: expected ${expectedMilestone?.dueDate}, got ${node.get("dueDate").asText()}",
                         )
                     },
                     {
                         assertEquals(
-                            expectedMilestone.updatedAt,
-                            actualMilestone.get("updatedAt").asText(),
-                            "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get(
-                                "updatedAt",
-                            ).asText()}",
+                            expectedMilestone?.state,
+                            node.get("state").asText(),
+                            "Milestone state mismatch: expected ${expectedMilestone?.state}, got ${node.get("state").asText()}",
                         )
                     },
                     {
                         assertEquals(
-                            expectedMilestone.startDate,
-                            actualMilestone.get("startDate").asText(),
-                            "Milestone startDate mismatch: expected ${expectedMilestone.startDate}, got ${actualMilestone.get(
-                                "startDate",
-                            ).asText()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedMilestone.dueDate,
-                            actualMilestone.get("dueDate").asText(),
-                            "Milestone dueDate mismatch: expected ${expectedMilestone.dueDate}, got ${actualMilestone.get(
-                                "dueDate",
-                            ).asText()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedMilestone.state,
-                            actualMilestone.get("state").asText(),
-                            "Milestone state mismatch: expected ${expectedMilestone.state}, got ${actualMilestone.get("state").asText()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedMilestone.expired,
-                            actualMilestone.get("expired").asBoolean(),
-                            "Milestone expired mismatch: expected ${expectedMilestone.expired}, got ${actualMilestone.get(
+                            expectedMilestone?.expired,
+                            node.get("expired").asBoolean(),
+                            "Milestone expired mismatch: expected ${expectedMilestone?.expired}, got ${node.get(
                                 "expired",
                             ).asBoolean()}",
                         )
                     },
                     {
                         assertEquals(
-                            expectedMilestone.webUrl,
-                            actualMilestone.get("webUrl").asText(),
-                            "Milestone webUrl mismatch: expected ${expectedMilestone.webUrl}, got ${actualMilestone.get(
+                            expectedMilestone?.webUrl,
+                            node.get("webUrl").asText(),
+                            "Milestone webUrl mismatch: expected ${expectedMilestone?.webUrl}, got ${node.get(
                                 "webUrl",
                             ).asText()}",
                         )
@@ -220,30 +223,38 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.createdAt)
+                    val actual = Instant.parse(result.get("createdAt").asText())
                     assertEquals(
-                        expectedMilestone.createdAt,
-                        result.get("createdAt").asText(),
+                        expected,
+                        actual,
                         "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${result.get("createdAt").asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.updatedAt)
+                    val actual = Instant.parse(result.get("updatedAt").asText())
                     assertEquals(
-                        expectedMilestone.updatedAt,
-                        result.get("updatedAt").asText(),
+                        expected,
+                        actual,
                         "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${result.get("updatedAt").asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.startDate)
+                    val actual = Instant.parse(result.get("startDate").asText())
                     assertEquals(
-                        expectedMilestone.startDate,
-                        result.get("startDate").asText(),
+                        expected,
+                        actual,
                         "Milestone startDate mismatch: expected ${expectedMilestone.startDate}, got ${result.get("startDate").asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.dueDate)
+                    val actual = Instant.parse(result.get("dueDate").asText())
                     assertEquals(
-                        expectedMilestone.dueDate,
-                        result.get("dueDate").asText(),
+                        expected,
+                        actual,
                         "Milestone dueDate mismatch: expected ${expectedMilestone.dueDate}, got ${result.get("dueDate").asText()}",
                     )
                 },
@@ -316,8 +327,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
             val milestonesData = result.get("data")
             assertEquals(1, milestonesData.size(), "Expected 1 milestone, but got ${milestonesData.size()}")
 
-            // Check that the milestone matches the first test milestone
-            val expectedMilestone = TestDataProvider.testMilestones.first()
+            // With new default sort (dueDate DESC), compute expected first item accordingly
+            val expectedMilestone =
+                TestDataProvider.testMilestones.maxByOrNull { Instant.parse(it.dueDate) }!!
             val actualMilestone = milestonesData.get(0)
 
             assertAll(
@@ -352,36 +364,40 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.createdAt)
+                    val actual = Instant.parse(actualMilestone.get("createdAt").asText())
                     assertEquals(
-                        expectedMilestone.createdAt,
-                        actualMilestone.get("createdAt").asText(),
-                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get(
-                            "createdAt",
-                        ).asText()}",
+                        expected,
+                        actual,
+                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get("createdAt").asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.updatedAt)
+                    val actual = Instant.parse(actualMilestone.get("updatedAt").asText())
                     assertEquals(
-                        expectedMilestone.updatedAt,
-                        actualMilestone.get("updatedAt").asText(),
-                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get(
-                            "updatedAt",
-                        ).asText()}",
+                        expected,
+                        actual,
+                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get("updatedAt").asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.startDate)
+                    val actual = Instant.parse(actualMilestone.get("startDate").asText())
                     assertEquals(
-                        expectedMilestone.startDate,
-                        actualMilestone.get("startDate").asText(),
+                        expected,
+                        actual,
                         "Milestone startDate mismatch: expected ${expectedMilestone.startDate}, got ${actualMilestone.get(
                             "startDate",
                         ).asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.dueDate)
+                    val actual = Instant.parse(actualMilestone.get("dueDate").asText())
                     assertEquals(
-                        expectedMilestone.dueDate,
-                        actualMilestone.get("dueDate").asText(),
+                        expected,
+                        actual,
                         "Milestone dueDate mismatch: expected ${expectedMilestone.dueDate}, got ${actualMilestone.get("dueDate").asText()}",
                     )
                 },
@@ -487,8 +503,11 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
             val milestonesData = result.get("data")
             assertEquals(1, milestonesData.size(), "Expected 1 milestone, but got ${milestonesData.size()}")
 
-            // Check that the milestone matches the second test milestone
-            val expectedMilestone = TestDataProvider.testMilestones[1]
+            // With new default sort (dueDate DESC), compute expected second item accordingly
+            val expectedMilestone = TestDataProvider.testMilestones
+                .sortedByDescending { Instant.parse(it.dueDate) }
+                .drop(1)
+                .first()
             val actualMilestone = milestonesData.get(0)
 
             assertAll(
@@ -523,36 +542,40 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.createdAt)
+                    val actual = Instant.parse(actualMilestone.get("createdAt").asText())
                     assertEquals(
-                        expectedMilestone.createdAt,
-                        actualMilestone.get("createdAt").asText(),
-                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get(
-                            "createdAt",
-                        ).asText()}",
+                        expected,
+                        actual,
+                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get("createdAt").asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.updatedAt)
+                    val actual = Instant.parse(actualMilestone.get("updatedAt").asText())
                     assertEquals(
-                        expectedMilestone.updatedAt,
-                        actualMilestone.get("updatedAt").asText(),
-                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get(
-                            "updatedAt",
-                        ).asText()}",
+                        expected,
+                        actual,
+                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get("updatedAt").asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.startDate)
+                    val actual = Instant.parse(actualMilestone.get("startDate").asText())
                     assertEquals(
-                        expectedMilestone.startDate,
-                        actualMilestone.get("startDate").asText(),
+                        expected,
+                        actual,
                         "Milestone startDate mismatch: expected ${expectedMilestone.startDate}, got ${actualMilestone.get(
                             "startDate",
                         ).asText()}",
                     )
                 },
                 {
+                    val expected = Instant.parse(expectedMilestone.dueDate)
+                    val actual = Instant.parse(actualMilestone.get("dueDate").asText())
                     assertEquals(
-                        expectedMilestone.dueDate,
-                        actualMilestone.get("dueDate").asText(),
+                        expected,
+                        actual,
                         "Milestone dueDate mismatch: expected ${expectedMilestone.dueDate}, got ${actualMilestone.get("dueDate").asText()}",
                     )
                 },

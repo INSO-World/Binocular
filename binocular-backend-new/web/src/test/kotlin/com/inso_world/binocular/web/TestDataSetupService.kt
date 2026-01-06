@@ -14,7 +14,6 @@ import com.inso_world.binocular.core.service.ModuleInfrastructurePort
 import com.inso_world.binocular.core.service.NoteInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 
 /**
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service
  * and any relationship methods exposed by the infrastructure ports.
  */
 // Disable or whatever here
-@Profile("seed")
 @Service
 internal class TestDataSetupService(
     @Autowired private val infrastructureDataSetup: InfrastructureDataSetup,
