@@ -52,7 +52,7 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
             assertEquals(2, filesData.size(), "Expected 2 files, but got ${filesData.size()}")
 
             // Check that the files match the test data
-            TestDataProvider.testFiles.forEachIndexed { index, expectedFile ->
+            TestDataProvider.testFiles.reversed().forEachIndexed { index, expectedFile ->
                 val actualFile = filesData.get(index)
 
                 assertAll(
@@ -181,8 +181,8 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
             val filesData = result.get("data")
             assertEquals(1, filesData.size(), "Expected 1 file, but got ${filesData.size()}")
 
-            // Check that the file matches the first test file
-            val expectedFile = TestDataProvider.testFiles.first()
+            // With new default sort (path DESC), compute expected first item accordingly
+            val expectedFile = TestDataProvider.testFiles.maxByOrNull { it.path ?: "" }!!
             val actualFile = filesData.get(0)
 
             assertAll(
@@ -287,8 +287,11 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
             val filesData = result.get("data")
             assertEquals(1, filesData.size(), "Expected 1 file, but got ${filesData.size()}")
 
-            // Check that the file matches the second test file
-            val expectedFile = TestDataProvider.testFiles[1]
+            // With new default sort (path DESC), compute expected second item accordingly
+            val expectedFile = TestDataProvider.testFiles
+                .sortedByDescending { it.path ?: "" }
+                .drop(1)
+                .first()
             val actualFile = filesData.get(0)
 
             assertAll(

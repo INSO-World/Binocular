@@ -80,7 +80,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
             val commit = commits.get(0)
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", commit.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", commit.get("sha").asText(), "Commit SHA mismatch") },
                 { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }

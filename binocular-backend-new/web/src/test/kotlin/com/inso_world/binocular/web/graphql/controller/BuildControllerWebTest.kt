@@ -70,7 +70,7 @@ internal class BuildControllerWebTest : BaseIntegrationTest() {
             val buildsData = result.get("data")
             assertEquals(2, buildsData.size(), "Expected 2 builds, but got ${buildsData.size()}")
 
-            buildsData.forEachIndexed { index, actualBuild ->
+            buildsData.reversed().forEachIndexed { index, actualBuild ->
                 val expectedBuild = TestDataProvider.testBuilds[index]
 
                 assertAll(
@@ -100,7 +100,7 @@ internal class BuildControllerWebTest : BaseIntegrationTest() {
                 val jobs = actualBuild.get("jobs")
                 assertEquals(expectedBuild.jobs?.size, jobs.size(), "Job list size mismatch at index $index")
 
-                jobs.forEachIndexed { jobIndex, actualJob ->
+                jobs.reversed().forEachIndexed { jobIndex, actualJob ->
                     val expectedJob = expectedBuild.jobs!![jobIndex]
 
                     assertAll(
@@ -245,7 +245,7 @@ internal class BuildControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, buildsData.size(), "Expected 1 build on first page, but got ${buildsData.size()}")
 
             val actualBuild = buildsData.get(0)
-            val expectedBuild = TestDataProvider.testBuilds.first()
+            val expectedBuild = TestDataProvider.testBuilds.maxByOrNull { it.id?.toInt() ?: Int.MIN_VALUE }!!
 
             assertAll(
                 { assertEquals(expectedBuild.id, actualBuild.get("id").asText(), "Build id mismatch") },
@@ -323,7 +323,10 @@ internal class BuildControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, buildsData.size(), "Expected 1 build on second page, but got ${buildsData.size()}")
 
             val actualBuild = buildsData.get(0)
-            val expectedBuild = TestDataProvider.testBuilds[1]
+            val expectedBuild = TestDataProvider.testBuilds
+                .sortedByDescending { it.id?.toInt() ?: Int.MIN_VALUE }
+                .drop(1)
+                .first()
 
             assertAll(
                 { assertEquals(expectedBuild.id, actualBuild.get("id").asText(), "Build id mismatch on page 2") },
