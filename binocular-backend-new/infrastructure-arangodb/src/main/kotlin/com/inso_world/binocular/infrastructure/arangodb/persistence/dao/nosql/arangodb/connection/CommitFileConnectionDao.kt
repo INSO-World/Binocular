@@ -104,6 +104,16 @@ class CommitFileConnectionDao
             }
         }
 
+        override fun findFileActionsByCommit(commitId: String): Map<String, String?> {
+            val rows = repository.findFileActionsByCommit(commitId)
+            return rows.associate { row ->
+                val fileId = row["fileId"]?.toString()
+                    ?: error("Missing fileId in commit file actions row: $row")
+                val action = row["action"]?.toString()
+                fileId to action
+            }
+        }
+
         /**
          * Save a commit-file connection
          */

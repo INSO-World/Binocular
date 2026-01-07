@@ -324,6 +324,10 @@ internal class CommitInfrastructurePortImpl
             TODO("Not yet implemented")
         }
 
+        override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
+            TODO("Not yet implemented")
+        }
+
         override fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit> {
             TODO("Not yet implemented")
         }

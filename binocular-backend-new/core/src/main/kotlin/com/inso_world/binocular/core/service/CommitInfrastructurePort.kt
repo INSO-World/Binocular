@@ -62,6 +62,11 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
     fun findFileStatsByCommitId(commitId: String): Map<String, Stats>
 
     /**
+     * Return per-file action for a given commit, keyed by file.id
+     */
+    fun findFileActionsByCommitId(commitId: String): Map<String, String?>
+
+    /**
      * Find modules by commit ID.
      *
      * @param commitId The ID of the commit

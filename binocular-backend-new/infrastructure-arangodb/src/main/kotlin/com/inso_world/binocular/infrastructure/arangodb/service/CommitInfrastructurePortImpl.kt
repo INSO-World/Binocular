@@ -103,6 +103,11 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         return commitFileConnectionRepository.findFileStatsByCommit(commitId)
     }
 
+    override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
+        logger.trace("Getting per-file actions for commit: $commitId")
+        return commitFileConnectionRepository.findFileActionsByCommit(commitId)
+    }
+
     override fun findUsersByCommitId(commitId: String): List<User> {
         logger.trace("Getting users for commit: $commitId")
         return commitUserConnectionRepository.findUsersByCommit(commitId)

@@ -61,6 +61,18 @@ FOR c IN commits
         """
     FOR c IN `commits-files`
         FILTER c._from == CONCAT('commits/', @commitId)
+        RETURN {
+          fileId: PARSE_IDENTIFIER(c._to).key,
+          action: c.action
+        }
+""",
+    )
+    fun findFileActionsByCommit(commitId: String): List<Map<String, Any?>>
+
+    @Query(
+        """
+    FOR c IN `commits-files`
+        FILTER c._from == CONCAT('commits/', @commitId)
         COLLECT WITH COUNT INTO length
         RETURN length
 """,

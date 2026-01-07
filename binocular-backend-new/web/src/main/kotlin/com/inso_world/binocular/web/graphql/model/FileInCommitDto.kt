@@ -9,5 +9,6 @@ import com.inso_world.binocular.model.Stats
 data class FileInCommitDto(
     val file: File,
     val stats: Stats,
+    val action: String? = null,
     val hunks: List<Hunk> = emptyList(),
 )
