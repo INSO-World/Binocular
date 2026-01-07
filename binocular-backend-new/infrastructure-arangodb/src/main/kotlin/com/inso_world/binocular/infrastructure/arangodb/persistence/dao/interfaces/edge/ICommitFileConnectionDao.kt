@@ -43,6 +43,11 @@ internal interface ICommitFileConnectionDao {
     fun findFileStatsByCommit(commitId: String): Map<String, Stats>
 
     /**
+     * Return action per file for a given commit, keyed by file id
+     */
+    fun findFileActionsByCommit(commitId: String): Map<String, String?>
+
+    /**
      * Save a commit-file connection
      */
     fun save(connection: CommitFileConnection): CommitFileConnection

@@ -68,6 +68,7 @@ class CommitResolver(
         logger.info("Resolving files for commit: $id (page=$page, perPage=$perPage, sort=$sort)")
 
         val fileStatsById = commitService.findFileStatsByCommitId(id)
+        val fileActionsById = commitService.findFileActionsByCommitId(id)
 
         val pageable = PaginationUtils.createPageableWithValidation(
             page = currentPage,
@@ -89,9 +90,11 @@ class CommitResolver(
                     oldLines = deletions,
                 )
             )
+            val action = f.id?.let { fileActionsById[it] }
             CommitFile(
                 file = f,
                 stats = stats,
+                action = action,
                 hunks = hunks,
             )
         }
