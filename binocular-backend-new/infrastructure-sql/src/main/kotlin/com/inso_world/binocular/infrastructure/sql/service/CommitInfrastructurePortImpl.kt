@@ -22,6 +22,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
@@ -325,6 +326,10 @@ internal class CommitInfrastructurePortImpl
         }
 
         override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
             TODO("Not yet implemented")
         }
 

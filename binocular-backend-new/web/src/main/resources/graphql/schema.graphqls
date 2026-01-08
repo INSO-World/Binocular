@@ -265,11 +265,27 @@ type Hunk {
   oldLines: Int
 }
 
+type OwnershipLine {
+  from: Int!
+  to: Int!
+}
+
+type OwnershipHunk {
+  originalCommit: String
+  lines: [OwnershipLine!]!
+}
+
+type FileOwnership {
+  user: String!
+  hunks: [OwnershipHunk!]!
+}
+
 type FileInCommit {
   file: File
   stats: Stats
   action: String
   hunks: [Hunk]!
+  ownership: [FileOwnership!]
 }
 
 type PaginatedFileInCommit {

@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileConnection
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Stats
 import org.springframework.data.domain.Pageable
 
@@ -41,6 +42,11 @@ internal interface ICommitFileConnectionDao {
      * Return stats per file for a given commit, keyed by file id
      */
     fun findFileStatsByCommit(commitId: String): Map<String, Stats>
+
+    /**
+     * Return ownership entries (user + hunks) for a given commit and file
+     */
+    fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership>
 
     /**
      * Return action per file for a given commit, keyed by file id

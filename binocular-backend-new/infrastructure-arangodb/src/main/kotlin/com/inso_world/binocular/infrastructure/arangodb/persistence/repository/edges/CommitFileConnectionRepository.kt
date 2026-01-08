@@ -81,6 +81,20 @@ FOR c IN commits
 
     @Query(
         """
+    FOR cf IN `commits-files`
+        FILTER cf._from == CONCAT('commits/', @commitId) AND cf._to == CONCAT('files/', @fileId)
+        FOR cfu IN `commit-files-users`
+            FILTER cfu._from == cf._id
+            RETURN {
+              userId: PARSE_IDENTIFIER(cfu._to).key,
+              hunks: cfu.hunks
+            }
+""",
+    )
+    fun findOwnershipByCommitAndFile(commitId: String, fileId: String): List<Map<String, Any?>>
+
+    @Query(
+        """
     FOR c IN `commits-files`
         FILTER c._to == CONCAT('files/', @fileId)
         FOR cm IN commits

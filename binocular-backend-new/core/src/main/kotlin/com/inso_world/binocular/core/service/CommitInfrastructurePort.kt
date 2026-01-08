@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
@@ -60,6 +61,11 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
      * Return per-file stats for a given commit, keyed by file.id
      */
     fun findFileStatsByCommitId(commitId: String): Map<String, Stats>
+
+    /**
+     * Return ownership entries for a commit-file pair.
+     */
+    fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership>
 
     /**
      * Return per-file action for a given commit, keyed by file.id

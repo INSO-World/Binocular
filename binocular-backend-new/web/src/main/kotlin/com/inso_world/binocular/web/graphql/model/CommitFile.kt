@@ -12,4 +12,5 @@ data class CommitFile(
     val stats: Stats?,
     val action: String? = null,
     val hunks: List<Hunk> = emptyList(),
+    val commitId: String? = null,
 )
