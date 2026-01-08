@@ -49,9 +49,9 @@ object TestDataProvider {
             ),
         )
 
-    private val mainBranch = Branch("1", "main", true, true, "abc123")
+    private val mainBranch = Branch("1", "main", true, true, "abc1230000000000000000000000000000000000")
     private val newFeatureBranch =
-        Branch("2", "feature/new-feature", true, false, "def456")
+        Branch("2", "feature/new-feature", true, false, "def4560000000000000000000000000000000000")
     val testBranches =
         listOf(mainBranch, newFeatureBranch)
 
@@ -61,12 +61,12 @@ object TestDataProvider {
                 val cmt =
                     Commit(
                         "1",
-                        "abc123",
+                        "abc1230000000000000000000000000000000000",
                         LocalDateTime.now(),
                         LocalDateTime.now(),
                         "First commit",
                         null,
-                        "https://example.com/commit/abc123",
+                        "https://example.com/commit/abc1230000000000000000000000000000000000",
                         "main",
                         Stats(10, 5),
                     )
@@ -77,12 +77,12 @@ object TestDataProvider {
                 val cmt =
                     Commit(
                         "2",
-                        "def456",
-                        java.time.LocalDateTime.now(),
-                        java.time.LocalDateTime.now(),
+                        "def4560000000000000000000000000000000000",
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
                         "Second commit",
                         null,
-                        "https://example.com/commit/def456",
+                        "https://example.com/commit/def4560000000000000000000000000000000000",
                         "main",
                         Stats(7, 3),
                     )
@@ -95,7 +95,7 @@ object TestDataProvider {
         listOf(
             Build(
                 "1",
-                "abc123",
+                "abc1230000000000000000000000000000000000",
                 "main",
                 "success",
                 "v0.0.1-rc",
@@ -122,17 +122,17 @@ object TestDataProvider {
             ),
             Build(
                 "2",
-                "def456",
+                "def4560000000000000000000000000000000000",
                 "feature/new-feature",
                 "failed",
                 "v1.0.0",
                 "user2",
                 "User Two",
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
                 180,
                 listOf(
                     Job(
@@ -140,8 +140,8 @@ object TestDataProvider {
                         "build",
                         "failed",
                         "build",
-                        java.time.LocalDateTime.now(),
-                        java.time.LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
                         "https://example.com/jobs/job2",
                     ),
                 ),
@@ -188,7 +188,7 @@ object TestDataProvider {
                 "https://example.com/issues/101",
                 listOf(
                     Mention(
-                        "abc123",
+                        "abc1230000000000000000000000000000000000",
                         LocalDateTime.now(),
                         false,
                     ),
@@ -199,16 +199,16 @@ object TestDataProvider {
                 102,
                 "Add new feature",
                 "Implement profile customization",
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
                 listOf("enhancement", "feature"),
                 "closed",
                 "https://example.com/issues/102",
                 listOf(
                     Mention(
-                        "def456",
-                        java.time.LocalDateTime.now(),
+                        "def4560000000000000000000000000000000000",
+                        LocalDateTime.now(),
                         true,
                     ),
                 ),
@@ -230,7 +230,7 @@ object TestDataProvider {
                 "https://example.com/merge_requests/201",
                 listOf(
                     Mention(
-                        "abc123",
+                        "abc1230000000000000000000000000000000000",
                         LocalDateTime.now(),
                         false,
                     ),
@@ -249,8 +249,8 @@ object TestDataProvider {
                 "https://example.com/merge_requests/202",
                 listOf(
                     Mention(
-                        "def456",
-                        java.time.LocalDateTime.now(),
+                        "def4560000000000000000000000000000000000",
+                        LocalDateTime.now(),
                         true,
                     ),
                 ),
@@ -347,4 +347,5 @@ object TestDataProvider {
                 webUrl = "https://example.com/milestones/2",
             ),
         )
+
 }
