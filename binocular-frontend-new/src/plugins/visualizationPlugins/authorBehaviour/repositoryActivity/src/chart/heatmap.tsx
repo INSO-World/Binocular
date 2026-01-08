@@ -54,8 +54,6 @@ function Heatmap({
     let cellHeight = minCellSize;
 
     if (scaleHorizontal || scaleVertical) {
-      console.log('containerWidth:', containerWidth, 'containerHeight:', containerHeight);
-
       if (scaleHorizontal) {
         const availableWidth = containerWidth - (margin.left + margin.right) * 1.5;
         cellWidth = Math.max(minCellSize, (availableWidth - (cols - 1) * cellPadding) / cols);
@@ -65,7 +63,6 @@ function Heatmap({
         const availableHeight = containerHeight - margin.top - margin.bottom - (shouldShowLegend ? 50 : 0);
         cellHeight = Math.max(minCellSize, (availableHeight - (rows - 1) * cellPadding) / rows);
       }
-      console.log('cellWidth:', cellWidth, 'cellHeight:', cellHeight);
     }
 
     const aWidth = cols * (cellWidth + cellPadding) + margin.left + margin.right;
@@ -86,15 +83,18 @@ function Heatmap({
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    setMinValue(d3.min(data, (d) => d.value) || 0);
-    const maxValue = d3.max(data, (d) => d.value) || 100;
+    // Filter out items without valid row/col (can happen during view transitions)
+    const validData = data.filter((d) => typeof d.row === 'number' && typeof d.col === 'number');
+
+    setMinValue(d3.min(validData, (d) => d.value) || 0);
+    const maxValue = d3.max(validData, (d) => d.value) || 100;
     setMaxValue(maxValue);
     const opacityScale = d3.scaleLinear().domain([0, maxValue]).range([0.2, 1]);
     const tooltip = createTooltip();
 
     svg
       .selectAll('rect')
-      .data(data)
+      .data(validData)
       .enter()
       .append('rect')
       .attr('width', cellWidth)

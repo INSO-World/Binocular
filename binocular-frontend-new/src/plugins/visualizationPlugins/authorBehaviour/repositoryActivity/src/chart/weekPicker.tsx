@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import ChevronLeftIcon from '../../assets/chevronLeft.svg';
 import ChevronRightIcon from '../../assets/chevronRight.svg';
+import ChevronBackIcon from '../../assets/chevronBack.svg';
 import CalendarIcon from '../../assets/calendar.svg';
 
 interface WeekPickerProps {
   onChange?: (weekStart: Date) => void;
   initialWeek?: Date;
+  onBack: () => void;
 }
 
 interface Week {
@@ -13,11 +15,19 @@ interface Week {
   end: Date;
 }
 
-export default function WeekPicker({ onChange, initialWeek }: WeekPickerProps) {
+export default function WeekPicker({ onChange, onBack, initialWeek }: WeekPickerProps) {
   const [selectedWeek, setSelectedWeek] = useState<Date>(initialWeek || getCurrentWeek());
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(initialWeek || new Date());
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const popupRef = useRef<HTMLDivElement>(null);
+
+  // Sync with initialWeek when it changes from parent
+  useEffect(() => {
+    if (initialWeek) {
+      setSelectedWeek(initialWeek);
+      setCurrentMonth(initialWeek);
+    }
+  }, [initialWeek]);
 
   function getCurrentWeek(): Date {
     const now = new Date();
@@ -127,9 +137,14 @@ export default function WeekPicker({ onChange, initialWeek }: WeekPickerProps) {
   const monthRangeLabel = `${prevMonthDate.toLocaleDateString('en-US', { month: 'short' })} - ${nextMonthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
 
   return (
-    <div className="mb-2">
-      {/* Compact Header Mode */}
-      <div className="bg-white rounded shadow p-2">
+    <div className="mb-2 flex items-center gap-2">
+      {onBack && (
+        <button onClick={onBack} className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="Back to activity timeline">
+          <img src={ChevronBackIcon} className="w-5 h-5 text-gray-600" />
+        </button>
+      )}
+
+      <div className="bg-white rounded shadow p-1 flex-1 relative">
         <div className="flex items-center justify-between gap-2">
           <button
             onClick={previousWeek}
@@ -151,11 +166,10 @@ export default function WeekPicker({ onChange, initialWeek }: WeekPickerProps) {
             <img src={ChevronRightIcon} alt="Next" className="w-4 h-4 text-gray-600" />
           </button>
         </div>
-
-        {/* Popup Calendar - positioned absolutely over content */}
+        {/* Popup Calendar */}
         {isPopupOpen && (
-          <div className="absolute z-50 mt-2 left-0 right-0 mx-auto max-w-md" ref={popupRef}>
-            <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4">
+          <div className="absolute z-50 mt-1 left-0 w-full max-w-sm" ref={popupRef}>
+            <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-h-80 overflow-auto">
               <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={previousMonth}

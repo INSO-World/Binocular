@@ -4,13 +4,13 @@ import type { VisualizationPluginProperties } from '../../../../../interfaces/vi
 import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
 import type { RepositoryActivitySettings } from '../settings/settings';
 import Heatmap from './heatmap';
-import CalendarHeatmap from './calendarHeatmap';
 import { useDispatch, useSelector } from 'react-redux';
-import { convertToCalendarFormat } from '../utilities/monthlyUtils';
+import { convertToActivityTimelineFormat } from '../utilities/activityTimelineUtils';
 import { handelPopoutResizing } from '../../../../../utils/resizing';
-import { DataState, setDateRange } from '../reducer';
+import { DataState, setDateRange, setShowActivityTimeline } from '../reducer';
 import { convertToWeeklyFormat } from '../utilities/weeklyUtils';
 import WeekPicker from './weekPicker';
+import ActivityTimeline from './activityTimeline';
 
 function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, DataPluginCommit>) {
   type RootState = ReturnType<typeof props.store.getState>;
@@ -27,13 +27,11 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
   const [rowLabels, setRowLabels] = useState<Array<string>>([]);
   const [colLabels, setColLabels] = useState<Array<string>>([]);
   const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const showActivityTimeline = useSelector((state: RootState) => state.plugin.showActivityTimeline);
 
   const weekPickerHeight = 60;
 
-  const handleWeekChange = (weekStart: Date) => {
-    console.log('Selected week:', weekStart);
-    setSelectedWeek(weekStart);
-  };
+  // Resize logic start
 
   function resize() {
     if (!props.chartContainerRef.current) return;
@@ -51,10 +49,16 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
 
   handelPopoutResizing(props.store, resize);
 
-  // Effect on data change - convert real data to chart format
+  // resize logic end
+
+  const handleWeekChange = (weekStart: Date) => {
+    setSelectedWeek(weekStart);
+  };
+
+  // Effect on data change - convert data to chart format
   useEffect(() => {
-    if (!props.settings.displayWeekly) {
-      const { chartData: chartData } = convertToCalendarFormat(data, props);
+    if (showActivityTimeline) {
+      const { chartData: chartData } = convertToActivityTimelineFormat(data, props);
       setChartData(chartData);
     } else {
       const { chartData: chartData, rowLabels: rowLabels, colLabels: colLabels } = convertToWeeklyFormat(data, props, selectedWeek);
@@ -62,12 +66,17 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
       setRowLabels(rowLabels);
       setColLabels(colLabels);
     }
-  }, [data, props, selectedWeek]);
+  }, [data, props, selectedWeek, showActivityTimeline]);
 
   // Set Global state when parameters change
   useEffect(() => {
     dispatch(setDateRange(props.parameters.parametersDateRange));
   }, [props.parameters, dispatch, props.dataName]);
+
+  // Sync showActivityTimeline setting to Redux state
+  useEffect(() => {
+    dispatch(setShowActivityTimeline(props.settings.showActivityTimeline));
+  }, [props.settings.showActivityTimeline, dispatch]);
 
   // Trigger Refresh when dataConnection changes
   useEffect(() => {
@@ -75,6 +84,23 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
   }, [props.dataConnection, dispatch]);
 
   const selectedColor = props.authorList[0]?.color?.main || '#3182bd';
+
+  const handleBack = () => {
+    dispatch(setShowActivityTimeline(true));
+    setSelectedWeek(new Date());
+  };
+
+  const handleDayCellClick = (cell: HeatmapCell) => {
+    if (!cell.metadata?.date) return;
+    const clickedDate = new Date(cell.metadata.date);
+    // Calculate Monday of the clicked week
+    const day = clickedDate.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // If Sunday, go back 6 days, else go to Monday
+    const weekStart = new Date(clickedDate);
+    weekStart.setDate(clickedDate.getDate() + diff);
+    setSelectedWeek(weekStart);
+    dispatch(setShowActivityTimeline(false));
+  };
 
   return (
     <div className={'w-full h-full flex justify-center items-center'} ref={props.chartContainerRef}>
@@ -84,11 +110,11 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
           <span className="loading loading-spinner loading-lg text-accent"></span>
         </div>
       )}
-      {props.settings.displayWeekly
+      {!showActivityTimeline
         ? dataState === DataState.COMPLETE &&
           (chartData.length !== 0 ? (
             <div style={{ width: '100%', maxHeight: '100%', overflow: 'auto' }}>
-              <WeekPicker onChange={handleWeekChange} initialWeek={selectedWeek}></WeekPicker>
+              <WeekPicker onChange={handleWeekChange} onBack={handleBack} initialWeek={selectedWeek}></WeekPicker>
               <Heatmap
                 data={chartData as HeatmapCell[]}
                 colLabels={colLabels}
@@ -97,7 +123,7 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
                 color={selectedColor}
                 cellPadding={3}
                 showLegend={true}
-                legendTitle="Values"
+                legendTitle="Activities"
                 scaleHorizontal={true}
                 scaleVertical={true}
                 containerWidth={chartWidth}
@@ -110,7 +136,7 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
         : dataState === DataState.COMPLETE &&
           (chartData.length !== 0 ? (
             <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
-              <CalendarHeatmap
+              <ActivityTimeline
                 data={chartData as Array<{ date: Date; value: number; tooltip?: string }>}
                 startDate={new Date(props.parameters.parametersDateRange.from)}
                 endDate={new Date(props.parameters.parametersDateRange.to)}
@@ -118,7 +144,12 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
                 cellPadding={3}
                 color={selectedColor}
                 showLegend={true}
-                legendTitle="Contributions"
+                legendTitle="Activities"
+                onCellClick={handleDayCellClick}
+                scaleHorizontal={true}
+                scaleVertical={true}
+                containerWidth={chartWidth}
+                containerHeight={chartHeight}
               />
             </div>
           ) : (
