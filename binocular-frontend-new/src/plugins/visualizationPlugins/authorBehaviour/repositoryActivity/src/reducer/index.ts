@@ -16,12 +16,14 @@ export interface RepositoryActivityState {
   data: AnyActivityDataPlugin[];
   dateRange: DateRange;
   dataState: DataState;
+  showActivityTimeline: boolean;
 }
 
 const initialState: RepositoryActivityState = {
   data: [],
   dateRange: { from: new Date().toISOString(), to: new Date().toISOString() },
   dataState: DataState.EMPTY,
+  showActivityTimeline: true,
 };
 
 export const reducerSlice = createSlice({
@@ -37,8 +39,11 @@ export const reducerSlice = createSlice({
     setDataState: (state, action: PayloadAction<DataState>) => {
       state.dataState = action.payload;
     },
+    setShowActivityTimeline: (state, action: PayloadAction<boolean>) => {
+      state.showActivityTimeline = action.payload;
+    },
   },
 });
 
-export const { setData, setDateRange, setDataState } = reducerSlice.actions;
+export const { setData, setDateRange, setDataState, setShowActivityTimeline } = reducerSlice.actions;
 export default reducerSlice.reducer;
