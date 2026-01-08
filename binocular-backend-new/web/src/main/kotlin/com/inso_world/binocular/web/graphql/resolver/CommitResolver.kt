@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.User
@@ -24,6 +25,16 @@ class CommitResolver(
     private val commitService: CommitInfrastructurePort,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(CommitResolver::class.java)
+
+    /**
+     * Resolves ownership for a FileInCommit.
+     */
+    @SchemaMapping(typeName = "FileInCommit", field = "ownership")
+    fun ownership(fileInCommit: CommitFile): List<FileOwnership> {
+        val commitId = fileInCommit.commitId ?: return emptyList()
+        val fileId = fileInCommit.file?.id ?: return emptyList()
+        return commitService.findFileOwnershipByCommitAndFile(commitId, fileId)
+    }
 
     /**
      * Resolves the builds field for a Commit in GraphQL.
@@ -96,6 +107,7 @@ class CommitResolver(
                 stats = stats,
                 action = action,
                 hunks = hunks,
+                commitId = id,
             )
         }
 

@@ -14,6 +14,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
@@ -125,6 +126,11 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
     override fun findUsersByCommitId(commitId: String): List<User> {
         logger.trace("Getting users for commit: $commitId")
         return commitUserConnectionRepository.findUsersByCommit(commitId)
+    }
+
+    override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
+        logger.trace("Getting ownership for commit: $commitId and file: $fileId")
+        return commitFileConnectionRepository.findFileOwnershipByCommitAndFile(commitId, fileId)
     }
 
     override fun findIssuesByCommitId(commitId: String): List<Issue> {

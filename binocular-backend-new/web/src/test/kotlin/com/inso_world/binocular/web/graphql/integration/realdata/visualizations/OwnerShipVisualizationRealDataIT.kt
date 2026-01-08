@@ -247,4 +247,63 @@ class OwnerShipVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
         )
     }
 
+    @Test
+    fun `commit ownership returns expected snapshot for known sha`() {
+        val query = """
+            query {
+              commit(sha: "ec1444a4e2f37a0bdffca6c67d0bb9c8d696704d") {
+                files {
+                  data {
+                    file { path }
+                    ownership {
+                      user
+                      hunks {
+                        originalCommit
+                        lines { from to }
+                        __typename
+                      }
+                      __typename
+                    }
+                    __typename
+                  }
+                  __typename
+                }
+                __typename
+              }
+            }
+        """.trimIndent()
+
+        val root = client.execute(query)
+        val commit = root.get("commit")
+        val files = commit.get("files").get("data")
+
+        val filesByPath = files.associateBy { it.get("file").get("path").asText() }
+        val contributing = filesByPath["docs/CONTRIBUTING.md"]
+            ?: error("Missing docs/CONTRIBUTING.md in commit files")
+
+        val ownership = contributing.get("ownership")
+        assertTrue(ownership.isArray(), "ownership field should be an array for docs/CONTRIBUTING.md")
+
+        if (ownership.size() > 0) {
+            for (i in 0 until ownership.size()) {
+                val o = ownership.get(i)
+                val sig = o.get("user").asText()
+                assertTrue(sig.isNotBlank(), "ownership.user signature should be non-blank")
+                val hunks = o.get("hunks")
+                assertTrue(hunks.size() >= 1, "each ownership entry should have at least one hunk when present")
+                val firstHunk = hunks.get(0)
+                val lines = firstHunk.get("lines")
+                assertTrue(lines.size() >= 1, "each hunk should have at least one line range when present")
+                val line0 = lines.get(0)
+                line0.get("from").asInt()
+                line0.get("to").asInt()
+            }
+        }
+
+        val gqlFile = filesByPath["lib/endpoints/graphQl.js"]
+            ?: error("Missing lib/endpoints/graphQl.js in commit files")
+        val gqlOwnership = gqlFile.get("ownership")
+        assertTrue(gqlOwnership.isArray(), "ownership field should be an array for lib/endpoints/graphQl.js")
+    }
+
 }
