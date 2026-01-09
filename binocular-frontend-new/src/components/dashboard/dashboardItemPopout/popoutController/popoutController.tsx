@@ -103,7 +103,6 @@ export default function PopoutController(props: PropsType) {
 
   function createOptions() {
     const mergedOptions = Object.assign({}, DEFAULT_OPTIONS, props.options);
-    console.log(Object.keys(mergedOptions).join(','));
     return Object.keys(mergedOptions)
       .map((key) => key + '=' + mergedOptions[key as keyof OptionsType])
       .join(',');
