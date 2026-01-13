@@ -924,6 +924,31 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
             )
         }
 
+        /*
+        NOTE:
+        Issue removal is intentionally not implemented yet.
+        Once issue removal is implemented, this test is expected to fail.
+         */
+        @Test
+        fun `removing issue is not supported yet`() {
+            // Given: A project
+            val project = Project(name = "MutableIssuesTest")
+
+            // When: Adding issues
+            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
+                gid = "1",
+                project = project)
+            val issue2 = Issue(title = "Issue 2", state = "open", createdAt = LocalDateTime.now(),
+                gid = "2",
+                project = project)
+            project.issues.add(issue1)
+            project.issues.add(issue2)
+            assertThrows<UnsupportedOperationException> {
+                project.issues.remove(issue1)
+            }
+        }
+
+        @Disabled("Not implemented yet. Enable when removing issues is implemented.")
         @Test
         fun `project issues collection is mutable`() {
             // Given: A project
