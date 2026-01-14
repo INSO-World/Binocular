@@ -2,6 +2,8 @@ import Changes from './visualizationPlugins/changes';
 import Builds from './visualizationPlugins/builds';
 import CommitByFile from './visualizationPlugins/commitByFile';
 import Issues from './visualizationPlugins/issues';
+import Sprints from './visualizationPlugins/sprints';
+import Burndown from './visualizationPlugins/burndown';
 import TimeSpent from './visualizationPlugins/timeSpent';
 import CodeOwnership from './visualizationPlugins/code-ownership';
 import FileChanges from './visualizationPlugins/fileChanges';
@@ -49,6 +51,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   issues,
   mergeRequest,
   timeSpent,
+  Sprints,
   RepositoryStats,
   CodeOwnership,
   FileChanges,
@@ -59,6 +62,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   CollaborationVisualization,
   KnowledgeRadar,
   CodeExpertise,
+  Burndown,
 ];
 
 //Order = priority used when nothing selected by the user.

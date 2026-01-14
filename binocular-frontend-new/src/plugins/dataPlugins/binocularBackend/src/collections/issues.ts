@@ -1,6 +1,7 @@
 import { GraphQL, traversePages } from '../utils.ts';
 import type { DataPluginIssue, DataPluginIssues } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import { gql } from '@apollo/client';
+import type { DataPluginStats } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default class Issues implements DataPluginIssues {
   private graphQl;
@@ -28,6 +29,7 @@ export default class Issues implements DataPluginIssues {
                 createdAt
                 closedAt
                 updatedAt
+                labels
                 author {
                   login
                   name
@@ -65,6 +67,14 @@ export default class Issues implements DataPluginIssues {
                   createdAt
                   updatedAt
                 }
+                commits {
+                  data {
+                    stats {
+                      additions
+                      deletions
+                    }
+                  }
+                }
               }
             }
           }
@@ -73,9 +83,17 @@ export default class Issues implements DataPluginIssues {
       });
       return resp.data.issues;
     };
-    await traversePages(getIssuesPage(from, to, sort), (issue: DataPluginIssue) => {
-      issues.push(issue);
-    });
+    await traversePages(
+      getIssuesPage(from, to, sort),
+      ({
+        commits,
+        ...issue
+      }: Omit<DataPluginIssue, 'commits'> & {
+        commits: { data: { stats: DataPluginStats }[] };
+      }) => {
+        issues.push({ ...issue, commits: commits.data.flatMap((d) => d.stats) });
+      },
+    );
     return issues;
   }
 }
