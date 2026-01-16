@@ -11,7 +11,12 @@ class GraphQL {
         uri: 'https://api.github.com/graphql',
         headers: { authorization: `Bearer ${apiKey}` },
       }),
-      cache: new InMemoryCache(),
+      cache: new InMemoryCache(),      
+      defaultOptions: {
+        watchQuery: {
+          fetchPolicy: 'no-cache'
+        }
+      }
     });
   }
 }

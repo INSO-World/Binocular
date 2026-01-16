@@ -10,6 +10,11 @@ class GraphQL {
         uri: endpoint,
       }),
       cache: new InMemoryCache(),
+      defaultOptions: {
+        watchQuery: {
+          fetchPolicy: 'no-cache'
+        }
+      }
     });
   }
 }
