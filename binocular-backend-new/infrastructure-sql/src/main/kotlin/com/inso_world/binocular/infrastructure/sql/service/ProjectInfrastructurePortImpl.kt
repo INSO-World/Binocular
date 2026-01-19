@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
@@ -28,6 +29,9 @@ internal class ProjectInfrastructurePortImpl(
     @Autowired private val projectDao: IProjectDao,
 ) : AbstractInfrastructurePort<Project, ProjectEntity, Long>(Long::class),
     ProjectInfrastructurePort {
+    companion object {
+        private val logger by logger()
+    }
     @Lazy
     @Autowired
     private lateinit var projectAssembler: ProjectAssembler
