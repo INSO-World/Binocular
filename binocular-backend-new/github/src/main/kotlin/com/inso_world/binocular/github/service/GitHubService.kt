@@ -86,7 +86,7 @@ class GitHubService(
             val query = """
     query(${"$"}cursor: String) {
       repository(owner: "$owner", name: "$repo") {
-        issues(first: 100, after: ${"$"}cursor) {
+        issues(first: 50, after: ${"$"}cursor) {
           totalCount
           nodes {
             id
