@@ -33,7 +33,7 @@ class ProjectService(
     fun getOrCreateProject(name: String): Project {
         val find = this.findByName(name)
         if (find == null) {
-            logger.info("Project '$name' does not exists, creating new project")
+            logger.info("Project '$name' does not exist, creating new project")
             return this.projectInfrastructurePort.create(
                 Project(
                     name = name,
