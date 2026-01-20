@@ -126,6 +126,8 @@ data class Project(
 
     override fun toString(): String = "Project(id=$id, iid=$iid, name='$name', description=$description)"
 
+    fun toStringDebug(): String = "Project(name='$name', accountCount=${accounts.size}, issueCount=${issues.size})"
+
     override val uniqueKey: Project.Key
         get() = Project.Key(this.name)
 

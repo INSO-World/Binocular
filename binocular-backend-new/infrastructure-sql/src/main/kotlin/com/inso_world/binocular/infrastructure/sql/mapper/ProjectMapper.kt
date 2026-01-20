@@ -45,7 +45,12 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         return domain
     }
 
-    fun refreshDomain(target: Project, entity: ProjectEntity) {
-        target.id = entity.id?.toString()
+    fun refreshDomain(target: Project, entity: ProjectEntity) : Project {
+        setField(
+            target.javaClass.getDeclaredField("id"),
+            target,
+            entity.id?.toString()
+        )
+        return target
     }
 }

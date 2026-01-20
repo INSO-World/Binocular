@@ -69,7 +69,8 @@ internal data class ProjectEntity(
         orphanRemoval = true,
     ) var issues: MutableSet<IssueEntity> = mutableSetOf()
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = [CascadeType.ALL])
     @JoinTable(
         name = "project_account",
         joinColumns = [JoinColumn(name = "fk_project_id")],
@@ -97,6 +98,8 @@ internal data class ProjectEntity(
 
 
     override fun toString(): String = "ProjectEntity(id=$id, iid=$iid, name=$name, description=$description, repo=$repo)"
+
+    fun toStringDebug(): String = "ProjectEntity(id=$id, name=$name, accountCount=${accounts.size}, issueCount=${issues.size})"
 
     override val uniqueKey: ProjectEntity.Key
         get() = ProjectEntity.Key(this.name)
