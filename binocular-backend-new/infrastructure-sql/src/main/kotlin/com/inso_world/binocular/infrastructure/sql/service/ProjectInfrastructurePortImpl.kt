@@ -2,14 +2,18 @@ package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.assembler.ProjectAssembler
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
+import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IProjectDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
 import com.inso_world.binocular.model.Project
 import jakarta.annotation.PostConstruct
 import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadProjectEntities
@@ -19,6 +23,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
+import kotlin.getValue
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -29,12 +34,17 @@ internal class ProjectInfrastructurePortImpl(
     @Autowired private val projectDao: IProjectDao,
 ) : AbstractInfrastructurePort<Project, ProjectEntity, Long>(Long::class),
     ProjectInfrastructurePort {
+
     companion object {
         private val logger by logger()
     }
+
     @Lazy
     @Autowired
     private lateinit var projectAssembler: ProjectAssembler
+
+    @Autowired
+    private lateinit var ctx: MappingContext
 
     @Lazy
     @Autowired
@@ -43,6 +53,9 @@ internal class ProjectInfrastructurePortImpl(
     @Lazy
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
+
+    @Lazy
+    @Autowired lateinit var accountMapper: AccountMapper
 
     @PostConstruct
     fun init() {
@@ -68,12 +81,18 @@ internal class ProjectInfrastructurePortImpl(
     @MappingSession
     @Transactional
     override fun update(value: Project): Project {
-        val managedEntity =
-            this.projectDao.findByIid(value.iid) ?: throw NotFoundException("Project ${value.iid} not found")
 
-        // update project properties
+        // Get the project entity
+        val managedEntity =
+            this.projectDao.findByIid(value.iid)
+                ?: throw NotFoundException("Project ${value.iid} not found")
+
+        ctx.remember(value, managedEntity)
+
+        // update project properties (description)
         managedEntity.description = value.description
 
+        // Manage repository:
         run {
             val domainRepo = value.repo
             val entityRepo = managedEntity.repo
@@ -106,11 +125,44 @@ internal class ProjectInfrastructurePortImpl(
             }
         }
 
+        // Phase 0: Map existing entities to context
+        // Prevents creating duplicate entities for existing accounts/issues
+        logger.trace("Mapping existing entities to context")
+
+        // Map existing accounts
+        managedEntity.accounts.forEach { accountEntity ->
+            val domainAccount = value.accounts.find { it.uniqueKey == accountEntity.uniqueKey }
+            if (domainAccount != null) {
+                ctx.remember(domainAccount, accountEntity)
+            }
+        }
+
+        // Map existing issues
+        managedEntity.issues.forEach { issueEntity ->
+            val domainIssue = value.issues.find { it.uniqueKey == issueEntity.uniqueKey }
+            if (domainIssue != null) {
+                ctx.remember(domainIssue, issueEntity)
+            }
+        }
+
+        // Phase 1: Map and wire issues and accounts TODO
+
+        // Add or update accounts
+        logger.debug("Update accounts")
+        value.accounts.forEach { account ->
+            val accountEntity = accountMapper.toEntity(account)
+            // Only add if not already present
+            if (!managedEntity.accounts.contains(accountEntity)) {
+                managedEntity.addAccount(accountEntity)
+            }
+        }
+        logger.trace("Accounts updated")
+        //logger.trace("project: " + managedEntity.toStringWithAccounts())
         val updated = super.updateEntity(managedEntity)
+        logger.trace("Update executed")
 
         // Refresh the input domain object with persisted values and return it
-        this.projectMapper.refreshDomain(value, updated)
-        return value
+        return projectMapper.refreshDomain(value, updated)
     }
 
     @MappingSession

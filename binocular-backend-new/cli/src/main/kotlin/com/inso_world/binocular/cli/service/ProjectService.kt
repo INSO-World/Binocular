@@ -68,6 +68,7 @@ class ProjectService(
             // TODO construct updated project
             this.transformIssues(project, existingIssueEntites.second, checkedAccounts)
 
+            logger.debug("Project to update: " + project.toStringDebug())
             // update project
             this.projectInfrastructurePort.update(project)
         } else {
@@ -97,6 +98,10 @@ class ProjectService(
         // cache for new accounts loaded via GitHub API
         val newAccountCache = checkedAccounts.second.associateBy { it.login }
 
+        // Add all new accounts to project
+        project.accounts.addAll(checkedAccounts.first)
+        project.accounts.addAll(checkedAccounts.second)
+
         // TODO connect to commits if repo and commits are not null
 //        val commitCache =
 //            project.repo.commits.associateBy { it.sha }.toMutableMap()
@@ -107,6 +112,7 @@ class ProjectService(
                 it.id to it.toDomain(project)
             }
 
+        // TODO finish the issue indexing and change it to correctly reflect domain changes (accounts in project)
         issueMap.forEach { (id, issue) ->
             // Get the ItsGitHubIssue corresponding to this entity
             val itsIssue = issues.find { it.id == id }
