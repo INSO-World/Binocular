@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      minify: 'esbuild',
+      minify: false,
       sourcemap: false, //generating the sourcemap uses way too much memory
       commonjsOptions: {
         include: /node_modules/,
