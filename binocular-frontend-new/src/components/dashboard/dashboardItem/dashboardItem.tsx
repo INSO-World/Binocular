@@ -101,13 +101,13 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   const [files, setFiles] = useState<FileListElementType[]>([]);
 
-  useEffect(() => {  
+  useEffect(() => {
     if (props.item.dataPluginId !== undefined) {
       if (fileLists[props.item.dataPluginId] == undefined) {
         const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
         loadFileList(dataPlugin, dispatch);
       }
-      if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)){
+      if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)) {
         setFiles(fileLists[props.item.dataPluginId]);
       }
     }

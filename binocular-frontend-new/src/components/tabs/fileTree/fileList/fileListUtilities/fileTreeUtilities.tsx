@@ -118,11 +118,10 @@ export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDi
       files.text().then((list) => {
         const fileList = JSON.parse(list);
         console.log(Object.keys(fileList.fileLists));
-        
+
         if (fileList && Object.keys(fileList.fileLists).length > 0) {
           dispatch(loadState(JSON.parse(list)));
-        }
-        else refreshFileList(dP, dispatch);
+        } else refreshFileList(dP, dispatch);
       });
     }
   });
