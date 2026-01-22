@@ -24,6 +24,7 @@ import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
 import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
+import { loadFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -100,15 +101,17 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   const [files, setFiles] = useState<FileListElementType[]>([]);
 
-  useEffect(() => {
+  useEffect(() => {  
     if (props.item.dataPluginId !== undefined) {
       if (fileLists[props.item.dataPluginId] == undefined) {
-        //const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
-        //refreshFileList(dataPlugin, dispatch);
+        const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
+        loadFileList(dataPlugin, dispatch);
       }
-      setFiles(fileLists[props.item.dataPluginId]);
+      if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)){
+        setFiles(fileLists[props.item.dataPluginId]);
+      }
     }
-  }, [availableDataPlugins, dispatch, fileLists, props.item.dataPluginId]);
+  }, [availableDataPlugins, fileLists, props.item.dataPluginId]);
   const [settings, setSettings] = useState(plugin.defaultSettings);
 
   /**
