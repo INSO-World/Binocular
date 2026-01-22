@@ -92,15 +92,15 @@ export function filterFileTree(fileTree: FileTreeElementType, search: string): F
 }
 
 export function formatName(searchTerm: string | undefined, name: string): JSX.Element[] {
-  let formatedName = [<span key={'formatedNamePart0'}>{name}</span>];
+  let formattedName = [<span key={'formattedNamePart0'}>{name}</span>];
   if (searchTerm) {
     const searchParts: string[] = searchTerm ? searchTerm.split('/') : [];
     for (const searchPart of searchParts) {
       if (name.toLowerCase().includes(searchPart.toLowerCase())) {
-        const nameParts = name.split(new RegExp(searchPart, 'i')).map((part, i) => <span key={`formatedNamePart${i}`}>{part}</span>);
-        formatedName = [
+        const nameParts = name.split(new RegExp(searchPart, 'i')).map((part, i) => <span key={`formattedNamePart${i}`}>{part}</span>);
+        formattedName = [
           nameParts[0],
-          <span key={'formatedNamePartMatch'} className={fileListElementsStyles.searchMark}>
+          <span key={'formattedNamePartMatch'} className={fileListElementsStyles.searchMark}>
             {searchPart}
           </span>,
           nameParts[1],
@@ -109,14 +109,19 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
       }
     }
   }
-  return formatedName;
+  return formattedName;
 }
 
 export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
   fileHandle.getFile().then((files) => {
     if (files !== null) {
       files.text().then((list) => {
-        if (list) dispatch(loadState(JSON.parse(list)));
+        const fileList = JSON.parse(list);
+        console.log(Object.keys(fileList.fileLists));
+        
+        if (fileList && Object.keys(fileList.fileLists).length > 0) {
+          dispatch(loadState(JSON.parse(list)));
+        }
         else refreshFileList(dP, dispatch);
       });
     }

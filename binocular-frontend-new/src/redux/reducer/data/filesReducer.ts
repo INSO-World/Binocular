@@ -23,11 +23,6 @@ const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
 export const filesSlice = createSlice({
   name: 'files',
   initialState: () => {
-    fileHandle.getFile().then((files) => {
-      if (files !== null) {
-        files.text().then((list) => setFileList(JSON.parse(list)));
-      }
-    });
     return initialState;
   },
   reducers: {
@@ -35,6 +30,7 @@ export const filesSlice = createSlice({
       state.fileCounts = action.payload.fileCounts;
       state.fileTrees = action.payload.fileTrees;
       state.fileLists = action.payload.fileLists;
+      state.dataPluginId = action.payload.dataPluginId;
     },
     setFileList: (state, action: PayloadAction<{ dataPluginId: number; fileTree: FileTreeElementType; files: FileListElementType[] }>) => {
       const fileCount: number = state.fileCounts[action.payload.dataPluginId];
@@ -43,13 +39,13 @@ export const filesSlice = createSlice({
         state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
         state.fileLists[action.payload.dataPluginId] = action.payload.files;
       }
-      const data = JSON.stringify(state);
-      console.log('writing fileList');
-      fileHandle.createWritable().then((access) => access.write(data).then(() => access.close()));
+      const newState = JSON.stringify(state);
+      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
     },
     setFilesDataPluginId: (state, action: PayloadAction<number>) => {
       state.dataPluginId = action.payload;
-      //localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+      const newState = JSON.stringify(state);
+      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
     },
     updateFileListElement: (state, action: PayloadAction<FileTreeElementType & { update?: boolean }>) => {
       const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], action.payload);
@@ -69,7 +65,7 @@ export const filesSlice = createSlice({
       state.selectedFileTreeElement = action.payload;
     },
     clearFileStorage: () => {
-      //localStorage.removeItem(`${filesSlice.name}StateV${Config.localStorageVersion}`);
+      opfsRoot.removeEntry('files');
     },
   },
 });
