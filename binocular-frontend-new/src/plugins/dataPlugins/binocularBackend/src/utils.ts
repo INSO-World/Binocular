@@ -12,9 +12,9 @@ class GraphQL {
       cache: new InMemoryCache(),
       defaultOptions: {
         watchQuery: {
-          fetchPolicy: 'no-cache'
-        }
-      }
+          fetchPolicy: 'no-cache',
+        },
+      },
     });
   }
 }

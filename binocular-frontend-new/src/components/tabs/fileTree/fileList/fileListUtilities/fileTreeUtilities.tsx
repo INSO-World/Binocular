@@ -4,8 +4,11 @@ import fileListElementsStyles from '../fileListElements/fileListElements.module.
 import type { JSX } from 'react';
 import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType';
 import DataPluginStorage from '../../../../../utils/dataPluginStorage';
-import { setFileList } from '../../../../../redux/reducer/data/filesReducer';
+import { loadState, setFileList } from '../../../../../redux/reducer/data/filesReducer';
 import type { AppDispatch } from '../../../../../redux';
+
+const opfsRoot = await navigator.storage.getDirectory();
+const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
 
 export function generateFileTree(files: DataPluginFile[]): FileTreeElementType[] {
   return convertData(files).content;
@@ -107,6 +110,17 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
     }
   }
   return formatedName;
+}
+
+export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
+  fileHandle.getFile().then((files) => {
+    if (files !== null) {
+      files.text().then((list) => {
+        if (list) dispatch(loadState(JSON.parse(list)));
+        else refreshFileList(dP, dispatch);
+      });
+    }
+  });
 }
 
 export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {

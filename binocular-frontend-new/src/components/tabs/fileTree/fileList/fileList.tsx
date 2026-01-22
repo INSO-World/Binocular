@@ -2,7 +2,7 @@ import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
-import { filterFileTree, refreshFileList } from './fileListUtilities/fileTreeUtilities.tsx';
+import { filterFileTree, loadFileList } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import { setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
@@ -17,7 +17,7 @@ function FileList(props: { orientation?: string; search: string }) {
 
   function refreshFileTree(dP: DatabaseSettingsDataPluginType) {
     if (dP && dP.id !== undefined) {
-      refreshFileList(dP, dispatch);
+      loadFileList(dP, dispatch);
     } else {
       if (currentDataPlugins.length > 0) {
         dispatch(setFilesDataPluginId(currentDataPlugins[0].id));
@@ -50,10 +50,12 @@ function FileList(props: { orientation?: string; search: string }) {
           ' ' +
           (props.orientation === 'horizontal' ? fileListStyles.fileListHorizontal : fileListStyles.fileListVertical)
         }>
-        <div>{fileCounts[filesDataPluginId]} Files indexed</div>
+        <div>{fileCounts[filesDataPluginId ? filesDataPluginId : -1]} Files indexed</div>
         <div>
-          {fileTrees[filesDataPluginId] ? (
-            <FileListFolder folder={filterFileTree(fileTrees[filesDataPluginId], props.search)} foldedOut={true}></FileListFolder>
+          {fileTrees[filesDataPluginId ? filesDataPluginId : -1] ? (
+            <FileListFolder
+              folder={filterFileTree(fileTrees[filesDataPluginId ? filesDataPluginId : -1], props.search)}
+              foldedOut={true}></FileListFolder>
           ) : (
             <span className="loading loading-spinner loading-xs text-accent"></span>
           )}

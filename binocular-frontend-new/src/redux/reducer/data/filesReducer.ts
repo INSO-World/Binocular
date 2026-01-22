@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import Config from '../../../config.ts';
 import type { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
 
 export interface FilesInitialState {
@@ -32,6 +31,11 @@ export const filesSlice = createSlice({
     return initialState;
   },
   reducers: {
+    loadState: (state, action: PayloadAction<FilesInitialState>) => {
+      state.fileCounts = action.payload.fileCounts;
+      state.fileTrees = action.payload.fileTrees;
+      state.fileLists = action.payload.fileLists;
+    },
     setFileList: (state, action: PayloadAction<{ dataPluginId: number; fileTree: FileTreeElementType; files: FileListElementType[] }>) => {
       const fileCount: number = state.fileCounts[action.payload.dataPluginId];
       if (fileCount === undefined || fileCount !== action.payload.files.length) {
@@ -56,20 +60,22 @@ export const filesSlice = createSlice({
           }
           return f;
         });
+        const newState = JSON.stringify(state);
+        fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
       }
-      //localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     showFileTreeElementInfo: (state, action: PayloadAction<FileTreeElementType>) => {
       (document.getElementById('fileTreeElementInfoDialog') as HTMLDialogElement).showModal();
       state.selectedFileTreeElement = action.payload;
     },
     clearFileStorage: () => {
-      localStorage.removeItem(`${filesSlice.name}StateV${Config.localStorageVersion}`);
+      //localStorage.removeItem(`${filesSlice.name}StateV${Config.localStorageVersion}`);
     },
   },
 });
 
-export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo, clearFileStorage } = filesSlice.actions;
+export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo, clearFileStorage, loadState } =
+  filesSlice.actions;
 export default filesSlice.reducer;
 
 function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
