@@ -31,28 +31,27 @@ import * as UrlProvider from './url-providers';
 import ProgressReporter from './utils/progress-reporter';
 import path from 'path';
 import fs from 'fs';
-import Commit from './models/Commit';
-import File from './models/File';
-import Hunk from './models/Hunk';
-import Issue from './models/Issue';
-import Build from './models/Build';
-import Branch from './models/Branch';
-import Module from './models/Module';
-import Stakeholder from './models/Stakeholder';
-import MergeRequest from './models/MergeRequest';
-import Milestone from './models/Milestone';
-import CommitStakeholderConnection from './models/CommitStakeholderConnection';
-import IssueStakeholderConnection from './models/IssueStakeholderConnection';
-import IssueCommitConnection from './models/IssueCommitConnection';
-import CommitCommitConnection from './models/CommitCommitConnection';
-import CommitModuleConnection from './models/CommitModuleConnection';
-import ModuleModuleConnection from './models/ModuleModuleConnection';
-import ModuleFileConnection from './models/ModuleFileConnection';
-import BranchFileConnection from './models/BranchFileConnection';
-import BranchFileFileConnection from './models/BranchFileFileConnection';
-import CommitFileStakeholderConnection from './models/CommitFileStakeholderConnection';
-import CommitFileConnection from './models/CommitFileConnection';
-import CommitBuildConnection from './models/CommitBuildConnection';
+import Commit from './models/models/Commit.ts';
+import File from './models/models/File.ts';
+import Issue from './models/models/Issue.ts';
+import Build from './models/models/Build.ts';
+import Branch from './models/models/Branch.ts';
+import Module from './models/models/Module.ts';
+import User from './models/models/User.ts';
+import MergeRequest from './models/models/MergeRequest.ts';
+import Milestone from './models/models/Milestone.ts';
+import CommitUserConnection from './models/connections/CommitUserConnection.ts';
+import IssueUserConnection from './models/connections/IssueUserConnection.ts';
+import IssueCommitConnection from './models/connections/IssueCommitConnection.ts';
+import CommitCommitConnection from './models/connections/CommitCommitConnection.ts';
+import CommitModuleConnection from './models/connections/CommitModuleConnection.ts';
+import ModuleModuleConnection from './models/connections/ModuleModuleConnection.ts';
+import ModuleFileConnection from './models/connections/ModuleFileConnection.ts';
+import BranchFileConnection from './models/connections/BranchFileConnection.ts';
+import BranchFileFileConnection from './models/connections/BranchFileFileConnection.ts';
+import CommitFileUserConnection from './models/connections/CommitFileUserConnection.ts';
+import CommitFileConnection from './models/connections/CommitFileConnection.ts';
+import CommitBuildConnection from './models/connections/CommitBuildConnection.ts';
 import ConfigurationError from './errors/ConfigurationError';
 import DatabaseError from './errors/DatabaseError';
 import GateWayService from './utils/gateway-service';
@@ -73,6 +72,18 @@ import its from './indexers/its';
 import ci from './indexers/ci';
 import Repository from './core/provider/git';
 import chalk from 'chalk';
+import Account from './models/models/Account.ts';
+import IssueAccountConnection from './models/connections/IssueAccountConnection.ts';
+import MergeRequestAccountConnection from './models/connections/MergeRequestAccountConnection.ts';
+import IssueMilestoneConnection from './models/connections/IssueMilestoneConnection.ts';
+import MergeRequestMilestoneConnection from './models/connections/MergeRequestMilestoneConnection.ts';
+import Note from './models/models/Note.ts';
+import IssueNoteConnection from './models/connections/IssueNoteConnection.ts';
+import NoteAccountConnection from './models/connections/NoteAccountConnection.ts';
+import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
+import AccountUserConnection from './models/connections/AccountUserConnection.ts';
+import { findBestUserMatchLeve } from './models/utils.ts';
+import debug from 'debug';
 
 cli.parse(
   (targetPath, options) => {
@@ -91,7 +102,7 @@ cli.parse(
   },
   (options) => {
     if (options.runIndexer) {
-      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
+      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
       const indexerOptions = {
         backend: true,
         frontend: false,
@@ -100,6 +111,8 @@ cli.parse(
         vcs: true,
         its: true,
         ci: true,
+        jobs: false,
+        updateJobs: false,
         export: true,
         server: false,
       };
@@ -160,15 +173,7 @@ function runBackend() {
   const services: any[] = [];
 
   const gatewayService = new GateWayService();
-  const reporter = new (ProgressReporter as any)(ctx.io, [
-    'commits',
-    'issues',
-    'builds',
-    'files',
-    'modules',
-    'mergeRequests',
-    'milestones',
-  ]);
+  const reporter = new ProgressReporter(ctx.io, ['commits', 'issues', 'builds', 'files', 'modules', 'mergeRequests', 'milestones']);
   let databaseConnection: any = null;
 
   /**
@@ -200,7 +205,8 @@ function runBackend() {
       }
 
       //writeConfigToFrontend
-      projectStructureHelper.writeContextToFrontend(ctx);
+      // TODO provide repo context; uncomment next line to make old frontend working, dont push to production, needs old frontend folder
+      // projectStructureHelper.writeContextToFrontend(ctx);
       // immediately run all indexers
       return (activeIndexingQueue = Promise.all([
         repoUpdateHandler(repository, context, gateway),
@@ -391,12 +397,8 @@ function runBackend() {
         return;
       }
 
-      await (Issue as any).deduceStakeholders();
+      await Issue.deduceUsers();
       createManualIssueReferences(config.get('issueReferences'));
-      if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
-        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
-      }
 
       //now that the indexers have finished, we have VCS, ITS and CI data and can connect them.
       // for that purpose, references between e.g. issues and commits have been stored in the collections.
@@ -406,11 +408,23 @@ function runBackend() {
       // (like the `mentions` field in issues).
       await connectIssuesAndCommits();
       await connectCommitsAndBuilds();
+      await connectAccountsAndUsers();
       const endTime = Moment.now();
       console.log('End Time: ' + Moment(endTime).format());
       const executionTime = Moment(endTime).diff(startTime, 'seconds');
       console.log('Execution Time: ' + Math.floor(executionTime / 60) + ':' + (executionTime % 60));
       threadLog(indexingThread, 'Indexing finished');
+
+      // export db if required
+      if (context.argv.export) {
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
+        projectStructureHelper.createAndFillDbExportFolder(
+          context.db,
+          __dirname + '/../binocular-frontend-new/src',
+          context.vcsUrlProvider.project,
+          context.ciUrlProvider.provider,
+        );
+      }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'Gitlab401Error') {
         threadWarn(indexingThread, 'Unable to access GitLab API. Please configure a valid private access token in the UI.');
@@ -581,26 +595,35 @@ function runBackend() {
           context.db.ensureService(path.join(__dirname, '../foxx'), '/binocular-ql'),
           Commit.ensureCollection(),
           File.ensureCollection(),
-          Hunk.ensureCollection(),
-          Stakeholder.ensureCollection(),
+          User.ensureCollection(),
           Issue.ensureCollection(),
+          Note.ensureCollection(),
           Build.ensureCollection(),
           Branch.ensureCollection(),
           Module.ensureCollection(),
           MergeRequest.ensureCollection(),
           Milestone.ensureCollection(),
+          Account.ensureCollection(),
           CommitFileConnection.ensureCollection(),
           CommitBuildConnection.ensureCollection(),
-          CommitStakeholderConnection.ensureCollection(),
-          IssueStakeholderConnection.ensureCollection(),
+          CommitUserConnection.ensureCollection(),
+          IssueUserConnection.ensureCollection(),
           IssueCommitConnection.ensureCollection(),
+          IssueNoteConnection.ensureCollection(),
+          MergeRequestNoteConnection.ensureCollection(),
+          NoteAccountConnection.ensureCollection(),
           CommitCommitConnection.ensureCollection(),
           CommitModuleConnection.ensureCollection(),
           ModuleModuleConnection.ensureCollection(),
           ModuleFileConnection.ensureCollection(),
           BranchFileConnection.ensureCollection(),
           BranchFileFileConnection.ensureCollection(),
-          CommitFileStakeholderConnection.ensureCollection(),
+          CommitFileUserConnection.ensureCollection(),
+          IssueAccountConnection.ensureCollection(),
+          MergeRequestAccountConnection.ensureCollection(),
+          IssueMilestoneConnection.ensureCollection(),
+          MergeRequestMilestoneConnection.ensureCollection(),
+          AccountUserConnection.ensureCollection(),
         ]);
       });
   }
@@ -610,7 +633,7 @@ function runBackend() {
       _.keys(issueReferences).map((sha) => {
         const iid = issueReferences[sha];
 
-        return Promise.all([(Commit as any).findOneBySha(sha), (Issue as any).findOneByIid(iid)]).then(([commit, issue]) => {
+        return Promise.all([Commit.findOneBy('sha', sha), Issue.findOneBy('iid', iid)]).then(([commit, issue]) => {
           if (!commit) {
             console.warn(`Ignored issue #${iid} referencing non-existing commit ${sha}`);
             return;
@@ -620,14 +643,15 @@ function runBackend() {
             return;
           }
 
-          const existingMention = _.find(issue.mentions, (mention) => mention.commit === sha);
+          const existingMention = _.find(issue.data.mentions, (mention) => mention.commit === sha);
           if (!existingMention) {
-            issue.mentions.push({
-              createdAt: commit.date,
+            issue.data.mentions.push({
+              createdAt: commit.data.date,
               commit: sha,
+              closes: false,
               manual: true,
             });
-            return issue.save();
+            return Issue.save(issue);
           }
         });
       }),
@@ -655,23 +679,25 @@ function runBackend() {
   }
 
   async function connectIssuesAndCommits() {
-    const issues = await (Issue as any).findAll();
+    const issues = await Issue.findAll();
     const commits = await Commit.findAll();
-
     //at this point, most issues have a mentions attribute which stores the sha hashes of the commits that mention the issue.
     //connect these commits to the issue:
     for (const issue of issues) {
+      if (issue === null) {
+        continue;
+      }
       //some issues are not mentioned by any commits
-      if (!issue.mentions) continue;
-      for (const mention of issue.mentions) {
-        const commit = commits.filter((c: any) => c.sha === mention.commit);
+      if (!issue.data.mentions) continue;
+      for (const mention of issue.data.mentions) {
+        const commit = commits.filter((c: any) => c.data.sha === mention.commit);
         if (commit && commit[0]) {
-          issue.connect(commit[0], { closes: mention.closes });
+          await IssueCommitConnection.connect({ closes: mention.closes }, { from: issue, to: commit[0] });
         }
       }
     }
     //remove the temporary `mentions` attribute since we have the connections now
-    await (Issue as any).deleteMentionsAttribute();
+    await Issue.deleteMentionsAttribute();
   }
 
   async function connectCommitsAndBuilds() {
@@ -679,14 +705,46 @@ function runBackend() {
     const commits = await Commit.findAll();
 
     for (const build of builds) {
-      if (!build.sha) continue;
-      const commit = commits.filter((c: any) => c.sha === build.sha);
+      if (build === null) {
+        continue;
+      }
+      if (!build.data.sha) continue;
+      const commit = commits.filter((c: any) => c.data.sha === build.data.sha);
       if (commit && commit[0]) {
-        commit[0].connect(build);
+        await CommitBuildConnection.connect({}, { from: commit[0], to: build });
       }
     }
 
-    await (Build as any).deleteShaRefAttributes();
+    await Build.deleteShaRefAttributes();
+  }
+
+  // this function is only used for matching one User to each account, not the other way around
+  async function connectAccountsAndUsers() {
+    const log = debug('indexer:account-user-connection');
+    const accounts = await Account.findAll();
+    const accountUserConnections = await AccountUserConnection.findAll();
+    for (const account of accounts) {
+      if (account === null || account._id === undefined) {
+        continue;
+      }
+      let existing = false;
+      accountUserConnections.map((conn) => {
+        if (conn !== null) {
+          if (Number(account._id?.split('/')[1]) === Number(conn._from?.split('/')[1])) {
+            existing = true;
+            return;
+          }
+        }
+      });
+      if (existing) {
+        continue;
+      }
+      const user = await findBestUserMatchLeve(account.data);
+      if (user && account) {
+        log(`Connecting ${account.data.name} to ${user.data.gitSignature}`);
+        await AccountUserConnection.connect({}, { from: account, to: user });
+      }
+    }
   }
 
   // start services

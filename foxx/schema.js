@@ -15,13 +15,16 @@ const Sort = require('./types/Sort.js');
 
 const commits = db._collection('commits');
 const files = db._collection('files');
-const stakeholders = db._collection('stakeholders');
+const accounts = db._collection('accounts');
+const users = db._collection('users');
 const modules = db._collection('modules');
 const issues = db._collection('issues');
 const builds = db._collection('builds');
 const branches = db._collection('branches');
 const mergeRequests = db._collection('mergeRequests');
 const milestones = db._collection('milestones');
+const notes = db._collection('notes');
+
 
 const queryType = new gql.GraphQLObjectType({
   name: 'Query',
@@ -54,7 +57,11 @@ const queryType = new gql.GraphQLObjectType({
           },
         },
         resolve(root, args) {
-          return commits.document(args.sha);
+          return db._query(aql`
+            FOR commit IN ${commits}
+            FILTER commit.sha == ${args.sha}
+            RETURN commit
+          `).toArray()[0];
         },
       },
       latestCommit: {
@@ -126,14 +133,14 @@ const queryType = new gql.GraphQLObjectType({
           return modules.firstExample({ path: args.path });
         },
       },
-      stakeholders: paginated({
-        type: require('./types/stakeholder.js'),
+      users: paginated({
+        type: require('./types/user.js'),
         query: (root, args, limit) => aql`
-          FOR stakeholder
+          FOR user
             IN
-            ${stakeholders}
+            ${users}
             ${limit}
-              RETURN stakeholder`,
+              RETURN user`,
       }),
       committers: {
         type: new gql.GraphQLList(gql.GraphQLString),
@@ -141,9 +148,9 @@ const queryType = new gql.GraphQLObjectType({
           return db
             ._query(
               aql`
-              FOR stakeholder IN ${stakeholders}
-                SORT stakeholder.gitSignature ASC
-                RETURN DISTINCT stakeholder.gitSignature`
+              FOR user IN ${users}
+                SORT user.gitSignature ASC
+                RETURN DISTINCT user.gitSignature`
             )
             .toArray();
         },
@@ -159,11 +166,15 @@ const queryType = new gql.GraphQLObjectType({
       }),
       builds: paginated({
         type: require('./types/build.js'),
-        args: { since: { type: Timestamp }, until: { type: Timestamp } },
+        args: {
+          since: { type: Timestamp },
+          until: { type: Timestamp },
+          sort: { type: Sort },
+        },
         query: (root, args, limit) => {
           return aql`
           FOR build IN ${builds}
-            SORT build.createdAt ASC
+            SORT build.createdAt ${args.sort}
             ${args.since ? queryHelpers.addDateFilterAQL('build.createdAt', '>=', args.since) : aql``}
             ${args.until ? queryHelpers.addDateFilterAQL('build.createdAt', '<=', args.until) : aql``}
             ${limit}
@@ -277,6 +288,33 @@ const queryType = new gql.GraphQLObjectType({
             ${limit}
             RETURN milestone`;
         },
+      }),
+      notes: paginated({
+        type: require('./types/gitlabNote.js'),
+        args: {
+          since: { type: Timestamp },
+          until: { type: Timestamp },
+          sort: { type: Sort },
+        },
+        query: (root, args, limit) => {
+          return aql`
+            FOR note
+            IN ${notes}
+            SORT note.createdAt ${args.sort}
+            ${args.since ? queryHelpers.addDateFilterAQL('note.createdAt', '>=', args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL('note.createdAt', '<=', args.until) : aql``}
+            ${limit}
+            RETURN note`;
+        }
+      }),
+      accounts: paginated({
+        type: require('./types/account.js'),
+        query: (root, args, limit) => aql`
+          FOR account
+            IN
+            ${accounts}
+            ${limit}
+              RETURN account`,
       }),
     };
   },

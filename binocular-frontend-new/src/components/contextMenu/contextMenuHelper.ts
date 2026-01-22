@@ -1,0 +1,44 @@
+export interface ContextMenuOption {
+  label: string;
+  icon: string | null;
+  function: () => void;
+}
+
+export function showContextMenu(x: number, y: number, options: ContextMenuOption[]) {
+  (document.getElementById('contextMenu') as HTMLDialogElement).showModal();
+  if (y >= window.innerHeight / 2) {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `auto`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.bottom = `${window.innerHeight - y - 10}px`;
+  } else {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.top = `${y - 10}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.bottom = `auto`;
+  }
+  if (x >= window.innerWidth / 2) {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `auto`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.right = `${window.innerWidth - x - 10}px`;
+  } else {
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.left = `${x - 10}px`;
+    (document.getElementById('contextMenuPositionController') as HTMLDivElement).style.right = `auto`;
+  }
+
+  (document.getElementById('contextMenuContent') as HTMLDivElement).innerHTML = '';
+  options.forEach((o) => {
+    const optionIcon = document.createElement('img');
+    if (o.icon) {
+      optionIcon.src = o.icon;
+    }
+
+    const optionLabel = document.createElement('span');
+    optionLabel.textContent = o.label;
+
+    const optionButton = document.createElement('span');
+    optionButton.addEventListener('click', o.function);
+    optionButton.appendChild(optionIcon);
+    optionButton.appendChild(optionLabel);
+
+    const option = document.createElement('li');
+    option.appendChild(optionButton);
+
+    (document.getElementById('contextMenuContent') as HTMLDivElement).appendChild(option);
+  });
+}

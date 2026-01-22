@@ -1,8 +1,8 @@
 Binocular
 =====
 
-[![Build Binocular](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-binocular.yml/badge.svg?branch=develop)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-binocular.yml)
-[![Test ESLint](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml/badge.svg?branch=develop)](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml)
+[![Build Offline-Binocular](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml)
+[![Test ESLint](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml)
 [![Docker Image CI](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-docker.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-docker.yml)
 
 ![Default Dashboard](docs/assets/screenshots/default_dashboard.png)
@@ -16,7 +16,7 @@ Binocular then hosts interactive visualizations about the gathered data
 via a web-interface.
 
 ## Preview
-- [Demo Page](https://inso-tuwien.github.io/Binocular/)
+- [Demo Page](https://inso-world.github.io/Binocular/)
 - [Screenshots](docs/PREVIEW.md)
 
 ## Dependencies
@@ -38,7 +38,7 @@ $ cd Binocular
 
 ### Configuration
 
-As Binocular needs to access an ArangoDB instance (run `binocular -sdb` or `binocular --setup-db` to access the ArangoDB download page),
+As Binocular needs to access an ArangoDB instance (run `binocular setup` to access the ArangoDB download page),
 you have to configure the database connection before you can use Binocular. This can be done in
 the global Binocular configuration file `~/.binocularrc`. Additionally, the
 configuration file also stores authentication credentials for the used
@@ -48,7 +48,7 @@ see the supported formats. For the purpose of this README, we'll use
 json.
 
 For simpler configuration there is also a configuration assistant avaliable
-by executing `binocular -sc` or `binocular --setup-config`.
+by executing `binocular setup`.
 It will ask you some questions about the repository and generate the config file for you.
 
 #### Configuration options
@@ -177,6 +177,19 @@ all features will be available in the offline build)
 
 For more information check `binocular -h`
 
+### New Frontend (:warning: Experimental)
+To try the experimental new frontend, install and run it with the following commands.
+``` shell
+npm run install:frontend-new
+```
+``` shell
+npm run dev:frontend-new
+```
+This new frontend is a complete rework from the current implementation
+and is currently in its development and test phase.
+It is not yet ready for use but gives a glimpse into the future of what binocular could look like.
+
+
 ## Contributing
 
 **:warning:Binocular is currently in a transition state from javascript to typescript.
@@ -187,3 +200,6 @@ if you are unsure how to implement a visualization in typescript.:warning:**
 
 For an explanation of Binocular's architecture, please see the [Contribution
 guidelines for this project](docs/CONTRIBUTING.md)
+
+For an overview of the database collections and connections Binocular creates,
+please see the [database documentation](docs/DATABASE.md)
