@@ -354,11 +354,11 @@ function runBackend() {
         if (!indexer) {
           return;
         }
-  
+
         if ('setGateway' in indexer) {
           indexer.setGateway(gateway);
         }
-  
+
         threadLog(indexingThread, `${indexer.constructor.name} fetching data...`);
         await indexer.index();
         threadLog(indexingThread, `${indexer.constructor.name} ${indexer.isStopping() ? 'stopped' : 'finished'}...`);
