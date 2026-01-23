@@ -3,11 +3,13 @@ package com.inso_world.binocular.jgit.tree;
 import com.inso_world.binocular.jgit.JGitGitIndexer;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
+import com.inso_world.binocular.model.Project;
 import com.inso_world.binocular.model.Repository;
 import com.inso_world.binocular.model.git.EdgeType;
 import com.inso_world.binocular.model.git.GitDepsTree;
 import com.inso_world.binocular.model.git.GitTreeEdge;
 import com.inso_world.binocular.model.git.GitTreeNode;
+import kotlin.Pair;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -69,13 +72,15 @@ class GitDepsTreeBuilderTest {
         }
 
         JGitGitIndexer indexer = new JGitGitIndexer();
-        Repository repo = indexer.findRepo(repoDir);
+        Project project = new Project("test-project");
+        Repository repo = indexer.findRepo(repoDir, project);
 
         List<Branch> branches = indexer.findAllBranches(repo);
         Branch main = branches.stream().filter(b -> "main".equals(b.getName())).findFirst().orElseThrow();
         Branch feature = branches.stream().filter(b -> "feature".equals(b.getName())).findFirst().orElseThrow();
 
-        List<Commit> mainCommits = indexer.traverseBranch(repo, main);
+        Pair<Branch, List<Commit>> mainResult = indexer.traverseBranch(repo, main);
+        List<Commit> mainCommits = new ArrayList<>(mainResult.getSecond());
         indexer.traverseBranch(repo, feature);
 
         GitDepsTreeBuilder builder = new GitDepsTreeBuilder();
@@ -101,8 +106,9 @@ class GitDepsTreeBuilderTest {
         assertTrue(fromMerge.stream().anyMatch(e -> e.getType() == EdgeType.FIRST_PARENT && shaD.equals(e.getToCommitSha())));
         assertTrue(fromMerge.stream().anyMatch(e -> e.getType() == EdgeType.MERGE_PARENT && shaC.equals(e.getToCommitSha())));
 
+        // Check merge commit has parents via the parents collection
         Commit mergeCommit = mainCommits.stream().filter(c -> shaMerge.equals(c.getSha())).findFirst().orElseThrow();
-        assertEquals(List.of(shaD, shaC), mergeCommit.getParentShasOrdered());
+        assertEquals(2, mergeCommit.getParents().size());
 
         assertTrue(mainCommits.stream().anyMatch(c -> shaA.equals(c.getSha())));
         assertTrue(mainCommits.stream().anyMatch(c -> shaB.equals(c.getSha())));

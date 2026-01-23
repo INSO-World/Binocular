@@ -3,9 +3,11 @@ package com.inso_world.binocular.jgit;
 import com.inso_world.binocular.jgit.tree.GitDepsTreeBuilder;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
+import com.inso_world.binocular.model.Project;
 import com.inso_world.binocular.model.Repository;
 import com.inso_world.binocular.model.git.GitDepsTree;
 import com.inso_world.binocular.model.git.GitTreeNode;
+import kotlin.Pair;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -35,10 +37,11 @@ public class GitDepsTreeOnCurrentRepoIT {
                 .normalize();
 
         JGitGitIndexer indexer = new JGitGitIndexer();
+        Project project = new Project("test-project");
 
         Repository repo;
         try {
-            repo = indexer.findRepo(start);
+            repo = indexer.findRepo(start, project);
         } catch (Exception e) {
             Assumptions.assumeTrue(false, "Kein Git Repo gefunden ab: " + start);
             return;
@@ -52,7 +55,8 @@ public class GitDepsTreeOnCurrentRepoIT {
         Assumptions.assumeTrue(branch != null, "Branch nicht gefunden: " + desired);
 
         int limit = parseIntOrDefault(System.getProperty("binocular.commitLimit"), 250);
-        List<Commit> commits = indexer.traverseBranch(repo, branch);
+        Pair<Branch, List<Commit>> result = indexer.traverseBranch(repo, branch);
+        List<Commit> commits = new ArrayList<>(result.getSecond());
         if (commits.size() > limit) {
             commits = commits.subList(0, limit);
         }
