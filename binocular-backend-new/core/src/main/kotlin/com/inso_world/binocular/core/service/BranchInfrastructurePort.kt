@@ -2,13 +2,22 @@ package com.inso_world.binocular.core.service
 
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 
 /**
  * Interface for BranchService.
  * Provides methods to retrieve branches and their related entities.
+ *
+ * @deprecated Use [RepositoryInfrastructurePort] instead. Branch is part of the Repository aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch> {
+@Deprecated(
+    message = "Use RepositoryInfrastructurePort instead. Branch is part of the Repository aggregate.",
+    replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch, Reference.Id> {
     /**
      * Find files by branch ID.
      *

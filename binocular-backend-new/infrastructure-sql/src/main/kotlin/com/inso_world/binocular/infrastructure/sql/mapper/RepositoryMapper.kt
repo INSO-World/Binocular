@@ -1,169 +1,129 @@
 package com.inso_world.binocular.infrastructure.sql.mapper
 
-import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
-import com.inso_world.binocular.infrastructure.sql.exception.IllegalMappingStateException
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingContext
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
+import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.core.persistence.mapper.EntityMapper
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import jakarta.persistence.EntityManager
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
+import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
-import org.springframework.transaction.support.TransactionTemplate
 
+/**
+ * Mapper for Repository aggregate root.
+ *
+ * Converts between Repository domain objects and RepositoryEntity persistence entities.
+ * This is a **simple mapper** - it only handles basic conversion without orchestrating
+ * child entity mapping. Use [RepositoryAssembler] for complete aggregate assembly.
+ *
+ * ## Design Principles
+ * - **Single Responsibility**: Only converts Repository structure (not children)
+ * - **Aggregate Boundaries**: Expects Project already in MappingContext (cross-aggregate reference)
+ * - **No Orchestration**: Child entities (Commits, Branches) are mapped by assembler
+ *
+ * ## Usage
+ * Prefer using [RepositoryAssembler] at the service layer. This mapper is called by the assembler
+ * and is also used for `refreshDomain` operations after persistence.
+ *
+ * @see com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
+ */
 @Component
-internal class RepositoryMapper
+internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
     @Autowired
-    constructor(
-        private val proxyFactory: RelationshipProxyFactory,
-        @Lazy private val commitMapper: CommitMapper,
-        @Lazy private val branchMapper: BranchMapper,
-        @Lazy private val userMapper: UserMapper,
-    ) {
-        @Autowired
-        @Lazy
-        private lateinit var entityManager: EntityManager
+    private lateinit var ctx: MappingContext
 
-        @Autowired
-        private lateinit var ctx: MappingContext
-
-        @Autowired
-        @Lazy
-        private lateinit var transactionTemplate: TransactionTemplate
-
-        private val logger: Logger = LoggerFactory.getLogger(RepositoryMapper::class.java)
-
-        fun toEntity(
-            domain: Repository,
-            project: ProjectEntity,
-        ): RepositoryEntity {
-            logger.debug("toEntity({})", domain)
-
-            val entity = domain.toEntity(project)
-
-            run {
-                val allCommitsOfDomain =
-                    (domain.commits + domain.commits.flatMap { it.parents } + domain.commits.flatMap { it.children })
-                commitMapper
-                    .toEntityGraph(allCommitsOfDomain.asSequence())
-//                    wire up commit->repository
-                    .also { it.forEach { c -> entity.addCommit(c) } }
-//                    wire up commit->user
-                allCommitsOfDomain.associateBy(Commit::sha).values.forEach { cmt ->
-                    val commitEntity =
-                        requireNotNull(ctx.entity.commit[cmt.sha]) {
-                            "Cannot map Commit$cmt with its entity ${cmt.sha}"
-                        }
-                    cmt.committer
-                        ?.let { user ->
-//                            commitEntity.add(userMapper.toEntity(user))
-                            commitEntity.committer = userMapper.toEntity(user)
-                        }
-                    cmt.author
-                        ?.let { user ->
-//                            commitEntity.add(userMapper.toEntity(user))
-                            commitEntity.author = userMapper.toEntity(user)
-                        }
-//                    wire up commit->branch
-                    cmt.branches.forEach { branch ->
-                        commitEntity.addBranch(branchMapper.toEntity(branch))
-                    }
-                }
-            }
-
-//              wire up repository->branch
-            domain.branches
-                .map { it ->
-                    branchMapper.toEntity(it)
-                }.also { it.forEach { b -> entity.addBranch(b) } }
-                .toMutableSet()
-
-//              wire up repository->user
-            domain.user
-                .map { it ->
-                    userMapper.toEntity(it)
-                }.also { it.forEach { u -> entity.addUser(u) } }
-                .toMutableSet()
-
-            entity.project.repo = entity
-
-            return entity
-        }
-
-        fun toDomain(
-            entity: RepositoryEntity,
-            project: Project?,
-        ): Repository {
-            val id = entity.id ?: throw IllegalStateException("Entity ID cannot be null")
-
-            val domain = entity.toDomain(project)
-
-            // load the *entire* set of CommitEntity once
-            val allCommits: Set<CommitEntity> =
-                transactionTemplate.execute {
-                    val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
-                    fresh.commits
-                } ?: throw IllegalStateException("Cannot load the entire set of CommitEntity once")
-
-            // now map them in one go
-            domain.commits.addAll(
-                commitMapper.toDomainGraph(allCommits.asSequence()),
-            )
-            domain.commits.forEach { it.repository = domain }
-
-            // do similar bulk‑mapping for branches and user
-            domain.branches.addAll(
-                transactionTemplate.execute {
-                    val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
-                    fresh.branches.map { branchMapper.toDomain(it) }.toMutableSet()
-                } ?: throw IllegalStateException("Cannot bulk-map branches"),
-            )
-//            domain.branches.forEach {
-//                it.repository = domain
-//            }
-
-            domain.user.addAll(
-                transactionTemplate.execute {
-                    val domCommitMap = domain.commits.associateBy { it.sha }
-                    val fresh = entityManager.find(RepositoryEntity::class.java, entity.id)
-                    fresh.user
-                        .map { userEntity ->
-                            val u =
-                                userMapper
-                                    .toDomain(userEntity)
-                                    .apply {
-                                        this.committedCommits.addAll(
-                                            userEntity.committedCommits
-                                                .map {
-                                                    domCommitMap[it.sha]
-                                                        ?: throw IllegalMappingStateException(
-                                                            "Commit ${it.sha} was not mapped (committedCommits)",
-                                                        )
-                                                },
-                                        )
-                                        this.authoredCommits.addAll(
-                                            userEntity.authoredCommits
-                                                .map {
-                                                    domCommitMap[it.sha]
-                                                        ?: throw IllegalMappingStateException(
-                                                            "Commit ${it.sha} was not mapped (authoredCommits)",
-                                                        )
-                                                },
-                                        )
-                                    }
-                            u
-                        }.toMutableSet()
-                } ?: throw IllegalStateException("Cannot bulk-map user"),
-            )
-//            domain.user.forEach { it.repository = domain }
-
-            return domain
-        }
+    companion object {
+        private val logger by logger()
     }
+
+    /**
+     * Converts a Repository domain object to RepositoryEntity.
+     *
+     * **Precondition**: The referenced Project must already be mapped and present in MappingContext.
+     * This enforces aggregate boundary - Project is a separate aggregate that must be handled first.
+     *
+     * **Note**: This method does NOT map child entities (Commits, Branches). Use [RepositoryAssembler]
+     * for complete aggregate assembly including children.
+     *
+     * @param domain The Repository domain object to convert
+     * @return The RepositoryEntity (structure only, without children)
+     * @throws IllegalStateException if Project is not in MappingContext
+     */
+    override fun toEntity(
+        domain: Repository,
+    ): RepositoryEntity {
+        // Fast-path: if this Repository was already mapped in the current context, return it.
+        ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)?.let { return it }
+
+        // IMPORTANT: Expect Project already in context (cross-aggregate reference).
+        // Do NOT auto-map Project here - that's a separate aggregate.
+        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+            ?: throw IllegalStateException(
+                "ProjectEntity must be mapped before RepositoryEntity. " +
+                        "Ensure ProjectEntity is in MappingContext before calling toEntity()."
+            )
+
+        // Create entity and remember in context
+        val entity = domain.toEntity(owner)
+        ctx.remember(domain, entity)
+
+        // Delegate to overload with explicit owner
+        return entity
+    }
+
+    /**
+     * Converts a RepositoryEntity to Repository domain object.
+     *
+     * **Precondition**: The referenced Project must already be mapped and present in MappingContext.
+     * This enforces aggregate boundary - Project is a separate aggregate that must be handled first.
+     *
+     * **Note**: This method does NOT map child entities (Commits, Branches). Use [RepositoryAssembler]
+     * for complete aggregate assembly including children.
+     *
+     * @param entity The RepositoryEntity to convert
+     * @return The Repository domain object (structure only, without children)
+     * @throws IllegalStateException if Project is not in MappingContext
+     */
+    override fun toDomain(
+        entity: RepositoryEntity,
+    ): Repository {
+        // Fast-path: Check if already mapped
+        ctx.findDomain<Repository, RepositoryEntity>(entity)?.let { return it }
+
+        // IMPORTANT: Expect Project already in context (cross-aggregate reference).
+        // Do NOT auto-map Project here - that's a separate aggregate.
+        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
+            ?: throw IllegalStateException(
+                "Project must be mapped before Repository. " +
+                        "Ensure Project is in MappingContext before calling toDomain()."
+            )
+
+        val domain = entity.toDomain(owner)
+        setField(
+            domain.javaClass.superclass.getDeclaredField("iid"),
+            domain,
+            entity.iid
+        )
+
+        ctx.remember(domain, entity)
+
+        return domain
+    }
+
+    fun refreshDomain(target: Repository, entity: RepositoryEntity): Repository {
+        setField(
+            target.javaClass.getDeclaredField("id"),
+            target,
+            entity.id?.toString()
+        )
+
+        return target
+    }
+}

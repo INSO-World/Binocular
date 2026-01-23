@@ -5,7 +5,6 @@ import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.NoteAccountConnectionEntity
-import com.inso_world.binocular.model.Platform
 import org.springframework.data.annotation.Id
 
 /**
@@ -15,7 +14,7 @@ import org.springframework.data.annotation.Id
 data class AccountEntity(
     @Id
     var id: String? = null,
-    var platform: Platform? = null,
+    var platform: PlatformEntity? = null,
     var login: String? = null,
     var name: String? = null,
     var avatarUrl: String? = null,

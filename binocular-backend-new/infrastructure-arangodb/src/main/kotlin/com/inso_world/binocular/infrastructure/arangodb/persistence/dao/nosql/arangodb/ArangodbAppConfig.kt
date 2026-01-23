@@ -5,6 +5,7 @@ import com.arangodb.springframework.annotation.EnableArangoRepositories
 import com.arangodb.springframework.config.ArangoConfiguration
 import com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
@@ -18,15 +19,15 @@ class ArangodbAppConfig(
         var builder =
             ArangoDB
                 .Builder()
-                .host(infraConfig.database.host, infraConfig.database.port.toInt())
+                .host(infraConfig.arangodb.database.host, infraConfig.arangodb.database.port.toInt())
 
-        builder = infraConfig.database.user?.let { builder.user(it) }
-        builder = infraConfig.database.password?.let { builder.password(it) }
+        builder = infraConfig.arangodb.database.user?.let { builder.user(it) }
+        builder = infraConfig.arangodb.database.password?.let { builder.password(it) }
 
         return builder
     }
 
-    override fun database(): String = infraConfig.database.databaseName
+    override fun database(): String = infraConfig.arangodb.database.name
 
     override fun returnOriginalEntities(): Boolean = false
 }

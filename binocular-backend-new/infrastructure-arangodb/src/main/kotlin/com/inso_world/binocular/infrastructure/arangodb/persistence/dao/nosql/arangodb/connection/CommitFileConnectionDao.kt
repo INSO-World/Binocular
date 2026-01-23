@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class CommitFileConnectionDao
+internal class CommitFileConnectionDao
     @Autowired
     constructor(
         private val repository: CommitFileConnectionRepository,

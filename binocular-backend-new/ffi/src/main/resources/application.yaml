@@ -1,0 +1,4 @@
+binocular:
+  gix:
+    skip-merges: false
+    use-mailmap: true

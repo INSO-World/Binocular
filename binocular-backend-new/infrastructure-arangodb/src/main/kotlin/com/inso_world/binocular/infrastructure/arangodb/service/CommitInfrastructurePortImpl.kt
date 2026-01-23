@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
@@ -9,6 +10,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueCommitConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.ICommitDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
@@ -16,15 +18,21 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 
 @Service
-internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
+internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
+    AbstractInfrastructurePort<Commit, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = commitDao
+    }
     @Autowired private lateinit var commitDao: ICommitDao
 
     @Autowired private lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao
@@ -39,7 +47,9 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     @Autowired private lateinit var commitUserConnectionRepository: ICommitUserConnectionDao
 
-    var logger: Logger = LoggerFactory.getLogger(CommitInfrastructurePortImpl::class.java)
+    companion object {
+        private val logger by logger()
+    }
 
     override fun findAll(pageable: Pageable): Page<Commit> {
         logger.trace("Getting all commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
@@ -73,6 +83,10 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
     override fun findById(id: String): Commit? {
         logger.trace("Getting commit by id: $id")
         return commitDao.findById(id)
+    }
+
+    override fun findByIid(iid: Commit.Id): @Valid Commit? {
+        TODO("Not yet implemented")
     }
 
     override fun findBuildsByCommitId(commitId: String): List<Build> {
@@ -116,13 +130,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = this.commitDao.saveAll(entities)
 
-    override fun delete(entity: Commit) = this.commitDao.delete(entity)
-
     override fun update(entity: Commit): Commit {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: Commit): Commit {
         TODO("Not yet implemented")
     }
 
@@ -149,14 +157,6 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     override fun findAllLeafCommits(repo: Repository): Iterable<Commit> {
         TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
-        this.commitDao.deleteAll()
     }
 
     override fun findAll(repo: Repository): Iterable<Commit> {

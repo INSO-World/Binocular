@@ -10,8 +10,16 @@ import com.inso_world.binocular.model.User
 /**
  * Interface for IssueService.
  * Provides methods to retrieve issues and their related entities.
+ *
+ * @deprecated Use [ProjectInfrastructurePort] instead. Issue is part of the Project aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface IssueInfrastructurePort : BinocularInfrastructurePort<Issue> {
+@Deprecated(
+    message = "Use ProjectInfrastructurePort instead. Issue is part of the Project aggregate.",
+    replaceWith = ReplaceWith("ProjectInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface IssueInfrastructurePort : BinocularInfrastructurePort<Issue, Issue.Id> {
     /**
      * Find accounts by issue ID.
      *

@@ -8,10 +8,13 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IModuleFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IFileDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.User
+import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,7 +22,13 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class FileInfrastructurePortImpl : FileInfrastructurePort {
+internal class FileInfrastructurePortImpl : FileInfrastructurePort,
+    AbstractInfrastructurePort<File, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = fileDao
+    }
     @Autowired private lateinit var fileDao: IFileDao
 
     @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
@@ -41,6 +50,10 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
     override fun findById(id: String): File? {
         logger.trace("Getting file by id: $id")
         return fileDao.findById(id)
+    }
+
+    override fun findByIid(iid: File.Id): @Valid File? {
+        TODO("Not yet implemented")
     }
 
     override fun findBranchesByFileId(fileId: String): List<Branch> {
@@ -79,10 +92,6 @@ class FileInfrastructurePortImpl : FileInfrastructurePort {
     }
 
     override fun update(entity: File): File {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: File): File {
         TODO("Not yet implemented")
     }
 

@@ -1,28 +1,63 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BuildEntity
 import com.inso_world.binocular.model.Build
-import com.inso_world.binocular.model.Job
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.util.Date
 
+/**
+ * Mapper for Build domain objects.
+ *
+ * Converts between Build domain objects and BuildEntity persistence entities for ArangoDB.
+ * This mapper handles the conversion of build metadata, timestamps, and jobs, using lazy loading
+ * for related commits.
+ *
+ * ## Design Principles
+ * - **Single Responsibility**: Only converts Build structure
+ * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded commit relationships
+ * - **Date Conversion**: Converts between LocalDateTime and Date for ArangoDB storage
+ * - **Context Management**: Uses MappingContext to prevent duplicate mappings
+ *
+ * ## Usage
+ * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
+ * jobs but uses lazy loading for commits to optimize performance.
+ */
 @Component
-class BuildMapper
+internal class BuildMapper
     @Autowired
     constructor(
         private val proxyFactory: RelationshipProxyFactory,
         private val jobMapper: JobMapper
     ) : EntityMapper<Build, BuildEntity> {
-        @Lazy @Autowired
+
+        @Autowired
+        private lateinit var ctx: MappingContext
+
+        @Lazy
+        @Autowired
         private lateinit var commitMapper: CommitMapper
 
+        companion object {
+            private val logger by logger()
+        }
+
         /**
-         * Converts a domain Build to an ArangoDB BuildEntity
+         * Converts a Build domain object to BuildEntity.
+         *
+         * Converts all timestamp fields from LocalDateTime to Date for ArangoDB storage.
+         * Eagerly maps all jobs as they are typically accessed together with the build.
+         * Commit relationships are not persisted in the entity - they are only restored
+         * during toDomain through lazy loading.
+         *
+         * @param domain The Build domain object to convert
+         * @return The BuildEntity with all properties and jobs
          */
         override fun toEntity(domain: Build): BuildEntity =
             BuildEntity(
@@ -39,67 +74,70 @@ class BuildMapper
                 finishedAt = domain.finishedAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
                 committedAt = domain.committedAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
                 duration = domain.duration,
-                jobs = (domain.jobs).map { job ->
-                    jobMapper.toEntity(job)},
+                jobs = domain.jobs.map { jobMapper.toEntity(it) },
                 webUrl = domain.webUrl,
-                // Relationships are handled by ArangoDB through edges
             )
 
         /**
-         * Converts an ArangoDB BuildEntity to a domain Build
+         * Converts a BuildEntity to Build domain object.
          *
-         * Uses lazy loading proxies for relationships, which will only be loaded
-         * when accessed. This provides a consistent API regardless of the database
-         * implementation and avoids the N+1 query problem.
+         * Converts all timestamp fields from Date to LocalDateTime. Eagerly maps all jobs
+         * and creates lazy-loaded proxies for commits to avoid loading unnecessary data.
+         *
+         * @param entity The BuildEntity to convert
+         * @return The Build domain object with eager jobs and lazy commits
          */
-        override fun toDomain(entity: BuildEntity): Build =
-            Build(
-                id = entity.id,
-                sha = entity.sha,
-                ref = entity.ref,
-                status = entity.status,
-                tag = entity.tag,
-                user = entity.user,
-                userFullName = entity.userFullName,
-                createdAt =
-                    entity.createdAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                updatedAt =
-                    entity.updatedAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                startedAt =
-                    entity.startedAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                finishedAt =
-                    entity.finishedAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                committedAt =
-                    entity.committedAt
-                        ?.toInstant()
-                        ?.atZone(ZoneOffset.UTC)
-                        ?.toLocalDateTime(),
-                duration = entity.duration,
-                jobs = (entity.jobs).map { jobEntity ->
-                    jobMapper.toDomain(jobEntity) },
-                webUrl = entity.webUrl,
-                commits =
-                    proxyFactory.createLazyList {
-                        (entity.commits ?: emptyList()).map { commitEntity ->
-                            commitMapper.toDomain(commitEntity)
-                        }
-                    },
-            )
+        override fun toDomain(entity: BuildEntity): Build {
+            // Fast-path: Check if already mapped
+            ctx.findDomain<Build, BuildEntity>(entity)?.let { return it }
 
-        /**
-         * Converts a list of ArangoDB BuildEntity objects to a list of domain Build objects
-         */
+            val domain =
+                Build(
+                    id = entity.id,
+                    sha = entity.sha,
+                    ref = entity.ref,
+                    status = entity.status,
+                    tag = entity.tag,
+                    user = entity.user,
+                    userFullName = entity.userFullName,
+                    createdAt =
+                        entity.createdAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    updatedAt =
+                        entity.updatedAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    startedAt =
+                        entity.startedAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    finishedAt =
+                        entity.finishedAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    committedAt =
+                        entity.committedAt
+                            ?.toInstant()
+                            ?.atZone(ZoneOffset.UTC)
+                            ?.toLocalDateTime(),
+                    duration = entity.duration,
+                    jobs = entity.jobs.map { jobMapper.toDomain(it) },
+                    webUrl = entity.webUrl,
+                    commits =
+                        proxyFactory.createLazyList {
+                            (entity.commits ?: emptyList()).map { commitEntity ->
+                                commitMapper.toDomain(commitEntity)
+                            }
+                        },
+                )
+
+            return domain
+        }
+
         override fun toDomainList(entities: Iterable<BuildEntity>): List<Build> = entities.map { toDomain(it) }
     }

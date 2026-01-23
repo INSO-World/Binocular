@@ -9,6 +9,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
+import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
@@ -42,15 +43,11 @@ internal class IssueInfrastructurePortImpl :
         TODO("Not yet implemented")
     }
 
+    override fun findByIid(iid: Issue.Id): @Valid Issue? {
+        TODO("Not yet implemented")
+    }
+
     override fun update(value: Issue): Issue {
-        TODO("Not yet implemented")
-    }
-
-    override fun delete(value: Issue) {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(value: Issue): Issue {
         TODO("Not yet implemented")
     }
 
@@ -67,14 +64,6 @@ internal class IssueInfrastructurePortImpl :
     }
 
     override fun findAll(pageable: Pageable): Page<Issue> {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
         TODO("Not yet implemented")
     }
 }

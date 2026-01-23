@@ -7,7 +7,6 @@ import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.config.LocalArangodbConfig
 import com.inso_world.binocular.infrastructure.test.config.LocalGixConfig
 import com.inso_world.binocular.infrastructure.test.config.LocalPostgresConfig
-import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Project
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,6 +15,10 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.test.context.ContextConfiguration
 import kotlin.io.path.Path
 
+/**
+ * Base test class for infrastructure tests that require actual Git repository data.
+ * Provides utilities to index Git repositories and prepare test data.
+ */
 @SpringBootTest
 @ContextConfiguration(
     classes = [LocalArangodbConfig::class, LocalPostgresConfig::class, LocalGixConfig::class],
@@ -35,19 +38,24 @@ class BasePortWithDataTest : BaseFixturesIntegrationTest() {
     @all:Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
 
-    protected fun prepare(path: String, projectName: String, branch: Branch): Project {
-        val repo = indexer.findRepo(Path(path))
-        require(repo.branches.add(branch))
-        val hashes = indexer.traverseBranch(repo,branch)
-        val project =
-            Project(
-                name = projectName,
-            )
-        project.repo = repo
-        repo.project = project
+    /**
+     * Prepares a Git repository for testing by indexing a branch and creating a project.
+     *
+     * @param path Local filesystem path to the Git repository
+     * @param projectName Name for the project that will own this repository
+     * @param branchName Name of the branch to traverse (e.g., "main", "refs/heads/main")
+     * @return The persisted Project with repository and commit data
+     */
+    protected fun prepare(path: String, projectName: String, branchName: String): Project {
+        val project = Project(name = projectName)
+        val repo = indexer.findRepo(Path(path), project)
 
-        repo.branches.add(branch)
-        repo.commits.addAll(hashes)
+        // Traverse the specified branch to get all its commits
+        val (branch, commits) = indexer.traverseBranch(repo, branchName)
+
+        // Repository automatically registers commits when they're created
+        // Branch automatically registers with repository during construction
+        // All relationships are now established
 
         return projectPort.create(project)
     }
@@ -55,10 +63,5 @@ class BasePortWithDataTest : BaseFixturesIntegrationTest() {
     @AfterEach
     fun cleanup() {
         testDataSetupService.teardown()
-//        entityManager.clear()
-//        projectRepository.deleteAll()
-//        repositoryRepository.deleteAll()
-//        commitRepository.deleteAll()
-//        userRepository.deleteAll()
     }
 }

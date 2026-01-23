@@ -44,6 +44,8 @@ class ArangoCollectionInitializer(
         ensureDocumentCollection(dbName, "builds")
         ensureDocumentCollection(dbName, "notes")
         ensureDocumentCollection(dbName, "accounts")
+        ensureDocumentCollection(dbName, "projects")
+        ensureDocumentCollection(dbName, "repositories")
 
         // Edge collections
         ensureEdgeCollection(dbName, "branches-files")

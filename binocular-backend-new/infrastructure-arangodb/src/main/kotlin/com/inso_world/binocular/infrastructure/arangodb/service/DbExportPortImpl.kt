@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
  * This implementation only works with ArangoDB.
  */
 @Service
-class DbExportPortImpl(
+internal class DbExportPortImpl(
     private val arangoConfig: ArangodbAppConfig,
 ) : DbExportPort {
     var logger: Logger = LoggerFactory.getLogger(DbExportPortImpl::class.java)

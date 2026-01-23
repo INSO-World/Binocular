@@ -1,0 +1,11 @@
+binocular:
+  gix:
+    skip_merges: false
+    use_mailmap: true
+logging:
+  level:
+    com:
+      inso_world:
+        binocular:
+          ffi: trace
+    root: info
