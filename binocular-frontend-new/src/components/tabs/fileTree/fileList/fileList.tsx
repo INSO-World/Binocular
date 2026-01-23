@@ -2,7 +2,7 @@ import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
-import { filterFileTree, loadFileList } from './fileListUtilities/fileTreeUtilities.tsx';
+import { filterFileTree, loadFileList, refreshFileList } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import {
@@ -69,6 +69,15 @@ function FileList(props: { orientation?: string; search: string }) {
               className={'btn btn-xs join-item ' + fileListStyles.flipButton}
               onClick={() => dispatch(switchAllFileSelection())}
               title="Switch file selection"></button>
+            <button
+              className={'btn btn-xs join-item '}
+              onClick={() => {
+                const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
+                refreshFileList(dataPlugin, dispatch);
+              }}
+              title="Switch file selection">
+              REFRESH
+            </button>
           </div>
         </div>
         <div>{fileCounts[filesDataPluginId ? filesDataPluginId : -1]} Files indexed</div>
