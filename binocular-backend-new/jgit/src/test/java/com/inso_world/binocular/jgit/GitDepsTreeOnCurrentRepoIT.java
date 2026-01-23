@@ -1,6 +1,6 @@
-package com.inso_world.binocular.jgit.tree;
+package com.inso_world.binocular.jgit;
 
-import com.inso_world.binocular.jgit.JGitGitIndexer;
+import com.inso_world.binocular.jgit.tree.GitDepsTreeBuilder;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Repository;
