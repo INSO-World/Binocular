@@ -64,14 +64,52 @@ export const filesSlice = createSlice({
       (document.getElementById('fileTreeElementInfoDialog') as HTMLDialogElement).showModal();
       state.selectedFileTreeElement = action.payload;
     },
+    checkAllFiles: (state) => {
+      state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
+        f.checked = true;
+        return f;
+      });
+      updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], true);
+      const newState = JSON.stringify(state);
+      console.log(newState);
+
+      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+    },
+    uncheckAllFiles: (state) => {
+      updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], false);
+      state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
+        f.checked = false;
+        return f;
+      });
+      const newState = JSON.stringify(state);
+      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+    },
+    switchAllFileSelection: (state) => {
+      state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
+        f.checked = !f.checked;
+        return f;
+      });
+      invertFileTreeSelection(state.fileTrees[state.dataPluginId!]);
+      const newState = JSON.stringify(state);
+      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+    },
     clearFileStorage: () => {
       opfsRoot.removeEntry('files');
     },
   },
 });
 
-export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo, clearFileStorage, loadState } =
-  filesSlice.actions;
+export const {
+  setFilesDataPluginId,
+  setFileList,
+  updateFileListElement,
+  showFileTreeElementInfo,
+  clearFileStorage,
+  loadState,
+  checkAllFiles,
+  uncheckAllFiles,
+  switchAllFileSelection,
+} = filesSlice.actions;
 export default filesSlice.reducer;
 
 function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
@@ -97,4 +135,13 @@ function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTre
     });
   }
   return updatedPaths;
+}
+
+function invertFileTreeSelection(fileTree: FileTreeElementType) {
+  if (fileTree.children) {
+    fileTree.children.map((f: FileTreeElementType) => {
+      f.checked = !f.checked;
+      invertFileTreeSelection(f);
+    });
+  }
 }

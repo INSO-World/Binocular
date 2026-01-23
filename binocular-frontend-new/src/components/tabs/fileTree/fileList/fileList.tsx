@@ -5,7 +5,12 @@ import { useEffect } from 'react';
 import { filterFileTree, loadFileList } from './fileListUtilities/fileTreeUtilities.tsx';
 import FileListFolder from './fileListElements/fileListFolder.tsx';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
-import { setFilesDataPluginId } from '../../../../redux/reducer/data/filesReducer.ts';
+import {
+  setFilesDataPluginId,
+  checkAllFiles,
+  uncheckAllFiles,
+  switchAllFileSelection,
+} from '../../../../redux/reducer/data/filesReducer.ts';
 
 function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -50,6 +55,22 @@ function FileList(props: { orientation?: string; search: string }) {
           ' ' +
           (props.orientation === 'horizontal' ? fileListStyles.fileListHorizontal : fileListStyles.fileListVertical)
         }>
+        <div className={'border-b border-base-300 pt-1'}>
+          <div className="join">
+            <button
+              className={'btn btn-xs join-item ' + fileListStyles.checkAllButton}
+              onClick={() => dispatch(checkAllFiles())}
+              title="Check all files"></button>
+            <button
+              className={`btn btn-xs join-item '+ ${fileListStyles.uncheckAllButton}`}
+              onClick={() => dispatch(uncheckAllFiles())}
+              title="Uncheck all files"></button>
+            <button
+              className={'btn btn-xs join-item ' + fileListStyles.flipButton}
+              onClick={() => dispatch(switchAllFileSelection())}
+              title="Switch file selection"></button>
+          </div>
+        </div>
         <div>{fileCounts[filesDataPluginId ? filesDataPluginId : -1]} Files indexed</div>
         <div>
           {fileTrees[filesDataPluginId ? filesDataPluginId : -1] ? (
