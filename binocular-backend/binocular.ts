@@ -350,7 +350,7 @@ function runBackend() {
       const indexer = await getIndexer(indexers, context, reporter, indexingThread);
       const providers = await Promise.all(indexer);
 
-      /*for (const indexer of providers.filter((exist) => exist)) {
+      for (const indexer of providers.filter((exist) => exist)) {
         if (!indexer) {
           return;
         }
@@ -366,9 +366,9 @@ function runBackend() {
       // make sure that the services has not been stopped
       const activeProviders = providers.filter((provider) => {
         return !provider || !provider.isStopping();
-      });*/
+      });
       // start indexer
-      const activeIndexers = await Promise.all(
+      /*const activeIndexers = await Promise.all(
         providers
           .filter((exist) => exist)
           .map(async (indexer) => {
@@ -390,7 +390,7 @@ function runBackend() {
       // make sure that the services has not been stopped
       const activeProviders = activeIndexers.filter((provider) => {
         return !provider || !provider.isStopping();
-      });
+      });*/
 
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
