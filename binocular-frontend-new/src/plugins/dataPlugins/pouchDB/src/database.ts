@@ -142,4 +142,46 @@ export default class Database {
       });
     });
   }
+
+  async export() {
+    const edges = await this.edgeStore.export();
+    const docs = await this.documentStore.export();
+    const zip = await new JSZip();
+    const db_export = zip.folder('db_export');
+    let data: Object[] = []
+    console.log(docs);
+    let collectionName = docs.rows[0].id.split('/')[0];
+    docs.rows.forEach((row: any) => {
+      if (row.id.split('/')[0] == collectionName)
+        data.push(row.doc);
+      else {
+        db_export!.file(collectionName + '.json', JSON.stringify(data));
+        data = [];
+        collectionName = row.id.split('/')[0];
+        data.push(row.doc)
+      }
+    });
+    edges.rows.forEach((row: any) => {
+      if (row.id.startsWith(collectionName))
+        data.push(row.doc);
+      else {
+        db_export!.file(collectionName + '.json', JSON.stringify(data));
+        data = [];
+        collectionName = row.id.split('/')[0];
+        data.push(row.doc)
+      }
+    });
+    db_export!.file(collectionName + '.json', JSON.stringify(data));
+    zip.generateAsync({type: 'blob'}).then((file) => {
+      var a = document.createElement("a");
+      document.body.appendChild(a);
+      a.style = "display: none";
+      var url = window.URL.createObjectURL(file);
+      a.href = url;
+      a.download = 'export.zip';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+    
+  }
 }

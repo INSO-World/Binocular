@@ -55,6 +55,9 @@ self.onmessage = async (event) => {
         result = await db.createIndex(options);
         break;
 
+      case 'downloadDB':
+        result = (await db.allDocs({include_docs: true, attachments: true}));
+        break;
       default:
         throw new Error(`Unknown action: ${action}`);
     }
