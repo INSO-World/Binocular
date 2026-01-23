@@ -33,12 +33,10 @@ export const filesSlice = createSlice({
       state.dataPluginId = action.payload.dataPluginId;
     },
     setFileList: (state, action: PayloadAction<{ dataPluginId: number; fileTree: FileTreeElementType; files: FileListElementType[] }>) => {
-      const fileCount: number = state.fileCounts[action.payload.dataPluginId];
-      if (fileCount === undefined || fileCount !== action.payload.files.length) {
-        state.fileTrees[action.payload.dataPluginId] = action.payload.fileTree;
-        state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
-        state.fileLists[action.payload.dataPluginId] = action.payload.files;
-      }
+      state.fileTrees[action.payload.dataPluginId] = action.payload.fileTree;
+      state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
+      state.fileLists[action.payload.dataPluginId] = action.payload.files;
+
       const newState = JSON.stringify(state);
       fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
     },
@@ -71,8 +69,6 @@ export const filesSlice = createSlice({
       });
       updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], true);
       const newState = JSON.stringify(state);
-      console.log(newState);
-
       fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
     },
     uncheckAllFiles: (state) => {
