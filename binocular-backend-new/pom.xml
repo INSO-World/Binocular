@@ -67,6 +67,7 @@
         <module>cli</module>
         <module>web</module>
         <module>jgit</module>
+        <module>integration-test/vcs-indexer</module>
     </modules>
     <dependencyManagement>
         <!--

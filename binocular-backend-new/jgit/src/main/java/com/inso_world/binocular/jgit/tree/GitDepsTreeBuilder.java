@@ -55,14 +55,10 @@ public class GitDepsTreeBuilder {
             nodes.add(new GitTreeNode(sha, row, col, branchNames));
 
             List<String> parentShas = new ArrayList<>();
-            if (commit.getParentShasOrdered() != null && !commit.getParentShasOrdered().isEmpty()) {
-                parentShas.addAll(commit.getParentShasOrdered());
-            } else {
-                for (Commit p : commit.getParents()) {
-                    parentShas.add(p.getSha());
-                }
-                parentShas.sort(String::compareTo);
+            for (Commit p : commit.getParents()) {
+                parentShas.add(p.getSha());
             }
+            parentShas.sort(String::compareTo);
 
             // create edges
             for (int i = 0; i < parentShas.size(); i++) {
