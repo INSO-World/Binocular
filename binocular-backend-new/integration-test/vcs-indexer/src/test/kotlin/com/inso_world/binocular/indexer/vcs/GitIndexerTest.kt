@@ -1,13 +1,12 @@
-package com.inso_world.binocular.ffi.integration
+package com.inso_world.binocular.indexer.vcs
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
-import com.inso_world.binocular.ffi.BinocularFfiTestApplication
-import com.inso_world.binocular.ffi.internal.UniffiException
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.ClassOrderer
 import org.junit.jupiter.api.DisplayName
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestClassOrder
 import org.junit.jupiter.api.TestMethodOrder
-import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
@@ -35,16 +33,24 @@ import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
+import kotlin.collections.iterator
 import kotlin.io.path.Path
 
 /**
  * Comprehensive integration tests for [com.inso_world.binocular.core.index.GitIndexer].
  *
- * Tests the GitIndexer component which wraps the FFI layer for Git operations, verifying:
+ * Tests the GitIndexer implementations (both gix/FFI and JGit) for Git operations, verifying:
  * - Repository discovery and initialization
  * - Branch traversal and retrieval
  * - Commit finding and traversal
  * - Exception handling and error scenarios
+ *
+ * ### Profile Support
+ * This test supports two profiles:
+ * - `gix`: Uses the FFI-based GitIndexer (GixIndexer) powered by Rust's gix library
+ * - `jgit`: Uses the JGit-based GitIndexer (JGitGitIndexer) powered by Eclipse JGit
+ *
+ * Set the active profile via `-Dspring.profiles.active=gix` or `-Dspring.profiles.active=jgit`.
  *
  * ### Test Organization
  * Tests are organized into nested classes by functionality:
@@ -56,7 +62,7 @@ import kotlin.io.path.Path
  */
 @TestClassOrder(ClassOrderer.OrderAnnotation::class)
 @SpringBootTest(
-    classes = [BinocularFfiTestApplication::class],
+    classes = [VcsIndexerTestApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
 )
 @ExtendWith(SpringExtension::class)
@@ -99,7 +105,8 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
         fun `findRepo with non-git directory should throw exception`() {
             val nonGitPath = Files.createTempDirectory(LocalDateTime.now().toString())
 
-            val e = assertThrows<UniffiException.GixDiscoverException> {
+            // Both implementations throw RuntimeException subclasses for discovery errors
+            val e = assertThrows<RuntimeException> {
                 indexer.findRepo(nonGitPath, project)
             }
             assertThat(e.message).contains(nonGitPath.toString())
@@ -129,7 +136,7 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
     inner class BranchOperations {
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.ffi.integration.GitIndexerTest#findAllBranchesData")
+        @MethodSource("com.inso_world.binocular.indexer.vcs.GitIndexerTest#findAllBranchesData")
         fun `findAllBranches should return all branches for repository`(
             repoName: String,
             localBranches: Collection<String>,
@@ -193,7 +200,8 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
         fun `traverseBranch with non-existent branch should throw exception`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${SIMPLE_REPO}"), project)
 
-            assertThrows<UniffiException.ReferenceException> {
+            // Both implementations throw RuntimeException subclasses for reference errors
+            assertThrows<RuntimeException> {
                 indexer.traverseBranch(repo, "non-existent-branch")
             }
         }
@@ -448,17 +456,18 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 {
-                    assertThrows<UniffiException.GixDiscoverException> {
+                    // Both implementations throw RuntimeException subclasses for discovery errors
+                    assertThrows<RuntimeException> {
                         indexer.traverseBranch(invalidRepo, "refs/heads/master")
                     }
                 },
                 {
-                    assertThrows<UniffiException.GixDiscoverException> {
+                    assertThrows<RuntimeException> {
                         indexer.findCommit(invalidRepo, "HEAD")
                     }
                 },
                 {
-                    assertThrows<UniffiException.GixDiscoverException> {
+                    assertThrows<RuntimeException> {
                         indexer.findAllBranches(invalidRepo)
                     }
                 }

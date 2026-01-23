@@ -1,7 +1,7 @@
 package com.inso_world.binocular.jgit.tree;
 
 import com.inso_world.binocular.model.Commit;
-import com.inso_world.binocular.model.User;
+import com.inso_world.binocular.model.Developer;
 import com.inso_world.binocular.model.git.GitDepsTree;
 import com.inso_world.binocular.model.git.GitTreeEdge;
 import com.inso_world.binocular.model.git.GitTreeNode;
@@ -198,11 +198,11 @@ public class GitDepsTreeAsciiGraphRenderer {
 
     private static String authorPart(Commit c) {
         if (c == null) return "";
-        User a = c.getAuthor();
+        Developer a = c.getAuthor();
         if (a != null && !isBlank(a.getName())) {
             return a.getName();
         }
-        User comm = c.getCommitter();
+        Developer comm = c.getCommitter();
         if (comm != null && !isBlank(comm.getName())) {
             return comm.getName();
         }
