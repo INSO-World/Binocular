@@ -394,7 +394,6 @@ function runBackend() {
 
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
-        return;
       }
 
       await Issue.deduceUsers();
