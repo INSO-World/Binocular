@@ -249,6 +249,18 @@ export default class Database {
   }
 
   /**
+   * VULNERABILITY AGE BUCKETS
+   */
+  static async getVulnerabilityAgeBuckets(branch, since, until) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityAgeBuckets(branch, since, until);
+    } else {
+      // PoC: no offline PouchDB version yet
+      return [];
+    }
+  }
+
+  /**
    * DATABASE
    */
   static async getDatabase() {

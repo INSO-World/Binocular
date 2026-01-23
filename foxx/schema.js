@@ -22,6 +22,7 @@ const builds = db._collection('builds');
 const branches = db._collection('branches');
 const mergeRequests = db._collection('mergeRequests');
 const milestones = db._collection('milestones');
+const vulnAgeBuckets = db._collection('vulnerabilityAgeBuckets');
 
 const queryType = new gql.GraphQLObjectType({
   name: 'Query',
@@ -278,6 +279,35 @@ const queryType = new gql.GraphQLObjectType({
             RETURN milestone`;
         },
       }),
+      vulnerabilityAgeBuckets: paginated({
+        type: require('./types/vulnerabilityAgeBucket.js'),
+        args: {
+          branch: {
+            description: 'Branch name (e.g. "main")',
+            type: new gql.GraphQLNonNull(gql.GraphQLString),
+          },
+          since: {
+            description: 'Optional lower bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+          until: {
+            description: 'Optional upper bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+        },
+        query: (root, args, limit) => {
+          return aql`
+            FOR doc IN ${vulnAgeBuckets}
+              FILTER doc.branch == ${args.branch}
+              ${args.since ? queryHelpers.addDateFilterAQL('doc.date', '>=', args.since) : aql``}
+              ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
+              SORT doc.date ASC
+              ${limit}
+              RETURN doc
+          `;
+        },
+      }),
+
     };
   },
 });

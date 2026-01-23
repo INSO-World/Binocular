@@ -24,6 +24,7 @@
     "@fortawesome/fontawesome-common-types": "^6.5.1",
     "@fortawesome/fontawesome-free": "^6.3.0",
     "@istanbuljs/nyc-config-babel": "^3.0.0",
+    "@reduxjs/toolkit": "^2.11.2",
     "@types/chroma-js": "^2.4.1",
     "@types/d3": "^7.4.1",
     "@types/lodash": "^4.14.199",

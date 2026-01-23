@@ -1,5 +1,8 @@
 import { UniversalSettings } from './unversalSettingsTypes';
 
+// eslint-disable-next-line max-len
+import type { VulnerabilityAgeBucketsState } from './../visualizations/vulnerabilityTrends/vulnerabilityAgeBuckets/reducers/vulnerabilityAgeBucketsSlice';
+
 export interface GlobalState {
   activeConfigTab: string;
   activeVisualization: string;
@@ -8,7 +11,13 @@ export interface GlobalState {
   progress: any;
   showHelp: boolean;
   universalSettings: UniversalSettings;
-  visualizations: any;
+
+  visualizations: {
+    vulnerabilityAgeBuckets?: {
+      state: VulnerabilityAgeBucketsState;
+    };
+    [key: string]: any; // keep existing visualizations untyped for now
+  };
 }
 
 export interface DateRange {
