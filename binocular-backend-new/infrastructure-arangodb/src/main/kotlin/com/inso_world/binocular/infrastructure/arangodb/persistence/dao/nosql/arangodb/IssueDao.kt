@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class IssueDao(
+internal class IssueDao(
     @Autowired issueRepository: IssueRepository,
     @Autowired issueMapper: IssueMapper,
 ) : MappedArangoDbDao<Issue, IssueEntity, String>(issueRepository, issueMapper),

@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 @Repository
-class NoteDao
+internal class NoteDao
     @Autowired
     constructor(
         noteRepository: NoteRepository,

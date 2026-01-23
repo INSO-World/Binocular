@@ -13,8 +13,16 @@ import org.springframework.data.domain.Pageable
 /**
  * Interface for CommitService.
  * Provides methods to retrieve commits and their related entities.
+ *
+ * @deprecated Use [RepositoryInfrastructurePort] instead. Commit is part of the Repository aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit> {
+@Deprecated(
+    message = "Use RepositoryInfrastructurePort instead. Commit is part of the Repository aggregate.",
+    replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit, Commit.Id> {
     /**
      * Find all commits with pagination and timestamp filters.
      *

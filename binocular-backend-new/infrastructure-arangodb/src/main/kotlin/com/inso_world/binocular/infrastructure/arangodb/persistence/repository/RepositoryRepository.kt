@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface RepositoryRepository : ArangoRepository<RepositoryEntity, String> {
-    fun findByName(name: String): RepositoryEntity?
+    fun findByLocalPath(localPath: String): RepositoryEntity?
 }

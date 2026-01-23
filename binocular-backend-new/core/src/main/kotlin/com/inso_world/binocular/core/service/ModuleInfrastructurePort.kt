@@ -6,8 +6,16 @@ import com.inso_world.binocular.model.File
 /**
  * Interface for ModuleService.
  * Provides methods to retrieve modules and their related entities.
+ *
+ * @deprecated Use [RepositoryInfrastructurePort] instead. Module is part of the Repository aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface ModuleInfrastructurePort : BinocularInfrastructurePort<com.inso_world.binocular.model.Module> {
+@Deprecated(
+    message = "Use RepositoryInfrastructurePort instead. Module is part of the Repository aggregate.",
+    replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface ModuleInfrastructurePort : BinocularInfrastructurePort<com.inso_world.binocular.model.Module, com.inso_world.binocular.model.Module.Id> {
     /**
      * Find commits by module ID.
      *

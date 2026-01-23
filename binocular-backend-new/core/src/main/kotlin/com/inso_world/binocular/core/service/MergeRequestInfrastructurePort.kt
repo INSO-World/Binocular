@@ -8,8 +8,16 @@ import com.inso_world.binocular.model.Note
 /**
  * Interface for MergeRequestService.
  * Provides methods to retrieve merge requests and their related entities.
+ *
+ * @deprecated Use [ProjectInfrastructurePort] instead. MergeRequest is part of the Project aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface MergeRequestInfrastructurePort : BinocularInfrastructurePort<MergeRequest> {
+@Deprecated(
+    message = "Use ProjectInfrastructurePort instead. MergeRequest is part of the Project aggregate.",
+    replaceWith = ReplaceWith("ProjectInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface MergeRequestInfrastructurePort : BinocularInfrastructurePort<MergeRequest, MergeRequest.Id> {
     /**
      * Find accounts by merge request ID.
      *

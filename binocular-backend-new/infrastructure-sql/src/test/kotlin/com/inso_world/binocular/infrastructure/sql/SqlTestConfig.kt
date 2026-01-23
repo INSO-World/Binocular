@@ -7,13 +7,14 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.core.env.Profiles
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
 
 @Configuration
 @Import(SqlAppConfig::class)
 class SqlTestConfig {
 
-    companion object Companion {
-        val pg: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:18-alpine")
+    companion object {
+        val pg: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
             .apply { withDatabaseName("binocular_it") }
             .apply { withUsername("postgres") }
             .apply { withPassword("postgres") }

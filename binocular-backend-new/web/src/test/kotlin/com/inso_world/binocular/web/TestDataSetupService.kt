@@ -48,18 +48,6 @@ internal class TestDataSetupService(
      */
     fun clearAllData() {
         infrastructureDataSetup.teardown()
-
-        commitRepository.deleteAll()
-        accountRepository.deleteAll()
-        branchRepository.deleteAll()
-        buildRepository.deleteAll()
-        fileRepository.deleteAll()
-        issueRepository.deleteAll()
-        mergeRequestRepository.deleteAll()
-        milestoneRepository.deleteAll()
-        moduleRepository.deleteAll()
-        noteRepository.deleteAll()
-        userRepository.deleteAll()
     }
 
     /**

@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository
  * - Implementing the specific interface (IAccountDao)
  */
 @Repository
-class AccountDao(
+internal class AccountDao(
     @Autowired accountRepository: AccountRepository,
     @Autowired accountMapper: AccountMapper,
 ) : MappedArangoDbDao<Account, AccountEntity, String>(accountRepository, accountMapper),

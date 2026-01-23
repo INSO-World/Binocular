@@ -7,6 +7,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
+import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
@@ -17,14 +18,6 @@ internal class MergeRequestInfrastructurePortImpl :
     AbstractInfrastructurePort<MergeRequest, MergeRequestEntity, Long>(Long::class),
     MergeRequestInfrastructurePort {
     override fun update(value: MergeRequest): MergeRequest {
-        TODO("Not yet implemented")
-    }
-
-    override fun delete(value: MergeRequest) {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(value: MergeRequest): MergeRequest {
         TODO("Not yet implemented")
     }
 
@@ -52,6 +45,10 @@ internal class MergeRequestInfrastructurePortImpl :
         TODO("Not yet implemented")
     }
 
+    override fun findByIid(iid: MergeRequest.Id): @Valid MergeRequest? {
+        TODO("Not yet implemented")
+    }
+
     override fun findAll(): Iterable<MergeRequest> {
         TODO("Not yet implemented")
     }
@@ -61,10 +58,6 @@ internal class MergeRequestInfrastructurePortImpl :
     }
 
     override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
         TODO("Not yet implemented")
     }
 }

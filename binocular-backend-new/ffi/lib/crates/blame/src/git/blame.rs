@@ -29,7 +29,7 @@ where
         BStr::new(file_path.as_bytes()),
         gix::blame::Options {
             diff_algorithm: gix::diff::blob::Algorithm::Histogram,
-            range: gix::blame::BlameRanges::default(),
+            ranges: gix::blame::BlameRanges::default(),
             since: None,
             rewrites: None,
             debug_track_path: true,

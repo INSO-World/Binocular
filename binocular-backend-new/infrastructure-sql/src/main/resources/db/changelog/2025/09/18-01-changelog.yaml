@@ -331,7 +331,7 @@ databaseChangeLog:
                   type: VARCHAR(255)
               - column:
                   name: description
-                  type: VARCHAR(255)
+                  type: TEXT
             tableName: projects
   - changeSet:
       id: 1758206772030-18
@@ -355,7 +355,7 @@ databaseChangeLog:
               - column:
                   constraints:
                     nullable: false
-                  name: fk_project
+                  name: fk_project_id
                   type: BIGINT
             tableName: repositories
   - changeSet:
@@ -483,8 +483,8 @@ databaseChangeLog:
       objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
       changes:
         - addUniqueConstraint:
-            columnNames: fk_project
-            constraintName: uc_repositories_fk_project
+            columnNames: fk_project_id
+            constraintName: uc_repositories_fk_project_id
             tableName: repositories
   - changeSet:
       id: 1758206772030-28
@@ -640,9 +640,9 @@ databaseChangeLog:
       objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
       changes:
         - addForeignKeyConstraint:
-            baseColumnNames: fk_project
+            baseColumnNames: fk_project_id
             baseTableName: repositories
-            constraintName: FK_REPOSITORIES_ON_FK_PROJECT
+            constraintName: FK_REPOSITORIES_ON_FK_PROJECT_ID
             referencedColumnNames: id
             referencedTableName: projects
   - changeSet:

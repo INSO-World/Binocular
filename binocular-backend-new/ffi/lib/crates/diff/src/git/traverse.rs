@@ -1,44 +1,13 @@
 use crate::objects::{Entry, GitDiffOutcome};
 use crate::utils;
 use anyhow::Result;
+use commits::GitCommitMetric;
 use crossbeam_queue::SegQueue;
-use gix::{diff::blob::Platform, Commit, ObjectId, Repository};
+use gix::{diff::blob::Platform, Commit, ObjectId};
 use log::{debug, error, trace};
-use rayon::ThreadPoolBuilder;
-use std::sync::Arc;
 use std::thread::JoinHandle;
 #[cfg(feature = "progress")]
 use tqdm::tqdm;
-
-// pub fn calculate_pairs_single(
-//     repo: &gix::Repository,
-//     pairs: Vec<(ObjectId, ObjectId)>,
-//     max_threads: usize,
-//     diff_algorithm: Option<gix::diff::blob::Algorithm>,
-// ) -> Result<Vec<GitDiffOutcome>> {
-//     trace!("Algorithm: {:?}", diff_algorithm);
-// 
-//     let mut rewrite_cache =
-//         repo.diff_resource_cache(gix::diff::blob::pipeline::Mode::ToGit, Default::default())?;
-//     rewrite_cache
-//         .options
-//         .skip_internal_diff_if_external_is_configured = false;
-//     rewrite_cache.options.algorithm = diff_algorithm;
-// 
-//     let diffs = pairs
-//         .iter()
-//         .map(|(suspect, target)| {
-//             let s_commit = repo.find_object(*suspect).unwrap().into_commit();
-//             let p_commit = repo.find_object(*target).unwrap().into_commit();
-//             (s_commit, p_commit)
-//         })
-//         .map(|(suspect, target)| compute_diff(&suspect, target, &mut rewrite_cache))
-//         .filter(|diff| diff.is_ok())
-//         .map(|diff| diff.unwrap())
-//         .collect();
-// 
-//     Ok(diffs)
-// }
 
 pub fn calculate_pairs(
     repo: &gix::Repository,
@@ -74,7 +43,7 @@ pub fn calculate_pairs(
             |(_repo, rewrite_cache), (suspect, target)| -> Result<()> {
                 // process items on THIS worker, reusing its cache
                 let s_commit = _repo.find_object(*suspect)?.into_commit();
-                let p_commit = match target { 
+                let p_commit = match target {
                     Some(_target) => Some(_repo.find_object(*_target)?.into_commit()),
                     None => None,
                 };
@@ -231,9 +200,9 @@ fn compute_diff(
     );
     Ok(GitDiffOutcome::new(
         change_map,
-        suspect.id,
-        match target { 
-            Some(t) => Some(t.id),
+        GitCommitMetric::from(suspect),
+        match target {
+            Some(t) => Some(GitCommitMetric::from(t)),
             None => None,
         },
         None,
@@ -273,7 +242,7 @@ fn compute_diff_with_parent(
     debug!("commit {:?}\tparents {:?}", commit, parent_commits);
 
     let diffs: Vec<GitDiffOutcome> = parent_trees
-        .iter()
+        .into_iter()
         .map(|(parent_commit, parent_tree)| {
             let change_map = utils::git_helper::calculate_changes(
                 &parent_tree,
@@ -283,9 +252,9 @@ fn compute_diff_with_parent(
             );
             GitDiffOutcome::new(
                 change_map,
-                commit.id,
+                GitCommitMetric::from(commit.clone()),
                 match parent_commit {
-                    Some(pc) => Some(pc.id),
+                    Some(pc) => Some(GitCommitMetric::from(pc.clone())),
                     None => None,
                 },
                 None,
