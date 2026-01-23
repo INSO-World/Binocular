@@ -76,7 +76,8 @@ import chalk from 'chalk';
 import VersionChangeEvent from './models/VersionChangeEvent';
 import Vulnerability from './models/Vulnerability';
 import VersionChangeEventVulnerabilityConnection from './models/VersionChangeEventVulnerabilityConnection';
-import VulnerabilityAgeBucket from './models/VulnerabilityAgeBucket';
+import VulnerabilityAgeBucket from './models/metrics/VulnerabilityAgeBucket';
+import VulnerabilityRemediationTimeSnapshot from "./models/metrics/VulnerabilityRemediationTimeSnapshot";
 
 cli.parse(
   (targetPath, options) => {
@@ -609,6 +610,7 @@ function runBackend() {
           Vulnerability.ensureCollection(),
           VersionChangeEventVulnerabilityConnection.ensureCollection(),
           VulnerabilityAgeBucket.ensureCollection(),
+          VulnerabilityRemediationTimeSnapshot.ensureCollection(),
         ]);
       });
   }

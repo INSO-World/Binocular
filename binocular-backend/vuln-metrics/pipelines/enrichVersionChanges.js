@@ -5,45 +5,59 @@ import Vulnerability from './../../models/Vulnerability.js';
 import VersionChangeEventVulnerabilityConnection from './../../models/VersionChangeEventVulnerabilityConnection.js';
 import VersionChangeEvent from './../../models/VersionChangeEvent.js';
 import semver from 'semver';
+import debug from 'debug';
+
+const log = debug('vuln-metrics:enrich');
+const logStep = debug('vuln-metrics:enrich:step2');
 
 export async function enrichVersionChanges() {
-  console.log('--- Enrichment process started ---');
+  // Console: single start + end (keep clean)
+  console.log('[VULN][STEP2] Enrichment started');
 
-  // 1. Load all version change events
   const events = await VersionChangeEvent.findAll();
   if (!events.length) {
-    console.log('No version change events found.');
+    console.log('[VULN][STEP2] No version change events found');
     return;
   }
 
-  // 2. Extract unique libraries
   const libraries = [...new Set(events.map((e) => e.library).filter(Boolean))];
-  console.log(`Processing ${libraries.length} unique libraries across ${events.length} events...`);
+  console.log(`[VULN][STEP2][SUMMARY] events=${events.length} uniqueLibraries=${libraries.length}`);
 
-  // 3. Retrieve vulnerabilities
   let vulnerabilities = [];
   try {
     vulnerabilities = await retrieveVulnerabilityInfo(libraries);
-    console.log(`Retrieved vulnerabilities for ${vulnerabilities.length} libraries.`);
   } catch (error) {
-    console.error('Failed to retrieve vulnerabilities:', error.message);
+    console.error('[VULN][STEP2][ERROR] Failed to retrieve vulnerabilities:', error.message);
     return;
   }
 
   if (!vulnerabilities.length) {
-    console.log('No vulnerabilities found for provided libraries.');
+    console.log('[VULN][STEP2] No vulnerabilities found for provided libraries');
     return;
   }
 
-  // 4. Iterate per library and connect relevant vulnerabilities
-  for (const { library, vulnerabilities: vulns } of vulnerabilities) {
-    const relatedEvents = events.filter((e) => e.library === library);
-    if (!relatedEvents.length) continue;
+  // Debug only: a bit more detail
+  logStep(`Retrieved vulnerability sets for libraries=${vulnerabilities.length}`);
 
-    console.log(`Enriching ${library} (${vulns.length} vulnerabilities, ${relatedEvents.length} events)...`);
+  // Build library -> events index (avoid O(n*m) filter per library)
+  const eventsByLib = new Map();
+  for (const e of events) {
+    const lib = e?.library;
+    if (!lib) continue;
+    if (!eventsByLib.has(lib)) eventsByLib.set(lib, []);
+    eventsByLib.get(lib).push(e);
+  }
+
+  let connectionsEnsured = 0;
+
+  for (const { library, vulnerabilities: vulns } of vulnerabilities) {
+    const relatedEvents = eventsByLib.get(library) || [];
+    if (!relatedEvents.length || !Array.isArray(vulns) || !vulns.length) continue;
+
+    logStep(`Enrich lib=${library} vulns=${vulns.length} events=${relatedEvents.length}`);
 
     for (const v of vulns) {
-      if (!v.vulnId) continue;
+      if (!v?.vulnId) continue;
 
       const [storedVuln] = await Vulnerability.persist(v);
 
@@ -51,7 +65,6 @@ export async function enrichVersionChanges() {
         const wasVulnerable = isVersionAffected(e.oldVersion, v);
         const nowVulnerable = isVersionAffected(e.newVersion, v);
 
-        // Skip if both states are same (no transition)
         if (wasVulnerable === nowVulnerable) continue;
 
         const relation = nowVulnerable ? 'AFFECTS' : 'FIXES';
@@ -65,34 +78,32 @@ export async function enrichVersionChanges() {
           },
           { from: e, to: storedVuln },
         );
+
+        connectionsEnsured++;
       }
     }
   }
 
-  console.log('--- Enrichment completed ---');
+  console.log('[VULN][STEP2][SUMMARY] Enrichment completed');
+  log(`connectionsEnsured=${connectionsEnsured}`);
 }
 
 /**
  * Determine if a given version falls within the vulnerable versions of a vulnerability.
  */
 function isVersionAffected(version, vuln) {
-  if (!version || !vuln.affectedVersions) return false;
+  if (!version || !vuln?.affectedVersions) return false;
 
   try {
     const affected = Array.isArray(vuln.affectedVersions) ? vuln.affectedVersions.filter((v) => typeof v === 'string') : [];
-
     if (!affected.length) return false;
 
-    // Direct match first
     if (affected.includes(version)) return true;
 
-    // Handle semver ranges
     for (const range of affected) {
       if (typeof range === 'string' && /[<>]=?/.test(range)) {
         try {
-          if (semver.satisfies(version, range, { includePrerelease: true })) {
-            return true;
-          }
+          if (semver.satisfies(version, range, { includePrerelease: true })) return true;
         } catch {
           // ignore invalid semver range
         }
@@ -101,7 +112,8 @@ function isVersionAffected(version, vuln) {
 
     return false;
   } catch (err) {
-    console.warn(`Error comparing version ${version} to affected set for ${vuln.vulnId}: ${err.message}`);
+    // keep as debug to avoid console spam
+    logStep(`Error comparing version=${version} vuln=${vuln?.vulnId}: ${err?.message || String(err)}`);
     return false;
   }
 }
