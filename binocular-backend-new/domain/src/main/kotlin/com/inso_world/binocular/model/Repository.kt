@@ -63,7 +63,7 @@ data class Repository(
         @JvmStatic
         fun create(
             localPath: String,
-            project: Project? = null,
+            project: Project,
         ): Repository = Repository(localPath = localPath, project = project)
     }
 
