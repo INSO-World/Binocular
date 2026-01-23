@@ -6,6 +6,7 @@ import type { DatabaseSettingsDataPluginType } from '../../../../../types/settin
 import DataPluginStorage from '../../../../../utils/dataPluginStorage';
 import { loadState, setFileList } from '../../../../../redux/reducer/data/filesReducer';
 import type { AppDispatch } from '../../../../../redux';
+import { toString } from 'lodash';
 
 const opfsRoot = await navigator.storage.getDirectory();
 const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
@@ -117,9 +118,8 @@ export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDi
     if (files !== null) {
       files.text().then((list) => {
         const fileList = JSON.parse(list);
-        console.log(Object.keys(fileList.fileLists));
 
-        if (fileList && Object.keys(fileList.fileLists).length > 0) {
+        if (fileList && Object.keys(fileList.fileLists).includes(toString(dP.id))) {
           dispatch(loadState(JSON.parse(list)));
         } else refreshFileList(dP, dispatch);
       });
