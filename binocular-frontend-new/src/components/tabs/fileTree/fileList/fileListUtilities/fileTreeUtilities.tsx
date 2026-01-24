@@ -116,7 +116,7 @@ export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDi
   fileHandle.getFile().then((files) => {
     if (files !== null) {
       files.text().then((list) => {
-        const files = list ? JSON.parse(list) : undefined;        
+        const files = list ? JSON.parse(list) : undefined;
         if (files && Object.keys(files.fileLists).includes('' + dP.id)) {
           dispatch(loadState(JSON.parse(list)));
         } else refreshFileList(dP, dispatch);
