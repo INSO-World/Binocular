@@ -180,10 +180,10 @@ For more information check `binocular -h`
 ### New Frontend (:warning: Experimental)
 To try the experimental new frontend, install and run it with the following commands.
 ``` shell
-npm run install:frontend-new
+npm run install:frontend
 ```
 ``` shell
-npm run dev:frontend-new
+npm run dev:frontend
 ```
 This new frontend is a complete rework from the current implementation
 and is currently in its development and test phase.
