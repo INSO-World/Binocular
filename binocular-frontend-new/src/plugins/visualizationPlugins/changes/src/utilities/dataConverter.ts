@@ -28,11 +28,13 @@ export function convertToChartData(
   }
   //Sort commits after their commit time in case they arnt sorted
   const sortedCommits = _.clone(commits).sort((c1, c2) => new Date(c1.date).getTime() - new Date(c2.date).getTime());
-  const activeFiles = props.fileList ? props.fileList
-    .map((file) => {
-      if (file.checked) return file.element.path;
-    })
-    .filter((file) => file) : [];
+  const activeFiles = props.fileList
+    ? props.fileList
+        .map((file) => {
+          if (file.checked) return file.element.path;
+        })
+        .filter((file) => file)
+    : [];
 
   const firstTimestamp = sortedCommits[0].date;
   const lastTimestamp = sortedCommits[sortedCommits.length - 1].date;
