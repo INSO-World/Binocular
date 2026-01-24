@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "",
   "scripts": {
-    "postinstall": "npm run install:backend && npm run install:frontend-new",
+    "postinstall": "npm run install:backend && npm run install:frontend",
     "install:backend": "cd binocular-backend && npm install",
     "install:frontend": "cd binocular-frontend-new && npm install",
     "dev": "npm run dev:backend & npm run dev:frontend",
