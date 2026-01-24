@@ -36,7 +36,7 @@ function FileList(props: { orientation?: string; search: string }) {
   }, [currentDataPlugins]);
 
   globalStore.subscribe(() => {
-    if (filesDataPluginId) {
+    if (filesDataPluginId !== undefined) {
       if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
         if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === filesDataPluginId) {
           const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
@@ -80,11 +80,11 @@ function FileList(props: { orientation?: string; search: string }) {
             </button>
           </div>
         </div>
-        <div>{fileCounts[filesDataPluginId ? filesDataPluginId : -1]} Files indexed</div>
+        <div>{fileCounts[filesDataPluginId !== undefined ? filesDataPluginId : -1]} Files indexed</div>
         <div>
-          {fileTrees[filesDataPluginId ? filesDataPluginId : -1] ? (
+          {fileTrees[filesDataPluginId !== undefined ? filesDataPluginId : -1] ? (
             <FileListFolder
-              folder={filterFileTree(fileTrees[filesDataPluginId ? filesDataPluginId : -1], props.search)}
+              folder={filterFileTree(fileTrees[filesDataPluginId !== undefined ? filesDataPluginId : -1], props.search)}
               foldedOut={true}></FileListFolder>
           ) : (
             <span className="loading loading-spinner loading-xs text-accent"></span>

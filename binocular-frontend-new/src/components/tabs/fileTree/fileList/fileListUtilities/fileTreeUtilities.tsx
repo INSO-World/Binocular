@@ -119,7 +119,7 @@ export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDi
       files.text().then((list) => {
         const fileList = JSON.parse(list);
 
-        if (fileList && Object.keys(fileList.fileLists).includes(toString(dP.id))) {
+        if (fileList && Object.keys(fileList.fileLists).includes('' + dP.id)) {
           dispatch(loadState(JSON.parse(list)));
         } else refreshFileList(dP, dispatch);
       });
