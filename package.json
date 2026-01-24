@@ -11,7 +11,7 @@
     "dev:backend": "cd binocular-backend && npm run dev",
     "dev:frontend": "cd binocular-frontend-new && npm run dev",
     "dev:frontend-debug": "cd binocular-frontend && npm run dev:debug",
-    "check": "npm run check:backend && npm run check:frontend && npm run check:frontend-new",
+    "check": "npm run check:backend && npm run check:frontend",
     "check:backend": "cd binocular-backend && npm run check",
     "check:frontend": "cd binocular-frontend-new && npm run check",
     "fix": "npm run fix:backend && npm run fix:frontend",
