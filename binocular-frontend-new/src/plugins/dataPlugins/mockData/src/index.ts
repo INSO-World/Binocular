@@ -51,7 +51,9 @@ class MockData implements DataPlugin {
     this.accountsIssues = new AccountsIssues();
   }
 
-  public async init() {}
+  public async init() {
+    return undefined;
+  }
 
   public async clearRemains() {}
 }

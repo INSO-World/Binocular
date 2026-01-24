@@ -17,12 +17,12 @@ export default class Database {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public edgeStore: any;
 
-  async initDB(file: FileConfig, startTime?: number) {
-    if (!file.name) return;
+  async initDB(file: FileConfig, startTime?: number): Promise<MetadataType | undefined> {
+    if (!file.name) return undefined;
 
     const initialized = await this.createDB(file.name);
 
-    if (!initialized) return false;
+    if (!initialized) return undefined;
 
     if (file.file) {
       return this.importFromZip(file.file, startTime);
@@ -31,6 +31,8 @@ export default class Database {
     if (file.dbObjects) {
       return this.importFromObjects(file.dbObjects, startTime);
     }
+
+    return undefined;
   }
 
   async delete() {
@@ -84,13 +86,13 @@ export default class Database {
   }
 
   // both import functions are not running in parallel to avoid overloading pouchDB(testing necessary before changing to parallel)
-  async importFromZip(file: Blob, startTime?: number) {
+  async importFromZip(file: Blob, startTime?: number): Promise<MetadataType | undefined> {
     const zip = await new JSZip().loadAsync(file);
 
     // Read metadata first
     const metadataEntry = Object.values(zip.files).find((f) => !f.dir && f.name.includes('metadata'));
 
-    let metadata: MetadataType | null = null;
+    let metadata: MetadataType | undefined = undefined;
     if (metadataEntry) {
       const raw = await metadataEntry.async('string');
       metadata = JSON.parse(raw) as MetadataType;
@@ -122,7 +124,7 @@ export default class Database {
     return metadata;
   }
 
-  async importFromObjects(dbObjects: Record<string, JSONObject[]>, startTime?: number) {
+  async importFromObjects(dbObjects: Record<string, JSONObject[]>, startTime?: number): Promise<undefined> {
     const keys = Object.keys(dbObjects);
     let imported = 0;
 
@@ -138,7 +140,7 @@ export default class Database {
         const end = performance.now();
         console.log(`${imported}/${keys.length} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
 
-        if (imported >= keys.length) resolve(true);
+        if (imported >= keys.length) resolve(undefined);
       });
     });
   }
