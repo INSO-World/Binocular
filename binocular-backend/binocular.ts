@@ -93,9 +93,6 @@ cli.parse(
     ctx.setOptions(options);
     ctx.setTargetPath(targetPath);
     config.loadConfig(ctx);
-    if (options.frontend) {
-      runFrontend();
-    }
     if (options.backend) {
       runBackend();
     }
@@ -105,8 +102,6 @@ cli.parse(
       projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
       const indexerOptions = {
         backend: true,
-        frontend: false,
-        open: false,
         clean: true,
         vcs: true,
         its: true,
@@ -772,19 +767,6 @@ function runBackend() {
     if (!ctx.argv.server) {
       stop();
     }
-  });
-}
-
-function runFrontend() {
-  const fronted = spawn('npm run dev:frontend', [], { shell: true, cwd: __dirname + '/..' });
-  fronted.stdout.on('data', (data) => {
-    console.log(chalk.cyan(`${data}`));
-  });
-  fronted.stderr.on('data', (data) => {
-    console.error(chalk.blue(`${data}`));
-  });
-  fronted.on('close', (code) => {
-    console.log(chalk.blueBright(`frontend process exited with code ${code}`));
   });
 }
 
