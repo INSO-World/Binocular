@@ -44,6 +44,8 @@ function ProgressReporter(io: Server, categories: string[]) {
     log('Client connected');
     this.sockets.push(socket);
 
+    socket.emit('action', { type: 'PROGRESS', report: this.getProgressReport() });
+
     socket.on('disconnect', () => {
       log('Client disconnected');
       _.pull(this.sockets, socket);

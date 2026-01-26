@@ -76,7 +76,7 @@ Builds by the CI system.
 
 | attribute name | type                       | details                                                    |
 |----------------|----------------------------|------------------------------------------------------------|
-| `id`           | string                     | internal ArangoDB key                                      |
+| `id`           | number                     |                                                            |
 | `committedAt`  | string (timestamp)         |                                                            |
 | `createdAt`    | string (timestamp)         |                                                            |
 | `duration`     | number                     | duration in seconds                                        |

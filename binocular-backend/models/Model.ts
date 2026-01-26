@@ -118,7 +118,7 @@ export default class Model<DataType> {
     return this.save(entry);
   }
 
-  bulkCreate(datas: (DataType & { _id: string; _key: string })[]) {
+  bulkCreate(datas: (DataType & { _id: string | undefined; _key: string | undefined })[]) {
     this.log('bulkCreate %o items', datas.length);
     if (this.collection === undefined) {
       throw Error('Collection undefined!');
@@ -145,7 +145,7 @@ export default class Model<DataType> {
   }
 
   // wraps the data in an Entry object
-  parse(data: DataType & { _id: string; _key: string }): Entry<DataType> | null {
+  parse(data: (DataType & { _id: string | undefined; _key: string | undefined }) | null): Entry<DataType> | null {
     if (data === null) {
       return null;
     }

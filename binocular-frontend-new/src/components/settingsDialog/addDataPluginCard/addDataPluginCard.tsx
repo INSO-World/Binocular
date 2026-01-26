@@ -1,7 +1,8 @@
-import { addDataPlugin } from '../../../redux/settings/settingsReducer.ts';
-import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.ts';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { createRef, useState } from 'react';
-import { AppDispatch, useAppDispatch } from '../../../redux';
+import { type AppDispatch, useAppDispatch } from '../../../redux';
+import type { MetadataType } from '../../../types/data/MetadataType.ts';
 
 enum State {
   unconfigured,
@@ -14,16 +15,22 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
   const dispatch: AppDispatch = useAppDispatch();
 
   const apiKeyRef = createRef<HTMLInputElement>();
+
   const endpointRef = createRef<HTMLInputElement>();
+
   const fileRef = createRef<HTMLInputElement>();
   const fileNameRef = createRef<HTMLInputElement>();
 
+  const progressUpdateUseRef = createRef<HTMLInputElement>();
+  const progressUpdateEndpointRef = createRef<HTMLInputElement>();
+
   const [fileName, setFileName] = useState<string | undefined>(undefined);
+  const [metadata, setMetadata] = useState<MetadataType | undefined>(undefined);
 
   const [state, setState] = useState(State.unconfigured);
 
   return (
-    <div className={'card w-96 bg-base-100 shadow-xl mb-3 mr-3 border-2 border-base-300'} key={props.dataPlugin.name}>
+    <div className={'card w-96 bg-base-100 shadow-md mb-3 mr-3 border border-base-300 min-w-96'} key={props.dataPlugin.name}>
       <div className="card-body">
         <h2 className="card-title">
           {props.dataPlugin.name}
@@ -47,7 +54,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
         {props.dataPlugin.requirements.endpoint && (
           <label className="form-control w-full max-w-xs">
             <div className="label">
-              <span className="font-bold">Endpoint URL:</span>
+              <span className="font-bold">Endpoint URL (leave empty for default):</span>
             </div>
             <input type="text" placeholder="Endpoint URL" className="input input-bordered w-full max-w-xs" ref={endpointRef} />
           </label>
@@ -92,9 +99,15 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                       const file: File = fileInput.files[0];
                       setState(State.uploading);
                       props.dataPlugin
-                        .init(undefined, undefined, { name: fileNameInput.value.replace(' ', '_'), file: file })
-                        .then(() => {
+                        .init(
+                          undefined,
+                          undefined,
+                          { name: fileNameInput.value.replace(' ', '_'), file: file, dbObjects: undefined },
+                          undefined,
+                        )
+                        .then((meta) => {
                           setFileName(fileNameInput.value.replace(' ', '_'));
+                          setMetadata(meta);
                           setState(State.configured);
                         })
                         .catch(() => {
@@ -110,6 +123,29 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
               }}>
               Upload
             </button>
+          </>
+        )}
+        {props.dataPlugin.requirements.progressUpdate && (
+          <>
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="font-bold">Use Progress Update:</span>
+              </div>
+              <input type="checkbox" className="toggle" ref={progressUpdateUseRef} />
+            </label>
+            <label className="form-control w-full max-w-xs">
+              <div className="label">
+                <span className="font-bold">
+                  Progress Update Endpoint URL (only necessary if progress update is used, leave empty for default):
+                </span>
+              </div>
+              <input
+                type="text"
+                placeholder="Progress Update Endpoint URL"
+                className="input input-bordered w-full max-w-xs"
+                ref={progressUpdateEndpointRef}
+              />
+            </label>
           </>
         )}
         {props.dataPlugin.requirements.file && state === State.uploading && (
@@ -154,9 +190,18 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                     apiKey: apiKeyRef.current?.value,
                     endpoint: endpointRef.current?.value,
                     fileName: fileName,
+                    progressUpdate: progressUpdateUseRef.current
+                      ? {
+                          endpoint: progressUpdateEndpointRef.current?.value,
+                          useAutomaticUpdate: progressUpdateUseRef.current.checked,
+                        }
+                      : undefined,
                   },
+                  metadata: metadata,
                 }),
               );
+              setState(State.unconfigured);
+              setMetadata(undefined);
             }}>
             Add
           </button>

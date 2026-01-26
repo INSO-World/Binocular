@@ -1,17 +1,25 @@
 import tabStyles from './tab.module.scss';
-import { ReactElement } from 'react';
-import TabSection, { TabSectionProps } from '../tabSection/tabSection.tsx';
-function Tab(props: { children: ReactElement[] | ReactElement; displayName: string; alignment: string }) {
+import React, { type ReactElement } from 'react';
+import TabSection, { type TabSectionProps } from '../tabSection/tabSection.tsx';
+import { TabAlignment } from '../../../types/general/tabType.ts';
+import type { TabElementType } from '../tabController/tabController';
+
+export interface TabProps {
+  children: ReactElement[] | ReactElement;
+  displayName: string;
+  alignment: TabAlignment;
+}
+
+function Tab(props: TabProps) {
   if (Array.isArray(props.children)) {
     return (
       <div className={tabStyles.tab}>
         {props.children.map((child, i) => {
-          if (child.type === TabSection) {
-            return (
-              <TabSection key={props.displayName + 'Section' + i} alignment={props.alignment} name={(child.props as TabSectionProps).name}>
-                {(child.props as TabSectionProps).children}
-              </TabSection>
-            );
+          if ((child.type as TabElementType).name === TabSection.name) {
+            return React.cloneElement(child as ReactElement<TabSectionProps>, {
+              key: props.displayName + 'Section' + i,
+              alignment: props.alignment,
+            });
           }
           return child;
         })}
@@ -20,13 +28,11 @@ function Tab(props: { children: ReactElement[] | ReactElement; displayName: stri
   }
   return (
     <div className={tabStyles.tab}>
-      {props.children.type === TabSection ? (
-        <TabSection alignment={props.alignment} name={(props.children.props as TabSectionProps).name}>
-          {(props.children.props as TabSectionProps).children}
-        </TabSection>
-      ) : (
-        props.children
-      )}
+      {(props.children.type as TabElementType).name === TabSection.name
+        ? React.cloneElement(props.children as ReactElement<TabSectionProps>, {
+            alignment: props.alignment,
+          })
+        : props.children}
     </div>
   );
 }

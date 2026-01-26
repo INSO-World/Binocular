@@ -1,27 +1,40 @@
 import moment from 'moment/moment';
-import { AuthorType } from '../../../../../types/data/authorType.ts';
 import chroma from 'chroma-js';
-import { CommitChartData, Palette } from '../chart/chart.tsx';
-import { ParametersType } from '../../../../../types/parameters/parametersType.ts';
 import _ from 'lodash';
-import { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { AuthorType } from '../../../../../types/data/authorType.ts';
+import type { ChangesSettings } from '../settings/settings.tsx';
+import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
-export function convertCommitDataToChangesChartData(
+interface CommitChartData {
+  date: number;
+  [signature: string]: number;
+}
+
+interface Palette {
+  [signature: string]: { main: string; secondary: string };
+}
+
+export function convertToChartData(
   commits: DataPluginCommit[],
-  authors: AuthorType[],
-  splitAdditionsDeletions: boolean,
-  parameters: ParametersType,
+  props: VisualizationPluginProperties<ChangesSettings, DataPluginCommit>,
 ): {
-  commitChartData: CommitChartData[];
-  commitScale: number[];
-  commitPalette: Palette;
+  chartData: CommitChartData[];
+  scale: number[];
+  palette: Palette;
 } {
   if (!commits || commits.length === 0) {
-    return { commitChartData: [], commitPalette: {}, commitScale: [] };
+    return { chartData: [], palette: {}, scale: [] };
   }
-
   //Sort commits after their commit time in case they arnt sorted
   const sortedCommits = _.clone(commits).sort((c1, c2) => new Date(c1.date).getTime() - new Date(c2.date).getTime());
+  const activeFiles = props.fileList
+    ? props.fileList
+        .map((file) => {
+          if (file.checked) return file.element.path;
+        })
+        .filter((file) => file)
+    : [];
 
   const firstTimestamp = sortedCommits[0].date;
   const lastTimestamp = sortedCommits[sortedCommits.length - 1].date;
@@ -34,20 +47,20 @@ export function convertCommitDataToChangesChartData(
   if (sortedCommits.length > 0) {
     //---- STEP 1: AGGREGATE COMMITS GROUPED BY AUTHORS PER TIME INTERVAL ----
 
-    const granularity = getGranularity(parameters.parametersGeneral.granularity);
+    const granularity = getGranularity(props.parameters.parametersGeneral.granularity);
     const curr = moment(firstTimestamp)
       .startOf(granularity.unit as moment.unitOfTime.StartOf)
-      .subtract(1, <moment.unitOfTime.DurationConstructor>parameters.parametersGeneral.granularity);
+      .subtract(1, <moment.unitOfTime.DurationConstructor>props.parameters.parametersGeneral.granularity);
     const end = moment(lastTimestamp)
       .endOf(granularity.unit as moment.unitOfTime.StartOf)
-      .add(1, <moment.unitOfTime.DurationConstructor>parameters.parametersGeneral.granularity);
-    const next = moment(curr).add(1, <moment.unitOfTime.DurationConstructor>parameters.parametersGeneral.granularity);
+      .add(1, <moment.unitOfTime.DurationConstructor>props.parameters.parametersGeneral.granularity);
+    const next = moment(curr).add(1, <moment.unitOfTime.DurationConstructor>props.parameters.parametersGeneral.granularity);
     const totalChangesPerAuthor: { [signature: string]: number } = {};
     for (
       let i = 0;
       curr.isSameOrBefore(end);
-      curr.add(1, <moment.unitOfTime.DurationConstructor>parameters.parametersGeneral.granularity),
-        next.add(1, <moment.unitOfTime.DurationConstructor>parameters.parametersGeneral.granularity)
+      curr.add(1, <moment.unitOfTime.DurationConstructor>props.parameters.parametersGeneral.granularity),
+        next.add(1, <moment.unitOfTime.DurationConstructor>props.parameters.parametersGeneral.granularity)
     ) {
       //Iterate through time buckets
       const currTimestamp = curr.toDate().getTime();
@@ -57,33 +70,59 @@ export function convertCommitDataToChangesChartData(
         statsByAuthor: {},
       }; //Save date of time bucket, create object
       for (; i < sortedCommits.length && Date.parse(sortedCommits[i].date) < nextTimestamp; i++) {
-        //Iterate through commits that fall into this time bucket
-        const additions = sortedCommits[i].stats.additions;
-        const deletions = sortedCommits[i].stats.deletions;
-        const changes = additions + deletions;
         const commitAuthor = sortedCommits[i].user.id;
-        if (totalChangesPerAuthor[commitAuthor] === null) {
-          totalChangesPerAuthor[commitAuthor] = 0;
-        }
-        totalChangesPerAuthor[commitAuthor] += changes;
-        if (
-          commitAuthor in obj.statsByAuthor //If author is already in statsByAuthor, add to previous values
-        ) {
-          obj.statsByAuthor[commitAuthor] = {
-            count: obj.statsByAuthor[commitAuthor].count + 1,
-            additions: obj.statsByAuthor[commitAuthor].additions + additions,
-            deletions: obj.statsByAuthor[commitAuthor].deletions + deletions,
-          };
-        } else {
-          //Else create new values
-          obj.statsByAuthor[commitAuthor] = { count: 1, additions: additions, deletions: deletions };
+        if (sortedCommits[i].files != undefined)
+          for (const file of sortedCommits[i].files!.data) {
+            if (file.stats == undefined || !activeFiles.includes(file.file.path)) continue;
+            //Iterate through commits that fall into this time bucket
+            const additions = file.stats.additions;
+            const deletions = file.stats.deletions;
+            const changes = additions + deletions;
+            if (totalChangesPerAuthor[commitAuthor] === undefined) {
+              totalChangesPerAuthor[commitAuthor] = 0;
+            }
+            totalChangesPerAuthor[commitAuthor] += changes;
+            if (
+              commitAuthor in obj.statsByAuthor //If author is already in statsByAuthor, add to previous values
+            ) {
+              obj.statsByAuthor[commitAuthor] = {
+                count: obj.statsByAuthor[commitAuthor].count + 1,
+                additions: obj.statsByAuthor[commitAuthor].additions + additions,
+                deletions: obj.statsByAuthor[commitAuthor].deletions + deletions,
+              };
+            } else {
+              //Else create new values
+              obj.statsByAuthor[commitAuthor] = { count: 1, additions: additions, deletions: deletions };
+            }
+          }
+        else {
+          // if we do not have the relevant data per file, we just sum up additions and deletions per commit
+          const additions = sortedCommits[i].stats.additions;
+          const deletions = sortedCommits[i].stats.deletions;
+          const changes = additions + deletions;
+          if (totalChangesPerAuthor[commitAuthor] === undefined) {
+            totalChangesPerAuthor[commitAuthor] = 0;
+          }
+          totalChangesPerAuthor[commitAuthor] += changes;
+          if (
+            commitAuthor in obj.statsByAuthor //If author is already in statsByAuthor, add to previous values
+          ) {
+            obj.statsByAuthor[commitAuthor] = {
+              count: obj.statsByAuthor[commitAuthor].count + 1,
+              additions: obj.statsByAuthor[commitAuthor].additions + additions,
+              deletions: obj.statsByAuthor[commitAuthor].deletions + deletions,
+            };
+          } else {
+            //Else create new values
+            obj.statsByAuthor[commitAuthor] = { count: 1, additions: additions, deletions: deletions };
+          }
         }
       }
       data.push(obj);
     }
 
     //---- STEP 2: CONSTRUCT CHART DATA FROM AGGREGATED COMMITS ----
-    if (splitAdditionsDeletions) {
+    if (props.settings.splitAdditionsDeletions) {
       commitPalette['(Additions) others'] = { main: '#555555', secondary: '#777777' };
       commitPalette['(Deletions) others'] = { main: '#AAAAAA', secondary: '#CCCCCC' };
     } else {
@@ -93,8 +132,8 @@ export function convertCommitDataToChangesChartData(
       //commit has structure {date, statsByAuthor: {}} (see next line)}
       const obj: CommitChartData = { date: commit.date };
 
-      if (splitAdditionsDeletions) {
-        for (const author of authors) {
+      if (props.settings.splitAdditionsDeletions) {
+        for (const author of props.authorList) {
           commitPalette['(Additions) ' + (author.displayName || author.user.gitSignature)] = {
             main: chroma(author.color.main).hex(),
             secondary: chroma(author.color.secondary).hex(),
@@ -109,7 +148,7 @@ export function convertCommitDataToChangesChartData(
         obj['(Additions) others'] = 0;
         obj['(Deletions) others'] = -0.001;
       } else {
-        for (const author of authors) {
+        for (const author of props.authorList) {
           commitPalette[author.displayName || author.user.gitSignature] = {
             main: chroma(author.color.main).hex(),
             secondary: chroma(author.color.secondary).hex(),
@@ -118,15 +157,15 @@ export function convertCommitDataToChangesChartData(
         }
         obj['others'] = 0;
       }
-      authors.forEach((author) => {
+      props.authorList.forEach((author: AuthorType) => {
         if (!author.selected) return;
         const name =
           author.parent === -1
             ? author.displayName || author.user.gitSignature
             : author.parent === 0
               ? 'others'
-              : authors.filter((a) => a.id === author.parent)[0].user.gitSignature;
-        if (splitAdditionsDeletions) {
+              : props.authorList.filter((a: AuthorType) => a.id === author.parent)[0].user.gitSignature;
+        if (props.settings.splitAdditionsDeletions) {
           if (author.user.id in commit.statsByAuthor) {
             //Insert number of changes with the author name as key,
             //statsByAuthor has structure {{authorName: {count, additions, deletions, changes}}, ...}
@@ -179,7 +218,7 @@ export function convertCommitDataToChangesChartData(
       }
     });
   }
-  return { commitChartData, commitScale, commitPalette };
+  return { chartData: commitChartData, scale: commitScale, palette: commitPalette };
 }
 
 function getGranularity(resolution: string): { unit: string; interval: moment.Duration } {
@@ -194,26 +233,4 @@ function getGranularity(resolution: string): { unit: string; interval: moment.Du
     default:
       return { interval: moment.duration(1, 'day'), unit: 'day' };
   }
-}
-
-export enum PositiveNegativeSide {
-  POSITIVE,
-  NEGATIVE,
-}
-export function splitPositiveNegativeData(data: CommitChartData[], side: PositiveNegativeSide) {
-  return data.map((d) => {
-    const newD: CommitChartData = { date: d.date };
-    Object.keys(d).forEach((k) => {
-      if (k !== 'date') {
-        if (d[k] >= 0 && side === PositiveNegativeSide.POSITIVE) {
-          newD[k] = d[k];
-        } else if (d[k] < 0 && side === PositiveNegativeSide.NEGATIVE) {
-          newD[k] = d[k];
-        } else {
-          newD[k] = 0;
-        }
-      }
-    });
-    return newD;
-  });
 }

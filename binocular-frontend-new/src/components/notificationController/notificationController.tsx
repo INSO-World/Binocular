@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, useAppDispatch } from '../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../redux';
 import notificationControllerStyles from './notificationController.module.scss';
 import { AlertType } from '../../types/general/alertType.ts';
-import { removeNotification } from '../../redux/general/notificationsReducer.ts';
+import { removeNotification } from '../../redux/reducer/general/notificationsReducer.ts';
 
 function NotificationController() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -28,7 +28,7 @@ function NotificationController() {
                 key={`notification${notification.id}`}
                 id={`notification${notification.id}`}
                 role={'alert'}
-                className={`alert w-3/5 m-1 transition-all ease-in-out duration-500 ${
+                className={`${notificationControllerStyles.notification} ${
                   notification.type === AlertType.error
                     ? 'alert-error'
                     : notification.type === AlertType.warning

@@ -47,7 +47,7 @@ export function setupConfig() {
           '[only necessary for GitLab Repositories]:',
       },
       {
-        type: 'input',
+        type: 'password',
         name: 'gitlabToken',
         message: 'Enter GitLab API Token [only necessary for GitLab Repositories]:',
       },
@@ -62,7 +62,7 @@ export function setupConfig() {
         message: 'Enter GitHub Password [only necessary for GitHub Repositories]:',
       },
       {
-        type: 'input',
+        type: 'password',
         name: 'githubToken',
         message: 'Enter GitHub API Token [only necessary for GitHub Repositories]:',
       },

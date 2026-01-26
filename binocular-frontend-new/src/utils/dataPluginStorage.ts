@@ -1,5 +1,5 @@
-import { DataPlugin } from '../plugins/interfaces/dataPlugin.ts';
-import { DatabaseSettingsDataPluginType } from '../types/settings/databaseSettingsType.ts';
+import type { DataPlugin } from '../plugins/interfaces/dataPlugin.ts';
+import type { DatabaseSettingsDataPluginType } from '../types/settings/databaseSettingsType.ts';
 import { dataPlugins } from '../plugins/pluginRegistry.ts';
 
 export default abstract class DataPluginStorage {
@@ -33,7 +33,12 @@ export default abstract class DataPluginStorage {
   private static async createDataPluginObject(dP: DatabaseSettingsDataPluginType) {
     const dataPlugin = dataPlugins.map((pluginClass) => new pluginClass()).filter((dataPlugin) => dataPlugin.name === dP.name)[0];
     if (dataPlugin && dP.id !== undefined) {
-      await dataPlugin.init(dP.parameters.apiKey, dP.parameters.endpoint, { name: dP.parameters.fileName, file: undefined });
+      await dataPlugin.init(
+        dP.parameters.apiKey,
+        dP.parameters.endpoint,
+        { name: dP.parameters.fileName, file: undefined, dbObjects: undefined },
+        dP.parameters.progressUpdate,
+      );
     }
     return dataPlugin;
   }

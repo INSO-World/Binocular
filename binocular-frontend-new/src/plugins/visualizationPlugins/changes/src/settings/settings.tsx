@@ -1,14 +1,14 @@
-export interface SettingsType {
+import type { DefaultSettings } from '../../../simpleVisualizationPlugin/src/settings/settings';
+
+export interface ChangesSettings extends DefaultSettings {
   splitAdditionsDeletions: boolean;
-  visualizationStyle: string;
-  showSprints: boolean;
 }
 
-function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) {
+function Settings(props: { settings: ChangesSettings; setSettings: (newSettings: ChangesSettings) => void }) {
   return (
     <>
       <div>
-        <label className="label cursor-pointer">
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
           <span className="label-text">Split Additions and Deletions:</span>
           <input
             type="checkbox"
@@ -23,12 +23,10 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
             }
           />
         </label>
-        <label className="form-control w-full max-w-xs">
-          <div className="label">
-            <span className="label-text">Visualization Style:</span>
-          </div>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Visualization Style:</span>
           <select
-            className="select select-bordered select-sm"
+            className={'select select-bordered select-xs w-24'}
             defaultValue={props.settings.visualizationStyle}
             onChange={(e) =>
               props.setSettings({
@@ -42,7 +40,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
             <option value={'linear'}>linear</option>
           </select>
         </label>
-        <label className="label cursor-pointer">
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"

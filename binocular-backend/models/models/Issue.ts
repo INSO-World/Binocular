@@ -7,10 +7,10 @@ import User from './User';
 import IssueUserConnection from '../connections/IssueUserConnection';
 
 import debug from 'debug';
-import AccountUser from '../../types/supportingTypes/AccountUser';
 import Mention from '../../types/supportingTypes/Mention';
 import IssueDto from '../../types/dtos/IssueDto';
 import IssueAccountConnection from '../connections/IssueAccountConnection.ts';
+import { findBestUserMatch } from '../utils.ts';
 const log = debug('db:Issue');
 
 export interface IssueDataType {
@@ -77,7 +77,7 @@ class Issue extends Model<IssueDataType> {
       .then((cursor) => cursor.all())
       .then((authors) => {
         return authors.map((issuesPerAuthor) =>
-          User.findOneBy('gitlabID', issuesPerAuthor.author.id)
+          User.findOneBy('gitlabID', issuesPerAuthor.author?.id) // TODO create an new class of unassigned issues
             .then(function (user) {
               if (!user) {
                 log('No existing user found for gitlabId %o', issuesPerAuthor.author.id);
@@ -131,37 +131,3 @@ class Issue extends Model<IssueDataType> {
 }
 
 export default new Issue();
-
-async function findBestUserMatch(author: AccountUser) {
-  const user = await User.findAll();
-  const bestMatch = user.reduce((best: any, userEntry) => {
-    if (userEntry === null) {
-      return;
-    }
-    const userName = normalizeName(userEntry.data.gitSignature);
-    const authorName = normalizeName(author.name);
-    let score = 0;
-
-    if (userName.plain === authorName.plain) {
-      score++;
-    }
-
-    if (userName.sorted === authorName.sorted) {
-      score++;
-    }
-
-    if (!best || score > best.score) {
-      return { score, user };
-    } else if (score > 0) {
-      return best;
-    }
-  }, null);
-  return bestMatch ? bestMatch.data.user : null;
-}
-
-function normalizeName(name: string) {
-  const plain = _.chain(name).deburr().lowerCase().trim().value();
-  const sorted = _.chain(plain).split(/\s+/).sort().join(' ').value();
-
-  return { plain, sorted };
-}

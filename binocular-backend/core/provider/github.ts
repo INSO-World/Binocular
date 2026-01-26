@@ -37,6 +37,7 @@ class GitHub {
           name,
           assignableUsers(first: 100, after:$cursor) {
             nodes {
+              id
               login
               email
               name
@@ -73,7 +74,7 @@ class GitHub {
     });
   }
 
-  getPipelineJobs(projectId: string, pipelineId: string) {
+  async getPipelineJobs(projectId: string, pipelineId: number) {
     log('getPipelineJobs(%o,%o)', projectId, pipelineId);
     return this.github.rest.actions
       .listJobsForWorkflowRun({
