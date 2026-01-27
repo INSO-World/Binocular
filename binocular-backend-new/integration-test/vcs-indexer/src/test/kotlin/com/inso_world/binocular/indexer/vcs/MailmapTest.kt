@@ -19,15 +19,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.io.path.Path
 
 /**
- * Integration tests for mailmap support in gix GitIndexer.
+ * Integration tests for mailmap support in GitIndexer.
  *
- * These tests verify that the `binocular.gix.use-mailmap` configuration option
+ * These tests verify that the `binocular.*.use-mailmap` configuration option
  * correctly applies .mailmap transformations to author and committer identities.
  *
  * The mailmap fixture contains commits from developers with multiple email addresses
  * that should be normalized to canonical addresses via the .mailmap file.
  *
- * These tests only run with the gix profile as JGit does not currently support mailmap.
+ * These tests work with both gix and jgit profiles.
  */
 @SpringBootTest(
     classes = [VcsIndexerTestApplication::class],
@@ -35,7 +35,7 @@ import kotlin.io.path.Path
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestPropertySource(properties = ["binocular.gix.use-mailmap=true"])
+@TestPropertySource(properties = ["binocular.gix.use-mailmap=true", "binocular.jgit.use-mailmap=true"])
 internal class MailmapTest : BaseFixturesIntegrationTest() {
 
     @Autowired
