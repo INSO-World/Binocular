@@ -36,7 +36,7 @@ public class GitDepsTreeOnCurrentRepoIT {
                 .toAbsolutePath()
                 .normalize();
 
-        JGitGitIndexer indexer = new JGitGitIndexer();
+        JGitGitIndexer indexer = new JGitGitIndexer(new JGitConfig());
         Project project = new Project("test-project");
 
         Repository repo;

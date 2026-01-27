@@ -2,6 +2,9 @@ binocular:
   gix:
     skip-merges: false
     use-mailmap: true
+  jgit:
+    skip-merges: false
+    use-mailmap: false
 
 spring:
   profiles:

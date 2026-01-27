@@ -21,6 +21,9 @@ import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -33,11 +36,30 @@ import java.util.*;
 /**
  * JGit based implementation of {@link GitIndexer}.
  *
+ * <h2>Semantics</h2>
  * The Kotlin domain model stays in the domain module.
  * This class maps JGit commits and branches to those Kotlin models.
+ *
+ * <h2>Configuration</h2>
+ * Supports the following configuration options via {@link JGitConfig}:
+ * <ul>
+ *   <li>{@code binocular.jgit.skip-merges}: When true, filters out merge commits during traversal</li>
+ *   <li>{@code binocular.jgit.use-mailmap}: When true, applies .mailmap transformations to identities</li>
+ * </ul>
+ *
+ * @see JGitConfig
  */
 @Service
+@Profile("jgit")
 public class JGitGitIndexer implements GitIndexer {
+
+    private static final Logger logger = LoggerFactory.getLogger(JGitGitIndexer.class);
+
+    private final JGitConfig config;
+
+    public JGitGitIndexer(JGitConfig config) {
+        this.config = config;
+    }
 
     @NotNull
     @Override
@@ -56,14 +78,20 @@ public class JGitGitIndexer implements GitIndexer {
         Objects.requireNonNull(repo, "repo");
         Objects.requireNonNull(branchName, "branchName");
 
+        boolean skipMerges = config.getJgit().isSkipMerges();
+        boolean useMailmap = config.getJgit().isUseMailmap();
+        logger.trace("Traversing {} with skipMerges={}, useMailmap={}", branchName, skipMerges, useMailmap);
+
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
+            Mailmap mailmap = useMailmap ? Mailmap.read(jgitRepo) : null;
+
             ObjectId head = resolveBranchHead(jgitRepo, branchName);
             if (head == null) {
                 throw new JGitException.ReferenceException("Cannot resolve branch head for branch: " + branchName);
             }
 
-            List<RevCommit> revCommits = walkFrom(jgitRepo, head, null);
-            List<Commit> domainCommits = mapCommits(repo, jgitRepo, revCommits);
+            List<RevCommit> revCommits = walkFrom(jgitRepo, head, null, skipMerges);
+            List<Commit> domainCommits = mapCommits(repo, jgitRepo, revCommits, skipMerges, mailmap);
 
             // Find the head commit from the mapped commits
             Commit headCommit = domainCommits.stream()
@@ -76,8 +104,24 @@ public class JGitGitIndexer implements GitIndexer {
             String fullName = normalizeFullName(jgitRepo, branchName);
             ReferenceCategory category = determineBranchCategory(branchName);
 
-            // Create branch - this registers with repository
-            Branch branch = new Branch(normalizedName, fullName, category, repo, headCommit);
+            // Check if branch already exists in repository and update its head
+            Branch existingBranch = null;
+            for (Branch b : repo.getBranches()) {
+                if (b.getName().equals(normalizedName)) {
+                    existingBranch = b;
+                    break;
+                }
+            }
+
+            Branch branch;
+            if (existingBranch != null) {
+                // Update existing branch's head
+                existingBranch.setHead(headCommit);
+                branch = existingBranch;
+            } else {
+                // Create new branch - this registers with repository
+                branch = new Branch(normalizedName, fullName, category, repo, headCommit);
+            }
 
             return new Pair<>(branch, domainCommits);
         } catch (IOException e) {
@@ -90,7 +134,11 @@ public class JGitGitIndexer implements GitIndexer {
     public List<Branch> findAllBranches(@NotNull Repository repo) {
         Objects.requireNonNull(repo, "repo");
 
+        boolean useMailmap = config.getJgit().isUseMailmap();
+
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
+            Mailmap mailmap = useMailmap ? Mailmap.read(jgitRepo) : null;
+
             try (Git git = new Git(jgitRepo)) {
                 List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
 
@@ -107,7 +155,7 @@ public class JGitGitIndexer implements GitIndexer {
                     }
 
                     // Find commit - need to get full commit info
-                    Commit headCommit = findCommit(repo, headId.getName());
+                    Commit headCommit = findCommitInternal(repo, jgitRepo, headId.getName(), mailmap);
 
                     Branch branch = new Branch(shortName, refName, category, repo, headCommit);
                     result.add(branch);
@@ -126,7 +174,27 @@ public class JGitGitIndexer implements GitIndexer {
         Objects.requireNonNull(repo, "repo");
         Objects.requireNonNull(hash, "hash");
 
+        boolean useMailmap = config.getJgit().isUseMailmap();
+
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
+            Mailmap mailmap = useMailmap ? Mailmap.read(jgitRepo) : null;
+            return findCommitInternal(repo, jgitRepo, hash, mailmap);
+        } catch (IOException e) {
+            throw new JGitException.TraversalException("Cannot resolve commit " + hash, e);
+        }
+    }
+
+    /**
+     * Internal method to find a commit with optional mailmap support.
+     *
+     * @param repo      the domain repository
+     * @param jgitRepo  the JGit repository
+     * @param hash      the commit hash
+     * @param mailmap   optional mailmap for identity transformation
+     * @return the domain commit
+     */
+    private Commit findCommitInternal(Repository repo, org.eclipse.jgit.lib.Repository jgitRepo, String hash, Mailmap mailmap) {
+        try {
             ObjectId id = resolveObject(jgitRepo, hash);
             if (id == null) {
                 throw new JGitException.ReferenceException("Cannot resolve commit: " + hash);
@@ -142,8 +210,8 @@ public class JGitGitIndexer implements GitIndexer {
                     }
                 }
 
-                // Create the commit
-                return createCommit(repo, revCommit);
+                // Create the commit with mailmap
+                return createCommit(repo, revCommit, mailmap);
             }
         } catch (IOException e) {
             throw new JGitException.TraversalException("Cannot resolve commit " + hash, e);
@@ -156,7 +224,11 @@ public class JGitGitIndexer implements GitIndexer {
         Objects.requireNonNull(repo, "repo");
         Objects.requireNonNull(source, "source");
 
+        boolean useMailmap = config.getJgit().isUseMailmap();
+
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
+            Mailmap mailmap = useMailmap ? Mailmap.read(jgitRepo) : null;
+
             ObjectId sourceId = resolveObject(jgitRepo, source.getSha());
             if (sourceId == null) {
                 throw new JGitException.ReferenceException("Cannot resolve source commit: " + source.getSha());
@@ -170,8 +242,9 @@ public class JGitGitIndexer implements GitIndexer {
                 }
             }
 
-            List<RevCommit> revCommits = walkFrom(jgitRepo, sourceId, targetId);
-            return mapCommits(repo, jgitRepo, revCommits);
+            // Note: traverse does not use skip-merges to maintain consistency with FFI implementation
+            List<RevCommit> revCommits = walkFrom(jgitRepo, sourceId, targetId, false);
+            return mapCommits(repo, jgitRepo, revCommits, false, mailmap);
         } catch (IOException e) {
             throw new JGitException.TraversalException("Cannot traverse commits", e);
         }
@@ -180,14 +253,49 @@ public class JGitGitIndexer implements GitIndexer {
     // ======================== Helper methods ========================
 
     private static org.eclipse.jgit.lib.Repository openRepository(Path path) throws IOException {
+        // Normalize and resolve to absolute path for consistent git discovery
+        File startDir = path.toAbsolutePath().normalize().toFile();
+
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        builder.findGitDir(path.toFile());
-        if (builder.getGitDir() == null) {
-            File gitDirCandidate = path.toFile();
-            if (gitDirCandidate.isDirectory() && new File(gitDirCandidate, "objects").exists()) {
-                builder.setGitDir(gitDirCandidate);
+
+        // Check if startDir itself is a .git directory
+        if (startDir.getName().equals(".git") && startDir.isDirectory()) {
+            builder.setGitDir(startDir);
+            if (startDir.getParentFile() != null) {
+                builder.setWorkTree(startDir.getParentFile());
+            }
+        } else {
+            builder.findGitDir(startDir);
+
+            // If not found directly, try to find .git in parent directories (like gix does)
+            if (builder.getGitDir() == null) {
+                File current = startDir;
+                while (current != null && builder.getGitDir() == null) {
+                    File gitDir = new File(current, ".git");
+                    if (gitDir.isDirectory()) {
+                        builder.setGitDir(gitDir);
+                        builder.setWorkTree(current);
+                    } else if (gitDir.isFile()) {
+                        // Handle git worktrees (gitdir: pointer)
+                        builder.setGitDir(gitDir);
+                        builder.setWorkTree(current);
+                    } else if (current.isDirectory() && new File(current, "objects").exists()) {
+                        // Bare repository
+                        builder.setGitDir(current);
+                    }
+                    current = current.getParentFile();
+                }
+            }
+
+            // If gitDir is set but workTree isn't, and gitDir ends with .git, set workTree to parent
+            if (builder.getGitDir() != null && builder.getWorkTree() == null) {
+                File gitDir = builder.getGitDir();
+                if (gitDir.getName().equals(".git") && gitDir.getParentFile() != null) {
+                    builder.setWorkTree(gitDir.getParentFile());
+                }
             }
         }
+
         if (builder.getGitDir() == null) {
             throw new IllegalArgumentException("No .git directory found starting from: " + path);
         }
@@ -222,7 +330,16 @@ public class JGitGitIndexer implements GitIndexer {
         }
     }
 
-    private static List<RevCommit> walkFrom(org.eclipse.jgit.lib.Repository repo, ObjectId start, ObjectId uninteresting) throws IOException {
+    /**
+     * Walks the commit history from a starting point.
+     *
+     * @param repo          the JGit repository
+     * @param start         the starting commit
+     * @param uninteresting optional commit to mark as uninteresting (stop point)
+     * @param skipMerges    when true, merge commits (commits with multiple parents) are filtered out
+     * @return list of commits in topological order
+     */
+    private static List<RevCommit> walkFrom(org.eclipse.jgit.lib.Repository repo, ObjectId start, ObjectId uninteresting, boolean skipMerges) throws IOException {
         try (RevWalk walk = new RevWalk(repo)) {
             RevCommit startCommit = walk.parseCommit(start);
             walk.markStart(startCommit);
@@ -235,6 +352,10 @@ public class JGitGitIndexer implements GitIndexer {
 
             List<RevCommit> commits = new ArrayList<>();
             for (RevCommit rc : walk) {
+                // Skip merge commits if configured
+                if (skipMerges && rc.getParentCount() > 1) {
+                    continue;
+                }
                 commits.add(rc);
             }
             return commits;
@@ -296,11 +417,21 @@ public class JGitGitIndexer implements GitIndexer {
 
     /**
      * Maps JGit commits to domain commits with full relationship wiring.
+     *
+     * @param repo        the domain repository
+     * @param jgitRepo    the JGit repository for resolving missing parents
+     * @param revCommits  the commits to map
+     * @param skipMerges  when true, skips wiring parents that are merge commits
+     * @param mailmap     optional mailmap for identity transformation, can be null
+     * @return mapped domain commits in traversal order
      */
-    private List<Commit> mapCommits(Repository repo, org.eclipse.jgit.lib.Repository jgitRepo, List<RevCommit> revCommits) throws IOException {
+    private List<Commit> mapCommits(Repository repo, org.eclipse.jgit.lib.Repository jgitRepo, List<RevCommit> revCommits, boolean skipMerges, Mailmap mailmap) throws IOException {
         Map<String, Commit> commitsBySha = new LinkedHashMap<>();
         Map<String, List<String>> parentShasByCommit = new HashMap<>();
         Map<String, Developer> developersByKey = new HashMap<>();
+
+        // Track which commits are merge commits for parent filtering
+        Set<String> mergeCommitShas = new HashSet<>();
 
         // Seed from existing repository state
         for (Commit c : repo.getCommits()) {
@@ -313,13 +444,16 @@ public class JGitGitIndexer implements GitIndexer {
         // Pass 1: Create commits
         for (RevCommit rc : revCommits) {
             String sha = rc.getId().getName();
+            if (rc.getParentCount() > 1) {
+                mergeCommitShas.add(sha);
+            }
             if (commitsBySha.containsKey(sha)) {
                 // Collect parent info even for existing
                 parentShasByCommit.put(sha, getParentShas(rc));
                 continue;
             }
 
-            Commit commit = createCommit(repo, rc, developersByKey);
+            Commit commit = createCommit(repo, rc, developersByKey, mailmap);
             commitsBySha.put(sha, commit);
             parentShasByCommit.put(sha, getParentShas(rc));
         }
@@ -339,7 +473,11 @@ public class JGitGitIndexer implements GitIndexer {
                         ObjectId parentId = jgitRepo.resolve(pSha);
                         if (parentId != null) {
                             RevCommit parentRc = tempWalk.parseCommit(parentId);
-                            parent = createCommit(repo, parentRc, developersByKey);
+                            // Skip creating parent if it's a merge commit and skipMerges is enabled
+                            if (skipMerges && parentRc.getParentCount() > 1) {
+                                continue;
+                            }
+                            parent = createCommit(repo, parentRc, developersByKey, mailmap);
                             commitsBySha.put(pSha, parent);
                         }
                     } catch (Exception e) {
@@ -370,27 +508,50 @@ public class JGitGitIndexer implements GitIndexer {
         return parentShas;
     }
 
-    private Commit createCommit(Repository repo, RevCommit rc) {
+    /**
+     * Creates a domain commit from a JGit RevCommit.
+     *
+     * @param repo      the domain repository
+     * @param rc        the JGit RevCommit
+     * @param mailmap   optional mailmap for identity transformation
+     * @return the domain commit
+     */
+    private Commit createCommit(Repository repo, RevCommit rc, Mailmap mailmap) {
         Map<String, Developer> developersByKey = new HashMap<>();
         for (Developer d : repo.getDevelopers()) {
             developersByKey.put(d.getGitSignature(), d);
         }
-        return createCommit(repo, rc, developersByKey);
+        return createCommit(repo, rc, developersByKey, mailmap);
     }
 
-    private Commit createCommit(Repository repo, RevCommit rc, Map<String, Developer> developersByKey) {
+    /**
+     * Creates a domain commit from a JGit RevCommit with developer caching.
+     *
+     * @param repo            the domain repository
+     * @param rc              the JGit RevCommit
+     * @param developersByKey cache of developers by git signature
+     * @param mailmap         optional mailmap for identity transformation
+     * @return the domain commit
+     */
+    private Commit createCommit(Repository repo, RevCommit rc, Map<String, Developer> developersByKey, Mailmap mailmap) {
         String sha = rc.getId().getName();
 
         PersonIdent authorIdent = rc.getAuthorIdent();
         PersonIdent committerIdent = rc.getCommitterIdent();
 
+        // Apply mailmap transformation if available
+        if (mailmap != null) {
+            authorIdent = mailmap.map(authorIdent);
+            committerIdent = mailmap.map(committerIdent);
+        }
+
         // Get or create author developer
         Developer author = getOrCreateDeveloper(repo, authorIdent, developersByKey);
-        LocalDateTime authorTime = toLocalDateTime(authorIdent);
+        LocalDateTime authorTime = toLocalDateTime(rc.getAuthorIdent()); // Use original ident for time
 
         // Get or create committer developer
         Developer committer = getOrCreateDeveloper(repo, committerIdent, developersByKey);
-        LocalDateTime commitTime = toLocalDateTime(committerIdent);
+        LocalDateTime commitTime = toLocalDateTime(rc.getCommitterIdent()); // Use original ident for time
 
         // Create signatures
         Signature authorSignature = new Signature(author, authorTime);
