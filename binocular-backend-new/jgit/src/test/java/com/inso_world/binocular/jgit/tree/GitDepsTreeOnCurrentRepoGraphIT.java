@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit.tree;
 
+import com.inso_world.binocular.jgit.JGitConfig;
 import com.inso_world.binocular.jgit.JGitGitIndexer;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
@@ -36,7 +37,7 @@ public class GitDepsTreeOnCurrentRepoGraphIT {
                 .toAbsolutePath()
                 .normalize();
 
-        JGitGitIndexer indexer = new JGitGitIndexer();
+        JGitGitIndexer indexer = new JGitGitIndexer(new JGitConfig());
         Project project = new Project("test-project");
 
         Repository repo;
