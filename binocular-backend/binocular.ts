@@ -93,9 +93,6 @@ cli.parse(
     ctx.setOptions(options);
     ctx.setTargetPath(targetPath);
     config.loadConfig(ctx);
-    if (options.frontend) {
-      runFrontend();
-    }
     if (options.backend) {
       runBackend();
     }
@@ -105,8 +102,6 @@ cli.parse(
       projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
       const indexerOptions = {
         backend: true,
-        frontend: false,
-        open: false,
         clean: true,
         vcs: true,
         its: true,
@@ -350,15 +345,15 @@ function runBackend() {
       const indexer = await getIndexer(indexers, context, reporter, indexingThread);
       const providers = await Promise.all(indexer);
 
-      /*for (const indexer of providers.filter((exist) => exist)) {
+      for (const indexer of providers.filter((exist) => exist)) {
         if (!indexer) {
           return;
         }
-  
+
         if ('setGateway' in indexer) {
           indexer.setGateway(gateway);
         }
-  
+
         threadLog(indexingThread, `${indexer.constructor.name} fetching data...`);
         await indexer.index();
         threadLog(indexingThread, `${indexer.constructor.name} ${indexer.isStopping() ? 'stopped' : 'finished'}...`);
@@ -366,9 +361,9 @@ function runBackend() {
       // make sure that the services has not been stopped
       const activeProviders = providers.filter((provider) => {
         return !provider || !provider.isStopping();
-      });*/
+      });
       // start indexer
-      const activeIndexers = await Promise.all(
+      /*const activeIndexers = await Promise.all(
         providers
           .filter((exist) => exist)
           .map(async (indexer) => {
@@ -390,11 +385,10 @@ function runBackend() {
       // make sure that the services has not been stopped
       const activeProviders = activeIndexers.filter((provider) => {
         return !provider || !provider.isStopping();
-      });
+      });*/
 
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
-        return;
       }
 
       await Issue.deduceUsers();
@@ -773,19 +767,6 @@ function runBackend() {
     if (!ctx.argv.server) {
       stop();
     }
-  });
-}
-
-function runFrontend() {
-  const fronted = spawn('npm run dev:frontend', [], { shell: true, cwd: __dirname + '/..' });
-  fronted.stdout.on('data', (data) => {
-    console.log(chalk.cyan(`${data}`));
-  });
-  fronted.stderr.on('data', (data) => {
-    console.error(chalk.blue(`${data}`));
-  });
-  fronted.on('close', (code) => {
-    console.log(chalk.blueBright(`frontend process exited with code ${code}`));
   });
 }
 
