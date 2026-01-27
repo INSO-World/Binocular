@@ -92,6 +92,8 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         const val ADVANCED_PROJECT_NAME = "advanced"
         const val OCTO_REPO = "octo"
         const val OCTO_PROJECT_NAME = "octo"
+        const val MAILMAP_REPO = "mailmap"
+        const val MAILMAP_PROJECT_NAME = "mailmap"
 
         fun execCmd(path: String, vararg cmd: String) {
             val isWindows =
@@ -139,12 +141,13 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
                 }
             }
 
-            val executorService = Executors.newFixedThreadPool(3)
+            val executorService = Executors.newFixedThreadPool(4)
             val futures =
                 listOf(
                     executorService.submit { createGitRepo(SIMPLE_REPO) },
                     executorService.submit { createGitRepo(OCTO_REPO) },
                     executorService.submit { createGitRepo(ADVANCED_REPO) },
+                    executorService.submit { createGitRepo(MAILMAP_REPO) },
                 )
             futures.forEach { it.get() }
         }

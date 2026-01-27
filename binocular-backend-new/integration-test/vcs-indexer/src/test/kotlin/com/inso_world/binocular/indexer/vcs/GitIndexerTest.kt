@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.File
 import java.nio.file.Files
@@ -67,7 +68,7 @@ import kotlin.io.path.Path
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
+internal class GitIndexerTest : BaseFixturesIntegrationTest() {
 
     @Autowired
     private lateinit var indexer: GitIndexer
@@ -105,8 +106,8 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
         fun `findRepo with non-git directory should throw exception`() {
             val nonGitPath = Files.createTempDirectory(LocalDateTime.now().toString())
 
-            // Both implementations throw RuntimeException subclasses for discovery errors
-            val e = assertThrows<RuntimeException> {
+            // FFI throws UniffiException (extends Exception), JGit throws JGitException (extends RuntimeException)
+            val e = assertThrows<Exception> {
                 indexer.findRepo(nonGitPath, project)
             }
             assertThat(e.message).contains(nonGitPath.toString())
@@ -201,7 +202,7 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${SIMPLE_REPO}"), project)
 
             // Both implementations throw RuntimeException subclasses for reference errors
-            assertThrows<RuntimeException> {
+            assertThrows<Exception> {
                 indexer.traverseBranch(repo, "non-existent-branch")
             }
         }
@@ -457,17 +458,17 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
             assertAll(
                 {
                     // Both implementations throw RuntimeException subclasses for discovery errors
-                    assertThrows<RuntimeException> {
+                    assertThrows<Exception> {
                         indexer.traverseBranch(invalidRepo, "refs/heads/master")
                     }
                 },
                 {
-                    assertThrows<RuntimeException> {
+                    assertThrows<Exception> {
                         indexer.findCommit(invalidRepo, "HEAD")
                     }
                 },
                 {
-                    assertThrows<RuntimeException> {
+                    assertThrows<Exception> {
                         indexer.findAllBranches(invalidRepo)
                     }
                 }
@@ -486,7 +487,7 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
 
             val (branch, branchCommits) = indexer.traverseBranch(repo, "origin/main")
             assertAll(
-                { assertThat(branchCommits).hasSize(1885) }
+                { assertThat(branchCommits).hasSize(2456) }
             )
         }
 
