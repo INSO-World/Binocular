@@ -15,6 +15,11 @@ export interface DatabaseSettingsDataPluginType {
     fileName?: string;
     progressUpdate?: ProgressUpdateConfig;
   };
+  metadata?: {
+    namespace: string;
+    createdAt: string;
+    type: string;
+  };
 }
 
 export interface ProgressUpdateConfig {

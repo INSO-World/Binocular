@@ -1,4 +1,4 @@
-import { put, takeLatest, fork, call, select } from 'redux-saga/effects';
+import { put, takeLeading, fork, call, select } from 'redux-saga/effects';
 import { DataState, setDataState, setData, type CodeOwnershipData, type CodeOwnershipState, setCurrentBranch } from '../reducer';
 import type { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
 import { getCommitDataForSha, getFilenamesForBranch, getLatestBranch, getOwnershipForCommits, getPreviousFilenames } from './helper.ts';
@@ -11,11 +11,11 @@ export default function* (dataConnection: DataPlugin) {
 }
 
 function* watchRefresh(dataConnection: DataPlugin) {
-  yield takeLatest('REFRESH', () => fetchCodeOwnershipData(dataConnection));
+  yield takeLeading('REFRESH', () => fetchCodeOwnershipData(dataConnection));
 }
 
 function* watchBranchChange(dataConnection: DataPlugin) {
-  yield takeLatest(setCurrentBranch, () => fetchCodeOwnershipData(dataConnection));
+  yield takeLeading(setCurrentBranch, () => fetchCodeOwnershipData(dataConnection));
 }
 
 function* fetchCodeOwnershipData(dataConnection: DataPlugin) {
@@ -24,7 +24,8 @@ function* fetchCodeOwnershipData(dataConnection: DataPlugin) {
   const branchId = state.plugin.branch;
   const data: CodeOwnershipData = yield call(async () => {
     if (!dataConnection.branches) return;
-    const branches = (await dataConnection.branches.getAll()).sort((a, b) => a.branch.localeCompare(b.branch));
+
+    const branches = await dataConnection.branches.getAll();
     let currentBranch: DataPluginBranch | null | undefined = undefined;
     if (!branchId) currentBranch = await getLatestBranch(branches, dataConnection);
     else currentBranch = branches[branchId];
@@ -42,19 +43,14 @@ function* fetchCodeOwnershipData(dataConnection: DataPlugin) {
           throw new Error('Latest branch commit not found');
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         const activeFiles = await getFilenamesForBranch(currentBranch.branch, dataConnection);
-
-        //get previous filenames for all active files
+        // get previous filenames for all active files
         const previousFilenames: { [p: string]: PreviousFileData[] } = await getPreviousFilenames(
           activeFiles,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
           currentBranch,
           dataConnection,
         );
-        //get actual ownership data for all commits on the selected branch
+        // get actual ownership data for all commits on the selected branch
         let relevantOwnershipData = await getOwnershipForCommits(latestBranchCommit, dataConnection);
         if (relevantOwnershipData.length === 0) {
           throw new Error('No ownership data found for the current branch');

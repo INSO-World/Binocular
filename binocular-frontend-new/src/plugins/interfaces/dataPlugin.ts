@@ -11,6 +11,7 @@ import type { DataPluginBranches } from './dataPluginInterfaces/dataPluginBranch
 import type { DataPluginMergeRequests } from './dataPluginInterfaces/dataPluginMergeRequests.ts';
 import type { DataPluginAccountsIssues } from './dataPluginInterfaces/dataPluginAccountsIssues.ts';
 import type { DataPluginCommitsFiles } from './dataPluginInterfaces/dataPluginCommitsFiles.ts';
+import type { MetadataType } from '../../types/data/MetadataType.ts';
 
 export interface DataPlugin {
   name: string;
@@ -35,6 +36,6 @@ export interface DataPlugin {
     endpoint: string | undefined,
     fileConfig: FileConfig | undefined,
     progressUpdateConfig: ProgressUpdateConfig | undefined,
-  ) => Promise<void>;
+  ) => Promise<MetadataType | undefined>;
   clearRemains: () => Promise<void>;
 }
