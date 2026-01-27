@@ -21,12 +21,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.io.path.Path
 
 /**
- * Integration tests for skip-merges functionality in gix GitIndexer.
+ * Integration tests for skip-merges functionality in GitIndexer.
  *
- * These tests verify that the `binocular.gix.skip-merges` configuration option
+ * These tests verify that the `binocular.*.skip-merges` configuration option
  * correctly filters out merge commits during branch traversal.
  *
- * These tests only run with the gix profile as JGit does not support skip-merges.
+ * These tests work with both gix and jgit profiles.
  *
  * Note: When skip-merges is enabled and the branch HEAD is a merge commit, the
  * traversal will fail because the head commit is filtered out. Therefore, these
@@ -38,7 +38,7 @@ import kotlin.io.path.Path
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestPropertySource(properties = ["binocular.gix.skip-merges=true"])
+@TestPropertySource(properties = ["binocular.gix.skip-merges=true", "binocular.jgit.skip-merges=true"])
 internal class SkipMergesTest : BaseFixturesIntegrationTest() {
 
     @Autowired
