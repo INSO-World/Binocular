@@ -120,10 +120,13 @@ public class Mailmap {
     private static MailmapEntry parseLine(String line) {
         Matcher matcher = EMAIL_PATTERN.matcher(line);
         List<String> emails = new ArrayList<>();
+        List<String> originalEmails = new ArrayList<>();
         List<Integer> emailStarts = new ArrayList<>();
 
         while (matcher.find()) {
-            emails.add(matcher.group(1).toLowerCase());
+            String originalEmail = matcher.group(1);
+            emails.add(originalEmail.toLowerCase());
+            originalEmails.add(originalEmail);
             emailStarts.add(matcher.start());
         }
 
@@ -138,12 +141,15 @@ public class Mailmap {
 
         if (emails.size() == 1) {
             // Format 1: Proper Name <proper@email.xx>
-            properEmail = emails.get(0);
+            // Preserve original case for proper email (canonical identity)
+            properEmail = originalEmails.get(0);
             if (emailStarts.get(0) > 0) {
                 properName = line.substring(0, emailStarts.get(0)).trim();
             }
         } else if (emails.size() >= 2) {
-            properEmail = emails.get(0);
+            // Preserve original case for proper email (canonical identity)
+            properEmail = originalEmails.get(0);
+            // Use lowercased email for matching commit emails
             commitEmail = emails.get(1);
 
             // Check for proper name before first email
@@ -152,7 +158,7 @@ public class Mailmap {
             }
 
             // Check for commit name between emails
-            int endOfFirstEmail = emailStarts.get(0) + properEmail.length() + 2; // +2 for < and >
+            int endOfFirstEmail = emailStarts.get(0) + originalEmails.get(0).length() + 2; // +2 for < and >
             int startOfSecondEmail = emailStarts.get(1);
             if (startOfSecondEmail > endOfFirstEmail) {
                 String between = line.substring(endOfFirstEmail, startOfSecondEmail).trim();
@@ -180,16 +186,18 @@ public class Mailmap {
             return null;
         }
 
-        String email = ident.getEmailAddress().toLowerCase();
+        String originalEmail = ident.getEmailAddress();
+        String emailLower = originalEmail.toLowerCase();
         String name = ident.getName();
 
         for (MailmapEntry entry : entries) {
-            if (entry.matches(name, email)) {
+            if (entry.matches(name, emailLower)) {
                 String newName = entry.getProperName() != null ? entry.getProperName() : name;
                 String newEmail = entry.getProperEmail();
 
-                if (!newName.equals(name) || !newEmail.equalsIgnoreCase(email)) {
-                    logger.trace("Mailmap: {} <{}> -> {} <{}>", name, email, newName, newEmail);
+                // Compare against original email (case-sensitive) to preserve mailmap's specified case
+                if (!newName.equals(name) || !newEmail.equals(originalEmail)) {
+                    logger.trace("Mailmap: {} <{}> -> {} <{}>", name, originalEmail, newName, newEmail);
                     return new PersonIdent(newName, newEmail, ident.getWhenAsInstant(), ident.getZoneId());
                 }
                 return ident;
