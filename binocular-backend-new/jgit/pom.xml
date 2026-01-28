@@ -7,6 +7,7 @@
         <groupId>com.inso-world.binocular</groupId>
         <artifactId>binocular-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>jgit</artifactId>
@@ -49,4 +50,21 @@
             <artifactId>junit-jupiter-api</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+        <plugins>
+                <plugin>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-maven</artifactId>
+                    <version>${pitest.version}</version>
+                    <configuration>
+                        <targetTests>
+                            <param>com.inso_world.binocular.jgit.*</param>
+                        </targetTests>
+                    </configuration>
+                </plugin>
+        </plugins>
+    </build>
 </project>
