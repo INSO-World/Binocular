@@ -1,109 +1,127 @@
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh:        <http://www.w3.org/ns/shacl#> .
+@prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix binocular: <https://data.inso-world.com/ontology/binocular#> .
 
-binocular:BranchExport a rdfs:Class .
-binocular:ChildCommitDetail a rdfs:Class .
+binocular:BranchExport
+    a rdfs:Class .
+
+binocular:ChildCommitDetail
+    a rdfs:Class .
+
+binocular:FileContent
+    a rdfs:Class .
+
+binocular:Content
+    a rdfs:Class .
 
 binocular:BranchExportShape
-    a sh:NodeShape ;
+    a              sh:NodeShape ;
     sh:targetClass binocular:BranchExport ;
-    sh:severity sh:Violation ;
+    sh:severity    sh:Violation ;
 
-    sh:property [
-          sh:path binocular:branch ;
-          sh:name "Branch Name" ;
-          sh:description "BranchExport must have a branchName." ;
-          sh:minCount 1 ;
-          sh:maxCount 1 ;
-          sh:datatype xsd:string
-      ] ;
+    sh:property    [ sh:path     binocular:branch ;
+                     sh:name     "Branch Name" ;
+                     sh:minCount 1 ;
+                     sh:maxCount 1 ;
+                     sh:datatype xsd:string ;
+                     sh:message   "Branch name is required and must be a string."@en ] ;
 
-    sh:property [
-        sh:path binocular:commitSHA ;
-        sh:name "Latest Commit SHA" ;
-        sh:description "BranchExport must have a unique commit SHA." ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:datatype xsd:string ;
-        sh:pattern "^[0-9a-fA-F]{40}$" ;
-    ] ;
+    sh:property    [ sh:path     binocular:commitSHA ;
+                     sh:name     "Latest Commit SHA" ;
+                     sh:minCount 1 ;
+                     sh:maxCount 1 ;
+                     sh:datatype xsd:string ;
+                     sh:pattern  "^[0-9a-fA-F]{40}$" ;
+                     sh:message   "Latest commit SHA must be a 40-character hex string."@en ] ;
 
-    sh:property [
-        sh:path binocular:commitMessage ;
-        sh:name "Commit Message" ;
-        sh:description "Message of this commit" ;
-        sh:minCount 1;
-        sh:maxCount 1;
-        sh:datatype xsd:string
-    ] ;
+    sh:property    [ sh:path     binocular:commitMessage ;
+                     sh:minCount 1 ;
+                     sh:maxCount 1 ;
+                     sh:datatype xsd:string ;
+                     sh:message   "Commit message is missing or invalid."@en ] ;
 
-    sh:property  [
-        sh:path binocular:wasAttributedTo ;
-        sh:name "Commiter" ;
-        sh:description "The user that commited" ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
+    sh:property    [ sh:path     binocular:commitMessage ;
+                     sh:minLength 10 ;
+                     sh:severity sh:Warning ;
+                     sh:datatype xsd:string ;
+                     sh:message  "Best Practice: Commit messages should be at least 10 characters long to be descriptive."@en ] ;
 
-    sh:property [
-        sh:path binocular:commitId ;
-        sh:name "CommitID" ;
-        sh:description "The ID of the commit" ;
-        sh:minCount 1;
-        sh:maxCount 1;
-        sh:datatype xsd:string
-    ] ;
+    sh:property    [ sh:path     binocular:wasAttributedTo ;
+                     sh:datatype xsd:string ;
+                     sh:minCount 1 ;
+                     sh:maxCount 1 ;
+                     sh:message   "The committer ID (wasAttributedTo) is required."@en ] ;
 
-    sh:property [
-          sh:path binocular:hasChildCommits ;
-          sh:name "Child Commits List" ;
-          sh:description "The list of childrenCommits must be present and non-empty." ;
-          sh:minCount 1 ;
-          sh:node binocular:ChildCommitDetailShape ;
-      ] ;
+    sh:property    [ sh:path     binocular:commitId ;
+                     sh:minCount 1 ;
+                     sh:maxCount 1 ;
+                     sh:datatype xsd:string ;
+                     sh:message   "Internal commit ID is missing."@en] ;
 
-    sh:property [
-        sh:path binocular:fileContents ;
-        sh:name "Commit Content Snapshot" ;
-        sh:description "The commit must be linked to a list of file content states." ;
-        sh:minCount 1 ;
-        sh:node binocular:FileContentExportShape ;
-    ] .
+    sh:property    [ sh:path     binocular:hasChildCommits ;
+                     sh:minCount 1 ;
+                     sh:node     binocular:ChildCommitDetailShape ;
+                     sh:message   "At least one child commit detail is required."@en ] ;
+
+    sh:property    [ sh:path     binocular:fileContents ;
+                     sh:name     "Commit Content Snapshot" ;
+                     sh:minCount 1 ;
+                     sh:message "The export is missing the file snapshot list (fileContents)."@en ;
+
+                     sh:property [ sh:path     binocular:filePath ;
+                                   sh:minCount 1 ;
+                                   sh:datatype xsd:string ;
+                                   sh:message "File path is missing for an entry in the snapshot."@en ] ;
+                     sh:property [ sh:path     binocular:fileContentData ;
+                                   sh:minCount 1 ;
+                                   sh:message "File entry is missing its content container."@en ;
+                                   sh:property [ sh:path     binocular:blobId ;
+                                                 sh:minCount 1 ;
+                                                 sh:message "Git Blob ID (id) is missing. Check context mapping for binocular:blobId."@en ] ;
+                                   sh:property [ sh:path     binocular:fileContentData ;
+                                                 sh:minCount 1 ;
+                                                 sh:datatype xsd:string ;
+                                                 sh:message "The actual file content string is missing."@en ;
+                                               ] ] ] .
 
 binocular:ChildCommitDetailShape
-    a sh:NodeShape ;
+    a              sh:NodeShape ;
     sh:targetClass binocular:ChildCommitDetail ;
-
-    sh:property [
-          sh:path binocular:wasAttributedTo ;
-          sh:name "Committer ID" ;
-          sh:description "ChildCommitDetail must contain the committerId." ;
-          sh:minCount 1 ;
-          sh:maxCount 1 ;
-          sh:datatype xsd:string
-      ] .
+    sh:property    [ sh:path     binocular:wasAttributedTo ;
+                     sh:minCount 1 ;
+                     sh:maxCount 1 ;
+                     sh:datatype xsd:string ;
+                     sh:message "Child commit is missing a committer attribution."@en ] .
 
 binocular:FileContentExportShape
-    a sh:NodeShape ;
-    sh:targetClass binocular:FileContent ;
+    a           sh:NodeShape ;
     sh:severity sh:Violation ;
 
+    sh:property [ sh:path     binocular:filePath ;
+                  sh:minCount 1 ;
+                  sh:maxCount 1 ;
+                  sh:datatype xsd:string ;
+                  sh:message   "Individual file export missing its path."@en ] ;
     sh:property [
-          sh:path binocular:filePath ;
-          sh:name "File Path" ;
-          sh:description "The full path of the file (required for Tree reconstruction)." ;
-          sh:minCount 1 ;
-          sh:maxCount 1 ;
-          sh:datatype xsd:string ;
-          sh:pattern "^[^/\\s].*[^/\\s]$"
-      ] ;
+                    sh:path     binocular:fileContentData ;
+                    sh:node     binocular:ContentShape ;
+                    sh:minCount 1 ;
+                    sh:message   "Individual file export missing its content data."@en ] .
 
+binocular:ContentShape
+    a           sh:NodeShape ;
+    sh:severity sh:Violation ;
     sh:property [
-          sh:path binocular:fileContentData ;
-          sh:name "File Content Data" ;
-          sh:description "The file content must be present for any file that isn't a deletion." ;
-          sh:datatype xsd:string
-      ] .
+
+                    sh:path     binocular:blobId ;
+                    sh:minCount 1 ;
+                    sh:maxCount 1 ;
+                    sh:datatype xsd:string ;
+                    sh:message   "Content object missing required Blob ID."@en] ;
+    sh:property [
+                    sh:path     binocular:fileContentData ;
+                    sh:minCount 1 ;
+                    sh:maxCount 1 ;
+                    sh:datatype xsd:string ;
+                    sh:message   "Content object missing raw text data."@en] .

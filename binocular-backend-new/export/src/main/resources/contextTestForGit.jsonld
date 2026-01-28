@@ -18,7 +18,7 @@
 
       "filePath": "binocular:filePath",
       "content": "binocular:fileContentData",
-
+      "id": "binocular:blobId",
       "childrenCommits": {
         "@id": "binocular:hasChildCommits",
         "@type": "@id",

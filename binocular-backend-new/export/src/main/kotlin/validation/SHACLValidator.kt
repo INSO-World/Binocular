@@ -13,6 +13,14 @@ import org.topbraid.shacl.vocabulary.SH
 import java.io.StringWriter
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import org.apache.jena.vocabulary.RDF
+
+data class SHACLReport(
+    val conforms: Boolean,
+    val criticalErrors: List<String> = emptyList(),
+    val warnings: List<String> = emptyList(),
+    val rawRdf: String = ""
+)
 
 @Service
 class SHACLValidator {
@@ -71,12 +79,11 @@ class SHACLValidator {
     /**
      * Validates a JSON-LD data string against the predefined SHACL ruleset.
      */
-    fun validate(jsonLdString: String): Boolean {
+    fun validate(jsonLdString: String): SHACLReport {
 
         val shapes = shapesModel
         val dataModel = ModelFactory.createDefaultModel()
 
-        // --- JSON INJECTION LOGIC START ---
         val objectMapper = ObjectMapper()
 
         // 1. Parse the incoming JSON-LD string
@@ -84,13 +91,13 @@ class SHACLValidator {
             objectMapper.readTree(jsonLdString)
         } catch (e: Exception) {
             logger.error("Failed to parse input JSON-LD string: ${e.message}")
-            return false
+            return SHACLReport(false, listOf("Malformed JSON: ${e.message}"))
         }
 
         // 2. Ensure it's a JSON object and retrieve the @context
         if (jsonNode !is ObjectNode || !jsonNode.has("@context")) {
             logger.error("Input JSON-LD is not a valid object or is missing the @context key.")
-            return false
+            return SHACLReport(false, listOf("Missing @context key in input."))
         }
 
         val contextNode = jsonNode.get("@context")
@@ -103,7 +110,7 @@ class SHACLValidator {
             (jsonNode as ObjectNode).replace("@context", localContextJson)
         } else {
             logger.error("The @context value must be the remote URL string: $CONTEXT_URL for simple injection to work.")
-            return false
+            return SHACLReport(false, listOf("Invalid @context URL. Expected: $CONTEXT_URL"))
         }
 
         // 5. Convert the modified JSON structure back to a string for Jena
@@ -115,7 +122,7 @@ class SHACLValidator {
             RDFDataMgr.read(dataModel, StringReader(modifiedJsonLdString), null, Lang.JSONLD)
         } catch (e: Exception) {
             logger.error("Failed to parse JSON-LD data into RDF model. JSON error: ${e.message}")
-            return false
+            return SHACLReport(false, listOf("RDF Parsing Error: ${e.message}"))
         }
 
         // 2. Run the validation
@@ -124,18 +131,34 @@ class SHACLValidator {
         // 3. Check the results
         val conforms = report.getProperty(SH.conforms).boolean
 
+        val rawRdfWriter = StringWriter()
+        report.model.write(rawRdfWriter, "TURTLE")
+
+        val criticalErrors = mutableListOf<String>()
+        val warnings = mutableListOf<String>()
+
         if (!conforms) {
-            logger.error("SHACL Validation FAILED!")
+            val results = report.model.listStatements(null, RDF.type, SH.ValidationResult).toList()
+            for (result in results) {
+                val res = result.subject
+                val message = res.getProperty(SH.resultMessage)?.string ?: "Constraint violation"
+                val path = res.getProperty(SH.resultPath)?.resource?.localName ?: "Unknown property"
 
-            val stringWriter = StringWriter()
-            report.model.write(stringWriter, "TURTLE")
-            System.err.println(stringWriter.toString())
+                val severity = res.getProperty(SH.resultSeverity)?.resource?.uri ?: SH.Violation.uri
+                val formattedMsg = "[$path]: $message"
 
-            logger.error("--------------------------------------------------")
+                if (severity == SH.Warning.uri) {
+                    warnings.add(formattedMsg)
+                } else {
+                    criticalErrors.add(formattedMsg)
+                }
+
+                criticalErrors.add("[$path]: $message")
+            }
         } else {
             logger.info("SHACL Validation Successful. Data conforms to the ruleset.")
         }
 
-        return conforms
+        return SHACLReport(conforms, criticalErrors, warnings, rawRdfWriter.toString())
     }
 }

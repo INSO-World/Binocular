@@ -31,23 +31,44 @@ open class Export (
             required = true,
             description = "ID of the branch.",
         ) branchId: String,
+        @Option(
+            longNames = ["repo_path"],
+            shortNames = ['p'],
+            required = true,
+            description = "Path to the repository.",
+        ) repoPath: String,
+        @Option(
+            longNames = ["verbose"],
+            shortNames = ['v'],
+            required = false,
+            defaultValue = "false",
+            description = "Output the full RDF SHACL validation report if validation fails."
+        ) verbose: Boolean,
     ) {
-        val exportData = this.branchService.getBranchExportData(branchId)
+        val exportData = this.branchService.getBranchExportData(branchId, repoPath)
         val jsonLdString = expMapper.map(exportData)
 
         logger.info("\n--- JSON-LD EXPORT OUTPUT (branch_id: $branchId) ---")
         println("$jsonLdString\n---------------------------------------------------")
 
-        val conforms = shaclValidator.validate(jsonLdString)
+        val report = shaclValidator.validate(jsonLdString)
 
-        if (!conforms) {
-            // The validator service logs the error details itself.
-            logger.warn("Export data for branch $branchId did NOT pass SHACL validation.")
-            // You could stop execution here by throwing an exception if invalid data is not allowed.
+        if (report.warnings.isNotEmpty()) {
+            println("\n STYLE WARNINGS:")
+            report.warnings.forEach { println("   $it") }
+        }
+
+        if (!report.conforms) {
+            println("\n CRITICAL ERRORS:")
+            report.criticalErrors.forEach { println("   $it") }
+
+            if (verbose) {
+                println("\n--- RAW RDF REPORT ---\n${report.rawRdf}")
+            }
         } else {
-            logger.info("Export data passed SHACL validation and is ready for use.")
+            println("\n Data is valid!")
         }
     }
 }
 // The branch to use: branches/15385, has multiple children commits
-// export project -b branches/15385
+// export project -b branches/15385 -p "D:/Binocular"
