@@ -11,6 +11,9 @@
     </parent>
 
     <artifactId>jgit</artifactId>
+    <packaging>jar</packaging>
+    <description>JGit module for Binocular</description>
+
     <developers>
         <developer>
             <id>chehadih</id>
