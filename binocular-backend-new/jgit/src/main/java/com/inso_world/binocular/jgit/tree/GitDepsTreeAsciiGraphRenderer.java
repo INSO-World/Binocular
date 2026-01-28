@@ -97,7 +97,7 @@ public class GitDepsTreeAsciiGraphRenderer {
         int width = Math.max(1, cols * 2 - 1);
 
         for (int r = 0; r < rows; r++) {
-            List<GitTreeNode> rowNodes = nodesByRow.getOrDefault(r, List.of());
+            List<GitTreeNode> rowNodes = new ArrayList<>(nodesByRow.getOrDefault(r, List.of()));
             rowNodes.sort(Comparator.comparingInt(GitTreeNode::getColumnIndex));
 
             char[] commitLine = blank(width);

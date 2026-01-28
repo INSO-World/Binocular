@@ -216,6 +216,7 @@
                         <avoidCallsTo>
                             <avoidCallsTo>kotlin.jvm.internal</avoidCallsTo>
                             <avoidCallsTo>com.inso_world.binocular.core.delegates.logger</avoidCallsTo>
+                            <avoidCallsTo>org.slf4j</avoidCallsTo>
                         </avoidCallsTo>
                     </configuration>
                 </plugin>
