@@ -11,6 +11,17 @@
     </parent>
 
     <artifactId>jgit</artifactId>
+    <developers>
+        <developer>
+            <id>chehadih</id>
+            <name>Hassan Chehadi</name>
+            <organization>TU Wien</organization>
+            <roles>
+                <role>student</role>
+            </roles>
+            <timezone>Europe/Vienna</timezone>
+        </developer>
+    </developers>
 
     <dependencies>
         <dependency>
