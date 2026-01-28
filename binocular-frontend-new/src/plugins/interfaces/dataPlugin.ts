@@ -38,4 +38,5 @@ export interface DataPlugin {
     progressUpdateConfig: ProgressUpdateConfig | undefined,
   ) => Promise<MetadataType | undefined>;
   clearRemains: () => Promise<void>;
+  export?: (metadata: MetadataType | undefined) => void;
 }
