@@ -56,7 +56,7 @@ self.onmessage = async (event) => {
         break;
 
       case 'downloadDB':
-        result = (await db.allDocs({include_docs: true, attachments: true}));
+        result = await db.allDocs({ include_docs: true, attachments: true });
         break;
       default:
         throw new Error(`Unknown action: ${action}`);
