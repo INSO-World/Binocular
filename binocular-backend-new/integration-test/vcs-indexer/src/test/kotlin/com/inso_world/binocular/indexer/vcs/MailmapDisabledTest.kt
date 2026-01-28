@@ -31,7 +31,7 @@ import kotlin.io.path.Path
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestPropertySource(properties = ["binocular.gix.use-mailmap=false"])
+@TestPropertySource(properties = ["binocular.gix.use-mailmap=false", "binocular.jgit.use-mailmap=false"])
 internal class MailmapDisabledTest : BaseFixturesIntegrationTest() {
 
     @Autowired
