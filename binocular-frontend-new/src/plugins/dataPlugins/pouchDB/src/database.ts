@@ -153,7 +153,7 @@ export default class Database {
     db_export!.file('metadata.json', metadata ? JSON.stringify(metadata) : '');
     let data: object[] = [];
     let collectionName = docs.rows[0].id.split('/')[0];
-    docs.rows.forEach((row: {id: string, doc: JSONObject}) => {
+    docs.rows.forEach((row: { id: string; doc: JSONObject }) => {
       if (row.id.split('/')[0] == collectionName) data.push(row.doc);
       else {
         db_export!.file(collectionName + '.json', JSON.stringify(data));
@@ -162,7 +162,7 @@ export default class Database {
         data.push(row.doc);
       }
     });
-    edges.rows.forEach((row: {id: string, doc: JSONObject}) => {
+    edges.rows.forEach((row: { id: string; doc: JSONObject }) => {
       if (row.id.startsWith(collectionName)) data.push(row.doc);
       else {
         db_export!.file(collectionName + '.json', JSON.stringify(data));
