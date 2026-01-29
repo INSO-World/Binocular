@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit.tree;
 
+import com.inso_world.binocular.core.unit.base.BaseUnitTest;
 import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Developer;
 import com.inso_world.binocular.model.Project;
@@ -23,8 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for {@link GitDepsTreeAsciiGraphRenderer}.
  * Tests ASCII rendering of git dependency trees.
  */
-@Tag("unit")
-class GitDepsTreeAsciiGraphRendererTest {
+class GitDepsTreeAsciiGraphRendererTest extends BaseUnitTest {
 
     private GitDepsTreeAsciiGraphRenderer renderer;
     private Repository repository;

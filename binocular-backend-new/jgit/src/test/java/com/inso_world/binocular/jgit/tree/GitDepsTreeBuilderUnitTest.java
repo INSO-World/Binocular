@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit.tree;
 
+import com.inso_world.binocular.core.unit.base.BaseUnitTest;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Developer;
@@ -28,8 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for {@link GitDepsTreeBuilder}.
  * Tests building of dependency trees from commit lists.
  */
-@Tag("unit")
-class GitDepsTreeBuilderUnitTest {
+class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
     private GitDepsTreeBuilder builder;
     private Repository repository;

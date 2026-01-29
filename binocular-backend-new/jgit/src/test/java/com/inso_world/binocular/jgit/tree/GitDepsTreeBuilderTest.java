@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit.tree;
 
+import com.inso_world.binocular.core.unit.base.BaseUnitTest;
 import com.inso_world.binocular.jgit.JGitConfig;
 import com.inso_world.binocular.jgit.JGitGitIndexer;
 import com.inso_world.binocular.model.Branch;
@@ -27,7 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GitDepsTreeBuilderTest {
+class GitDepsTreeBuilderTest extends BaseUnitTest {
 
 
     @Test
