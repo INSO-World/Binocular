@@ -208,13 +208,16 @@ function AuthorList(props: { orientation?: string }) {
           <div className="join">
             <button
               className={'btn btn-xs join-item ' + authorListStyles.checkAllButton}
-              onClick={() => dispatch(checkAllAuthors())}></button>
+              onClick={() => dispatch(checkAllAuthors())}
+              title="Check all authors"></button>
             <button
               className={`btn btn-xs join-item '+ ${authorListStyles.uncheckAllButton}`}
-              onClick={() => dispatch(uncheckAllAuthors())}></button>
+              onClick={() => dispatch(uncheckAllAuthors())}
+              title="Uncheck all authors"></button>
             <button
               className={'btn btn-xs join-item ' + authorListStyles.flipButton}
-              onClick={() => dispatch(switchAllAuthorSelection())}></button>
+              onClick={() => dispatch(switchAllAuthorSelection())}
+              title="Switch author selection"></button>
           </div>
         </div>
         <div>
