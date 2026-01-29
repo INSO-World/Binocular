@@ -4,8 +4,12 @@ import fileListElementsStyles from '../fileListElements/fileListElements.module.
 import type { JSX } from 'react';
 import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType';
 import DataPluginStorage from '../../../../../utils/dataPluginStorage';
-import { setFileList } from '../../../../../redux/reducer/data/filesReducer';
+import { loadState, setFileList } from '../../../../../redux/reducer/data/filesReducer';
 import type { AppDispatch } from '../../../../../redux';
+import { toString } from 'lodash';
+
+const opfsRoot = await navigator.storage.getDirectory();
+const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
 
 export function generateFileTree(files: DataPluginFile[]): FileTreeElementType[] {
   return convertData(files).content;
@@ -89,15 +93,15 @@ export function filterFileTree(fileTree: FileTreeElementType, search: string): F
 }
 
 export function formatName(searchTerm: string | undefined, name: string): JSX.Element[] {
-  let formatedName = [<span key={'formatedNamePart0'}>{name}</span>];
+  let formattedName = [<span key={'formattedNamePart0'}>{name}</span>];
   if (searchTerm) {
     const searchParts: string[] = searchTerm ? searchTerm.split('/') : [];
     for (const searchPart of searchParts) {
       if (name.toLowerCase().includes(searchPart.toLowerCase())) {
-        const nameParts = name.split(new RegExp(searchPart, 'i')).map((part, i) => <span key={`formatedNamePart${i}`}>{part}</span>);
-        formatedName = [
+        const nameParts = name.split(new RegExp(searchPart, 'i')).map((part, i) => <span key={`formattedNamePart${i}`}>{part}</span>);
+        formattedName = [
           nameParts[0],
-          <span key={'formatedNamePartMatch'} className={fileListElementsStyles.searchMark}>
+          <span key={'formattedNamePartMatch'} className={fileListElementsStyles.searchMark}>
             {searchPart}
           </span>,
           nameParts[1],
@@ -106,7 +110,21 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
       }
     }
   }
-  return formatedName;
+  return formattedName;
+}
+
+export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
+  fileHandle.getFile().then((files) => {
+    if (files !== null) {
+      files.text().then((list) => {
+        const fileList = JSON.parse(list);
+
+        if (fileList && Object.keys(fileList.fileLists).includes(toString(dP.id))) {
+          dispatch(loadState(JSON.parse(list)));
+        } else refreshFileList(dP, dispatch);
+      });
+    }
+  });
 }
 
 export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {

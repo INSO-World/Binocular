@@ -43,7 +43,8 @@ export interface HeatmapCell {
   col: number;
   value: number;
   tooltip?: string;
-  metadata?: any; // TODO define a proper type here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata?: any; // TODO define a proper type here, when decided what different kind of metadata is used
 }
 
 export type AnyActivityDataPlugin =
@@ -54,26 +55,32 @@ export type AnyActivityDataPlugin =
   | DataPluginNote
   | DataPluginBranch;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDataPluginCommit(d: any): d is DataPluginCommit {
   return d && typeof d === 'object' && 'sha' in d && 'messageHeader' in d && 'stats' in d;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDataPluginBuild(d: any): d is DataPluginBuild {
   return d && typeof d === 'object' && 'status' in d && 'webUrl' in d;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDataPluginIssue(d: any): d is DataPluginIssue {
   return d && typeof d === 'object' && 'iid' in d && 'title' in d && 'state' in d && !('mergedAt' in d);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDataPluginMergeRequest(d: any): d is DataPluginMergeRequest {
   return d && typeof d === 'object' && 'iid' in d && 'title' in d && 'mergedAt' in d;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDataPluginNote(d: any): d is DataPluginNote {
   return d && typeof d === 'object' && 'body' in d && 'noteableType' in d;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDataPluginBranch(d: any): d is DataPluginBranch {
   return d && typeof d === 'object' && 'branch' in d && 'active' in d;
 }

@@ -5,7 +5,6 @@ import {
   type ActivityType,
   getActivityType,
   getActivityDate,
-  formatActivityCounts,
   isDataPluginCommit,
   ACTIVITY_TYPES,
 } from './types';
@@ -38,7 +37,7 @@ function getActivityDescription(activity: AnyActivityDataPlugin): string {
 
 export function convertToWeeklyFormat(
   data: AnyActivityDataPlugin[],
-  props: any[],
+  // props: any[],  use it for further variations
   weekStart: Date,
 ): {
   chartData: HeatmapCell[];

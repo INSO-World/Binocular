@@ -7,4 +7,3 @@ export function getSVGData(chartContainerRef: RefObject<HTMLDivElement | null>):
   }
   return svgData;
 }
-
