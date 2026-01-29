@@ -1,4 +1,5 @@
 import type { DataPluginAccount } from './dataPluginAccounts.ts';
+import type { DataPluginStats } from './dataPluginCommits.ts';
 import type { DataPluginNote } from './dataPluginNotes.ts';
 
 export interface DataPluginIssues {
@@ -14,8 +15,10 @@ export interface DataPluginIssue {
   webUrl: string;
   createdAt: string;
   closedAt: string | null;
-  author: DataPluginAccount;
+  labels: string[];
+  author: DataPluginAccount | null;
   assignee: DataPluginAccount | null;
   assignees: DataPluginAccount[];
   notes: DataPluginNote[];
+  commits: DataPluginStats[];
 }

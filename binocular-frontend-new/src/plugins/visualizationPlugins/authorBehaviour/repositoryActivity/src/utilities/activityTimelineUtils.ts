@@ -1,13 +1,7 @@
 import * as d3 from 'd3';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties';
 import type { RepositoryActivitySettings } from '../settings/settings';
-import {
-  type AnyActivityDataPlugin,
-  type ActivityType,
-  getActivityType,
-  getActivityDate,
-  formatActivityCounts,
-} from './types';
+import { type AnyActivityDataPlugin, type ActivityType, getActivityType, getActivityDate, formatActivityCounts } from './types';
 
 interface DayActivityData {
   total: number;

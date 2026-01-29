@@ -17,7 +17,7 @@ export interface DataPluginMergeRequest {
   updatedAt: string | null;
   sourceBranch: string;
   targetBranch: string;
-  author: DataPluginAccount;
+  author: DataPluginAccount | null;
   assignee: DataPluginAccount | null;
   assignees: DataPluginAccount[];
   notes: DataPluginNote[];
