@@ -21,9 +21,11 @@ import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
@@ -181,6 +183,10 @@ internal class CommitInfrastructurePortImpl
         TODO("Not yet implemented")
     }
 
+        override fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File> {
+            TODO("Not yet implemented")
+        }
+
     override fun findModulesByCommitId(commitId: String): List<Module> {
         TODO("Not yet implemented")
     }
@@ -190,6 +196,25 @@ internal class CommitInfrastructurePortImpl
     override fun findIssuesByCommitId(commitId: String): List<Issue> {
         TODO("Not yet implemented")
     }
+        override fun findIssuesByCommitId(commitId: String): List<Issue> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findCommitStatsByCommitId(commitId: String): Stats {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileStatsByCommitId(commitId: String): Map<String, Stats> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
+            TODO("Not yet implemented")
+        }
 
     override fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit> {
         TODO("Not yet implemented")

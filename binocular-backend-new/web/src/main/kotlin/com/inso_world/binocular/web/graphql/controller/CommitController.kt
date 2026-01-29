@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,18 +22,14 @@ class CommitController(
     private var logger: Logger = LoggerFactory.getLogger(CommitController::class.java)
 
     /**
-     * Find all commits with pagination and optional timestamp filters.
+     * Find all commits with pagination and optional time-range filtering.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of commits for the current page
      *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
-     * @param since Optional timestamp to filter commits (only include commits after this timestamp)
-     * @param until Optional timestamp to filter commits (only include commits before this timestamp)
+     * @param since Optional timestamp (epoch millis) to include only commits at or after this moment.
+     * @param until Optional timestamp (epoch millis) to include only commits at or before this moment.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to ASC when not provided.
      * @return A Page object containing the commits and pagination metadata.
      */
     @QueryMapping(name = "commits")
@@ -41,14 +38,26 @@ class CommitController(
         @Argument perPage: Int?,
         @Argument since: Long?,
         @Argument until: Long?,
+        @Argument sort: Sort?,
     ): PageDto<Commit> {
-        logger.info("Getting commits with page=$page, perPage=$perPage, since=$since, until=$until")
+        logger.info("Getting commits with since=$since, until=$until")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.ASC,
+            sortBy = "date",
+        )
 
-        val commitsPage = commitService.findAll(pageable, since, until)
+        logger.debug(
+            "Getting all commits with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
 
-        return PageDto(commitsPage)
+        val result = commitService.findAll(pageable, since, until)
+        return PageDto(result)
     }
 
     /**
@@ -57,15 +66,21 @@ class CommitController(
      * This method retrieves a single commit based on the provided ID.
      * If no commit is found with the given ID, an exception is thrown.
      *
-     * @param id The unique identifier of the commit to retrieve.
+     * @param sha The unique identifier of the commit to retrieve.
      * @return The commit with the specified ID.
      * @throws GraphQLException if no commit is found with the given ID.
      */
     @QueryMapping(name = "commit")
     fun findById(
-        @Argument id: String,
+        @Argument sha: String,
     ): Commit {
-        logger.info("Getting commit by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(commitService.findById(id), "Commit", id)
+        logger.info("Getting commit by sha: $sha")
+        val byId = commitService.findById(sha)
+        if (byId != null && byId.sha == sha) {
+            return byId
+        }
+        val bySha = commitService.findAll().firstOrNull { it.sha == sha }
+        return GraphQLValidationUtils.requireEntityExists(bySha, "Commit", sha)
     }
+
 }
