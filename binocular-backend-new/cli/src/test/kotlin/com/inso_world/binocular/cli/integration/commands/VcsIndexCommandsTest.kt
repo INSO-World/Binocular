@@ -113,7 +113,7 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         fun `index branch origin-feature-5`() {
             idxClient.commits(
                 repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                branchName = "origin/feature/5",
+                branchName = "origin/not-merged/5",
                 projectName = "Binocular",
             )
         }
@@ -148,7 +148,7 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         fun `index branch origin-feature-6`() {
             idxClient.commits(
                 repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 projectName = "Binocular",
             )
         }
@@ -158,14 +158,14 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         fun `index branch origin-feature-6 and then origin-feature-5`() {
             idxClient.commits(
                 repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 projectName = "Binocular",
             )
 //            assertThat(repoService.f?.commits).hasSize(207)
             assertDoesNotThrow {
                 idxClient.commits(
                     repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                    branchName = "origin/feature/5",
+                    branchName = "origin/not-merged/5",
                     projectName = "Binocular",
                 )
             }
@@ -176,14 +176,14 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         fun `index branch origin-feature-6 and then again`() {
             idxClient.commits(
                 repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 projectName = "Binocular",
             )
 //            assertThat(repoService.f?.commits).hasSize(207)
             assertDoesNotThrow {
                 idxClient.commits(
                     repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                    branchName = "origin/feature/6",
+                    branchName = "origin/not-merged/6",
                     projectName = "Binocular",
                 )
             }
@@ -194,14 +194,14 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         fun `index branch origin-feature-6 and then origin-feature-9`() {
             idxClient.commits(
                 repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 projectName = "Binocular",
             )
 //            assertThat(repoService.findRepo(path)?.commits).hasSize(207)
             assertDoesNotThrow {
                 idxClient.commits(
                     repoPath = BINOCULAR_REPO_PATH.absolutePathString(),
-                    branchName = "origin/feature/9",
+                    branchName = "origin/not-merged/9",
                     projectName = "Binocular",
                 )
             }
