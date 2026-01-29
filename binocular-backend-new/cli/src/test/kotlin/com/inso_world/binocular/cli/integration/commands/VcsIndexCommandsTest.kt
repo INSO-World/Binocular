@@ -128,7 +128,7 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
             val repo = repoService.findRepo(BINOCULAR_REPO_PATH.absolutePathString())
             assertNotNull(repo)
-            assertThat(repo.commits).hasSize(1881)
+            assertThat(repo.commits).hasSize(2456)
         }
 
         @Test
@@ -141,7 +141,7 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
             val repo = repoService.findRepo(BINOCULAR_REPO_PATH.absolutePathString())
             assertNotNull(repo)
-            assertThat(repo.commits).hasSize(2310)
+            assertThat(repo.commits).hasSize(2443)
         }
 
         @Test
