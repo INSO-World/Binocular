@@ -28,6 +28,7 @@ internal class BranchInfrastructurePortImpl(
     @Autowired private val branchMapper: BranchMapper,
 ) : AbstractInfrastructurePort<Branch, BranchEntity, Long>(Long::class),
     BranchInfrastructurePort {
+
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
 
