@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit;
 
+import com.inso_world.binocular.core.integration.base.BaseIntegrationTest;
 import com.inso_world.binocular.jgit.tree.GitDepsTreeBuilder;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
  * -Dbinocular.branch=my-branch        (default: main, sonst master, sonst erster Branch)
  * -Dbinocular.commitLimit=250         (default: 250)
  */
-public class GitDepsTreeOnCurrentRepoIT {
+public class GitDepsTreeOnCurrentRepoIT extends BaseIntegrationTest {
 
     @Test
     void buildsTreeForLocalBranchAndWritesAscii() throws Exception {

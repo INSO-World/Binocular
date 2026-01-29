@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit;
 
+import com.inso_world.binocular.core.unit.base.BaseUnitTest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -10,8 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for {@link JGitConfig} and {@link JGitConfig.JGitSettings}.
  * Tests all getters and setters to ensure full mutation coverage.
  */
-@Tag("unit")
-class JGitConfigTest {
+class JGitConfigTest extends BaseUnitTest {
 
     @Nested
     class JGitConfigOperations {
