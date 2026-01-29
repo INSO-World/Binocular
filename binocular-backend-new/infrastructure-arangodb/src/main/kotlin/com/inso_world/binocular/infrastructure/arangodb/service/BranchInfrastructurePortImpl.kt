@@ -5,7 +5,6 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
-import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Reference
@@ -51,6 +50,11 @@ internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
         return branchFileConnectionRepository.findFilesByBranch(branchId)
     }
 
+    override fun findFilesByBranchId(branchId: String, pageable: Pageable): Page<File> {
+        logger.trace("Getting files for branch: $branchId with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
+        return branchFileConnectionRepository.findFilesByBranch(branchId, pageable)
+    }
+
     override fun findAll(): Iterable<Branch> = this.branchDao.findAll()
 
     override fun create(entity: Branch): Branch = this.branchDao.save(entity)
@@ -64,4 +68,10 @@ internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
     override fun findAll(repository: Repository): Iterable<Branch> {
         TODO("Not yet implemented")
     }
+
+    override fun findByName(name: String): Branch? {
+        logger.trace("Getting branch by name: $name")
+        return branchDao.findByName(name)
+    }
+
 }

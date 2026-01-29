@@ -14,6 +14,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.enums.IssueAccountRole
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.slf4j.Logger
@@ -48,6 +49,11 @@ internal class IssueInfrastructurePortImpl : IssueInfrastructurePort,
         return issueDao.findAll(pageable)
     }
 
+    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Issue> {
+        logger.trace("Getting issues with pageable: page={}, size={}, since={}, until={}", pageable.pageNumber, pageable.pageSize, since, until)
+        return issueDao.findAll(pageable, since, until)
+    }
+
     override fun findById(id: String): Issue? {
         logger.trace("Getting issue by id: $id")
         return issueDao.findById(id)
@@ -60,6 +66,11 @@ internal class IssueInfrastructurePortImpl : IssueInfrastructurePort,
     override fun findAccountsByIssueId(issueId: String): List<Account> {
         logger.trace("Getting accounts for issue: $issueId")
         return issueAccountConnectionRepository.findAccountsByIssue(issueId)
+    }
+
+    override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> {
+        logger.trace("Getting accounts for issue: $issueId with role: ${'$'}role")
+        return issueAccountConnectionRepository.findAccountsByIssue(issueId, role)
     }
 
     override fun findCommitsByIssueId(issueId: String): List<Commit> {

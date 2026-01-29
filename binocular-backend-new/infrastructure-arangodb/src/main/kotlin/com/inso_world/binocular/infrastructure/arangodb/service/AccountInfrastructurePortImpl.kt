@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.AccountInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IAccountUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueAccountConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IMergeRequestAccountConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.INoteAccountConnectionDao
@@ -12,6 +13,7 @@ import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
+import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,6 +41,10 @@ internal class AccountInfrastructurePortImpl :
 
     @Autowired
     private lateinit var noteAccountConnectionRepository: INoteAccountConnectionDao
+
+    @Autowired
+    private lateinit var accountUserConnectionRepository: IAccountUserConnectionDao
+
     var logger: Logger = LoggerFactory.getLogger(AccountInfrastructurePortImpl::class.java)
 
     override fun findAll(pageable: Pageable): Page<Account> {
@@ -68,6 +74,16 @@ internal class AccountInfrastructurePortImpl :
     override fun findNotesByAccountId(accountId: String): List<Note> {
         logger.trace("Getting notes for account: $accountId")
         return noteAccountConnectionRepository.findNotesByAccount(accountId)
+    }
+
+    override fun findUsersByAccountId(accountId: String): List<User> {
+        logger.trace("Getting users for account: $accountId")
+        return accountUserConnectionRepository.findUsersByAccount(accountId)
+    }
+
+    override fun findAccountsByUserId(userId: String): List<Account> {
+        logger.trace("Getting accounts for user: $userId")
+        return accountUserConnectionRepository.findAccountsByUser(userId)
     }
 
     override fun findAll(): Iterable<Account> = accountDao.findAll()

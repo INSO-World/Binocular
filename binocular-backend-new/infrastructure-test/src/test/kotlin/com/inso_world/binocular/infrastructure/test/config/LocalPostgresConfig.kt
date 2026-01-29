@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 
 @Profile("postgres")
-@Import(com.inso_world.binocular.infrastructure.sql.SqlTestConfig::class)
+@Import(
+    com.inso_world.binocular.infrastructure.sql.SqlTestConfig::class
+)
 @Configuration
 internal class LocalPostgresConfig

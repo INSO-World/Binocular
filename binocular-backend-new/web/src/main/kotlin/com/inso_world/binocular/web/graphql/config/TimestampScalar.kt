@@ -1,61 +1,86 @@
 package com.inso_world.binocular.web.graphql.config
 
+import com.sun.jdi.LongValue
 import graphql.language.IntValue
-import graphql.schema.Coercing
-import graphql.schema.CoercingParseLiteralException
-import graphql.schema.CoercingParseValueException
-import graphql.schema.CoercingSerializeException
-import graphql.schema.GraphQLScalarType
+import graphql.language.StringValue
+import graphql.schema.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.graphql.execution.RuntimeWiringConfigurer
+import java.time.*
+import java.time.format.DateTimeFormatter
 
-/**
- * Configuration for the Timestamp scalar type in GraphQL.
- * This scalar represents a timestamp as milliseconds since epoch.
- */
 @Configuration
 class TimestampScalar {
+
+    private val isoUtcMillis: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .withZone(ZoneOffset.UTC)
+
     @Bean
     fun timestampScalarConfigurer(): RuntimeWiringConfigurer {
-        val timestampType =
-            GraphQLScalarType
-                .newScalar()
-                .name("Timestamp")
-                .description("Timestamp scalar type representing milliseconds since epoch")
-                .coercing(
-                    object : Coercing<Long, Long> {
-                        override fun serialize(dataFetcherResult: Any): Long =
-                            when (dataFetcherResult) {
-                                is Long -> dataFetcherResult
-                                is Int -> dataFetcherResult.toLong()
-                                else -> throw CoercingSerializeException("Expected a Long or Int")
-                            }
+        val scalar = GraphQLScalarType.newScalar()
+            .name("Timestamp")
+            .description("ISO-8601 timestamp in UTC with milliseconds")
+            .coercing(object : Coercing<Any, String> {
 
-                        override fun parseValue(input: Any): Long =
-                            when (input) {
-                                is Long -> input
-                                is Int -> input.toLong()
-                                is String ->
-                                    try {
-                                        input.toLong()
-                                    } catch (e: NumberFormatException) {
-                                        throw CoercingParseValueException("Expected a Long value but was $input")
-                                    }
-                                else -> throw CoercingParseValueException("Expected a Long value but was $input")
-                            }
+                override fun serialize(dataFetcherResult: Any): String =
+                    isoUtcMillis.format(toInstant(dataFetcherResult, serialize = true))
 
-                        override fun parseLiteral(input: Any): Long {
-                            if (input is IntValue) {
-                                return input.value.toLong()
-                            }
-                            throw CoercingParseLiteralException("Expected a Long value but was $input")
-                        }
-                    },
-                ).build()
+                override fun parseValue(input: Any): Instant =
+                    toInstant(input, serialize = false)
 
-        return RuntimeWiringConfigurer { builder ->
-            builder.scalar(timestampType)
-        }
+                override fun parseLiteral(input: Any): Instant =
+                    when (input) {
+                        is IntValue -> Instant.ofEpochMilli(input.value.toLong())
+                        is LongValue -> Instant.ofEpochMilli(input.value())
+                        is StringValue -> parseString(input.value)
+                        else -> literalError(input)
+                    }
+            })
+            .build()
+
+        return RuntimeWiringConfigurer { it.scalar(scalar) }
     }
+
+    private fun toInstant(value: Any, serialize: Boolean): Instant =
+        when (value) {
+            is Instant -> value
+            is LocalDateTime -> value.toInstant(ZoneOffset.UTC)
+            is Long -> Instant.ofEpochMilli(value)
+            is Int -> Instant.ofEpochMilli(value.toLong())
+            is String -> parseString(value)
+            else -> if (serialize) serializeError(value) else valueError(value)
+        }
+
+    private fun parseString(value: String): Instant {
+        val v = value.trim()
+
+        v.toLongOrNull()?.let { return Instant.ofEpochMilli(it) }
+
+        return runCatching { Instant.parse(v) }.getOrNull()
+            ?: runCatching {
+                LocalDateTime
+                    .parse(v, DateTimeFormatter.ISO_DATE_TIME)
+                    .toInstant(ZoneOffset.UTC)
+            }.getOrNull()
+            ?: throw CoercingParseValueException(
+                "Expected epoch millis or ISO-8601 timestamp but was '$value'"
+            )
+    }
+
+    private fun serializeError(value: Any): Nothing =
+        throw CoercingSerializeException(
+            "Expected Long/Int/String/Instant/LocalDateTime but was ${value::class.java.name}"
+        )
+
+    private fun valueError(value: Any): Nothing =
+        throw CoercingParseValueException(
+            "Expected Long/Int/String/Instant but was ${value::class.java.name}"
+        )
+
+    private fun literalError(value: Any): Nothing =
+        throw CoercingParseLiteralException(
+            "Expected Int, Long or String literal but was $value"
+        )
 }

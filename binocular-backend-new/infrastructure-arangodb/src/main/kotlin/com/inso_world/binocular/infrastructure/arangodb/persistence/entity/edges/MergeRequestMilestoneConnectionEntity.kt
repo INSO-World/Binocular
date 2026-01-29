@@ -10,7 +10,7 @@ import org.springframework.data.annotation.Id
 /**
  * ArangoDB-specific entity for a connection between a MergeRequest and a Milestone.
  */
-@Edge(value = "merge-requests-milestones")
+@Edge(value = "mergeRequests-milestones")
 data class MergeRequestMilestoneConnectionEntity(
     @Id var id: String? = null,
     @From var from: MergeRequestEntity,

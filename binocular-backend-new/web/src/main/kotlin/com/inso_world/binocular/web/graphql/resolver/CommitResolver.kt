@@ -3,20 +3,38 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Stats
+import com.inso_world.binocular.web.graphql.model.CommitFile
+import com.inso_world.binocular.web.graphql.model.CommitFileConnection
+import com.inso_world.binocular.web.graphql.model.Hunk
+import com.inso_world.binocular.web.graphql.model.Sort
+import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.SchemaMapping
+import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.stereotype.Controller
+import java.time.LocalDateTime
 
 @Controller
 class CommitResolver(
     private val commitService: CommitInfrastructurePort,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(CommitResolver::class.java)
+
+    /**
+     * Resolves ownership for a FileInCommit.
+     */
+    @SchemaMapping(typeName = "FileInCommit", field = "ownership")
+    fun ownership(fileInCommit: CommitFile): List<FileOwnership> {
+        val commitId = fileInCommit.commitId ?: return emptyList()
+        val fileId = fileInCommit.file?.id ?: return emptyList()
+        return commitService.findFileOwnershipByCommitAndFile(commitId, fileId)
+    }
 
     /**
      * Resolves the builds field for a Commit in GraphQL.
@@ -45,12 +63,62 @@ class CommitResolver(
      * @return A list of files associated with the commit, or an empty list if the commit ID is null
      */
     @SchemaMapping(typeName = "Commit", field = "files")
-    fun files(commit: Commit): List<File> {
-        val id = commit.id ?: return emptyList()
-        logger.info("Resolving files for commit: $id")
-        // Get all connections for this commit and extract the files
-        return commitService.findFilesByCommitId(id)
+    fun files(commit: Commit, @Argument page: Int?, @Argument perPage: Int?, @Argument sort: Sort?): CommitFileConnection {
+        val currentPage = (page ?: 1).coerceAtLeast(1)
+        val pageSize = perPage ?: 1000
+        if (commit.id == null) {
+            return CommitFileConnection(
+                count = 0,
+                page = currentPage,
+                perPage = pageSize,
+                data = emptyList()
+            )
+        }
+        val id = requireNotNull(commit.id)
+
+        logger.info("Resolving files for commit: $id (page=$page, perPage=$perPage, sort=$sort)")
+
+        val fileStatsById = commitService.findFileStatsByCommitId(id)
+        val fileActionsById = commitService.findFileActionsByCommitId(id)
+
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = currentPage,
+            size = pageSize,
+            sort = sort ?: Sort.DESC,
+            sortBy = "id",
+        )
+        val pageResult = commitService.findFilesByCommitId(id, pageable)
+
+        val data = pageResult.content.map { f ->
+            val stats = f.id?.let { fileStatsById[it] } ?: Stats(additions = 0, deletions = 0)
+            val additions = (stats.additions ?: 0).toInt()
+            val deletions = (stats.deletions ?: 0).toInt()
+            val hunks = listOf(
+                Hunk(
+                    newStart = 1,
+                    newLines = additions,
+                    oldStart = 0,
+                    oldLines = deletions,
+                )
+            )
+            val action = f.id?.let { fileActionsById[it] }
+            CommitFile(
+                file = f,
+                stats = stats,
+                action = action,
+                hunks = hunks,
+                commitId = id,
+            )
+        }
+
+        return CommitFileConnection(
+            count = pageResult.totalElements.toInt(),
+            page = currentPage,
+            perPage = pageSize,
+            data = data
+        )
     }
+
 
     /**
      * Resolves the modules field for a Commit in GraphQL.
@@ -117,15 +185,9 @@ class CommitResolver(
     fun parents(commit: Commit): List<String> {
         val id = commit.id ?: return emptyList()
         logger.info("Resolving parent commits for commit: $id")
-        // Get all connections for this commit and extract the parent commits
+        // Get all parent commits for this commit and return their SHAs
         val parentCommits = commitService.findParentCommitsByChildCommitId(id)
-        // Convert each parent commit to a string representation
-        return parentCommits.map { parentCommit ->
-            val parentId = parentCommit.id ?: "null"
-            val parentSha = parentCommit.sha ?: "null"
-            val parentShortSha = parentCommit.sha?.take(7) ?: "null"
-            "Commit{id: $parentId, sha: $parentSha, shortSha: $parentShortSha}"
-        }
+        return parentCommits.map { it.sha }
     }
 
     /**
@@ -180,6 +242,15 @@ class CommitResolver(
     }
 
     /**
+     * Resolves the date field for a Commit in GraphQL.
+     * commit.commitDateTime => date
+     */
+    @SchemaMapping(typeName = "Commit", field = "date")
+    fun date(commit: Commit): LocalDateTime? {
+        return commit.commitDateTime
+    }
+
+    /**
      * Resolves the user field for a Commit in GraphQL.
      *
      * This method returns the first user associated with the commit.
@@ -192,9 +263,19 @@ class CommitResolver(
     fun user(commit: Commit): User? {
         val id = commit.id ?: return null
         logger.info("Resolving user for commit: $id")
-        // Get all users for this commit and return the first one
+        commit.author?.let {
+            logger.info("Commit $id user resolved to AUTHOR: id=${it.id}, sig=${it.gitSignature}")
+            return it
+        }
+        // should always be author, committer is from the old graphql impl
+        commit.committer?.let {
+            logger.info("Commit $id user resolved to COMMITTER: id=${it.id}, sig=${it.gitSignature}")
+            return it
+        }
         val users = commitService.findUsersByCommitId(id)
-        return users.firstOrNull()
+        val selected = users.firstOrNull()
+        logger.info("Commit $id user resolved to FIRST_ASSOCIATED: id=${selected?.id}, sig=${selected?.gitSignature}")
+        return selected
     }
 
     /**

@@ -1,107 +1,91 @@
-// package com.inso_world.binocular.infrastructure.sql.persistence.dao
-//
-// import com.inso_world.binocular.core.persistence.dao.interfaces.IMergeRequestDao
-// import com.inso_world.binocular.core.persistence.model.Page
-// import com.inso_world.binocular.infrastructure.sql.persistence.entity.MergeRequestEntity
-// import com.inso_world.binocular.infrastructure.sql.persistence.mapper.MergeRequestMapper
-// import com.inso_world.binocular.model.MergeRequest
-// import jakarta.persistence.EntityManager
-// import jakarta.persistence.PersistenceContext
-// import org.springframework.beans.factory.annotation.Autowired
-// import org.springframework.context.annotation.Profile
-// import org.springframework.data.domain.Pageable
-// import org.springframework.stereotype.Repository
-// import org.springframework.transaction.annotation.Transactional
-//
-// @Repository
-// @Transactional
-// class MergeRequestDao(
-//    @Autowired private val mergeRequestMapper: MergeRequestMapper,
-// ) : IMergeRequestDao {
-//    @PersistenceContext
-//    private lateinit var entityManager: EntityManager
-//
-//    override fun findById(id: String): MergeRequest? {
-//        val entity = entityManager.find(MergeRequestEntity::class.java, id) ?: return null
-//        return mergeRequestMapper.toDomain(entity)
-//    }
-//
-//    override fun findAll(): Iterable<MergeRequest> {
-//        val query = entityManager.createQuery("FROM MergeRequestEntity", MergeRequestEntity::class.java)
-//        val entities = query.resultList
-//        return mergeRequestMapper.toDomainList(entities)
-//    }
-//
-//    override fun findAll(pageable: Pageable): Page<MergeRequest> {
-//        val query = entityManager.createQuery("FROM MergeRequestEntity", MergeRequestEntity::class.java)
-//        val countQuery = entityManager.createQuery("SELECT COUNT(m) FROM MergeRequestEntity m", Long::class.java)
-//        val totalElements = countQuery.singleResult
-//
-//        val entities =
-//            query
-//                .setFirstResult(pageable.pageNumber * pageable.pageSize)
-//                .setMaxResults(pageable.pageSize)
-//                .resultList
-//
-//        val content = mergeRequestMapper.toDomainList(entities)
-//        return Page(content, totalElements, pageable)
-//    }
-//
-//    override fun create(entity: MergeRequest): MergeRequest {
-//        val mergeRequestEntity = mergeRequestMapper.toEntity(entity)
-//        entityManager.persist(mergeRequestEntity)
-//        return mergeRequestMapper.toDomain(mergeRequestEntity)
-//    }
-//
-//    override fun update(entity: MergeRequest): MergeRequest {
-//        val mergeRequestEntity = mergeRequestMapper.toEntity(entity)
-//        val mergedEntity = entityManager.merge(mergeRequestEntity)
-//        return mergeRequestMapper.toDomain(mergedEntity)
-//    }
-//
-//    override fun updateAndFlush(entity: MergeRequest): MergeRequest {
-//        val result = update(entity)
-//        entityManager.flush()
-//        return result
-//    }
-//
-//    override fun delete(entity: MergeRequest) {
-//        val mergeRequestEntity = mergeRequestMapper.toEntity(entity)
-//        val managedEntity = entityManager.merge(mergeRequestEntity)
-//        entityManager.remove(managedEntity)
-//    }
-//
-//    override fun deleteById(id: String) {
-//        val entity = entityManager.find(MergeRequestEntity::class.java, id) ?: return
-//        entityManager.remove(entity)
-//    }
-//
-//    /**
-//     * Delete all entities
-//     */
-//    override fun deleteAll() {
-//        val mergeRequests =
-//            entityManager
-//                .createQuery("SELECT m FROM MergeRequestEntity m", MergeRequestEntity::class.java)
-//                .resultList
-//        mergeRequests.forEach { entityManager.remove(it) }
-//    }
-//
-//    /**
-//     * Save an entity (create or update)
-//     * For SQL, this is the same as create or update depending on whether the entity exists
-//     */
-//    override fun save(entity: MergeRequest): MergeRequest {
-//        val mergeRequestEntity = mergeRequestMapper.toEntity(entity)
-//        return if (entityManager.find(MergeRequestEntity::class.java, mergeRequestEntity.id) != null) {
-//            update(entity)
-//        } else {
-//            create(entity)
-//        }
-//    }
-//
-//    /**
-//     * Save multiple entities
-//     */
-//    override fun saveAll(entities: List<MergeRequest>): Iterable<MergeRequest> = entities.map { save(it) }
-// }
+package com.inso_world.binocular.infrastructure.sql.persistence.dao
+
+import com.inso_world.binocular.model.MergeRequest
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import org.springframework.data.domain.Pageable
+import org.springframework.stereotype.Repository
+
+@Repository
+internal class MergeRequestDao {
+
+    @PersistenceContext
+    private lateinit var em: EntityManager
+
+    fun findById(id: String): MergeRequest? =
+        try {
+            em.createNativeQuery("select id, title, state from merge_requests where id = ?1")
+                .setParameter(1, id)
+                .resultList
+                .firstOrNull()
+                ?.let { row ->
+                    val arr = row as Array<*>
+                    MergeRequest(
+                        id = arr[0]?.toString(),
+                        title = arr[1]?.toString(),
+                        state = arr[2]?.toString()
+                    )
+                }
+        } catch (ex: Exception) {
+            null
+        }
+
+    fun findAll(): List<MergeRequest> =
+        em.createNativeQuery("select id, title, state from merge_requests order by id")
+            .resultList
+            .map { row ->
+                val arr = row as Array<*>
+                MergeRequest(
+                    id = arr[0]?.toString(),
+                    title = arr[1]?.toString(),
+                    state = arr[2]?.toString()
+                )
+            }
+
+    fun count(): Long =
+        (em.createNativeQuery("select count(*) from merge_requests").singleResult as Number).toLong()
+
+    fun findAll(pageable: Pageable): List<MergeRequest> =
+        em.createNativeQuery("select id, title, state from merge_requests order by id limit ?1 offset ?2")
+            .setParameter(1, pageable.pageSize)
+            .setParameter(2, pageable.offset.toInt())
+            .resultList
+            .map { row ->
+                val arr = row as Array<*>
+                MergeRequest(
+                    id = arr[0]?.toString(),
+                    title = arr[1]?.toString(),
+                    state = arr[2]?.toString()
+                )
+            }
+
+    fun create(mr: MergeRequest): MergeRequest {
+        em.createNativeQuery("insert into merge_requests (id, title, state, created_at, updated_at) values (?1, ?2, ?3, ?4, ?5)")
+            .setParameter(1, mr.id)
+            .setParameter(2, mr.title)
+            .setParameter(3, mr.state)
+            .setParameter(4, mr.createdAt)
+            .setParameter(5, mr.updatedAt)
+            .executeUpdate()
+        return mr
+    }
+
+    fun update(mr: MergeRequest): MergeRequest {
+        em.createNativeQuery("update merge_requests set title = ?1, state = ?2 where id = ?3")
+            .setParameter(1, mr.title)
+            .setParameter(2, mr.state)
+            .setParameter(3, mr.id)
+            .executeUpdate()
+        return mr
+    }
+
+    fun deleteById(id: String) {
+        em.createNativeQuery("delete from merge_requests where id = ?1")
+            .setParameter(1, id)
+            .executeUpdate()
+    }
+
+    fun deleteAll() {
+        em.createNativeQuery("delete from merge_requests").executeUpdate()
+    }
+}

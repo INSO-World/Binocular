@@ -66,4 +66,23 @@ class NoteResolver(
         // Get all connections for this note and extract the merge requests
         return noteService.findMergeRequestsByNoteId(id)
     }
+
+    /**
+     * Resolves the author field for a Note in GraphQL.
+     *
+     * This method retrieves the author account associated with the given note.
+     * If the note ID is null or no author is associated, null is returned.
+     *
+     * @param note The note for which to retrieve the author
+     * @return The author account associated with the note, or null if none exists
+     */
+    @SchemaMapping(typeName = "Note", field = "author")
+    fun author(note: Note): Account? {
+        val id = note.id ?: return null
+        logger.info("Resolving author for note: $id")
+        // Get all authors for this note and return first as there is only one
+        val accounts = noteService.findAccountsByNoteId(id)
+        return accounts.firstOrNull()
+    }
+
 }
