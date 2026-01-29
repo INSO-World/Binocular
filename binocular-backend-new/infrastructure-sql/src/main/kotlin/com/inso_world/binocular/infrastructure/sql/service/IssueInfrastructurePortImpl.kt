@@ -15,6 +15,7 @@ import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Project
+import jakarta.validation.Valid
 import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -32,42 +33,57 @@ internal class IssueInfrastructurePortImpl(
     AbstractInfrastructurePort<Issue, IssueEntity, Long>(Long::class),
     IssueInfrastructurePort {
 
-    override fun findAccountsByIssueId(issueId: String): List<Account> =
-        linkDao.findAccountIdsByIssueId(issueId).map { Account(id = it) }
+    override fun findAccountsByIssueId(issueId: String): List<Account> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findAccountIdsByIssueId(issueId).map { Account(id = it) }
 
-    override fun findCommitsByIssueId(issueId: String): List<Commit> =
-        linkDao.findCommitIdsByIssueId(issueId).map { cid ->
-            Commit(
-                id = cid,
-                sha = "0".repeat(40),
-                commitDateTime = LocalDateTime.now(),
-                repository = Repository(localPath = "unknown", project = Project(name = "unknown"))
-            )
-        }
+    override fun findCommitsByIssueId(issueId: String): List<Commit> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findCommitIdsByIssueId(issueId).map { cid ->
+//            Commit(
+//                id = cid,
+//                sha = "0".repeat(40),
+//                commitDateTime = LocalDateTime.now(),
+//                repository = Repository(localPath = "unknown", project = Project(name = "unknown"))
+//            )
+//        }
 
-    override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> =
-        // TODO: role filter
-        findAccountsByIssueId(issueId)
+    override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> {
+        TODO("Not yet implemented")
+    }
+//    =
+//         TODO: role filter
+//        findAccountsByIssueId(issueId)
 
-    override fun findMilestonesByIssueId(issueId: String): List<Milestone> =
-        linkDao.findMilestoneIdsByIssueId(issueId).map { Milestone(id = it) }
+    override fun findMilestonesByIssueId(issueId: String): List<Milestone> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findMilestoneIdsByIssueId(issueId).map { Milestone(id = it) }
 
-    override fun findNotesByIssueId(issueId: String): List<Note> =
-        linkDao.findNoteIdsByIssueId(issueId)
-            .mapNotNull { nid -> noteDao.findById(nid) }
+    override fun findNotesByIssueId(issueId: String): List<Note> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findNoteIdsByIssueId(issueId)
+//            .mapNotNull { nid -> noteDao.findById(nid) }
 
-    override fun findUsersByIssueId(issueId: String): List<User> =
-        linkDao.findUserIdsByIssueId(issueId).map { User(id = it) }
+    override fun findUsersByIssueId(issueId: String): List<User> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findUserIdsByIssueId(issueId).map { User(id = it) }
 
     override fun findById(id: String): Issue? = issueDao.findById(id)
+
+    override fun findByIid(iid: Issue.Id): @Valid Issue? {
+        TODO("Not yet implemented")
+    }
 
     override fun update(value: Issue): Issue = issueDao.update(value)
 
     override fun delete(value: Issue) {
         value.id?.let { deleteById(it) }
     }
-
-    override fun updateAndFlush(value: Issue): Issue = update(value)
 
     override fun create(value: Issue): Issue = issueDao.create(value)
 
