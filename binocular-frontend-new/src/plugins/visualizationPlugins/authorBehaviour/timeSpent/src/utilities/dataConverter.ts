@@ -15,7 +15,7 @@ interface TimeSpentChartData {
   [signature: string]: number;
 }
 
-interface TimeTrackingData {
+export interface TimeTrackingData {
   author: DataPluginAccount;
   timeSpent: number;
   createdAt: string;

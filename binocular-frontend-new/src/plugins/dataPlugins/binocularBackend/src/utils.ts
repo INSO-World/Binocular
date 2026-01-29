@@ -1,15 +1,17 @@
 import _ from 'lodash';
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 
 class GraphQL {
   public client;
 
   constructor(endpoint: string) {
     this.client = new ApolloClient({
-      uri: endpoint,
+      link: new HttpLink({
+        uri: endpoint,
+      }),
       cache: new InMemoryCache(),
       defaultOptions: {
-        query: {
+        watchQuery: {
           fetchPolicy: 'no-cache',
         },
       },

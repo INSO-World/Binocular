@@ -66,7 +66,8 @@ function ActivityTimeline({
             col: colIndex,
             value: value,
             tooltip:
-              cellData?.tooltip || `<strong>${d3.timeFormat('%b %d, %Y')(cellDate)}</strong><br/>${value} ${value !== 1 ? 'activities' : 'activity'}`,
+              cellData?.tooltip ||
+              `<strong>${d3.timeFormat('%b %d, %Y')(cellDate)}</strong><br/>${value} ${value !== 1 ? 'activities' : 'activity'}`,
             metadata: { date: new Date(cellDate), isInRange },
           });
         }
