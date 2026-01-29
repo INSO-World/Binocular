@@ -8,6 +8,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
+import jakarta.validation.Valid
 import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -38,6 +39,9 @@ internal class NoteInfrastructurePortImpl(
     }
 
     override fun findById(id: String): Note? = noteDao.findById(id)
+    override fun findByIid(iid: Note.Id): @Valid Note? {
+        TODO("Not yet implemented")
+    }
 
     override fun findAll(): Iterable<Note> = noteDao.findAll()
 
@@ -50,8 +54,6 @@ internal class NoteInfrastructurePortImpl(
     }
 
     override fun update(entity: Note): Note = noteDao.update(entity)
-
-    override fun updateAndFlush(entity: Note): Note = update(entity)
 
     override fun deleteById(id: String) {
         linkDao.deleteLinksByNoteId(id)
