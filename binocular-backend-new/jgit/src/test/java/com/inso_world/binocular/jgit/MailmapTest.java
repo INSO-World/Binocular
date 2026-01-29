@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit;
 
+import com.inso_world.binocular.core.unit.base.BaseUnitTest;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -19,8 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for {@link Mailmap}.
  * Tests parsing of .mailmap files and identity mapping.
  */
-@Tag("unit")
-class MailmapTest {
+class MailmapTest extends BaseUnitTest {
 
     @TempDir
     Path tempDir;

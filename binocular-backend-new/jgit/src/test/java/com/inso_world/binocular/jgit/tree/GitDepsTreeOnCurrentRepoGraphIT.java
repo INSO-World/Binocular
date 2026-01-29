@@ -1,5 +1,6 @@
 package com.inso_world.binocular.jgit.tree;
 
+import com.inso_world.binocular.core.integration.base.BaseIntegrationTest;
 import com.inso_world.binocular.jgit.JGitConfig;
 import com.inso_world.binocular.jgit.JGitGitIndexer;
 import com.inso_world.binocular.model.Branch;
@@ -29,7 +30,7 @@ import java.util.Optional;
  * -Dbinocular.branch=my-branch        (default: main, else master, else first branch)
  * -Dbinocular.commitLimit=250         (default: 250)
  */
-public class GitDepsTreeOnCurrentRepoGraphIT {
+public class GitDepsTreeOnCurrentRepoGraphIT extends BaseIntegrationTest {
 
     @Test
     void writesGraphFileForLocalBranch() throws Exception {
