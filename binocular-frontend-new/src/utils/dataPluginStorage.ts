@@ -14,7 +14,7 @@ export default abstract class DataPluginStorage {
     }
   }
 
-  public static async getDataPlugin(dP: DatabaseSettingsDataPluginType) {
+  public static async getDataPlugin(dP: DatabaseSettingsDataPluginType): Promise<DataPlugin | undefined> {
     if (dP.id !== undefined) {
       const configuredDataPlugin = this.configuredDataPlugins[dP.id];
       if (configuredDataPlugin) {
@@ -30,7 +30,7 @@ export default abstract class DataPluginStorage {
     return undefined;
   }
 
-  private static async createDataPluginObject(dP: DatabaseSettingsDataPluginType) {
+  private static async createDataPluginObject(dP: DatabaseSettingsDataPluginType): Promise<DataPlugin> {
     const dataPlugin = dataPlugins.map((pluginClass) => new pluginClass()).filter((dataPlugin) => dataPlugin.name === dP.name)[0];
     if (dataPlugin && dP.id !== undefined) {
       await dataPlugin.init(

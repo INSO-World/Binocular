@@ -83,8 +83,6 @@ const DashboardItem = memo(function DashboardItem(props: {
       DataPluginStorage.getDataPlugin(selectedDataPlugin)
         .then((newDataPlugin) => {
           if (newDataPlugin) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             setDataPlugin(newDataPlugin);
           }
         })

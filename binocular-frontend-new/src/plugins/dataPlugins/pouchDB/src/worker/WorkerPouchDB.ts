@@ -89,4 +89,8 @@ export class WorkerPouchDB {
   changes(options: PouchDB.Core.ChangesOptions, callback: (change: PouchDB.Core.ChangesResponseChange<any>) => void) {
     return this.send('changes', { options }, callback);
   }
+
+  export() {
+    return this.send('downloadDB');
+  }
 }
