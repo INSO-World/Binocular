@@ -96,8 +96,8 @@ data class UserEntity(
         return User(
             name = this.name,
             repository = repository,
-            email = this.email,
         ).apply {
+            this.email = this@UserEntity.email
             this.id = this@UserEntity.id
         }
     }
