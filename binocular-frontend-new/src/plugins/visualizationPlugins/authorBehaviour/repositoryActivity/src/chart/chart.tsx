@@ -58,10 +58,10 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
   // Effect on data change - convert data to chart format
   useEffect(() => {
     if (showActivityTimeline) {
-      const { chartData: chartData } = convertToActivityTimelineFormat(data, props);
+      const { chartData: chartData } = convertToActivityTimelineFormat(data);
       setChartData(chartData);
     } else {
-      const { chartData: chartData, rowLabels: rowLabels, colLabels: colLabels } = convertToWeeklyFormat(data, props, selectedWeek);
+      const { chartData: chartData, rowLabels: rowLabels, colLabels: colLabels } = convertToWeeklyFormat(data, selectedWeek);
       setChartData(chartData);
       setRowLabels(rowLabels);
       setColLabels(colLabels);
