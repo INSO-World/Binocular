@@ -261,6 +261,19 @@ export default class Database {
   }
 
   /**
+   * VULNERABILITY REMEDIATION TIMES
+   */
+  static async getVulnerabilityRemediationTimeSnapshots(branch, resolution, since, until) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityRemediationTimeSnapshots(branch, resolution, since, until);
+    } else {
+      // PoC: no offline PouchDB version yet
+      return [];
+    }
+  }
+
+
+  /**
    * DATABASE
    */
   static async getDatabase() {

@@ -9,6 +9,7 @@ import changes from '../VisualizationComponents/changes';
 import sprints from '../VisualizationComponents/sprints';
 import timeSpent from '../VisualizationComponents/timeSpent';
 import vulnerabilityAgeBuckets from '../vulnerabilityTrends/vulnerabilityAgeBuckets';
+import vulnerabilityRemediationTimes from '../vulnerabilityTrends/vulnerabilityRemediationTimes';
 
 export default {
   changes,
@@ -20,4 +21,5 @@ export default {
   sprints,
   empty,
   vulnerabilityAgeBuckets,
+  vulnerabilityRemediationTimes,
 };

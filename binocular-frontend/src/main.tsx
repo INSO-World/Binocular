@@ -38,6 +38,7 @@ import timeSpent from './visualizations/VisualizationComponents/timeSpent';
 import codeOwnership from './visualizations/code-ownership';
 import distributionDials from './visualizations/distribution-dials';
 import vulnerabilityAgeBuckets from './visualizations/vulnerabilityTrends/vulnerabilityAgeBuckets';
+import vulnerabilityRemediationTimes from './visualizations/vulnerabilityTrends/vulnerabilityRemediationTimes';
 import RootOffline from './components/RootOffline';
 
 const visualizationModules = [
@@ -55,6 +56,7 @@ const visualizationModules = [
   changes,
   dataExport,
   vulnerabilityAgeBuckets,
+  vulnerabilityRemediationTimes,
 ];
 
 Database.checkBackendConnection().then((connection) => {
