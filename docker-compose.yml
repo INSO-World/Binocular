@@ -44,7 +44,6 @@ services:
       # "--no-ci",
       # "--no-its",
       # "--no-jobs",
-      "--no-frontend",
       "--no-server",
       "/app/binocular/repo/",
     ]
@@ -89,7 +88,7 @@ services:
     command:
       [
         "-c",
-        "npm i && npm i -g tsx ts-node && npm i --include=dev mocha && tsx watch binocular.ts run --no-frontend --no-vcs --no-ci --no-its --no-jobs /app/binocular/repo"
+        "npm i && npm i -g tsx ts-node && npm i --include=dev mocha && tsx watch binocular.ts run --no-vcs --no-ci --no-its --no-jobs /app/binocular/repo"
       ]
     working_dir: "/app/binocular/backend"
     ports:
