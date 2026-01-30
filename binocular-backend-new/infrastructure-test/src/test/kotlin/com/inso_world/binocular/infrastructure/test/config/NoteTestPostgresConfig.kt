@@ -58,6 +58,8 @@ internal class NoteTestPostgresConfig {
 
         override fun findById(id: String): Note? = notes.find { it.id == id }
 
+        override fun findByIid(iid: Note.Id): Note? = notes.find { it.iid == iid }
+
         override fun findAll(): Iterable<Note> = notes
 
         override fun create(entity: Note): Note = entity
@@ -67,8 +69,6 @@ internal class NoteTestPostgresConfig {
         override fun delete(entity: Note) { /* no-op for test */ }
 
         override fun update(entity: Note): Note = entity
-
-        override fun updateAndFlush(entity: Note): Note = entity
 
         override fun deleteById(id: String) { /* no-op for test */ }
 

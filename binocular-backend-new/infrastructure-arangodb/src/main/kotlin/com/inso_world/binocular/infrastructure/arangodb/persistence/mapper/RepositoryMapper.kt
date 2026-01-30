@@ -17,12 +17,12 @@ import org.springframework.stereotype.Component
  *
  * Converts between Repository domain objects and RepositoryEntity persistence entities for ArangoDB.
  * This is a **simple mapper** - it only handles basic conversion without orchestrating
- * child entity mapping. Use assemblers for complete aggregate assembly.
+ * child entity mapping. Use assemblers for complete aggregate assembly if needed.
  *
  * ## Design Principles
  * - **Single Responsibility**: Only converts Repository structure (not children)
  * - **Aggregate Boundaries**: Expects Project already in MappingContext (cross-aggregate reference)
- * - **No Orchestration**: Child entities (Commits, Branches) are mapped by assembler
+ * - **No Orchestration**: Child entities (Commits, Branches) are mapped by assemblers
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. Direct usage
