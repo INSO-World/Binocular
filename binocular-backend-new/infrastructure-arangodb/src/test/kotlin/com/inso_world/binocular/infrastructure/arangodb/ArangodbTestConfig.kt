@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.core.env.Profiles
 import org.springframework.test.context.ContextConfiguration
+import org.testcontainers.utility.DockerImageName
 
 @Configuration
 @ComponentScan("com.inso_world.binocular.infrastructure.arangodb")
@@ -17,8 +18,10 @@ import org.springframework.test.context.ContextConfiguration
 @Import(ArangodbAppConfig::class)
 class ArangodbTestConfig {
     companion object {
+        val adbImage = DockerImageName.parse("ghcr.io/inso-world/binocular-database:3.12.test-data")
+            .asCompatibleSubstituteFor("arangodb")
         val adbContainer =
-            ArangoContainer("arangodb:3.12")
+            ArangoContainer(adbImage)
                 .apply { withExposedPorts(8529) }
                 .apply { withoutAuth() }
                 .apply { withReuse(true) }
