@@ -12,7 +12,7 @@ const RepositoryActivity: VisualizationPlugin<RepositoryActivitySettings, null> 
   chartComponent: Chart,
   settingsComponent: Settings,
   helpComponent: Help,
-  defaultSettings: {},
+  defaultSettings: { showActivityTimeline: true },
   export: {
     getSVGData: () => '<svg></svg>',
   },

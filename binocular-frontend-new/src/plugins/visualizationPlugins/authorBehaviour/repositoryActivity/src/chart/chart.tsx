@@ -12,6 +12,15 @@ import { convertToWeeklyFormat } from '../utilities/weeklyUtils';
 import WeekPicker from './weekPicker';
 import ActivityTimeline from './activityTimeline';
 
+function getMondayOfCurrentWeek(): Date {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  now.setDate(now.getDate() + diff);
+  now.setHours(0, 0, 0, 0);
+  return now;
+}
+
 function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, DataPluginCommit>) {
   type RootState = ReturnType<typeof props.store.getState>;
   type AppDispatch = typeof props.store.dispatch;
@@ -26,7 +35,7 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
   const [chartData, setChartData] = useState<Array<{ date: Date; value: number; tooltip?: string }> | HeatmapCell[]>([]);
   const [rowLabels, setRowLabels] = useState<Array<string>>([]);
   const [colLabels, setColLabels] = useState<Array<string>>([]);
-  const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [selectedWeek, setSelectedWeek] = useState(getMondayOfCurrentWeek());
   const showActivityTimeline = useSelector((state: RootState) => state.plugin.showActivityTimeline);
 
   const weekPickerHeight = 60;
@@ -87,7 +96,7 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
 
   const handleBack = () => {
     dispatch(setShowActivityTimeline(true));
-    setSelectedWeek(new Date());
+    setSelectedWeek(getMondayOfCurrentWeek());
   };
 
   const handleDayCellClick = (cell: HeatmapCell) => {
@@ -98,6 +107,7 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
     const diff = day === 0 ? -6 : 1 - day; // If Sunday, go back 6 days, else go to Monday
     const weekStart = new Date(clickedDate);
     weekStart.setDate(clickedDate.getDate() + diff);
+    weekStart.setHours(0, 0, 0, 0);
     setSelectedWeek(weekStart);
     dispatch(setShowActivityTimeline(false));
   };

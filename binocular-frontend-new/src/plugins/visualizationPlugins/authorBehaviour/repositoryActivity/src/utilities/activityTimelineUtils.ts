@@ -30,7 +30,7 @@ export function convertToActivityTimelineFormat(
     const date = getActivityDate(d);
     if (!date) return;
 
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     const activityType = getActivityType(d);
 
     if (!activityPerDay.has(dateKey)) {
@@ -44,7 +44,8 @@ export function convertToActivityTimelineFormat(
 
   // Convert map to array of objects
   const chartData = Array.from(activityPerDay.entries()).map(([dateStr, dayData]) => {
-    const date = new Date(dateStr);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return {
       date,
       value: dayData.total,
