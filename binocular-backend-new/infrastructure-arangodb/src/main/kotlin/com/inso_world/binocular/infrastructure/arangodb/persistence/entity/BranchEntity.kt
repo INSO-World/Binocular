@@ -6,6 +6,11 @@ import com.arangodb.springframework.annotation.PersistentIndexed
 import com.arangodb.springframework.annotation.Ref
 import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.BranchFileConnectionEntity
+import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Reference
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.springframework.data.annotation.Id
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -22,6 +27,7 @@ import kotlin.uuid.Uuid
  *
  * ### Relationships
  * - [repository]: Owning repository (required)
+ * - [head]: Head commit reference (required)
  * - [files]: Related files via edge collection
  *
  * ### Indexes
@@ -40,9 +46,12 @@ data class BranchEntity(
     var category: String,
     var active: Boolean = false,
     var tracksFileRenames: Boolean = false,
+    @Deprecated("Use head.sha instead")
     var latestCommit: String? = null,
     @Ref(lazy = false)
     val repository: RepositoryEntity,
+    @Ref(lazy = false)
+    val head: CommitEntity,
     @Relations(
         edges = [BranchFileConnectionEntity::class],
         lazy = true,
@@ -50,4 +59,51 @@ data class BranchEntity(
         direction = Relations.Direction.OUTBOUND,
     )
     var files: Set<FileEntity> = emptySet(),
-)
+) {
+
+    @Deprecated("Legacy", replaceWith = ReplaceWith("fullName"))
+    val branch = fullName
+
+    /**
+     * Converts this BranchEntity to a Branch domain object.
+     *
+     * @param repository The repository domain object to associate with the branch
+     * @param head The head commit domain object
+     * @return Branch domain object
+     */
+    fun toDomain(repository: Repository, head: Commit): Branch {
+        return Branch(
+            name = this.name,
+            fullName = this.fullName,
+            category = ReferenceCategory.valueOf(this.category),
+            repository = repository,
+            head = head,
+        ).apply {
+            this.id = this@BranchEntity.id
+            this.active = this@BranchEntity.active
+            this.tracksFileRenames = this@BranchEntity.tracksFileRenames
+        }
+    }
+}
+
+/**
+ * Converts a Branch domain object to BranchEntity.
+ *
+ * @param repository The RepositoryEntity to associate with the branch
+ * @param head The head CommitEntity
+ * @return BranchEntity for persistence
+ */
+@OptIn(ExperimentalUuidApi::class)
+internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
+    BranchEntity(
+        id = this.id,
+        iid = this.iid.value,
+        name = this.name,
+        fullName = this.fullName,
+        category = this.category.name,
+        active = this.active,
+        tracksFileRenames = this.tracksFileRenames,
+        latestCommit = this.head.sha,
+        repository = repository,
+        head = head,
+    )

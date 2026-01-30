@@ -16,12 +16,30 @@ import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
 import org.springframework.data.annotation.Id
+import java.time.LocalDateTime
 import java.util.Date
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
  * ArangoDB-specific Commit entity.
+ *
+ * Represents the persistence layer for the [Commit][com.inso_world.binocular.model.Commit] domain object.
+ *
+ * ### Identity Mapping
+ * - [id]: ArangoDB internal document ID (_key)
+ * - [iid]: Domain immutable identity (UUID)
+ * - [sha]: Business key (unique SHA-1 hash)
+ *
+ * ### Relationships
+ * - [repository]: Owning repository (required)
+ * - [author]: The developer who authored the commit
+ * - [committer]: The developer who committed the code
+ * - [parents]: Parent commits via edge collection
+ * - [children]: Child commits via edge collection
+ *
+ * ### Indexes
+ * - [sha]: Unique persistent index for SHA-based lookups
  */
 @OptIn(ExperimentalUuidApi::class)
 @Document(collection = "commits")
@@ -31,11 +49,21 @@ data class CommitEntity(
     @PersistentIndexed(unique = true)
     var sha: String,
     var iid: Uuid,
+    var authorDateTime: LocalDateTime,
+    var commitDateTime: LocalDateTime,
+    @Deprecated("Use authorDateTime/commitDateTime instead")
     var date: Date? = null,
     var message: String? = null,
     var webUrl: String? = null,
+    @Deprecated("do not use")
     var branch: String? = null,
     var stats: StatsEntity? = null,
+    @Ref(lazy = false)
+    val author: DeveloperEntity,
+    @Ref(lazy = false)
+    val committer: DeveloperEntity,
+    @Ref(lazy = false)
+    val repository: RepositoryEntity,
     @Relations(
         edges = [CommitCommitConnectionEntity::class],
         lazy = true,
@@ -85,10 +113,48 @@ data class CommitEntity(
         direction = Relations.Direction.INBOUND
     )
     var issues: List<IssueEntity> = emptyList(),
-    @Ref(lazy = false)
-    val repository: RepositoryEntity
-)
+) {
+    /**
+     * Converts this CommitEntity to a Commit domain object.
+     *
+     * @param repository The repository domain object
+     * @param author The author Developer domain object
+     * @param committer The committer Developer domain object
+     * @return Commit domain object
+     */
+    fun toDomain(
+        repository: Repository,
+        author: Developer,
+        committer: Developer,
+    ): Commit {
+        val authorSignature = Signature(developer = author, timestamp = authorDateTime)
+        val committerSignature =
+            if (committer == author && commitDateTime == authorDateTime) {
+                authorSignature
+            } else {
+                Signature(developer = committer, timestamp = commitDateTime)
+            }
+        return Commit(
+            sha = this.sha,
+            authorSignature = authorSignature,
+            committerSignature = committerSignature,
+            repository = repository,
+            message = this.message,
+        ).apply {
+            this.id = this@CommitEntity.id
+            this.webUrl = this@CommitEntity.webUrl
+        }
+    }
+}
 
+/**
+ * Converts a Commit domain object to CommitEntity.
+ *
+ * @param repository The RepositoryEntity
+ * @param author The author DeveloperEntity
+ * @param committer The committer DeveloperEntity
+ * @return CommitEntity for persistence
+ */
 @OptIn(ExperimentalUuidApi::class)
 internal fun Commit.toEntity(
     repository: RepositoryEntity,
@@ -98,15 +164,13 @@ internal fun Commit.toEntity(
     CommitEntity(
         iid = this.iid.value,
         sha = this.sha,
-//        authorDateTime = this.authorSignature.timestamp,
-//        commitDateTime = (this.committerSignature ?: this.authorSignature).timestamp,
+        authorDateTime = this.authorSignature.timestamp,
+        commitDateTime = this.committerSignature.timestamp,
         message = this.message,
         webUrl = this.webUrl,
         repository = repository,
-//        parents = mutableSetOf(),
-//        children = mutableSetOf(),
-//        author = author,
-//        committer = committer,
+        author = author,
+        committer = committer,
     ).apply {
         this.id = this@toEntity.id?.trim()
     }
