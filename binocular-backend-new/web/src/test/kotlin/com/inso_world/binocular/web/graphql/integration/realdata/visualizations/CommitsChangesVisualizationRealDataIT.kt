@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
-class CommitsChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class CommitsChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `commits query returns expected real data snapshot for first item`() {

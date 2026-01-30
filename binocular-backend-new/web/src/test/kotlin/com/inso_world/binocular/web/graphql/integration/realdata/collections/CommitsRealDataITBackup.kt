@@ -5,7 +5,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class CommitsRealDataITBackup : BaseGraphQlCompatibilityIT() {
+internal class CommitsRealDataITBackup : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `should execute a simple commits query`() {
