@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class BranchFileFileConnectionDao
+internal class BranchFileFileConnectionDao
     @Autowired
     constructor(
         private val repository: BranchFileFileConnectionRepository,

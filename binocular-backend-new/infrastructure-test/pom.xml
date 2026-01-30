@@ -35,6 +35,13 @@
         </dependency>
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
+            <artifactId>domain</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <classifier>tests</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.inso-world.binocular</groupId>
             <artifactId>ffi</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -92,13 +99,13 @@
 
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>test</scope>
+            <artifactId>testcontainers-postgresql</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.goodforgod</groupId>
             <artifactId>arangodb-testcontainer</artifactId>
-            <version>${arangodb-testcontainer.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

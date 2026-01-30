@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
 @Component
-class AccountMapper
+internal class AccountMapper
     @Autowired
     constructor(
         private val proxyFactory: RelationshipProxyFactory,
@@ -64,13 +64,7 @@ class AccountMapper
                         (entity.notes ?: emptyList()).map { noteEntity ->
                             noteMapper.toDomain(noteEntity)
                         }
-                    },
-                users =
-                    proxyFactory.createLazyList {
-                        (entity.users ?: emptyList()).map { userEntity ->
-                            userMapper.toDomain(userEntity)
-                        }
-                    },
+                    }
             )
 
         /**

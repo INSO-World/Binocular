@@ -6,7 +6,9 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,10 +16,12 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class BranchInfrastructurePortImpl : BranchInfrastructurePort { 
-    @Autowired private lateinit var branchDao: IBranchDao
+class BranchInfrastructurePortImpl : BranchInfrastructurePort {
+    @Autowired
+    private lateinit var branchDao: IBranchDao
 
-    @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
+    @Autowired
+    private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
     var logger: Logger = LoggerFactory.getLogger(BranchInfrastructurePortImpl::class.java)
 
     override fun findAll(pageable: Pageable): Page<Branch> {
@@ -28,6 +32,10 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
     override fun findById(id: String): Branch? {
         logger.trace("Getting branch by id: $id")
         return branchDao.findById(id)
+    }
+
+    override fun findByIid(iid: Reference.Id): @Valid Branch? {
+        TODO("Not yet implemented")
     }
 
     override fun findFilesByBranchId(branchId: String): List<File> {
@@ -49,10 +57,6 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
     override fun delete(entity: Branch) = this.branchDao.delete(entity)
 
     override fun update(entity: Branch): Branch {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: Branch): Branch {
         TODO("Not yet implemented")
     }
 

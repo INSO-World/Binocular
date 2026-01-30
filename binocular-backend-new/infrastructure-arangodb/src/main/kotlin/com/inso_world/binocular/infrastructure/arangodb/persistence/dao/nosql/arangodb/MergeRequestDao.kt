@@ -12,7 +12,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 
 @Repository
-class MergeRequestDao(
+internal class MergeRequestDao(
     @Autowired private val mergeRequestRepository: MergeRequestRepository,
     @Autowired private val mergeRequestMapper: MergeRequestMapper,
 ) : MappedArangoDbDao<MergeRequest, MergeRequestEntity, String>(mergeRequestRepository, mergeRequestMapper),

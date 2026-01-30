@@ -8,7 +8,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges
 import org.springframework.stereotype.Repository
 
 @Repository
-interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnectionEntity, String> {
+internal interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnectionEntity, String> {
     @Query(
         """
     FOR c IN `issues-accounts`

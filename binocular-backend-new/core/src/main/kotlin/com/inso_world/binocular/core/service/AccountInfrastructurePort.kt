@@ -9,9 +9,16 @@ import com.inso_world.binocular.model.User
 /**
  * Interface for AccountService.
  * Provides methods to retrieve accounts and their related entities.
+ *
+ * @deprecated Use [ProjectInfrastructurePort] instead. Account is part of the Project aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface AccountInfrastructurePort : BinocularInfrastructurePort<Account> {
-
+@Deprecated(
+    message = "Use ProjectInfrastructurePort instead. Account is part of the Project aggregate.",
+    replaceWith = ReplaceWith("ProjectInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface AccountInfrastructurePort : BinocularInfrastructurePort<Account, Account.Id> {
     /**
      * Find issues by account ID.
      *

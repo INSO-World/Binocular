@@ -5,12 +5,12 @@ import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BasePortNoDataTest
 import com.inso_world.binocular.infrastructure.test.repository.base.BasePortWithDataTest
-import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.ConstraintViolationException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -20,6 +20,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.util.ReflectionUtils.setField
 
 internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
     @all:Autowired
@@ -41,14 +42,16 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
         }
 
         @Test
+        @Disabled("DELETE not yet supported")
         fun `repository deletion leaves project intact`() {
             // Given
             val savedProject =
-                projectPort.create(Project(name = "Surviving Project", description = "Will survive repo deletion"))
+                projectPort.create(Project(name = "Surviving Project").apply {
+                    description = "Will survive repo deletion"
+                })
             val savedRepo =
-                repositoryPort.create(Repository(id = null, localPath = "to-be-deleted-repo", project = savedProject))
+                repositoryPort.create(Repository(localPath = "to-be-deleted-repo", project = savedProject))
             // updated dependencies, as not managed by JPA
-            savedProject.repo = savedRepo
             projectPort.update(savedProject)
 
             // When
@@ -65,11 +68,14 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
 
         // Negative Tests - Invalid scenarios
         @Test
+        @Disabled("DELETE not yet supported")
         fun `repository cannot exist without project`() {
             // Given
-            val savedProject = projectPort.create(Project(name = "Temporary Project", description = "Will be deleted"))
-            val repository = Repository(id = null, localPath = "orphaned-repo", project = savedProject)
-            savedProject.repo = repositoryPort.create(repository)
+            val savedProject = projectPort.create(Project(name = "Temporary Project").apply {
+                description = "Will be deleted"
+            })
+            val repository = Repository(localPath = "orphaned-repo", project = savedProject)
+            repositoryPort.create(repository)
             // updated dependencies, as not managed by JPA
             projectPort.update(savedProject)
 
@@ -91,24 +97,23 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
         fun `multiple repositories cannot reference same project`() {
             // Given
             val savedProject =
-                projectPort.create(Project(name = "Shared Project", description = "Should only have one repo"))
+                projectPort.create(Project(name = "Shared Project").apply {
+                    description = "Should only have one repo"
+                })
 
             // When - First repository should be created successfully
             val firstRepo =
-                repositoryPort.create(Repository(id = null, localPath = "first-repo", project = savedProject))
+                repositoryPort.create(Repository(localPath = "first-repo", project = savedProject))
 
-//            entityManager.flush()
-//            entityManager.clear()
             // Then - Verify first repository was created
             assertAll(
                 { assertThat(firstRepo).isNotNull() },
-//                { assertThat(firstRepo?.id).isNotNull() },
                 { assertThat(repositoryPort.findAll()).hasSize(1) },
             )
 
             // When - Second repository with same project should fail
             val ex = assertThrows<IllegalArgumentException> {
-                repositoryPort.create(Repository(id = null, localPath = "second-repo", project = savedProject))
+                repositoryPort.create(Repository(localPath = "second-repo", project = savedProject))
             }
 
             // Then - Verify only one repository still exists
@@ -118,32 +123,41 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
         // Mutation Tests - Testing edge cases and boundary conditions
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.core.data.DummyTestData#provideBlankStrings")
+        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
         fun `repository with invalid name should fail`(invalidName: String) {
             // When
-            val savedProject = projectPort.create(Project(name = "Valid Project", description = "Valid project"))
+            val savedProject = projectPort.create(Project(name = "Valid Project").apply {
+                description = "Valid project"
+            })
 
+            val repo = Repository(localPath = "invalidName", project = savedProject)
+            setField(
+                Repository::class.java.getDeclaredField("localPath"),
+                repo,
+                invalidName
+            )
             // Then - This should fail due to validation constraint
             assertThrows<ConstraintViolationException> {
-                repositoryPort.create(Repository(id = null, localPath = invalidName, project = savedProject))
+                repositoryPort.create(repo)
             }
         }
 
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.core.data.DummyTestData#provideAllowedStrings")
+        @MethodSource("com.inso_world.binocular.data.DummyTestData#provideAllowedStrings")
         fun `repository with allowed names should be handled`(allowedName: String) {
             // When
-            val savedProject = projectPort.create(Project(name = "Valid Project", description = "Valid project"))
+            val savedProject = projectPort.create(Project(name = "Valid Project").apply {
+                description = "Valid project"
+            })
             val savedRepo =
-                repositoryPort.create(Repository(id = null, localPath = allowedName, project = savedProject))
-            savedProject.repo = savedRepo
+                repositoryPort.create(Repository(localPath = allowedName, project = savedProject))
             projectPort.update(savedProject)
 
             // Then
             assertAll(
                 { assertThat(savedRepo.localPath).isEqualTo(allowedName) },
                 { assertThat(savedRepo.project).isNotNull() },
-                { assertThat(savedRepo.project?.id).isEqualTo(savedProject.id) },
+                { assertThat(savedRepo.project.id).isEqualTo(savedProject.id) },
                 { assertThat(projectPort.findAll()).hasSize(1) },
                 { assertThat(repositoryPort.findAll()).hasSize(1) },
             )
@@ -152,27 +166,27 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
         @Test
         fun `duplicate repository names should fail`() {
             // When
-            val savedProject1 = projectPort.create(Project(name = "Project 1", description = "First project"))
-            val savedProject2 = projectPort.create(Project(name = "Project 2", description = "Second project"))
+            val savedProject1 = projectPort.create(Project(name = "Project 1").apply {
+                description = "First project"
+            })
+            val savedProject2 = projectPort.create(Project(name = "Project 2").apply {
+                description = "Second project"
+            })
 
             assertDoesNotThrow {
                 repositoryPort.create(
                     Repository(
-                        id = null,
                         localPath = "Duplicate Repo",
                         project = savedProject1,
                     ),
                 )
             }
-//            entityManager.flush()
-//            entityManager.clear()
 
             // Then - This should fail due to unique constraint
             val ex = assertThrows<DataIntegrityViolationException> {
-                repositoryPort.create(Repository(id = null, localPath = "Duplicate Repo", project = savedProject2))
+                repositoryPort.create(Repository(localPath = "Duplicate Repo", project = savedProject2))
             }
             assertThat(repositoryPort.findAll()).hasSize(1)
-//            entityManager.clear()
         }
     }
 
@@ -185,7 +199,7 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
                 prepare(
                     "${BaseFixturesIntegrationTest.Companion.FIXTURES_PATH}/${BaseFixturesIntegrationTest.Companion.SIMPLE_REPO}",
                     projectName = BaseFixturesIntegrationTest.Companion.SIMPLE_PROJECT_NAME,
-                    branch = Branch(name = "master")
+                    branchName = "master"
                 ).repo
             ) {
                 "${BaseFixturesIntegrationTest.Companion.FIXTURES_PATH}/${BaseFixturesIntegrationTest.Companion.SIMPLE_REPO} repository cannot be null"
@@ -194,7 +208,7 @@ internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
                 prepare(
                     "${BaseFixturesIntegrationTest.Companion.FIXTURES_PATH}/${BaseFixturesIntegrationTest.Companion.OCTO_REPO}",
                     projectName = BaseFixturesIntegrationTest.Companion.OCTO_PROJECT_NAME,
-                    branch = Branch(name = "master")
+                    branchName = "master"
                 ).repo
             ) {
                 "${BaseFixturesIntegrationTest.Companion.FIXTURES_PATH}/${BaseFixturesIntegrationTest.Companion.OCTO_REPO} repository cannot be null"

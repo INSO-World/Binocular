@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository
  * ArangoDB implementation of IAccountUserConnectionDao.
  */
 @Repository
-class AccountUserConnectionDao
+internal class AccountUserConnectionDao
     @Autowired
     constructor(
         private val repository: AccountUserConnectionRepository,

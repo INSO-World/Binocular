@@ -7,18 +7,20 @@ import com.inso_world.binocular.model.Repository
 import java.util.stream.Stream
 
 internal interface ICommitDao : IDao<CommitEntity, Long> {
+    fun findByIid(iid: com.inso_world.binocular.model.Commit.Id): CommitEntity?
+
     fun findExistingSha(
         repository: Repository,
-        shas: List<String>,
+        shas: Collection<String>,
     ): Iterable<CommitEntity>
 
     // TODO branch should be required!
     fun findHeadForBranch(
-        repository: Repository,
+        repository: RepositoryEntity,
         branch: String,
     ): CommitEntity?
 
-    fun findAllLeafCommits(repository: Repository): Iterable<CommitEntity>
+    fun findAllLeafCommits(repository: RepositoryEntity): Iterable<CommitEntity>
 
     fun findBySha(
 //        TODO change to repository: Repository, after refactoring @Commit

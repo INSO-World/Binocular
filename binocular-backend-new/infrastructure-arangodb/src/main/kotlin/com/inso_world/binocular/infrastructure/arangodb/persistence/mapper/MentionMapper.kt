@@ -1,18 +1,41 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MentionEntity
 import com.inso_world.binocular.model.Mention
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.util.Date
 
+/**
+ * Mapper for Mention value objects.
+ *
+ * Converts between Mention domain value objects and MentionEntity persistence entities for ArangoDB.
+ * Mentions represent references to commits within issues or merge requests.
+ *
+ * ## Design Principles
+ * - **Value Object**: Mention is a value object typically embedded within Issue
+ * - **Date Conversion**: Converts between LocalDateTime and Date for ArangoDB storage
+ * - **Context Management**: Uses MappingContext to prevent duplicate mappings
+ *
+ * ## Usage
+ * This mapper is primarily used by IssueMapper to convert mentions within issue entities.
+ */
 @Component
-class MentionMapper
-constructor(
-) : EntityMapper<Mention, MentionEntity> {
+internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
+
+    @Autowired
+    private lateinit var ctx: MappingContext
+
     /**
-     * Converts a domain Job to an ArangoDB JobEntity
+     * Converts a Mention value object to MentionEntity.
+     *
+     * Maps commit SHA reference, creation timestamp, and whether the mention closes an issue.
+     *
+     * @param domain The Mention value object to convert
+     * @return The MentionEntity with commit reference and metadata
      */
     override fun toEntity(domain: Mention): MentionEntity =
         MentionEntity(
@@ -21,14 +44,25 @@ constructor(
             closes = domain.closes
         )
 
-    //TODO: add java documentation
-    override fun toDomain(entity: MentionEntity): Mention =
-        Mention(
+    /**
+     * Converts a MentionEntity to Mention value object.
+     *
+     * Converts the creation timestamp from Date to LocalDateTime.
+     *
+     * @param entity The MentionEntity to convert
+     * @return The Mention value object with commit reference and metadata
+     */
+    override fun toDomain(entity: MentionEntity): Mention {
+        // Fast-path: Check if already mapped
+        ctx.findDomain<Mention, MentionEntity>(entity)?.let { return it }
+
+        return Mention(
             commit = entity.commit,
-            createdAt = entity.createdAt?.toInstant()
-                ?.atZone(ZoneOffset.UTC)
-                ?.toLocalDateTime(),
+            createdAt =
+                entity.createdAt?.toInstant()
+                    ?.atZone(ZoneOffset.UTC)
+                    ?.toLocalDateTime(),
             closes = entity.closes
         )
-
+    }
 }

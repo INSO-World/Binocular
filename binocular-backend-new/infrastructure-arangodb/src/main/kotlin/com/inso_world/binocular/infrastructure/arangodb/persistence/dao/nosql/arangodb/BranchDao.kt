@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class BranchDao(
+internal class BranchDao(
     @Autowired private val branchRepository: BranchRepository,
     @Autowired private val branchMapper: BranchMapper,
 ) : MappedArangoDbDao<Branch, BranchEntity, String>(branchRepository, branchMapper),

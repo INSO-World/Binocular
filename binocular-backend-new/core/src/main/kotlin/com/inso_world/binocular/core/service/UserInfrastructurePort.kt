@@ -9,8 +9,16 @@ import com.inso_world.binocular.model.User
 /**
  * Interface for UserService.
  * Provides methods to retrieve users and their related entities.
+ *
+ * @deprecated Use [RepositoryInfrastructurePort] instead. User is part of the Repository aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface UserInfrastructurePort : BinocularInfrastructurePort<User> {
+@Deprecated(
+    message = "Use RepositoryInfrastructurePort instead. User is part of the Repository aggregate.",
+    replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface UserInfrastructurePort : BinocularInfrastructurePort<User, User.Id> {
     /**
      * Find commits by user ID.
      *

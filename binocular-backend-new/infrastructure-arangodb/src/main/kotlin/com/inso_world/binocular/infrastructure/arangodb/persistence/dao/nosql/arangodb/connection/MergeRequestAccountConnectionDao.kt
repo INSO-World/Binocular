@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class MergeRequestAccountConnectionDao
+internal class MergeRequestAccountConnectionDao
     @Autowired
     constructor(
         private val repository: MergeRequestAccountConnectionRepository,
