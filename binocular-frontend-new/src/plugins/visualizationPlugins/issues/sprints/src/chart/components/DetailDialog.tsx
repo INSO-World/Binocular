@@ -1,6 +1,6 @@
 import * as React from 'react';
-import type { AuthorType } from '../../../../../../types/data/authorType';
-import { extractTimeTrackingDataFromNotes } from '../../../../authorBehaviour/timeSpent/src/utilities/dataConverter';
+import type { AuthorType } from '../../../../../../../types/data/authorType';
+import { extractTimeTrackingDataFromNotes } from '../../../../../authorBehaviour/timeSpent/src/utilities/dataConverter';
 import { aggregateTimeTrackingData } from '../helper/aggregateTimeTrackingData';
 import type { MappedDataPluginIssue, MappedDataPluginMergeRequest, MappedSprint } from '../types';
 import { groupBy } from 'lodash';

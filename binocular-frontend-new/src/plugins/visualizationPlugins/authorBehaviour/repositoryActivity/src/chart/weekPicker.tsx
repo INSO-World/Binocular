@@ -187,9 +187,6 @@ export default function WeekPicker({ onChange, onBack, initialWeek }: WeekPicker
 
               <div className="grid grid-cols-3 gap-1.5 max-h-96 overflow-y-auto">
                 {weeks.map((week: Week, index: number) => {
-                  const isCurrentMonth =
-                    week.start.getMonth() === currentMonth.getMonth() || week.end.getMonth() === currentMonth.getMonth();
-
                   return (
                     <button
                       key={index}
@@ -197,9 +194,7 @@ export default function WeekPicker({ onChange, onBack, initialWeek }: WeekPicker
                       className={`px-2 py-1.5 rounded text-center transition-all text-xs ${
                         isSameWeek(week.start, selectedWeek)
                           ? 'bg-blue-500 text-white shadow-md'
-                          : isCurrentMonth
-                            ? 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                            : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                       }`}>
                       <div className="font-medium leading-tight">{formatWeek(week)}</div>
                     </button>

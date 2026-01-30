@@ -1,9 +1,9 @@
 import * as React from 'react';
-import type { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
+import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
 import * as d3 from 'd3';
 import type { BurndownSettings } from '../settings/settings';
 import moment, { type Moment, type unitOfTime } from 'moment';
-import type { SprintType } from '../../../../../types/data/sprintType';
+import type { SprintType } from '../../../../../../types/data/sprintType';
 import { SprintAreas } from '../../../sprints/src/chart/components/SprintAreas';
 import { BurndownChartYAxisLegend } from './components/BurndownChartYAxisLegend';
 import { BurndownChartXAxisLegend } from './components/BurndownChartXAxisLegend';

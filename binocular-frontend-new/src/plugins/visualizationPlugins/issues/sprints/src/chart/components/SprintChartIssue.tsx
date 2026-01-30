@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import * as React from 'react';
-import type { AuthorType } from '../../../../../../types/data/authorType';
-import { extractTimeTrackingDataFromNotes } from '../../../../authorBehaviour/timeSpent/src/utilities/dataConverter';
+import type { AuthorType } from '../../../../../../../types/data/authorType';
+import { extractTimeTrackingDataFromNotes } from '../../../../../authorBehaviour/timeSpent/src/utilities/dataConverter';
 import type { SprintSettings } from '../../settings/settings';
 import { margin } from '../SprintChart';
 import { findAuthorWithMaxSpentTime } from '../helper/findAuthorWithMaxSpentTime';
