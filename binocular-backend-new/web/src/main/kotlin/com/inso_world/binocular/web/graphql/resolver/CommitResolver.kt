@@ -8,6 +8,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.Stats
+import com.inso_world.binocular.model.toLegacyUser
 import com.inso_world.binocular.web.graphql.model.CommitFile
 import com.inso_world.binocular.web.graphql.model.CommitFileConnection
 import com.inso_world.binocular.web.graphql.model.Hunk
@@ -263,14 +264,14 @@ class CommitResolver(
     fun user(commit: Commit): User? {
         val id = commit.id ?: return null
         logger.info("Resolving user for commit: $id")
-        commit.author?.let {
+        commit.author.let {
             logger.info("Commit $id user resolved to AUTHOR: id=${it.id}, sig=${it.gitSignature}")
-            return it
+            return it.toLegacyUser()
         }
         // should always be author, committer is from the old graphql impl
-        commit.committer?.let {
+        commit.committer.let {
             logger.info("Commit $id user resolved to COMMITTER: id=${it.id}, sig=${it.gitSignature}")
-            return it
+            return it.toLegacyUser()
         }
         val users = commitService.findUsersByCommitId(id)
         val selected = users.firstOrNull()
