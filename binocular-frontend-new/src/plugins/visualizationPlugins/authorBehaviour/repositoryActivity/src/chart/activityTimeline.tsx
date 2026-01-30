@@ -25,7 +25,7 @@ function ActivityTimeline({
     const dataMap = new Map<string, { value: number; tooltip?: string }>();
     data.forEach((item) => {
       if (!item.date) return; // Skip items without a date (e.g., during view transition)
-      const dateStr = item.date.toISOString().split('T')[0];
+      const dateStr = `${item.date.getFullYear()}-${String(item.date.getMonth() + 1).padStart(2, '0')}-${String(item.date.getDate()).padStart(2, '0')}`;
       dataMap.set(dateStr, { value: item.value, tooltip: item.tooltip });
     });
 
@@ -53,7 +53,7 @@ function ActivityTimeline({
 
       for (let day = 0; day < 7; day++) {
         const cellDate = new Date(currentDate);
-        const dateStr = cellDate.toISOString().split('T')[0];
+        const dateStr = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
         const cellData = dataMap.get(dateStr);
 
         const isInRange = cellDate >= startDate && cellDate <= endDate;
