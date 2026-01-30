@@ -24,68 +24,20 @@ internal fun <T : Any, I : Serializable> AbstractInfrastructurePort<T, I>.delete
 
 // Extension functions for specific implementation classes
 // These are needed because the implementations don't extend AbstractInfrastructurePort
-
-@Transactional
-internal fun CommitInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
+@Deprecated("should use AbstractInfrastructurePort<T, I>.deleteAllEntities")
 @Transactional
 internal fun AccountInfrastructurePortImpl.deleteAllEntities() {
     this.deleteAll()
 }
 
+@Deprecated("should use AbstractInfrastructurePort<T, I>.deleteAllEntities")
 @Transactional
 internal fun BranchInfrastructurePortImpl.deleteAllEntities() {
     this.deleteAll()
 }
 
-@Transactional
-internal fun BuildInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun FileInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
+@Deprecated("should use AbstractInfrastructurePort<T, I>.deleteAllEntities")
 @Transactional
 internal fun IssueInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun MergeRequestInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun MilestoneInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun ModuleInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun NoteInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun UserInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun ProjectInfrastructurePortImpl.deleteAllEntities() {
-    this.deleteAll()
-}
-
-@Transactional
-internal fun RepositoryInfrastructurePortImpl.deleteAllEntities() {
     this.deleteAll()
 }
