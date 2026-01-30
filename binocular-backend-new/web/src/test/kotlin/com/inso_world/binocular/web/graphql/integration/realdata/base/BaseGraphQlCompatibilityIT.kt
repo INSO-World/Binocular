@@ -1,6 +1,9 @@
 package com.inso_world.binocular.web.graphql.integration.realdata.base
 
+import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import com.inso_world.binocular.web.BinocularWebApplication
+import com.inso_world.binocular.web.base.AbstractWebIntegrationTest
 import com.inso_world.binocular.web.graphql.integration.realdata.base.legacy.LegacyHttpGraphQlClient
 import com.inso_world.binocular.web.graphql.integration.realdata.base.spring.SpringTesterGraphQlClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,13 +18,14 @@ import org.springframework.graphql.test.tester.GraphQlTester
   classes = [BinocularWebApplication::class],
   webEnvironment = SpringBootTest.WebEnvironment.MOCK
 )
-abstract class BaseGraphQlCompatibilityIT {
+internal abstract class BaseGraphQlCompatibilityIT : AbstractWebIntegrationTest() {
 
   companion object {
     private const val DEFAULT_TARGET = "spring"
     private const val TARGET_LEGACY = "legacy"
     private const val TARGET_SPRING = "spring"
     private const val DEFAULT_LEGACY_URL = "http://[::1]:8080/graphQl"
+      val logger by logger()
   }
 
   @Autowired
@@ -51,6 +55,6 @@ abstract class BaseGraphQlCompatibilityIT {
     System.getProperty("graphql.legacy.url", DEFAULT_LEGACY_URL)
 
   private fun log(message: String) =
-    println("[GRAPHQL-IT] $message")
+    logger.info("[GRAPHQL-IT] $message")
 
 }

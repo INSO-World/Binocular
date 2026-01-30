@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
-class CommitsCommitByFileCVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class CommitsCommitByFileCVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `page 1 commits summary returns expected snapshot header items`() {
