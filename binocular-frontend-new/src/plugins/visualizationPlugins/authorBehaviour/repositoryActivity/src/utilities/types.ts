@@ -55,33 +55,27 @@ export type AnyActivityDataPlugin =
   | DataPluginNote
   | DataPluginBranch;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isDataPluginCommit(d: any): d is DataPluginCommit {
+export function isDataPluginCommit(d: AnyActivityDataPlugin): d is DataPluginCommit {
   return d && typeof d === 'object' && 'sha' in d && 'messageHeader' in d && 'stats' in d;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isDataPluginBuild(d: any): d is DataPluginBuild {
+export function isDataPluginBuild(d: AnyActivityDataPlugin): d is DataPluginBuild {
   return d && typeof d === 'object' && 'status' in d && 'webUrl' in d;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isDataPluginIssue(d: any): d is DataPluginIssue {
+export function isDataPluginIssue(d: AnyActivityDataPlugin): d is DataPluginIssue {
   return d && typeof d === 'object' && 'iid' in d && 'title' in d && 'state' in d && !('mergedAt' in d);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isDataPluginMergeRequest(d: any): d is DataPluginMergeRequest {
+export function isDataPluginMergeRequest(d: AnyActivityDataPlugin): d is DataPluginMergeRequest {
   return d && typeof d === 'object' && 'iid' in d && 'title' in d && 'mergedAt' in d;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isDataPluginNote(d: any): d is DataPluginNote {
+export function isDataPluginNote(d: AnyActivityDataPlugin): d is DataPluginNote {
   return d && typeof d === 'object' && 'body' in d && 'noteableType' in d;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isDataPluginBranch(d: any): d is DataPluginBranch {
+export function isDataPluginBranch(d: AnyActivityDataPlugin): d is DataPluginBranch {
   return d && typeof d === 'object' && 'branch' in d && 'active' in d;
 }
 

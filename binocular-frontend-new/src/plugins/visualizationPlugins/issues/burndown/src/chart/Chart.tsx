@@ -1,17 +1,16 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, type IssuesState } from '../reducer';
-import type { SprintSettings } from '../settings/settings.tsx';
-import { handelPopoutResizing } from '../../../../utils/resizing.ts';
-import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
-import { SprintChart } from './SprintChart.tsx';
-import type { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
-import { getDataSlice } from '../../../simpleVisualizationPlugin/src/reducer/index.ts';
-import moment from 'moment';
+import type { BurndownSettings } from '../settings/settings.tsx';
+import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
+import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import { getDataSlice } from '../../../../simpleVisualizationPlugin/src/reducer';
+import moment, { type unitOfTime } from 'moment';
 import * as React from 'react';
-import { groupSimilarLabels } from './helper/groupSimilarLabels.ts';
+import { BurndownChart } from './BurndownChart.tsx';
 
-const Chart = (props: VisualizationPluginProperties<SprintSettings, DataPluginIssue>) => {
+const Chart = (props: VisualizationPluginProperties<BurndownSettings, DataPluginIssue>) => {
   /*
    * Creating Dispatch and Root State for interaction with the reducer State
    */
@@ -28,7 +27,6 @@ const Chart = (props: VisualizationPluginProperties<SprintSettings, DataPluginIs
    */
   //Redux Global State
   const issues = useSelector<RootState, IssuesState['issues']>((data) => data.plugin.issues);
-  const mergeRequests = useSelector<RootState, IssuesState['mergeRequests']>((data) => data.plugin.mergeRequests);
   const dataState = useSelector<RootState, IssuesState['dataState']>((state: RootState) => state.plugin.dataState);
 
   /**
@@ -63,12 +61,6 @@ const Chart = (props: VisualizationPluginProperties<SprintSettings, DataPluginIs
     dispatch({ type: 'REFRESH' });
   }, [props.dataConnection]);
 
-  const groupedLabels = groupSimilarLabels(
-    [...new Set(issues.flatMap((i) => i.labels))],
-    props.settings.maxNumberOfDifferencesBetweenLabels,
-    props.settings.minNumberOfLabelsPerGroup,
-  );
-
   return (
     <>
       <div className={'w-full h-full flex justify-center items-center'} ref={props.chartContainerRef}>
@@ -79,19 +71,16 @@ const Chart = (props: VisualizationPluginProperties<SprintSettings, DataPluginIs
           </div>
         )}
         {dataState === DataState.COMPLETE &&
-          (issues.length > 0 || mergeRequests.length > 0 ? (
-            <SprintChart
-              authors={props.authorList}
+          (issues.length > 0 ? (
+            <BurndownChart
               issues={issues}
-              mergeRequests={mergeRequests}
-              coloringMode={props.settings.coloringMode}
               sprints={props.sprintList}
               fromDate={moment(props.parameters.parametersDateRange.from)}
               toDate={moment(props.parameters.parametersDateRange.to)}
               showSprints={props.settings.showSprints}
               width={chartWidth}
               height={chartHeight}
-              groupedLabels={groupedLabels}
+              granularity={props.parameters.parametersGeneral.granularity as unitOfTime.Base}
             />
           ) : (
             <div>No Data matching the selected Parameters!</div>

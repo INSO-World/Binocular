@@ -32,8 +32,8 @@ import CollaborationVisualization from './visualizationPlugins/authorBehaviour/c
 import KnowledgeRadar from './visualizationPlugins/expertise/knowledgeRadar';
 import CodeExpertise from './visualizationPlugins/expertise/codeExpertise';
 import RepositoryActivity from './visualizationPlugins/authorBehaviour/repositoryActivity';
-import Sprints from './visualizationPlugins/sprints';
-import Burndown from './visualizationPlugins/burndown';
+import Sprints from './visualizationPlugins/issues/sprints';
+import Burndown from './visualizationPlugins/issues/burndown';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
