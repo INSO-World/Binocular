@@ -1,0 +1,20 @@
+[package]
+name = "commits-test"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[[test]]
+doctest = false
+name = "commits"
+path = "./main.rs"
+
+[dependencies]
+itertools = "0.14.0"
+commits = { path = "../" }
+gix = { workspace = true }
+shared = { path = "../../shared" }
+
+[dev-dependencies]
+pretty_assertions = { version = "1.4.1", features = ["unstable"] }
+parameterized = { version = "2.1.0" }

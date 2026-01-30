@@ -1,19 +1,21 @@
 package com.inso_world.binocular.cli.config
 
-import org.springframework.boot.context.properties.ConfigurationProperties
+import com.inso_world.binocular.core.BinocularConfig
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ConfigurationProperties(prefix = "binocular")
-class BinocularCliConfiguration {
-    lateinit var index: IndexConfig
-    lateinit var archive: ArchiveConfig
+internal class BinocularConfiguration : BinocularConfig() {
+    lateinit var cli: CliConfig
 }
 
-class IndexConfig(
-    val path: String,
+class CliConfig(
+    val index: IndexConfig
 )
 
-class ArchiveConfig(
-    val path: String? = null,
+class ScmConfig(
+    val path: String
+)
+
+class IndexConfig(
+    val scm: ScmConfig
 )

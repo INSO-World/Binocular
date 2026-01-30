@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
-class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class StatisticsVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `statistics commits snapshot returns expected first item`() {

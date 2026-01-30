@@ -13,15 +13,14 @@ import com.inso_world.binocular.infrastructure.sql.SqlTestConfig
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Lazy
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @SpringBootTest(
     classes = [BinocularCommandLineApplication::class],
@@ -74,7 +73,7 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
             data.setUp(
                 projectName = SIMPLE_PROJECT_NAME,
                 repoPath = "${FIXTURES_PATH}/${SIMPLE_REPO}",
-                branch = Branch(name = "master")
+                branchName =  "master"
             )
             data.project
         }
@@ -83,7 +82,6 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
             "Repository could not be created with Project"
         }
         this.simpleProject.repo = this.simpleRepo
-        this.simpleRepo.project = this.simpleProject
     }
 
     @AfterEach

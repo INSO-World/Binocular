@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
 import org.springframework.data.domain.Pageable
@@ -66,6 +67,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds a page of entities and converts them to domain models
      */
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<D> {
         val result = repository.findAll(pageable)
         val content = toDomainList(result.content)
@@ -79,6 +81,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * @param entity The domain model to create an entity from
      * @return The created domain model
      */
+    @MappingSession
     override fun create(entity: D): D {
         val mappedEntity = mapper.toEntity(entity)
         val savedEntity = repository.save(mappedEntity)
@@ -90,6 +93,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * @param entity The domain model to update an entity from
      * @return The updated domain model
      */
+    @MappingSession
     override fun update(entity: D): D {
         val mappedEntity = mapper.toEntity(entity)
         val savedEntity = repository.save(mappedEntity)
@@ -137,6 +141,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Save multiple entities
      */
+    @MappingSession
     override fun saveAll(entities: Collection<D>): Iterable<D> = entities.map { create(it) }
 
     override fun findAllAsStream(): Stream<D> {

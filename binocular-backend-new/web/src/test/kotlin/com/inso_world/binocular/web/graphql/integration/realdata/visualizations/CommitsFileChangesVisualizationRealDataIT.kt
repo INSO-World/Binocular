@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
-class CommitsFileChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class CommitsFileChangesVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `file commits for README md returns expected snapshot for first item`() {

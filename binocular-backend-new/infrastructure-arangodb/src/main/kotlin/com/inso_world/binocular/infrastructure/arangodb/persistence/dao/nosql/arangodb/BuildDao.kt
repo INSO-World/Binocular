@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class BuildDao(
+internal class BuildDao(
     @Autowired private val buildRepository: BuildRepository,
     @Autowired private val buildMapper: BuildMapper,
 ) : MappedArangoDbDao<Build, BuildEntity, String>(buildRepository, buildMapper),

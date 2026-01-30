@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi.util
 
-import com.inso_world.binocular.ffi.BinocularFfi
+import com.inso_world.binocular.ffi.GixIndexer
 
 internal class Utils {
     companion object {
@@ -17,7 +17,7 @@ internal class Utils {
 
             System.setProperty("uniffi.component.$libBaseName.libraryOverride", resourcePath)
 
-            if (BinocularFfi::class.java.getResource(resourcePath) == null) {
+            if (GixIndexer::class.java.getResource(resourcePath) == null) {
                 throw IllegalStateException("$resourcePath does not exist on the classpath")
             }
 
@@ -39,7 +39,7 @@ internal class Utils {
                 (os.contains("nux") || os.contains("nix")) && arch == "aarch64" -> "aarch64-unknown-linux-gnu"
 
                 // Windows
-                os.contains("win") && (arch == "x86_64" || arch == "amd64") -> "x86_64-pc-windows-msvc"
+                os.contains("win") && (arch == "x86_64" || arch == "amd64") -> "x86_64-pc-windows-gnu"
                 os.contains("win") && arch == "aarch64" -> "aarch64-pc-windows-msvc"
 
                 else -> throw UnsupportedOperationException("Unsupported OS/Arch combination: $os/$arch")

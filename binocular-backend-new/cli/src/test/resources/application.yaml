@@ -1,6 +1,8 @@
 binocular:
-  index:
-    path: "./src/test/resources/fixtures/simple"
+  cli:
+    index:
+      scm:
+        path: "./src/test/resources/fixtures/simple"
 spring:
   profiles:
     active: test,gix,sql,postgres

@@ -8,8 +8,16 @@ import com.inso_world.binocular.model.Note
 /**
  * Interface for NoteService.
  * Provides methods to retrieve notes and their related entities.
+ *
+ * @deprecated Use [ProjectInfrastructurePort] instead. Note is part of the Project aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface NoteInfrastructurePort : BinocularInfrastructurePort<Note> {
+@Deprecated(
+    message = "Use ProjectInfrastructurePort instead. Note is part of the Project aggregate.",
+    replaceWith = ReplaceWith("ProjectInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface NoteInfrastructurePort : BinocularInfrastructurePort<Note, Note.Id> {
     /**
      * Find accounts by note ID.
      *

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
-class CommitsBaseInformationVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class CommitsBaseInformationVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `commits base info returns earliest date when ascending by default`() {

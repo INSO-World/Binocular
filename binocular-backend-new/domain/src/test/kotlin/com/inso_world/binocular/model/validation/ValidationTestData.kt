@@ -1,47 +1,62 @@
 package com.inso_world.binocular.model.validation
 
+import com.inso_world.binocular.domain.data.DummyTestData
+import com.inso_world.binocular.domain.data.MockTestDataProvider
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Signature
+import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import org.junit.jupiter.params.provider.Arguments
 import java.time.LocalDateTime
 import java.util.stream.Stream
+import kotlin.streams.asStream
 
 internal object ValidationTestData {
     @JvmStatic
-    fun provideBlankStrings(): Stream<Arguments> =
-        Stream.of(
-            Arguments.of(""), // Empty string
-            Arguments.of("   "), // Spaces only
-            Arguments.of("\t"), // Tab only
-            Arguments.of("\n"), // Newline only
-            Arguments.of(" \t\n "), // Mixed whitespace
-            Arguments.of("\r\n"), // Carriage return + newline
-        )
+    fun provideBlankStrings(): Stream<Arguments> = DummyTestData.provideBlankStrings()
 
     @JvmStatic
-    fun provideInvalidPastOrPresentDateTime(): Stream<Arguments> =
-        Stream.of(
-            Arguments.of(LocalDateTime.now().plusSeconds(10)),
-            Arguments.of(LocalDateTime.now().plusDays(1)),
-            Arguments.of(LocalDateTime.now().plusWeeks(1)),
-            Arguments.of(LocalDateTime.now().plusMonths(1)),
-            Arguments.of(LocalDateTime.now().plusYears(1)),
+    fun provideInvalidPastOrPresentDateTime(): Stream<Arguments> = DummyTestData.provideInvalidPastOrPresentDateTime()
+
+    @JvmStatic
+    fun provideInvalidShaHex(): Stream<Arguments> = Stream.of(
+            Arguments.of("a".repeat(38)),
+            Arguments.of("a".repeat(39)),
+            Arguments.of("a".repeat(41)),
+            *(('g'..'z') + ('G'..'Z')).map {
+                Arguments.of("$it".repeat(40))
+            }.toTypedArray(),
+            *(('g'..'z') + ('G'..'Z')).map {
+                Arguments.of(it + "0".repeat(39))
+            }.toTypedArray(),
         )
+
+    private fun createDeveloper(repository: Repository, email: String = "test@example.com"): Developer =
+        Developer(name = "Test Developer", email = email, repository = repository)
+
+    private fun createSignature(developer: Developer, timestamp: LocalDateTime = LocalDateTime.now().minusSeconds(1)): Signature =
+        Signature(developer = developer, timestamp = timestamp)
 
     @JvmStatic
     fun invalidCommitsModels(): Stream<Arguments> =
         Stream.of(
             Arguments.of(
                 run {
-                    val repository = Repository(id = "1", localPath = "test repo")
+                    val repository = Repository(localPath = "test repo", project = Project(name = "test project"))
+                    val developer = createDeveloper(repository)
+                    val signature = createSignature(developer)
                     val cmt = Commit(
-                        id = null,
-                        sha = "", // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
+                        sha = "a".repeat(40),
+                        authorSignature = signature,
                         message = "Valid message",
+                        repository = repository,
                     )
                     repository.commits.add(cmt)
+
+                    // change field via reflection, otherwise constructor check fails
+                    setField(cmt.javaClass.getDeclaredField("sha").apply { isAccessible = true }, cmt, "")
 
                     cmt
                 },
@@ -49,113 +64,57 @@ internal object ValidationTestData {
             ),
             Arguments.of(
                 run {
-                    val repository = Repository(id="1",localPath = "2222222")
+                    val repository = Repository(localPath = "2222222", project = Project(name = "test project"))
+                    val developer = createDeveloper(repository, "test2@example.com")
+                    val signature = createSignature(developer)
                     val cmt = Commit(
-                        id = null,
-                        sha = "a".repeat(39), // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
+                        sha = "a".repeat(40),
+                        authorSignature = signature,
                         message = "Valid message",
+                        repository = repository,
                     )
                     repository.commits.add(cmt)
+                    // invalid: should be 40 chars
+                    // change field via reflection, otherwise constructor check fails
+                    setField(cmt.javaClass.getDeclaredField("sha").apply { isAccessible = true }, cmt, "a".repeat(39))
+
                     cmt
                 },
                 "sha",
             ),
             Arguments.of(
                 run {
-                    val repository = Repository(id="1",localPath = "33333")
+                    val repository = Repository(localPath = "33333", project = Project(name = "test project"))
+                    val developer = createDeveloper(repository, "test3@example.com")
+                    val signature = createSignature(developer)
                     val cmt = Commit(
-                        id = null,
-                        sha = "b".repeat(41), // invalid: should be 40 chars
-                        authorDateTime = LocalDateTime.now(),
-                        commitDateTime = LocalDateTime.now(),
+                        sha = "a".repeat(40),
+                        authorSignature = signature,
                         message = "Valid message",
+                        repository = repository,
                     )
                     repository.commits.add(cmt)
+
+                    // invalid: should be 40 chars
+                    // change field via reflection, otherwise constructor check fails
+                    setField(cmt.javaClass.getDeclaredField("sha").apply { isAccessible = true }, cmt, "b".repeat(41))
                     cmt
                 },
                 "sha",
             ),
-            Arguments.of(
-                run {
-                    val repository = Repository(id="1",localPath = "44444")
-                    val cmt = Commit(
-                    id = null,
-                    sha = "c".repeat(40),
-                    authorDateTime = LocalDateTime.now(),
-                    commitDateTime = null, // invalid: NotNull
-                    message = "Valid message",
-                )
-                    repository.commits.add(cmt)
-                    cmt
-                    },
-                "commitDateTime",
-            ),
-            *provideInvalidPastOrPresentDateTime()
-                .map {
-                    Arguments.of(
-                        run {
-                            val repository = Repository(id="1",localPath = "5555")
-                            val cmt = Commit(
-                            id = null,
-                            sha = "c".repeat(40),
-                            authorDateTime = LocalDateTime.now(),
-                            commitDateTime = it.get()[0] as LocalDateTime, // invalid: Future
-                            message = "Valid message",
-                        )
-                            repository.commits.add(cmt)
-                            cmt},
-                        "commitDateTime",
-                    )
-                }.toList()
-                .toTypedArray(),
-            *provideInvalidPastOrPresentDateTime()
-                .map {
-                    Arguments.of(
-                        run {
-                            val repository = Repository(id="1",localPath = "6666")
-                            val cmt = Commit(
-                            id = null,
-                            sha = "c".repeat(40),
-                            authorDateTime = it.get()[0] as LocalDateTime, // invalid: Future
-                            commitDateTime = LocalDateTime.now(),
-                            message = "Valid message",
-                        )
-                            repository.commits.add(cmt)
-                            cmt},
-                        "authorDateTime",
-                    )
-                }.toList()
-                .toTypedArray(),
-            // Add all blank string cases from provideBlankStrings()
-//            *provideBlankStrings()
-//                .map {
-//                    Arguments.of(
-//                        Commit(
-//                            id = null,
-//                            sha = "d".repeat(40),
-//                            authorDateTime = LocalDateTime.now(),
-//                            commitDateTime = LocalDateTime.now(),
-//                            message = it.get()[0] as String, // extract the blank string
-//                            repositoryId = "1",
-//                        ),
-//                        "message",
-//                    )
-//                }.toList()
-//                .toTypedArray(),
-//            run {
-//            }
-//            Arguments.of(
-//                Commit(
-//                    id = null,
-//                    sha = "e".repeat(40),
-//                    authorDateTime = LocalDateTime.now(),
-//                    commitDateTime = LocalDateTime.now(),
-//                    message = "Valid message",
-//                    repositoryId = null, // invalid: NotNull, TODO only invalid if coming out of mapper, going in is ok e.g. on create
-//                ),
-//                "repositoryId",
-//            ),
         )
+
+    @JvmStatic
+    fun mockCommitModels(): Stream<Arguments> {
+        return run {
+            val project = Project(name = "test-project")
+            val repository = Repository(
+                localPath = "test",
+                project = project,
+            )
+            return@run MockTestDataProvider(repository).commits.map {
+                Arguments.of(it)
+            }.asSequence().asStream()
+        }
+    }
 }
