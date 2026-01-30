@@ -52,7 +52,7 @@ object TestDataProvider {
             ),
         )
 
-//    private val mainBranch = Branch("main","abc123", repository = repository).apply {
+    //    private val mainBranch = Branch("main","abc123", repository = repository).apply {
 //        active = true
 //        tracksFileRenames = true
 //        this.id = "1"
@@ -104,7 +104,7 @@ object TestDataProvider {
         listOf(
             Build(
                 "1",
-                "abc1230000000000000000000000000000000000",
+                "abc123",
                 "main",
                 "success",
                 "v0.0.1-rc",
@@ -131,7 +131,7 @@ object TestDataProvider {
             ),
             Build(
                 "2",
-                "def4560000000000000000000000000000000000",
+                "def456",
                 "feature/new-feature",
                 "failed",
                 "v1.0.0",
@@ -199,7 +199,7 @@ object TestDataProvider {
                 "https://example.com/issues/101",
                 listOf(
                     Mention(
-                        "abc1230000000000000000000000000000000000",
+                        "abc123",
                         LocalDateTime.now(),
                         false,
                     ),
@@ -218,7 +218,7 @@ object TestDataProvider {
                 "https://example.com/issues/102",
                 listOf(
                     Mention(
-                        "def4560000000000000000000000000000000000",
+                        "def456",
                         LocalDateTime.now(),
                         true,
                     ),
@@ -241,7 +241,7 @@ object TestDataProvider {
                 "https://example.com/merge_requests/201",
                 listOf(
                     Mention(
-                        "abc1230000000000000000000000000000000000",
+                        "abc123",
                         LocalDateTime.now(),
                         false,
                     ),
@@ -260,7 +260,7 @@ object TestDataProvider {
                 "https://example.com/merge_requests/202",
                 listOf(
                     Mention(
-                        "def4560000000000000000000000000000000000",
+                        "def456",
                         LocalDateTime.now(),
                         true,
                     ),
@@ -380,5 +380,4 @@ object TestDataProvider {
                 webUrl = "https://example.com/milestones/2",
             ),
         )
-
 }
