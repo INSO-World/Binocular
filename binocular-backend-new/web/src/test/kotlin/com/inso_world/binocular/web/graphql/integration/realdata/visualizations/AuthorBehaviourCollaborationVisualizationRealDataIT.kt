@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class AuthorBehaviourCollaborationVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class AuthorBehaviourCollaborationVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `accounts issues query returns expected snapshot for first account`() {

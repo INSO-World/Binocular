@@ -4,7 +4,7 @@ import com.inso_world.binocular.web.graphql.integration.realdata.base.BaseGraphQ
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class SchemaRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class SchemaRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `schema exposes commits query`() {
