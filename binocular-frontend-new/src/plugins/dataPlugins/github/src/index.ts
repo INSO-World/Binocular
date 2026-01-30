@@ -59,6 +59,7 @@ class Github implements DataPlugin {
       this.users = new Users(apiKey, 'INSO-TUWien/Binocular');
       this.general = new General('INSO-TUWien/Binocular');
     }
+    return undefined;
   }
 
   public async clearRemains() {}

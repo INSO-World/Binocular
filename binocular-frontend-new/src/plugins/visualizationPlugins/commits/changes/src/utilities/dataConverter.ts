@@ -26,13 +26,17 @@ export function convertToChartData(
   if (!commits || commits.length === 0) {
     return { chartData: [], palette: {}, scale: [] };
   }
-  //Sort commits after their commit time in case they arnt sorted
-  const sortedCommits = _.clone(commits).sort((c1, c2) => new Date(c1.date).getTime() - new Date(c2.date).getTime());
+  //Sort commits after their commit time in case they arent sorted
+  const sortedCommits = _.clone(commits)
+    .filter((c) => !props.parameters.parametersGeneral.excludeMergeCommits || !c.message.startsWith('Merge'))
+    .sort((c1, c2) => new Date(c1.date).getTime() - new Date(c2.date).getTime());
   const activeFiles = props.fileList
-    .map((file) => {
-      if (file.checked) return file.element.path;
-    })
-    .filter((file) => file);
+    ? props.fileList
+        .map((file) => {
+          if (file.checked) return file.element.path;
+        })
+        .filter((file) => file)
+    : [];
 
   const firstTimestamp = sortedCommits[0].date;
   const lastTimestamp = sortedCommits[sortedCommits.length - 1].date;

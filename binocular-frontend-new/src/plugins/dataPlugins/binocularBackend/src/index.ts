@@ -74,6 +74,7 @@ class BinocularBackend implements DataPlugin {
     this.files = new Files(endpoint);
     this.accountsIssues = new AccountsIssues(endpoint);
     this.commitByFile = new CommitsFiles(endpoint);
+    return undefined; // TODO when BE provides metadata
   }
 
   public async clearRemains() {}
