@@ -76,7 +76,7 @@ export const authorsSlice = createSlice({
         state.authorLists[state.dataPluginId] = state.authorLists[state.dataPluginId].map((a: AuthorType) => {
           if (a.parent === action.payload.author || a.id === action.payload.author) {
             a.parent = action.payload.parent;
-            a.selected = state.authorLists[state.dataPluginId].find((a: AuthorType) => a.id === a.id)?.selected;
+            a.selected = state.authorLists[state.dataPluginId].find((p: AuthorType) => a.parent === p.id)?.selected;
           }
           return a;
         });

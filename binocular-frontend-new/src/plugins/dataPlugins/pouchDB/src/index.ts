@@ -5,6 +5,7 @@ import General from './general.ts';
 import Files from './collections/files.ts';
 import Database from './database.ts';
 import type { FileConfig } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { ProgressUpdateConfig } from '../../../../types/settings/databaseSettingsType.ts';
 import Builds from './collections/builds.ts';
 import Notes from './collections/notes.ts';
 import Issues from './collections/issues.ts';
@@ -13,6 +14,7 @@ import Branches from './collections/branches.ts';
 import MergeRequests from './collections/mergeRequests.ts';
 import AccountsIssues from './collections/accounts-issues';
 import CommitsFiles from './collections/commitsFiles';
+import type { MetadataType } from '../../../../types/data/MetadataType.ts';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
@@ -57,11 +59,15 @@ class PouchDb implements DataPlugin {
     this.commitByFile = new CommitsFiles(); // not yet implemented
   }
 
-  public async init(_apiKey: string | undefined, _endpoint: string | undefined, file: FileConfig | undefined) {
+  public async init(
+    _apiKey: string | undefined,
+    _endpoint: string | undefined,
+    file: FileConfig | undefined,
+    _progressUpdateConfig: ProgressUpdateConfig | undefined,
+  ) {
     if (file !== undefined) {
       const startTime = performance.now();
-      const metadata = await this.database.initDB(file, startTime); // TODO save Metadata to plugin
-      console.log(metadata);
+      const metadata = await this.database.initDB(file, startTime);
       this.commits = new Commits(this.database);
       this.builds = new Builds(this.database);
       this.notes = new Notes(this.database);
@@ -73,11 +79,17 @@ class PouchDb implements DataPlugin {
       this.files = new Files(this.database);
       this.branches = new Branches(this.database);
       this.accountsIssues = new AccountsIssues(this.database);
+      return metadata || undefined;
     }
+    return undefined;
   }
 
   public async clearRemains() {
     await this.database.delete();
+  }
+
+  public async export(metadata: MetadataType | undefined) {
+    return this.database.export(metadata);
   }
 }
 

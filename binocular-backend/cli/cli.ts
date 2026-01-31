@@ -12,8 +12,6 @@ const cli = new Command();
 
 interface runOptions {
   backend: boolean;
-  frontend: boolean;
-  open: boolean;
   clean: boolean;
   its: boolean;
   ci: boolean;
@@ -60,10 +58,8 @@ function parse(run: (targetPath: string, options: runOptions) => void, build: (o
   cli
     .command('run')
     .addArgument(new Argument('[targetPath]', 'relative path to the repository'))
-    .description('execute the binocular frontend and backend')
+    .description('execute the binocular backend')
     .addOption(new Option('--no-backend', 'disable the backend').default(true))
-    .addOption(new Option('--no-frontend', 'disable the frontend').default(true))
-    .addOption(new Option('--open', 'automatic open frontend on launch').default(false))
     .addOption(new Option('--clean', 'clear db before execution').default(false))
     .addOption(new Option('--no-vcs', 'disable Version Control System indexing').default(true))
     .addOption(new Option('--no-its', 'disable Issue Tracking System indexing').default(true))

@@ -15,6 +15,18 @@ and persist it to a configured ArangoDB instance.
 Binocular then hosts interactive visualizations about the gathered data
 via a web-interface.
 
+## Features
+
+Binocular provides visualizations across several categories:
+
+- **Commit Analytics** - Track code changes, additions/deletions over time, and author contributions
+- **Issue Tracking** - Visualize issue lifecycles, sprint progress, and burndown charts
+- **Build Monitoring** - Monitor CI/CD pipeline status and build success rates
+- **Code Ownership** - Analyze who owns which parts of the codebase over time
+- **Developer Expertise** - Assess knowledge distribution and expertise areas across team members
+- **Team Collaboration** - Discover collaboration patterns and team dynamics through network graphs
+- **Repository Statistics** - Overview dashboards with key project metrics
+
 ## Preview
 - [Demo Page](https://inso-world.github.io/Binocular/)
 - [Screenshots](docs/PREVIEW.md)
@@ -22,7 +34,23 @@ via a web-interface.
 ## Dependencies
 
 * node.js 20 LTS
-* ArangoDB (tested with 3.11.3)
+* ArangoDB (tested with 3.12)
+
+### Running ArangoDB with Docker
+
+If you don't want to install ArangoDB locally, you can run it using Docker:
+
+``` shell
+docker run -d --name binocular_db -p 8529:8529 -e ARANGO_NO_AUTH=1 arangodb:3.12
+```
+
+Or use the provided docker-compose to start only the database:
+
+``` shell
+docker compose up db
+```
+
+This will start ArangoDB on port 8529 with no authentication. You can then run Binocular locally against this database.
 
 ## Installation
 
@@ -140,63 +168,332 @@ A sample configuration file looks like this:
 
 ## Usage
 
-To run Binocular, simply execute `binocular` or `binocular -rc` or `binocular --run-concurrently` from the repository you want to
-run Binocular on (you can try it on the Binocular-repo itself!). Binocular will
-try to guess reasonable defaults for configuration based on your
-`.git/config`. You can access the webinterface of binocular though port 8080. 
+Binocular uses a command-based CLI. The main commands are:
 
-For testing, you can also execute Binocular directly in the Binocular
-Dictionary by running the command:
+- `binocular run [targetPath]` - Execute the backend indexer
+- `binocular build` - Build the frontend
+- `binocular export` - Export the database
+- `binocular setup` - Configure Binocular
+
+### Running Binocular
+
+To run Binocular, execute `binocular run` from the repository you want to
+analyze (you can try it on the Binocular-repo itself!). Binocular will
+try to guess reasonable defaults for configuration based on your
+`.git/config`.
+
+Common options for `binocular run`:
+- `--no-vcs` - Disable Version Control System indexing
+- `--no-its` - Disable Issue Tracking System indexing
+- `--no-ci` - Disable Continuous Integration indexing
+- `--export` - Export the database after indexing
+
+### Development
+
+For development, you can run the backend and frontend separately:
 ``` shell
 npm run dev
 ```
-If you run Windows (does not support chaining of commands) you
-should use the command:
+Or on Windows (does not support chaining of commands):
 ``` shell
-npm run dev-concurrently
+npm run dev:concurrently
 ```
-This will start both the node backend and webpack frontend server
-for the Binocular dictionary and mine it. If you run Binocular for the
-first time, it will show webpack errors for missing JSON files. This
-happens because to build the frontend it needs an export of the db to
-build so that it can fall back to run without the backend. This
-is necessary when binocular gets executed within a GitLab
-pipeline/GitHub action. Those errors aren't a problem because when
-you execute Binocular for the first time and the indexers are finished, it
-will create the db export by itself and place it into the correct
-folder. After the exported JSON files of the db are available, it is
-possible to build an offline executable version of Binocular by
-executing the command
+This will start both the node backend and the frontend dev server.
+
+If you run Binocular for the first time, it may show errors for missing JSON files.
+This happens because to build the frontend it needs an export of the database.
+When the indexers finish, it will create the database export automatically.
+
+After the exported JSON files of the database are available, you can
+build an offline executable version of Binocular:
 ``` shell
-npm run build
+npm run build:offline
 ```
 This will create an html and js file in the dist folder that can be
 opened without the backend running. It is also possible
-to place the exported JSON files of a different mining job under `./binocular-frontend/db_export/` and build the frontend. (not
-all features will be available in the offline build)
+to place exported JSON files from a different mining job under `./binocular-frontend-new/db_export/` and build the frontend. (Not
+all features will be available in the offline build.)
 
 For more information check `binocular -h`
 
-### New Frontend (:warning: Experimental)
-To try the experimental new frontend, install and run it with the following commands.
-``` shell
-npm run install:frontend-new
-```
-``` shell
-npm run dev:frontend-new
-```
-This new frontend is a complete rework from the current implementation
-and is currently in its development and test phase.
-It is not yet ready for use but gives a glimpse into the future of what binocular could look like.
+### Running Frontend Only
 
+To install and run only the frontend:
+``` shell
+npm run install:frontend
+npm run dev:frontend
+```
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<h3>Core Team</h3>
+<table>
+  <tr>
+    <td>
+      <a href="https://github.com/nuberion" title="Johann Grabner">
+        <img src="https://github.com/nuberion.png?size=120" alt="Johann Grabner" width="96" height="96"><br>
+        <b>Johann Grabner</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/MaximilianZenz" title="Maximilian Zenz">
+        <img src="https://github.com/MaximilianZenz.png?size=120" alt="Maximilian Zenz" width="96" height="96"><br>
+        <b>Maximilian Zenz</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/uberroot4" title="Manuel Stöger">
+        <img src="https://github.com/uberroot4.png?size=120" alt="Manuel Stöger" width="96" height="96"><br>
+        <b>Manuel Stöger</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Megalokom" title="Michael Strasser">
+        <img src="https://github.com/Megalokom.png?size=120" alt="Michael Strasser" width="96" height="96"><br>
+        <b>Michael Strasser</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/bastianferch" title="Bastian Ferch">
+        <img src="https://github.com/bastianferch.png?size=120" alt="Bastian Ferch" width="96" height="96"><br>
+        <b>Bastian Ferch</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Markus99at" title="Markus Gumpoltsberger">
+        <img src="https://github.com/Markus99at.png?size=120" alt="Markus Gumpoltsberger" width="96" height="96"><br>
+        <b>Markus Gumpoltsberger</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/kkastenmeier" title="Kai Kastenmeier">
+        <img src="https://github.com/kkastenmeier.png?size=120" alt="Kai Kastenmeier" width="96" height="96"><br>
+        <b>Kai Kastenmeier</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Nyzabes" title="Sebastian Watzinger">
+        <img src="https://github.com/Nyzabes.png?size=120" alt="Sebastian Watzinger" width="96" height="96"><br>
+        <b>Sebastian Watzinger</b>
+      </a>
+    </td>
+  </tr>
+</table>
+
+<h3>Bachelor/Master-Theses</h3>
+<table>
+  <tr>
+    <td>
+      <a href="https://github.com/romandecker" title="Roman Decker">
+        <img src="https://github.com/romandecker.png?size=120" alt="Roman Decker" width="96" height="96"><br>
+        <b>Roman Decker</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/alexnefi" title="Alexander Nemetz-Fiedler">
+        <img src="https://github.com/alexnefi.png?size=120" alt="Alexander Nemetz-Fiedler" width="96" height="96"><br>
+        <b>Alexander Nemetz-Fiedler</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/THMv1TU" title="Michael Thurner">
+        <img src="https://github.com/THMv1TU.png?size=120" alt="Michael Thurner" width="96" height="96"><br>
+        <b>Michael Thurner</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/schoeberlt" title="Tamas Schöberl">
+        <img src="https://github.com/schoeberlt.png?size=120" alt="Tamas Schöberl" width="96" height="96"><br>
+        <b>Tamas Schöberl</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/belthazors" title="Amar Kasic">
+        <img src="https://github.com/belthazors.png?size=120" alt="Amar Kasic" width="96" height="96"><br>
+        <b>Amar Kasic</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/juliankotrba" title="Julian Kotrba">
+        <img src="https://github.com/juliankotrba.png?size=120" alt="Julian Kotrba" width="96" height="96"><br>
+        <b>Julian Kotrba</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/matthiasweiss" title="Matthias Weiß">
+        <img src="https://github.com/matthiasweiss.png?size=120" alt="Matthias Weiß" width="96" height="96"><br>
+        <b>Matthias Weiß</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Thoma5" title="Thomas Mörbauer">
+        <img src="https://github.com/Thoma5.png?size=120" alt="Thomas Mörbauer" width="96" height="96"><br>
+        <b>Thomas Mörbauer</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/m4nv3ru" title="Michael Kurz">
+        <img src="https://github.com/m4nv3ru.png?size=120" alt="Michael Kurz" width="96" height="96"><br>
+        <b>Michael Kurz</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/profjellybean" title="Valentin Schnabl">
+        <img src="https://github.com/profjellybean.png?size=120" alt="Valentin Schnabl" width="96" height="96"><br>
+        <b>Valentin Schnabl</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Soleymantic" title="Solaiman Nejat">
+        <img src="https://github.com/Soleymantic.png?size=120" alt="Solaiman Nejat" width="96" height="96"><br>
+        <b>Solaiman Nejat</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Grochni" title="Christian Gröchenig">
+        <img src="https://github.com/Grochni.png?size=120" alt="Christian Gröchenig" width="96" height="96"><br>
+        <b>Christian Gröchenig</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/raini90" title="Rainhard Pfneiszl">
+        <img src="https://github.com/raini90.png?size=120" alt="Rainhard Pfneiszl" width="96" height="96"><br>
+        <b>Rainhard Pfneiszl</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/codester007" title="Valentin Kastberger">
+        <img src="https://github.com/codester007.png?size=120" alt="Valentin Kastberger" width="96" height="96"><br>
+        <b>Valentin Kastberger</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/AM307" title="André Mategka">
+        <img src="https://github.com/AM307.png?size=120" alt="André Mategka" width="96" height="96"><br>
+        <b>André Mategka</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Bene-dykt" title="Benedikt Eckerstorfer">
+        <img src="https://github.com/Bene-dykt.png?size=120" alt="Benedikt Eckerstorfer" width="96" height="96"><br>
+        <b>Benedikt Eckerstorfer</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/DominikKidery" title="Dominik Kidery">
+        <img src="https://github.com/DominikKidery.png?size=120" alt="Dominik Kidery" width="96" height="96"><br>
+        <b>Dominik Kidery</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/peter-kotouc" title="Peter Kotouč">
+        <img src="https://github.com/peter-kotouc.png?size=120" alt="Peter Kotouč" width="96" height="96"><br>
+        <b>Peter Kotouč</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/TBalint2000" title="Bálint Timár">
+        <img src="https://github.com/TBalint2000.png?size=120" alt="Bálint Timár" width="96" height="96"><br>
+        <b>Bálint Timár</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/maerzman" title="Manuel Märzinger">
+        <img src="https://github.com/maerzman.png?size=120" alt="Manuel Märzinger" width="96" height="96"><br>
+        <b>Manuel Märzinger</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/martan001" title="Anton Martinovic">
+        <img src="https://github.com/martan001.png?size=120" alt="Anton Martinovic" width="96" height="96"><br>
+        <b>Anton Martinovic</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/ValentinFutterer" title="Valentin Futterer">
+        <img src="https://github.com/ValentinFutterer.png?size=120" alt="Valentin Futterer" width="96" height="96"><br>
+        <b>Valentin Futterer</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/MoravekJakub" title="Jakub Morávek">
+        <img src="https://github.com/MoravekJakub.png?size=120" alt="Jakub Morávek" width="96" height="96"><br>
+        <b>Jakub Morávek</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/R0555" title="Ross Boulton">
+        <img src="https://github.com/R0555.png?size=120" alt="Ross Boulton" width="96" height="96"><br>
+        <b>Ross Boulton</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/DangeeundDu" title="Martin Weber">
+        <img src="https://github.com/DangeeundDu.png?size=120" alt="Martin Weber" width="96" height="96"><br>
+        <b>Martin Weber</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/thimonpelka" title="Thimon Pelka">
+        <img src="https://github.com/thimonpelka.png?size=120" alt="Thimon Pelka" width="96" height="96"><br>
+        <b>Thimon Pelka</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/Sebastian-Schuch" title="Sebastian Schuch">
+        <img src="https://github.com/Sebastian-Schuch.png?size=120" alt="Sebastian Schuch" width="96" height="96"><br>
+        <b>Sebastian Schuch</b>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/SurfingCaterpillar" title="Sarah Biedermann">
+        <img src="https://github.com/SurfingCaterpillar.png?size=120" alt="Sarah Biedermann" width="96" height="96"><br>
+        <b>Sarah Biedermann</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/FreshGuy32" title="Mathias Trapl">
+        <img src="https://github.com/FreshGuy32.png?size=120" alt="Mathias Trapl" width="96" height="96"><br>
+        <b>Mathias Trapl</b>
+      </a>
+    </td>
+    <td><!-- frei --></td>
+    <td><!-- frei --></td>
+    <td><!-- frei --></td>
+  </tr>
+</table>
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## Contributing
 
-**:warning:Binocular is currently in a transition state from javascript to typescript.
+**:warning: Binocular is currently in a transition state from javascript to typescript.
 Although it is compatible with both javascript and typescript components, new visualizations
 should be implemented in typescript.
 Please refer to the change visualization/visualization Component
-if you are unsure how to implement a visualization in typescript.:warning:**
+if you are unsure how to implement a visualization in typescript.**
 
 For an explanation of Binocular's architecture, please see the [Contribution
 guidelines for this project](docs/CONTRIBUTING.md)
