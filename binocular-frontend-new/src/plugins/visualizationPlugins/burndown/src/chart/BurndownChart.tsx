@@ -114,10 +114,10 @@ export const BurndownChart: React.FC<
             ))}
 
             <line
-              x1={xScale(fromDate)}
+              x1={xScale(minDate)}
               y1={yScale(maxNumberOfIssuesPerGranularity)}
-              x2={xScale(toDate)}
-              y2={yScale(minNumberOfIssuesPerGranularity)}
+              x2={xScale(maxDate)}
+              y2={yScale(0)}
               stroke={'green'}
               fill={'green'}
             />
