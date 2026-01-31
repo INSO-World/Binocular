@@ -2,6 +2,7 @@ import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.t
 import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { createRef, useState } from 'react';
 import { type AppDispatch, useAppDispatch } from '../../../redux';
+import type { MetadataType } from '../../../types/data/MetadataType.ts';
 
 enum State {
   unconfigured,
@@ -24,6 +25,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
   const progressUpdateEndpointRef = createRef<HTMLInputElement>();
 
   const [fileName, setFileName] = useState<string | undefined>(undefined);
+  const [metadata, setMetadata] = useState<MetadataType | undefined>(undefined);
 
   const [state, setState] = useState(State.unconfigured);
 
@@ -103,8 +105,9 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                           { name: fileNameInput.value.replace(' ', '_'), file: file, dbObjects: undefined },
                           undefined,
                         )
-                        .then(() => {
+                        .then((meta) => {
                           setFileName(fileNameInput.value.replace(' ', '_'));
+                          setMetadata(meta);
                           setState(State.configured);
                         })
                         .catch(() => {
@@ -194,9 +197,11 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                         }
                       : undefined,
                   },
+                  metadata: metadata,
                 }),
               );
               setState(State.unconfigured);
+              setMetadata(undefined);
             }}>
             Add
           </button>

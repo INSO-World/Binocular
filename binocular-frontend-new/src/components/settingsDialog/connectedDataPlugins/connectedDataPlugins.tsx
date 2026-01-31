@@ -3,6 +3,8 @@ import { removeDataPlugin, setDataPluginAsDefault } from '../../../redux/reducer
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
 import { useSelector } from 'react-redux';
+import connectedDataPluginStyles from './connectedDataPlugins.module.scss';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 
 function ConnectedDataPlugins(props: { interactable: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -22,11 +24,30 @@ function ConnectedDataPlugins(props: { interactable: boolean }) {
               style={{ background: settingsDatabaseDataPlugin.color }}
               key={`settingsDatabasePlugin${settingsDatabaseDataPlugin.id}`}>
               <div className="card-body">
-                <h2 className="card-title">
-                  {settingsDatabaseDataPlugin.name} #{settingsDatabaseDataPlugin.id}
-                  {settingsDatabaseDataPlugin.id === 0 && <div className="badge badge-outline">pre-loaded</div>}
-                  {settingsDatabaseDataPlugin.isDefault && <div className="badge badge-accent">Default</div>}
-                </h2>
+                <div>
+                  {settingsDatabaseDataPlugin.name == 'PouchDb' && (
+                    <div className="dropdown dropdown-end" style={{ float: 'inline-end' }}>
+                      <div tabIndex={0} role="button" className={connectedDataPluginStyles.settingsButton} />
+                      <ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                        <li>
+                          <a
+                            onClick={() => {
+                              DataPluginStorage.getDataPlugin(settingsDatabaseDataPlugin).then((dataPlugin: DataPlugin | undefined) => {
+                                if (dataPlugin && dataPlugin.export) dataPlugin.export(settingsDatabaseDataPlugin.metadata);
+                              });
+                            }}>
+                            Download
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                  <h2 className="card-title">
+                    {settingsDatabaseDataPlugin.name} #{settingsDatabaseDataPlugin.id}
+                    {settingsDatabaseDataPlugin.id === 0 && <div className="badge badge-outline">pre-loaded</div>}
+                    {settingsDatabaseDataPlugin.isDefault && <div className="badge badge-accent">Default</div>}
+                  </h2>
+                </div>
                 {settingsDatabaseDataPlugin.parameters.apiKey && (
                   <div>
                     <span className={'font-bold'}>API Key:</span>
