@@ -177,8 +177,8 @@ function VisualizationFilter(props: {
       pouchDB: defaultDataPlugin.name.includes('PouchDb'),
       // a way to automatically detect data type is not implemented yet
       // TODO: implement feature once implemented
-      github: false,
-      gitlab: false,
+      github: defaultDataPlugin.metadata?.type ? defaultDataPlugin.metadata.type == 'github' : false,
+      gitlab: defaultDataPlugin.metadata?.type ? defaultDataPlugin.metadata.type == 'gitlab' : false,
     });
   }
 }
