@@ -17,6 +17,7 @@ function SetupDialogDatabasePage() {
   const [defaultBackendAvaliable, setDefaultBackendAvaliable] = useState(false);
 
   const localDatabaseLoadingState: LocalDatabaseLoadingState = useSelector((state: RootState) => state.settings.localDatabaseLoadingState);
+  const localDatabaseLoadingMessage: string = useSelector((state: RootState) => state.settings.localDatabaseLoadingMessage);
 
   function searchDefaultBackend() {
     void fetch('/graphQl').then((resp) => {
@@ -44,6 +45,13 @@ function SetupDialogDatabasePage() {
           <h2>Currently Loading Local Database</h2>
           <div>
             <span className="loading loading-spinner loading-lg text-accent"></span>
+            <br />
+            <progress
+              className="progress progress-primary w-56"
+              value={localDatabaseLoadingMessage.split('/')[0]}
+              max={parseInt(localDatabaseLoadingMessage.split('/')[1])}></progress>
+            <br />
+            <span>{localDatabaseLoadingMessage}</span>
           </div>
         </>
       )}
