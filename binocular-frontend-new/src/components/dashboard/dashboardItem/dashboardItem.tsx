@@ -431,7 +431,11 @@ const DashboardItem = memo(function DashboardItem(props: {
                 }}
                 item={props.item}
                 settingsComponent={
-                  <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
+                  <plugin.settingsComponent
+                    key={plugin.name}
+                    settings={settings}
+                    setSettings={setSettings}
+                    store={store}></plugin.settingsComponent>
                 }
                 onClickDelete={() => props.deleteItem(props.item.id)}
                 onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}

@@ -20,7 +20,7 @@ type AreaChartProps = {
 };
 
 export const StackedAreaChart = ({ width, height, data, scale, palette, sprintList, settings }: AreaChartProps) => {
-  // bounds = area inside the graph axis = calculated by substracting the margins
+  // bounds = area inside the graph axis = calculated by subtracting the margins
   const svgRef = useRef(null);
   const tooltipRef = useRef(null);
   const boundsWidth = width - MARGIN.right - MARGIN.left;
