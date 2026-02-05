@@ -1,4 +1,4 @@
-export interface SprintSettings {
+export interface IssuesTimelineSettings {
   coloringMode: 'author' | 'assignee' | 'time-spent' | 'labels';
   maxNumberOfDifferencesBetweenLabels?: number;
   minNumberOfLabelsPerGroup?: number;
@@ -7,11 +7,11 @@ export interface SprintSettings {
 }
 
 interface Props {
-  settings: SprintSettings;
-  setSettings: (newSettings: SprintSettings) => void;
+  settings: IssuesTimelineSettings;
+  setSettings: (newSettings: IssuesTimelineSettings) => void;
 }
 
-const Settings = ({ settings, setSettings }: Props) => (
+export const Settings = ({ settings, setSettings }: Props) => (
   <>
     <div>
       <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
@@ -31,7 +31,7 @@ const Settings = ({ settings, setSettings }: Props) => (
           onChange={(e) =>
             setSettings({
               ...settings,
-              coloringMode: e.target.value as SprintSettings['coloringMode'],
+              coloringMode: e.target.value as IssuesTimelineSettings['coloringMode'],
             })
           }>
           <option value={'author'}>Author</option>
@@ -84,5 +84,3 @@ const Settings = ({ settings, setSettings }: Props) => (
     </div>
   </>
 );
-
-export default Settings;

@@ -1,5 +1,5 @@
 import type { Moment, unitOfTime } from 'moment';
-import { BaseDetailDialogLayout } from '../../../../sprints/src/chart/components/DetailDialog';
+import { BaseDetailDialogLayout } from '../../../../issuesTimeline/src/chart/components/DetailDialog';
 import type { IssuesGroupedByGranularity } from '../types';
 import classes from './burndownChartDetailDialog.module.css';
 import * as React from 'react';

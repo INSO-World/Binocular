@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import type { BurndownSettings } from '../settings/settings';
 import moment, { type Moment, type unitOfTime } from 'moment';
 import type { SprintType } from '../../../../../../types/data/sprintType';
-import { SprintAreas } from '../../../sprints/src/chart/components/SprintAreas';
+import { SprintAreas } from '../../../issuesTimeline/src/chart/components/SprintAreas';
 import { BurndownChartYAxisLegend } from './components/BurndownChartYAxisLegend';
 import { BurndownChartXAxisLegend } from './components/BurndownChartXAxisLegend';
 import { BurndownChartDetailDialog } from './components/BurndownChartDetailDialog';

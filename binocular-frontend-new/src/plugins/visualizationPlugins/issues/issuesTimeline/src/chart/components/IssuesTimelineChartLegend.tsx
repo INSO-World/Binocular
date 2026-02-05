@@ -1,8 +1,8 @@
 import * as d3 from 'd3';
 import * as React from 'react';
-import { margin } from '../SprintChart';
+import { margin } from '../IssuesTimelineChart';
 
-export const SprintChartLegend: React.FC<{
+export const IssuesTimelineChartLegend: React.FC<{
   height: number;
   width: number;
   xScale: d3.ScaleTime<number, number>;

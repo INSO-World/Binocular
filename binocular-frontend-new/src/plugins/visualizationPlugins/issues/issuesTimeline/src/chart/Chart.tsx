@@ -6,11 +6,11 @@ import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterf
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
 import { getDataSlice } from '../../../../simpleVisualizationPlugin/src/reducer';
-import { DataState, type IssuesState } from '../reducer';
-import type { SprintSettings } from '../settings/settings.tsx';
-import { SprintChart } from './SprintChart.tsx';
+import { DataState, type IssuesTimelineState } from '../reducer';
+import type { IssuesTimelineSettings } from '../settings/settings.tsx';
+import { IssuesTimelineChart } from './IssuesTimelineChart.tsx';
 
-const Chart = (props: VisualizationPluginProperties<SprintSettings, DataPluginIssue>) => {
+const Chart = (props: VisualizationPluginProperties<IssuesTimelineSettings, DataPluginIssue>) => {
   /*
    * Creating Dispatch and Root State for interaction with the reducer State
    */
@@ -26,9 +26,9 @@ const Chart = (props: VisualizationPluginProperties<SprintSettings, DataPluginIs
    * -----------------------------
    */
   //Redux Global State
-  const issues = useSelector<RootState, IssuesState['issues']>((data) => data.plugin.issues);
-  const mergeRequests = useSelector<RootState, IssuesState['mergeRequests']>((data) => data.plugin.mergeRequests);
-  const dataState = useSelector<RootState, IssuesState['dataState']>((state: RootState) => state.plugin.dataState);
+  const issues = useSelector<RootState, IssuesTimelineState['issues']>((data) => data.plugin.issues);
+  const mergeRequests = useSelector<RootState, IssuesTimelineState['mergeRequests']>((data) => data.plugin.mergeRequests);
+  const dataState = useSelector<RootState, IssuesTimelineState['dataState']>((state: RootState) => state.plugin.dataState);
 
   /**
    * RESIZE Logic START
@@ -73,7 +73,7 @@ const Chart = (props: VisualizationPluginProperties<SprintSettings, DataPluginIs
         )}
         {dataState === DataState.COMPLETE &&
           (issues.length > 0 || mergeRequests.length > 0 ? (
-            <SprintChart
+            <IssuesTimelineChart
               authors={props.authorList}
               issues={issues}
               mergeRequests={mergeRequests}

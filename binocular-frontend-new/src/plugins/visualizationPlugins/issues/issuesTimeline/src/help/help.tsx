@@ -1,4 +1,4 @@
-const Help = () => (
+export const Help = () => (
   <>
     <h2>Sprints Help</h2>
 
@@ -50,5 +50,3 @@ const Help = () => (
     </div>
   </>
 );
-
-export default Help;
