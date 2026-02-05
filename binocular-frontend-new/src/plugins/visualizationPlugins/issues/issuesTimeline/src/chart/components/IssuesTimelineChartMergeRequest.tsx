@@ -1,11 +1,11 @@
 import * as d3 from 'd3';
 import * as React from 'react';
 import type { AuthorType } from '../../../../../../../types/data/authorType';
-import { margin } from '../SprintChart';
+import { margin } from '../IssuesTimelineChart';
 import type { MappedDataPluginMergeRequest } from '../types';
-import classes from './sprintChartMergeRequest.module.css';
+import classes from './issuesTimelineChartMergeRequest.module.css';
 
-export const SprintChartMergeRequest: React.FC<{
+export const IssuesTimelineChartMergeRequest: React.FC<{
   height: number;
   xScale: d3.ScaleTime<number, number>;
   mergeRequestGroup: MappedDataPluginMergeRequest[];

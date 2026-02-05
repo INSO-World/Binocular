@@ -5,12 +5,12 @@ import type { AuthorType } from '../../../../../../types/data/authorType';
 import type { SprintType } from '../../../../../../types/data/sprintType';
 import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
 import type { DataPluginMergeRequest } from '../../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests';
-import type { SprintSettings } from '../settings/settings';
+import type { IssuesTimelineSettings } from '../settings/settings';
 import { DetailDialogIssue, DetailDialogMergeRequestGroup, DetailDialogSprintArea } from './components/DetailDialog';
+import { IssuesTimelineChartIssue } from './components/IssuesTimelineChartIssue';
+import { IssuesTimelineChartLegend } from './components/IssuesTimelineChartLegend';
+import { IssuesTimelineChartMergeRequest } from './components/IssuesTimelineChartMergeRequest';
 import { SprintAreas } from './components/SprintAreas';
-import { SprintChartIssue } from './components/SprintChartIssue';
-import { SprintChartLegend } from './components/SprintChartLegend';
-import { SprintChartMergeRequest } from './components/SprintChartMergeRequest';
 import { groupIntoTracks } from './helper/groupIntoTracks';
 import { groupMergeRequests } from './helper/groupMergeRequests';
 import { groupSimilarLabels } from './helper/groupSimilarLabels';
@@ -87,7 +87,7 @@ const mapSprint = (s: SprintType): MappedSprint => ({
   endDate: moment(s.endDate),
 });
 
-export const SprintChart: React.FC<
+export const IssuesTimelineChart: React.FC<
   {
     authors: AuthorType[];
     issues: DataPluginIssue[];
@@ -100,7 +100,7 @@ export const SprintChart: React.FC<
     height: number;
     maxNumberOfDifferencesBetweenLabels?: number;
     minNumberOfLabelsPerGroup?: number;
-  } & Pick<SprintSettings, 'coloringMode'>
+  } & Pick<IssuesTimelineSettings, 'coloringMode'>
 > = ({
   authors,
   coloringMode,
@@ -177,7 +177,7 @@ export const SprintChart: React.FC<
           <>
             {groupedIssues.flatMap((group, trackNmbr) =>
               group.map((issue) => (
-                <SprintChartIssue
+                <IssuesTimelineChartIssue
                   key={issue.iid}
                   {...issue}
                   trackNmbr={trackNmbr}
@@ -204,10 +204,10 @@ export const SprintChart: React.FC<
               )),
             )}
 
-            <SprintChartLegend height={height} width={width} xScale={xScale} />
+            <IssuesTimelineChartLegend height={height} width={width} xScale={xScale} />
 
             {groupedMergeRequests.map((group) => (
-              <SprintChartMergeRequest
+              <IssuesTimelineChartMergeRequest
                 key={group[0].iid}
                 height={height}
                 xScale={xScale}

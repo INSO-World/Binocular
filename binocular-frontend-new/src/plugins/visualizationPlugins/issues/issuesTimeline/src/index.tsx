@@ -1,15 +1,15 @@
-import PreviewImage from '../assets/thumbnail.svg';
-import Settings, { type SprintSettings } from './settings/settings.tsx';
+import type { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import type { VisualizationPlugin } from '../../../../interfaces/visualizationPlugin.ts';
+import { VisualizationPluginMetadataCategory } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import PreviewImage from '../assets/thumbnail.svg';
+import Chart from './chart/Chart.tsx';
+import { Help } from './help/help.tsx';
 import Reducer from './reducer';
 import Saga from './saga';
-import Help from './help/help.tsx';
-import type { DataPluginIssue } from '../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
-import { VisualizationPluginMetadataCategory } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
-import Chart from './chart/Chart.tsx';
+import { Settings, type IssuesTimelineSettings } from './settings/settings.tsx';
 
-const Sprints: VisualizationPlugin<SprintSettings, DataPluginIssue> = {
-  name: 'Sprints',
+const IssuesTimeline: VisualizationPlugin<IssuesTimelineSettings, DataPluginIssue> = {
+  name: 'Issue Timeline',
   chartComponent: Chart,
   settingsComponent: Settings,
   dataConnectionName: 'issues',
@@ -47,4 +47,4 @@ const Sprints: VisualizationPlugin<SprintSettings, DataPluginIssue> = {
   saga: Saga,
 };
 
-export default Sprints;
+export default IssuesTimeline;
