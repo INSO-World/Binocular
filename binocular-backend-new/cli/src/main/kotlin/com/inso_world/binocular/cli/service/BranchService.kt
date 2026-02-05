@@ -17,6 +17,9 @@ import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import java.io.File as JFile
+import com.inso_world.binocular.cli.config.ExportConfigLoader
+import com.inso_world.binocular.cli.config.ExportSelectionConfig
+import org.eclipse.jgit.lib.ObjectId
 
 @Service
 class BranchService (
@@ -28,7 +31,12 @@ class BranchService (
         private var logger: Logger = LoggerFactory.getLogger(Index::class.java)
     }
 
-    fun getBranchExportData(branchId: String, repoPath: String): BranchExportData {
+    fun getBranchExportData(
+        branchId: String,
+        repoPath: String,
+        exportAll: Boolean,
+        includeContent: Boolean
+    ): BranchExportData {
         val branch = getBranch(branchId)
 
         return branch?.let { b ->
@@ -44,15 +52,18 @@ class BranchService (
                 return@let createEmptyExportData(b.name, commitSha)
             }
 
-
             val gitFolder = JFile(repoPath, ".git")
             if (!gitFolder.exists()) {
                 throw IllegalArgumentException("No git repository found at $repoPath")
             }
             val repository = Git.open(gitFolder).repository
-            val fileContentList = getSnapshotFromGit(repository, commitSha)
+            val cfg = if (exportAll) {
+                ExportConfigLoader.exportAllConfig()
+            } else {
+                ExportConfigLoader.loadDefaultPolicy()
+            }
 
-
+            val fileContentList = getSnapshotFromGit(repository, commitSha, cfg, includeContent)
 
             val committerId = userService.findUserByCommit(commitId).firstOrNull()?.id ?: "N/A"
 
@@ -61,32 +72,6 @@ class BranchService (
 //            val commitDateTime = commit.commitDateTime ?: return@let createEmptyExportData(b.name, commitSha)
 //
 //            val authorDateTime = commit.authorDateTime ?: return@let createEmptyExportData(b.name, commitSha)
-
-            // Build file content details
-//            val fileContentsList = try {
-//                commitService.findFilesByCommitId(commitId).map { file ->
-//                val sourceFilePath = file.path
-//                val contentList = file.states.map { fileState ->
-//                    val stateId = fileState.id
-//                    val stateContent = fileState.content
-//
-//                    Content(
-//                        id = stateId,
-//                        content = stateContent
-//                    )
-//                }
-//
-//                FileContent(
-//                    filePath = sourceFilePath,
-//                    content = contentList
-//                )
-//            }
-
-//        } catch (e: Exception) {
-//                println("Failed to retrieve or map files for commit ID: $commitId")
-//                println(e)
-//                emptyList() // Fallback to an empty list
-//            }
 
             // Build children details
             val childrenDetails = commitService.findChildrenOfCommit(commitId).map { childCommit ->
@@ -144,7 +129,13 @@ class BranchService (
         )
     }
 
-    private fun getSnapshotFromGit(repository: Repository, sha: String): List<FileContent> {
+    private fun getSnapshotFromGit(
+        repository: Repository,
+        sha: String,
+        cfg: ExportSelectionConfig,
+        includeContent: Boolean
+    ): List<FileContent>
+    {
         val fileList = mutableListOf<FileContent>()
 
         val commitId = repository.resolve(sha) ?: return emptyList()
@@ -156,20 +147,52 @@ class BranchService (
         treeWalk.isRecursive = true
 
         while (treeWalk.next()) {
-            val path = treeWalk.pathString
-            val objectId = treeWalk.getObjectId(0).name // This is the Blob SHA
+            if  (fileList.size > cfg.maxFiles) break
 
-            // We only save the path and the ID of the blob, NOT the actual bytes
+            val path = treeWalk.pathString
+
+            if (cfg.includePrefixes.isNotEmpty() && cfg.includePrefixes.none {
+                path.startsWith(it)
+                }) continue
+
+            if (cfg.excludePrefixes.any { path.startsWith(it) }) continue
+
+            val objectId = treeWalk.getObjectId(0)
+            val blobSha = objectId.name // This is the Blob SHA
+
+            val contentString: String? =
+                if (!includeContent) {
+                    "Content omitted for export size"
+                } else {
+                    readBlobAsText(repository, objectId, cfg)
+                }
+
             fileList.add(FileContent(
                 filePath = path,
                 content = listOf(
                     Content(
-                        id = objectId,
-                        content = "Content omitted for export size" // Or leave as empty string ""
+                        id = blobSha,
+                        content = contentString
                     )
                 )
             ))
         }
         return fileList
     }
+}
+
+private fun readBlobAsText(repository: Repository, objectId: ObjectId, cfg: ExportSelectionConfig): String {
+    val loader = repository.open(objectId)
+
+    if (loader.size > cfg.maxBlobBytes) {
+        return "Content omitted: blob too large (${loader.size} bytes)"
+    }
+
+    val bytes = loader.getCachedBytes(cfg.maxBlobBytes.toInt())
+
+    if (cfg.skipBinary && bytes.any { it == 0.toByte() }) {
+        return "Content omitted: binary file"
+    }
+
+    return String(bytes, Charsets.UTF_8)
 }

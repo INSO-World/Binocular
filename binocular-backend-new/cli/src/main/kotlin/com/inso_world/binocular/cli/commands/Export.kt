@@ -44,8 +44,24 @@ open class Export (
             defaultValue = "false",
             description = "Output the full RDF SHACL validation report if validation fails."
         ) verbose: Boolean,
+        @Option(
+            longNames = ["export-all"],
+            shortNames = ['e'],
+            required = false,
+            defaultValue = "false",
+            description = "Disables export policy restrictions and exports the complete repository snapshot."
+        ) exportAll: Boolean,
+        @Option(
+            longNames = ["include-content"],
+            shortNames = ['i'],
+            required = false,
+            defaultValue = "false",
+            description = "Disables export policy restrictions and exports complete contents of the files."
+        ) includeContent: Boolean,
     ) {
-        val exportData = this.branchService.getBranchExportData(branchId, repoPath)
+        val exportData = this.branchService.getBranchExportData(
+            branchId, repoPath, exportAll, includeContent
+        )
         val jsonLdString = expMapper.map(exportData)
 
         logger.info("\n--- JSON-LD EXPORT OUTPUT (branch_id: $branchId) ---")

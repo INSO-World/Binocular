@@ -1,0 +1,12 @@
+selection:
+  includePrefixes:
+    - "src/"
+    - "README.md"
+    - "binocular-backend/"
+  excludePrefixes:
+    - "build/"
+    - ".gradle/"
+    - "node_modules/"
+  maxFiles: 5000
+  maxBlobBytes: 200000
+  skipBinary: true
