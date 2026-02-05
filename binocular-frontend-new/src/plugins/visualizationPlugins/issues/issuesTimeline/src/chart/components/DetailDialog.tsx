@@ -3,9 +3,10 @@ import { groupBy } from 'lodash';
 import * as React from 'react';
 import type { AuthorType } from '../../../../../../../types/data/authorType';
 import { BaseDetailDialogLayout } from '../../../../../../components/BaseDetailDialogLayout';
+import type { MappedSprint } from '../../../../../../components/SprintAreas';
 import { extractTimeTrackingDataFromNotes } from '../../../../../../utils/extractTimeTrackingDataFromNotes';
 import { aggregateTimeTrackingData } from '../helper/aggregateTimeTrackingData';
-import type { MappedDataPluginIssue, MappedDataPluginMergeRequest, MappedSprint } from '../types';
+import type { MappedDataPluginIssue, MappedDataPluginMergeRequest } from '../types';
 
 /**
  * @param time Floating point number for the hours.

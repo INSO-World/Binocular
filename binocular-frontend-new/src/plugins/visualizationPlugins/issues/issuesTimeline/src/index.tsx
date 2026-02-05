@@ -9,7 +9,7 @@ import Saga from './saga';
 import { Settings, type IssuesTimelineSettings } from './settings/settings.tsx';
 
 const IssuesTimeline: VisualizationPlugin<IssuesTimelineSettings, DataPluginIssue> = {
-  name: 'Issue Timeline',
+  name: 'Sprints',
   chartComponent: Chart,
   settingsComponent: Settings,
   dataConnectionName: 'issues',
