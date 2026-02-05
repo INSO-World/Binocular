@@ -1,10 +1,10 @@
 import * as React from 'react';
 import type { AuthorType } from '../../../../../../../types/data/authorType';
-import { extractTimeTrackingDataFromNotes } from '../../../../../authorBehaviour/timeSpent/src/utilities/dataConverter';
 import { aggregateTimeTrackingData } from '../helper/aggregateTimeTrackingData';
 import type { MappedDataPluginIssue, MappedDataPluginMergeRequest, MappedSprint } from '../types';
 import { groupBy } from 'lodash';
 import chroma from 'chroma-js';
+import { extractTimeTrackingDataFromNotes } from '../../../../../../utils/extractTimeTrackingDataFromNotes';
 
 const detailDialogWidth = 400;
 const detailDialogDefaultHeight = 600;

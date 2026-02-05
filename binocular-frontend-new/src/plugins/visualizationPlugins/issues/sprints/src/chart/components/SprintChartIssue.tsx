@@ -1,14 +1,14 @@
 import * as d3 from 'd3';
+import type { Moment } from 'moment';
 import * as React from 'react';
 import type { AuthorType } from '../../../../../../../types/data/authorType';
-import { extractTimeTrackingDataFromNotes } from '../../../../../authorBehaviour/timeSpent/src/utilities/dataConverter';
+import { extractTimeTrackingDataFromNotes } from '../../../../../../utils/extractTimeTrackingDataFromNotes';
 import type { SprintSettings } from '../../settings/settings';
 import { margin } from '../SprintChart';
-import { findAuthorWithMaxSpentTime } from '../helper/findAuthorWithMaxSpentTime';
 import { aggregateTimeTrackingData } from '../helper/aggregateTimeTrackingData';
+import { findAuthorWithMaxSpentTime } from '../helper/findAuthorWithMaxSpentTime';
 import type { MappedDataPluginIssue } from '../types';
 import classes from './sprintChartIssue.module.css';
-import type { Moment } from 'moment';
 
 const spaceBetweenIssues = 4;
 const marginBetweenLeftIssueBorderAndText = 4;
