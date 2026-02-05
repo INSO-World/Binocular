@@ -3,6 +3,7 @@ import moment, { type Moment } from 'moment';
 import * as React from 'react';
 import type { AuthorType } from '../../../../../../types/data/authorType';
 import type { SprintType } from '../../../../../../types/data/sprintType';
+import { SprintAreas, type MappedSprint } from '../../../../../components/SprintAreas';
 import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
 import type { DataPluginMergeRequest } from '../../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests';
 import type { IssuesTimelineSettings } from '../settings/settings';
@@ -10,12 +11,11 @@ import { DetailDialogIssue, DetailDialogMergeRequestGroup, DetailDialogSprintAre
 import { IssuesTimelineChartIssue } from './components/IssuesTimelineChartIssue';
 import { IssuesTimelineChartLegend } from './components/IssuesTimelineChartLegend';
 import { IssuesTimelineChartMergeRequest } from './components/IssuesTimelineChartMergeRequest';
-import { SprintAreas } from './components/SprintAreas';
 import { groupIntoTracks } from './helper/groupIntoTracks';
 import { groupMergeRequests } from './helper/groupMergeRequests';
 import { groupSimilarLabels } from './helper/groupSimilarLabels';
 import classes from './sprintChart.module.css';
-import type { MappedDataPluginIssue, MappedDataPluginMergeRequest, MappedSprint } from './types';
+import type { MappedDataPluginIssue, MappedDataPluginMergeRequest } from './types';
 
 export const margin = 20;
 
@@ -232,6 +232,7 @@ export const IssuesTimelineChart: React.FC<
                 sprints={mappedSprints}
                 xScale={xScale}
                 height={height}
+                bottomMargin={margin}
                 onClick={(sprint) => (e) => {
                   e.stopPropagation();
 
