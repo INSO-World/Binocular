@@ -15,4 +15,4 @@ import org.springframework.test.context.ContextConfiguration
         SqlTestConfig.Initializer::class,
     ]
 )
-internal abstract class AbstractCliIntegrationTest : BaseIntegrationTest()
+abstract class AbstractCliIntegrationTest : BaseIntegrationTest()
