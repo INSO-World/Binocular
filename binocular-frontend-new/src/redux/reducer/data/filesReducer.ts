@@ -89,6 +89,13 @@ export const filesSlice = createSlice({
       const newState = JSON.stringify(state);
       fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
     },
+    removeFileList: (state, action: PayloadAction<number>) => {
+      delete state.fileLists[action.payload];
+      delete state.fileTrees[action.payload];
+      delete state.fileCounts[action.payload];
+      const newState = JSON.stringify(state);
+      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+    },
     clearFileStorage: () => {
       opfsRoot.removeEntry('files');
     },
@@ -100,6 +107,7 @@ export const {
   setFileList,
   updateFileListElement,
   showFileTreeElementInfo,
+  removeFileList,
   clearFileStorage,
   loadState,
   checkAllFiles,

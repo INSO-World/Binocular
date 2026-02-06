@@ -49,7 +49,7 @@ function SetupDialogDatabasePage() {
             <progress
               className="progress progress-primary w-56"
               value={localDatabaseLoadingMessage.split('/')[0]}
-              max={parseInt(localDatabaseLoadingMessage.split('/')[1])}></progress>
+              max={localDatabaseLoadingMessage.includes('/') ? parseInt(localDatabaseLoadingMessage.split('/')[1]) : 0}></progress>
             <br />
             <span>{localDatabaseLoadingMessage}</span>
           </div>
