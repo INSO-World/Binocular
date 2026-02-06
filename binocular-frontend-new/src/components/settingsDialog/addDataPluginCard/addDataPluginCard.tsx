@@ -159,7 +159,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
             <progress
               className="progress progress-primary w-56"
               value={uploadInfo.split('/')[0]}
-              max={parseInt(uploadInfo.split('/')[1])}></progress>
+              max={uploadInfo.includes('/') ? parseInt(uploadInfo.split('/')[1]) : 0}></progress>
             <br />
             <span>{uploadInfo}</span>
           </div>

@@ -5,6 +5,7 @@ import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux
 import { useSelector } from 'react-redux';
 import connectedDataPluginStyles from './connectedDataPlugins.module.scss';
 import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import { removeFileList } from '../../../redux/reducer/data/filesReducer.ts';
 
 function ConnectedDataPlugins(props: { interactable: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -104,6 +105,7 @@ function ConnectedDataPlugins(props: { interactable: boolean }) {
                                     console.log(`${settingsDatabaseDataPlugin.name} #${settingsDatabaseDataPlugin.id} cleared`);
                                     if (settingsDatabaseDataPlugin.id !== undefined) {
                                       dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                                      dispatch(removeFileList(settingsDatabaseDataPlugin.id));
                                     }
                                   })
                                   .catch((e) => console.log(e));
@@ -112,6 +114,7 @@ function ConnectedDataPlugins(props: { interactable: boolean }) {
                             .catch((e) => console.log(e));
                         } else {
                           dispatch(removeDataPlugin(settingsDatabaseDataPlugin.id));
+                          dispatch(removeFileList(settingsDatabaseDataPlugin.id));
                         }
                       }
                     }}>
