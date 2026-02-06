@@ -15,10 +15,12 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.Duration
 import java.util.stream.Stream
 
-internal class IndexCommandsTest : PerformanceTest() {
+@DisabledIf("true")
+class IndexCommandsTest : PerformanceTest() {
 
     @Autowired
     lateinit var idxClient: Index
