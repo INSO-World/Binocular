@@ -265,14 +265,11 @@ function getDataByAuthors(
     }; //Save date of time bucket, create object
     for (let i = 0; i < sortedIssues.length; i++) {
       let assignee = UNASSIGNED;
-      if (sortedIssues[i].assignee) {
-        if (sortedIssues[i].assignee?.user?.id) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          assignee = sortedIssues[i].assignee.user.id;
-        } else {
-          assignee = ACCOUNT_NOT_ASSIGNED;
-        }
+      const userId = sortedIssues[i].assignee?.user?.id;
+      if (userId) {
+        assignee = userId;
+      } else if (sortedIssues[i].assignee) {
+        assignee = ACCOUNT_NOT_ASSIGNED;
       }
       if (Date.parse(sortedIssues[i].createdAt) >= currTimestamp && Date.parse(sortedIssues[i].createdAt) < nextTimestamp) {
         if (!(assignee in totalIssuesPerAuthor)) {
@@ -424,13 +421,6 @@ function getDataByAuthors(
           //-0.001 for stack layout to realize it belongs on the bottom
           obj['Closed Issues ' + UNASSIGNED] = issue.statsBySortingObject[UNASSIGNED]?.CLOSED || 0;
         }
-        if ('Open Issues ' + ACCOUNT_NOT_ASSIGNED in obj) {
-          obj['Open Issues ' + ACCOUNT_NOT_ASSIGNED] += issue.statsBySortingObject[ACCOUNT_NOT_ASSIGNED]?.OPEN || 0;
-        } else {
-          obj['Opened Issues ' + ACCOUNT_NOT_ASSIGNED] = issue.statsBySortingObject[ACCOUNT_NOT_ASSIGNED]?.OPENED || 0;
-          //-0.001 for stack layout to realize it belongs on the bottom
-          obj['Closed Issues ' + ACCOUNT_NOT_ASSIGNED] = issue.statsBySortingObject[ACCOUNT_NOT_ASSIGNED]?.CLOSED || 0;
-        }
       } else {
         if ('Opened Issues ' + UNASSIGNED in obj && 'Failed Issues ' + UNASSIGNED in obj) {
           obj['Opened Issues ' + UNASSIGNED] += issue.statsBySortingObject[UNASSIGNED]?.OPENED || 0;
@@ -441,6 +431,18 @@ function getDataByAuthors(
           //-0.001 for stack layout to realize it belongs on the bottom
           obj['Closed Issues ' + UNASSIGNED] = issue.statsBySortingObject[UNASSIGNED]?.CLOSED || 0;
         }
+      }
+    }
+    if (ACCOUNT_NOT_ASSIGNED in issue.statsBySortingObject) {
+      if (breakdown) {
+        if ('Open Issues ' + ACCOUNT_NOT_ASSIGNED in obj) {
+          obj['Open Issues ' + ACCOUNT_NOT_ASSIGNED] += issue.statsBySortingObject[ACCOUNT_NOT_ASSIGNED]?.OPEN || 0;
+        } else {
+          obj['Opened Issues ' + ACCOUNT_NOT_ASSIGNED] = issue.statsBySortingObject[ACCOUNT_NOT_ASSIGNED]?.OPENED || 0;
+          //-0.001 for stack layout to realize it belongs on the bottom
+          obj['Closed Issues ' + ACCOUNT_NOT_ASSIGNED] = issue.statsBySortingObject[ACCOUNT_NOT_ASSIGNED]?.CLOSED || 0;
+        }
+      } else {
         if ('Opened Issues ' + ACCOUNT_NOT_ASSIGNED in obj && 'Failed Issues ' + ACCOUNT_NOT_ASSIGNED in obj) {
           obj['Opened Issues ' + ACCOUNT_NOT_ASSIGNED] += issue.statsBySortingObject[ACCOUNT_NOT_ASSIGNED]?.OPENED || 0;
           //-0.001 for stack layout to realize it belongs on the bottom
