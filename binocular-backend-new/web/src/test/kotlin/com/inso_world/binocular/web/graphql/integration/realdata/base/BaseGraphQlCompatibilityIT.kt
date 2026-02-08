@@ -44,11 +44,12 @@ abstract class BaseGraphQlCompatibilityIT {
             )
                 .apply { withExposedPorts(8529) }
                 .apply { withoutAuth() }
-                .apply { withReuse(true) }
+                // .apply { withReuse(true) }
                 .waitingFor(
-                    Wait.forHttp("/_api/version")
-                        .forPort(8529)
-                        .withStartupTimeout(Duration.ofSeconds(30)))
+                    // Wait for script success message
+                    Wait.forLogMessage(".*RECOVERY_COMPLETE_PROCEED_WITH_TESTS.*\\n", 1)
+                        .withStartupTimeout(Duration.ofSeconds(120))
+                )
 
         private const val DEFAULT_TARGET = "spring"
         private const val TARGET_LEGACY = "legacy"
