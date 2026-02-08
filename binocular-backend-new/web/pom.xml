@@ -155,7 +155,7 @@
                             <includes>
                                 <!-- Run only tests located under the real-data integration package -->
                                 <include>**/graphql/integration/realdata/**/*Test.*</include>
-                                <include>**/graphql/integration/realdata/**/GraphQLSmokeTest.*</include>
+                                <include>**/graphql/integration/realdata/**/*IT.*</include>
                             </includes>
                         </configuration>
                     </plugin>
