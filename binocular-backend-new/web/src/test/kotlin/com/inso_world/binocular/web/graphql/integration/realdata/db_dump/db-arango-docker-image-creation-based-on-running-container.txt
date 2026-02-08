@@ -1,3 +1,8 @@
+**Edit**
+The following way of creating an image based on a running container should not be used.
+It is better to build images using a Dockerfile which can then be build for arm and amd architecture.
+See: db-arango-docker-image-creation-clean.txt
+
 # 0. Backup
 docker exec -it c609067d802c arangodump \
   --server.endpoint tcp://127.0.0.1:8529 \

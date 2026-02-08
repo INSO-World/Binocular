@@ -1,0 +1,86 @@
+# 0. Create working folder
+mkdir -p /Users/markus/Desktop/binocular-db-multiarch
+cd /Users/markus/Desktop/binocular-db-multiarch
+
+
+# 1. Copy dump folder
+cp -r /Users/markus/Desktop/binocular-db-backup dump
+
+# If nexted in dump/dump -> flatten:
+mv dump/dump/* dump/ 2>/dev/null || true
+rm -rf dump/dump 2>/dev/null || true
+
+
+# 2. Create Dockerfile
+cat > Dockerfile << 'EOF'
+FROM arangodb:3.12
+
+ENV ARANGO_ROOT_PASSWORD=changeme
+
+COPY dump /dump
+COPY restore.sh /docker-entrypoint-initdb.d/restore.sh
+RUN chmod +x /docker-entrypoint-initdb.d/restore.sh
+
+# THE FIX:
+# We check if the container has been up for less than 15 seconds.
+# This forces Testcontainers to wait at least 15s regardless of the port.
+# Then, it checks if your 'restoring' file is gone.
+HEALTHCHECK --interval=1s --timeout=3s --retries=60 \
+  CMD sh -c 'UPTIME=$(cat /proc/uptime | cut -d" " -f1 | cut -d"." -f1); if [ "$UPTIME" -lt 15 ]; then exit 1; fi' && [ ! -f /tmp/restoring ]
+EOF
+
+
+# 3. Create restore script
+cat > restore.sh << 'EOF'
+#!/bin/sh
+set -e
+
+# Create the lock file immediately
+touch /tmp/restoring
+
+(
+  echo "Background restore process started..."
+
+  sleep 10
+
+  echo "Running restore..."
+  arangorestore \
+    --server.endpoint tcp://127.0.0.1:8529 \
+    --server.username root \
+    --server.password "$ARANGO_ROOT_PASSWORD" \
+    --server.database binocular-binocular \
+    --input-directory /dump \
+    --create-database true \
+    --overwrite true
+
+  echo "RECOVERY_COMPLETE_PROCEED_WITH_TESTS"
+
+  echo "Restore finished. Removing lock file."
+  rm /tmp/restoring
+) &
+EOF
+
+
+# 4. Local sanity build (optional)
+docker build -t ghcr.io/inso-world/binocular-database:3.12.test-data .
+
+docker run -it -p 8529:8529 ghcr.io/inso-world/binocular-database:3.12.test-data
+# Ctrl+C after confirming restore runs
+
+
+# 5. Create multi-arch builder (one-time setup)
+docker buildx create --name bino-builder --use
+docker buildx inspect --bootstrap
+
+# 6. not needed
+
+# 7. Build + push AMD64 + ARM64 image
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t ghcr.io/inso-world/binocular-database:3.12.test-data \
+  --push .
+
+
+# 8. Verify image contains both architectures
+docker buildx imagetools inspect \
+  ghcr.io/inso-world/binocular-database:3.12.test-data
