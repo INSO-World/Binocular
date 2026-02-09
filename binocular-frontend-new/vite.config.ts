@@ -5,6 +5,7 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 import ConditionalCompile from 'vite-plugin-conditional-compiler';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
@@ -26,6 +27,10 @@ export default defineConfig({
     },
   },
   plugins: [nodePolyfills(), react(), ConditionalCompile(), viteSingleFile()],
+  build: {
+    emptyOutDir: true,
+    outDir: '../dist',
+  },
   optimizeDeps: {
     exclude: [],
     esbuildOptions: {
@@ -49,5 +54,8 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
+  },
+  worker: {
+    format: 'es',
   },
 });

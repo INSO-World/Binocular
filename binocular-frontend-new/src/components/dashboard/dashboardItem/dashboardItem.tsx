@@ -4,26 +4,27 @@ import { visualizationPlugins } from '../../../plugins/pluginRegistry.ts';
 import { memo, useEffect, useRef, useState } from 'react';
 import DashboardItemPopout from '../dashboardItemPopout/dashboardItemPopout.tsx';
 import { increasePopupCount, updateDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
-import { AppDispatch, RootState, useAppDispatch } from '../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
 import openInNewGray from '../../../assets/open_in_new_white.svg';
 import openInNewBlack from '../../../assets/open_in_new_black.svg';
 import { useSelector } from 'react-redux';
 import DashboardItemSettings from '../dashboardItemSettings/dashboardItemSettings.tsx';
 import { parametersInitialState } from '../../../redux/reducer/parameters/parametersReducer.ts';
-import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import type { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
 import { ExportType, setExportName, setExportSVGData, setExportType } from '../../../redux/reducer/export/exportReducer.ts';
 import ReduxSubAppStoreWrapper from '../reduxSubAppStoreWrapper/reduxSubAppStoreWrapper.tsx';
-import { combineReducers, configureStore, Store } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, type Store } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import { createLogger } from 'redux-logger';
-import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 import _ from 'lodash';
-import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
-
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
 import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import type { FileListElementType } from '../../../types/data/fileListType.ts';
+import { loadFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -42,9 +43,9 @@ const DashboardItem = memo(function DashboardItem(props: {
   const [poppedOut, setPoppedOut] = useState(false);
 
   const authorLists = useSelector((state: RootState) => state.authors.authorLists);
-  //const fileLists = useSelector((state: RootState) => state.files.fileLists);
+  const fileLists = useSelector((state: RootState) => state.files.fileLists);
   const sprintList = useSelector((state: RootState) => state.sprints.sprintList);
-  const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
   const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(false);
   const [doAutomaticUpdate, setDoAutomaticUpdate] = useState(false);
@@ -64,11 +65,11 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   useEffect(() => {
     if (props.item.dataPluginId !== undefined) {
-      setSelectedDataPlugin(avaliableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0]);
+      setSelectedDataPlugin(availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0]);
     } else {
-      setSelectedDataPlugin(avaliableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0]);
+      setSelectedDataPlugin(availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0]);
     }
-  }, [avaliableDataPlugins, props.item.dataPluginId]);
+  }, [availableDataPlugins, props.item.dataPluginId]);
 
   const [plugin] = useState(visualizationPlugins.filter((p) => p.name === props.item.pluginName)[0]);
 
@@ -95,12 +96,20 @@ const DashboardItem = memo(function DashboardItem(props: {
       setAuthors(authorLists[props.item.dataPluginId]);
     }
   }, [authorLists, props.item.dataPluginId]);
-  /*const [files, setFiles] = useState([]);
+
+  const [files, setFiles] = useState<FileListElementType[]>([]);
+
   useEffect(() => {
     if (props.item.dataPluginId !== undefined) {
-      setFiles(fileLists[props.item.dataPluginId]);
+      if (fileLists[props.item.dataPluginId] == undefined) {
+        const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
+        loadFileList(dataPlugin, dispatch);
+      }
+      if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)) {
+        setFiles(fileLists[props.item.dataPluginId]);
+      }
     }
-  }, [fileLists, props.item.dataPluginId]); */
+  }, [availableDataPlugins, fileLists, props.item.dataPluginId]);
   const [settings, setSettings] = useState(plugin.defaultSettings);
 
   /**
@@ -133,6 +142,9 @@ const DashboardItem = memo(function DashboardItem(props: {
           if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
             store.dispatch({ type: 'RESIZE' });
           }
+          break;
+        case 'RESIZE':
+          store.dispatch({ type: 'RESIZE' });
           break;
       }
     }
@@ -211,7 +223,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                         key={plugin.name}
                         settings={settings}
                         authorList={authors}
-                        //fileList={files}
+                        fileList={files}
                         sprintList={sprintList}
                         parameters={{
                           parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
@@ -255,7 +267,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                       key={plugin.name}
                       settings={settings}
                       authorList={authors}
-                      //fileList={files}
+                      fileList={files}
                       sprintList={sprintList}
                       parameters={{
                         parametersGeneral: ignoreGlobalParameters ? parametersGeneralLocal : parametersGeneralGlobal,
@@ -278,72 +290,88 @@ const DashboardItem = memo(function DashboardItem(props: {
           <div
             className={dashboardItemStyles.dashboardItemInteractionBar}
             style={{
-              background: `linear-gradient(90deg, ${selectedDataPlugin ? selectedDataPlugin.color : 'oklch(var(--b2))'}, oklch(var(--b1))`,
+              background: `linear-gradient(90deg, ${selectedDataPlugin ? selectedDataPlugin.color : 'var(--color-base-200)'}, var(--color-base-200)`,
             }}
             onMouseDown={() => {
               console.log('Start dragging dashboard item ' + props.item.pluginName);
               props.setDragResizeItem(props.item.id, DragResizeMode.drag);
             }}>
-            <span>{props.item.pluginName}</span>
-            {selectedDataPlugin && (
-              <span>
-                ({selectedDataPlugin.name} #{selectedDataPlugin.id})
-              </span>
-            )}
-            <button
-              className={dashboardItemStyles.settingsButton}
-              ref={settingsButtonRef}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (settingsRef.current) {
-                  settingsRef.current.style.display = 'block';
-                }
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.deleteButton}
-              ref={deleteButtonRef}
-              style={{ display: 'none' }}
-              onClick={(event) => {
-                event.stopPropagation();
-                props.deleteItem(props.item.id);
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.helpButton}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (helpRef.current) {
-                  helpRef.current.style.display = 'block';
-                }
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            <button
-              className={dashboardItemStyles.popoutButton}
-              onClick={(event) => {
-                event.stopPropagation();
-                dispatch(increasePopupCount());
-                setPoppedOut(true);
-              }}
-              onMouseDown={(event) => event.stopPropagation()}></button>
-            {plugin.capabilities.export && (
+            <div className={dashboardItemStyles.dashboardItemInteractionBarLeft}>
+              <span>{props.item.pluginName}</span>
+              {selectedDataPlugin && (
+                <span>
+                  ({selectedDataPlugin.name} #{selectedDataPlugin.id})
+                </span>
+              )}
+            </div>
+            <div className={dashboardItemStyles.dashboardItemInteractionBarRight}>
+              {plugin.capabilities.export && (
+                <button
+                  className={dashboardItemStyles.exportButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    dispatch(setExportType(ExportType.image));
+                    dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
+                    dispatch(setExportName(`${plugin.name}Export`));
+                    (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
+                  }}
+                  onMouseDown={(event) => event.stopPropagation()}></button>
+              )}
               <button
-                className={dashboardItemStyles.exportButton}
+                className={dashboardItemStyles.popoutButton}
                 onClick={(event) => {
                   event.stopPropagation();
-                  dispatch(setExportType(ExportType.image));
-                  dispatch(setExportSVGData(plugin.export.getSVGData(chartContainerRef)));
-                  dispatch(setExportName(`${plugin.name}Export`));
-                  (document.getElementById('exportDialog') as HTMLDialogElement).showModal();
+                  dispatch(increasePopupCount());
+                  setPoppedOut(true);
                 }}
                 onMouseDown={(event) => event.stopPropagation()}></button>
-            )}
+              <button
+                className={dashboardItemStyles.helpButton}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (helpRef.current) {
+                    helpRef.current.style.display = 'block';
+                  }
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+              <button
+                className={dashboardItemStyles.deleteButton}
+                ref={deleteButtonRef}
+                style={{ display: 'none' }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  props.deleteItem(props.item.id);
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+              <button
+                className={dashboardItemStyles.settingsButton}
+                ref={settingsButtonRef}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (settingsRef.current) {
+                    settingsRef.current.style.display = 'block';
+                  }
+                }}
+                onMouseDown={(event) => event.stopPropagation()}></button>
+            </div>
           </div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarTopLeft}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top left');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeTopLeft);
+            }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarTop}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top');
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeTop);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarTopRight}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the top right');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeTopRight);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarRight}
@@ -352,10 +380,22 @@ const DashboardItem = memo(function DashboardItem(props: {
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeRight);
             }}></div>
           <div
+            className={dashboardItemStyles.dashboardItemResizeBarBottomRight}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom right');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottomRight);
+            }}></div>
+          <div
             className={dashboardItemStyles.dashboardItemResizeBarBottom}
             onMouseDown={() => {
               console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom');
               props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottom);
+            }}></div>
+          <div
+            className={dashboardItemStyles.dashboardItemResizeBarBottomLeft}
+            onMouseDown={() => {
+              console.log('Start resizing dashboard item ' + props.item.pluginName + ' at the bottom left');
+              props.setDragResizeItem(props.item.id, DragResizeMode.resizeBottomLeft);
             }}></div>
           <div
             className={dashboardItemStyles.dashboardItemResizeBarLeft}
@@ -391,7 +431,11 @@ const DashboardItem = memo(function DashboardItem(props: {
                 }}
                 item={props.item}
                 settingsComponent={
-                  <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
+                  <plugin.settingsComponent
+                    key={plugin.name}
+                    settings={settings}
+                    setSettings={setSettings}
+                    store={store}></plugin.settingsComponent>
                 }
                 onClickDelete={() => props.deleteItem(props.item.id)}
                 onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}

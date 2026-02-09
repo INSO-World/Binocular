@@ -1,7 +1,8 @@
 import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.ts';
-import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { createRef, useState } from 'react';
-import { AppDispatch, useAppDispatch } from '../../../redux';
+import { type AppDispatch, useAppDispatch } from '../../../redux';
+import type { MetadataType } from '../../../types/data/MetadataType.ts';
 
 enum State {
   unconfigured,
@@ -24,11 +25,12 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
   const progressUpdateEndpointRef = createRef<HTMLInputElement>();
 
   const [fileName, setFileName] = useState<string | undefined>(undefined);
+  const [metadata, setMetadata] = useState<MetadataType | undefined>(undefined);
 
   const [state, setState] = useState(State.unconfigured);
 
   return (
-    <div className={'card w-96 bg-base-100 shadow-xl mb-3 mr-3 border-2 border-base-300'} key={props.dataPlugin.name}>
+    <div className={'card w-96 bg-base-100 shadow-md mb-3 mr-3 border border-base-300 min-w-96'} key={props.dataPlugin.name}>
       <div className="card-body">
         <h2 className="card-title">
           {props.dataPlugin.name}
@@ -103,8 +105,9 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                           { name: fileNameInput.value.replace(' ', '_'), file: file, dbObjects: undefined },
                           undefined,
                         )
-                        .then(() => {
+                        .then((meta) => {
                           setFileName(fileNameInput.value.replace(' ', '_'));
+                          setMetadata(meta);
                           setState(State.configured);
                         })
                         .catch(() => {
@@ -194,9 +197,11 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                         }
                       : undefined,
                   },
+                  metadata: metadata,
                 }),
               );
               setState(State.unconfigured);
+              setMetadata(undefined);
             }}>
             Add
           </button>

@@ -3,9 +3,9 @@ import { ColumnChart } from './columnChart.tsx';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
-import { Properties } from '../../../../interfaces/visualizationPluginInterfaces/properties.ts';
-import { DefaultSettings } from '../settings/settings.tsx';
+import type { DefaultSettings } from '../settings/settings.tsx';
 import { handelPopoutResizing } from '../../../../utils/resizing.ts';
+import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 export interface ChartData {
   date: number;
@@ -22,7 +22,7 @@ export interface Palette {
   [signature: string]: { main: string; secondary: string };
 }
 
-function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties<SettingsType, DataType>) {
+function Chart<SettingsType extends DefaultSettings, DataType>(props: VisualizationPluginProperties<SettingsType, DataType>) {
   /*
    * Creating Dispatch and Root State for interaction with the reducer State
    */
@@ -51,7 +51,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Properties
    * RESIZE Logic START
    */
   function resize() {
-    if (!props.chartContainerRef.current) return;
+    if (!props.chartContainerRef?.current) return;
     if (props.chartContainerRef.current?.offsetWidth !== chartWidth) {
       setChartWidth(props.chartContainerRef.current.offsetWidth);
     }

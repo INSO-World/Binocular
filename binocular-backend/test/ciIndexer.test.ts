@@ -123,7 +123,7 @@ describe('ci', function () {
       expect(build.jobs[1].id).to.equal('1');
       expect(build.jobs[1].status).to.equal('success');
       expect(build.jobs[2].id).to.equal('2');
-      expect(build.jobs[2].status).to.equal('failure');
+      expect(build.jobs[2].status).to.equal('failed');
 
       expect(dbBuildsCollectionData[0].status).to.equal('success');
     });

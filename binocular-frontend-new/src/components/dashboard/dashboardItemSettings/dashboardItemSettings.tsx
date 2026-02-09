@@ -1,13 +1,11 @@
-import { cloneElement, ReactElement } from 'react';
-import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import type { ReactElement } from 'react';
+import type { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
 import DateRange from '../../tabs/parameters/dataRange/dateRange.tsx';
 import ParametersGeneral from '../../tabs/parameters/parametersGeneral/parametersGeneral.tsx';
-import { ParametersGeneralType } from '../../../types/parameters/parametersGeneralType.ts';
-import { ParametersDateRangeType } from '../../../types/parameters/parametersDateRangeType.ts';
+import type { ParametersGeneralType } from '../../../types/parameters/parametersGeneralType.ts';
+import type { ParametersDateRangeType } from '../../../types/parameters/parametersDateRangeType.ts';
 import DataPluginQuickSelect from '../../dataPluginQuickSelect/dataPluginQuickSelect.tsx';
-import { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../redux';
+import type { DatabaseSettingsDataPluginType } from '../../../types/settings/databaseSettingsType.ts';
 
 function DashboardItemSettings(props: {
   selectedDataPlugin: DatabaseSettingsDataPluginType | undefined;
@@ -25,13 +23,6 @@ function DashboardItemSettings(props: {
   parametersDateRange: ParametersDateRangeType;
   setParametersDateRange: (parametersDateRange: ParametersDateRangeType) => void;
 }) {
-  const authors = useSelector((s: RootState) =>
-    props.selectedDataPlugin?.id !== undefined ? s.authors.authorLists[props.selectedDataPlugin.id] ?? [] : [],
-  );
-  const userSignatures = authors.map((a: { user: { gitSignature: never } }) => a.user.gitSignature).sort();
-  const settingsWithUsers = cloneElement(props.settingsComponent, {
-    users: userSignatures,
-  });
   return (
     <>
       <h2>{props.item.pluginName + ' (#' + props.item.id + ')'}</h2>
@@ -43,7 +34,7 @@ function DashboardItemSettings(props: {
       </button>
       <hr className={'text-base-300 m-1'} />
       <div>
-        <label className="label cursor-pointer">
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
           <span className="label-text">Ignore Global Parameters:</span>
           <input
             type="checkbox"
@@ -80,7 +71,7 @@ function DashboardItemSettings(props: {
           setParametersGeneral={props.setParametersGeneral}></ParametersGeneral>
       </div>
       <hr className={'text-base-300 m-1'} />
-      {settingsWithUsers}
+      {props.settingsComponent}
       <hr className={'text-base-300 m-1'} />
       <button className={'btn btn-error btn-xs w-full'} onClick={props.onClickDelete}>
         Delete

@@ -1,8 +1,8 @@
 import statusBarDataPluginElementStyles from './statusBarDataPluginElement.module.scss';
-import { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
-import { DataPlugin } from '../../../../plugins/interfaces/dataPlugin.ts';
+import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
+import type { DataPlugin } from '../../../../plugins/interfaces/dataPlugin.ts';
 import { useDispatch, useSelector } from 'react-redux';
-import { Store } from '@reduxjs/toolkit';
+import type { Store } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 import { SocketConnectionStatusType } from '../../../../types/general/socketConnectionType.ts';
 import ConnectedToApi from '../../../../assets/connected_to_api_blue.svg';

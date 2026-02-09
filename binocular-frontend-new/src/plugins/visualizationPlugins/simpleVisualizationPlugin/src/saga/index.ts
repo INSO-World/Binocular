@@ -1,6 +1,6 @@
 import { put, takeEvery, fork, call, select } from 'redux-saga/effects';
-import { State, DataState, getDataSlice } from '../reducer';
-import { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
+import { type State, DataState, getDataSlice } from '../reducer';
+import type { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
 
 export default function* <DataType>(dataConnection: DataPlugin, name?: string, dataConnectionName?: string) {
   yield fork(() => watchRefresh<DataType>(dataConnection, name!, dataConnectionName!));
@@ -21,7 +21,7 @@ function* fetchChangesData<DataType>(dataConnection: DataPlugin, name: string, d
   const state: { plugin: State<DataType> } = yield select();
   const data: DataType[] = yield call(() => {
     const currentDataConnection = dataConnection[dataConnectionName as keyof DataPlugin];
-    if (typeof currentDataConnection !== 'boolean' && typeof currentDataConnection !== 'string' && 'getAll' in currentDataConnection) {
+    if (typeof currentDataConnection !== 'boolean' && typeof currentDataConnection !== 'string' && 'getAll' in currentDataConnection!) {
       return currentDataConnection.getAll(state.plugin.dateRange.from, state.plugin.dateRange.to);
     }
   });

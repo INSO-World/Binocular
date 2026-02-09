@@ -12,8 +12,6 @@ const cli = new Command();
 
 interface runOptions {
   backend: boolean;
-  frontend: boolean;
-  open: boolean;
   clean: boolean;
   its: boolean;
   ci: boolean;
@@ -60,10 +58,8 @@ function parse(run: (targetPath: string, options: runOptions) => void, build: (o
   cli
     .command('run')
     .addArgument(new Argument('[targetPath]', 'relative path to the repository'))
-    .description('execute the binocular frontend and backend')
+    .description('execute the binocular backend')
     .addOption(new Option('--no-backend', 'disable the backend').default(true))
-    .addOption(new Option('--no-frontend', 'disable the frontend').default(true))
-    .addOption(new Option('--open', 'automatic open frontend on launch').default(false))
     .addOption(new Option('--clean', 'clear db before execution').default(false))
     .addOption(new Option('--no-vcs', 'disable Version Control System indexing').default(true))
     .addOption(new Option('--no-its', 'disable Issue Tracking System indexing').default(true))
@@ -92,10 +88,12 @@ function parse(run: (targetPath: string, options: runOptions) => void, build: (o
   cli
     .command('export')
     .addArgument(new Argument('[targetPath]', 'relative path to where the export should be saved'))
+    .addArgument(new Argument('[projectNamespace]', 'name of the project namespace'))
+    .addArgument(new Argument('[repositoryType]', 'type of the repository (github/gitlab)'))
     .description('export the database of binocular')
     .addOption(new Option('-db, --database <repo>', 'export specific database'))
-    .action((targetPath: string, options: exportOptions) => {
-      exportDB(targetPath, options).then((db: string) => {
+    .action((targetPath: string, projectNamespace: string, repositoryType: string, options: exportOptions) => {
+      exportDB(targetPath, options, projectNamespace, repositoryType).then((db: string) => {
         console.log(chalk.green('Export of ' + db + ' to ' + targetPath + '.'));
       });
     });

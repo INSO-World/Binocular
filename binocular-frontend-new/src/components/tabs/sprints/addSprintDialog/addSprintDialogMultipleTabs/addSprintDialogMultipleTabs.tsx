@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppDispatch, RootState, useAppDispatch } from '../../../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../../../redux';
 import { addSprint } from '../../../../../redux/reducer/data/sprintsReducer.ts';
 import { addNotification } from '../../../../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../../../../types/general/alertType.ts';
