@@ -4,6 +4,8 @@ import com.arangodb.ArangoDatabase
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
 import jakarta.annotation.PostConstruct
+import org.springframework.context.annotation.DependsOn
+import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -28,6 +30,7 @@ import java.time.Instant
  */
 @Component
 @Order(2) // Run after ArangoCollectionInitializer
+@DependsOn("arangoCollectionInitializer")
 class MigrationRunner(
     private val arangodbAppConfig: ArangodbAppConfig,
     private val migrations: List<Migration>,
@@ -45,9 +48,10 @@ class MigrationRunner(
         ensureMigrationsCollection(db)
         val executedVersions = getExecutedVersions(db)
 
-        val pendingMigrations = migrations
-            .filter { it.version !in executedVersions }
-            .sortedBy { it.version }
+        val pendingMigrations =
+            migrations
+                .filter { it.version !in executedVersions }
+                .sortedBy { it.version }
 
         if (pendingMigrations.isEmpty()) {
             logger.info("No pending migrations")
@@ -72,19 +76,23 @@ class MigrationRunner(
     }
 
     private fun getExecutedVersions(db: ArangoDatabase): Set<Int> {
-        val cursor = db.query(
-            "FOR m IN @@collection RETURN m.version",
-            Int::class.java,
-            mapOf("@collection" to MIGRATIONS_COLLECTION)
-        )
+        val cursor =
+            db.query(
+                "FOR m IN @@collection RETURN m.version",
+                Int::class.java,
+                mapOf("@collection" to MIGRATIONS_COLLECTION),
+            )
         return cursor.asListRemaining().toSet()
     }
 
-    private fun executeMigration(db: ArangoDatabase, migration: Migration) {
+    private fun executeMigration(
+        db: ArangoDatabase,
+        migration: Migration,
+    ) {
         logger.info(
             "Running migration V{}: {}",
             migration.version.toString().padStart(3, '0'),
-            migration.description
+            migration.description,
         )
 
         try {
@@ -96,13 +104,16 @@ class MigrationRunner(
                 "Migration V{} failed: {}",
                 migration.version.toString().padStart(3, '0'),
                 e.message,
-                e
+                e,
             )
             throw MigrationException(migration, e)
         }
     }
 
-    private fun recordMigration(db: ArangoDatabase, migration: Migration) {
+    private fun recordMigration(
+        db: ArangoDatabase,
+        migration: Migration,
+    ) {
         db.query(
             """
             INSERT {
@@ -118,8 +129,8 @@ class MigrationRunner(
                 "key" to migration.version.toString(),
                 "version" to migration.version,
                 "description" to migration.description,
-                "executedAt" to Instant.now().toString()
-            )
+                "executedAt" to Instant.now().toString(),
+            ),
         )
     }
 }
@@ -131,6 +142,6 @@ class MigrationException(
     migration: Migration,
     cause: Throwable,
 ) : RuntimeException(
-    "Migration V${migration.version.toString().padStart(3, '0')} (${migration.description}) failed",
-    cause
-)
+        "Migration V${migration.version.toString().padStart(3, '0')} (${migration.description}) failed",
+        cause,
+    )
