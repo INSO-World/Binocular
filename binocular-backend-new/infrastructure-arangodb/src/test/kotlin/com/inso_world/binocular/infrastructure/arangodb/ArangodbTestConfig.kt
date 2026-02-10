@@ -29,11 +29,12 @@ class ArangodbTestConfig {
             if (!ctx.environment.acceptsProfiles(Profiles.of("arangodb"))) return
             adbContainer.start()
 
-            TestPropertyValues.of(
-                "binocular.arangodb.database.name=infrastructure_arangodb_it",
-                "binocular.arangodb.database.host=${adbContainer.host}",
-                "binocular.arangodb.database.port=${adbContainer.firstMappedPort}"
-            ).applyTo(ctx.environment)
+            TestPropertyValues
+                .of(
+                    "binocular.arangodb.database.name=infrastructure_arangodb_it",
+                    "binocular.arangodb.database.host=${adbContainer.host}",
+                    "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
+                ).applyTo(ctx.environment)
         }
     }
 }
