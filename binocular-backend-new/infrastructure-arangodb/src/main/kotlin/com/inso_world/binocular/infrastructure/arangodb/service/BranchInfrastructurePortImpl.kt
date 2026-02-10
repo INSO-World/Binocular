@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
@@ -24,30 +25,39 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
     private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
     var logger: Logger = LoggerFactory.getLogger(BranchInfrastructurePortImpl::class.java)
 
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<Branch> {
         logger.trace("Getting all branches with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return branchDao.findAll(pageable)
     }
 
+    @MappingSession
     override fun findById(id: String): Branch? {
         logger.trace("Getting branch by id: $id")
         return branchDao.findById(id)
     }
 
+    @MappingSession
     override fun findByIid(iid: Reference.Id): @Valid Branch? {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findFilesByBranchId(branchId: String): List<File> {
         logger.trace("Getting files for branch: $branchId")
         return branchFileConnectionRepository.findFilesByBranch(branchId)
     }
 
-    override fun findFilesByBranchId(branchId: String, pageable: Pageable): Page<File> {
+    @MappingSession
+    override fun findFilesByBranchId(
+        branchId: String,
+        pageable: Pageable,
+    ): Page<File> {
         logger.trace("Getting files for branch: $branchId with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return branchFileConnectionRepository.findFilesByBranch(branchId, pageable)
     }
 
+    @MappingSession
     override fun findAll(): Iterable<Branch> = this.branchDao.findAll()
 
     override fun create(entity: Branch): Branch = this.branchDao.save(entity)
@@ -68,13 +78,14 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
         this.branchDao.deleteAll()
     }
 
+    @MappingSession
     override fun findAll(repository: Repository): Iterable<Branch> {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findByName(name: String): Branch? {
         logger.trace("Getting branch by name: $name")
         return branchDao.findByName(name)
     }
-
 }

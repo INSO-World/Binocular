@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
@@ -45,39 +46,47 @@ internal class UserInfrastructurePortImpl : UserInfrastructurePort,
     private lateinit var issueUserConnectionRepository: IIssueUserConnectionDao
     var logger: Logger = LoggerFactory.getLogger(UserInfrastructurePortImpl::class.java)
 
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<User> {
         logger.trace("Getting all users with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return userDao.findAll(pageable)
     }
 
+    @MappingSession
     override fun findById(id: String): User? {
         logger.trace("Getting user by id: $id")
         return userDao.findById(id)
     }
 
+    @MappingSession
     override fun findByIid(iid: User.Id): @Valid User? {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findCommitsByUserId(userId: String): List<Commit> {
         logger.trace("Getting commits for user: $userId")
         return commitUserConnectionRepository.findCommitsByUser(userId)
     }
 
+    @MappingSession
     override fun findIssuesByUserId(userId: String): List<Issue> {
         logger.trace("Getting issues for user: $userId")
         return issueUserConnectionRepository.findIssuesByUser(userId)
     }
 
+    @MappingSession
     override fun findFilesByUserId(userId: String): List<File> {
         logger.trace("Getting files for user: $userId")
         return commitFileUserConnectionRepository.findFilesByUser(userId)
     }
 
+    @MappingSession
     override fun findAll(repository: Repository): Iterable<User> {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findAll(): Iterable<User> = this.userDao.findAll()
 
     override fun create(value: User): User {
