@@ -1,8 +1,7 @@
 import type { DataPluginBranch } from '../../../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
-import { useEffect, useState } from 'react';
-import { setCurrentBranch } from '../reducer';
-import { useSelector } from 'react-redux';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { toNumber } from 'lodash';
+import type { Store } from '@reduxjs/toolkit';
 
 export interface CodeOwnerShipSettings {
   displayMode: string;
@@ -10,40 +9,46 @@ export interface CodeOwnerShipSettings {
   currentBranch?: number;
 }
 
-function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSettings: CodeOwnerShipSettings) => void }) {
-  const state = useSelector((state) => state);
+const EMPTY_BRANCHES: DataPluginBranch[] = [];
 
-  const [branchOptions, setBranchOptions] = useState([
-    <option key={-1} value={''}>
-      Select a Branch
-    </option>,
-  ]);
+function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSettings: CodeOwnerShipSettings) => void; store?: Store }) {
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!props.store) return () => {};
+      return props.store.subscribe(callback);
+    },
+    [props.store],
+  );
 
-  function setBranches() {
-    if (props.settings.allBranches) {
-      const branches = props.settings.allBranches.sort((a, b) => a.branch.localeCompare(b.branch)).map((b) => b.branch);
-      //build the selection box
-      const temp = [];
-      //placeholder option
-      temp.push(
+  const getSnapshot = useCallback(() => {
+    return props.store?.getState()?.plugin?.allBranches ?? EMPTY_BRANCHES;
+  }, [props.store]);
+
+  const allBranches: DataPluginBranch[] = useSyncExternalStore(subscribe, getSnapshot);
+
+  const branchOptions = useMemo(() => {
+    if (allBranches.length === 0) {
+      return [
         <option key={-1} value={''}>
           Select a Branch
         </option>,
-      );
-      branches.forEach((value: string, index: number) => {
-        temp.push(
-          <option key={index} value={index}>
-            {value}
-          </option>,
-        );
-      });
-      setBranchOptions(temp);
+      ];
     }
-  }
-
-  useEffect(() => {
-    if (props.settings.allBranches.length > 0) setBranches();
-  }, [props.settings.allBranches, state]);
+    const sorted = [...allBranches].sort((a, b) => a.branch.localeCompare(b.branch)).map((b) => b.branch);
+    const options = [
+      <option key={-1} value={''}>
+        Select a Branch
+      </option>,
+    ];
+    sorted.forEach((value: string, index: number) => {
+      options.push(
+        <option key={index} value={index}>
+          {value}
+        </option>,
+      );
+    });
+    return options;
+  }, [allBranches]);
 
   return (
     <>
@@ -56,7 +61,7 @@ function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSet
             onChange={(e) =>
               props.setSettings({
                 displayMode: e.target.value,
-                allBranches: props.settings.allBranches,
+                allBranches: allBranches,
               })
             }>
             <option value={'absolute'}>absolute</option>
@@ -69,10 +74,9 @@ function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSet
             value={props.settings.currentBranch ? props.settings.currentBranch : ''}
             className="select select-bordered select-xs w-36"
             onChange={(e) => {
-              setCurrentBranch(toNumber(e.target.value));
               props.setSettings({
                 displayMode: props.settings.displayMode,
-                allBranches: props.settings.allBranches,
+                allBranches: allBranches,
                 currentBranch: toNumber(e.target.value),
               });
             }}>

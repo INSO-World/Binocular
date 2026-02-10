@@ -41,8 +41,11 @@ export const dataSlice = createSlice({
     setCurrentBranch: (state: CodeOwnershipState, action: PayloadAction<number | undefined>) => {
       state.branch = action.payload;
     },
+    setAllBranches: (state: CodeOwnershipState, action: PayloadAction<DataPluginBranch[]>) => {
+      state.allBranches = action.payload;
+    },
   },
 });
 
-export const { setData, setDataState, setCurrentBranch } = dataSlice.actions;
+export const { setData, setDataState, setCurrentBranch, setAllBranches } = dataSlice.actions;
 export default dataSlice.reducer;

@@ -5,7 +5,6 @@ import _ from 'lodash';
 import Segment from './Segment';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from '../styles.module.scss';
-import { getBranches } from '../saga/helper.ts';
 import { setCurrentBranch, DataState } from '../reducer';
 import type { ExpertiseData } from '../reducer';
 import chroma from 'chroma-js';
@@ -105,10 +104,6 @@ function Chart(props: VisualizationPluginProperties<BranchSettings, ExpertiseDat
     dispatch({
       type: 'REFRESH',
     });
-  }, [props.dataConnection]);
-
-  useEffect(() => {
-    void getBranches(props.dataConnection).then((branches) => (props.settings.allBranches = branches));
   }, [props.dataConnection]);
 
   useEffect(() => {
