@@ -62,11 +62,12 @@ abstract class BaseGraphQlCompatibilityIT {
         override fun initialize(ctx: ConfigurableApplicationContext) {
             adbContainer.start()
 
-            TestPropertyValues.of(
-                "binocular.database.host=${adbContainer.host}",
-                "binocular.database.port=${adbContainer.firstMappedPort}",
-                "binocular.database.database_name=binocular-binocular"
-            ).applyTo(ctx.environment)
+            TestPropertyValues
+                .of(
+                    "binocular.arangodb.database.host=${adbContainer.host}",
+                    "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
+                    "binocular.arangodb.database.name=binocular-binocular",
+                ).applyTo(ctx.environment)
         }
     }
 
