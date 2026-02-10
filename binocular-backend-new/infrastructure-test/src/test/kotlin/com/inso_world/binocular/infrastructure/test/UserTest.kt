@@ -38,7 +38,10 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `create user and load it by id`() {
-        val user = User(name = "Jane Doe", email = "jane@example.com", repository = repository)
+        val user =
+            User(name = "Jane Doe", repository = repository).apply {
+                email = "jane@example.com"
+            }
         val created = userPort.create(user)
         val id = requireNotNull(created.id)
         assertNotNull(id)
@@ -54,8 +57,18 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `findAll returns created users`() {
-        val u1 = userPort.create(User(name = "A", email = "a@example.com", repository = repository))
-        val u2 = userPort.create(User(name = "B", email = "b@example.com", repository = repository))
+        val u1 =
+            userPort.create(
+                User(name = "A", repository = repository).apply {
+                    email = "a@example.com"
+                },
+            )
+        val u2 =
+            userPort.create(
+                User(name = "B", repository = repository).apply {
+                    email = "b@example.com"
+                },
+            )
         val all = userPort.findAll().toList()
         // at least 2 (could include other users if DB not fully isolated); ensure ours are present
         val ids = all.mapNotNull { it.id }.toSet()
