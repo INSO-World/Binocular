@@ -4,6 +4,7 @@ import com.inso_world.binocular.model.AbstractDomainObject
 import org.springframework.context.annotation.Scope
 import org.springframework.context.annotation.ScopedProxyMode
 import org.springframework.stereotype.Component
+import org.springframework.util.ClassUtils
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
@@ -38,6 +39,17 @@ open class MappingContext {
     // Fallback for unpersisted entities
     private val e2dByObjectIdentity = ConcurrentHashMap<EntityObjectKey, Any>()
 
+    // ====================== Proxy handling =========================
+
+    /**
+     * Resolves the actual user class for an object, stripping CGLIB/Spring proxy wrappers.
+     *
+     * Spring's `@Ref(lazy = true)` wraps entities in CGLIB proxies whose `::class` differs
+     * from the original entity class. This helper normalizes to the real class so that
+     * cache keys remain consistent regardless of whether the entity is proxied or not.
+     */
+    private fun userClass(obj: Any): KClass<*> = ClassUtils.getUserClass(obj).kotlin
+
     // ====================== Domain -> Entity ======================
 
     /**
@@ -56,13 +68,15 @@ open class MappingContext {
      */
     @Suppress("UNCHECKED_CAST")
     open fun <D : Any, E : Any> findDomain(entity: E): D? {
+        val entityClass = userClass(entity)
+
         // 1. Try using database id first
         resolveEntityId(entity)?.let { id ->
-            return e2d[EntityKey(entity::class, id)] as? D
+            return e2d[EntityKey(entityClass, id)] as? D
         }
 
         // 2. Fallback to object identity for unpersisted entities
-        val objKey = EntityObjectKey(entity::class, System.identityHashCode(entity))
+        val objKey = EntityObjectKey(entityClass, System.identityHashCode(entity))
         return e2dByObjectIdentity[objKey] as? D
     }
 
@@ -75,14 +89,16 @@ open class MappingContext {
      * First-write-wins.
      */
     open fun <K : Any, D : AbstractDomainObject<*, K>, E : Any> remember(domain: D, entity: E) {
+        val entityClass = userClass(entity)
+
         // Always remember domain -> entity
         d2e.computeIfAbsent(DomainKey(domain::class, domain.uniqueKey)) { entity }
         // Try to remember entity -> domain using database id
         resolveEntityId(entity)?.let { id ->
-            e2d.computeIfAbsent(EntityKey(entity::class, id)) { domain }
+            e2d.computeIfAbsent(EntityKey(entityClass, id)) { domain }
         } ?: run {
             // Fallback: use object identity for unpersisted entities
-            val objKey = EntityObjectKey(entity::class, System.identityHashCode(entity))
+            val objKey = EntityObjectKey(entityClass, System.identityHashCode(entity))
             e2dByObjectIdentity.computeIfAbsent(objKey) { domain }
         }
         require(d2e.size == (e2d.size + e2dByObjectIdentity.size)) {
@@ -107,7 +123,7 @@ open class MappingContext {
         )
 
         // Kotlin properties with Id annotation
-        e::class.memberProperties.firstOrNull { p ->
+        userClass(e).memberProperties.firstOrNull { p ->
             p.annotations.any { it.annotationClass.qualifiedName in idAnnotations }
         }?.let { p ->
             p.isAccessible = true
@@ -115,7 +131,7 @@ open class MappingContext {
         }
 
         // Java fields with Id annotation
-        e.javaClass.declaredFields.firstOrNull { f ->
+        ClassUtils.getUserClass(e).declaredFields.firstOrNull { f ->
             f.annotations.any { it.annotationClass.qualifiedName in idAnnotations }
         }?.let { f ->
             f.isAccessible = true
@@ -126,13 +142,13 @@ open class MappingContext {
     }
 
     private fun readKProperty(obj: Any, name: String): Any? = runCatching {
-        val prop = obj::class.memberProperties.firstOrNull { it.name == name } ?: return null
+        val prop = userClass(obj).memberProperties.firstOrNull { it.name == name } ?: return null
         prop.isAccessible = true
         prop.getter.call(obj)
     }.getOrNull()
 
     private fun readField(obj: Any, name: String): Any? = runCatching {
-        val field = obj.javaClass.declaredFields.firstOrNull { it.name == name } ?: return null
+        val field = ClassUtils.getUserClass(obj).declaredFields.firstOrNull { it.name == name } ?: return null
         field.isAccessible = true
         field.get(obj)
     }.getOrNull()
