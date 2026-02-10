@@ -38,6 +38,7 @@ class ArangoCollectionInitializer(
         ensureDocumentCollection(dbName, "projects")
         ensureDocumentCollection(dbName, "commits")
         ensureDocumentCollection(dbName, "users")
+        ensureDocumentCollection(dbName, "developers")
         ensureDocumentCollection(dbName, "issues")
         ensureDocumentCollection(dbName, "mergeRequests")
         ensureDocumentCollection(dbName, "milestones")
