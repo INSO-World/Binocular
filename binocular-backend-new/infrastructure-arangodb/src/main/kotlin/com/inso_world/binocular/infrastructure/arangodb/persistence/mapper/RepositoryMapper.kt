@@ -99,7 +99,7 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Repository.Id(entity.iid),
         )
 
         ctx.remember(domain, entity)

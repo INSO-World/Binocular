@@ -72,7 +72,7 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Project.Id(entity.iid),
         )
 
         ctx.remember(domain, entity)
