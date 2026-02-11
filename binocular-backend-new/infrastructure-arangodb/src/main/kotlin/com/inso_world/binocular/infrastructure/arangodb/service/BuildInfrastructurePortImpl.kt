@@ -4,8 +4,11 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BuildInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBuildDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
+import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +18,13 @@ import java.time.ZoneOffset
 import java.util.Date
 
 @Service
-class BuildInfrastructurePortImpl : BuildInfrastructurePort {
+internal class BuildInfrastructurePortImpl : BuildInfrastructurePort,
+    AbstractInfrastructurePort<Build, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = buildDao
+    }
     @Autowired private lateinit var buildDao: IBuildDao
 
     @Autowired private lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao
@@ -28,29 +37,20 @@ class BuildInfrastructurePortImpl : BuildInfrastructurePort {
 
     override fun findAll(
         pageable: Pageable,
+        since: Long?,
         until: Long?,
     ): Page<Build> {
-        logger.trace("Getting builds with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}, until=$until")
-
-        if (until == null) {
-            return findAll(pageable)
-        }
-
-        val allBuilds = buildDao.findAll(pageable)
-        val filteredBuilds =
-            allBuilds.content.filter { build ->
-                // TODO replace with build.createdAt?.toEpochSecond(ZoneOffset.UTC)
-                Date.from(build.committedAt?.toInstant(ZoneOffset.UTC))?.time?.let { committedTime ->
-                    committedTime <= until
-                } ?: true // Include builds with null committedAt
-            }
-
-        return Page(filteredBuilds, filteredBuilds.size.toLong(), pageable)
+        logger.trace("Getting builds with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}, since=$since, until=$until")
+        return buildDao.findAll(pageable, since, until)
     }
 
     override fun findById(id: String): Build? {
         logger.trace("Getting build by id: $id")
         return buildDao.findById(id)
+    }
+
+    override fun findByIid(iid: Build.Id): @Valid Build? {
+        TODO("Not yet implemented")
     }
 
     override fun findCommitsByBuildId(buildId: String): List<Commit> {
@@ -67,10 +67,6 @@ class BuildInfrastructurePortImpl : BuildInfrastructurePort {
     override fun delete(entity: Build) = this.buildDao.delete(entity)
 
     override fun update(entity: Build): Build {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: Build): Build {
         TODO("Not yet implemented")
     }
 

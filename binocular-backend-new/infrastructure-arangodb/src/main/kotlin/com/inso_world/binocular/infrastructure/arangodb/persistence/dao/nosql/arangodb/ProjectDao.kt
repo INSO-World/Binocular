@@ -1,5 +1,7 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb
 
+import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IProjectDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
@@ -9,10 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 @Repository
-class ProjectDao @Autowired constructor(
+internal class ProjectDao @Autowired constructor(
     private val projectRepository: ProjectRepository,
     projectMapper: ProjectMapper,
 ) : MappedArangoDbDao<Project, ProjectEntity, String>(projectRepository, projectMapper), IProjectDao {
+
+    companion object {
+        val logger by logger()
+    }
 
     @Autowired
     private lateinit var repositoryDao: RepositoryDao
@@ -23,11 +29,35 @@ class ProjectDao @Autowired constructor(
         }
     }
 
-    override fun create(entity: Project): Project {
-        val mappedEntity = mapper.toEntity(entity)
-        val savedEntity = projectRepository.save(mappedEntity)
-        val mappedDomain = mapper.toDomain(savedEntity)
+    fun create(entity: ProjectEntity): ProjectEntity {
+        logger.debug("Creating new project: {}", entity)
 
-        return mappedDomain
+        var savedEntity = projectRepository.save(entity)
+
+        savedEntity = entity.repository?.let { repository ->
+            val savedRepo = repositoryDao.create(repository)
+            savedEntity.repository = savedRepo
+            // update so that @Ref gets updated
+            return@let projectRepository.save(savedEntity)
+        } ?: savedEntity
+
+        return savedEntity
+    }
+
+    @MappingSession
+    override fun create(entity: Project): Project {
+        logger.debug("Creating new project: {}", entity)
+
+        val mappedEntity = mapper.toEntity(entity)
+        var savedEntity = projectRepository.save(mappedEntity)
+
+        savedEntity = mappedEntity.repository?.let { repository ->
+            val savedRepo = repositoryDao.create(repository)
+            savedEntity.repository = savedRepo
+            // update so that @Ref gets updated
+            return@let projectRepository.save(savedEntity)
+        } ?: savedEntity
+
+        return mapper.toDomain(savedEntity)
     }
 }

@@ -9,13 +9,14 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
 @Component
-class AccountMapper
+internal class AccountMapper
     @Autowired
     constructor(
         private val proxyFactory: RelationshipProxyFactory,
         @Lazy private val issueMapper: IssueMapper,
         @Lazy private val mergeRequestMapper: MergeRequestMapper,
         @Lazy private val noteMapper: NoteMapper,
+        @Lazy private val userMapper: UserMapper,
     ) : EntityMapper<Account, AccountEntity> {
         /**
          * Converts a domain Account to an ArangoDB AccountEntity
@@ -63,7 +64,7 @@ class AccountMapper
                         (entity.notes ?: emptyList()).map { noteEntity ->
                             noteMapper.toDomain(noteEntity)
                         }
-                    },
+                    }
             )
 
         /**

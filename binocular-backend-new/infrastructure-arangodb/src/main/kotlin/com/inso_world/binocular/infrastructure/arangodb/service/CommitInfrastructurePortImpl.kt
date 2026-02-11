@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
@@ -9,22 +10,31 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueCommitConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.ICommitDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 
 @Service
-internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
+internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
+    AbstractInfrastructurePort<Commit, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = commitDao
+    }
     @Autowired private lateinit var commitDao: ICommitDao
 
     @Autowired private lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao
@@ -39,7 +49,9 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     @Autowired private lateinit var commitUserConnectionRepository: ICommitUserConnectionDao
 
-    var logger: Logger = LoggerFactory.getLogger(CommitInfrastructurePortImpl::class.java)
+    companion object {
+        private val logger by logger()
+    }
 
     override fun findAll(pageable: Pageable): Page<Commit> {
         logger.trace("Getting all commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
@@ -51,28 +63,29 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         since: Long?,
         until: Long?,
     ): Page<Commit> {
-        logger.trace("Getting commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}, since=$since, until=$until")
+        logger.trace(
+            "Getting commits with pageable: page={}, size={}, since={}, until={}",
+            pageable.pageNumber, pageable.pageSize, since, until
+        )
 
         if (since == null && until == null) {
             return findAll(pageable)
         }
 
-        val allCommits = commitDao.findAll(pageable)
-        val filteredCommits =
-            allCommits.content.filter { commit ->
-                commit.commitDateTime?.toEpochSecond(ZoneOffset.UTC)?.let { commitTime ->
-                    val afterSince = since == null || commitTime >= since
-                    val beforeUntil = until == null || commitTime <= until
-                    afterSince && beforeUntil
-                } ?: true // Include commits with null date
-            }
-
-        return Page(filteredCommits, filteredCommits.size.toLong(), pageable)
+        return findCommitsInternal(
+            pageable = pageable,
+            since = since,
+            until = until
+        )
     }
 
     override fun findById(id: String): Commit? {
         logger.trace("Getting commit by id: $id")
         return commitDao.findById(id)
+    }
+
+    override fun findByIid(iid: Commit.Id): @Valid Commit? {
+        TODO("Not yet implemented")
     }
 
     override fun findBuildsByCommitId(commitId: String): List<Build> {
@@ -85,14 +98,39 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         return commitFileConnectionRepository.findFilesByCommit(commitId)
     }
 
+    override fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File> {
+        logger.trace("Getting files for commit: $commitId with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
+        return commitFileConnectionRepository.findFilesByCommitPaged(commitId, pageable)
+    }
+
     override fun findModulesByCommitId(commitId: String): List<Module> {
         logger.trace("Getting modules for commit: $commitId")
         return commitModuleConnectionRepository.findModulesByCommit(commitId)
     }
 
+    override fun findCommitStatsByCommitId(commitId: String): Stats {
+        logger.trace("Getting stats for commit: $commitId")
+        return commitFileConnectionRepository.findCommitStatsByCommit(commitId)
+    }
+
+    override fun findFileStatsByCommitId(commitId: String): Map<String, Stats> {
+        logger.trace("Getting per-file stats for commit: $commitId")
+        return commitFileConnectionRepository.findFileStatsByCommit(commitId)
+    }
+
+    override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
+        logger.trace("Getting per-file actions for commit: $commitId")
+        return commitFileConnectionRepository.findFileActionsByCommit(commitId)
+    }
+
     override fun findUsersByCommitId(commitId: String): List<User> {
         logger.trace("Getting users for commit: $commitId")
         return commitUserConnectionRepository.findUsersByCommit(commitId)
+    }
+
+    override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
+        logger.trace("Getting ownership for commit: $commitId and file: $fileId")
+        return commitFileConnectionRepository.findFileOwnershipByCommitAndFile(commitId, fileId)
     }
 
     override fun findIssuesByCommitId(commitId: String): List<Issue> {
@@ -123,13 +161,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
 
     override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = this.commitDao.saveAll(entities)
 
-    override fun delete(entity: Commit) = this.commitDao.delete(entity)
-
     override fun update(entity: Commit): Commit {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: Commit): Commit {
         TODO("Not yet implemented")
     }
 
@@ -158,15 +190,47 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
-        this.commitDao.deleteAll()
-    }
-
     override fun findAll(repo: Repository): Iterable<Commit> {
         TODO("Not yet implemented")
     }
+
+    // TODO: do in db, same as for commit controller
+    private fun findCommitsInternal(
+        pageable: Pageable,
+        since: Long?,
+        until: Long?,
+    ): Page<Commit> {
+
+        fun Commit.commitMillis() =
+            commitDateTime?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
+
+        val comparatorAsc: Comparator<Commit> =
+            compareBy(
+                { it.commitMillis() },
+                { it.sha }
+            )
+
+        val filteredAndSorted =
+            commitDao.findAll()
+                .asSequence()
+                .filter { commit ->
+                    val ts = commit.commitMillis() ?: return@filter true
+                    (since == null || ts >= since) &&
+                            (until == null || ts <= until)
+                }
+                .sortedWith(comparatorAsc)
+                .toList()
+
+        val from = (pageable.pageNumber * pageable.pageSize)
+            .coerceAtMost(filteredAndSorted.size)
+        val to = (from + pageable.pageSize)
+            .coerceAtMost(filteredAndSorted.size)
+
+        return Page(
+            content = filteredAndSorted.subList(from, to),
+            totalElements = filteredAndSorted.size.toLong(),
+            pageable = pageable
+        )
+    }
+
 }

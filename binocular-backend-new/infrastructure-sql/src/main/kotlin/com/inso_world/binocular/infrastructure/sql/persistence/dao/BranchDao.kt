@@ -36,8 +36,8 @@ internal class BranchDao(
         repo: RepositoryEntity,
         name: String,
     ): BranchEntity? {
-        if (repo.id == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findByRepository_IdAndName(repo.id, name)
+        val rId = repo.id ?: throw PersistenceException("Cannot search for repo without valid ID")
+        return this.repo.findByRepository_IdAndName(rId, name)
     }
 
     override fun findAll(repository: com.inso_world.binocular.model.Repository): Iterable<BranchEntity> =

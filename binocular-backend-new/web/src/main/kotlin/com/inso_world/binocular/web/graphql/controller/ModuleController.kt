@@ -3,6 +3,7 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.ModuleInfrastructurePort
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,28 +23,35 @@ class ModuleController(
     /**
      * Find all modules with pagination.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of modules for the current page
-     *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to DESC when not provided.
      * @return A Page object containing the modules and pagination metadata.
      */
     @QueryMapping(name = "modules")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument sort: Sort?,
     ): PageDto<com.inso_world.binocular.model.Module> {
         logger.info("Getting all modules...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.DESC,
+            sortBy = "path",
+        )
 
-        val modulesPage = moduleService.findAll(pageable)
+        logger.debug(
+            "Getting all modules with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
 
-        return PageDto(modulesPage)
+        val result = moduleService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**
@@ -63,4 +71,5 @@ class ModuleController(
         logger.info("Getting module by id: $id")
         return GraphQLValidationUtils.requireEntityExists(moduleService.findById(id), "Module", id)
     }
+
 }

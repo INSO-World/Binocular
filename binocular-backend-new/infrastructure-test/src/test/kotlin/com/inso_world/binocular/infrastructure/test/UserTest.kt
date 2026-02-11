@@ -28,19 +28,12 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 
     @BeforeEach
     fun setup() {
-        // clean and baseline
-        userPort.deleteAll()
-        repositoryPort.deleteAll()
-        projectPort.deleteAll()
         val project = projectPort.create(Project(name = "proj-user-001"))
         repository = repositoryPort.create(Repository(localPath = "repo-user-001", project = project))
     }
 
     @AfterEach
     fun cleanup() {
-        userPort.deleteAll()
-        repositoryPort.deleteAll()
-        projectPort.deleteAll()
     }
 
     @Test

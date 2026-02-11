@@ -1,21 +1,21 @@
 use gix::bstr::BString;
 use gix::date::{OffsetInSeconds, SecondsSinceUnixEpoch};
 
-type BinocularTime = gix::date::Time;
+type GixTime = gix::date::Time;
 #[uniffi::remote(Record)]
-pub struct BinocularTime {
+pub struct GixTime {
     /// The seconds that passed since UNIX epoch. This makes it UTC, or `<seconds>+0000`.
     pub seconds: SecondsSinceUnixEpoch,
     /// The time's offset in seconds, which may be negative to match the `sign` field.
     pub offset: OffsetInSeconds,
 }
 
-pub type BinocularSig = shared::signature::Sig;
+pub type GixSignature = shared::signature::Sig;
 #[uniffi::remote(Record)]
-pub struct BinocularSig {
+pub struct GixSignature {
     pub name: BString,
     pub email: BString,
-    pub time: BinocularTime,
+    pub time: GixTime,
 }
 uniffi::custom_type!(BString, String, {
     remote,

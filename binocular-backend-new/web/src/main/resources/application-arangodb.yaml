@@ -1,7 +1,8 @@
 binocular:
-  database:
-    database_name: "binocular"
-    host: "localhost"
-    port: 8529
-    user: root
-    password: test
+  arangodb:
+    database:
+      name: "binocular-repo"
+      host: "localhost"
+      port: 8529
+      user: TODO
+      password: TODO

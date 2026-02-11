@@ -14,6 +14,8 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.enums.IssueAccountRole
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,17 +24,23 @@ import org.springframework.stereotype.Service
 
 @Service
 class IssueInfrastructurePortImpl : IssueInfrastructurePort {
-    @Autowired private lateinit var issueDao: IIssueDao
+    @Autowired
+    private lateinit var issueDao: IIssueDao
 
-    @Autowired private lateinit var issueAccountConnectionRepository: IIssueAccountConnectionDao
+    @Autowired
+    private lateinit var issueAccountConnectionRepository: IIssueAccountConnectionDao
 
-    @Autowired private lateinit var issueCommitConnectionRepository: IIssueCommitConnectionDao
+    @Autowired
+    private lateinit var issueCommitConnectionRepository: IIssueCommitConnectionDao
 
-    @Autowired private lateinit var issueMilestoneConnectionRepository: IIssueMilestoneConnectionDao
+    @Autowired
+    private lateinit var issueMilestoneConnectionRepository: IIssueMilestoneConnectionDao
 
-    @Autowired private lateinit var issueNoteConnectionRepository: IIssueNoteConnectionDao
+    @Autowired
+    private lateinit var issueNoteConnectionRepository: IIssueNoteConnectionDao
 
-    @Autowired private lateinit var issueUserConnectionRepository: IIssueUserConnectionDao
+    @Autowired
+    private lateinit var issueUserConnectionRepository: IIssueUserConnectionDao
     var logger: Logger = LoggerFactory.getLogger(IssueInfrastructurePortImpl::class.java)
 
     override fun findAll(pageable: Pageable): Page<Issue> {
@@ -40,14 +48,34 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
         return issueDao.findAll(pageable)
     }
 
+    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Issue> {
+        logger.trace(
+            "Getting issues with pageable: page={}, size={}, since={}, until={}",
+            pageable.pageNumber,
+            pageable.pageSize,
+            since,
+            until
+        )
+        return issueDao.findAll(pageable, since, until)
+    }
+
     override fun findById(id: String): Issue? {
         logger.trace("Getting issue by id: $id")
         return issueDao.findById(id)
     }
 
+    override fun findByIid(iid: Issue.Id): @Valid Issue? {
+        TODO("Not yet implemented")
+    }
+
     override fun findAccountsByIssueId(issueId: String): List<Account> {
         logger.trace("Getting accounts for issue: $issueId")
         return issueAccountConnectionRepository.findAccountsByIssue(issueId)
+    }
+
+    override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> {
+        logger.trace("Getting accounts for issue: $issueId with role: ${'$'}role")
+        return issueAccountConnectionRepository.findAccountsByIssue(issueId, role)
     }
 
     override fun findCommitsByIssueId(issueId: String): List<Commit> {
@@ -79,10 +107,6 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
     override fun delete(entity: Issue) = this.issueDao.delete(entity)
 
     override fun update(entity: Issue): Issue {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: Issue): Issue {
         TODO("Not yet implemented")
     }
 

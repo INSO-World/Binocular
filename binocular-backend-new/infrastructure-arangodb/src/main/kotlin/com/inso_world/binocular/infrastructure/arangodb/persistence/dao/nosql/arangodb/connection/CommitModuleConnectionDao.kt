@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class CommitModuleConnectionDao
+internal class CommitModuleConnectionDao
     @Autowired
     constructor(
         private val repository: CommitModuleConnectionRepository,

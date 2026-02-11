@@ -5,13 +5,15 @@ import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueUserConnectionDao
-import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IUserDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.UserDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +25,13 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-class UserInfrastructurePortImpl : UserInfrastructurePort {
+internal class UserInfrastructurePortImpl : UserInfrastructurePort,
+    AbstractInfrastructurePort<User, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = userDao
+    }
     @Autowired
     private lateinit var userDao: UserDao
 
@@ -47,6 +55,10 @@ class UserInfrastructurePortImpl : UserInfrastructurePort {
         return userDao.findById(id)
     }
 
+    override fun findByIid(iid: User.Id): @Valid User? {
+        TODO("Not yet implemented")
+    }
+
     override fun findCommitsByUserId(userId: String): List<Commit> {
         logger.trace("Getting commits for user: $userId")
         return commitUserConnectionRepository.findCommitsByUser(userId)
@@ -68,31 +80,22 @@ class UserInfrastructurePortImpl : UserInfrastructurePort {
 
     override fun findAll(): Iterable<User> = this.userDao.findAll()
 
-    override fun create(entity: User): User = userDao.create(entity)
+    override fun create(value: User): User {
+        val repo = requireNotNull(value.repository)
+        val newUser = userDao.create(value)
+        repo.user.removeIf { it.email == value.email }
+        repo.user.add(newUser)
+        return newUser
+    }
 
     override fun saveAll(values: Collection<User>): Iterable<User> = userDao.saveAll(values)
-
-    override fun delete(value: User) = this.userDao.delete(value)
 
     override fun update(value: User): User {
         TODO("Not yet implemented")
     }
 
-    override fun updateAndFlush(entity: User): User {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
-        this.userDao.deleteAll()
-    }
-
-
-
     override fun findUserByCommit(commitId: String): List<User> {
         return commitUserConnectionRepository.findUsersByCommit(commitId)
     }
+
 }

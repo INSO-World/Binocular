@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 
 internal class BinocularCommands : BaseShellWithDataTest() {
 
-    @all:Autowired
+    @Autowired
     private lateinit var client: ShellTestClient
 
     private lateinit var session: ShellTestClient.InteractiveShellSession

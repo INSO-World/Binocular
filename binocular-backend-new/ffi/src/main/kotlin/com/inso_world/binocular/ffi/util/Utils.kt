@@ -1,6 +1,6 @@
 package com.inso_world.binocular.ffi.util
 
-import com.inso_world.binocular.ffi.BinocularFfi
+import com.inso_world.binocular.ffi.GixIndexer
 
 internal class Utils {
     companion object {
@@ -17,7 +17,7 @@ internal class Utils {
 
             System.setProperty("uniffi.component.$libBaseName.libraryOverride", resourcePath)
 
-            if (BinocularFfi::class.java.getResource(resourcePath) == null) {
+            if (GixIndexer::class.java.getResource(resourcePath) == null) {
                 throw IllegalStateException("$resourcePath does not exist on the classpath")
             }
 

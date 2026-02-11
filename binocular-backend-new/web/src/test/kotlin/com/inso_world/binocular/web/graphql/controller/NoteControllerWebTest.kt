@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 /**
  * Test class for NoteController.
@@ -57,8 +58,11 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
             val notesData = result.get("data")
             assertEquals(2, notesData.size(), "Expected 2 notes, but got ${notesData.size()}")
 
-            // Check that the notes match the test data
-            TestDataProvider.testNotes.forEachIndexed { index, expectedNote ->
+            // The API returns notes sorted by createdAt DESC. Align expected order accordingly.
+            val expectedNotes = TestDataProvider.testNotes.sortedByDescending { Instant.parse(it.createdAt) }
+
+            // Check that the notes match the expected data in the same order
+            expectedNotes.forEachIndexed { index, expectedNote ->
                 val actualNote = notesData.get(index)
 
                 assertAll(
@@ -78,15 +82,15 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
                     },
                     {
                         assertEquals(
-                            expectedNote.createdAt,
-                            actualNote.get("createdAt").asText(),
+                            Instant.parse(expectedNote.createdAt),
+                            Instant.parse(actualNote.get("createdAt").asText()),
                             "Note createdAt mismatch: expected ${expectedNote.createdAt}, got ${actualNote.get("createdAt").asText()}",
                         )
                     },
                     {
                         assertEquals(
-                            expectedNote.updatedAt,
-                            actualNote.get("updatedAt").asText(),
+                            Instant.parse(expectedNote.updatedAt),
+                            Instant.parse(actualNote.get("updatedAt").asText()),
                             "Note updatedAt mismatch: expected ${expectedNote.updatedAt}, got ${actualNote.get("updatedAt").asText()}",
                         )
                     },
@@ -188,15 +192,15 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedNote.createdAt,
-                        result.get("createdAt").asText(),
+                        Instant.parse(expectedNote.createdAt),
+                        Instant.parse(result.get("createdAt").asText()),
                         "Note createdAt mismatch: expected ${expectedNote.createdAt}, got ${result.get("createdAt").asText()}",
                     )
                 },
                 {
                     assertEquals(
-                        expectedNote.updatedAt,
-                        result.get("updatedAt").asText(),
+                        Instant.parse(expectedNote.updatedAt),
+                        Instant.parse(result.get("updatedAt").asText()),
                         "Note updatedAt mismatch: expected ${expectedNote.updatedAt}, got ${result.get("updatedAt").asText()}",
                     )
                 },
@@ -284,8 +288,8 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
             val notesData = result.get("data")
             assertEquals(1, notesData.size(), "Expected 1 note, but got ${notesData.size()}")
 
-            // Check that the note matches the first test note
-            val expectedNote = TestDataProvider.testNotes.first()
+            // Check that the note matches the first page (newest by createdAt DESC)
+            val expectedNote = TestDataProvider.testNotes.maxByOrNull { Instant.parse(it.createdAt) }!!
             val actualNote = notesData.get(0)
 
             assertAll(
@@ -305,15 +309,15 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedNote.createdAt,
-                        actualNote.get("createdAt").asText(),
+                        Instant.parse(expectedNote.createdAt),
+                        Instant.parse(actualNote.get("createdAt").asText()),
                         "Note createdAt mismatch: expected ${expectedNote.createdAt}, got ${actualNote.get("createdAt").asText()}",
                     )
                 },
                 {
                     assertEquals(
-                        expectedNote.updatedAt,
-                        actualNote.get("updatedAt").asText(),
+                        Instant.parse(expectedNote.updatedAt),
+                        Instant.parse(actualNote.get("updatedAt").asText()),
                         "Note updatedAt mismatch: expected ${expectedNote.updatedAt}, got ${actualNote.get("updatedAt").asText()}",
                     )
                 },
@@ -400,8 +404,8 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
             val notesData = result.get("data")
             assertEquals(1, notesData.size(), "Expected 1 note, but got ${notesData.size()}")
 
-            // Check that the note matches the second test note
-            val expectedNote = TestDataProvider.testNotes[1]
+            // Check that the note matches the second page (oldest by createdAt DESC)
+            val expectedNote = TestDataProvider.testNotes.minByOrNull { Instant.parse(it.createdAt) }!!
             val actualNote = notesData.get(0)
 
             assertAll(
@@ -421,15 +425,15 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedNote.createdAt,
-                        actualNote.get("createdAt").asText(),
+                        Instant.parse(expectedNote.createdAt),
+                        Instant.parse(actualNote.get("createdAt").asText()),
                         "Note createdAt mismatch: expected ${expectedNote.createdAt}, got ${actualNote.get("createdAt").asText()}",
                     )
                 },
                 {
                     assertEquals(
-                        expectedNote.updatedAt,
-                        actualNote.get("updatedAt").asText(),
+                        Instant.parse(expectedNote.updatedAt),
+                        Instant.parse(actualNote.get("updatedAt").asText()),
                         "Note updatedAt mismatch: expected ${expectedNote.updatedAt}, got ${actualNote.get("updatedAt").asText()}",
                     )
                 },

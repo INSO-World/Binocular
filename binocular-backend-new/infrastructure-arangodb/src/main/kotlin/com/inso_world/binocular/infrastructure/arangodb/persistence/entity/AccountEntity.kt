@@ -5,6 +5,7 @@ import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.NoteAccountConnectionEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.AccountUserConnectionEntity
 import com.inso_world.binocular.model.Platform
 import org.springframework.data.annotation.Id
 
@@ -41,4 +42,11 @@ data class AccountEntity(
         direction = Relations.Direction.INBOUND,
     )
     var notes: List<NoteEntity> = emptyList(),
+    @Relations(
+        edges = [AccountUserConnectionEntity::class],
+        lazy = true,
+        maxDepth = 1,
+        direction = Relations.Direction.OUTBOUND,
+    )
+    var users: List<UserEntity> = emptyList(),
 )

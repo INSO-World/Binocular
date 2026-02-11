@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1764772875
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropUniqueConstraint:
+            tableName: users
+            constraintName: uc_4ef74b80804a037e4472a7d34
+        - addUniqueConstraint:
+            columnNames: iid
+            constraintName: uc_aWlkCg==
+            tableName: users
+        - addUniqueConstraint:
+            columnNames: repository_id, email, name
+            constraintName: uc_cmVwb3NpdG9yeV9pZCwgZW1haWwsIG5hbWUK
+            tableName: users
+

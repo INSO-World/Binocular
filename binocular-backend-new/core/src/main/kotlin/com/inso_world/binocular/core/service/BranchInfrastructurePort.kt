@@ -1,14 +1,25 @@
 package com.inso_world.binocular.core.service
 
+import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
+import org.springframework.data.domain.Pageable
 
 /**
  * Interface for BranchService.
  * Provides methods to retrieve branches and their related entities.
+ *
+ * @deprecated Use [RepositoryInfrastructurePort] instead. Branch is part of the Repository aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch> {
+@Deprecated(
+    message = "Use RepositoryInfrastructurePort instead. Branch is part of the Repository aggregate.",
+    replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch, Reference.Id> {
     /**
      * Find files by branch ID.
      *
@@ -17,5 +28,16 @@ interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch> {
      */
     fun findFilesByBranchId(branchId: String): List<File>
 
+    /**
+     * Find files by branch ID with pagination.
+     */
+    fun findFilesByBranchId(branchId: String, pageable: Pageable): Page<File>
+
     fun findAll(repository: Repository): Iterable<Branch>
+
+    /**
+     * Find a branch by its name.
+     * Implementations should query the database rather than scanning in memory.
+     */
+    fun findByName(name: String): Branch?
 }

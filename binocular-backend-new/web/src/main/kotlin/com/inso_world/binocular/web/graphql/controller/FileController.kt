@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.FileInfrastructurePort
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,45 +24,63 @@ class FileController(
     /**
      * Find all files with pagination.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of files for the current page
-     *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to DESC when not provided.
      * @return A Page object containing the files and pagination metadata.
      */
     @QueryMapping(name = "files")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument sort: Sort?,
     ): PageDto<File> {
         logger.info("Getting all files...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.DESC,
+            sortBy = "path",
+        )
 
-        val filesPage = fileService.findAll(pageable)
+        logger.debug(
+            "Getting all files with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
 
-        return PageDto(filesPage)
+        val result = fileService.findAll(pageable)
+        return PageDto(result)
     }
 
     /**
-     * Find a file by its ID.
+     * Find a file by its ID or path.
      *
      * This method retrieves a single file based on the provided ID.
      * If no file is found with the given ID, an exception is thrown.
      *
      * @param id The unique identifier of the file to retrieve.
+     * @param path The unique path of the file to retrieve.
      * @return The file with the specified ID.
      * @throws GraphQLException if no file is found with the given ID.
      */
     @QueryMapping(name = "file")
-    fun findById(
-        @Argument id: String,
+    fun findByIdOrPath(
+        @Argument id: String?,
+        @Argument path: String?,
     ): File {
-        logger.info("Getting file by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(fileService.findById(id), "File", id)
+        if (id != null) {
+            logger.info("Getting file by id: $id")
+            return GraphQLValidationUtils.requireEntityExists(fileService.findById(id), "File", id)
+        }
+        if (path != null) {
+            logger.info("Getting file by path: $path")
+            val match = fileService.findByPath(path)
+            return GraphQLValidationUtils.requireEntityExists(match, "File", path)
+        }
+        throw IllegalArgumentException("Either id or path must be provided")
     }
+
 }

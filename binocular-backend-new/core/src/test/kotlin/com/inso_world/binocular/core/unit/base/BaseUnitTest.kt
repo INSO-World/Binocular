@@ -46,15 +46,6 @@ abstract class BaseUnitTest {
     }
 
     /**
-     * Setup method that runs before each test.
-     * Override this method in test classes to add custom setup.
-     */
-    @BeforeEach
-    open fun setUp() {
-        // Common setup code can be added here
-    }
-
-    /**
      * Utility method to create a test exception with a message.
      */
     protected fun createTestException(message: String): Exception = Exception(message)

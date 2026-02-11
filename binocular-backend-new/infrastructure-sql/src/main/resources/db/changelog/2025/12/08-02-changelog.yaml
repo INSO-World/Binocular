@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-12-08-add-cascade-delete-commits
+      author: claude
+      comment: "Add ON DELETE CASCADE to commits FK constraints to fix deletion order issues"
+      changes:
+        # Drop existing FK constraints on commits
+        - dropForeignKeyConstraint:
+            baseTableName: commits
+            constraintName: FK_COMMITS_ON_AUTHOR
+        - dropForeignKeyConstraint:
+            baseTableName: commits
+            constraintName: FK_COMMITS_ON_COMMITTER
+        - dropForeignKeyConstraint:
+            baseTableName: commits
+            constraintName: FK_COMMITS_ON_REPOSITORY
+        # Drop existing FK constraints on commit_parents
+        - dropForeignKeyConstraint:
+            baseTableName: commit_parents
+            constraintName: FK_COMMIT_PARENTS_ON_CHILD
+        - dropForeignKeyConstraint:
+            baseTableName: commit_parents
+            constraintName: FK_COMMIT_PARENTS_ON_PARENT
+        # Re-create commits FKs with ON DELETE CASCADE
+        - addForeignKeyConstraint:
+            baseColumnNames: author_id
+            baseTableName: commits
+            constraintName: FK_COMMITS_ON_AUTHOR
+            referencedColumnNames: id
+            referencedTableName: users
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseColumnNames: committer_id
+            baseTableName: commits
+            constraintName: FK_COMMITS_ON_COMMITTER
+            referencedColumnNames: id
+            referencedTableName: users
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseColumnNames: repository_id
+            baseTableName: commits
+            constraintName: FK_COMMITS_ON_REPOSITORY
+            referencedColumnNames: id
+            referencedTableName: repositories
+            onDelete: CASCADE
+        # Re-create commit_parents FKs with ON DELETE CASCADE
+        - addForeignKeyConstraint:
+            baseColumnNames: child_id
+            baseTableName: commit_parents
+            constraintName: FK_COMMIT_PARENTS_ON_CHILD
+            referencedColumnNames: id
+            referencedTableName: commits
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseColumnNames: parent_id
+            baseTableName: commit_parents
+            constraintName: FK_COMMIT_PARENTS_ON_PARENT
+            referencedColumnNames: id
+            referencedTableName: commits
+            onDelete: CASCADE

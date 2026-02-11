@@ -36,24 +36,24 @@ internal class IndexCommandsTest : PerformanceTest() {
         @JvmStatic
         fun provideBranches(): Stream<Arguments> = Stream.of(
             Arguments.of(
-                "origin/feature/5",
+                "origin/not-merged/5",
                 "18a0a9eb68d8c38d14b83da4faee8f40f53bd019",
                 219
             ),
             Arguments.of(
-                "origin/feature/31",
+                "origin/not-merged/31",
                 "fdc4fc21ed4eec0d0d49ec1677b590d67d361747",
                 592
             ),
             Arguments.of(
-                "origin/feature/32",
+                "origin/not-merged/32",
                 "23a50b9d695f87bc8ec42291b67c0e7b703c6742",
                 658
             ),
             Arguments.of(
                 "origin/main",
                 "0f19849be9b57d56285a57ea31f3622f8ddecdf6",
-                1881
+                2456
             ),
             Arguments.of(
                 "origin/develop",
