@@ -70,7 +70,7 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
 
     // Project validations
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `project name must not be blank`(name: String) {
         val project = Project(name = "name")
         setField(Project::name.javaField!!, project, name)
@@ -81,7 +81,7 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
 
     // Repository validations
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `repository name must not be blank`(name: String) {
         val repository = validRepository
         setField(Repository::localPath.javaField!!, repository, name)
@@ -94,7 +94,7 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
 
     // Branch validations
     @ParameterizedTest
-    @MethodSource("com.inso_world.binocular.data.DummyTestData#provideBlankStrings")
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `branch name must not be blank`(name: String) {
         val branch = Branch(
             name = "name",
