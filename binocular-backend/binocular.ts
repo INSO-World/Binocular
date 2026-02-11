@@ -77,7 +77,8 @@ import VersionChangeEvent from './models/VersionChangeEvent';
 import Vulnerability from './models/Vulnerability';
 import VersionChangeEventVulnerabilityConnection from './models/VersionChangeEventVulnerabilityConnection';
 import VulnerabilityAgeBucket from './models/metrics/VulnerabilityAgeBucket';
-import VulnerabilityRemediationTimeSnapshot from "./models/metrics/VulnerabilityRemediationTimeSnapshot";
+import VulnerabilityRemediationTimeSnapshot from './models/metrics/VulnerabilityRemediationTimeSnapshot';
+import VulnerabilityPatchLagSnapshot from "./models/metrics/VulnerabilityPatchLagSnapshot";
 
 cli.parse(
   (targetPath, options) => {
@@ -611,6 +612,7 @@ function runBackend() {
           VersionChangeEventVulnerabilityConnection.ensureCollection(),
           VulnerabilityAgeBucket.ensureCollection(),
           VulnerabilityRemediationTimeSnapshot.ensureCollection(),
+          VulnerabilityPatchLagSnapshot.ensureCollection(),
         ]);
       });
   }

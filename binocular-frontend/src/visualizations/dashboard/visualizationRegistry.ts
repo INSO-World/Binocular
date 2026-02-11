@@ -10,6 +10,7 @@ import sprints from '../VisualizationComponents/sprints';
 import timeSpent from '../VisualizationComponents/timeSpent';
 import vulnerabilityAgeBuckets from '../vulnerabilityTrends/vulnerabilityAgeBuckets';
 import vulnerabilityRemediationTimes from '../vulnerabilityTrends/vulnerabilityRemediationTimes';
+import vulnerabilityPatchLagSnapshot from '../vulnerabilityTrends/vulnerabilityPatchLag';
 
 export default {
   changes,
@@ -22,4 +23,5 @@ export default {
   empty,
   vulnerabilityAgeBuckets,
   vulnerabilityRemediationTimes,
+  vulnerabilityPatchLagSnapshot,
 };

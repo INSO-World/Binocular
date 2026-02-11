@@ -272,6 +272,19 @@ export default class Database {
     }
   }
 
+  /**
+   * PATCH LAG SNAPSHOTS
+   */
+  static async getVulnerabilityPatchLagSnapshots(branch, since, until, severities) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityPatchLagSnapshots(branch, since, until, severities);
+    } else {
+      // PoC: no offline PouchDB version yet
+      return [];
+    }
+  }
+
+
 
   /**
    * DATABASE

@@ -39,6 +39,7 @@ export async function step0CleanupCollections() {
   const VersionChangeEventVulnerabilityConnection = (await import('../../models/VersionChangeEventVulnerabilityConnection.js')).default;
   const VulnerabilityAgeBucket = (await import('../../models/metrics/VulnerabilityAgeBucket.js')).default;
   const VulnerabilityRemediationTimeSnapshot = (await import('../../models/metrics/VulnerabilityRemediationTimeSnapshot.js')).default;
+  const VulnerabilityPatchLagSnapshot = (await import('../../models/metrics/VulnerabilityPatchLagSnapshot.js')).default;
 
   // Console: single-line start/end only
   console.log('[VULN][STEP0] Cleanup collections (truncate)');
@@ -49,6 +50,7 @@ export async function step0CleanupCollections() {
   results.vulnEventConnections = await wipe(VersionChangeEventVulnerabilityConnection, 'VersionChangeEventVulnerabilityConnection');
   results.vulnerabilityAgeBuckets = await wipe(VulnerabilityAgeBucket, 'VulnerabilityAgeBucket');
   results.vulnerabilityRemediationTimeSnapshots = await wipe(VulnerabilityRemediationTimeSnapshot, 'VulnerabilityRemediationTimeSnapshot');
+  results.VulnerabilityPatchLagSnapshot = await wipe(VulnerabilityPatchLagSnapshot, 'VulnerabilityPatchLagSnapshot');
 
   // Debug only: full object
   log('Cleanup results: %O', results);

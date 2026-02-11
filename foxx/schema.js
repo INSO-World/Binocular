@@ -24,6 +24,8 @@ const mergeRequests = db._collection('mergeRequests');
 const milestones = db._collection('milestones');
 const vulnAgeBuckets = db._collection('vulnerabilityAgeBuckets');
 const vulnRemediationSnapshots = db._collection('vulnerabilityRemediationTimeSnapshots');
+const vulnPatchLagSnapshots = db._collection('vulnerabilityPatchLagSnapshots');
+
 
 const queryType = new gql.GraphQLObjectType({
   name: 'Query',
@@ -342,6 +344,44 @@ const queryType = new gql.GraphQLObjectType({
         },
       }),
 
+      vulnerabilityPatchLagSnapshots: paginated({
+        type: require('./types/vulnerabilityPatchLagSnapshot.js'),
+        args: {
+          branch: {
+            description: 'Branch name (e.g. "main")',
+            type: new gql.GraphQLNonNull(gql.GraphQLString),
+          },
+          since: {
+            description: 'Optional lower bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+          until: {
+            description: 'Optional upper bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+          severities: {
+            description: 'Optional list of severities to include',
+            type: new gql.GraphQLList(gql.GraphQLString),
+          },
+        },
+        query: (root, args, limit) => {
+          const sevFilter =
+            args.severities && args.severities.length
+              ? aql`FILTER POSITION(${args.severities}, doc.severity)`
+              : aql``;
+
+          return aql`
+      FOR doc IN ${vulnPatchLagSnapshots}
+        FILTER doc.branch == ${args.branch}
+        ${args.since ? queryHelpers.addDateFilterAQL('doc.date', '>=', args.since) : aql``}
+        ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
+        ${sevFilter}
+        SORT doc.date ASC, doc.severity ASC
+        ${limit}
+        RETURN doc
+    `;
+        },
+      }),
     };
   },
 });
