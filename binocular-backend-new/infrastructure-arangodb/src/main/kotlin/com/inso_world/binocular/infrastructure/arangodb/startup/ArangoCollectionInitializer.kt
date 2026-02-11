@@ -29,6 +29,12 @@ class ArangoCollectionInitializer(
         val arango = arangodbAppConfig.arango().build()
         val dbName = arangodbAppConfig.database()
         val db = arango.db(dbName)
+
+        if (!db.exists()) {
+            logger.info("Arango database ${db.name()} does not exist, creating it")
+            require(db.create()) { "Arango Database creation failed" }
+        }
+
         logger.info("Ensuring required ArangoDB collections exist in database: {}", dbName)
 
         // Document collections
