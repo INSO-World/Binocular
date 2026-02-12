@@ -1,5 +1,5 @@
 import type { DataPluginBranch } from '../../../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
-import { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore, type JSX } from 'react';
 import { toNumber } from 'lodash';
 import type { Store } from '@reduxjs/toolkit';
 
@@ -13,7 +13,7 @@ const EMPTY_BRANCHES: DataPluginBranch[] = [];
 function Settings(props: { settings: BranchSettings; setSettings: (newSettings: BranchSettings) => void; store?: Store }) {
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!props.store) return () => {};
+      if (!props.store) return () => { };
       return props.store.subscribe(callback);
     },
     [props.store],
@@ -24,14 +24,16 @@ function Settings(props: { settings: BranchSettings; setSettings: (newSettings: 
   }, [props.store]);
 
   const allBranches: DataPluginBranch[] = useSyncExternalStore(subscribe, getSnapshot);
+  const [branchOptions, setBranchOptions] = useState<JSX.Element[]>(
+    [<option key={-1} value={''}>
+      Select a Branch
+    </option>]
+  );
 
-  const branchOptions = useMemo(() => {
+  const getBranchOptions = useMemo(() => {
+
     if (allBranches.length === 0) {
-      return [
-        <option key={-1} value={''}>
-          Select a Branch
-        </option>,
-      ];
+      return;
     }
     const sorted = [...allBranches].sort((a, b) => a.branch.localeCompare(b.branch)).map((b) => b.branch);
     const options = [
@@ -46,9 +48,10 @@ function Settings(props: { settings: BranchSettings; setSettings: (newSettings: 
         </option>,
       );
     });
+    setBranchOptions(options);
     return options;
   }, [allBranches]);
-
+ 
   return (
     <>
       <div>
@@ -57,7 +60,7 @@ function Settings(props: { settings: BranchSettings; setSettings: (newSettings: 
             <span className="label-text">Branch:</span>
           </div>
           <select
-            value={props.settings.currentBranch ? props.settings.currentBranch : ''}
+            value={props.settings.currentBranch != undefined ? props.settings.currentBranch : ''}
             className="select select-bordered select-sm"
             onChange={(e) => {
               props.setSettings({
