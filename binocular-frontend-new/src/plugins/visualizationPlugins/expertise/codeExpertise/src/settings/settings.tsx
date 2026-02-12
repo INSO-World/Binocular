@@ -13,7 +13,7 @@ const EMPTY_BRANCHES: DataPluginBranch[] = [];
 function Settings(props: { settings: BranchSettings; setSettings: (newSettings: BranchSettings) => void; store?: Store }) {
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!props.store) return () => { };
+      if (!props.store) return () => {};
       return props.store.subscribe(callback);
     },
     [props.store],
@@ -24,14 +24,14 @@ function Settings(props: { settings: BranchSettings; setSettings: (newSettings: 
   }, [props.store]);
 
   const allBranches: DataPluginBranch[] = useSyncExternalStore(subscribe, getSnapshot);
-  const [branchOptions, setBranchOptions] = useState<JSX.Element[]>(
-    [<option key={-1} value={''}>
+  const [branchOptions, setBranchOptions] = useState<JSX.Element[]>([
+    <option key={-1} value={''}>
       Select a Branch
-    </option>]
-  );
+    </option>,
+  ]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getBranchOptions = useMemo(() => {
-
     if (allBranches.length === 0) {
       return;
     }
@@ -51,7 +51,7 @@ function Settings(props: { settings: BranchSettings; setSettings: (newSettings: 
     setBranchOptions(options);
     return options;
   }, [allBranches]);
- 
+
   return (
     <>
       <div>
