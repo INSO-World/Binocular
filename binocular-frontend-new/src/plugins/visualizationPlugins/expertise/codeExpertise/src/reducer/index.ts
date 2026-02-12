@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { type DataPluginCommitBuild, type DataPluginOwnership } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { type PreviousFileData } from '../../../../../../types/data/ownershipType.ts';
+import type { DataPluginBranch } from '../../../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
 
 export enum DataState {
   EMPTY,
@@ -21,6 +22,7 @@ interface CodeOwnershipData {
 export interface State {
   data: ExpertiseData;
   branch?: number;
+  allBranches: DataPluginBranch[];
   dataState: DataState;
 }
 
@@ -30,6 +32,7 @@ const initialState: State = {
     buildsData: [],
   },
   branch: undefined,
+  allBranches: [],
   dataState: DataState.EMPTY,
 };
 
@@ -46,8 +49,11 @@ export const dataSlice = createSlice({
     setDataState: (state, action: PayloadAction<DataState>) => {
       state.dataState = action.payload;
     },
+    setAllBranches: (state: State, action: PayloadAction<DataPluginBranch[]>) => {
+      state.allBranches = action.payload;
+    },
   },
 });
 
-export const { setData, setCurrentBranch, setDataState } = dataSlice.actions;
+export const { setData, setCurrentBranch, setDataState, setAllBranches } = dataSlice.actions;
 export default dataSlice.reducer;
