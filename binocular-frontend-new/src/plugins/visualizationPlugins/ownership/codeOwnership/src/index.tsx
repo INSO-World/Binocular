@@ -13,11 +13,8 @@ const CodeOwnership: VisualizationPlugin<CodeOwnerShipSettings, null> = {
   settingsComponent: Settings,
   helpComponent: Help,
   defaultSettings: {
-    hideMergeCommitSettings: true,
-    hideSprintSettings: true,
     displayMode: 'absolute',
     currentBranch: undefined,
-    allBranches: [],
   },
   export: {
     getSVGData: () => '<svg></svg>',
