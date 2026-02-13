@@ -1,52 +1,53 @@
-import { type VisualizationPluginCompatibility } from '../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata';
+import React, { type RefObject } from 'react';
+import { renderToString } from 'react-dom/server';
 
 export interface infoTooltipContent {
   headline: string;
-  text: string;
+  textContent?: string;
+  reactContent?: React.ReactNode;
 }
 
-export function showInfoTooltip(x: number, y: number, content: infoTooltipContent, compatibilityInfo?: VisualizationPluginCompatibility) {
-  (document.getElementById('infoTooltip') as HTMLDialogElement).showModal();
-  if (y >= window.innerHeight / 2) {
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.top = `auto`;
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.bottom = `${window.innerHeight - y - 10}px`;
-  } else {
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.top = `${y - 10}px`;
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.bottom = `auto`;
-  }
-  if (x >= window.innerWidth / 2) {
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.left = `auto`;
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.right = `${window.innerWidth - x - 10}px`;
-  } else {
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.left = `${x - 10}px`;
-    (document.getElementById('infoTooltipPositionController') as HTMLDivElement).style.right = `auto`;
+export function showInfoTooltip(ref: RefObject<HTMLDivElement | null>, x: number, y: number, content: infoTooltipContent) {
+  if (!ref.current) {
+    return;
   }
 
-  const contentElement = document.getElementById('infoTooltipContent') as HTMLDivElement;
+  const tooltipContent = document.createElement('div');
+
+  const contentElement = ref.current.querySelector('#infoTooltipContent') as HTMLDivElement;
   contentElement.innerHTML = '';
   const headline = document.createElement('h1');
   headline.innerText = content.headline;
-  const text = document.createElement('p');
-  text.innerText = content.text;
-  contentElement.appendChild(headline);
-  contentElement.appendChild(text);
-  if (compatibilityInfo) {
-    const compatibility = document.createElement('div');
-    compatibility.innerHTML = `<h3>Compatibility</h3>
-      <div id="compatibility">
-        <div>
-          <p><b>Datatypes</b></p>
-          <p>GitHub: ${compatibilityInfo.github ? 'yes' : 'no'}<br>
-          GitLab: ${compatibilityInfo.gitlab ? 'yes' : 'no'}</p>
-        </div>
-        <div>
-          <p><b>Databases</b></p>
-          <p>Binocular Backend: ${compatibilityInfo.binocularBackend ? 'yes' : 'no'}<br>
-          PouchDB: ${compatibilityInfo.pouchDB ? 'yes' : 'no'}<br>
-          Mock Data: ${compatibilityInfo.mockData ? 'yes' : 'no'}<br>
-          GitHub API: ${compatibilityInfo.githubAPI ? 'yes' : 'no'}</p>
-        </div>
-      </div>`;
-    contentElement.appendChild(compatibility);
+  tooltipContent.appendChild(headline);
+  if (content.textContent) {
+    const text = document.createElement('p');
+    text.innerText = content.textContent;
+    tooltipContent.appendChild(text);
+  }
+
+  if (content.reactContent) {
+    const reactContent = document.createElement('div');
+    reactContent.innerHTML = renderToString(content.reactContent);
+    tooltipContent.appendChild(reactContent);
+  }
+
+  contentElement.appendChild(tooltipContent);
+
+  ref.current.style.display = 'block';
+  const controllerElement = ref.current.querySelector('#infoTooltipPositionController') as HTMLDivElement;
+
+  if (y >= controllerElement.ownerDocument.body.clientHeight / 2) {
+    controllerElement.style.top = `auto`;
+    controllerElement.style.bottom = `${controllerElement.ownerDocument.body.clientHeight - y - 10}px`;
+  } else {
+    controllerElement.style.top = `${y - 10}px`;
+    controllerElement.style.bottom = `auto`;
+  }
+  if (x >= controllerElement.ownerDocument.body.clientWidth / 2) {
+    controllerElement.style.left = `auto`;
+    controllerElement.style.right = `${controllerElement.ownerDocument.body.clientWidth - x - 10}px`;
+  } else {
+    controllerElement.style.left = `${x - 10}px`;
+    controllerElement.style.right = `auto`;
   }
 }
