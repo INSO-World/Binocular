@@ -1,5 +1,13 @@
 import { put, takeLeading, fork, call, select } from 'redux-saga/effects';
-import { DataState, setDataState, setData, type CodeOwnershipData, type CodeOwnershipState, setCurrentBranch } from '../reducer';
+import {
+  DataState,
+  setDataState,
+  setData,
+  setAllBranches,
+  type CodeOwnershipData,
+  type CodeOwnershipState,
+  setCurrentBranch,
+} from '../reducer';
 import type { DataPlugin } from '../../../../../interfaces/dataPlugin.ts';
 import { getCommitDataForSha, getFilenamesForBranch, getLatestBranch, getOwnershipForCommits, getPreviousFilenames } from './helper.ts';
 import type { PreviousFileData } from '../../../../../../types/data/ownershipType.ts';
@@ -22,10 +30,16 @@ function* fetchCodeOwnershipData(dataConnection: DataPlugin) {
   const state: { plugin: CodeOwnershipState } = yield select();
   yield put(setDataState(DataState.FETCHING));
   const branchId = state.plugin.branch;
-  const data: CodeOwnershipData = yield call(async () => {
-    if (!dataConnection.branches) return;
 
-    const branches = await dataConnection.branches.getAll();
+  if (!dataConnection.branches) {
+    yield put(setDataState(DataState.COMPLETE));
+    return;
+  }
+
+  const branches: DataPluginBranch[] = yield call(() => dataConnection.branches!.getAll());
+  yield put(setAllBranches(branches));
+
+  const data: CodeOwnershipData = yield call(async () => {
     let currentBranch: DataPluginBranch | null | undefined = undefined;
     if (!branchId) currentBranch = await getLatestBranch(branches, dataConnection);
     else currentBranch = branches[branchId];
