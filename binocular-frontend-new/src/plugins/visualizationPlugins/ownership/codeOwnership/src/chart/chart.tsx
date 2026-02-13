@@ -8,7 +8,6 @@ import type { CodeOwnerShipSettings } from '../settings/settings.tsx';
 import type { Palette } from '../../../../../../types/data/authorType.ts';
 import type { FileOwnershipCollection, OwnershipData, PreviousFileData } from '../../../../../../types/data/ownershipType.ts';
 import { DataState, setCurrentBranch } from '../reducer';
-import { getBranches } from '../saga/helper.ts';
 import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
@@ -26,7 +25,6 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
   // //Redux Global State
   const data = useSelector((state: RootState) => state.plugin.data);
   const dataState = useSelector((state: RootState) => state.plugin.dataState);
-
   //React Component State
   const [chartWidth, setChartWidth] = useState(100);
   const [chartHeight, setChartHeight] = useState(150);
@@ -267,10 +265,6 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
       setChartData(coarseResult);
     }
   }, [ownershipData, granularity, props.settings.displayMode, props.parameters.parametersDateRange, props.authorList]);
-
-  useEffect(() => {
-    void getBranches(props.dataConnection).then((branches) => (props.settings.allBranches = branches));
-  }, [props.dataConnection]);
 
   useEffect(() => {
     dispatch(setCurrentBranch(props.settings.currentBranch ? props.settings.currentBranch : 0));
