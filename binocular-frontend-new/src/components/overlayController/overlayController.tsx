@@ -8,7 +8,6 @@ import LoadingLocalDatabaseOverlay from './overlays/loadingLocalDatabaseOverlay/
 import FileTreeElementInfoDialog from '../tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx';
 import SetupDialog from '../setupDialog/setupDialog.tsx';
 import VisualizationOverview from '../tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverview.tsx';
-import InfoTooltip from '../infoTooltip/infoTooltip';
 import LayoutOverview from '../tabs/layouts/layoutOverview/layoutOverview';
 
 function OverlayController() {
@@ -25,7 +24,6 @@ function OverlayController() {
       <LayoutOverview></LayoutOverview>
       <LoadingLocalDatabaseOverlay></LoadingLocalDatabaseOverlay>
       <ContextMenu></ContextMenu>
-      <InfoTooltip></InfoTooltip>
     </>
   );
 }
