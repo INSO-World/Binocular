@@ -1,15 +1,5 @@
-import type { DataPluginAccount } from '../interfaces/dataPluginInterfaces/dataPluginAccounts';
-import type { DataPluginIssue } from '../interfaces/dataPluginInterfaces/dataPluginIssues';
-import type { DataPluginMergeRequest } from '../interfaces/dataPluginInterfaces/dataPluginMergeRequests';
-import type { DataPluginNote } from '../interfaces/dataPluginInterfaces/dataPluginNotes';
-
-export interface TimeTrackingData {
-  author: DataPluginAccount;
-  timeSpent: number;
-  createdAt: string;
-  issue: DataPluginIssue | null;
-  mergeRequest: DataPluginMergeRequest | null;
-}
+import type { TimeTrackingData } from '../types/timeTrackingDataType';
+import type { DataPluginNote } from '../../interfaces/dataPluginInterfaces/dataPluginNotes';
 
 function convertTime(timeString: string) {
   const timeParts = timeString.split(' ');

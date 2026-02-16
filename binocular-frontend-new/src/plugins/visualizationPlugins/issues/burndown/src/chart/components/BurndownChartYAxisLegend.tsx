@@ -5,7 +5,7 @@ import { margin } from '../BurndownChart';
 export const BurndownChartYAxisLegend: React.FC<{ height: number; yScale: d3.ScaleLinear<number, number> }> = ({ height, yScale }) => (
   <g>
     <rect x={margin * 2} y={0} height={height - margin * 2} width={1} />
-    <rect x={0} y={0} width={margin * 2} height={height} fill={'#EEE'} />
+    <rect x={0} y={0} width={margin * 2} height={height} fill={'white'} />
     {yScale.ticks().map((t) => {
       const y = yScale(t);
 

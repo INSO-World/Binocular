@@ -1,4 +1,4 @@
-import type { TimeTrackingData } from '../../../../../authorBehaviour/timeSpent/src/utilities/dataConverter';
+import type { TimeTrackingData } from '../../../../../types/timeTrackingDataType';
 
 export const aggregateTimeTrackingData = (timeTrackingData: TimeTrackingData[]) => {
   const aggregatedTimeTrackingData = new Map<string, number>();
