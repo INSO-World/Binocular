@@ -3,25 +3,15 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import type { TimeSpentSettings } from '../settings/settings.tsx';
 import type { DataPluginNote } from '../../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
-import type { DataPluginMergeRequest } from '../../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
-import type { DataPluginAccount } from '../../../../../interfaces/dataPluginInterfaces/dataPluginAccounts.ts';
-import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import type { TimeTrackingData } from '../../../../types/timeTrackingDataType';
 import distinctColors from 'distinct-colors';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import type { AuthorType } from '../../../../../../types/data/authorType.ts';
-import { extractTimeTrackingDataFromNotes } from '../../../../../utils/extractTimeTrackingDataFromNotes.ts';
+import { extractTimeTrackingDataFromNotes } from '../../../../utils/extractTimeTrackingDataFromNotes.ts';
 
 interface TimeSpentChartData {
   date: number;
   [signature: string]: number;
-}
-
-export interface TimeTrackingData {
-  author: DataPluginAccount;
-  timeSpent: number;
-  createdAt: string;
-  issue: DataPluginIssue | null;
-  mergeRequest: DataPluginMergeRequest | null;
 }
 
 interface IssueAndMR {

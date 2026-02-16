@@ -1,11 +1,11 @@
 export const Help = () => (
   <>
-    <h2>Sprints Help</h2>
+    <h2>Issues Timeline Help</h2>
 
     <h3>Data</h3>
     <p>
-      The sprints visualization provides an overview of the issues and merge requests in a given time frame. It allows users to view these
-      issues and merge requests on a timeline. The issues can be colored based on different modes. It is also possible to overlay the
+      The Issues Timeline visualization provides an overview of the issues and merge requests in a given time frame. It allows users to view
+      these issues and merge requests on a timeline. The issues can be colored based on different modes. It is also possible to overlay the
       sprints in the selected time frame.
     </p>
 

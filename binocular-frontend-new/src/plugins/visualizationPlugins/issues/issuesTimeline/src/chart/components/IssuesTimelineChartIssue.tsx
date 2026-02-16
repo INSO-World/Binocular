@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import type { Moment } from 'moment';
 import * as React from 'react';
 import type { AuthorType } from '../../../../../../../types/data/authorType';
-import { extractTimeTrackingDataFromNotes } from '../../../../../../utils/extractTimeTrackingDataFromNotes';
+import { extractTimeTrackingDataFromNotes } from '../../../../../utils/extractTimeTrackingDataFromNotes';
 import type { IssuesTimelineSettings } from '../../settings/settings';
 import { margin } from '../IssuesTimelineChart';
 import { aggregateTimeTrackingData } from '../helper/aggregateTimeTrackingData';

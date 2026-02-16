@@ -4,7 +4,7 @@ import * as React from 'react';
 import type { AuthorType } from '../../../../../../../types/data/authorType';
 import { BaseDetailDialogLayout } from '../../../../../../components/BaseDetailDialogLayout';
 import type { MappedSprint } from '../../../../../../components/SprintAreas';
-import { extractTimeTrackingDataFromNotes } from '../../../../../../utils/extractTimeTrackingDataFromNotes';
+import { extractTimeTrackingDataFromNotes } from '../../../../../utils/extractTimeTrackingDataFromNotes';
 import { aggregateTimeTrackingData } from '../helper/aggregateTimeTrackingData';
 import type { MappedDataPluginIssue, MappedDataPluginMergeRequest } from '../types';
 
@@ -19,6 +19,7 @@ const formatHours = (time: number) => {
   return `${hours}h ${minutes}min`;
 };
 
+// TODO refactor when Dialog is extendable
 export const DetailDialogIssue: React.FC<{
   iid: number;
   anchor: SVGElement;

@@ -13,7 +13,7 @@ export const IssuesTimelineChartLegend: React.FC<{
     <g>
       <rect x={margin} y={height - margin * 2} height={1} width={width - margin * 2} />
 
-      <rect x={margin} y={height - margin * 2 + 1} width={width - margin * 2} height={40} fill={'#EEE'} />
+      <rect x={margin} y={height - margin * 2 + 1} width={width - margin * 2} height={40} fill={'white'} />
 
       {xScale.ticks().map((tick) => {
         const x = xScale(tick);

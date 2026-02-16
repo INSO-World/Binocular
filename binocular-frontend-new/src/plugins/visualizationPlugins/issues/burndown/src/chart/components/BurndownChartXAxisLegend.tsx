@@ -12,7 +12,7 @@ export const BurndownChartXAxisLegend: React.FC<{
   return (
     <g>
       <rect x={margin * 2} y={height - legendBarHeight} height={1} width={width - margin * 3} />
-      <rect x={margin * 2} y={height + 1 - legendBarHeight} width={width - margin * 3} height={40} fill={'#EEE'} />
+      <rect x={margin * 2} y={height + 1 - legendBarHeight} width={width - margin * 3} height={40} fill={'white'} />
       {xScale.ticks().map((t) => {
         const x = xScale(t);
 
