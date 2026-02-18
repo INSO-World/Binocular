@@ -36,7 +36,7 @@ data class ItsGitHubIssue(
             state = state,
             webUrl = url,
             project = project,
-            // TODO map labels, author etc
+            // TODO map labels, author, timelineItems etc
         )
     }
 }

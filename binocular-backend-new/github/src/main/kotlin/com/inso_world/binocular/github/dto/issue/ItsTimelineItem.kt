@@ -28,4 +28,5 @@ data class ItsReferencedEvent(
 @JsonTypeName("ClosedEvent")
 data class ItsClosedEvent(
     override val createdAt: String?,
+    val actor: ItsUser?
 ) : ItsTimelineItem()
