@@ -142,6 +142,9 @@ class GitHubService(
                 }
                 ... on ClosedEvent {
                   createdAt
+                  actor {
+                    login
+                  }
                 }
               }
             }
