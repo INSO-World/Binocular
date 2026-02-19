@@ -16,7 +16,7 @@ import type { BuildSettings } from './visualizationPlugins/builds/builds/src/set
 import type { TimeSpentSettings } from './visualizationPlugins/authorBehaviour/timeSpent/src/settings/settings.tsx';
 import type { ChangesSettings } from './visualizationPlugins/commits/changes/src/settings/settings.tsx';
 import type { MergeRequestsSettings } from './visualizationPlugins/issues/mergeRequests/src/settings/settings.tsx';
-import { SumSettings } from './visualizationPlugins/simpleVisualizationPlugin/src/settings/settings.tsx';
+import type { SumSettings } from './visualizationPlugins/simpleVisualizationPlugin/src/settings/settings.tsx';
 import Builds from './visualizationPlugins/builds/builds';
 import Changes from './visualizationPlugins/commits/changes/src/index.tsx';
 import Issues from './visualizationPlugins/issues/issues';
@@ -35,7 +35,7 @@ import CodeExpertise from './visualizationPlugins/expertise/codeExpertise';
 import RepositoryActivity from './visualizationPlugins/authorBehaviour/repositoryActivity';
 import Sprints from './visualizationPlugins/issues/sprints';
 import Burndown from './visualizationPlugins/issues/burndown';
-import SumCommits from './visualizationPlugins/sumCommits';
+import SumCommits from './visualizationPlugins/commits/sumCommits';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
