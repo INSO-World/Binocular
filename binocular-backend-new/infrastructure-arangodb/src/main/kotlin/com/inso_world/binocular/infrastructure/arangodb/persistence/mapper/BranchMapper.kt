@@ -35,6 +35,9 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
     @Autowired
     private lateinit var ctx: MappingContext
 
+    @Autowired
+    private lateinit var commitMapper: CommitMapper
+
     companion object {
         private val logger by logger()
     }
@@ -103,13 +106,7 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
                 "Repository must be mapped before Branch. " +
                         "Ensure Repository is in MappingContext before calling toDomain()."
             )
-        // IMPORTANT: Expect Commit already in context (cross-aggregate reference).
-        // Do NOT auto-map Commit here - that's a separate aggregate.
-        val head = ctx.findDomain<Commit, CommitEntity>(entity.head)
-            ?: throw IllegalStateException(
-                "Commit must be mapped before Branch. " +
-                        "Ensure Commit is in MappingContext before calling toDomain()."
-            )
+        val head = commitMapper.toDomain(entity.head)
 
         val domain = entity.toDomain(owner, head)
         setField(

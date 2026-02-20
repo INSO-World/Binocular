@@ -62,6 +62,7 @@ data class BranchEntity(
 ) {
 
     @Deprecated("Legacy", replaceWith = ReplaceWith("fullName"))
+    @org.springframework.data.annotation.Transient
     val branch = fullName
 
     /**
