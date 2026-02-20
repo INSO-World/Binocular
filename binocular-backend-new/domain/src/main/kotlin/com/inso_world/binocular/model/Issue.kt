@@ -1,6 +1,5 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.model.Repository.Id
 import java.time.LocalDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
