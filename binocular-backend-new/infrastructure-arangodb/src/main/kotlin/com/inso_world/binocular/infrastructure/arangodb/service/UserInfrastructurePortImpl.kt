@@ -89,6 +89,7 @@ internal class UserInfrastructurePortImpl : UserInfrastructurePort,
     @MappingSession
     override fun findAll(): Iterable<User> = this.userDao.findAll()
 
+    @MappingSession
     override fun create(value: User): User {
         val repo = requireNotNull(value.repository)
         val newUser = userDao.create(value)
@@ -103,6 +104,7 @@ internal class UserInfrastructurePortImpl : UserInfrastructurePort,
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findUserByCommit(commitId: String): List<User> {
         return commitUserConnectionRepository.findUsersByCommit(commitId)
     }

@@ -40,12 +40,12 @@ import java.util.stream.Stream
  * @param mapper The mapper for converting between domain models and entities
  */
 
-open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
+internal open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     protected val repository: ArangoRepository<E, I>,
     protected val mapper: EntityMapper<D, E>,
 ) : IDao<D, I> {
     @Autowired
-    private lateinit var seeder: DefaultMappingContextSeeder
+    protected lateinit var seeder: DefaultMappingContextSeeder
 
     /**
      * Converts a list of database entities to a list of domain models

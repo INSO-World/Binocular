@@ -28,9 +28,6 @@ class UserService(
     }
 
 
-
-
-
     fun findUserByCommit(commitId: String): List<User> {
         return userPort.findUserByCommit(commitId)
     }

@@ -28,6 +28,7 @@
 
 
         override fun findBySha(sha: String): Commit? {
+            seeder.seed()
             val commitEntity: CommitEntity? = commitRepository.findBySha(sha)
 
             // 2. Use a sensible failure method if null

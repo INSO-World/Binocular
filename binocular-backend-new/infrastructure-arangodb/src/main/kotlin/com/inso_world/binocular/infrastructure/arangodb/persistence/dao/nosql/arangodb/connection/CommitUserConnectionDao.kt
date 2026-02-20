@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitUserConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
@@ -31,10 +32,14 @@ internal class CommitUserConnectionDao
     ) : ICommitUserConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
 
+        @Autowired
+        private lateinit var seeder: DefaultMappingContextSeeder
+
         /**
          * Find all users connected to a commit
          */
         override fun findUsersByCommit(commitId: String): List<User> {
+            seeder.seed();
             val userEntities = repository.findUsersByCommit(commitId)
             return userEntities.map { userMapper.toDomain(it) }
         }

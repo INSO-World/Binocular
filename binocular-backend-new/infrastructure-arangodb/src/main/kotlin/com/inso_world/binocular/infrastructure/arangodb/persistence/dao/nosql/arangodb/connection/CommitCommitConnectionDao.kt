@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitCommitConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitCommitConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitCommitConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.CommitRepository
@@ -26,10 +27,14 @@ class CommitCommitConnectionDao
     ) : ICommitCommitConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
 
+        @Autowired
+        private lateinit var seeder: DefaultMappingContextSeeder
+
         /**
          * Find all child commits connected to a parent commit
          */
         override fun findChildCommits(parentCommitId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findChildCommitsByParentCommit(parentCommitId)
             return commitEntities.map { commitMapper.toDomain(it) }
         }
