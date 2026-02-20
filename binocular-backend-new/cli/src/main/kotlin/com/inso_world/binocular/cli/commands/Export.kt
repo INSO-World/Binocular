@@ -1,8 +1,8 @@
 package com.inso_world.binocular.cli.commands
 
-import mapper.ExportMapper
 import com.inso_world.binocular.cli.service.BranchService
-import validation.SHACLValidator
+import com.inso_world.binocular.core.service.SeonExportPort
+import com.inso_world.binocular.core.service.ShaclValidationPort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,8 +16,8 @@ import org.springframework.shell.command.annotation.Option
 )
 open class Export (
     @Autowired private val branchService: BranchService,
-    private val expMapper: ExportMapper,
-    private val shaclValidator: SHACLValidator
+    private val expMapper: SeonExportPort,
+    private val shaclValidator: ShaclValidationPort
 ) {
     companion object {
         private var logger: Logger = LoggerFactory.getLogger(Index::class.java)
@@ -60,8 +60,10 @@ open class Export (
         ) includeContent: Boolean,
     ) {
         val exportData = this.branchService.getBranchExportData(
-            branchId, repoPath, exportAll, includeContent
-        )
+            branchId,
+            repoPath,
+            exportAll,
+            includeContent)
         val jsonLdString = expMapper.map(exportData)
 
         logger.info("\n--- JSON-LD EXPORT OUTPUT (branch_id: $branchId) ---")

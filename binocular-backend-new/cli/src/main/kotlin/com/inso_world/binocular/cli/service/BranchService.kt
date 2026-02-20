@@ -40,7 +40,7 @@ class BranchService (
         val branch = getBranch(branchId)
 
         return branch?.let { b ->
-            val commitSha = b.latestCommit ?: return@let createEmptyExportData(b.name, "No SHA")
+            val commitSha = b.head.sha ?: return@let createEmptyExportData(b.name, "No SHA")
 
             val commit = getLatestCommit(b) ?: run {
                 println("FATAL: Commit with SHA $commitSha was retrieved but has a NULL ID. Check database mapping!")

@@ -303,4 +303,8 @@ internal class CommitInfrastructurePortImpl
             this.commitDao.findAllLeafCommits(it)
         }?.map { this.commitMapper.toDomain(it) } ?: emptyList()
     }
+
+    override fun findBySha(sha: String): Commit? {
+        TODO("Not yet implemented")
+    }
 }

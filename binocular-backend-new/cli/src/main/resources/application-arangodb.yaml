@@ -1,7 +1,7 @@
 binocular:
   arangodb:
     database:
-      database: "binocular-1234"
+      name: "binocular"
       host: "localhost"
       port: 8529
       user: root

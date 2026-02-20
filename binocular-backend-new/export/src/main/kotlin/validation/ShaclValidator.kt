@@ -13,27 +13,22 @@ import org.topbraid.shacl.vocabulary.SH
 import java.io.StringWriter
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.inso_world.binocular.core.service.ShaclValidationPort
+import com.inso_world.binocular.model.ShaclReport
 import org.apache.jena.vocabulary.RDF
 
-data class SHACLReport(
-    val conforms: Boolean,
-    val criticalErrors: List<String> = emptyList(),
-    val warnings: List<String> = emptyList(),
-    val rawRdf: String = ""
-)
-
 @Service
-class SHACLValidator {
+class ShaclValidator: ShaclValidationPort {
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(SHACLValidator::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(ShaclValidator::class.java)
         private const val SHACL_SHAPES_PATH = "branchExportShapeTestForGit.ttl"
         private const val CONTEXT_URL = "https://schemas.inso-world.com/binocular/v1/contextTestForGit.jsonld"
         private const val LOCAL_CONTEXT_PATH = "contextTestForGit.jsonld"
 
         // Load the context file content as a JsonNode containing only the definitions (no outer @context)
         private val localContextContent: ObjectNode by lazy {
-            val inputStream = SHACLValidator::class.java.classLoader.getResourceAsStream(LOCAL_CONTEXT_PATH)
+            val inputStream = ShaclValidator::class.java.classLoader.getResourceAsStream(LOCAL_CONTEXT_PATH)
                 ?: run {
                     logger.error("FATAL: Local context file not found at resource path: $LOCAL_CONTEXT_PATH")
                     throw IllegalStateException("Local context file not found!")
@@ -59,7 +54,7 @@ class SHACLValidator {
         // Load the shapes model once when the class is initialized
         private val shapesModel: Model by lazy {
             val model = ModelFactory.createDefaultModel()
-            val inputStream = SHACLValidator::class.java.classLoader.getResourceAsStream(SHACL_SHAPES_PATH)
+            val inputStream = ShaclValidator::class.java.classLoader.getResourceAsStream(SHACL_SHAPES_PATH)
 
             if (inputStream == null) {
                 logger.error("FATAL: SHACL Shapes file not found at resource path: $SHACL_SHAPES_PATH")
@@ -79,7 +74,7 @@ class SHACLValidator {
     /**
      * Validates a JSON-LD data string against the predefined SHACL ruleset.
      */
-    fun validate(jsonLdString: String): SHACLReport {
+    override fun validate(jsonLdString: String): ShaclReport {
 
         val shapes = shapesModel
         val dataModel = ModelFactory.createDefaultModel()
@@ -91,13 +86,13 @@ class SHACLValidator {
             objectMapper.readTree(jsonLdString)
         } catch (e: Exception) {
             logger.error("Failed to parse input JSON-LD string: ${e.message}")
-            return SHACLReport(false, listOf("Malformed JSON: ${e.message}"))
+            return ShaclReport(false, listOf("Malformed JSON: ${e.message}"))
         }
 
         // 2. Ensure it's a JSON object and retrieve the @context
         if (jsonNode !is ObjectNode || !jsonNode.has("@context")) {
             logger.error("Input JSON-LD is not a valid object or is missing the @context key.")
-            return SHACLReport(false, listOf("Missing @context key in input."))
+            return ShaclReport(false, listOf("Missing @context key in input."))
         }
 
         val contextNode = jsonNode.get("@context")
@@ -110,7 +105,7 @@ class SHACLValidator {
             (jsonNode as ObjectNode).replace("@context", localContextJson)
         } else {
             logger.error("The @context value must be the remote URL string: $CONTEXT_URL for simple injection to work.")
-            return SHACLReport(false, listOf("Invalid @context URL. Expected: $CONTEXT_URL"))
+            return ShaclReport(false, listOf("Invalid @context URL. Expected: $CONTEXT_URL"))
         }
 
         // 5. Convert the modified JSON structure back to a string for Jena
@@ -122,7 +117,7 @@ class SHACLValidator {
             RDFDataMgr.read(dataModel, StringReader(modifiedJsonLdString), null, Lang.JSONLD)
         } catch (e: Exception) {
             logger.error("Failed to parse JSON-LD data into RDF model. JSON error: ${e.message}")
-            return SHACLReport(false, listOf("RDF Parsing Error: ${e.message}"))
+            return ShaclReport(false, listOf("RDF Parsing Error: ${e.message}"))
         }
 
         // 2. Run the validation
@@ -159,6 +154,6 @@ class SHACLValidator {
             logger.info("SHACL Validation Successful. Data conforms to the ruleset.")
         }
 
-        return SHACLReport(conforms, criticalErrors, warnings, rawRdfWriter.toString())
+        return ShaclReport(conforms, criticalErrors, warnings, rawRdfWriter.toString())
     }
 }

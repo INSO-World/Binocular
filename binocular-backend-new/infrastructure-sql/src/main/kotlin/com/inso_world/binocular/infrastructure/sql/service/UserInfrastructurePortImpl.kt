@@ -94,6 +94,10 @@ internal class UserInfrastructurePortImpl(
         return emptyList()
     }
 
+    override fun findUserByCommit(commitId: String): List<User> {
+        TODO("Not yet implemented")
+    }
+
     override fun findAll(pageable: Pageable): Page<User> {
         TODO("Not yet implemented")
     }
