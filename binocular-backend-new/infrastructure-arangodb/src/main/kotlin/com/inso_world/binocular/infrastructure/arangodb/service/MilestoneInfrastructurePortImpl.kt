@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueMilestoneConnectionDao
@@ -36,30 +37,36 @@ internal class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort,
     @Autowired private lateinit var mergeRequestMilestoneConnectionRepository: IMergeRequestMilestoneConnectionDao
     var logger: Logger = LoggerFactory.getLogger(MilestoneInfrastructurePortImpl::class.java)
 
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<Milestone> {
         logger.trace("Getting all milestones with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return milestoneDao.findAll(pageable)
     }
 
+    @MappingSession
     override fun findById(id: String): Milestone? {
         logger.trace("Getting milestone by id: $id")
         return milestoneDao.findById(id)
     }
 
+    @MappingSession
     override fun findByIid(iid: Milestone.Id): @Valid Milestone? {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findIssuesByMilestoneId(milestoneId: String): List<Issue> {
         logger.trace("Getting issues for milestone: $milestoneId")
         return issueMilestoneConnectionRepository.findIssuesByMilestone(milestoneId)
     }
 
+    @MappingSession
     override fun findMergeRequestsByMilestoneId(milestoneId: String): List<MergeRequest> {
         logger.trace("Getting merge requests for milestone: $milestoneId")
         return mergeRequestMilestoneConnectionRepository.findMergeRequestsByMilestone(milestoneId)
     }
 
+    @MappingSession
     override fun findAll(): Iterable<Milestone> = this.milestoneDao.findAll()
 
     override fun create(entity: Milestone): Milestone = this.milestoneDao.save(entity)

@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BuildInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
@@ -30,11 +31,13 @@ internal class BuildInfrastructurePortImpl : BuildInfrastructurePort,
     @Autowired private lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao
     var logger: Logger = LoggerFactory.getLogger(BuildInfrastructurePortImpl::class.java)
 
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<Build> {
         logger.trace("Getting all builds with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return buildDao.findAll(pageable)
     }
 
+    @MappingSession
     override fun findAll(
         pageable: Pageable,
         since: Long?,
@@ -44,20 +47,24 @@ internal class BuildInfrastructurePortImpl : BuildInfrastructurePort,
         return buildDao.findAll(pageable, since, until)
     }
 
+    @MappingSession
     override fun findById(id: String): Build? {
         logger.trace("Getting build by id: $id")
         return buildDao.findById(id)
     }
 
+    @MappingSession
     override fun findByIid(iid: Build.Id): @Valid Build? {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findCommitsByBuildId(buildId: String): List<Commit> {
         logger.trace("Getting commits for build: $buildId")
         return commitBuildConnectionRepository.findCommitsByBuild(buildId)
     }
 
+    @MappingSession
     override fun findAll(): Iterable<Build> = this.buildDao.findAll()
 
     override fun create(entity: Build): Build = this.buildDao.save(entity)
