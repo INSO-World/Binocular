@@ -3,7 +3,6 @@ package com.inso_world.binocular.model
 import java.time.LocalDateTime
 
 data class BranchExportData(
-    // Branch Information
     val branchName: String,
 
     // Latest Commit Information
@@ -23,6 +22,7 @@ data class BranchExportData(
 
 // A simple inner class or nested data class for the repeating child items
 data class ChildCommitDetail(
+    val commitSha: String,
     val commitId: String,
     val committerId: String,
     val message: String,

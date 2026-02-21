@@ -61,9 +61,9 @@ binocular:BranchExportShape
 
     sh:property    [ sh:path     binocular:hasChildCommits ;
                      sh:minCount 1 ;
+                     sh:nodeKind sh:IRI ;
                      sh:node     binocular:ChildCommitDetailShape ;
-                     sh:message   "At least one child commit detail is required."@en ] ;
-
+                     sh:message  "Child commits must be referenced as IRIs and conform to ChildCommitDetailShape."@en ] ;
     sh:property    [ sh:path     binocular:fileContents ;
                      sh:name     "Commit Content Snapshot" ;
                      sh:minCount 1 ;

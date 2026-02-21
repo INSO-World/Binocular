@@ -46,7 +46,7 @@ class BranchService (
                 println("FATAL: Commit with SHA $commitSha was retrieved but has a NULL ID. Check database mapping!")
                 return@let createEmptyExportData(b.name, commitSha)
             }
-
+            //Use IID not id
             val commitId = commit.id ?: run {
                 println("FATAL: Commit with SHA $commitSha was retrieved but has a NULL ID. Check database mapping!")
                 return@let createEmptyExportData(b.name, commitSha)
@@ -77,8 +77,10 @@ class BranchService (
             val childrenDetails = commitService.findChildrenOfCommit(commitId).map { childCommit ->
                 val childCommitId = childCommit.id ?: "N/A"
                 val childCommitterId = userService.findUserByCommit(childCommitId).firstOrNull()?.id ?: "N/A"
+                val commitSha = childCommit.sha
 
                 ChildCommitDetail(
+                    commitSha = commitSha,
                     commitId = childCommitId,
                     committerId = childCommitterId,
                     message = message,
