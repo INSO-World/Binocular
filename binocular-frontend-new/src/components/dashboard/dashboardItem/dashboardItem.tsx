@@ -47,12 +47,16 @@ const DashboardItem = memo(function DashboardItem(props: {
   const sprintList = useSelector((state: RootState) => state.sprints.sprintList);
   const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
-  const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(false);
+  const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(props.item.ignoreGlobalParameters ?? false);
   const [doAutomaticUpdate, setDoAutomaticUpdate] = useState(false);
   const parametersGeneralGlobal = useSelector((state: RootState) => state.parameters.parametersGeneral);
-  const [parametersGeneralLocal, setParametersGeneralLocal] = useState(parametersInitialState.parametersGeneral);
+  const [parametersGeneralLocal, setParametersGeneralLocal] = useState(
+    props.item.localParametersGeneral ?? parametersInitialState.parametersGeneral,
+  );
   const parametersDateRangeGlobal = useSelector((state: RootState) => state.parameters.parametersDateRange);
-  const [parametersDateRangeLocal, setParametersDateRangeLocal] = useState(parametersInitialState.parametersDateRange);
+  const [parametersDateRangeLocal, setParametersDateRangeLocal] = useState(
+    props.item.localParametersDateRange ?? parametersInitialState.parametersDateRange,
+  );
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -110,7 +114,24 @@ const DashboardItem = memo(function DashboardItem(props: {
       }
     }
   }, [availableDataPlugins, fileLists, props.item.dataPluginId]);
-  const [settings, setSettings] = useState(plugin.defaultSettings);
+  const [settings, setSettingsState] = useState(props.item.settings ?? plugin.defaultSettings);
+
+  // Persist settings changes to the dashboard store (and localStorage)
+  const setSettings = (newSettings: typeof settings) => {
+    setSettingsState(newSettings);
+    const updatedItem = _.clone(props.item);
+    updatedItem.settings = newSettings as DashboardItemType['settings'];
+    dispatch(updateDashboardItem(updatedItem));
+  };
+
+  // Persist local parameter changes to the dashboard store
+  useEffect(() => {
+    const updatedItem = _.clone(props.item);
+    updatedItem.ignoreGlobalParameters = ignoreGlobalParameters;
+    updatedItem.localParametersGeneral = parametersGeneralLocal;
+    updatedItem.localParametersDateRange = parametersDateRangeLocal;
+    dispatch(updateDashboardItem(updatedItem));
+  }, [ignoreGlobalParameters, parametersGeneralLocal, parametersDateRangeLocal]);
 
   /**
    * Create Redux Store from Reducer for individual Item and run saga

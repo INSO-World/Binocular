@@ -135,6 +135,10 @@ function setTooltipContent(tooltip: d3.Selection<null, unknown, null, undefined>
   tooltip.select('.tooltip-value').text(tooltipValue);
 }
 
+function getNonEmptyKeys(keys: string[], data: ChartData[]): string[] {
+  return keys.filter((key) => data.some((d) => key in d && Math.abs(d[key]) > 0.002));
+}
+
 function generateDataLines(
   palette: Palette,
   data: ChartData[],
@@ -145,9 +149,15 @@ function generateDataLines(
   tooltipRef: MutableRefObject<null>,
 ) {
   const svgElement = d3.select(svgRef.current);
-  const stackedPositiveData = d3.stack().keys(Object.keys(palette))(splitPositiveNegativeData(data, PositiveNegativeSide.POSITIVE));
-  const stackedNegativeData = d3.stack().keys(Object.keys(palette))(splitPositiveNegativeData(data, PositiveNegativeSide.NEGATIVE));
-  Object.keys(palette).forEach((dataItemName, i) => {
+  const allKeys = Object.keys(palette);
+  const positiveData = splitPositiveNegativeData(data, PositiveNegativeSide.POSITIVE);
+  const negativeData = splitPositiveNegativeData(data, PositiveNegativeSide.NEGATIVE);
+  const positiveKeys = getNonEmptyKeys(allKeys, positiveData);
+  const negativeKeys = getNonEmptyKeys(allKeys, negativeData);
+  const stackedPositiveData = d3.stack().keys(positiveKeys)(positiveData);
+  const stackedNegativeData = d3.stack().keys(negativeKeys)(negativeData);
+
+  positiveKeys.forEach((dataItemName, i) => {
     const areaBuilderPositive = d3
       .area<ChartData>()
       .curve(visualizationStyle === 'curved' ? d3.curveMonotoneX : visualizationStyle === 'stepped' ? d3.curveStep : d3.curveLinear)
@@ -178,7 +188,9 @@ function generateDataLines(
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');
       });
+  });
 
+  negativeKeys.forEach((dataItemName, i) => {
     const areaBuilderNegative = d3
       .area<ChartData>()
       .curve(visualizationStyle === 'curved' ? d3.curveMonotoneX : visualizationStyle === 'stepped' ? d3.curveStep : d3.curveLinear)

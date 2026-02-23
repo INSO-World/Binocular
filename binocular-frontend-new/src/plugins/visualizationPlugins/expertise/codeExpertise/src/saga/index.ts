@@ -1,5 +1,5 @@
 import { put, fork, call, select, takeLatest } from 'redux-saga/effects';
-import { type State, DataState, setDataState, setData, setCurrentBranch, type ExpertiseData } from '../reducer';
+import { type State, DataState, setDataState, setData, setAllBranches, setCurrentBranch, type ExpertiseData } from '../reducer';
 import type { DataPlugin } from '../../../../../interfaces/dataPlugin.ts';
 import type { DataPluginCommitBuild } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { getCommitDataForSha, getFilenamesForBranch, getLatestBranch, getOwnershipForCommits, getPreviousFilenames } from './helper.ts';
@@ -25,12 +25,19 @@ function* fetchExpertiseData(dataConnection: DataPlugin) {
   yield put(setDataState(DataState.FETCHING));
   const branchId = state.plugin.branch;
 
+  if (!dataConnection.branches) {
+    yield put(setDataState(DataState.COMPLETE));
+    return;
+  }
+
+  const branches: DataPluginBranch[] = yield call(() => dataConnection.branches!.getAll());
+  const sortedBranches = [...branches].sort((a, b) => a.branch.localeCompare(b.branch));
+  yield put(setAllBranches(sortedBranches));
+
   const codeOwnershipData: CodeOwnershipData = yield call(async () => {
-    if (!dataConnection.branches) return;
-    const branches = (await dataConnection.branches.getAll()).sort((a, b) => a.branch.localeCompare(b.branch));
     let currentBranch: DataPluginBranch | undefined = undefined;
-    if (!branchId) currentBranch = await getLatestBranch(branches, dataConnection);
-    else currentBranch = branches[branchId];
+    if (!branchId) currentBranch = await getLatestBranch(sortedBranches, dataConnection);
+    else currentBranch = sortedBranches[branchId];
 
     const result: CodeOwnershipData = { rawData: [], previousFilenames: {} };
 
