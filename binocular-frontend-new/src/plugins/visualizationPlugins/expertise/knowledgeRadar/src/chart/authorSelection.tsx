@@ -20,7 +20,7 @@ const AuthorSelection: React.FC<AuthorSelectionProps> = ({ authorList, selectedA
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const availableAuthors = authorList.filter((author) => author.selected);
+  const availableAuthors = authorList.filter((author) => author.selected && author.parent === -1);
 
   // Initialize temp selections when dropdown opens
   useEffect(() => {

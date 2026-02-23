@@ -205,6 +205,29 @@ function drawChart(options: {
     }
   });
 
+  // Merge child authors into their parents according to parent-child relation
+  props.authorList
+    .filter((a) => a.parent > 0)
+    .forEach((child) => {
+      const parent = props.authorList.find((a) => a.id === child.parent);
+      if (!parent) return;
+      const childSig = child.user.gitSignature;
+      const parentSig = parent.user.gitSignature;
+      const childData = devDataMap[childSig];
+      if (!childData) return;
+      if (devDataMap[parentSig]) {
+        devDataMap[parentSig].commits = [...devDataMap[parentSig].commits, ...childData.commits];
+        devDataMap[parentSig].additions = (devDataMap[parentSig].additions || 0) + (childData.additions || 0);
+        devDataMap[parentSig].linesOwned = (devDataMap[parentSig].linesOwned || 0) + (childData.linesOwned || 0);
+      } else {
+        devDataMap[parentSig] = { ...childData };
+      }
+      delete devDataMap[childSig];
+    });
+
+  // Recalculate maxCommitsPerDev after merging
+  maxCommitsPerDev = Object.values(devDataMap).reduce((max, dev) => Math.max(max, dev.commits.length), 0);
+
   const newSegments: React.JSX.Element[] = [];
   let totalPercent = 0;
 
@@ -220,13 +243,15 @@ function drawChart(options: {
     totalPercent = endPercent;
     const palette = generatePalette(props.authorList);
     const devColor = palette[devName]?.main || '#cccccc';
+    const author = props.authorList.find((a) => a.user.gitSignature === devName);
+    const devLabel = author?.displayName || devName;
     newSegments.push(
       <Segment
         key={devName}
         rad={radius}
         startPercent={startPercent}
         endPercent={endPercent}
-        devName={devName}
+        devName={devLabel}
         devData={devData}
         devColor={devColor}
         maxCommitsPerDev={maxCommitsPerDev}
@@ -327,10 +352,7 @@ function generatePalette(authors: AuthorType[]): Palette {
   authors.forEach((author) => {
     if (!author.selected) return;
 
-    const displayName = author.displayName || author.user.gitSignature;
-
-    // Create palette entries for each metric
-    palette[`${displayName}`] = {
+    palette[author.user.gitSignature] = {
       main: chroma(author.color.main).hex(),
       secondary: chroma(author.color.secondary).hex(),
     };
