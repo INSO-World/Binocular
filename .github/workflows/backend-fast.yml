@@ -17,9 +17,38 @@ env:
   WD: binocular-backend-new
 
 jobs:
+  lint: 
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup (cache/java/go-offline)
+        uses: ./.github/actions/java-maven-setup
+        with:
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          working-directory: ${{ env.WD }}
+          checkout-depth: 1
+
+      - name: Validate
+        run: mvn $MAVEN_CLI_OPTS ktlint:check
+
   # Merged: validate + compile-sources + compile-tests
   preflight:
     name: Preflight (validate + compile + test-compile)
+    needs:
+      - lint
     strategy:
       fail-fast: true
       matrix:
