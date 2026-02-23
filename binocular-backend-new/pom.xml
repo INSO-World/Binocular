@@ -71,6 +71,7 @@
         <module>jgit</module>
         <module>integration-test/vcs-indexer</module>
     </modules>
+
     <dependencyManagement>
         <!--
             Dependency management is a mechanism for centralizing the dependency information
@@ -221,8 +222,22 @@
                         </avoidCallsTo>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>com.github.gantsign.maven</groupId>
+                    <artifactId>ktlint-maven-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+
+        <!-- To use the plugin goals in your POM or parent POM -->
+        <plugins>
+            <plugin>
+                <groupId>com.github.gantsign.maven</groupId>
+                <artifactId>ktlint-maven-plugin</artifactId>
+                <version>3.5.0</version>
+            </plugin>
+        </plugins>
     </build>
 
     <reporting>
@@ -234,6 +249,11 @@
                 <configuration>
                     <aggregate>true</aggregate>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.gantsign.maven</groupId>
+                <artifactId>ktlint-maven-plugin</artifactId>
+                <version>3.5.0</version>
             </plugin>
         </plugins>
     </reporting>
