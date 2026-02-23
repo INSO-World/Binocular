@@ -11,7 +11,7 @@ import { groupIssuesByGranularity } from './helper/groupIssuesByGranularity';
 import { pairUpDataPoints } from './helper/pairUpDataPoints';
 import { BurndownChartDataPoint } from './components/BurndownChartDataPoint';
 import type { MappedIssue } from './types';
-import { SprintAreas } from '../../../../../components/SprintAreas';
+import { SprintAreas } from '../../../../../../components/sprintAreas/SprintAreas';
 
 export const legendBarHeight = 40;
 
@@ -53,13 +53,6 @@ export const BurndownChart: React.FC<
     (max, { issues }) => (max < issues.length ? issues.length : max),
     Number.MIN_SAFE_INTEGER,
   );
-
-  const mappedSprints = sprints.map((s) => ({
-    ...s,
-
-    startDate: moment(s.startDate).startOf('day'),
-    endDate: moment(s.endDate).startOf('day'),
-  }));
 
   const pairedUpDataPoints = [...pairUpDataPoints(issuesPerGranularity)];
 
@@ -125,7 +118,7 @@ export const BurndownChart: React.FC<
             <BurndownChartXAxisLegend height={height} width={width} xScale={xScale} />
             <BurndownChartYAxisLegend height={height} yScale={yScale} />
 
-            {showSprints && <SprintAreas sprints={mappedSprints} xScale={xScale} height={height} bottomMargin={margin} />}
+            {showSprints && <SprintAreas sprints={sprints} xScale={xScale} height={height} bottomMargin={margin} />}
           </>
         )}
       </svg>

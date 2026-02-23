@@ -1,6 +1,7 @@
 import { symbol, symbolTriangle } from 'd3';
+import moment from 'moment';
 import type React from 'react';
-import classes from './sprintArea.module.css';
+import classes from './sprintAreas.module.css';
 import type { SprintType } from '../../types/data/sprintType';
 import type { Moment } from 'moment';
 
@@ -11,14 +12,21 @@ const patternId = 'sprints-diagonal-hatch';
 
 export type MappedSprint = Omit<SprintType, 'startDate' | 'endDate'> & Record<'startDate' | 'endDate', Moment>;
 
+const mapSprint = (s: SprintType): MappedSprint => ({
+  ...s,
+  startDate: moment(s.startDate).startOf('day'),
+  endDate: moment(s.endDate).startOf('day'),
+});
+
 export const SprintAreas: React.FC<{
-  sprints: MappedSprint[];
+  sprints: SprintType[];
   xScale: d3.ScaleTime<number, number>;
   height: number;
   onClick?: (sprint: MappedSprint) => React.MouseEventHandler<SVGGElement>;
   bottomMargin: number;
 }> = ({ sprints, xScale, height, bottomMargin, onClick }) => {
   const trianglePath = symbol(symbolTriangle)() ?? '';
+  const mappedSprints = sprints.map(mapSprint);
 
   return (
     <>
@@ -28,7 +36,7 @@ export const SprintAreas: React.FC<{
         </pattern>
       </defs>
 
-      {sprints.map((s) => {
+      {mappedSprints.map((s) => {
         const xStart = xScale(s.startDate);
         const yStart = 0;
 
