@@ -1,8 +1,8 @@
 import type { Moment, unitOfTime } from 'moment';
 import * as React from 'react';
-import { BaseDetailDialogLayout } from '../../../../../../components/BaseDetailDialogLayout';
 import type { IssuesGroupedByGranularity } from '../types';
 import classes from './burndownChartDetailDialog.module.css';
+import { BaseDetailDialogLayout } from '../../../../../../../components/baseDetailDialog/BaseDetailDialogLayout';
 
 export const BurndownChartDetailDialog: React.FC<{
   anchor: SVGElement;

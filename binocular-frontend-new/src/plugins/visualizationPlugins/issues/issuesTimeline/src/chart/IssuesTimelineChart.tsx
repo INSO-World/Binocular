@@ -3,7 +3,7 @@ import moment, { type Moment } from 'moment';
 import * as React from 'react';
 import type { AuthorType } from '../../../../../../types/data/authorType';
 import type { SprintType } from '../../../../../../types/data/sprintType';
-import { SprintAreas, type MappedSprint } from '../../../../../components/SprintAreas';
+import { SprintAreas, type MappedSprint } from '../../../../../../components/sprintAreas/SprintAreas';
 import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
 import type { DataPluginMergeRequest } from '../../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests';
 import type { IssuesTimelineSettings } from '../settings/settings';
@@ -80,13 +80,6 @@ const mapMergeRequest =
     closedAt: mr.closedAt ? moment(mr.closedAt) : maxDate,
   });
 
-const mapSprint = (s: SprintType): MappedSprint => ({
-  ...s,
-
-  startDate: moment(s.startDate),
-  endDate: moment(s.endDate),
-});
-
 export const IssuesTimelineChart: React.FC<
   {
     authors: AuthorType[];
@@ -131,8 +124,6 @@ export const IssuesTimelineChart: React.FC<
 
   const mappedIssues = issues.map(mapIssue(groupedLabels, colorsForLabelGroups));
   const mappedMergeRequests = mergeRequests.map(mapMergeRequest(toDate));
-  const mappedSprints = sprints.map(mapSprint);
-
   React.useEffect(() => {
     const { current: svg } = svgChartRef;
     if (!svg) {
@@ -229,7 +220,7 @@ export const IssuesTimelineChart: React.FC<
 
             {showSprints && (
               <SprintAreas
-                sprints={mappedSprints}
+                sprints={sprints}
                 xScale={xScale}
                 height={height}
                 bottomMargin={margin}
@@ -258,7 +249,9 @@ export const IssuesTimelineChart: React.FC<
       ) : detailDialogState?.variant === 'merge-request' ? (
         <DetailDialogMergeRequestGroup
           {...detailDialogState}
-          mergeRequests={groupedMergeRequests.find((group) => group.some((mr) => mr.iid === detailDialogState.iid)) ?? []}
+          mergeRequests={
+            groupedMergeRequests.find((group) => group.some((mr: MappedDataPluginMergeRequest) => mr.iid === detailDialogState.iid)) ?? []
+          }
           onClickClose={() => setDetailDialogState(undefined)}
           onChangeMergeRequest={({ target: { value } }) =>
             // Cast value type so the type is correct.
