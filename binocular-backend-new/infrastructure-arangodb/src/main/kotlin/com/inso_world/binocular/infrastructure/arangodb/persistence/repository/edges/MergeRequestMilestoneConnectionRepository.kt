@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
 interface MergeRequestMilestoneConnectionRepository : ArangoRepository<MergeRequestMilestoneConnectionEntity, String> {
     @Query(
         """
-    FOR c IN `merge-requests-milestones`
+    FOR c IN `mergeRequests-milestones`
         FILTER c._from == CONCAT('mergeRequests/', @mergeRequestId)
         FOR m IN milestones
             FILTER m._id == c._to
@@ -22,7 +22,7 @@ interface MergeRequestMilestoneConnectionRepository : ArangoRepository<MergeRequ
 
     @Query(
         """
-    FOR c IN `merge-requests-milestones`
+    FOR c IN `mergeRequests-milestones`
         FILTER c._to == CONCAT('milestones/', @milestoneId)
         FOR mr IN mergeRequests
             FILTER mr._id == c._from

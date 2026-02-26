@@ -8,7 +8,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges
 import org.springframework.stereotype.Repository
 
 @Repository
-interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnectionEntity, String> {
+internal interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnectionEntity, String> {
     @Query(
         """
     FOR c IN `issues-accounts`
@@ -19,6 +19,17 @@ interface IssueAccountConnectionRepository : ArangoRepository<IssueAccountConnec
 """,
     )
     fun findAccountsByIssue(issueId: String): List<AccountEntity>
+
+    @Query(
+        """
+    FOR c IN `issues-accounts`
+        FILTER c._from == CONCAT('issues/', @issueId) AND c.role == @role
+        FOR a IN accounts
+            FILTER a._id == c._to
+            RETURN a
+""",
+    )
+    fun findAccountsByIssueAndRole(issueId: String, role: String): List<AccountEntity>
 
     @Query(
         """

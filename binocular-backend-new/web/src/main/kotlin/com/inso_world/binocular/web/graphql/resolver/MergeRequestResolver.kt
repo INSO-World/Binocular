@@ -25,7 +25,7 @@ class MergeRequestResolver(
      * @param mergeRequest The merge request for which to retrieve accounts
      * @return A list of accounts associated with the merge request, or an empty list if the merge request ID is null
      */
-    @SchemaMapping(typeName = "MergeRequest", field = "accounts")
+    @SchemaMapping(typeName = "mergeRequest", field = "accounts")
     fun accounts(mergeRequest: MergeRequest): List<Account> {
         val id = mergeRequest.id ?: return emptyList()
         logger.info("Resolving accounts for merge request: $id")
@@ -42,7 +42,7 @@ class MergeRequestResolver(
      * @param mergeRequest The merge request for which to retrieve milestones
      * @return A list of milestones associated with the merge request, or an empty list if the merge request ID is null
      */
-    @SchemaMapping(typeName = "MergeRequest", field = "milestones")
+    @SchemaMapping(typeName = "mergeRequest", field = "milestones")
     fun milestones(mergeRequest: MergeRequest): List<Milestone> {
         val id = mergeRequest.id ?: return emptyList()
         logger.info("Resolving milestones for merge request: $id")
@@ -59,11 +59,44 @@ class MergeRequestResolver(
      * @param mergeRequest The merge request for which to retrieve notes
      * @return A list of notes associated with the merge request, or an empty list if the merge request ID is null
      */
-    @SchemaMapping(typeName = "MergeRequest", field = "notes")
+    @SchemaMapping(typeName = "mergeRequest", field = "notes")
     fun notes(mergeRequest: MergeRequest): List<Note> {
         val id = mergeRequest.id ?: return emptyList()
         logger.info("Resolving notes for merge request: $id")
         // Get all connections for this merge request and extract the notes
         return mergeRequestService.findNotesByMergeRequestId(id)
     }
+
+    @SchemaMapping(typeName = "mergeRequest", field = "author")
+    fun author(mergeRequest: MergeRequest): Account? {
+        val id = mergeRequest.id ?: return null
+        logger.info("Resolving author for merge request: $id")
+        val accounts = mergeRequestService.findAccountsByMergeRequestId(id)
+        return accounts.firstOrNull()
+    }
+
+    @SchemaMapping(typeName = "mergeRequest", field = "assignee")
+    fun assignee(mergeRequest: MergeRequest): Account? {
+        val id = mergeRequest.id ?: return null
+        logger.info("Resolving assignee for merge request: $id")
+        val accounts = mergeRequestService.findAccountsByMergeRequestId(id)
+        return if (accounts.size >= 2) accounts[1] else null
+    }
+
+    @SchemaMapping(typeName = "mergeRequest", field = "assignees")
+    fun assignees(mergeRequest: MergeRequest): List<Account> {
+        val id = mergeRequest.id ?: return emptyList()
+        logger.info("Resolving assignees for merge request: $id")
+        val accounts = mergeRequestService.findAccountsByMergeRequestId(id)
+        return if (accounts.size <= 1) emptyList() else accounts.drop(1)
+    }
+
+    // TODO: this is missing in the db idk
+    @SchemaMapping(typeName = "mergeRequest", field = "sourceBranch")
+    fun sourceBranch(@Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequest): String? = null
+
+    // TODO: same here?
+    @SchemaMapping(typeName = "mergeRequest", field = "targetBranch")
+    fun targetBranch(@Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequest): String? = null
+
 }

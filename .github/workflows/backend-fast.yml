@@ -181,7 +181,10 @@ jobs:
         MODULE: [
           { name: 'domain' },
           { name: 'ffi' },
+          { name: 'jgit' },
           { name: 'core' },
+          { name: 'integration-test/vcs-indexer', springProfile: 'jgit' },
+          { name: 'integration-test/vcs-indexer', springProfile: 'gix' },
           { name: 'infrastructure-arangodb' },
           { name: 'infrastructure-sql' },
           { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' },
@@ -222,6 +225,11 @@ jobs:
       - name: Surefire report for module ${{ matrix.MODULE.name }}
         if: always()
         run: |
+          # 1. Sanitize the name: replace / with -
+          SAFE_NAME=$(echo "${{ matrix.MODULE.name }}" | tr '/' '-')
+          echo "SAFE_MODULE_NAME=$SAFE_NAME" >> $GITHUB_ENV
+
+          # 2. Run your existing command
           CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.MODULE.name }} -am"
           if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
             CMD="$CMD -Dspring.profiles.active=${{matrix.MODULE.springProfile}}"
@@ -233,5 +241,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.MODULE.name }}-${{ matrix.MODULE.springProfile }}-report
+          # Use the environment variable created above
+          name: ${{ env.SAFE_MODULE_NAME }}-${{ matrix.MODULE.springProfile }}-report
           path: ${{ env.WD }}/${{ matrix.MODULE.name }}/target/reports/

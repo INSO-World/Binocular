@@ -5,6 +5,7 @@ import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -50,7 +51,7 @@ internal class BuildResolverTest : GraphQlControllerTest() {
             // Verify build data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Build ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Build SHA mismatch") },
+                { assertTrue(result.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Build SHA should start with short hash") },
                 { assertEquals("main", result.get("ref").asText(), "Build ref mismatch") },
                 { assertEquals("success", result.get("status").asText(), "Build status mismatch") },
                 { assertEquals("v0.0.1-rc", result.get("tag").asText(), "Build tag mismatch") },
@@ -109,7 +110,7 @@ internal class BuildResolverTest : GraphQlControllerTest() {
             // Verify build data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Build ID mismatch") },
-                { assertEquals("abc123", result.get("sha").asText(), "Build SHA mismatch") },
+                { assertTrue(result.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Build SHA should start with short hash") },
                 { assertEquals("main", result.get("ref").asText(), "Build ref mismatch") },
                 { assertEquals("success", result.get("status").asText(), "Build status mismatch") },
                 { assertEquals("User One", result.get("userFullName").asText(), "Build userFullName mismatch") },
@@ -125,7 +126,7 @@ internal class BuildResolverTest : GraphQlControllerTest() {
             val commit = commits.get(0)
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc123", commit.get("sha").asText(), "Commit SHA mismatch") },
+                { assertTrue(commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Commit SHA should start with short hash") },
                 { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
@@ -161,7 +162,7 @@ internal class BuildResolverTest : GraphQlControllerTest() {
             // Verify build data
             assertAll(
                 { assertEquals("2", result.get("id").asText(), "Build ID mismatch") },
-                { assertEquals("def456", result.get("sha").asText(), "Build SHA mismatch") },
+                { assertEquals("def4560000000000000000000000000000000000", result.get("sha").asText(), "Build SHA mismatch") },
                 { assertEquals("feature/new-feature", result.get("ref").asText(), "Build ref mismatch") },
                 { assertEquals("failed", result.get("status").asText(), "Build status mismatch") },
                 { assertEquals("v1.0.0", result.get("tag").asText(), "Build tag mismatch") },

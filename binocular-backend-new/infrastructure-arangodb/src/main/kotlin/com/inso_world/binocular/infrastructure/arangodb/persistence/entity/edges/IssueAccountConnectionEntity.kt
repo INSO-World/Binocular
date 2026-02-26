@@ -15,4 +15,5 @@ data class IssueAccountConnectionEntity(
     @Id var id: String? = null,
     @From var from: IssueEntity,
     @To var to: AccountEntity,
+    var role: String? = null,
 )

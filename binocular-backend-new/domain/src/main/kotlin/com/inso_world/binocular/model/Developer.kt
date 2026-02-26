@@ -181,3 +181,15 @@ data class Developer(
     override fun toString(): String =
         "Developer(id=$id, iid=$iid, name=$name, email=$email, gitSignature=$gitSignature, repositoryId=${repository.id})"
 }
+
+fun Developer.toLegacyUser(): User {
+    val user = User(
+        name = this@toLegacyUser.name,
+        repository = this@toLegacyUser.repository
+    ).apply {
+        this.id = this@toLegacyUser.id
+        this.email = this@toLegacyUser.email
+    }
+
+    return user
+}

@@ -219,7 +219,7 @@ object TestDataProvider {
                 listOf(
                     Mention(
                         "def456",
-                        java.time.LocalDateTime.now(),
+                        LocalDateTime.now(),
                         true,
                     ),
                 ),
@@ -261,7 +261,7 @@ object TestDataProvider {
                 listOf(
                     Mention(
                         "def456",
-                        java.time.LocalDateTime.now(),
+                        LocalDateTime.now(),
                         true,
                     ),
                 ),

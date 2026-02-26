@@ -44,6 +44,11 @@ internal class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePo
         return mergeRequestDao.findAll(pageable)
     }
 
+    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<MergeRequest> {
+        logger.trace("Getting merge requests with pageable: page={}, size={}, since={}, until={}", pageable.pageNumber, pageable.pageSize, since, until)
+        return mergeRequestDao.findAll(pageable, since, until)
+    }
+
     override fun findById(id: String): MergeRequest? {
         logger.trace("Getting merge request by id: $id")
         return mergeRequestDao.findById(id)

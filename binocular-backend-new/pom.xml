@@ -56,6 +56,7 @@
         <testcontainers.version>2.0.2</testcontainers.version>
         <sql-testcontainers.version>2.0.2</sql-testcontainers.version>
         <arangodb-testcontainer.version>4.0.0</arangodb-testcontainer.version>
+        <pitest.version>1.21.0</pitest.version>
     </properties>
     <modules>
         <module>domain</module>
@@ -66,6 +67,8 @@
         <module>infrastructure-test</module>
         <module>cli</module>
         <module>web</module>
+        <module>jgit</module>
+        <module>integration-test/vcs-indexer</module>
     </modules>
     <dependencyManagement>
         <!--
@@ -193,6 +196,29 @@
                     <groupId>org.jetbrains.kotlin</groupId>
                     <artifactId>kotlin-maven-plugin</artifactId>
                     <version>${kotlin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-maven</artifactId>
+                    <version>${pitest.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.pitest</groupId>
+                            <artifactId>pitest-junit5-plugin</artifactId>
+                            <version>1.2.3</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <excludedMethods>
+                            <param>toString</param>
+                            <param>getLogger</param>
+                        </excludedMethods>
+                        <avoidCallsTo>
+                            <avoidCallsTo>kotlin.jvm.internal</avoidCallsTo>
+                            <avoidCallsTo>com.inso_world.binocular.core.delegates.logger</avoidCallsTo>
+                            <avoidCallsTo>org.slf4j</avoidCallsTo>
+                        </avoidCallsTo>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

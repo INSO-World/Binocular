@@ -1,0 +1,20 @@
+binocular:
+  gix:
+    skip-merges: false
+    use-mailmap: true
+  jgit:
+    skip-merges: false
+    use-mailmap: true
+
+spring:
+  profiles:
+    active: jgit
+  application:
+    name: vcs-indexer-test
+
+logging:
+  level:
+    com:
+      inso_world:
+        binocular: debug
+    root: warn

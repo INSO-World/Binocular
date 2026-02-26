@@ -10,7 +10,7 @@ import org.springframework.data.annotation.Id
 /**
  * ArangoDB-specific entity for a connection between a MergeRequest and a Note.
  */
-@Edge(value = "merge-requests-notes")
+@Edge(value = "mergeRequests-notes")
 data class MergeRequestNoteConnectionEntity(
     @Id var id: String? = null,
     @From var from: MergeRequestEntity,

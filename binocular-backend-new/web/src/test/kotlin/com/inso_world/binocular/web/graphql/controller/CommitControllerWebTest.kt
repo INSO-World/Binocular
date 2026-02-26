@@ -122,13 +122,14 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
         @Test
         fun `should return commit by id`() {
             val expectedCommit = TestDataProvider.testCommits.first { it.id == "1" }
+            val sha = expectedCommit.sha
 
             val result: JsonNode =
                 graphQlTester
                     .document(
                         """
             query {
-                commit(id: "1") {
+                commit(sha: "$sha") {
                     id
                     sha
                     message
@@ -408,26 +409,26 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
     inner class ErrorHandling : GraphQlControllerTest() {
         @Test
         fun `should throw exception for non-existent commit id`() {
-            // Test with a non-existent commit ID
-            val nonExistentId = "999"
+            // Test with a non-existent commit SHA
+            val nonExistentSha = "ffffffffffffffffffffffffffffffffffffffff"
 
-            val exception =
-                graphQlTester
-                    .document(
-                        """
+            graphQlTester
+                .document(
+                    """
             query {
-                commit(id: "$nonExistentId") {
+                commit(sha: "$nonExistentSha") {
                     id
                     sha
                     message
                 }
             }
         """,
-                    ).execute()
-                    .errors()
-                    .expect { error ->
-                        error.message?.contains("Commit not found with id: $nonExistentId") ?: false
-                    }.verify()
+                ).execute()
+                .errors()
+                .expect { error ->
+                    error.message?.contains("Commit not found with id: $nonExistentSha") ?: false
+                }
+                .verify()
         }
 
         @Test

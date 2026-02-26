@@ -4,10 +4,12 @@ import com.inso_world.binocular.core.service.IssueInfrastructurePort
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
@@ -21,30 +23,41 @@ class IssueController(
     private var logger: Logger = LoggerFactory.getLogger(IssueController::class.java)
 
     /**
-     * Find all issues with pagination.
-     *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of issues for the current page
+     * Find all issues with pagination and optional time-range filtering.
      *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param since Optional timestamp (epoch millis) to include only issues created at or after this moment.
+     * @param until Optional timestamp (epoch millis) to include only issues created at or before this moment.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to ASC when not provided.
      * @return A Page object containing the issues and pagination metadata.
      */
     @QueryMapping(name = "issues")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument since: Long?,
+        @Argument until: Long?,
+        @Argument sort: Sort?,
     ): PageDto<Issue> {
-        logger.info("Getting all issues...")
+        logger.info("Getting all issues with since=$since, until=$until")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.ASC,
+            sortBy = "createdAt",
+        )
 
-        val issuesPage = issueService.findAll(pageable)
+        logger.debug(
+            "Getting all issues with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
 
-        return PageDto(issuesPage)
+        val result = issueService.findAll(pageable, since, until)
+        return PageDto(result)
     }
 
     /**
@@ -64,4 +77,5 @@ class IssueController(
         logger.info("Getting issue by id: $id")
         return GraphQLValidationUtils.requireEntityExists(issueService.findById(id), "Issue", id)
     }
+
 }

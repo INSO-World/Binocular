@@ -31,10 +31,17 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                         tracksFileRenames
                         latestCommit
                         files {
-                            id
-                            path
-                            webUrl
-                            maxLength
+                            count
+                            page
+                            perPage
+                            data {
+                                file {
+                                    id
+                                    path
+                                    webUrl
+                                    maxLength
+                                }
+                            }
                         }
                     }
                 }
@@ -71,13 +78,15 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                 },
             )
 
-            // Verify files
-            val files = result.get("files")
-            assertNotNull(files, "Files should not be null")
+            // Verify files (paginated connection)
+            val filesConnection = result.get("files")
+            assertNotNull(filesConnection, "Files connection should not be null")
+            val files = filesConnection.get("data")
+            assertNotNull(files, "Files data should not be null")
             assertEquals(2, files.size(), "Should have 2 files")
 
             // Create a list of file IDs from the result
-            val fileIds = (0 until files.size()).map { files.get(it).get("id").asText() }
+            val fileIds = (0 until files.size()).map { files.get(it).get("file").get("id").asText() }
 
             // Verify that the file IDs match the expected file IDs
             assertAll(
@@ -97,8 +106,12 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                         id
                         branch
                         files {
-                            id
-                            path
+                            data {
+                                file {
+                                    id
+                                    path
+                                }
+                            }
                         }
                     }
                 }
@@ -114,13 +127,15 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                 { assertEquals(TestDataProvider.testBranches[1].name, result.get("branch").asText(), "Branch name mismatch") },
             )
 
-            // Verify files
-            val files = result.get("files")
-            assertNotNull(files, "Files should not be null")
+            // Verify files (paginated connection)
+            val filesConnection = result.get("files")
+            assertNotNull(filesConnection, "Files connection should not be null")
+            val files = filesConnection.get("data")
+            assertNotNull(files, "Files data should not be null")
             assertEquals(1, files.size(), "Should have 1 file")
 
             // Verify the file data
-            val file = files.get(0)
+            val file = files.get(0).get("file")
             assertAll(
                 { assertEquals(TestDataProvider.testFiles[1].id, file.get("id").asText(), "File ID mismatch") },
                 { assertEquals(TestDataProvider.testFiles[1].path, file.get("path").asText(), "File path mismatch") },
