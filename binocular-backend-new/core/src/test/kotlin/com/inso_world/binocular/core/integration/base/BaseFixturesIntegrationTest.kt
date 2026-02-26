@@ -120,31 +120,6 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
             })
         }
 
-        fun execCmd(path: String, vararg cmd: String) {
-            val isWindows =
-                java.lang.System.getProperty("os.name").lowercase(java.util.Locale.getDefault()).startsWith("windows")
-            val builder = java.lang.ProcessBuilder()
-            if (isWindows) {
-                builder.command(*cmd)
-            } else {
-                builder.command(*cmd)
-            }
-            builder.directory(File(FIXTURES_PATH))
-            logger.info("Executing command: ${builder.command()}")
-            logger.info("In directory: ${builder.directory()}")
-            val process = builder.start()
-            val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println, path)
-            val executorService = Executors.newFixedThreadPool(1)
-            val future: Future<*> = executorService.submit(streamGobbler)
-
-            val exitCode = process.waitFor()
-            assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) }
-            require(0 == exitCode, {
-                logger.error("Command failed: ${builder.command()}")
-                logger.error("Command failed: exit code=$exitCode")
-            })
-        }
-
         @kotlin.jvm.JvmStatic
         @BeforeAll
         fun setUp() {
