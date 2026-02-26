@@ -92,6 +92,33 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         const val ADVANCED_PROJECT_NAME = "advanced"
         const val OCTO_REPO = "octo"
         const val OCTO_PROJECT_NAME = "octo"
+        const val MAILMAP_REPO = "mailmap"
+        const val MAILMAP_PROJECT_NAME = "mailmap"
+
+        fun execCmd(path: String, vararg cmd: String) {
+            val isWindows =
+                java.lang.System.getProperty("os.name").lowercase(java.util.Locale.getDefault()).startsWith("windows")
+            val builder = java.lang.ProcessBuilder()
+            if (isWindows) {
+                builder.command(*cmd)
+            } else {
+                builder.command(*cmd)
+            }
+            builder.directory(File(FIXTURES_PATH))
+            logger.info("Executing command: ${builder.command()}")
+            logger.info("In directory: ${builder.directory()}")
+            val process = builder.start()
+            val streamGobbler: StreamGobbler = StreamGobbler(process.inputStream, System.out::println, path)
+            val executorService = Executors.newFixedThreadPool(1)
+            val future: Future<*> = executorService.submit(streamGobbler)
+
+            val exitCode = process.waitFor()
+            assertDoesNotThrow { future.get(25, TimeUnit.SECONDS) }
+            require(0 == exitCode, {
+                logger.error("Command failed: ${builder.command()}")
+                logger.error("Command failed: exit code=$exitCode")
+            })
+        }
 
         fun execCmd(path: String, vararg cmd: String) {
             val isWindows =
@@ -139,12 +166,13 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
                 }
             }
 
-            val executorService = Executors.newFixedThreadPool(3)
+            val executorService = Executors.newFixedThreadPool(4)
             val futures =
                 listOf(
                     executorService.submit { createGitRepo(SIMPLE_REPO) },
                     executorService.submit { createGitRepo(OCTO_REPO) },
                     executorService.submit { createGitRepo(ADVANCED_REPO) },
+                    executorService.submit { createGitRepo(MAILMAP_REPO) },
                 )
             futures.forEach { it.get() }
         }

@@ -53,7 +53,7 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
             assertEquals(2, branchesData.size(), "Expected 2 branches, but got ${branchesData.size()}")
 
             // Check that the branches match the test data
-            TestDataProvider.testBranches.forEachIndexed { index, expectedBranch ->
+            TestDataProvider.testBranches.asReversed().forEachIndexed { index, expectedBranch ->
                 val actualBranch = branchesData.get(index)
 
                 assertAll(
@@ -204,7 +204,9 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, branchesData.size(), "Expected 1 branch, but got ${branchesData.size()}")
 
             // Check that the branch matches the first test branch
-            val expectedBranch = TestDataProvider.testBranches.first()
+            val expectedBranch = TestDataProvider.testBranches
+                .sortedBy { it.name ?: "" }
+                .first()
             val actualBranch = branchesData.get(0)
 
             assertAll(
@@ -311,7 +313,10 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, branchesData.size(), "Expected 1 branch, but got ${branchesData.size()}")
 
             // Check that the branch matches the second test branch
-            val expectedBranch = TestDataProvider.testBranches[1]
+            val expectedBranch = TestDataProvider.testBranches
+                .sortedBy { it.name ?: "" }
+                .drop(1)
+                .first()
             val actualBranch = branchesData.get(0)
 
             assertAll(

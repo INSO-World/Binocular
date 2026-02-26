@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.service.NoteInfrastructurePort
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
 import com.inso_world.binocular.web.graphql.model.PageDto
+import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,30 +24,47 @@ class NoteController(
     /**
      * Find all notes with pagination.
      *
-     * This method returns a Page object that includes:
-     * - count: total number of items
-     * - page: current page number (1-based)
-     * - perPage: number of items per page
-     * - data: list of notes for the current page
-     *
      * @param page The page number (1-based). If null, defaults to 1.
      * @param perPage The number of items per page. If null, defaults to 20.
+     * @param sort Optional sort direction (ASC|DESC). Defaults to DESC when not provided.
      * @return A Page object containing the notes and pagination metadata.
      */
     @QueryMapping(name = "notes")
     fun findAll(
         @Argument page: Int?,
         @Argument perPage: Int?,
+        @Argument sort: Sort?,
     ): PageDto<Note> {
         logger.info("Getting all notes...")
 
-        val pageable = PaginationUtils.createPageableWithValidation(page, perPage)
+        val pageable = PaginationUtils.createPageableWithValidation(
+            page = page,
+            size = perPage,
+            sort = sort ?: Sort.DESC,
+            sortBy = "createdAt",
+        )
 
-        val notesPage = noteService.findAll(pageable)
+        logger.debug(
+            "Getting all notes with properties page={}, perPage={}, sort={}",
+            pageable.pageNumber + 1,
+            pageable.pageSize,
+            pageable.sort
+        )
 
-        return PageDto(notesPage)
+        val result = noteService.findAll(pageable)
+        return PageDto(result)
     }
 
+    /**
+     * Find a note by its ID.
+     *
+     * Retrieves a single note using its unique identifier. If the note cannot be found,
+     * a GraphQLException is thrown to signal a client error.
+     *
+     * @param id the unique identifier of the note
+     * @return the matching Note
+     * @throws graphql.GraphQLException if no note exists with the given ID
+     */
     @QueryMapping(name = "note")
     fun findById(
         @Argument id: String,
@@ -54,4 +72,5 @@ class NoteController(
         logger.info("Getting note by id: $id")
         return GraphQLValidationUtils.requireEntityExists(noteService.findById(id), "Note", id)
     }
+
 }

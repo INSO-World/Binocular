@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 /**
  * Test class for verifying the Note resolver functionality.
@@ -45,8 +46,16 @@ internal class NoteResolverTest : GraphQlControllerTest() {
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Note ID mismatch") },
                 { assertEquals("This is a comment", result.get("body").asText(), "Note body mismatch") },
-                { assertEquals("2023-01-01T10:00:00Z", result.get("createdAt").asText(), "Note createdAt mismatch") },
-                { assertEquals("2023-01-01T10:00:00Z", result.get("updatedAt").asText(), "Note updatedAt mismatch") },
+                {
+                    val expected = Instant.parse("2023-01-01T10:00:00Z")
+                    val actual = Instant.parse(result.get("createdAt").asText())
+                    assertEquals(expected, actual, "Note createdAt mismatch")
+                },
+                {
+                    val expected = Instant.parse("2023-01-01T10:00:00Z")
+                    val actual = Instant.parse(result.get("updatedAt").asText())
+                    assertEquals(expected, actual, "Note updatedAt mismatch")
+                },
                 { assertEquals(false, result.get("system").asBoolean(), "Note system mismatch") },
                 { assertEquals(true, result.get("resolvable").asBoolean(), "Note resolvable mismatch") },
                 { assertEquals(false, result.get("internal").asBoolean(), "Note internal mismatch") },

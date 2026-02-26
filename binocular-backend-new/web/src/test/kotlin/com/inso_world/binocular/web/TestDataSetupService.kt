@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service
  * are handled by the infrastructure implementation itself based on the entity data
  * and any relationship methods exposed by the infrastructure ports.
  */
+// Disable or whatever here
 @Service
 internal class TestDataSetupService(
     @Autowired private val infrastructureDataSetup: InfrastructureDataSetup,

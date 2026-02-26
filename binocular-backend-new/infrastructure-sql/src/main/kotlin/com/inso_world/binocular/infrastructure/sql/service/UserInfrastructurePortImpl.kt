@@ -11,17 +11,13 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IDeveloperDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

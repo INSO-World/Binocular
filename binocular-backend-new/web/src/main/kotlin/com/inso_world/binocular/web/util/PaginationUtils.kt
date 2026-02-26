@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.util
 import com.inso_world.binocular.web.exception.ValidationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import com.inso_world.binocular.web.graphql.model.Sort as ApiSort
+import org.springframework.data.domain.Sort as SpringSort
 
 /**
  * Utility class for pagination operations.
@@ -97,6 +99,29 @@ object PaginationUtils {
         validatePageable(pageable)
 
         return pageable
+    }
+
+    /**
+     * Overload that accepts API layer Sort enum and maps it to Spring's Direction.
+     * The controller is responsible only for providing the default when null (e.g., sort ?: Sort.ASC).
+     */
+    fun createPageableWithValidation(
+        page: Int?,
+        size: Int?,
+        sort: ApiSort?,
+        sortBy: String?,
+    ): Pageable {
+        val direction: SpringSort.Direction? = when (sort) {
+            ApiSort.ASC -> SpringSort.Direction.ASC
+            ApiSort.DESC -> SpringSort.Direction.DESC
+            null -> SpringSort.Direction.ASC
+        }
+        val base = createPageableWithValidation(page, size)
+        return if (direction != null && !sortBy.isNullOrBlank()) {
+            PageRequest.of(base.pageNumber, base.pageSize, SpringSort.by(direction, sortBy))
+        } else {
+            base
+        }
     }
 
     /**
