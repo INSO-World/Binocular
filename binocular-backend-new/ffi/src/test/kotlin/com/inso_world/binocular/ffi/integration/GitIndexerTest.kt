@@ -475,9 +475,10 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
             val repo = indexer.findRepo(Path("./"), project)
             assertThat(repo).isNotNull()
 
-            val (branch, branchCommits) = indexer.traverseBranch(repo, "origin/main")
+            val (_, branchCommits) = indexer.traverseBranch(repo, "origin/main")
             assertAll(
-                { assertThat(branchCommits).hasSize(1881) }
+                // when this test fails, check the number of `git rev-list --count origin/main`
+                { assertThat(branchCommits).hasSize(2456) }
             )
         }
 
