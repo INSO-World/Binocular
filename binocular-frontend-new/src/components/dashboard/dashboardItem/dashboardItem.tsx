@@ -136,16 +136,16 @@ const DashboardItem = memo(function DashboardItem(props: {
   /**
    * Create Redux Store from Reducer for individual Item and run saga
    */
-  let store: Store | undefined;
-  if (dataPlugin) {
+  const [store, setStore] = useState<Store | undefined>(undefined);
+  if (dataPlugin && !store) {
     const sagaMiddleware = createSagaMiddleware();
-    store = configureStore({
-      reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
-    });
+    setStore(
+      configureStore({
+        reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
+        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
+      }),
+    );
     sagaMiddleware.run(() => plugin.saga(dataPlugin, plugin.name, plugin.dataConnectionName));
-  } else {
-    store = undefined;
   }
 
   globalStore.subscribe(() => {
