@@ -115,12 +115,18 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
 export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
   fileHandle.getFile().then((files) => {
     if (files !== null) {
-      files.text().then((list) => {
-        const files = list ? JSON.parse(list) : undefined;
-        if (files && Object.keys(files.fileLists).includes('' + dP.id)) {
-          dispatch(loadState(JSON.parse(list)));
-        } else refreshFileList(dP, dispatch);
-      });
+      files.text().then(
+        (list) => {
+          const files = list ? JSON.parse(list) : undefined;
+          if (files && Object.keys(files.fileLists).includes('' + dP.id)) {
+            dispatch(loadState(JSON.parse(list)));
+          } else refreshFileList(dP, dispatch);
+        },
+        (error) => {
+          console.log('Could not access files: Reloading list', error);
+          refreshFileList(dP, dispatch);
+        },
+      );
     }
   });
 }

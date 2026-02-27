@@ -38,7 +38,6 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
 
   //global state
   const relevantOwnershipData = data.rawData;
-  const fileList = props.fileList;
   const previousFilenames: { [id: string]: PreviousFileData[] } = data.previousFilenames;
   const granularity = props.parameters.parametersGeneral.granularity;
 
@@ -66,11 +65,11 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
 
   //when a new branch is selected, new data is fetched. When the data is ready, prepare it for further processing.
   useEffect(() => {
-    if (relevantOwnershipData === undefined || relevantOwnershipData === null || fileList === undefined || fileList === null) {
+    if (relevantOwnershipData === undefined || relevantOwnershipData === null || props.fileList === undefined || props.fileList === null) {
       return;
     }
     const activeFiles: { [id: string]: boolean } = {};
-    fileList.map((item) => {
+    props.fileList.map((item) => {
       activeFiles[item.element.path] = item.checked;
     });
 
@@ -275,18 +274,18 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
     dispatch({
       type: 'REFRESH',
     });
-  }, [props.dataConnection, fileList]);
+  }, [props.dataConnection, props.fileList]);
 
   return (
     <>
       <div className={'w-full h-full flex justify-center items-center'} ref={props.chartContainerRef}>
-        {dataState === DataState.EMPTY && ownershipData.length === 0 && <div>NoData</div>}
+        {dataState === DataState.EMPTY && <div>NoData</div>}
         {dataState === DataState.FETCHING && (
           <div>
             <span className="loading loading-spinner loading-lg text-accent"></span>
           </div>
         )}
-        {dataState !== DataState.FETCHING && ownershipData.length > 0 && (
+        {dataState === DataState.COMPLETE && (
           <StackedAreaChart
             content={chartData}
             palette={chartPalette}

@@ -36,6 +36,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [chartScale, setChartScale] = useState<number[]>([]);
   const [chartPalette, setChartPalette] = useState<Palette>({});
+  const [calculating, setCalculating] = useState(false);
 
   /**
    * RESIZE Logic START
@@ -63,20 +64,22 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
   useEffect(() => {
     try {
       if (props.dataConverter) {
+        setCalculating(true);
         const { chartData, scale, palette } = props.dataConverter(data, props);
         setChartData(chartData);
         setChartScale(scale);
         setChartPalette(palette);
+        setCalculating(false);
       }
     } catch (e) {
       console.error(e);
     }
-  }, [data, props]);
+  }, [data, props.parameters.parametersGeneral, props.settings, props.authorList, props.fileList]);
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
     dispatch(getDataSlice(props.dataName!).actions.setDateRange(props.parameters.parametersDateRange));
-  }, [props.parameters]);
+  }, [props.parameters.parametersDateRange]);
 
   //Trigger Refresh when dataConnection changes
   useEffect(() => {
@@ -89,12 +92,13 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
     <>
       <div className={'w-full h-full flex justify-center items-center'} ref={props.chartContainerRef}>
         {dataState === DataState.EMPTY && <div>NoData</div>}
-        {dataState === DataState.FETCHING && (
+        {(dataState === DataState.FETCHING || calculating) && (
           <div>
             <span className="loading loading-spinner loading-lg text-accent"></span>
           </div>
         )}
         {dataState === DataState.COMPLETE &&
+          !calculating &&
           (chartData.length !== 0 ? (
             <StackedAreaChart
               data={chartData}

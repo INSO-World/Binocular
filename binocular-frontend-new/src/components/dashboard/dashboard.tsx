@@ -99,7 +99,6 @@ function Dashboard() {
       case deleteDashboardItem.type:
         setDashboardItems(newDashboardItems);
         setDashboardState1(newDashboardState);
-
         break;
     }
   });

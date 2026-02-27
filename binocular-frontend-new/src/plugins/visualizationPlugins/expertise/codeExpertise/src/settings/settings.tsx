@@ -30,8 +30,7 @@ function Settings(props: { settings: BranchSettings; setSettings: (newSettings: 
     </option>,
   ]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getBranchOptions = useMemo(() => {
+  useMemo(() => {
     if (allBranches.length === 0) {
       return;
     }
