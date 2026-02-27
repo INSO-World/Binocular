@@ -27,7 +27,7 @@ data class ItsGitHubIssue(
 
         return Issue(
             gid = id,
-            //iid = number,
+            platformIid = number,
             title = title,
             description = body,
             createdAt = parseDateTime(createdAt),
