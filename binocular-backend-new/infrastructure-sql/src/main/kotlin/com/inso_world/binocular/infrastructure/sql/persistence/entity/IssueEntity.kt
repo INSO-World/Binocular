@@ -96,6 +96,13 @@ internal data class IssueEntity(
 
     data class Key(val projectIid: Project.Id, val gid: String) // value object for lookups
 
+    fun addAccount(account: AccountEntity) {
+        if (accounts.contains(account)) return
+
+        accounts.add(account)
+        account.issues.add(this)
+    }
+
 //    /**
 //     * Gets the mentions as domain model mentions
 //     */
