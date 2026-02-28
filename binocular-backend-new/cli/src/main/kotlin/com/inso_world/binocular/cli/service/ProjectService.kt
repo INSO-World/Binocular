@@ -78,7 +78,7 @@ class ProjectService(
     }
 
     /**
-     * Transforms the ItsGitHubIssues to model Issues including their relationships.
+     * Transforms the ItsGitHubIssues to model Issues including their relationships and constructs the updated project.
      *
      * @param project the Project (model) to update
      * @param issues the ItsGitHubIssues to transform
@@ -106,7 +106,7 @@ class ProjectService(
 //        val commitCache =
 //            project.repo.commits.associateBy { it.sha }.toMutableMap()
 
-        // create a map of GitHub IDs to Issue entities for lookups
+        // create a map of GitHub IDs to Issues for lookups
         val issueMap =
             issues.associate {
                 it.id to it.toDomain(project)
@@ -152,9 +152,7 @@ class ProjectService(
 
         }
 
-        // for testing the connected issues/accounts
-        // val issueString = project.issues.joinToString(separator = ", ") { it.toString() }
-        // logger.trace(issueString)
+        logger.debug("Issues updated: " + project.toStringDebug())
 
         logger.trace("<<< transformIssues({})", project)
         return issueMap.values.toList()

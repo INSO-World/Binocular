@@ -9,6 +9,7 @@ import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.assembler.ProjectAssembler
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
@@ -17,6 +18,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
 import com.inso_world.binocular.model.Project
 import jakarta.annotation.PostConstruct
 import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadProjectEntities
+import com.inso_world.binocular.model.Account
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
@@ -56,6 +58,9 @@ internal class ProjectInfrastructurePortImpl(
 
     @Lazy
     @Autowired lateinit var accountMapper: AccountMapper
+
+    @Lazy
+    @Autowired lateinit var issueMapper: IssueMapper
 
     @PostConstruct
     fun init() {
@@ -157,7 +162,24 @@ internal class ProjectInfrastructurePortImpl(
             }
         }
         logger.trace("Accounts updated")
-        //logger.trace("project: " + managedEntity.toStringWithAccounts())
+
+        // Add or update issues
+        logger.debug("Update issues")
+        value.issues.forEach { issue ->
+            val issueEntity = issueMapper.toEntity(issue)
+            // Only add if not already present
+            if (!managedEntity.issues.contains(issueEntity)) {
+                managedEntity.addIssue(issueEntity)
+            }
+
+            // Add all accounts to issue
+            issue.accounts.map { domainAccount ->
+                val accountEntity = accountMapper.toEntity(domainAccount)
+                issueEntity.addAccount(accountEntity)
+            }
+        }
+        logger.trace("Issues updated")
+
         val updated = super.updateEntity(managedEntity)
         logger.trace("Update executed")
 
