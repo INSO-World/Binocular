@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.mapper
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
@@ -15,10 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.getValue
 
 @Component
 internal class IssueMapper {
-    private val logger: Logger = LoggerFactory.getLogger(IssueMapper::class.java)
+    companion object {
+        private val logger by logger()
+    }
 
     @Autowired
     private lateinit var ctx: MappingContext
@@ -42,6 +46,7 @@ internal class IssueMapper {
             )
 
         val entity = domain.toEntity(owner)
+
         ctx.remember(domain, entity)
 
         return entity
