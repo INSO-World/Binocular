@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
@@ -50,8 +51,9 @@ internal data class IssueEntity(
     @JoinColumn(name = "project_id", nullable = false, updatable = false)
     var project: ProjectEntity,
 
-// @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
-// var labels: MutableList<LabelEntity> = mutableListOf()
+//    @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
+//    var labels: MutableList<LabelEntity> = mutableListOf()
+
 // @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
 // var mentions: MutableList<MentionEntity> = mutableListOf()
 
@@ -92,6 +94,11 @@ internal data class IssueEntity(
         inverseJoinColumns = [JoinColumn(name = "user_id")],
     )
     var users: MutableList<UserEntity> = mutableListOf(),
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id",updatable = false)
+    var author: AccountEntity? = null
+
 ) : AbstractEntity<Long, IssueEntity.Key>() {
 
     data class Key(val projectIid: Project.Id, val gid: String) // value object for lookups
@@ -189,7 +196,7 @@ internal fun com.inso_world.binocular.model.Issue.toEntity(owner: ProjectEntity)
         state = this.state,
         webUrl = this.webUrl,
         gid = this.gid,
-        project = owner
+        project = owner,
     )
 
     // Set labels and mentions
