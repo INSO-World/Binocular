@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Platform
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.AccountDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -203,7 +204,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
         @Test
         fun `issues should return empty list when account id is null`() {
             // Arrange
-            val account = Account(id = null, platform = Platform.GitHub, login = "test-user", name = "Test User")
+            val account = AccountDto(id = null, login = "test-user", name = "Test User")
 
             // Act
             val result = accountResolver.issues(account)
@@ -215,7 +216,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
         @Test
         fun `mergeRequests should return empty list when account id is null`() {
             // Arrange
-            val account = Account(id = null, platform = Platform.GitHub, login = "test-user", name = "Test User")
+            val account = AccountDto(id = null, login = "test-user", name = "Test User")
 
             // Act
             val result = accountResolver.mergeRequests(account)
@@ -227,7 +228,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
         @Test
         fun `notes should return empty list when account id is null`() {
             // Arrange
-            val account = Account(id = null, platform = Platform.GitHub, login = "test-user", name = "Test User")
+            val account = AccountDto(id = null, login = "test-user", name = "Test User")
 
             // Act
             val result = accountResolver.notes(account)

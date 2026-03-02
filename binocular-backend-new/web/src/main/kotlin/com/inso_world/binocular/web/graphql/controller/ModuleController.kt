@@ -2,6 +2,8 @@ package com.inso_world.binocular.web.graphql.controller
 
 import com.inso_world.binocular.core.service.ModuleInfrastructurePort
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.ModuleDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Controller
 @SchemaMapping(typeName = "Module")
 class ModuleController(
     @Autowired private val moduleService: ModuleInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(ModuleController::class.java)
 
@@ -33,7 +36,7 @@ class ModuleController(
         @Argument page: Int?,
         @Argument perPage: Int?,
         @Argument sort: Sort?,
-    ): PageDto<com.inso_world.binocular.model.Module> {
+    ): PageDto<ModuleDto> {
         logger.info("Getting all modules...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -51,7 +54,7 @@ class ModuleController(
         )
 
         val result = moduleService.findAll(pageable)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -67,9 +70,9 @@ class ModuleController(
     @QueryMapping(name = "module")
     fun findById(
         @Argument id: String,
-    ): com.inso_world.binocular.model.Module {
+    ): ModuleDto {
         logger.info("Getting module by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(moduleService.findById(id), "Module", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(moduleService.findById(id), "Module", id))
     }
 
 }

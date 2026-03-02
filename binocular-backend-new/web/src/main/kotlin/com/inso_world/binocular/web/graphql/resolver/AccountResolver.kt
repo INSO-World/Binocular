@@ -1,19 +1,18 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.AccountInfrastructurePort
-import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.MergeRequest
-import com.inso_world.binocular.model.Note
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
 @Controller
 class AccountResolver(
     private val accountService: AccountInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(AccountResolver::class.java)
 
@@ -27,11 +26,11 @@ class AccountResolver(
      * @return A list of issues associated with the account, or an empty list if the account ID is null
      */
     @SchemaMapping(typeName = "Account", field = "issues")
-    fun issues(account: Account): List<Issue> {
+    fun issues(account: AccountDto): List<IssueDto> {
         val id = account.id ?: return emptyList()
         logger.info("Resolving issues for account: $id")
         // Get all connections for this account and extract the issues
-        return accountService.findIssuesByAccountId(id)
+        return accountService.findIssuesByAccountId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -44,11 +43,11 @@ class AccountResolver(
      * @return A list of merge requests associated with the account, or an empty list if the account ID is null
      */
     @SchemaMapping(typeName = "Account", field = "mergeRequests")
-    fun mergeRequests(account: Account): List<MergeRequest> {
+    fun mergeRequests(account: AccountDto): List<MergeRequestDto> {
         val id = account.id ?: return emptyList()
         logger.info("Resolving mergeRequests for account: $id")
         // Get all connections for this account and extract the merge requests
-        return accountService.findMergeRequestsByAccountId(id)
+        return accountService.findMergeRequestsByAccountId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -61,11 +60,11 @@ class AccountResolver(
      * @return A list of notes associated with the account, or an empty list if the account ID is null
      */
     @SchemaMapping(typeName = "Account", field = "notes")
-    fun notes(account: Account): List<Note> {
+    fun notes(account: AccountDto): List<NoteDto> {
         val id = account.id ?: return emptyList()
         logger.info("Resolving notes for account: $id")
         // Get all connections for this account and extract the notes
-        return accountService.findNotesByAccountId(id)
+        return accountService.findNotesByAccountId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -80,13 +79,13 @@ class AccountResolver(
      * @return The linked user for the account, or null if no explicit relation exists
      */
     @SchemaMapping(typeName = "Account", field = "user")
-    fun user(account: Account): User? {
+    fun user(account: AccountDto): UserDto? {
         logger.info("Resolving user for account: ${account.id}")
         val id = account.id ?: return null
         // Get account-to-user relation data
         return accountService
             .findUsersByAccountId(id)
-            .firstOrNull()
+            .firstOrNull()?.let { mapper.toDto(it) }
     }
 
 }

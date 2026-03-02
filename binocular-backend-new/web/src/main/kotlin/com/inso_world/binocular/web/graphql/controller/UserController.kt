@@ -3,8 +3,10 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
+import com.inso_world.binocular.web.graphql.model.UserDto
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Controller
 @SchemaMapping(typeName = "User")
 class UserController(
     @Autowired private val userService: UserInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(UserController::class.java)
 
@@ -34,7 +37,7 @@ class UserController(
         @Argument page: Int?,
         @Argument perPage: Int?,
         @Argument sort: Sort?,
-    ): PageDto<User> {
+    ): PageDto<UserDto> {
         logger.info("Getting all users...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -52,7 +55,7 @@ class UserController(
         )
 
         val result = userService.findAll(pageable)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -68,9 +71,9 @@ class UserController(
     @QueryMapping(name = "user")
     fun findById(
         @Argument id: String,
-    ): User {
+    ): UserDto {
         logger.info("Getting user by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(userService.findById(id), "User", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(userService.findById(id), "User", id))
     }
 
 }

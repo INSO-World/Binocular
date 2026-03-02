@@ -2,18 +2,22 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.BranchDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the Branch resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class BranchResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var branchResolver: BranchResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -166,6 +170,19 @@ internal class BranchResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `files should return empty list when branch id is null`() {
+            // Arrange
+            val branch = BranchDto(id = null, branch = "main")
+
+            // Act
+            val result = branchResolver.files(branch, null, null, null)
+
+            // Assert
+            assertTrue(result.data.isEmpty(), "Files list should be empty when branch ID is null")
+            assertEquals(0, result.count, "Count should be 0")
+        }
+
         @Test
         fun `should handle non-existent branch`() {
             // Create a test query for a branch that doesn't exist in the test data
