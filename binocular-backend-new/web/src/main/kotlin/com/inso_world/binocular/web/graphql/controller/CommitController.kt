@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.CommitDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Controller
 @SchemaMapping(typeName = "Commit")
 class CommitController(
     @Autowired private val commitService: CommitInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(CommitController::class.java)
 
@@ -39,7 +42,7 @@ class CommitController(
         @Argument since: Long?,
         @Argument until: Long?,
         @Argument sort: Sort?,
-    ): PageDto<Commit> {
+    ): PageDto<CommitDto> {
         logger.info("Getting commits with since=$since, until=$until")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -57,7 +60,7 @@ class CommitController(
         )
 
         val result = commitService.findAll(pageable, since, until)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -73,14 +76,14 @@ class CommitController(
     @QueryMapping(name = "commit")
     fun findById(
         @Argument sha: String,
-    ): Commit {
+    ): CommitDto {
         logger.info("Getting commit by sha: $sha")
         val byId = commitService.findById(sha)
         if (byId != null && byId.sha == sha) {
-            return byId
+            return mapper.toDto(byId)
         }
         val bySha = commitService.findAll().firstOrNull { it.sha == sha }
-        return GraphQLValidationUtils.requireEntityExists(bySha, "Commit", sha)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(bySha, "Commit", sha))
     }
 
 }

@@ -2,13 +2,11 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.AccountInfrastructurePort
 import com.inso_world.binocular.core.service.UserInfrastructurePort
-import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.File
-import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Controller
 class UserResolver(
     private val userService: UserInfrastructurePort,
     private val accountService: AccountInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(UserResolver::class.java)
 
@@ -30,7 +29,7 @@ class UserResolver(
      * @return The resolved account ID, or null if the user ID is null or no account exists
      */
     @SchemaMapping(typeName = "User", field = "id")
-    fun id(user: User): String? {
+    fun id(user: UserDto): String? {
         val userId = user.id ?: return null
         logger.info("Resolving legacy User.id for user: $userId")
         return accountService
@@ -49,11 +48,11 @@ class UserResolver(
      * @return A list of commits associated with the user, or an empty list if the user ID is null
      */
     @SchemaMapping(typeName = "User", field = "commits")
-    fun commits(user: User): List<Commit> {
+    fun commits(user: UserDto): List<CommitDto> {
         val id = user.id ?: return emptyList()
         logger.info("Resolving commits for user: $id")
         // Get all connections for this user and extract the commits
-        return userService.findCommitsByUserId(id)
+        return userService.findCommitsByUserId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -66,11 +65,11 @@ class UserResolver(
      * @return A list of issues associated with the user, or an empty list if the user ID is null
      */
     @SchemaMapping(typeName = "User", field = "issues")
-    fun issues(user: User): List<Issue> {
+    fun issues(user: UserDto): List<IssueDto> {
         val id = user.id ?: return emptyList()
         logger.info("Resolving issues for user: $id")
         // Get all connections for this user and extract the issues
-        return userService.findIssuesByUserId(id)
+        return userService.findIssuesByUserId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -83,11 +82,11 @@ class UserResolver(
      * @return A list of files associated with the user, or an empty list if the user ID is null
      */
     @SchemaMapping(typeName = "User", field = "files")
-    fun files(user: User): List<File> {
+    fun files(user: UserDto): List<FileDto> {
         val id = user.id ?: return emptyList()
         logger.info("Resolving files for user: $id")
         // Get all connections for this user and extract the files
-        return userService.findFilesByUserId(id)
+        return userService.findFilesByUserId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -100,11 +99,11 @@ class UserResolver(
      * @return The associated account, or null if the user ID is null or no account exists
      */
     @SchemaMapping(typeName = "User", field = "account")
-    fun account(user: User): Account? {
+    fun account(user: UserDto): AccountDto? {
         val userId = user.id ?: return null
         logger.info("Resolving account for user: $userId")
         val accounts = accountService.findAccountsByUserId(userId)
-        return accounts.firstOrNull()
+        return accounts.firstOrNull()?.let { mapper.toDto(it) }
     }
 
 }

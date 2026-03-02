@@ -2,18 +2,22 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.CommitDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the Commit resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class CommitResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var commitResolver: CommitResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -374,6 +378,31 @@ internal class CommitResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `builds should return empty list when commit id is null`() {
+            // Arrange
+            val commit = CommitDto(id = null, sha = "abc")
+
+            // Act
+            val result = commitResolver.builds(commit)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Builds list should be empty when commit ID is null")
+        }
+
+        @Test
+        fun `files should return empty connection when commit id is null`() {
+            // Arrange
+            val commit = CommitDto(id = null, sha = "abc")
+
+            // Act
+            val result = commitResolver.files(commit, null, null, null)
+
+            // Assert
+            assertTrue(result.data.isEmpty(), "Files data should be empty when commit ID is null")
+            assertEquals(0, result.count, "Count should be 0")
+        }
+
         @Test
         fun `should handle non-existent commit`() {
             graphQlTester

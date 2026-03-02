@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.BuildInfrastructurePort
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.BuildDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -20,6 +22,7 @@ import java.time.ZoneOffset
 @SchemaMapping(typeName = "Build")
 class BuildController(
     @Autowired private val buildService: BuildInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(BuildController::class.java)
 
@@ -40,7 +43,7 @@ class BuildController(
         @Argument since: Long?,
         @Argument until: Long?,
         @Argument sort: Sort?,
-    ): PageDto<Build> {
+    ): PageDto<BuildDto> {
         logger.info("Getting all builds...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -58,7 +61,7 @@ class BuildController(
         )
 
         val result = buildService.findAll(pageable, since, until)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -74,9 +77,9 @@ class BuildController(
     @QueryMapping(name = "build")
     fun findById(
         @Argument id: String,
-    ): Build {
+    ): BuildDto {
         logger.info("Getting build by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(buildService.findById(id), "Build", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(buildService.findById(id), "Build", id))
     }
 
 

@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.IssueInfrastructurePort
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.IssueDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Controller
 @SchemaMapping(typeName = "Issue")
 class IssueController(
     @Autowired private val issueService: IssueInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(IssueController::class.java)
 
@@ -39,7 +42,7 @@ class IssueController(
         @Argument since: Long?,
         @Argument until: Long?,
         @Argument sort: Sort?,
-    ): PageDto<Issue> {
+    ): PageDto<IssueDto> {
         logger.info("Getting all issues with since=$since, until=$until")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -57,7 +60,7 @@ class IssueController(
         )
 
         val result = issueService.findAll(pageable, since, until)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -73,9 +76,9 @@ class IssueController(
     @QueryMapping(name = "issue")
     fun findById(
         @Argument id: String,
-    ): Issue {
+    ): IssueDto {
         logger.info("Getting issue by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(issueService.findById(id), "Issue", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(issueService.findById(id), "Issue", id))
     }
 
 }

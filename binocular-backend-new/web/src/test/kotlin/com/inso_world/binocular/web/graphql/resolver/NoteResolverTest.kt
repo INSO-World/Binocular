@@ -2,18 +2,23 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.NoteDto
+import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.Instant
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the Note resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class NoteResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var noteResolver: NoteResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -199,6 +204,42 @@ internal class NoteResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `accounts should return empty list when note id is null`() {
+            // Arrange
+            val note = NoteDto(id = null, body = "Test Note")
+
+            // Act
+            val result = noteResolver.accounts(note)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Accounts list should be empty when note ID is null")
+        }
+
+        @Test
+        fun `issues should return empty list when note id is null`() {
+            // Arrange
+            val note = NoteDto(id = null, body = "Test Note")
+
+            // Act
+            val result = noteResolver.issues(note)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Issues list should be empty when note ID is null")
+        }
+
+        @Test
+        fun `mergeRequests should return empty list when note id is null`() {
+            // Arrange
+            val note = NoteDto(id = null, body = "Test Note")
+
+            // Act
+            val result = noteResolver.mergeRequests(note)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Merge requests list should be empty when note ID is null")
+        }
+
         @Test
         fun `should handle non-existent note`() {
             // Create a test query for a note that doesn't exist in the test data
