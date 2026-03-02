@@ -1,16 +1,18 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.BuildInfrastructurePort
-import com.inso_world.binocular.model.Build
-import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
 @Controller
 class BuildResolver(
     private val buildService: BuildInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(BuildResolver::class.java)
 
@@ -24,11 +26,11 @@ class BuildResolver(
      * @return A list of commits associated with the build, or an empty list if the build ID is null
      */
     @SchemaMapping(typeName = "Build", field = "commits")
-    fun commits(build: Build): List<Commit> {
+    fun commits(build: BuildDto): List<CommitDto> {
         val id = build.id ?: return emptyList()
         logger.info("Resolving commits for build: $id")
         // Get all connections for this build and extract the commits
-        return buildService.findCommitsByBuildId(id)
+        return buildService.findCommitsByBuildId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -41,11 +43,11 @@ class BuildResolver(
      * @return The first commit associated with the build, or null if there are no commits
      */
     @SchemaMapping(typeName = "Build", field = "commit")
-    fun commit(build: Build): Commit? {
+    fun commit(build: BuildDto): CommitDto? {
         val id = build.id ?: return null
         logger.info("Resolving commit for build: $id")
         // Get all connections for this build and extract the first commit
         val commits = buildService.findCommitsByBuildId(id)
-        return commits.firstOrNull()
+        return commits.firstOrNull()?.let { mapper.toDto(it) }
     }
 }

@@ -3,17 +3,22 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.MilestoneDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the Milestone resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class MilestoneResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var milestoneResolver: MilestoneResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -165,6 +170,30 @@ internal class MilestoneResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `issues should return empty list when milestone id is null`() {
+            // Arrange
+            val milestone = MilestoneDto(id = null, title = "Test Milestone")
+
+            // Act
+            val result = milestoneResolver.issues(milestone)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Issues list should be empty when milestone ID is null")
+        }
+
+        @Test
+        fun `mergeRequests should return empty list when milestone id is null`() {
+            // Arrange
+            val milestone = MilestoneDto(id = null, title = "Test Milestone")
+
+            // Act
+            val result = milestoneResolver.mergeRequests(milestone)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Merge requests list should be empty when milestone ID is null")
+        }
+
         @Test
         fun `should handle non-existent milestone`() {
             // Create a test query for a milestone that doesn't exist in the test data

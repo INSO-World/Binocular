@@ -3,18 +3,22 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.BuildDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the Build resolver functionality.
  * This class extends BaseDbTest to leverage the test data setup.
  */
 internal class BuildResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var buildResolver: BuildResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -195,6 +199,18 @@ internal class BuildResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `commits should return empty list when build id is null`() {
+            // Arrange
+            val build = BuildDto(id = null, sha = "abc")
+
+            // Act
+            val result = buildResolver.commits(build)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Commits list should be empty when build ID is null")
+        }
+
         @Test
         fun `should handle non-existent build`() {
             // Create a test query for a build that doesn't exist in the test data

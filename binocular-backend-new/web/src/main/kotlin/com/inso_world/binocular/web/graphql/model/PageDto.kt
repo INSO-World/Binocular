@@ -45,4 +45,11 @@ data class PageDto<T>(
         perPage = page.size,
         data = page.content,
     )
+
+    fun <R> map(mapper: (T) -> R): PageDto<R> = PageDto(
+        count = count,
+        page = page,
+        perPage = perPage,
+        data = data.map(mapper)
+    )
 }

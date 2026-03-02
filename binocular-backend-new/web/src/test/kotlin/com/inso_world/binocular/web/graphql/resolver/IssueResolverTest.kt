@@ -3,18 +3,22 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.IssueDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the Issue resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class IssueResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var issueResolver: IssueResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -290,6 +294,66 @@ internal class IssueResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `accounts should return empty list when issue id is null`() {
+            // Arrange
+            val issue = IssueDto(id = null, title = "Test Issue")
+
+            // Act
+            val result = issueResolver.accounts(issue)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Accounts list should be empty when issue ID is null")
+        }
+
+        @Test
+        fun `commits should return empty list when issue id is null`() {
+            // Arrange
+            val issue = IssueDto(id = null, title = "Test Issue")
+
+            // Act
+            val result = issueResolver.commits(issue)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Commits list should be empty when issue ID is null")
+        }
+
+        @Test
+        fun `milestones should return empty list when issue id is null`() {
+            // Arrange
+            val issue = IssueDto(id = null, title = "Test Issue")
+
+            // Act
+            val result = issueResolver.milestones(issue)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Milestones list should be empty when issue ID is null")
+        }
+
+        @Test
+        fun `notes should return empty list when issue id is null`() {
+            // Arrange
+            val issue = IssueDto(id = null, title = "Test Issue")
+
+            // Act
+            val result = issueResolver.notes(issue)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Notes list should be empty when issue ID is null")
+        }
+
+        @Test
+        fun `users should return empty list when issue id is null`() {
+            // Arrange
+            val issue = IssueDto(id = null, title = "Test Issue")
+
+            // Act
+            val result = issueResolver.users(issue)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Users list should be empty when issue ID is null")
+        }
+
         @Test
         fun `should handle non-existent issue`() {
             // Create a test query for an issue that doesn't exist in the test data

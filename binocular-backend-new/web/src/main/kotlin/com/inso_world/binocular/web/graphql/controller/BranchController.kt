@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.BranchDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Controller
 @SchemaMapping(typeName = "Branch")
 class BranchController(
     @Autowired private val branchService: BranchInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(BranchController::class.java)
 
@@ -34,7 +37,7 @@ class BranchController(
         @Argument page: Int?,
         @Argument perPage: Int?,
         @Argument sort: Sort?,
-    ): PageDto<Branch> {
+    ): PageDto<BranchDto> {
         logger.info("Getting all branches...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -52,7 +55,7 @@ class BranchController(
         )
 
         val result = branchService.findAll(pageable)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -74,20 +77,20 @@ class BranchController(
     fun findById(
         @Argument id: String?,
         @Argument branchName: String?,
-    ): Branch {
+    ): BranchDto {
         logger.info("Getting branch by id: $id or branchName: $branchName")
         if ((id == null && branchName == null) || (id != null && branchName != null)) {
             throw IllegalArgumentException("Exactly one of 'id' or 'branchName' must be provided")
         }
 
         if (id != null) {
-            return GraphQLValidationUtils.requireEntityExists(branchService.findById(id), "Branch", id)
+            return mapper.toDto(GraphQLValidationUtils.requireEntityExists(branchService.findById(id), "Branch", id))
         }
 
-        return GraphQLValidationUtils.requireEntityExists(
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(
             branchService.findByName(requireNotNull(branchName)),
             "Branch",
-            branchName)
+            branchName))
     }
 
 

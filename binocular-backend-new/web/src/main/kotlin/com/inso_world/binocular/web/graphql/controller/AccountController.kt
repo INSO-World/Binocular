@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.AccountInfrastructurePort
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.AccountDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Controller
 @SchemaMapping(typeName = "Account")
 class AccountController(
     @Autowired private val accountService: AccountInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(AccountController::class.java)
 
@@ -34,7 +37,7 @@ class AccountController(
         @Argument page: Int?,
         @Argument perPage: Int?,
         @Argument sort: Sort?,
-    ): PageDto<Account> {
+    ): PageDto<AccountDto> {
         logger.info("Getting all accounts...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -52,7 +55,7 @@ class AccountController(
         )
 
         val result = accountService.findAll(pageable)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -68,9 +71,9 @@ class AccountController(
     @QueryMapping(name = "account")
     fun findById(
         @Argument id: String,
-    ): Account {
+    ): AccountDto {
         logger.info("Getting account by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(accountService.findById(id), "Account", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(accountService.findById(id), "Account", id))
     }
 
 }
