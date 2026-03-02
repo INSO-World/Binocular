@@ -28,6 +28,7 @@ import {
 } from './dashboardHelper.ts';
 import _ from 'lodash';
 import { DragDropElementType } from '../../types/general/dragDropElementType.ts';
+import { debounce } from 'throttle-debounce';
 
 function Dashboard() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -241,14 +242,14 @@ function Dashboard() {
     }
   }, [columnCount, gridSize]);
 
-  const resizeObserver = new ResizeObserver(() => {
+  const resizeObserver = new ResizeObserver(debounce(100, () => {
     requestAnimationFrame(() => {
       if (dashboardRef.current) {
         setCellSize(dashboardRef.current.offsetWidth / columnCount);
         dispatch({ type: 'RESIZE' });
       }
     });
-  });
+  }));
 
   useEffect(() => {
     if (dashboardRef.current) {
