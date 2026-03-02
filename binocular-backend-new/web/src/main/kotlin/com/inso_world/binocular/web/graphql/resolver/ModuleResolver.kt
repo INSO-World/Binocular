@@ -1,16 +1,18 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.ModuleInfrastructurePort
-import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.File
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
 @Controller
 class ModuleResolver(
     private val moduleService: ModuleInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ModuleResolver::class.java)
 
@@ -24,11 +26,11 @@ class ModuleResolver(
      * @return A list of commits associated with the module, or an empty list if the module ID is null
      */
     @SchemaMapping(typeName = "Module", field = "commits")
-    fun commits(module: com.inso_world.binocular.model.Module): List<Commit> {
+    fun commits(module: ModuleDto): List<CommitDto> {
         val id = module.id ?: return emptyList()
         logger.info("Resolving commits for module: $id")
         // Get all connections for this module and extract the commits
-        return moduleService.findCommitsByModuleId(id)
+        return moduleService.findCommitsByModuleId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -41,11 +43,11 @@ class ModuleResolver(
      * @return A list of files associated with the module, or an empty list if the module ID is null
      */
     @SchemaMapping(typeName = "Module", field = "files")
-    fun files(module: com.inso_world.binocular.model.Module): List<File> {
+    fun files(module: ModuleDto): List<FileDto> {
         val id = module.id ?: return emptyList()
         logger.info("Resolving files for module: $id")
         // Get all connections for this module and extract the files
-        return moduleService.findFilesByModuleId(id)
+        return moduleService.findFilesByModuleId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -58,11 +60,11 @@ class ModuleResolver(
      * @return A list of child modules associated with the module, or an empty list if the module ID is null
      */
     @SchemaMapping(typeName = "Module", field = "childModules")
-    fun childModules(module: com.inso_world.binocular.model.Module): List<com.inso_world.binocular.model.Module> {
+    fun childModules(module: ModuleDto): List<ModuleDto> {
         val id = module.id ?: return emptyList()
         logger.info("Resolving child modules for module: $id")
         // Get all connections for this module and extract the child modules
-        return moduleService.findChildModulesByModuleId(id)
+        return moduleService.findChildModulesByModuleId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -75,10 +77,10 @@ class ModuleResolver(
      * @return A list of parent modules associated with the module, or an empty list if the module ID is null
      */
     @SchemaMapping(typeName = "Module", field = "parentModules")
-    fun parentModules(module: com.inso_world.binocular.model.Module): List<com.inso_world.binocular.model.Module> {
+    fun parentModules(module: ModuleDto): List<ModuleDto> {
         val id = module.id ?: return emptyList()
         logger.info("Resolving parent modules for module: $id")
         // Get all connections for this module and extract the parent modules
-        return moduleService.findParentModulesByModuleId(id)
+        return moduleService.findParentModulesByModuleId(id).map { mapper.toDto(it) }
     }
 }

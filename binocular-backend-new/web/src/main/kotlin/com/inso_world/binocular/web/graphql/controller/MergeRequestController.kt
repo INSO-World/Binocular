@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.MergeRequestDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Controller
 @SchemaMapping(typeName = "mergeRequest")
 class MergeRequestController(
     @Autowired private val mergeRequestService: MergeRequestInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(MergeRequestController::class.java)
 
@@ -39,7 +42,7 @@ class MergeRequestController(
         @Argument since: Long?,
         @Argument until: Long?,
         @Argument sort: Sort?,
-    ): PageDto<MergeRequest> {
+    ): PageDto<MergeRequestDto> {
         logger.info("Getting all merge requests with since=$since, until=$until")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -57,7 +60,7 @@ class MergeRequestController(
         )
 
         val result = mergeRequestService.findAll(pageable, since, until)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -73,9 +76,9 @@ class MergeRequestController(
     @QueryMapping(name = "mergeRequest")
     fun findById(
         @Argument id: String,
-    ): MergeRequest {
+    ): MergeRequestDto {
         logger.info("Getting merge request by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(mergeRequestService.findById(id), "MergeRequest", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(mergeRequestService.findById(id), "MergeRequest", id))
     }
 
 }

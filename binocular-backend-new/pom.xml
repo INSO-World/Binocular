@@ -56,7 +56,6 @@
         <testcontainers.version>2.0.2</testcontainers.version>
         <sql-testcontainers.version>2.0.2</sql-testcontainers.version>
         <arangodb-testcontainer.version>4.0.0</arangodb-testcontainer.version>
-        <pitest.version>1.21.0</pitest.version>
     </properties>
     <modules>
         <module>domain</module>

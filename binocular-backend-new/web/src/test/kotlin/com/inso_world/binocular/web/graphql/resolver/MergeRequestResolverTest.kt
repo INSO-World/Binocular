@@ -3,18 +3,22 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.MergeRequestDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the MergeRequest resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class MergeRequestResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var mergeRequestResolver: MergeRequestResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -203,6 +207,42 @@ internal class MergeRequestResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `accounts should return empty list when merge request id is null`() {
+            // Arrange
+            val mergeRequest = MergeRequestDto(id = null, title = "Test Merge Request")
+
+            // Act
+            val result = mergeRequestResolver.accounts(mergeRequest)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Accounts list should be empty when merge request ID is null")
+        }
+
+        @Test
+        fun `milestones should return empty list when merge request id is null`() {
+            // Arrange
+            val mergeRequest = MergeRequestDto(id = null, title = "Test Merge Request")
+
+            // Act
+            val result = mergeRequestResolver.milestones(mergeRequest)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Milestones list should be empty when merge request ID is null")
+        }
+
+        @Test
+        fun `notes should return empty list when merge request id is null`() {
+            // Arrange
+            val mergeRequest = MergeRequestDto(id = null, title = "Test Merge Request")
+
+            // Act
+            val result = mergeRequestResolver.notes(mergeRequest)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Notes list should be empty when merge request ID is null")
+        }
+
         @Test
         fun `should handle non-existent merge request`() {
             // Create a test query for a merge request that doesn't exist in the test data

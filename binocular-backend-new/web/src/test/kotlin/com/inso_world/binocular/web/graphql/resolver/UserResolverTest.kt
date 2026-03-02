@@ -3,17 +3,22 @@ package com.inso_world.binocular.web.graphql.resolver
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.UserDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the User resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class UserResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var userResolver: UserResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -211,6 +216,66 @@ internal class UserResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `id should return null when user id is null`() {
+            // Arrange
+            val user = UserDto(id = null, gitSignature = "John Doe <john.doe@example.com>")
+
+            // Act
+            val result = userResolver.id(user)
+
+            // Assert
+            assertTrue(result == null, "ID should be null when user ID is null")
+        }
+
+        @Test
+        fun `commits should return empty list when user id is null`() {
+            // Arrange
+            val user = UserDto(id = null, gitSignature = "John Doe <john.doe@example.com>")
+
+            // Act
+            val result = userResolver.commits(user)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Commits list should be empty when user ID is null")
+        }
+
+        @Test
+        fun `issues should return empty list when user id is null`() {
+            // Arrange
+            val user = UserDto(id = null, gitSignature = "John Doe <john.doe@example.com>")
+
+            // Act
+            val result = userResolver.issues(user)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Issues list should be empty when user ID is null")
+        }
+
+        @Test
+        fun `files should return empty list when user id is null`() {
+            // Arrange
+            val user = UserDto(id = null, gitSignature = "John Doe <john.doe@example.com>")
+
+            // Act
+            val result = userResolver.files(user)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Files list should be empty when user ID is null")
+        }
+
+        @Test
+        fun `account should return null when user id is null`() {
+            // Arrange
+            val user = UserDto(id = null, gitSignature = "John Doe <john.doe@example.com>")
+
+            // Act
+            val result = userResolver.account(user)
+
+            // Assert
+            assertTrue(result == null, "Account should be null when user ID is null")
+        }
+
         @Test
         fun `should handle non-existent user`() {
             // Create a test query for a user that doesn't exist in the test data
