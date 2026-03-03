@@ -7,8 +7,15 @@ import DataPluginStorage from '../../../../../utils/dataPluginStorage';
 import { loadState, setFileList } from '../../../../../redux/reducer/data/filesReducer';
 import type { AppDispatch } from '../../../../../redux';
 
-const opfsRoot = await navigator.storage.getDirectory();
-const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
+let opfsRoot: FileSystemDirectoryHandle | undefined = undefined;
+let fileHandle: FileSystemFileHandle | undefined = undefined
+try { 
+  opfsRoot = await navigator.storage.getDirectory();
+  fileHandle = await opfsRoot.getFileHandle('files', { create: true });
+}
+catch (e) {
+  console.log('Could not access OPFS', e);
+}
 
 export function generateFileTree(files: DataPluginFile[]): FileTreeElementType[] {
   return convertData(files).content;
@@ -113,7 +120,7 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
 }
 
 export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
-  fileHandle.getFile().then((files) => {
+  if (fileHandle) fileHandle.getFile().then((files) => {
     if (files !== null) {
       files.text().then(
         (list) => {
@@ -129,6 +136,9 @@ export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDi
       );
     }
   });
+  else {
+    refreshFileList(dP, dispatch);
+  }
 }
 
 export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
@@ -165,4 +175,12 @@ export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: Ap
       })
       .catch((e) => console.log(e));
   }
+}
+
+export function writeFileListToStorage(filesState: string){
+  if (fileHandle) fileHandle.createWritable().then((access) => access.write(filesState).then(() => access.close()));
+}
+
+export function clearStorage(){
+  if (opfsRoot) opfsRoot.removeEntry('files');
 }
