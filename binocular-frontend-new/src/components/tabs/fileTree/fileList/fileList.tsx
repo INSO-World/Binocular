@@ -32,8 +32,6 @@ function FileList(props: { orientation?: string; search: string }) {
 
   useEffect(() => {
     const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
-    console.log(filesDataPluginId, fileTrees);
-
     if (filesDataPluginId && !fileTrees[filesDataPluginId]) refreshFileTree(dataPlugin);
   }, [currentDataPlugins, filesDataPluginId]);
 

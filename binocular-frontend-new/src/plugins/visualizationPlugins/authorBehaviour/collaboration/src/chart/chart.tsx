@@ -5,7 +5,7 @@ import { DataState, type DateRange, setDateRange } from '../reducer';
 import type { DataPluginAccountIssues } from '../../../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import type { CollaborationSettings } from '../settings/settings.tsx';
-import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 
 type RootState = {
   plugin: {
@@ -35,7 +35,7 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
     if (el.offsetWidth !== chartWidth) setChartWidth(el.offsetWidth);
     if (el.offsetHeight !== chartHeight) setChartHeight(el.offsetHeight);
   }
-  handelPopoutResizing(store, () => resize());
+  handlePopoutResizing(store, () => resize());
 
   useEffect(() => {
     if (props.parameters?.parametersDateRange) {
