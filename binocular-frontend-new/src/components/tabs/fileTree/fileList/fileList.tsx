@@ -23,7 +23,7 @@ function FileList(props: { orientation?: string; search: string }) {
   function refreshFileTree(dP: DatabaseSettingsDataPluginType) {
     if (dP && dP.id !== undefined) {
       loadFileList(dP, dispatch);
-    } else {
+    } else {      
       if (currentDataPlugins.length > 0) {
         dispatch(setFilesDataPluginId(currentDataPlugins[0].id));
       }
@@ -32,8 +32,10 @@ function FileList(props: { orientation?: string; search: string }) {
 
   useEffect(() => {
     const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
-    refreshFileTree(dataPlugin);
-  }, [currentDataPlugins]);
+    console.log(filesDataPluginId, fileTrees);
+    
+    if(filesDataPluginId && !fileTrees[filesDataPluginId]) refreshFileTree(dataPlugin);
+  }, [currentDataPlugins, filesDataPluginId]);
 
   globalStore.subscribe(() => {
     if (filesDataPluginId !== undefined) {

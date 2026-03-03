@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
+import { writeFileListToStorage } from '../../../components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx';
 
 export interface FilesInitialState {
   fileTrees: { [id: number]: FileTreeElementType };
@@ -16,9 +17,6 @@ const initialState: FilesInitialState = {
   dataPluginId: undefined,
   selectedFileTreeElement: undefined,
 };
-
-const opfsRoot = await navigator.storage.getDirectory();
-const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
 
 export const filesSlice = createSlice({
   name: 'files',
@@ -38,12 +36,12 @@ export const filesSlice = createSlice({
       state.fileLists[action.payload.dataPluginId] = action.payload.files;
 
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     setFilesDataPluginId: (state, action: PayloadAction<number>) => {
       state.dataPluginId = action.payload;
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     updateFileListElement: (state, action: PayloadAction<FileTreeElementType & { update?: boolean }>) => {
       const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], action.payload);
@@ -55,7 +53,7 @@ export const filesSlice = createSlice({
           return f;
         });
         const newState = JSON.stringify(state);
-        fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+        writeFileListToStorage(newState);
       }
     },
     showFileTreeElementInfo: (state, action: PayloadAction<FileTreeElementType>) => {
@@ -69,7 +67,7 @@ export const filesSlice = createSlice({
       });
       updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], true);
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     uncheckAllFiles: (state) => {
       updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], false);
@@ -78,7 +76,7 @@ export const filesSlice = createSlice({
         return f;
       });
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     switchAllFileSelection: (state) => {
       state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
@@ -87,17 +85,17 @@ export const filesSlice = createSlice({
       });
       invertFileTreeSelection(state.fileTrees[state.dataPluginId!]);
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     removeFileList: (state, action: PayloadAction<number>) => {
       delete state.fileLists[action.payload];
       delete state.fileTrees[action.payload];
       delete state.fileCounts[action.payload];
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     clearFileStorage: () => {
-      opfsRoot.removeEntry('files');
+      clearFileStorage();
     },
   },
 });
