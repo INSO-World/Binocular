@@ -8,12 +8,11 @@ import { loadState, setFileList } from '../../../../../redux/reducer/data/filesR
 import type { AppDispatch } from '../../../../../redux';
 
 let opfsRoot: FileSystemDirectoryHandle | undefined = undefined;
-let fileHandle: FileSystemFileHandle | undefined = undefined
-try { 
+let fileHandle: FileSystemFileHandle | undefined = undefined;
+try {
   opfsRoot = await navigator.storage.getDirectory();
   fileHandle = await opfsRoot.getFileHandle('files', { create: true });
-}
-catch (e) {
+} catch (e) {
   console.log('Could not access OPFS', e);
 }
 
@@ -120,22 +119,23 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
 }
 
 export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
-  if (fileHandle) fileHandle.getFile().then((files) => {
-    if (files !== null) {
-      files.text().then(
-        (list) => {
-          const files = list ? JSON.parse(list) : undefined;
-          if (files && Object.keys(files.fileLists).includes('' + dP.id)) {
-            dispatch(loadState(JSON.parse(list)));
-          } else refreshFileList(dP, dispatch);
-        },
-        (error) => {
-          console.log('Could not access files: Reloading list', error);
-          refreshFileList(dP, dispatch);
-        },
-      );
-    }
-  });
+  if (fileHandle)
+    fileHandle.getFile().then((files) => {
+      if (files !== null) {
+        files.text().then(
+          (list) => {
+            const files = list ? JSON.parse(list) : undefined;
+            if (files && Object.keys(files.fileLists).includes('' + dP.id)) {
+              dispatch(loadState(JSON.parse(list)));
+            } else refreshFileList(dP, dispatch);
+          },
+          (error) => {
+            console.log('Could not access files: Reloading list', error);
+            refreshFileList(dP, dispatch);
+          },
+        );
+      }
+    });
   else {
     refreshFileList(dP, dispatch);
   }
@@ -177,10 +177,10 @@ export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: Ap
   }
 }
 
-export function writeFileListToStorage(filesState: string){
+export function writeFileListToStorage(filesState: string) {
   if (fileHandle) fileHandle.createWritable().then((access) => access.write(filesState).then(() => access.close()));
 }
 
-export function clearStorage(){
+export function clearStorage() {
   if (opfsRoot) opfsRoot.removeEntry('files');
 }
