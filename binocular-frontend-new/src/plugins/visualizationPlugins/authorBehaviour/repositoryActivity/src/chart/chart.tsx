@@ -80,7 +80,7 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
   // Set Global state when parameters change
   useEffect(() => {
     dispatch(setDateRange(props.parameters.parametersDateRange));
-  }, [props.parameters, dispatch, props.dataName]);
+  }, [props.parameters.parametersDateRange, dispatch]);
 
   // Sync showActivityTimeline setting to Redux state
   useEffect(() => {

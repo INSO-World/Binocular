@@ -88,8 +88,8 @@ function Dashboard() {
       case moveDashboardItem.type:
         newDashboardItems.forEach((dashboardItem: DashboardItemType) => {
           moveResizeDashboardItem(dashboardItem, rowCount, gridMultiplier, columnCount);
-          dashboardItems = newDashboardItems;
-          dashboardState1 = newDashboardState;
+          setDashboardItems(newDashboardItems);
+          setDashboardState1(newDashboardState);
         });
         break;
       case setDashboardState.type:
@@ -242,14 +242,16 @@ function Dashboard() {
     }
   }, [columnCount, gridSize]);
 
-  const resizeObserver = new ResizeObserver(debounce(100, () => {
-    requestAnimationFrame(() => {
-      if (dashboardRef.current) {
-        setCellSize(dashboardRef.current.offsetWidth / columnCount);
-        dispatch({ type: 'RESIZE' });
-      }
-    });
-  }));
+  const resizeObserver = new ResizeObserver(
+    debounce(100, () => {
+      requestAnimationFrame(() => {
+        if (dashboardRef.current) {
+          setCellSize(dashboardRef.current.offsetWidth / columnCount);
+          dispatch({ type: 'RESIZE' });
+        }
+      });
+    }),
+  );
 
   useEffect(() => {
     if (dashboardRef.current) {
