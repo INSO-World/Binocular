@@ -1,21 +1,32 @@
-import type React from 'react';
 import { symbol, symbolTriangle } from 'd3';
-import classes from './sprintArea.module.css';
-import type { MappedSprint } from '../types';
-import { margin } from '../SprintChart';
+import moment from 'moment';
+import type React from 'react';
+import classes from './sprintAreas.module.css';
+import type { SprintType } from '../../types/data/sprintType';
+import type { Moment } from 'moment';
 
 const rectHeight = 15;
 const triangleDimensions = 10;
 
 const patternId = 'sprints-diagonal-hatch';
 
+export type MappedSprint = Omit<SprintType, 'startDate' | 'endDate'> & Record<'startDate' | 'endDate', Moment>;
+
+const mapSprint = (s: SprintType): MappedSprint => ({
+  ...s,
+  startDate: moment(s.startDate).startOf('day'),
+  endDate: moment(s.endDate).startOf('day'),
+});
+
 export const SprintAreas: React.FC<{
-  sprints: MappedSprint[];
+  sprints: SprintType[];
   xScale: d3.ScaleTime<number, number>;
   height: number;
   onClick?: (sprint: MappedSprint) => React.MouseEventHandler<SVGGElement>;
-}> = ({ sprints, xScale, height, onClick }) => {
+  bottomMargin: number;
+}> = ({ sprints, xScale, height, bottomMargin, onClick }) => {
   const trianglePath = symbol(symbolTriangle)() ?? '';
+  const mappedSprints = sprints.map(mapSprint);
 
   return (
     <>
@@ -25,7 +36,7 @@ export const SprintAreas: React.FC<{
         </pattern>
       </defs>
 
-      {sprints.map((s) => {
+      {mappedSprints.map((s) => {
         const xStart = xScale(s.startDate);
         const yStart = 0;
 
@@ -35,7 +46,7 @@ export const SprintAreas: React.FC<{
         return (
           <g key={s.id}>
             <g>
-              <line x1={xStart} y1={yStart} x2={xStart} y2={height - margin * 2} width={1} stroke={'#4CD964'} />
+              <line x1={xStart} y1={yStart} x2={xStart} y2={height - bottomMargin * 2} width={1} stroke={'#4CD964'} />
               <path
                 d={trianglePath}
                 width={triangleDimensions}
@@ -44,7 +55,7 @@ export const SprintAreas: React.FC<{
                 // sub offset for the x direction, otherwise the triangle doesn't connect with the line.
                 transform={`translate(${xStart + triangleDimensions / 2 - 2}, ${yStart + triangleDimensions / 2}) rotate(90)`}
               />
-              <line x1={xEnd} y1={yEnd} x2={xEnd} y2={height - margin * 2} width={1} stroke={'#FF3B30'} />
+              <line x1={xEnd} y1={yEnd} x2={xEnd} y2={height - bottomMargin * 2} width={1} stroke={'#FF3B30'} />
               <path
                 d={trianglePath}
                 width={triangleDimensions}
@@ -56,10 +67,16 @@ export const SprintAreas: React.FC<{
             </g>
 
             <g onClick={onClick?.(s)} className={classes['sprint-area']}>
-              <rect x={xStart} y={Math.max(0, height - margin * 2 - rectHeight)} height={rectHeight} width={xEnd - xStart} fill={'white'} />
               <rect
                 x={xStart}
-                y={Math.max(0, height - margin * 2 - rectHeight)}
+                y={Math.max(0, height - bottomMargin * 2 - rectHeight)}
+                height={rectHeight}
+                width={xEnd - xStart}
+                fill={'white'}
+              />
+              <rect
+                x={xStart}
+                y={Math.max(0, height - bottomMargin * 2 - rectHeight)}
                 height={rectHeight}
                 width={xEnd - xStart}
                 fill={`url(#${patternId})`}
@@ -68,7 +85,7 @@ export const SprintAreas: React.FC<{
               <text
                 x={xStart + 4}
                 // sub offset for the y direction so the text is positioned correctly
-                y={Math.max(0, height - margin * 2 - 3)}
+                y={Math.max(0, height - bottomMargin * 2 - 3)}
                 fontSize={'0.75rem'}
                 paintOrder={'stroke'}
                 stroke={'white'}

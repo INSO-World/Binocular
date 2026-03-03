@@ -1,20 +1,21 @@
-import * as React from 'react';
-import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
 import * as d3 from 'd3';
-import classes from './sprintChart.module.css';
-import type { AuthorType } from '../../../../../../types/data/authorType';
-import type { SprintSettings } from '../settings/settings';
 import moment, { type Moment } from 'moment';
+import * as React from 'react';
+import type { AuthorType } from '../../../../../../types/data/authorType';
+import type { SprintType } from '../../../../../../types/data/sprintType';
+import { SprintAreas, type MappedSprint } from '../../../../../../components/sprintAreas/SprintAreas';
+import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
 import type { DataPluginMergeRequest } from '../../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests';
-import { SprintChartIssue } from './components/SprintChartIssue';
+import type { IssuesTimelineSettings } from '../settings/settings';
+import { DetailDialogIssue, DetailDialogMergeRequestGroup, DetailDialogSprintArea } from './components/DetailDialog';
+import { IssuesTimelineChartIssue } from './components/IssuesTimelineChartIssue';
+import { IssuesTimelineChartLegend } from './components/IssuesTimelineChartLegend';
+import { IssuesTimelineChartMergeRequest } from './components/IssuesTimelineChartMergeRequest';
 import { groupIntoTracks } from './helper/groupIntoTracks';
 import { groupMergeRequests } from './helper/groupMergeRequests';
-import { SprintChartLegend } from './components/SprintChartLegend';
-import { DetailDialogIssue, DetailDialogMergeRequestGroup, DetailDialogSprintArea } from './components/DetailDialog';
-import { SprintAreas } from './components/SprintAreas';
-import type { SprintType } from '../../../../../../types/data/sprintType';
-import type { MappedDataPluginIssue, MappedDataPluginMergeRequest, MappedSprint } from './types';
-import { SprintChartMergeRequest } from './components/SprintChartMergeRequest';
+import { groupSimilarLabels } from './helper/groupSimilarLabels';
+import classes from './sprintChart.module.css';
+import type { MappedDataPluginIssue, MappedDataPluginMergeRequest } from './types';
 
 export const margin = 20;
 
@@ -37,7 +38,7 @@ const stringToColor = (string: string) => {
   const partLength = stringWithInvalidCharsReplaced.length / 3;
   const subStringLength = partLength === 1 ? 1 : 2;
 
-  // Split up string intio the three color channels.
+  // Split up string into the three color channels.
   // Only take the first two chars of each part.
   const red = stringWithInvalidCharsReplaced.substring(0, subStringLength);
   const green = stringWithInvalidCharsReplaced.substring(partLength, partLength + subStringLength);
@@ -79,14 +80,7 @@ const mapMergeRequest =
     closedAt: mr.closedAt ? moment(mr.closedAt) : maxDate,
   });
 
-const mapSprint = (s: SprintType): MappedSprint => ({
-  ...s,
-
-  startDate: moment(s.startDate),
-  endDate: moment(s.endDate),
-});
-
-export const SprintChart: React.FC<
+export const IssuesTimelineChart: React.FC<
   {
     authors: AuthorType[];
     issues: DataPluginIssue[];
@@ -97,9 +91,23 @@ export const SprintChart: React.FC<
     showSprints: boolean;
     width: number;
     height: number;
-    groupedLabels: Map<number, string[]>;
-  } & Pick<SprintSettings, 'coloringMode'>
-> = ({ authors, coloringMode, issues, mergeRequests, sprints, fromDate, toDate, showSprints, height, width, groupedLabels }) => {
+    maxNumberOfDifferencesBetweenLabels?: number;
+    minNumberOfLabelsPerGroup?: number;
+  } & Pick<IssuesTimelineSettings, 'coloringMode'>
+> = ({
+  authors,
+  coloringMode,
+  issues,
+  mergeRequests,
+  sprints,
+  fromDate,
+  toDate,
+  showSprints,
+  height,
+  width,
+  maxNumberOfDifferencesBetweenLabels,
+  minNumberOfLabelsPerGroup,
+}) => {
   const [zoom, setZoom] = React.useState(1);
   const [offset, setOffset] = React.useState(0);
 
@@ -107,12 +115,15 @@ export const SprintChart: React.FC<
 
   const svgChartRef = React.useRef<SVGSVGElement>(null);
 
+  const groupedLabels = groupSimilarLabels(
+    [...new Set(issues.flatMap((i) => i.labels))],
+    maxNumberOfDifferencesBetweenLabels,
+    minNumberOfLabelsPerGroup,
+  );
   const colorsForLabelGroups = new Map([...groupedLabels].map(([key, values]) => [key, stringToColor(values.join(''))] as const));
 
   const mappedIssues = issues.map(mapIssue(groupedLabels, colorsForLabelGroups));
   const mappedMergeRequests = mergeRequests.map(mapMergeRequest(toDate));
-  const mappedSprints = sprints.map(mapSprint);
-
   React.useEffect(() => {
     const { current: svg } = svgChartRef;
     if (!svg) {
@@ -157,7 +168,7 @@ export const SprintChart: React.FC<
           <>
             {groupedIssues.flatMap((group, trackNmbr) =>
               group.map((issue) => (
-                <SprintChartIssue
+                <IssuesTimelineChartIssue
                   key={issue.iid}
                   {...issue}
                   trackNmbr={trackNmbr}
@@ -184,10 +195,10 @@ export const SprintChart: React.FC<
               )),
             )}
 
-            <SprintChartLegend height={height} width={width} xScale={xScale} />
+            <IssuesTimelineChartLegend height={height} width={width} xScale={xScale} />
 
             {groupedMergeRequests.map((group) => (
-              <SprintChartMergeRequest
+              <IssuesTimelineChartMergeRequest
                 key={group[0].iid}
                 height={height}
                 xScale={xScale}
@@ -209,9 +220,10 @@ export const SprintChart: React.FC<
 
             {showSprints && (
               <SprintAreas
-                sprints={mappedSprints}
+                sprints={sprints}
                 xScale={xScale}
                 height={height}
+                bottomMargin={margin}
                 onClick={(sprint) => (e) => {
                   e.stopPropagation();
 
@@ -237,7 +249,9 @@ export const SprintChart: React.FC<
       ) : detailDialogState?.variant === 'merge-request' ? (
         <DetailDialogMergeRequestGroup
           {...detailDialogState}
-          mergeRequests={groupedMergeRequests.find((group) => group.some((mr) => mr.iid === detailDialogState.iid)) ?? []}
+          mergeRequests={
+            groupedMergeRequests.find((group) => group.some((mr: MappedDataPluginMergeRequest) => mr.iid === detailDialogState.iid)) ?? []
+          }
           onClickClose={() => setDetailDialogState(undefined)}
           onChangeMergeRequest={({ target: { value } }) =>
             // Cast value type so the type is correct.
