@@ -1,11 +1,12 @@
-import { type MutableRefObject, useEffect, useMemo, useRef } from 'react';
+import { type MutableRefObject, useEffect, useMemo, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { type ScaleLinear, type ScaleTime, symbol, symbolTriangle } from 'd3';
+import { type ScaleLinear, type ScaleTime } from 'd3';
 import type { ChartData, Palette } from './chart.tsx';
 import type { SprintType } from '../../../../../types/data/sprintType.ts';
 import type { DefaultSettings } from '../settings/settings.tsx';
 import { PositiveNegativeSide, splitPositiveNegativeData } from '../utilities/utilities.ts';
 import { round } from 'lodash';
+import { SprintAreas } from '../../../../../components/sprintAreas/SprintAreas.tsx';
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
@@ -32,12 +33,16 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
 
   // X axis
   const [xMin, xMax] = d3.extent(data, (d) => new Date(d.date).getTime());
+  const [brushDomain, setBrushDomain] = useState<[number, number]>([xMin || 0, xMax || 0]);
+
+  // Reset brushDomain when data changes
+  useEffect(() => {
+    setBrushDomain([xMin || 0, xMax || 0]);
+  }, [xMin, xMax]);
+
   const xScale = useMemo(() => {
-    return d3
-      .scaleTime()
-      .domain([xMin || 0, xMax || 0])
-      .range([0, boundsWidth]);
-  }, [boundsWidth, xMax, xMin]);
+    return d3.scaleTime().domain(brushDomain).range([0, boundsWidth]);
+  }, [boundsWidth, brushDomain]);
 
   let idleTimeout: number | null = null;
   function idled() {
@@ -57,18 +62,12 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
         //This Timeout is necessary because it not the reset of the brush would trigger the reset of the domain
         // and the brushing wouldn't work.
         if (!idleTimeout) return (idleTimeout = window.setTimeout(idled, 350));
-        xScale.domain([xMin || 0, xMax || 0]);
+        setBrushDomain([xMin || 0, xMax || 0]);
       } else {
-        xScale.domain([xScale.invert(extent[0]), xScale.invert(extent[1])]);
-
+        const newDomain: [number, number] = [xScale.invert(extent[0]).getTime(), xScale.invert(extent[1]).getTime()];
         svgElement.select<SVGGElement>('.brush').call(brush.move.bind(this), null);
+        setBrushDomain(newDomain);
       }
-      // d3/typescript sometimes does weird things and throws an error where no error is.
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      svgElement.select('.xAxis').transition().duration(1000).call(d3.axisBottom(xScale));
-      updateDataLines(palette, data, settings.visualizationStyle, xScale, yScale, svgRef);
-      updateSprintAreas(sprintList, xScale, yScale, scale[0], scale[1], svgRef);
     });
 
   // Render the X and Y axis using d3.js, not react
@@ -84,10 +83,7 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
     svgElement.append('g').attr('class', 'brush').call(brush);
 
     generateDataLines(palette, data, settings.visualizationStyle, xScale, yScale, svgRef, tooltipRef);
-    if (settings.showSprints) {
-      generateSprintAreas(sprintList, xScale, yScale, scale[0], scale[1], svgRef);
-    }
-  }, [xScale, yScale, boundsHeight, settings.showSprints]);
+  }, [xScale, yScale, boundsHeight]);
 
   return (
     <>
@@ -105,6 +101,11 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
       </div>
       <svg width={width} height={height} xmlns="http://www.w3.org/2000/svg">
         <g width={boundsWidth} height={boundsHeight} ref={svgRef} transform={`translate(${[MARGIN.left, MARGIN.top].join(',')})`}></g>
+        {settings.showSprints && (
+          <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
+            <SprintAreas sprints={sprintList} xScale={xScale} height={boundsHeight} bottomMargin={0} />
+          </g>
+        )}
       </svg>
     </>
   );
@@ -220,192 +221,6 @@ function generateDataLines(
       .on('mouseout', () => {
         return d3.select(tooltipRef.current).style('visibility', 'hidden');
       });
-  });
-}
-
-function updateDataLines(
-  palette: Palette,
-  data: ChartData[],
-  visualizationStyle: string,
-  xScale: ScaleTime<number, number, never>,
-  yScale: ScaleLinear<number, number, never>,
-  svgRef: MutableRefObject<null>,
-) {
-  const svgElement = d3.select(svgRef.current);
-  const allKeys = Object.keys(palette);
-  const positiveData = splitPositiveNegativeData(data, PositiveNegativeSide.POSITIVE);
-  const negativeData = splitPositiveNegativeData(data, PositiveNegativeSide.NEGATIVE);
-  const positiveKeys = getNonEmptyKeys(allKeys, positiveData);
-  const negativeKeys = getNonEmptyKeys(allKeys, negativeData);
-  const stackedPositiveData = d3.stack().keys(positiveKeys)(positiveData);
-  const stackedNegativeData = d3.stack().keys(negativeKeys)(negativeData);
-
-  positiveKeys.forEach((_author, i) => {
-    const areaBuilderPositive = d3
-      .area<ChartData>()
-      .curve(visualizationStyle === 'curved' ? d3.curveMonotoneX : visualizationStyle === 'stepped' ? d3.curveStep : d3.curveLinear)
-      .x((d) => xScale(new Date(d.date).getTime()))
-      .y1((_d, j) => yScale(stackedPositiveData[i][j][0]))
-      .y0((_d, j) => yScale(stackedPositiveData[i][j][1]));
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    svgElement.select(`.positiveChartArea${i}`).transition().duration(1000).attr('d', areaBuilderPositive);
-  });
-
-  negativeKeys.forEach((_author, i) => {
-    const areaBuilderNegative = d3
-      .area<ChartData>()
-      .curve(visualizationStyle === 'curved' ? d3.curveMonotoneX : visualizationStyle === 'stepped' ? d3.curveStep : d3.curveLinear)
-      .x((d) => xScale(new Date(d.date).getTime()))
-      .y1((_d, j) => yScale(stackedNegativeData[i][j][0]))
-      .y0((_d, j) => yScale(stackedNegativeData[i][j][1]));
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    svgElement.select(`.negativeChartArea${i}`).transition().duration(1000).attr('d', areaBuilderNegative);
-  });
-}
-
-function generateSprintAreas(
-  sprints: SprintType[],
-  xScale: ScaleTime<number, number, never>,
-  yScale: ScaleLinear<number, number, never>,
-  yMax: number,
-  yMin: number,
-  svgRef: MutableRefObject<null>,
-) {
-  const svgElement = d3.select(svgRef.current);
-  svgElement
-    .append('defs')
-    .append('pattern')
-    .attr('id', 'diagonalHatch')
-    .attr('patternUnits', 'userSpaceOnUse')
-    .attr('width', 8)
-    .attr('height', 8)
-    .append('path')
-    .attr('d', 'M-1,1 l2,-2 M0,8 l8,-8 M3,5 l2,-2')
-    .attr('stroke', '#ff3b30')
-    .attr('stroke-width', 1);
-
-  sprints.forEach((sprint) => {
-    svgElement
-      .append('rect')
-      .attr('id', `sprintStartLine${sprint.id}`)
-      .attr('y', yScale(yMin))
-      .attr('x', xScale(new Date(sprint.startDate)))
-      .attr('height', yScale(yMax) - yScale(yMin))
-      .attr('width', 1)
-      .attr('fill', '#4cd964');
-    svgElement
-      .append('path')
-      .attr('id', `sprintStartLineTriangle${sprint.id}`)
-      .attr('d', symbol().type(symbolTriangle))
-      .attr('width', '10')
-      .attr('height', '10')
-      .attr('transform', 'translate(' + (xScale(new Date(sprint.startDate)) + 4) + ',' + (yScale(yMin) + 5) + ') rotate(90)')
-      .style('fill', '#4cd964');
-    svgElement
-      .append('rect')
-      .attr('id', `sprintEndLine${sprint.id}`)
-      .attr('y', yScale(yMin))
-      .attr('x', xScale(new Date(sprint.endDate)))
-      .attr('height', yScale(yMax) - yScale(yMin))
-      .attr('width', 1)
-      .attr('fill', '#ff3b30');
-    svgElement
-      .append('path')
-      .attr('id', `sprintEndLineTriangle${sprint.id}`)
-      .attr('d', symbol().type(symbolTriangle))
-      .attr('width', '10')
-      .attr('height', '10')
-      .attr('transform', 'translate(' + (xScale(new Date(sprint.endDate)) - 3) + ',' + (yScale(yMin) + 5) + ') rotate(-90)')
-      .style('fill', '#ff3b30');
-
-    svgElement
-      .append('rect')
-      .attr('id', `sprintBackground${sprint.id}`)
-      .attr('y', yScale(0) - 15)
-      .attr('x', xScale(new Date(sprint.startDate)))
-      .attr('height', 15)
-      .attr('width', xScale(new Date(sprint.endDate)) - xScale(new Date(sprint.startDate)))
-      .attr('fill', 'white');
-    svgElement
-      .append('rect')
-      .attr('id', `sprintBackgroundStripes${sprint.id}`)
-      .attr('y', yScale(0) - 15)
-      .attr('x', xScale(new Date(sprint.startDate)))
-      .attr('height', 15)
-      .attr('width', xScale(new Date(sprint.endDate)) - xScale(new Date(sprint.startDate)))
-      .attr('fill', 'url(#diagonalHatch)')
-      .attr('stroke', '#ff3b30');
-    svgElement
-      .append('text')
-      .attr('id', `sprintText${sprint.id}`)
-      .attr('y', yScale(0) - 4)
-      .attr('x', xScale(new Date(sprint.startDate)) + 2)
-      .attr('height', 10)
-      .attr('font-size', '.75rem')
-      .attr('paint-order', 'stroke')
-      .attr('stroke', 'white')
-      .attr('stroke-width', '4px')
-      .text(sprint.name);
-  });
-}
-
-function updateSprintAreas(
-  sprints: SprintType[],
-  xScale: ScaleTime<number, number, never>,
-  yScale: ScaleLinear<number, number, never>,
-  yMax: number,
-  yMin: number,
-  svgRef: MutableRefObject<null>,
-) {
-  const svgElement = d3.select(svgRef.current);
-  sprints.forEach((sprint) => {
-    svgElement
-      .select(`#sprintStartLine${sprint.id}`)
-      .attr('y', yScale(yMin))
-      .attr('x', xScale(new Date(sprint.startDate)))
-      .attr('height', yScale(yMax) - yScale(yMin))
-      .attr('width', 1);
-
-    svgElement
-      .select(`#sprintStartLineTriangle${sprint.id}`)
-      .attr('width', '10')
-      .attr('height', '10')
-      .attr('transform', 'translate(' + (xScale(new Date(sprint.startDate)) + 4) + ',' + (yScale(yMin) + 5) + ') rotate(90)');
-
-    svgElement
-      .select(`#sprintEndLine${sprint.id}`)
-      .attr('y', yScale(yMin))
-      .attr('x', xScale(new Date(sprint.endDate)))
-      .attr('height', yScale(yMax) - yScale(yMin))
-      .attr('width', 1);
-
-    svgElement
-      .select(`#sprintEndLineTriangle${sprint.id}`)
-      .attr('width', '10')
-      .attr('height', '10')
-      .attr('transform', 'translate(' + (xScale(new Date(sprint.endDate)) - 3) + ',' + (yScale(yMin) + 5) + ') rotate(-90)');
-
-    svgElement
-      .select(`#sprintBackground${sprint.id}`)
-      .attr('y', yScale(0) - 15)
-      .attr('x', xScale(new Date(sprint.startDate)))
-      .attr('height', 15)
-      .attr('width', xScale(new Date(sprint.endDate)) - xScale(new Date(sprint.startDate)));
-
-    svgElement
-      .select(`#sprintBackgroundStripes${sprint.id}`)
-      .attr('y', yScale(0) - 15)
-      .attr('x', xScale(new Date(sprint.startDate)))
-      .attr('height', 15)
-      .attr('width', xScale(new Date(sprint.endDate)) - xScale(new Date(sprint.startDate)));
-
-    svgElement
-      .select(`#sprintText${sprint.id}`)
-      .attr('y', yScale(0) - 4)
-      .attr('x', xScale(new Date(sprint.startDate)) + 2)
-      .attr('height', 10);
   });
 }
 

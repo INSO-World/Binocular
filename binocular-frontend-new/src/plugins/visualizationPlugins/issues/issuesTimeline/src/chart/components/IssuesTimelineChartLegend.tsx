@@ -1,8 +1,8 @@
 import * as d3 from 'd3';
 import * as React from 'react';
-import { margin } from '../SprintChart';
+import { margin } from '../IssuesTimelineChart';
 
-export const SprintChartLegend: React.FC<{
+export const IssuesTimelineChartLegend: React.FC<{
   height: number;
   width: number;
   xScale: d3.ScaleTime<number, number>;
@@ -13,7 +13,7 @@ export const SprintChartLegend: React.FC<{
     <g>
       <rect x={margin} y={height - margin * 2} height={1} width={width - margin * 2} />
 
-      <rect x={margin} y={height - margin * 2 + 1} width={width - margin * 2} height={40} fill={'#EEE'} />
+      <rect x={margin} y={height - margin * 2 + 1} width={width - margin * 2} height={40} fill={'white'} />
 
       {xScale.ticks().map((tick) => {
         const x = xScale(tick);
