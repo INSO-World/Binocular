@@ -89,14 +89,16 @@ function RadarChart(properties: VisualizationPluginProperties<SettingsType, Data
 
     if (selectedDevelopers.length > 0 && data != undefined && data.length > 0) {
       selectedDevelopers.forEach((developer) => {
-        const devData = calculateExpertiseBrowserScores(data, developer.user.gitSignature);
+        const childSignatures = authorList.filter((a) => a.parent === developer.id).map((a) => a.user.gitSignature);
+        const allSignatures = [developer.user.gitSignature, ...childSignatures];
+        const devData = calculateExpertiseBrowserScores(data, allSignatures);
         newIndividualData.set(developer.user.gitSignature, devData);
       });
     }
 
     setIndividualDeveloperData(newIndividualData);
     resetNavigation();
-  }, [data, properties, selectedDevelopers]);
+  }, [data, properties, selectedDevelopers, authorList]);
 
   /**
    * Updates author list and selected developers when author list changes.
@@ -105,6 +107,7 @@ function RadarChart(properties: VisualizationPluginProperties<SettingsType, Data
     setAuthorList(properties.authorList);
     updateSelectedDevelopers(properties.authorList);
   }, [properties.authorList]);
+
   /**
    * Sets up resize observer for responsive chart sizing.
    */
@@ -213,8 +216,9 @@ function RadarChart(properties: VisualizationPluginProperties<SettingsType, Data
    * @param authorList - Current list of available authors
    */
   function updateSelectedDevelopers(authorList: AuthorType[]) {
+    const available = authorList.filter((a) => a.selected && a.parent === -1);
     setSelectedDevelopers((prev) =>
-      prev.filter((developer) => authorList.some((author) => author.user.gitSignature === developer.user.gitSignature)),
+      prev.filter((developer) => available.some((author) => author.user.gitSignature === developer.user.gitSignature)),
     );
   }
 
