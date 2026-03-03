@@ -77,6 +77,9 @@ function Dashboard() {
   // eslint-disable-next-line prefer-const
   let [dashboardState1, setDashboardState1] = useState(store.getState().dashboard.dashboardState);
 
+  const [dashboardHeight, setDashboardHeight] = useState(dashboardRef.current?.offsetHeight);
+  const [dashboardWidth, setDashboardWidth] = useState(dashboardRef.current?.offsetWidth);
+
   const placeableItem: DashboardItemType = useSelector((state: RootState) => state.dashboard.placeableItem);
 
   const configuredDataPlugins: DatabaseSettingsDataPluginType[] = useSelector((state: RootState) => state.settings.database.dataPlugins);
@@ -88,8 +91,8 @@ function Dashboard() {
       case moveDashboardItem.type:
         newDashboardItems.forEach((dashboardItem: DashboardItemType) => {
           moveResizeDashboardItem(dashboardItem, rowCount, gridMultiplier, columnCount);
-          setDashboardItems(newDashboardItems);
-          setDashboardState1(newDashboardState);
+          dashboardItems = newDashboardItems;
+          dashboardState1 = newDashboardState;
         });
         break;
       case setDashboardState.type:
@@ -247,7 +250,11 @@ function Dashboard() {
       requestAnimationFrame(() => {
         if (dashboardRef.current) {
           setCellSize(dashboardRef.current.offsetWidth / columnCount);
-          dispatch({ type: 'RESIZE' });
+          if (dashboardHeight != dashboardRef.current.offsetHeight || dashboardWidth != dashboardRef.current.offsetWidth) {
+            dispatch({ type: 'RESIZE' });
+            setDashboardHeight(dashboardRef.current.offsetHeight);
+            setDashboardWidth(dashboardRef.current.offsetWidth);
+          }
         }
       });
     }),
