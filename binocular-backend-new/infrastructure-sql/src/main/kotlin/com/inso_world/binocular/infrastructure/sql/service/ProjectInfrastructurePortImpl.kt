@@ -177,6 +177,13 @@ internal class ProjectInfrastructurePortImpl(
                 val accountEntity = accountMapper.toEntity(domainAccount)
                 issueEntity.addAccount(accountEntity)
             }
+
+            // Add author connection
+            issue.author?.let { domainAuthor ->
+                val authorEntity = accountMapper.toEntity(domainAuthor)
+                issueEntity.author = authorEntity
+            }
+
         }
         logger.trace("Issues updated")
 

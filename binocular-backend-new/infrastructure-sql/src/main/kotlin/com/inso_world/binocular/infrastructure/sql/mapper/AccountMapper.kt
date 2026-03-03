@@ -30,7 +30,7 @@ package com.inso_world.binocular.infrastructure.sql.mapper
          * Converts a domain Account to a SQL AccountEntity
          */
         override fun toEntity(domain: Account): AccountEntity {
-            logger.trace("Account toEntity(${domain.login})")
+
             // Fast-path: if this Repository was already mapped in the current context, return it.
             ctx.findEntity<Account.Key, Account, AccountEntity>(domain)?.let { return it }
 

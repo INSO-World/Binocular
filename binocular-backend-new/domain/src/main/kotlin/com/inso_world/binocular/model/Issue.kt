@@ -31,6 +31,7 @@ data class Issue(
     var milestones: List<Milestone> = emptyList(),
     var notes: List<Note> = emptyList(),
     var users: List<User> = emptyList(),
+    var author: Account? = null
 ) : AbstractDomainObject<Issue.Id, Issue.Key>(
     Id(Uuid.random())
 )  {

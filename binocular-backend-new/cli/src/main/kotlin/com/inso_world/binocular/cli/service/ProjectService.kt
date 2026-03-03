@@ -112,7 +112,7 @@ class ProjectService(
                 it.id to it.toDomain(project)
             }
 
-        // TODO finish the issue indexing and change it to correctly reflect domain changes (accounts in project)
+        // TODO finish the issue indexing
         issueMap.forEach { (id, issue) ->
             // Get the ItsGitHubIssue corresponding to this entity
             val itsIssue = issues.find { it.id == id }
@@ -144,12 +144,31 @@ class ProjectService(
                     logger.warn("No account found for login '$login', skipping assignee")
                 }
 
-                // add issue with accounts to project
-                project.issues.add(issue)
             }
 
+            // get the author login from the itsIssue
+            val authorLogin = itsIssue?.author?.login
+            if (authorLogin == null) {
+                logger.warn("Issue ${issue.platformIid} has no author login, skipping author")
+            } else {
+                // author handling
+                if (authorLogin in accountCache.keys) {
+                    val account = accountCache[authorLogin]
+                    issue.author = account
+                } else if (authorLogin in newAccountCache.keys) {
+                    val newAccount = newAccountCache[authorLogin]
+                    if (newAccount != null) {
+                        // add account to cache for other issues to find
+                        accountCache[authorLogin] = newAccount
+                        issue.author = newAccount
+                    }
+                } else {
+                    logger.warn("No account found for login '$authorLogin', skipping author")
+                }
+            }
 
-
+            // add issue with accounts to project
+            project.issues.add(issue)
         }
 
         logger.debug("Issues updated: " + project.toStringDebug())
