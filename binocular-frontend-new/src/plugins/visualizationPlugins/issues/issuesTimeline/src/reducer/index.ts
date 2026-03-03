@@ -13,14 +13,14 @@ interface DateRange {
   to: string;
 }
 
-export interface IssuesState {
+export interface IssuesTimelineState {
   issues: DataPluginIssue[];
   mergeRequests: DataPluginMergeRequest[];
   dateRange: DateRange;
   dataState: DataState;
 }
 
-const initialState: IssuesState = {
+const initialState: IssuesTimelineState = {
   issues: [],
   mergeRequests: [],
   dateRange: { from: new Date().toISOString(), to: new Date().toISOString() },
@@ -31,7 +31,7 @@ export const issuesSlice = createSlice({
   name: 'sprints',
   initialState,
   reducers: {
-    setIssues: (state, { payload: { issues, mergeRequests } }: PayloadAction<Pick<IssuesState, 'issues' | 'mergeRequests'>>) => {
+    setIssues: (state, { payload: { issues, mergeRequests } }: PayloadAction<Pick<IssuesTimelineState, 'issues' | 'mergeRequests'>>) => {
       state.issues = issues;
       state.mergeRequests = mergeRequests;
     },
