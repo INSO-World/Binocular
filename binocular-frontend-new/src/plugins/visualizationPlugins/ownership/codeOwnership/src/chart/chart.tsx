@@ -8,7 +8,7 @@ import type { CodeOwnerShipSettings } from '../settings/settings.tsx';
 import type { Palette } from '../../../../../../types/data/authorType.ts';
 import type { FileOwnershipCollection, OwnershipData, PreviousFileData } from '../../../../../../types/data/ownershipType.ts';
 import { DataState, setCurrentBranch } from '../reducer';
-import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: VisualizationPluginProperties<SettingsType, DataType>) {
@@ -55,7 +55,7 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
     resize();
   }, [props.chartContainerRef, chartHeight, chartWidth]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
 
   const resetData = () => {
     setKeys([]);

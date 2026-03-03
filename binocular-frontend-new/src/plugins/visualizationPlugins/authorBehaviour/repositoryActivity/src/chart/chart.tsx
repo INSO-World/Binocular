@@ -6,7 +6,7 @@ import type { RepositoryActivitySettings } from '../settings/settings';
 import Heatmap from './heatmap';
 import { useDispatch, useSelector } from 'react-redux';
 import { convertToActivityTimelineFormat } from '../utilities/activityTimelineUtils';
-import { handelPopoutResizing } from '../../../../../utils/resizing';
+import { handlePopoutResizing } from '../../../../../utils/resizing';
 import { DataState, setDateRange, setShowActivityTimeline } from '../reducer';
 import { convertToWeeklyFormat } from '../utilities/weeklyUtils';
 import WeekPicker from './weekPicker';
@@ -56,7 +56,7 @@ function Chart(props: VisualizationPluginProperties<RepositoryActivitySettings, 
     resize();
   }, [props.chartContainerRef, chartHeight, chartWidth]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
 
   // resize logic end
 

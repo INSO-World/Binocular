@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
 import type { DefaultSettings } from '../settings/settings.tsx';
-import { handelPopoutResizing } from '../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 export interface ChartData {
@@ -55,7 +55,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
     resize();
   }, [props.chartContainerRef, chartHeight, chartWidth]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
   /**
    * RESIZE Logic END
    */
