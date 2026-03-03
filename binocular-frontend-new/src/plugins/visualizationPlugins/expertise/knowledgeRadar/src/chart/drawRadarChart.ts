@@ -72,7 +72,7 @@ function setTooltipContent(
         .style('font-size', '10px')
         .style('color', chroma(developer.color.main).darken(1).hex())
         .style('font-weight', 'bold')
-        .text(developer.user.gitSignature);
+        .text(developer.displayName || developer.user.gitSignature);
 
       devDiv
         .append('span')

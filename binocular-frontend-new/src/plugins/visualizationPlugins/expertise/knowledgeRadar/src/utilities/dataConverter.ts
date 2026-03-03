@@ -4,8 +4,8 @@ import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInter
 /**
  * Extracts file paths touched by a specific developer
  */
-export function extractTouchedFiles(commits: DataPluginCommit[], developer: string): Set<string> {
-  const developerCommits = commits.filter((commit) => commit.user?.gitSignature === developer);
+export function extractTouchedFiles(commits: DataPluginCommit[], developers: string[]): Set<string> {
+  const developerCommits = commits.filter((commit) => developers.includes(commit.user?.gitSignature));
 
   const touchedFiles = new Set<string>();
 
@@ -107,12 +107,12 @@ function calculateOwnershipScores(
 /**
  * Calculates Expertise Browser scores based on academic literature
  */
-export function calculateExpertiseBrowserScores(commits: DataPluginCommit[], targetDeveloper: string): Package[] {
+export function calculateExpertiseBrowserScores(commits: DataPluginCommit[], targetDevelopers: string[]): Package[] {
   const nonMergeCommits = filterNonMergeCommits(commits);
 
-  const developerTouchedFiles = extractTouchedFiles(nonMergeCommits, targetDeveloper);
+  const developerTouchedFiles = extractTouchedFiles(nonMergeCommits, targetDevelopers);
 
-  const developerCommits = nonMergeCommits.filter((commit) => commit.user.gitSignature === targetDeveloper);
+  const developerCommits = nonMergeCommits.filter((commit) => targetDevelopers.includes(commit.user.gitSignature));
 
   const packageCommits = processCommitFiles(developerCommits, developerTouchedFiles);
 
