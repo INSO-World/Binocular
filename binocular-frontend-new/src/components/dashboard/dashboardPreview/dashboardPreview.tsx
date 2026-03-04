@@ -22,10 +22,10 @@ function DashboardPreview(props: { layout: DashboardLayout; small?: boolean }) {
             }}>
             <div className={dashboardPreviewStyles.dashboardPreviewItem}>
               {props.small ? (
-                <span className={'text-xs block flex text-center'}>{item.pluginName}</span>
+                <span className={'text-xs text-center'}>{item.pluginName}</span>
               ) : (
                 <>
-                  <span>{item.pluginName}</span>
+                  <span className={'text-center'}>{item.pluginName}</span>
                   <span>
                     {item.width}x{item.height}
                   </span>

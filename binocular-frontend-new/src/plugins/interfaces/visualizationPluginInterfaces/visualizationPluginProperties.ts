@@ -4,7 +4,7 @@ import type { DataPlugin } from '../dataPlugin.ts';
 import type { AuthorType } from '../../../types/data/authorType.ts';
 import type { SprintType } from '../../../types/data/sprintType.ts';
 import type { ParametersType } from '../../../types/parameters/parametersType.ts';
-import type { ChartData, Palette } from '../../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
+import type { ChartData, Palette } from '../../../components/stackedAreaChart/StackedAreaChart.tsx';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
 
 export interface VisualizationPluginProperties<SettingsType, DataType> {

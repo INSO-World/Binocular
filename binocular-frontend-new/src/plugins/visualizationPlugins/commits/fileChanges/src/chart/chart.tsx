@@ -1,4 +1,4 @@
-import { StackedAreaChart } from './stackedAreaChart.tsx';
+import { StackedAreaChart } from '../../../../../../components/stackedAreaChart/StackedAreaChart.tsx';
 import { type RefObject, useEffect, useState, useMemo } from 'react';
 import type { DataPlugin } from '../../../../../interfaces/dataPlugin.ts';
 import type { SettingsType } from '../settings/settings.tsx';
