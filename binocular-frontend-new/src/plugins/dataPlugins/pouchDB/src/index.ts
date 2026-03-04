@@ -64,10 +64,11 @@ class PouchDb implements DataPlugin {
     _endpoint: string | undefined,
     file: FileConfig | undefined,
     _progressUpdateConfig: ProgressUpdateConfig | undefined,
+    setUploadInfo?: (message: string) => void | undefined,
   ) {
     if (file !== undefined) {
       const startTime = performance.now();
-      const metadata = await this.database.initDB(file, startTime);
+      const metadata = await this.database.initDB(file, startTime, setUploadInfo);
       this.commits = new Commits(this.database);
       this.builds = new Builds(this.database);
       this.notes = new Notes(this.database);

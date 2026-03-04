@@ -71,7 +71,7 @@ function RadarChart(properties: VisualizationPluginProperties<SettingsType, Data
     if (properties.dataConnection && properties.parameters.parametersDateRange) {
       dispatch(dataSlice.actions.setDateRange(properties.parameters.parametersDateRange));
     }
-  }, [properties.parameters]);
+  }, [properties.parameters.parametersDateRange]);
 
   /**
    * Triggers data refresh when data connection changes.

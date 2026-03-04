@@ -381,7 +381,6 @@ function getDataByAuthors(
     }
     data.push(obj);
   }
-  console.log('data', data);
   //---- STEP 2: CONSTRUCT CHART DATA FROM AGGREGATED COMMITS ----
   if (breakdown) {
     palette['Open Merge Requests ' + UNASSIGNED] = { main: '#555555', secondary: '#777777' };

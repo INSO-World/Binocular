@@ -11,7 +11,7 @@ import type { Store } from '@reduxjs/toolkit';
 import { DataState, setDateRange } from '../reducer';
 import { MetricsChart } from './metricsCharts.tsx';
 import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
-import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 
 export interface CommitChartData {
   date: number;
@@ -84,7 +84,7 @@ function Chart(props: {
     resize();
   }, [props.chartContainerRef, chartHeight, chartWidth]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
   /**
    * RESIZE Logic END
    */
@@ -120,7 +120,7 @@ function Chart(props: {
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
     dispatch(setDateRange(props.parameters.parametersDateRange));
-  }, [props.parameters]);
+  }, [props.parameters.parametersDateRange]);
 
   //Trigger Refresh when dataConnection changes
   useEffect(() => {
