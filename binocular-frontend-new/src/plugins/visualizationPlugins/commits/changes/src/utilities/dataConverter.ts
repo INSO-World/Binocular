@@ -166,7 +166,8 @@ export function convertToChartData(
             ? author.displayName || author.user.gitSignature
             : author.parent === 0
               ? 'others'
-              : props.authorList.filter((a: AuthorType) => a.id === author.parent)[0].user.gitSignature;
+              : props.authorList.filter((a: AuthorType) => a.id === author.parent)[0].displayName ||
+                props.authorList.filter((a: AuthorType) => a.id === author.parent)[0].user.gitSignature;
         if (props.settings.splitAdditionsDeletions) {
           if (author.user.id in commit.statsByAuthor) {
             //Insert number of changes with the author name as key,

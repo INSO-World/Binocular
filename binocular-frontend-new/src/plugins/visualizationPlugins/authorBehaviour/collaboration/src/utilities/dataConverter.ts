@@ -3,7 +3,7 @@ import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterf
 import type { CollaborationSettings } from '../settings/settings.tsx';
 import type { NodeType, LinkType } from '../chart/networkChart.tsx';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties';
-import type { ChartData, Palette } from '../../../../simpleVisualizationPlugin/src/chart/chart.tsx';
+import type { ChartData, Palette } from '../../../../../../components/stackedAreaChart/StackedAreaChart.tsx';
 
 //these are wanted by the framework but not needed by this chart
 const DUMMY_CHART_DATA = [] as unknown as ChartData[];

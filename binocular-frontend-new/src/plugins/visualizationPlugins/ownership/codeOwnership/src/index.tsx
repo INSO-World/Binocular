@@ -15,6 +15,8 @@ const CodeOwnership: VisualizationPlugin<CodeOwnerShipSettings, null> = {
   defaultSettings: {
     displayMode: 'absolute',
     currentBranch: undefined,
+    visualizationStyle: 'curved',
+    showSprints: false,
   },
   export: {
     getSVGData: () => '<svg></svg>',

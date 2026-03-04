@@ -1,4 +1,4 @@
-import { StackedAreaChart } from './stackedAreaChart.tsx';
+import { StackedAreaChart, type ChartData, type Palette } from '../../../../../components/stackedAreaChart/StackedAreaChart.tsx';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
@@ -6,14 +6,7 @@ import type { DefaultSettings } from '../settings/settings.tsx';
 import { handelPopoutResizing } from '../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
-export interface ChartData {
-  date: number;
-  [signature: string]: number;
-}
-
-export interface Palette {
-  [signature: string]: { main: string; secondary: string };
-}
+export type { ChartData, Palette };
 
 function Chart<SettingsType extends DefaultSettings, DataType>(props: VisualizationPluginProperties<SettingsType, DataType>) {
   /*
