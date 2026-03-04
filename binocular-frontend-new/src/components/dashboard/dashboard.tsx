@@ -246,6 +246,10 @@ function Dashboard() {
   }, [columnCount, gridSize]);
 
   const resizeObserver = new ResizeObserver(
+    /**
+     * Throttle the resize of the dashboard to every 100ms to not overwhelm the renderer.
+     * As a general resize action triggers a resize action for every single visualization as well, this can be quite intensive.
+     */
     debounce(100, () => {
       requestAnimationFrame(() => {
         if (dashboardRef.current) {
