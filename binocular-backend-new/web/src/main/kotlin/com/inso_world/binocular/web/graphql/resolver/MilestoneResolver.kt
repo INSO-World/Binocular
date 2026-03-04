@@ -51,5 +51,5 @@ class MilestoneResolver(
     }
 
     @SchemaMapping(typeName = "Milestone", field = "iid")
-    fun iid(milestone: Milestone): Int? = milestone.platformIid
+    fun iid(milestone: MilestoneDto): Int? = milestone.iid
 }
