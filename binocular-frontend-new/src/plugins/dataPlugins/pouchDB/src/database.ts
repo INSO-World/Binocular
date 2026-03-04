@@ -17,7 +17,11 @@ export default class Database {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public edgeStore: any;
 
-  async initDB(file: FileConfig, startTime?: number): Promise<MetadataType | undefined> {
+  async initDB(
+    file: FileConfig,
+    startTime?: number,
+    setUploadInfo?: (message: string) => void | undefined,
+  ): Promise<MetadataType | undefined> {
     if (!file.name) return undefined;
 
     const initialized = await this.createDB(file.name);
@@ -25,11 +29,11 @@ export default class Database {
     if (!initialized) return undefined;
 
     if (file.file) {
-      return this.importFromZip(file.file, startTime);
+      return this.importFromZip(file.file, startTime, setUploadInfo);
     }
 
     if (file.dbObjects) {
-      return this.importFromObjects(file.dbObjects, startTime);
+      return this.importFromObjects(file.dbObjects, startTime, setUploadInfo);
     }
 
     return undefined;
@@ -86,7 +90,11 @@ export default class Database {
   }
 
   // both import functions are not running in parallel to avoid overloading pouchDB(testing necessary before changing to parallel)
-  async importFromZip(file: Blob, startTime?: number): Promise<MetadataType | undefined> {
+  async importFromZip(
+    file: Blob,
+    startTime?: number,
+    setUploadInfo?: (message: string) => void | undefined,
+  ): Promise<MetadataType | undefined> {
     const zip = await new JSZip().loadAsync(file);
 
     // Read metadata first
@@ -110,6 +118,7 @@ export default class Database {
       const json = JSON.parse(raw);
 
       const name = fileEntry.name.split('/')[1].replace('.json', '');
+      if (setUploadInfo) setUploadInfo(`${imported}/${totalFiles} importing ${name}`);
 
       if (name.includes('-')) {
         await this.importEdge(name, json);
@@ -124,12 +133,17 @@ export default class Database {
     return metadata;
   }
 
-  async importFromObjects(dbObjects: Record<string, JSONObject[]>, startTime?: number): Promise<undefined> {
+  async importFromObjects(
+    dbObjects: Record<string, JSONObject[]>,
+    startTime?: number,
+    setUploadInfo?: (message: string) => void | undefined,
+  ): Promise<undefined> {
     const keys = Object.keys(dbObjects);
     let imported = 0;
 
     return new Promise((resolve) => {
       keys.forEach(async (name) => {
+        if (setUploadInfo) setUploadInfo(`${imported}/${keys.length} importing ${name}`);
         if (name.includes('-')) {
           await this.importEdge(name, dbObjects[name]);
         } else {

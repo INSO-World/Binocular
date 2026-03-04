@@ -17,7 +17,6 @@ export default class AccountsIssues implements DataPluginAccountsIssues {
    */
   public async getAll(from: string, to: string): Promise<DataPluginAccountIssues[]> {
     console.log(`Getting all Accounts with Issues from:${from} to:${to}:`);
-    console.log(this.graphQl);
     const relationships: DataPluginAccountIssues[] = [];
     const getAccountsIssuesPage =
       (from?: string, to?: string) =>
