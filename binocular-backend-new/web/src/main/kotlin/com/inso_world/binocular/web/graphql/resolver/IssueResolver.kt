@@ -158,8 +158,8 @@ class IssueResolver(
      * the naming gap introduced by the inherited iid property.
      */
     @SchemaMapping(typeName = "Issue", field = "iid")
-    fun iid(issue: Issue): Int? = issue.platformIid
+    fun iid(issue: IssueDto): Int? = issue.iid
 
     @SchemaMapping(typeName = "milestone", field = "iid")
-    fun iid(milestone: Milestone): Int? = milestone.platformIid
+    fun iid(milestone: MilestoneDto): Int? = milestone.iid
 }
