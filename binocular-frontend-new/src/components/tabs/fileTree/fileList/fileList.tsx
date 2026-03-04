@@ -32,8 +32,8 @@ function FileList(props: { orientation?: string; search: string }) {
 
   useEffect(() => {
     const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
-    refreshFileTree(dataPlugin);
-  }, [currentDataPlugins]);
+    if (filesDataPluginId && !fileTrees[filesDataPluginId]) refreshFileTree(dataPlugin);
+  }, [currentDataPlugins, filesDataPluginId]);
 
   globalStore.subscribe(() => {
     if (filesDataPluginId !== undefined) {

@@ -1,7 +1,7 @@
 import { AreaChart } from './areaChart.tsx';
 import { createRef, useEffect, useState } from 'react';
 import type { SettingsType } from '../settings/settings.tsx';
-import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 import type { Store } from '@reduxjs/toolkit';
 
 function Chart(props: { settings: SettingsType; store: Store }) {
@@ -27,7 +27,7 @@ function Chart(props: { settings: SettingsType; store: Store }) {
     resize();
   }, [chartContainerRef, chartHeight, chartWidth]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
   /**
    * RESIZE Logic END
    */

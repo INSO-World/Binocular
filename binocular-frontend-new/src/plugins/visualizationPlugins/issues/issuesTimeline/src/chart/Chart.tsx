@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
-import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 import { DataState, type IssuesTimelineState, setDateRange } from '../reducer';
 import type { IssuesTimelineSettings } from '../settings/settings.tsx';
 import { IssuesTimelineChart } from './IssuesTimelineChart.tsx';
@@ -46,7 +46,7 @@ const Chart = (props: VisualizationPluginProperties<IssuesTimelineSettings, Data
     resize();
   }, [props.chartContainerRef]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
   /**
    * RESIZE Logic END
    */
@@ -54,7 +54,7 @@ const Chart = (props: VisualizationPluginProperties<IssuesTimelineSettings, Data
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
     dispatch(setDateRange(props.parameters.parametersDateRange));
-  }, [props.parameters]);
+  }, [props.parameters.parametersDateRange]);
 
   //Trigger Refresh when dataConnection changes
   useEffect(() => {
