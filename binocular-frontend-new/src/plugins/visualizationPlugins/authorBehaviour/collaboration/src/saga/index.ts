@@ -9,7 +9,7 @@ export default function* (dataConnection: DataPlugin) {
 }
 
 function* watchRefresh(dataConnection: DataPlugin) {
-  yield throttle(5000, 'REFRESH', () => fetchCollaborationData(dataConnection));
+  yield throttle(500, 'REFRESH', () => fetchCollaborationData(dataConnection));
 }
 
 function* watchDateRangeChange(dataConnection: DataPlugin) {

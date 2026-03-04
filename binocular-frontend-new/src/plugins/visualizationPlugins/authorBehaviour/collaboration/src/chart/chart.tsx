@@ -5,7 +5,7 @@ import { DataState, type DateRange, setDateRange } from '../reducer';
 import type { DataPluginAccountIssues } from '../../../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import type { CollaborationSettings } from '../settings/settings.tsx';
-import { handelPopoutResizing } from '../../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 
 type RootState = {
   plugin: {
@@ -26,8 +26,8 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
   );
   const accounts = state.plugin.accounts ?? [];
   const dataState = state.plugin.dataState;
-  const [chartWidth, setChartWidth] = useState(100);
-  const [chartHeight, setChartHeight] = useState(150);
+  const [chartWidth, setChartWidth] = useState(chartContainerRef.current?.offsetWidth ?? 150);
+  const [chartHeight, setChartHeight] = useState(chartContainerRef.current?.offsetHeight ?? 100);
 
   function resize() {
     const el = chartContainerRef.current as HTMLDivElement | null;
@@ -35,7 +35,11 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
     if (el.offsetWidth !== chartWidth) setChartWidth(el.offsetWidth);
     if (el.offsetHeight !== chartHeight) setChartHeight(el.offsetHeight);
   }
-  handelPopoutResizing(store, () => resize());
+  useEffect(() => {
+    resize();
+  }, [chartContainerRef, chartHeight, chartWidth]);
+
+  handlePopoutResizing(store, () => resize());
 
   useEffect(() => {
     if (props.parameters?.parametersDateRange) {
@@ -46,7 +50,7 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
       const now = new Date().toISOString();
       store.dispatch(setDateRange({ from: now, to: now }));
     }
-  }, [props.parameters, store]);
+  }, [props.parameters.parametersDateRange, store]);
 
   useEffect(() => {
     store.dispatch({ type: 'REFRESH' });

@@ -1,5 +1,10 @@
 // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
-import { addDataPlugin, LocalDatabaseLoadingState, setLocalDatabaseLoadingState } from '../redux/reducer/settings/settingsReducer.ts';
+import {
+  addDataPlugin,
+  LocalDatabaseLoadingState,
+  setLocalDatabaseLoadingMessage,
+  setLocalDatabaseLoadingState,
+} from '../redux/reducer/settings/settingsReducer.ts';
 import type { AppDispatch } from '../redux';
 import { PouchDB } from '../plugins/pluginRegistry.ts';
 import Config from '../config.ts';
@@ -109,7 +114,9 @@ export default abstract class DatabaseLoaders {
     }
 
     dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.loading));
-    await PouchDB.init(undefined, undefined, { name: metadata.namespace, file: undefined, dbObjects: dbObjects }, undefined);
+    await PouchDB.init(undefined, undefined, { name: metadata.namespace, file: undefined, dbObjects: dbObjects }, undefined, (message) => {
+      dispatch(setLocalDatabaseLoadingMessage(message));
+    });
 
     dispatch(
       addDataPlugin({
