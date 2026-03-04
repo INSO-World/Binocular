@@ -35,6 +35,10 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
     if (el.offsetWidth !== chartWidth) setChartWidth(el.offsetWidth);
     if (el.offsetHeight !== chartHeight) setChartHeight(el.offsetHeight);
   }
+  useEffect(() => {
+    resize();
+  }, [chartContainerRef, chartHeight, chartWidth]);
+
   handlePopoutResizing(store, () => resize());
 
   useEffect(() => {
