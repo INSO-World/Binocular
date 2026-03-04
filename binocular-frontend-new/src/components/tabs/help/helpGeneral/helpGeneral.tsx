@@ -15,6 +15,29 @@ function HelpGeneral() {
       </div>
       <div className="collapse collapse-plus bg-base-200 mb-1">
         <input type="radio" name="my-accordion-3" />
+        <div className="collapse-title text-xl font-medium">Zoom</div>
+        <div className="collapse-content">
+          Visualizations that show data over time support interactive zoom to focus on a specific range.
+          <div>
+            <ul className={'list-disc ml-5'}>
+              <li>
+                <span className={'font-bold'}>Horizontal Zoom (Drag):</span> Click and drag horizontally on the chart to zoom into a
+                specific time range. The Y-axis automatically adjusts to the range of values visible in the selected window.
+              </li>
+              <li>
+                <span className={'font-bold'}>Rectangle Zoom (Ctrl+Drag):</span> Hold the Ctrl key while dragging to draw a selection
+                rectangle that sets both the X (time) and Y (value) boundaries simultaneously.
+              </li>
+              <li>
+                <span className={'font-bold'}>Reset:</span> Double-click anywhere on the chart or click and release without dragging to
+                return to the full data view.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div className="collapse collapse-plus bg-base-200 mb-1">
+        <input type="radio" name="my-accordion-3" />
         <div className="collapse-title text-xl font-medium">Tabs</div>
         <div className="collapse-content">
           Around the dashboard different tabs are located which offer different functionality. All the tab can be dragged and placed at all

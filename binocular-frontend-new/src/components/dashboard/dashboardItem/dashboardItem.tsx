@@ -79,6 +79,12 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   const [dataPlugin, setDataPlugin] = useState<DataPlugin | undefined>(undefined);
 
+  /**
+   * Redux Store will be created for individual item once a data plugin is selected.
+   * To run the correct middleware it has to be reconfigured everytime the dataplugin changes.
+   */
+  const [store, setStore] = useState<Store | undefined>(undefined);
+
   useEffect(() => {
     if (selectedDataPlugin && selectedDataPlugin.id !== undefined) {
       if (selectedDataPlugin.parameters.progressUpdate?.useAutomaticUpdate) {
@@ -87,6 +93,17 @@ const DashboardItem = memo(function DashboardItem(props: {
       DataPluginStorage.getDataPlugin(selectedDataPlugin)
         .then((newDataPlugin) => {
           if (newDataPlugin) {
+            const sagaMiddleware = createSagaMiddleware();
+            setStore(
+              configureStore({
+                reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
+                middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
+                // preserve state if store already existed
+                preloadedState: store ? store.getState() : undefined,
+              }),
+            );
+            sagaMiddleware.run(() => plugin.saga(newDataPlugin, plugin.name, plugin.dataConnectionName));
+
             setDataPlugin(newDataPlugin);
           }
         })
@@ -132,21 +149,6 @@ const DashboardItem = memo(function DashboardItem(props: {
     updatedItem.localParametersDateRange = parametersDateRangeLocal;
     dispatch(updateDashboardItem(updatedItem));
   }, [ignoreGlobalParameters, parametersGeneralLocal, parametersDateRangeLocal]);
-
-  /**
-   * Create Redux Store from Reducer for individual Item and run saga
-   */
-  const [store, setStore] = useState<Store | undefined>(undefined);
-  if (dataPlugin && !store) {
-    const sagaMiddleware = createSagaMiddleware();
-    setStore(
-      configureStore({
-        reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
-        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
-      }),
-    );
-    sagaMiddleware.run(() => plugin.saga(dataPlugin, plugin.name, plugin.dataConnectionName));
-  }
 
   globalStore.subscribe(() => {
     if (store !== undefined) {

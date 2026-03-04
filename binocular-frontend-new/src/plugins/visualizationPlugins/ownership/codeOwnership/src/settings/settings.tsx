@@ -6,6 +6,8 @@ import type { Store } from '@reduxjs/toolkit';
 export interface CodeOwnerShipSettings {
   displayMode: string;
   currentBranch?: number;
+  visualizationStyle: string;
+  showSprints: boolean;
 }
 
 const EMPTY_BRANCHES: DataPluginBranch[] = [];
@@ -64,6 +66,8 @@ function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSet
               props.setSettings({
                 displayMode: e.target.value,
                 currentBranch: props.settings.currentBranch,
+                visualizationStyle: props.settings.visualizationStyle,
+                showSprints: props.settings.showSprints,
               })
             }>
             <option value={'absolute'}>absolute</option>
@@ -80,6 +84,8 @@ function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSet
                 props.setSettings({
                   displayMode: props.settings.displayMode,
                   currentBranch: toNumber(e.target.value),
+                  visualizationStyle: props.settings.visualizationStyle,
+                  showSprints: props.settings.showSprints,
                 });
             }}>
             {branchOptions}

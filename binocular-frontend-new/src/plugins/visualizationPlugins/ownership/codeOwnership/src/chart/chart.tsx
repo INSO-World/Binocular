@@ -1,11 +1,11 @@
 import { extractOwnershipFromFileExcludingCommits } from '../utils/ownershipUtils.ts';
 import { useDispatch, useSelector } from 'react-redux';
-import StackedAreaChart from './StackedAreaChart';
+import { StackedAreaChart, type ChartData, type Palette } from '../../../../../../components/stackedAreaChart/StackedAreaChart.tsx';
 import * as d3 from 'd3';
 import { useState, useEffect } from 'react';
 import _ from 'lodash';
+import chroma from 'chroma-js';
 import type { CodeOwnerShipSettings } from '../settings/settings.tsx';
-import type { Palette } from '../../../../../../types/data/authorType.ts';
 import type { FileOwnershipCollection, OwnershipData, PreviousFileData } from '../../../../../../types/data/ownershipType.ts';
 import { DataState, setCurrentBranch } from '../reducer';
 import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
@@ -33,8 +33,7 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
 
   //local state used for the chart
   const [ownershipData, setOwnershipData] = useState<OwnershipData[]>([]);
-  const [keys, setKeys] = useState<string[]>([]);
-  const [chartData, setChartData] = useState<{ [id: string]: number }[]>([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
 
   //global state
   const relevantOwnershipData = data.rawData;
@@ -58,7 +57,6 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
   handlePopoutResizing(props.store, resize);
 
   const resetData = () => {
-    setKeys([]);
     setChartData([]);
     setChartScale([]);
   };
@@ -148,6 +146,7 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
 
     if (ownershipData.length === 0) {
       resetData();
+      return;
     }
 
     //filter ownership data for commits that are in the right timespan
@@ -179,48 +178,56 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
     }
 
     //get all users
-    const tempKeys: string[] = [];
     const selectedAuthors = props.authorList.filter((author) => author.selected && author.parent == -1);
     const mergedAuthors = props.authorList.filter((author) => author.selected && author.parent > 0);
     const otherAuthors = props.authorList.filter((author) => author.selected && author.parent == 0);
-    selectedAuthors.forEach((author) => tempKeys.push(author.user.gitSignature));
+    const tempKeys: string[] = selectedAuthors.map((author) => author.user.gitSignature);
 
-    setKeys(tempKeys);
-
-    const result = filteredOwnershipData.map((d) => {
-      const result: { [id: string]: number } = {};
-      //set the date as timestamp (in ms)
-      result.date = new Date(d.date).getTime();
-
-      //set the ownership to 0 for all users
-      for (const name of tempKeys) {
-        result[name] = 0;
-        palette[name] = props.authorList.find((user) => user.user.gitSignature == name)!.color.main;
+    // Build palette with { main, secondary } format for simpleVis StackedAreaChart.
+    // Add "other" first so it stacks at the bottom; selected authors follow in order.
+    palette['other'] = { main: '#555555', secondary: '#777777' };
+    for (const name of tempKeys) {
+      const author = props.authorList.find((user) => user.user.gitSignature === name);
+      if (author) {
+        palette[name] = {
+          main: chroma(author.color.main).hex(),
+          secondary: chroma(author.color.secondary).hex(),
+        };
       }
+    }
 
-      //also for special user "other"
-      result['other'] = 0;
+    const result: ChartData[] = filteredOwnershipData.map((d) => {
+      const point: ChartData = { date: new Date(d.date).getTime() };
+
+      //initialise all keys to 0
+      for (const name of tempKeys) {
+        point[name] = 0;
+      }
+      point['other'] = 0;
 
       //set the ownership of everyone to the real value
       for (const [authorName, ownership] of Object.entries(d.ownership)) {
         //if the author is in the "other" category, add the ownership to the "other" author
         if (otherAuthors.map((oa) => oa.user.gitSignature).includes(authorName)) {
-          result['other'] += ownership;
+          point['other'] += ownership;
         }
-        if (keys.includes(authorName)) result[authorName] += ownership;
-        else {
-          //check if the author is part of a merges author from the universal settings
+        if (tempKeys.includes(authorName)) {
+          point[authorName] += ownership;
+        } else {
+          //check if the author is part of a merged author from the universal settings
           for (const mergedAuthor of mergedAuthors) {
             if (mergedAuthor.user.gitSignature.includes(authorName)) {
               const mainAuthor = selectedAuthors.find((author) => author.id == mergedAuthor.parent)?.user.gitSignature;
-              if (mainAuthor) result[mainAuthor] += ownership;
+              if (mainAuthor) point[mainAuthor] += ownership;
               break;
             }
           }
         }
       }
-      return result;
+      return point;
     });
+
+    setChartPalette(palette);
 
     if (granularity === 'days') {
       setChartData(result);
@@ -229,7 +236,7 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
 
       if (granularity === 'years') {
         groupedResult = _.groupBy(result, (dataPoint) => '' + new Date(dataPoint.date).getFullYear());
-      } else if (props.parameters.parametersGeneral.granularity === 'months') {
+      } else if (granularity === 'months') {
         groupedResult = _.groupBy(
           result,
           (dataPoint) => '' + new Date(dataPoint.date).getMonth() + '-' + new Date(dataPoint.date).getFullYear(),
@@ -242,15 +249,14 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
           return '' + week + '-' + d.getFullYear();
         });
       } else {
-        //invalid granularity
         console.log('Error in Code Ownership: granularity "' + granularity + '" not valid');
         setChartData(result);
         return;
       }
 
-      const coarseResult: { [id: string]: number }[] = [];
+      const coarseResult: ChartData[] = [];
 
-      const firstDataPoint = result.sort((a, b) => a.date - b.date)[0];
+      const firstDataPoint = [...result].sort((a, b) => a.date - b.date)[0];
       if (firstDataPoint) {
         coarseResult.push(firstDataPoint);
       }
@@ -260,7 +266,6 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
         //only consider last element
         coarseResult.push(dataPoints.slice(-1)[0]);
       }
-      setChartPalette(palette);
       setChartData(coarseResult);
     }
   }, [ownershipData, granularity, props.settings.displayMode, props.parameters.parametersDateRange, props.authorList]);
@@ -285,20 +290,16 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
             <span className="loading loading-spinner loading-lg text-accent"></span>
           </div>
         )}
-        {dataState === DataState.COMPLETE && (
+        {dataState !== DataState.FETCHING && ownershipData.length > 0 && chartData.length > 0 && (
           <StackedAreaChart
-            content={chartData}
+            data={chartData}
             palette={chartPalette}
-            paddings={{ top: 20, left: 70, bottom: 40, right: 30 }}
+            scale={chartScale}
             height={chartHeight}
             width={chartWidth}
-            yDims={chartScale}
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            d3offset={props.settings.displayMode === 'relative' ? d3.stackOffsetExpand : d3.stackOffsetNone}
-            resolution={granularity}
-            keys={keys}
-            order={keys.reverse()}
+            settings={props.settings}
+            sprintList={props.sprintList}
+            d3offset={props.settings.displayMode === 'relative' ? d3.stackOffsetExpand : undefined}
           />
         )}
       </div>
