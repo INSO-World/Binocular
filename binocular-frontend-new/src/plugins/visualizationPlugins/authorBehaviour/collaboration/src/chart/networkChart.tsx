@@ -46,10 +46,12 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
 
   useEffect(() => {
     const tooltip = d3
-      .select('body')
+      .select('#root')
       .append('div')
       .style('position', 'absolute')
       .style('padding', '6px 10px')
+      .style('left', '10px') // set initial position, so tooltip is not rendered outside of the main view
+      .style('top', '6px') // set initial position, so tooltip is not rendered outside of the main view
       .style('background', 'rgba(0, 0, 0, 0.75)')
       .style('color', '#fff')
       .style('border-radius', '4px')
