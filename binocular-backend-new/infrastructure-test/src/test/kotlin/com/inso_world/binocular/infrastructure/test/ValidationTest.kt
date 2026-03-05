@@ -145,7 +145,7 @@ internal class ValidationTest : BaseInfrastructureSpringTest() {
                 .first()
                 .propertyPath
                 .toString(),
-        ).isEqualTo("create.value.branches[].repository")
+        ).isEqualTo("update.value.branches[].repository")
     }
 
     // Commit validations

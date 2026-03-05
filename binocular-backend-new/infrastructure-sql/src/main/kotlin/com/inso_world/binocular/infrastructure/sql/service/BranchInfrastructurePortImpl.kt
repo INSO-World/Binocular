@@ -1,12 +1,12 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
-import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IBranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.model.Branch
@@ -51,7 +51,10 @@ internal class BranchInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
-    override fun findFilesByBranchId(branchId: String, pageable: Pageable): Page<File> {
+    override fun findFilesByBranchId(
+        branchId: String,
+        pageable: Pageable,
+    ): Page<File> {
         TODO("Not yet implemented")
     }
 
@@ -60,7 +63,14 @@ internal class BranchInfrastructurePortImpl(
     }
 
     override fun findByIid(iid: Reference.Id): @Valid Branch? {
-        TODO("Not yet implemented")
+        val branch = this.branchDao.findByIid(iid)
+
+        requireNotNull(branch?.repository)
+        return repositoryAssembler
+            .toDomain(branch.repository)
+            .branches
+            .find { it.iid == iid }
+            ?.let { return it }
     }
 
     override fun update(value: Branch): Branch {
@@ -100,10 +110,6 @@ internal class BranchInfrastructurePortImpl(
         }
 
     override fun findAll(pageable: Pageable): Page<Branch> {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
         TODO("Not yet implemented")
     }
 

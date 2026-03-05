@@ -45,262 +45,276 @@ import kotlin.uuid.Uuid
 @Validated
 @Deprecated("Use domain aggregate `Repository`")
 internal class CommitInfrastructurePortImpl
-@Autowired constructor(
-    private val commitMapper: CommitMapper,
-    private val commitDao: CommitDao,
-    @Lazy private val developerDao: DeveloperDao,
-    @Lazy private val repositoryDao: RepositoryDao,
-) : AbstractInfrastructurePort<Commit, CommitEntity, Long>(Long::class), CommitInfrastructurePort {
-
-    companion object {
-        val logger by logger()
-    }
-
     @Autowired
-    private lateinit var repositoryAssembler: RepositoryAssembler
-
-    @Autowired
-    @Lazy
-    private lateinit var projectMapper: ProjectMapper
-
-    @Autowired
-    @Lazy
-    private lateinit var branchMapper: BranchMapper
-
-    @Autowired
-    @Lazy
-    private lateinit var repositoryMapper: RepositoryMapper
-
-    @Autowired
-    private lateinit var ctx: MappingContext
-
-    @Autowired
-    @Lazy
-    private lateinit var developerMapper: DeveloperMapper
-
-    @PostConstruct
-    fun init() {
-        super.dao = commitDao
-    }
-
-    override fun findByIid(iid: Commit.Id): @Valid Commit? {
-        TODO("Not yet implemented")
-    }
-
-    @MappingSession
-    @Transactional
-    override fun create(value: Commit): Commit {
-        val repositoryEntity = repositoryDao.findByIid(value.repository.iid)
-            ?: throw NotFoundException("Repository ${value.repository.iid} not found")
-
-        ctx.remember(value.repository, repositoryEntity)
-        val mapped = commitMapper.toEntity(value)
-        return this.commitDao.create(mapped).let { commitEntity ->
-            commitMapper.refreshDomain(value, commitEntity)
-        }
-    }
-
-    override fun findAll(pageable: Pageable): Page<Commit> {
-        TODO("Not yet implemented")
-    }
-
-    @OptIn(ExperimentalUuidApi::class)
-    @MappingSession
-    @Transactional(readOnly = true)
-    override fun findById(id: String): Commit? = this.commitDao.findByIid(Commit.Id(Uuid.parse(id)))?.let {
-        val repository = it.repository.let { r ->
-            val project = projectMapper.toDomain(
-                r.project,
-            )
-
-            repositoryMapper.toDomain(r)
+    constructor(
+        private val commitMapper: CommitMapper,
+        private val commitDao: CommitDao,
+        @Lazy private val developerDao: DeveloperDao,
+        @Lazy private val repositoryDao: RepositoryDao,
+    ) : AbstractInfrastructurePort<Commit, CommitEntity, Long>(Long::class),
+        CommitInfrastructurePort {
+        companion object {
+            val logger by logger()
         }
 
-        commitMapper.toDomain(it)
-    }
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
 
-    @MappingSession
-    @Transactional
-    override fun update(value: Commit): Commit {
+        @Autowired
+        @Lazy
+        private lateinit var projectMapper: ProjectMapper
 
-        val repositoryEntity = repositoryDao.findByIid(value.repository.iid)
-            ?: throw NotFoundException("Repository ${value.repository} not found")
+        @Autowired
+        @Lazy
+        private lateinit var branchMapper: BranchMapper
 
-        ctx.remember(value.repository, repositoryEntity)
+        @Autowired
+        @Lazy
+        private lateinit var repositoryMapper: RepositoryMapper
 
-        val entity = this.commitDao.findBySha(repositoryEntity, value.sha)
-            ?: throw NotFoundException("Commit ${value.sha} not found, required for update")
+        @Autowired
+        private lateinit var ctx: MappingContext
+
+        @Autowired
+        @Lazy
+        private lateinit var developerMapper: DeveloperMapper
+
+        @Autowired
+        @Lazy
+        // explicitly use impl here, cannot be any other anyway
+        private lateinit var repositoryInfrastructurePort: RepositoryInfrastructurePortImpl
+
+        @PostConstruct
+        fun init() {
+            super.dao = commitDao
+        }
+
+        override fun findByIid(iid: Commit.Id): @Valid Commit? {
+            TODO("Not yet implemented")
+        }
+
+        @MappingSession
+        @Transactional
+        override fun create(value: Commit): Commit {
+            val repositoryEntity =
+                repositoryDao.findByIid(value.repository.iid)
+                    ?: throw NotFoundException("Repository ${value.repository.iid} not found")
+
+            ctx.remember(value.repository, repositoryEntity)
+            val mapped = commitMapper.toEntity(value)
+            return this.commitDao.create(mapped).let { commitEntity ->
+                commitMapper.refreshDomain(value, commitEntity)
+            }
+        }
+
+        override fun findAll(pageable: Pageable): Page<Commit> {
+            TODO("Not yet implemented")
+        }
+
+        @Deprecated("", replaceWith = ReplaceWith("findByIid(iid)"))
+        @OptIn(ExperimentalUuidApi::class)
+        @MappingSession
+        @Transactional(readOnly = true)
+        override fun findById(id: String): Commit? =
+            this.commitDao.findByIid(Commit.Id(Uuid.parse(id)))?.let {
+                val repository =
+                    it.repository.let { r ->
+                        val project =
+                            projectMapper.toDomain(
+                                r.project,
+                            )
+
+                        repositoryMapper.toDomain(r)
+                    }
+
+                commitMapper.toDomain(it)
+            }
+
+        @MappingSession
+        @Transactional
+        override fun update(value: Commit): Commit {
+            val repositoryEntity =
+                repositoryDao.findByIid(value.repository.iid)
+                    ?: throw NotFoundException("Repository ${value.repository} not found")
+
+            ctx.remember(value.repository, repositoryEntity)
+
+            val entity =
+                this.commitDao.findBySha(repositoryEntity, value.sha)
+                    ?: throw NotFoundException("Commit ${value.sha} not found, required for update")
 
 //        entity.authorDateTime = value.authorDateTime
 //        entity.commitDateTime = value.commitDateTime
-        entity.apply {
-            this.message = value.message
-            this.webUrl = value.webUrl
-            this.authorDateTime = value.authorSignature.timestamp
-            this.commitDateTime = (value.committerSignature ?: value.authorSignature).timestamp
-            this.committer = resolveDeveloperEntity(value.committer)
-            this.author = resolveDeveloperEntity(value.author)
-        }
+            entity.apply {
+                this.message = value.message
+                this.webUrl = value.webUrl
+                this.authorDateTime = value.authorSignature.timestamp
+                this.commitDateTime = (value.committerSignature ?: value.authorSignature).timestamp
+                this.committer = resolveDeveloperEntity(value.committer)
+                this.author = resolveDeveloperEntity(value.author)
+            }
 
-        return this.commitDao.update(entity).let {
-            commitMapper.refreshDomain(value, it)
-        }
-    }
-
-    private fun resolveDeveloperEntity(developer: Developer): DeveloperEntity {
-        ctx.findEntity<Developer.Key, Developer, DeveloperEntity>(developer)?.let { return it }
-
-        developer.id?.trim()?.toLongOrNull()?.let { existingId ->
-            developerDao.findById(existingId)?.let { found ->
-                ctx.remember(developer, found)
-                return found
+            return this.commitDao.update(entity).let {
+                commitMapper.refreshDomain(value, it)
             }
         }
 
-        val entity = developerMapper.toEntity(developer)
-        return developerDao.create(entity)
-    }
+        private fun resolveDeveloperEntity(developer: Developer): DeveloperEntity {
+            ctx.findEntity<Developer.Key, Developer, DeveloperEntity>(developer)?.let { return it }
 
-    override fun saveAll(values: Collection<Commit>): Iterable<Commit> {
-        TODO("Not yet implemented")
-    }
-
-    override fun delete(value: Commit) {
-        val repositoryId =
-            value.repository?.id?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
-        val repository =
-            repositoryDao.findById(repositoryId)
-                ?: throw NotFoundException("Repository ${value.repository?.id} not found")
-
-        val mapped =
-            commitMapper.toEntity(value).also {
-                repository.addCommit(it)
+            developer.id?.trim()?.toLongOrNull()?.let { existingId ->
+                developerDao.findById(existingId)?.let { found ->
+                    ctx.remember(developer, found)
+                    return found
+                }
             }
-        this.commitDao.delete(mapped)
-    }
 
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
-        this.commitDao.deleteAll()
-    }
-
-    override fun findAll(
-        pageable: Pageable,
-        since: Long?,
-        until: Long?,
-    ): Page<Commit> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findBuildsByCommitId(commitId: String): List<Build> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findFilesByCommitId(commitId: String): List<File> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findModulesByCommitId(commitId: String): List<Module> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findUsersByCommitId(commitId: String): List<User> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findIssuesByCommitId(commitId: String): List<Issue> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findCommitStatsByCommitId(commitId: String): Stats {
-        TODO("Not yet implemented")
-    }
-
-    override fun findFileStatsByCommitId(commitId: String): Map<String, Stats> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit> {
-        TODO("Not yet implemented")
-    }
-
-    override fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit> {
-        TODO("Not yet implemented")
-    }
-
-    @Transactional(readOnly = true)
-    @MappingSession
-    override fun findExistingSha(
-        repo: Repository,
-        shas: List<String>,
-    ): Iterable<Commit> {
-        return this.commitDao.findExistingSha(repo, shas).map {
-            this.commitMapper.toDomain(it)
-        }
-    }
-
-    override fun findAll(
-        repo: Repository,
-        pageable: Pageable
-    ): Iterable<Commit> {
-        TODO("Not yet implemented")
-    }
-
-    @MappingSession
-    @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Commit> {
-        val commits = this.commitDao.findAll()
-
-        // Group commits by repository to process related commits together
-        return commits.groupBy { it.repository }.flatMap { (repoEntity, _) ->
-            repositoryAssembler.toDomain(repoEntity).commits
-        }
-    }
-
-    @MappingSession
-    @Transactional(readOnly = true)
-    override fun findAll(repository: Repository): Iterable<Commit> =
-        this.commitDao.findAll(repository).collect(Collectors.toSet()).map {
-            return@map this.commitMapper.toDomain(it)
+            val entity = developerMapper.toEntity(developer)
+            return developerDao.create(entity)
         }
 
-    @MappingSession
-    @Transactional(readOnly = true)
-    override fun findHeadForBranch(
-        repo: Repository,
-        branch: String,
-    ): Commit? {
-        return this.repositoryDao.findByIid(
-            repo.iid
-        )?.let {
-            ctx.remember(repo, it)
-            it
-        }?.let {
-            this.commitDao.findHeadForBranch(it, branch)
-        }?.let { head -> return@let repo.commits.associateBy(Commit::iid).getValue(head.iid) }
-    }
+        override fun saveAll(values: Collection<Commit>): Iterable<Commit> {
+            TODO("Not yet implemented")
+        }
 
-    @MappingSession
-    @Transactional(readOnly = true)
-    override fun findAllLeafCommits(repo: Repository): Iterable<Commit> {
-        return this.repositoryDao.findByIid(repo.iid)?.let {
-            ctx.remember(repo, it)
-            this.commitDao.findAllLeafCommits(it)
-        }?.map { this.commitMapper.toDomain(it) } ?: emptyList()
+        override fun delete(value: Commit) {
+            val repositoryId =
+                value.repository?.id?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
+            val repository =
+                repositoryDao.findById(repositoryId)
+                    ?: throw NotFoundException("Repository ${value.repository?.id} not found")
+
+            val mapped =
+                commitMapper.toEntity(value).also {
+                    repository.addCommit(it)
+                }
+            this.commitDao.delete(mapped)
+        }
+
+        override fun deleteById(id: String) {
+            TODO("Not yet implemented")
+        }
+
+        override fun deleteAll() {
+            this.commitDao.deleteAll()
+        }
+
+        override fun findAll(
+            pageable: Pageable,
+            since: Long?,
+            until: Long?,
+        ): Page<Commit> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findBuildsByCommitId(commitId: String): List<Build> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFilesByCommitId(commitId: String): List<File> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFilesByCommitId(
+            commitId: String,
+            pageable: Pageable,
+        ): Page<File> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findModulesByCommitId(commitId: String): List<Module> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findUsersByCommitId(commitId: String): List<User> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findIssuesByCommitId(commitId: String): List<Issue> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findCommitStatsByCommitId(commitId: String): Stats {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileStatsByCommitId(commitId: String): Map<String, Stats> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findFileOwnershipByCommitAndFile(
+            commitId: String,
+            fileId: String,
+        ): List<FileOwnership> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit> {
+            TODO("Not yet implemented")
+        }
+
+        override fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit> {
+            TODO("Not yet implemented")
+        }
+
+        @Transactional(readOnly = true)
+        @MappingSession
+        override fun findExistingSha(
+            repo: Repository,
+            shas: List<String>,
+        ): Iterable<Commit> = repositoryInfrastructurePort.findExistingCommits(repo, shas.toSet()).toSet()
+
+        override fun findAll(
+            repo: Repository,
+            pageable: Pageable,
+        ): Iterable<Commit> = repositoryInfrastructurePort.findByIid(repo.iid)?.commits ?: emptyList()
+
+        @MappingSession
+        @Transactional(readOnly = true)
+        override fun findAll(): Iterable<Commit> {
+            val commits = this.commitDao.findAll()
+
+            // Group commits by repository to process related commits together
+            return commits.groupBy { it.repository }.flatMap { (repoEntity, _) ->
+                repositoryAssembler.toDomain(repoEntity).commits
+            }
+        }
+
+        @MappingSession
+        @Transactional(readOnly = true)
+        override fun findAll(repository: Repository): Iterable<Commit> =
+            this.commitDao.findAll(repository).collect(Collectors.toSet()).map {
+                return@map this.commitMapper.toDomain(it)
+            }
+
+        @MappingSession
+        @Transactional(readOnly = true)
+        override fun findHeadForBranch(
+            repo: Repository,
+            branch: String,
+        ): Commit? {
+            return this.repositoryDao
+                .findByIid(
+                    repo.iid,
+                )?.let {
+                    ctx.remember(repo, it)
+                    it
+                }?.let {
+                    this.commitDao.findHeadForBranch(it, branch)
+                }?.let { head -> return@let repo.commits.associateBy(Commit::iid).getValue(head.iid) }
+        }
+
+        @MappingSession
+        @Transactional(readOnly = true)
+        override fun findAllLeafCommits(repo: Repository): Iterable<Commit> =
+            this.repositoryDao
+                .findByIid(repo.iid)
+                ?.let {
+                    ctx.remember(repo, it)
+                    this.commitDao.findAllLeafCommits(it)
+                }?.map { this.commitMapper.toDomain(it) } ?: emptyList()
     }
-}
