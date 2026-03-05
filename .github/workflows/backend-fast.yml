@@ -47,8 +47,8 @@ jobs:
   # Merged: validate + compile-sources + compile-tests
   preflight:
     name: Preflight (validate + compile + test-compile)
-    needs:
-      - lint
+    # needs:
+    #   - lint
     strategy:
       fail-fast: true
       matrix:
