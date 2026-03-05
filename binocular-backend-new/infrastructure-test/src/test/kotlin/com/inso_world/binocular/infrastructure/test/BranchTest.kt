@@ -20,7 +20,7 @@ internal class BranchTest : BaseInfrastructureSpringTest() {
     @Test
     fun `load branch by provider id`() {
         val expected = TestDataProvider.testBranches.first()
-        val loaded = branchPort.findById(requireNotNull(expected.id))
+        val loaded = branchPort.findByIid(requireNotNull(expected.iid))
         assertNotNull(loaded)
         loaded!!
         assertEquals(expected.id, loaded.id)
