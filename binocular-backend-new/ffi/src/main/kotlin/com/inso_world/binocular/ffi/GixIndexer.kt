@@ -17,7 +17,7 @@ import java.nio.file.Path
 @Service
 class GixIndexer : GitIndexer {
     @Autowired
-    private lateinit var cfg: GixConfig
+    private lateinit var cfg: GixModuleConfig
 
     companion object Companion {
         private val logger by logger()

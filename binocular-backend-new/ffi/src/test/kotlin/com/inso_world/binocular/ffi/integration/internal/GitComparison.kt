@@ -3,7 +3,7 @@ package com.inso_world.binocular.ffi.integration.internal
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import com.inso_world.binocular.ffi.BinocularFfiTestApplication
-import com.inso_world.binocular.ffi.GixConfig
+import com.inso_world.binocular.ffi.GixModuleConfig
 import com.inso_world.binocular.ffi.internal.findRepo
 import com.inso_world.binocular.ffi.internal.traverseBranch
 import org.assertj.core.api.Assertions.assertThat
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class GitComparison : BaseIntegrationTest() {
     @Autowired
-    private lateinit var cfg: GixConfig
+    private lateinit var cfg: GixModuleConfig
 
     companion object {
         private val logger by logger()
