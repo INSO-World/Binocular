@@ -2,7 +2,7 @@ package com.inso_world.binocular.ffi.integration
 
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
 import com.inso_world.binocular.ffi.BinocularFfiTestApplication
-import com.inso_world.binocular.ffi.GixConfig
+import com.inso_world.binocular.ffi.GixModuleConfig
 import com.inso_world.binocular.ffi.internal.GixBranch
 import com.inso_world.binocular.ffi.internal.GixChangeType
 import com.inso_world.binocular.ffi.internal.GixDiffAlgorithm
@@ -74,7 +74,7 @@ import java.util.stream.Stream
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Autowired
-    private lateinit var cfg: GixConfig
+    private lateinit var cfg: GixModuleConfig
 
     companion object {
         private lateinit var simpleRepo: GixRepository

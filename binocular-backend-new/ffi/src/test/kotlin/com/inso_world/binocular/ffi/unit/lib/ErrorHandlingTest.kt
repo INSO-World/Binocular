@@ -1,7 +1,7 @@
 package com.inso_world.binocular.ffi.unit.lib
 
 import com.inso_world.binocular.core.config.VcsConfig
-import com.inso_world.binocular.ffi.GixConfig
+import com.inso_world.binocular.ffi.GixModuleConfig
 import com.inso_world.binocular.ffi.internal.UniffiException
 import com.inso_world.binocular.ffi.internal.findAllBranches
 import com.inso_world.binocular.ffi.internal.findCommit
@@ -39,8 +39,8 @@ import kotlin.io.path.createTempDirectory
  * - [ExceptionMessages]: Exception message quality
  */
 class ErrorHandlingTest : BaseLibraryUnitTest() {
-    private val cfg: GixConfig =
-        GixConfig().apply {
+    private val cfg: GixModuleConfig =
+        GixModuleConfig().apply {
             vcs =
                 VcsConfig().apply {
                     skipMerges = false
