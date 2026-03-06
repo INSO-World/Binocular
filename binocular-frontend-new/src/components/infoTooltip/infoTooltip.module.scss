@@ -35,7 +35,8 @@
   box-shadow: $shadow-default;
   overflow-y: auto;
   max-height: 30rem;
-  overflow-x: hidden;
+  max-width: 30rem;
+  word-break: break-all;
 }
 
 

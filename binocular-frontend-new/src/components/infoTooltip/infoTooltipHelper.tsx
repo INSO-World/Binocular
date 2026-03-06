@@ -37,6 +37,7 @@ export function showInfoTooltip(
     hydrateRoot(
       reactContent,
       <div
+        style={{ margin: '0' }}
         onMouseOver={() => {
           tooltipVisibleFlagRef.current = true;
         }}>
