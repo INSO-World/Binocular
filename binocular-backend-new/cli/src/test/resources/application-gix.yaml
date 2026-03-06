@@ -1,4 +1,4 @@
 binocular:
-  gix:
+  vcs:
     skip-merges: false
     use-mailmap: true

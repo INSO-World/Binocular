@@ -30,7 +30,6 @@ import kotlin.io.path.Path
  * - OCTO_REPO: 1 octopus merge commit (4 parents)
  * - ADVANCED_REPO: 3 merge commits (1 octopus + 2 regular merges via different path)
  *
- * Only runs with the gix profile to ensure consistent behavior testing.
  */
 @SpringBootTest(
     classes = [VcsIndexerTestApplication::class],
@@ -38,9 +37,8 @@ import kotlin.io.path.Path
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestPropertySource(properties = ["binocular.gix.skip-merges=false"])
+@TestPropertySource(properties = ["binocular.vcs.skip-merges=false"])
 internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
-
     @Autowired
     private lateinit var indexer: GitIndexer
 
@@ -58,7 +56,6 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Merge commits present in fixtures")
     inner class MergeCommitsPresent {
-
         @Test
         fun `OCTO_REPO master should contain octopus merge commit when skip-merges is false`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${OCTO_REPO}"), project)
@@ -67,15 +64,19 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
             val mergeCommits = commits.filter { it.parents.size > 1 }
             val octopusMerges = commits.filter { it.parents.size > 2 }
 
-            logger.info("OCTO_REPO master with skip-merges=false: {} total commits, {} merge commits, {} octopus merges",
-                commits.size, mergeCommits.size, octopusMerges.size)
+            logger.info(
+                "OCTO_REPO master with skip-merges=false: {} total commits, {} merge commits, {} octopus merges",
+                commits.size,
+                mergeCommits.size,
+                octopusMerges.size,
+            )
 
             assertAll(
                 "OCTO_REPO master should have the octopus merge commit",
                 { assertThat(commits).hasSize(19) },
                 // The fixture creates only the octopus merge (4 parents)
                 { assertThat(octopusMerges).hasSize(1) },
-                { assertThat(branch.commits).hasSize(19) }
+                { assertThat(branch.commits).hasSize(19) },
             )
         }
 
@@ -87,15 +88,19 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
             val mergeCommits = commits.filter { it.parents.size > 1 }
             val octopusMerges = commits.filter { it.parents.size > 2 }
 
-            logger.info("ADVANCED_REPO master with skip-merges=false: {} total commits, {} merge commits, {} octopus merges",
-                commits.size, mergeCommits.size, octopusMerges.size)
+            logger.info(
+                "ADVANCED_REPO master with skip-merges=false: {} total commits, {} merge commits, {} octopus merges",
+                commits.size,
+                mergeCommits.size,
+                octopusMerges.size,
+            )
 
             assertAll(
                 "ADVANCED_REPO master should have merge commits",
                 { assertThat(commits).hasSize(35) },
                 // ADVANCED_REPO has more merge commits than OCTO_REPO
                 { assertThat(mergeCommits).hasSizeGreaterThanOrEqualTo(1) },
-                { assertThat(branch.commits).hasSize(35) }
+                { assertThat(branch.commits).hasSize(35) },
             )
         }
 
@@ -116,7 +121,7 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
                         // Octopus merge of octo1, octo2, octo3 should have 4 parents
                         assertThat(commit.parents.size).isEqualTo(4)
                     }
-                }
+                },
             )
         }
     }
@@ -124,7 +129,6 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Merge commit structure verification")
     inner class MergeCommitStructure {
-
         @Test
         fun `merge commits should have valid parent references`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${OCTO_REPO}"), project)
@@ -143,7 +147,7 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
                                 assertThat(parent.sha).isNotBlank()
                             }
                     }
-                }
+                },
             )
         }
 
@@ -165,13 +169,14 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
                 { assertThat(octopusMerge.committer.name).isEqualTo("Alice") },
                 {
                     // Message might be base64 encoded by FFI
-                    val message = try {
-                        String(Base64.getDecoder().decode(octopusMerge.message ?: ""))
-                    } catch (e: Exception) {
-                        octopusMerge.message ?: ""
-                    }
+                    val message =
+                        try {
+                            String(Base64.getDecoder().decode(octopusMerge.message ?: ""))
+                        } catch (e: Exception) {
+                            octopusMerge.message ?: ""
+                        }
                     assertThat(message.lowercase()).contains("octopus")
-                }
+                },
             )
         }
     }
@@ -179,7 +184,6 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Non-merge branches verification")
     inner class NonMergeBranches {
-
         @Test
         fun `SIMPLE_REPO should have no merge commits`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${SIMPLE_REPO}"), project)
@@ -187,13 +191,16 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
 
             val mergeCommits = commits.filter { it.parents.size > 1 }
 
-            logger.info("SIMPLE_REPO master: {} total commits, {} merge commits",
-                commits.size, mergeCommits.size)
+            logger.info(
+                "SIMPLE_REPO master: {} total commits, {} merge commits",
+                commits.size,
+                mergeCommits.size,
+            )
 
             assertAll(
                 "SIMPLE_REPO should have no merge commits",
                 { assertThat(commits).hasSize(14) },
-                { assertThat(mergeCommits).isEmpty() }
+                { assertThat(mergeCommits).isEmpty() },
             )
         }
 
@@ -207,7 +214,7 @@ internal class MergeCommitsBaselineTest : BaseFixturesIntegrationTest() {
             assertAll(
                 "Feature branch should have no merge commits",
                 { assertThat(commits).hasSize(17) },
-                { assertThat(mergeCommits).isEmpty() }
+                { assertThat(mergeCommits).isEmpty() },
             )
         }
     }

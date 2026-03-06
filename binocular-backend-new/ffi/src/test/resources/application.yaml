@@ -1,5 +1,5 @@
 binocular:
-  gix:
+  vcs:
     skip_merges: false
     use_mailmap: true
 logging:

@@ -38,9 +38,8 @@ import kotlin.io.path.Path
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestPropertySource(properties = ["binocular.gix.skip-merges=true", "binocular.jgit.skip-merges=true"])
+@TestPropertySource(properties = ["binocular.vcs.skip-merges=true"])
 internal class SkipMergesTest : BaseFixturesIntegrationTest() {
-
     @Autowired
     private lateinit var indexer: GitIndexer
 
@@ -58,7 +57,6 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Skip merges on branches without merge HEAD")
     inner class SkipMergesOnNonMergeBranches {
-
         @ParameterizedTest(name = "{0} branch {1} should have {2} commits with skip-merges")
         @CsvSource(
             // SIMPLE_REPO has no merge commits, all commits should be returned
@@ -70,12 +68,12 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
             "${OCTO_REPO},refs/heads/feature,17",
             "${OCTO_REPO},refs/heads/imported,1",
             // ADVANCED_REPO imported branch has no merge commits
-            "${ADVANCED_REPO},refs/heads/imported,4"
+            "${ADVANCED_REPO},refs/heads/imported,4",
         )
         fun `traverseBranch with skip-merges on branches without merge HEAD`(
             repoName: String,
             branchName: String,
-            expectedCommitCount: Int
+            expectedCommitCount: Int,
         ) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val (branch, commits) = indexer.traverseBranch(repo, branchName)
@@ -86,7 +84,7 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
                 "Branch $branchName should have correct commit count with skip-merges",
                 { assertThat(commits).hasSize(expectedCommitCount) },
                 // All returned commits should have at most 1 parent (no merge commits)
-                { assertThat(commits).noneMatch { it.parents.size > 1 } }
+                { assertThat(commits).noneMatch { it.parents.size > 1 } },
             )
         }
     }
@@ -94,7 +92,6 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Skip merges filters merge commits")
     inner class SkipMergesFiltering {
-
         @Test
         fun `skip-merges should filter out all commits with multiple parents on simple repo`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${SIMPLE_REPO}"), project)
@@ -104,7 +101,7 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
             assertAll(
                 "All commits should have at most one parent",
                 { assertThat(commits).isNotEmpty() },
-                { assertThat(commits).noneMatch { it.parents.size > 1 } }
+                { assertThat(commits).noneMatch { it.parents.size > 1 } },
             )
         }
 
@@ -117,7 +114,7 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
                 "All commits should have valid metadata",
                 { assertThat(commits).allSatisfy { assertThat(it.sha).isNotBlank() } },
                 { assertThat(commits).allSatisfy { assertThat(it.committer).isNotNull() } },
-                { assertThat(commits).allSatisfy { assertThat(it.repository).isSameAs(repo) } }
+                { assertThat(commits).allSatisfy { assertThat(it.repository).isSameAs(repo) } },
             )
         }
 
@@ -130,7 +127,7 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 { assertThat(initialCommits).isNotEmpty() },
-                { assertThat(initialCommits).allSatisfy { assertThat(it.parents).isEmpty() } }
+                { assertThat(initialCommits).allSatisfy { assertThat(it.parents).isEmpty() } },
             )
         }
 
@@ -144,7 +141,7 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 { assertThat(commits).hasSize(17) },
-                { assertThat(commits).noneMatch { it.parents.size > 1 } }
+                { assertThat(commits).noneMatch { it.parents.size > 1 } },
             )
         }
     }
@@ -152,7 +149,6 @@ internal class SkipMergesTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Skip merges configuration validation")
     inner class SkipMergesConfigValidation {
-
         @Test
         fun `skip-merges is enabled in test configuration`() {
             // This test validates that the TestPropertySource is working

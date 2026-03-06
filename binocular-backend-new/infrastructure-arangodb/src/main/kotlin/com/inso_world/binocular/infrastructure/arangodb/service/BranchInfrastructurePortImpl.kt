@@ -1,28 +1,36 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
+import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class BranchInfrastructurePortImpl : BranchInfrastructurePort {
-    @Autowired
-    private lateinit var branchDao: IBranchDao
+internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
+    AbstractInfrastructurePort<Branch, String>() {
 
-    @Autowired
-    private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
-    var logger: Logger = LoggerFactory.getLogger(BranchInfrastructurePortImpl::class.java)
+    @PostConstruct
+    fun init() {
+        super.dao = branchDao
+    }
+    @Autowired private lateinit var branchDao: IBranchDao
+
+    @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
+
+    companion object {
+        private val logger by logger()
+    }
 
     override fun findAll(pageable: Pageable): Page<Branch> {
         logger.trace("Getting all branches with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
@@ -54,18 +62,8 @@ class BranchInfrastructurePortImpl : BranchInfrastructurePort {
 
     override fun saveAll(entities: Collection<Branch>): Iterable<Branch> = this.branchDao.saveAll(entities)
 
-    override fun delete(entity: Branch) = this.branchDao.delete(entity)
-
     override fun update(entity: Branch): Branch {
         TODO("Not yet implemented")
-    }
-
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun deleteAll() {
-        this.branchDao.deleteAll()
     }
 
     override fun findAll(repository: Repository): Iterable<Branch> {

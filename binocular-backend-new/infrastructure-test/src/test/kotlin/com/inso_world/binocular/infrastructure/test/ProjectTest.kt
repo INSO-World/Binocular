@@ -23,7 +23,7 @@ internal class ProjectTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `find all projects, expect non empty list`() {
-        assertThat(projectPort.findAll()).hasSize(6)
+        assertThat(projectPort.findAll()).hasSize(7)
     }
 
     @Test

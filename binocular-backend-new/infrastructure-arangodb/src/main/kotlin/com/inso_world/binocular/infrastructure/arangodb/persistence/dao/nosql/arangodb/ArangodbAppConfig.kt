@@ -10,7 +10,10 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableArangoRepositories(
-    basePackages = ["com.inso_world.binocular.infrastructure.arangodb.persistence", "com.inso_world.binocular.infrastructure.arangodb.model"],
+    basePackages = [
+        "com.inso_world.binocular.infrastructure.arangodb.persistence",
+        "com.inso_world.binocular.infrastructure.arangodb.model",
+    ],
 )
 class ArangodbAppConfig(
     @Autowired private val infraConfig: InfrastructureConfig,
@@ -19,10 +22,18 @@ class ArangodbAppConfig(
         var builder =
             ArangoDB
                 .Builder()
-                .host(infraConfig.arangodb.database.host, infraConfig.arangodb.database.port.toInt())
+                .host(
+                    infraConfig.arangodb.database.host,
+                    infraConfig.arangodb.database.port
+                        .toInt(),
+                )
 
-        builder = infraConfig.arangodb.database.user?.let { builder.user(it) }
-        builder = infraConfig.arangodb.database.password?.let { builder.password(it) }
+        builder =
+            infraConfig.arangodb.database.user
+                ?.let { builder.user(it) }
+        builder =
+            infraConfig.arangodb.database.password
+                ?.let { builder.password(it) }
 
         return builder
     }
