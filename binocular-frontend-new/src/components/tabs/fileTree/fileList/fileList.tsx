@@ -20,7 +20,7 @@ function FileList(props: { orientation?: string; search: string }) {
 
   const filesDataPluginId = useSelector((state: RootState) => state.files.dataPluginId);
 
-  function refreshFileTree(dP: DatabaseSettingsDataPluginType) {
+  function refreshFileTree(dP?: DatabaseSettingsDataPluginType) {
     if (dP && dP.id !== undefined) {
       loadFileList(dP, dispatch);
     } else {
@@ -31,6 +31,11 @@ function FileList(props: { orientation?: string; search: string }) {
   }
 
   useEffect(() => {
+    if (!filesDataPluginId) {
+      // if no dataPlugin is set, reset it to the first available
+      refreshFileTree(undefined);
+      return;
+    }
     const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
     if (filesDataPluginId && !fileTrees[filesDataPluginId]) refreshFileTree(dataPlugin);
   }, [currentDataPlugins, filesDataPluginId]);
