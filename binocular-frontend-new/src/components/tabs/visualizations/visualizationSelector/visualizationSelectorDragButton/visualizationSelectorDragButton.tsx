@@ -16,10 +16,11 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
   const defaultDataPlugin = configuredDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0];
 
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const tooltipVisibleFlagRef = useRef(false);
 
   return (
     <>
-      <InfoTooltip ref={tooltipRef}></InfoTooltip>
+      <InfoTooltip ref={tooltipRef} tooltipVisibleFlagRef={tooltipVisibleFlagRef}></InfoTooltip>
       <button
         draggable={!props.disabled}
         className={
@@ -62,7 +63,7 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                showInfoTooltip(tooltipRef, e.clientX, e.clientY, {
+                showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, e.clientX, e.clientY, {
                   headline: props.plugin.name,
                   textContent: props.plugin.metadata.description ?? '',
                   reactContent: props.plugin.metadata.compatibility && (

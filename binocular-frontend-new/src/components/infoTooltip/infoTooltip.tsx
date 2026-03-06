@@ -1,20 +1,23 @@
 import infoTooltipStyles from './infoTooltip.module.scss';
 import type { RefObject } from 'react';
+import { hideInfoTooltip } from './infoTooltipHelper';
 
 interface InfoTooltipProps {
   ref: RefObject<HTMLDivElement | null>;
+  tooltipVisibleFlagRef: RefObject<boolean>;
 }
 
-function InfoTooltip({ ref }: InfoTooltipProps) {
+function InfoTooltip({ ref, tooltipVisibleFlagRef }: InfoTooltipProps) {
   return (
     <div
       ref={ref}
       id={'infoTooltip'}
       className={infoTooltipStyles.infoTooltip}
+      onMouseEnter={() => {
+        tooltipVisibleFlagRef.current = true;
+      }}
       onMouseLeave={() => {
-        if (ref.current) {
-          ref.current.style.display = 'none';
-        }
+        hideInfoTooltip(ref, tooltipVisibleFlagRef);
       }}
       onContextMenu={(e) => e.preventDefault()}>
       <div
