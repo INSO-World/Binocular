@@ -7,10 +7,17 @@ export interface infoTooltipContent {
   reactContent?: React.ReactNode;
 }
 
-export function showInfoTooltip(ref: RefObject<HTMLDivElement | null>, x: number, y: number, content: infoTooltipContent) {
+export function showInfoTooltip(
+  ref: RefObject<HTMLDivElement | null>,
+  tooltipVisibleFlagRef: RefObject<boolean>,
+  x: number,
+  y: number,
+  content: infoTooltipContent,
+) {
   if (!ref.current) {
     return;
   }
+  tooltipVisibleFlagRef.current = true;
 
   const tooltipContent = document.createElement('div');
 
@@ -50,4 +57,13 @@ export function showInfoTooltip(ref: RefObject<HTMLDivElement | null>, x: number
     controllerElement.style.left = `${x - 10}px`;
     controllerElement.style.right = `auto`;
   }
+}
+
+export function hideInfoTooltip(ref: RefObject<HTMLDivElement | null>, tooltipVisibleFlagRef: RefObject<boolean>) {
+  tooltipVisibleFlagRef.current = false;
+  setTimeout(() => {
+    if (ref.current && !tooltipVisibleFlagRef.current) {
+      ref.current.style.display = 'none';
+    }
+  }, 1000);
 }
