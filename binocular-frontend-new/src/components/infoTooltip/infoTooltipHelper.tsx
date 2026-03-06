@@ -1,5 +1,5 @@
 import React, { type RefObject } from 'react';
-import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 
 export interface infoTooltipContent {
   headline: string;
@@ -34,7 +34,15 @@ export function showInfoTooltip(
 
   if (content.reactContent) {
     const reactContent = document.createElement('div');
-    reactContent.innerHTML = renderToString(content.reactContent);
+    hydrateRoot(
+      reactContent,
+      <div
+        onMouseOver={() => {
+          tooltipVisibleFlagRef.current = true;
+        }}>
+        {content.reactContent}
+      </div>,
+    );
     tooltipContent.appendChild(reactContent);
   }
 
