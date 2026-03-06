@@ -1,0 +1,29 @@
+{
+  "groups": [
+    {
+      "name": "binocular",
+      "type": "com.inso_world.binocular.core.BinocularConfig",
+      "description": "Configuration for the binocular."
+    },
+    {
+      "name": "binocular.vcs",
+      "type": "com.inso_world.binocular.core.config.VcsConfig",
+      "description": "Configuration for the vcs indexer."
+    }
+  ],
+  "properties": [
+    {
+      "name": "binocular.vcs.skip-merges",
+      "type": "java.lang.Boolean",
+      "description": "Whether to skip merge commits during repository indexing. When enabled, merge commits are excluded from the indexed data.",
+      "defaultValue": false
+    },
+    {
+      "name": "binocular.vcs.use-mailmap",
+      "type": "java.lang.Boolean",
+      "description": "Whether to use the .mailmap file for author/committer name and email normalization. When enabled, Git's mailmap feature is applied to unify contributor identities.",
+      "defaultValue": true
+    }
+  ],
+  "hints": []
+}
