@@ -20,13 +20,7 @@ function InfoTooltip({ ref, tooltipVisibleFlagRef }: InfoTooltipProps) {
         hideInfoTooltip(ref, tooltipVisibleFlagRef);
       }}
       onContextMenu={(e) => e.preventDefault()}>
-      <div
-        id={'infoTooltipPositionController'}
-        onMouseLeave={() => {
-          if (ref.current) {
-            ref.current.style.display = 'none';
-          }
-        }}>
+      <div id={'infoTooltipPositionController'}>
         <div id={'infoTooltipContent'}></div>
       </div>
     </div>
