@@ -1,7 +1,7 @@
 package com.inso_world.binocular.ffi.unit.lib
 
-import com.inso_world.binocular.ffi.FfiConfig
-import com.inso_world.binocular.ffi.GixConfig
+import com.inso_world.binocular.core.config.VcsConfig
+import com.inso_world.binocular.ffi.GixModuleConfig
 import com.inso_world.binocular.ffi.internal.UniffiException
 import com.inso_world.binocular.ffi.internal.findAllBranches
 import com.inso_world.binocular.ffi.internal.findCommit
@@ -38,29 +38,32 @@ import kotlin.io.path.createTempDirectory
  * - [TraversalErrors]: Commit traversal errors
  * - [ExceptionMessages]: Exception message quality
  */
-//@DisplayName("Error Handling and Exceptions")
 class ErrorHandlingTest : BaseLibraryUnitTest() {
-
-    private val cfg: FfiConfig = FfiConfig().apply {
-        gix = GixConfig(skipMerges = false, useMailmap = true)
-    }
+    private val cfg: GixModuleConfig =
+        GixModuleConfig().apply {
+            vcs =
+                VcsConfig().apply {
+                    skipMerges = false
+                    useMailmap = true
+                }
+        }
 
     @Nested
     @DisplayName("GixDiscoverException scenarios")
     inner class GixDiscoverErrors {
-
         @Test
         fun `throws GixDiscoverException when repository not found`() {
             // Verifies correct exception type for missing repositories
             val nonExistentPath = "/tmp/no_such_repo_" + System.currentTimeMillis()
 
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo(nonExistentPath)
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo(nonExistentPath)
+                }
 
             assertAll(
                 { assertThat(exception).isInstanceOf(UniffiException.GixDiscoverException::class.java) },
-                { assertThat(exception.v1).isNotEmpty() }
+                { assertThat(exception.v1).isNotEmpty() },
             )
         }
 
@@ -70,9 +73,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val tempDir = createTempDirectory("test_not_git").toString()
 
             try {
-                val exception = assertThrows<UniffiException.GixDiscoverException> {
-                    findRepo(tempDir)
-                }
+                val exception =
+                    assertThrows<UniffiException.GixDiscoverException> {
+                        findRepo(tempDir)
+                    }
 
                 assertThat(exception.v1).containsIgnoringCase("repository")
             } finally {
@@ -85,20 +89,23 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             // Ensures exception provides context about failed path
             val invalidPath = "/tmp/invalid_path"
 
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo(invalidPath)
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo(invalidPath)
+                }
 
             assertThat(exception.v1).hasSizeGreaterThan(10)
         }
 
         @ParameterizedTest
-        @ValueSource(strings = [
-            "",
-            " ",
-            "\n",
-            "\t"
-        ])
+        @ValueSource(
+            strings = [
+                "",
+                " ",
+                "\n",
+                "\t",
+            ],
+        )
         fun `GixDiscoverException for whitespace-only paths`(path: String) {
             // Tests handling of invalid whitespace paths
             assertThrows<UniffiException.GixDiscoverException> {
@@ -111,9 +118,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             // Verifies exception hierarchy allows generic catch
             val invalidPath = "/invalid/path"
 
-            val exception = assertThrows<UniffiException> {
-                findRepo(invalidPath)
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findRepo(invalidPath)
+                }
 
             assertThat(exception).isInstanceOf(UniffiException.GixDiscoverException::class.java)
         }
@@ -122,16 +130,16 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("RevisionParseException scenarios")
     inner class RevisionParseErrors {
-
         @Test
         fun `throws RevisionParseException for malformed hash`() {
             // Tests parsing errors for invalid SHA-1 format
             val repo = findRepo(System.getProperty("user.dir"))
             val malformedHash = "not_a_valid_hash"
 
-            val exception = assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, malformedHash, useMailmap = cfg.gix.useMailmap)
-            }
+            val exception =
+                assertThrows<UniffiException.RevisionParseException> {
+                    findCommit(repo, malformedHash, useMailmap = cfg.vcs.useMailmap)
+                }
 
             assertThat(exception.v1).isNotEmpty()
         }
@@ -141,14 +149,17 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             "abc, too short",
             "ghijklmn, invalid characters",
             "12345, incomplete hash",
-            "zzzzzzzzzz, non-hex characters"
+            "zzzzzzzzzz, non-hex characters",
         )
-        fun `RevisionParseException for various invalid formats`(hash: String, @Suppress("UNUSED_PARAMETER") description: String) {
+        fun `RevisionParseException for various invalid formats`(
+            hash: String,
+            @Suppress("UNUSED_PARAMETER") description: String,
+        ) {
             // Verifies consistent error handling for different malformed hashes
             val repo = findRepo(System.getProperty("user.dir"))
 
             assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, hash, useMailmap = cfg.gix.useMailmap)
+                findCommit(repo, hash, useMailmap = cfg.vcs.useMailmap)
             }
         }
 
@@ -157,13 +168,14 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             // Ensures exception provides parsing error context
             val repo = findRepo(System.getProperty("user.dir"))
 
-            val exception = assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, "invalid_commit_ref", useMailmap = cfg.gix.useMailmap)
-            }
+            val exception =
+                assertThrows<UniffiException.RevisionParseException> {
+                    findCommit(repo, "invalid_commit_ref", useMailmap = cfg.vcs.useMailmap)
+                }
 
             assertAll(
                 { assertThat(exception.v1).isNotEmpty() },
-                { assertThat(exception.message).isNotEmpty() }
+                { assertThat(exception.message).isNotEmpty() },
             )
         }
     }
@@ -171,16 +183,16 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("ObjectException scenarios")
     inner class ObjectErrors {
-
         @Test
         fun `throws ObjectException when commit not found`() {
             // Tests object lookup errors for non-existent commits
             val repo = findRepo(System.getProperty("user.dir"))
             val nonExistentHash = "0000000000000000000000000000000000000000"
 
-            val exception = assertThrows<UniffiException> {
-                findCommit(repo, nonExistentHash, useMailmap = cfg.gix.useMailmap)
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findCommit(repo, nonExistentHash, useMailmap = cfg.vcs.useMailmap)
+                }
 
             assertThat(exception).isNotNull()
         }
@@ -191,9 +203,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val repo = findRepo(System.getProperty("user.dir"))
             val invalidOid = "1111111111111111111111111111111111111111"
 
-            val exception = assertThrows<UniffiException> {
-                findCommit(repo, invalidOid, useMailmap = cfg.gix.useMailmap)
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findCommit(repo, invalidOid, useMailmap = cfg.vcs.useMailmap)
+                }
 
             assertThat(exception.message).isNotEmpty()
         }
@@ -202,7 +215,6 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("ReferenceException scenarios")
     inner class ReferenceErrors {
-
         @Test
         fun `throws ReferenceException for invalid branch operations`() {
             // Tests reference errors when branch operations fail
@@ -210,9 +222,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             // Create corrupted repository reference
             val corruptedRepo = repo.copy(gitDir = "/invalid/path")
 
-            val exception = assertThrows<UniffiException> {
-                findAllBranches(corruptedRepo)
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findAllBranches(corruptedRepo)
+                }
 
             assertThat(exception).isNotNull()
         }
@@ -223,9 +236,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val repo = findRepo(System.getProperty("user.dir"))
             val corruptedRepo = repo.copy(gitDir = "/tmp/corrupt")
 
-            val exception = assertThrows<UniffiException> {
-                findAllBranches(corruptedRepo)
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findAllBranches(corruptedRepo)
+                }
 
             assertThat(exception.message).hasSizeGreaterThan(10)
         }
@@ -234,16 +248,16 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("TraversalException scenarios")
     inner class TraversalErrors {
-
         @Test
         fun `throws ReferenceException for non-existent branch`() {
             // Verifies traversal errors for invalid branch names
             val repo = findRepo(System.getProperty("user.dir"))
             val invalidBranch = "refs/heads/does_not_exist_" + System.currentTimeMillis()
 
-            val exception = assertThrows<UniffiException.ReferenceException> {
-                traverseBranch(repo, invalidBranch, useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
-            }
+            val exception =
+                assertThrows<UniffiException.ReferenceException> {
+                    traverseBranch(repo, invalidBranch, useMailmap = cfg.vcs.useMailmap, skipMerges = cfg.vcs.skipMerges)
+                }
 
             assertThat(exception.v1).isNotEmpty()
         }
@@ -254,9 +268,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             val repo = findRepo(System.getProperty("user.dir"))
             val invalidBranch = "invalid_branch_ref"
 
-            val exception = assertThrows<UniffiException.ReferenceException> {
-                traverseBranch(repo, invalidBranch, useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
-            }
+            val exception =
+                assertThrows<UniffiException.ReferenceException> {
+                    traverseBranch(repo, invalidBranch, useMailmap = cfg.vcs.useMailmap, skipMerges = cfg.vcs.skipMerges)
+                }
 
             assertAll(
                 { assertThat(exception.v1).isNotEmpty() },
@@ -267,19 +282,21 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = [
-            "",
-            "   ",
-            "not/a/valid/ref",
-            "refs/heads/",
-            "/invalid/ref"
-        ])
+        @ValueSource(
+            strings = [
+                "",
+                "   ",
+                "not/a/valid/ref",
+                "refs/heads/",
+                "/invalid/ref",
+            ],
+        )
         fun `TraversalException for various invalid branch references`(invalidRef: String) {
             // Tests consistent error handling for different invalid references
             val repo = findRepo(System.getProperty("user.dir"))
 
             assertThrows<UniffiException> {
-                traverseBranch(repo, invalidRef, useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
+                traverseBranch(repo, invalidRef, useMailmap = cfg.vcs.useMailmap, skipMerges = cfg.vcs.skipMerges)
             }
         }
     }
@@ -287,28 +304,30 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("Exception Message Quality")
     inner class ExceptionMessages {
-
         @Test
         fun `all exceptions have non-empty messages`() {
             // Verifies all exception types provide messages
             val repo = findRepo(System.getProperty("user.dir"))
 
             // Test GixDiscoverException
-            val discoverEx = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo("/invalid/path")
-            }
+            val discoverEx =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo("/invalid/path")
+                }
             assertThat(discoverEx.message).isNotEmpty()
 
             // Test RevisionParseException
-            val parseEx = assertThrows<UniffiException.RevisionParseException> {
-                findCommit(repo, "invalid", useMailmap = cfg.gix.useMailmap)
-            }
+            val parseEx =
+                assertThrows<UniffiException.RevisionParseException> {
+                    findCommit(repo, "invalid", useMailmap = cfg.vcs.useMailmap)
+                }
             assertThat(parseEx.message).isNotEmpty()
 
             // Test TraversalException
-            val traversalEx = assertThrows<UniffiException.ReferenceException> {
-                traverseBranch(repo, "invalid_branch", useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
-            }
+            val traversalEx =
+                assertThrows<UniffiException.ReferenceException> {
+                    traverseBranch(repo, "invalid_branch", useMailmap = cfg.vcs.useMailmap, skipMerges = cfg.vcs.skipMerges)
+                }
             assertThat(traversalEx.message).isNotEmpty()
         }
 
@@ -326,7 +345,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
 
             val repo = findRepo(System.getProperty("user.dir"))
             try {
-                findCommit(repo, "bad_hash", useMailmap = cfg.gix.useMailmap)
+                findCommit(repo, "bad_hash", useMailmap = cfg.vcs.useMailmap)
             } catch (e: UniffiException) {
                 exceptions.add(e)
             }
@@ -334,7 +353,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             exceptions.forEach { exception ->
                 assertAll(
                     { assertThat(exception.message).hasSizeGreaterThan(10) },
-                    { assertThat(exception.message).doesNotContain("null") }
+                    { assertThat(exception.message).doesNotContain("null") },
                 )
             }
         }
@@ -342,28 +361,30 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
         @Test
         fun `exception v1 field contains error details`() {
             // Verifies v1 field (error string) has meaningful content
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo("/tmp/nonexistent")
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo("/tmp/nonexistent")
+                }
 
             assertAll(
                 { assertThat(exception.v1).isNotEmpty() },
                 { assertThat(exception.v1).hasSizeGreaterThan(5) },
-                { assertThat(exception.v1).isNotEqualTo("error") }
+                { assertThat(exception.v1).isNotEqualTo("error") },
             )
         }
 
         @Test
         fun `exception toString provides debug information`() {
             // Tests that exception string representation is useful
-            val exception = assertThrows<UniffiException> {
-                findRepo("/invalid/path")
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findRepo("/invalid/path")
+                }
 
             val exceptionString = exception.toString()
             assertAll(
                 { assertThat(exceptionString).isNotEmpty() },
-                { assertThat(exceptionString).contains("Exception") }
+                { assertThat(exceptionString).contains("Exception") },
             )
         }
     }
@@ -371,7 +392,6 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("Exception Inheritance and Hierarchy")
     inner class ExceptionHierarchy {
-
         @Test
         fun `all FFI exceptions extend UniffiException`() {
             // Verifies exception hierarchy for polymorphic handling
@@ -386,13 +406,13 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
 
             val repo = findRepo(System.getProperty("user.dir"))
             try {
-                findCommit(repo, "invalid", useMailmap = cfg.gix.useMailmap)
+                findCommit(repo, "invalid", useMailmap = cfg.vcs.useMailmap)
             } catch (e: Exception) {
                 exceptions.add(e)
             }
 
             try {
-                traverseBranch(repo, "invalid", useMailmap = cfg.gix.useMailmap, skipMerges = cfg.gix.skipMerges)
+                traverseBranch(repo, "invalid", useMailmap = cfg.vcs.useMailmap, skipMerges = cfg.vcs.skipMerges)
             } catch (e: Exception) {
                 exceptions.add(e)
             }
@@ -430,14 +450,14 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
 
             val repo = findRepo(System.getProperty("user.dir"))
             try {
-                findCommit(repo, "bad", useMailmap = cfg.gix.useMailmap)
+                findCommit(repo, "bad", useMailmap = cfg.vcs.useMailmap)
             } catch (e: UniffiException.RevisionParseException) {
                 parseError = true
             }
 
             assertAll(
                 { assertThat(discoveryError).isTrue() },
-                { assertThat(parseError).isTrue() }
+                { assertThat(parseError).isTrue() },
             )
         }
     }
@@ -445,7 +465,6 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("Edge Cases and Boundary Conditions")
     inner class EdgeCases {
-
         @Test
         fun `handles null-like string inputs gracefully`() {
             // Tests error handling for edge case string inputs
@@ -463,9 +482,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             // Tests behavior with extremely long path strings
             val longPath = "/tmp/" + "a".repeat(1000)
 
-            val exception = assertThrows<UniffiException> {
-                findRepo(longPath)
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findRepo(longPath)
+                }
 
             assertThat(exception).isNotNull()
         }
@@ -473,12 +493,13 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
         @Test
         fun `handles special characters in paths`() {
             // Verifies error handling for paths with special characters
-            val specialPaths = listOf(
-                "/tmp/with spaces/repo",
-                "/tmp/with-dashes/repo",
-                "/tmp/with_underscores/repo",
-                "/tmp/with.dots/repo"
-            )
+            val specialPaths =
+                listOf(
+                    "/tmp/with spaces/repo",
+                    "/tmp/with-dashes/repo",
+                    "/tmp/with_underscores/repo",
+                    "/tmp/with.dots/repo",
+                )
 
             specialPaths.forEach { path ->
                 assertThrows<UniffiException> {
@@ -492,9 +513,10 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
             // Tests that unicode characters in paths don't break error messages
             val unicodePath = "/tmp/тест/مستودع/저장소"
 
-            val exception = assertThrows<UniffiException> {
-                findRepo(unicodePath)
-            }
+            val exception =
+                assertThrows<UniffiException> {
+                    findRepo(unicodePath)
+                }
 
             assertThat(exception.message).isNotNull()
         }

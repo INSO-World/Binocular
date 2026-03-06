@@ -54,14 +54,14 @@ data class UserEntity(
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var issues: List<IssueEntity> = emptyList(),
+    var issues: Set<IssueEntity> = emptySet(),
     @Relations(
         edges = [CommitFileUserConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var files: List<FileEntity> = emptyList(),
+    var files: Set<FileEntity> = emptySet(),
 ) {
     /**
      * Extracts the name portion from the git signature.
@@ -70,7 +70,11 @@ data class UserEntity(
     val name: String
         get() {
             val nameRegex = Regex("""^(.+?)\s*<""")
-            return nameRegex.find(gitSignature)?.groupValues?.get(1)?.trim()
+            return nameRegex
+                .find(gitSignature)
+                ?.groupValues
+                ?.get(1)
+                ?.trim()
                 ?: throw IllegalArgumentException("Could not extract name from gitSignature: $gitSignature")
         }
 
@@ -92,15 +96,14 @@ data class UserEntity(
      * @return User domain object
      */
     @Suppress("DEPRECATION")
-    fun toDomain(repository: Repository): User {
-        return User(
+    fun toDomain(repository: Repository): User =
+        User(
             name = this.name,
             repository = repository,
         ).apply {
             this.email = this@UserEntity.email
             this.id = this@UserEntity.id
         }
-    }
 }
 
 /**
