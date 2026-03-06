@@ -10,18 +10,14 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.Stats
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.nio.file.Path
-import kotlin.math.min
-import kotlin.streams.asSequence
 
 @Service
 class GixIndexer : GitIndexer {
-
     @Autowired
-    private lateinit var cfg: FfiConfig
+    private lateinit var cfg: GixConfig
 
     companion object Companion {
         private val logger by logger()
@@ -39,7 +35,10 @@ class GixIndexer : GitIndexer {
             .hello()
     }
 
-    override fun findRepo(path: Path, project: Project): Repository {
+    override fun findRepo(
+        path: Path,
+        project: Project,
+    ): Repository {
         logger.trace("Searching repository... at '{}'", path)
         val repo =
             com.inso_world.binocular.ffi.internal
@@ -52,23 +51,24 @@ class GixIndexer : GitIndexer {
         repo: Repository,
         branchName: String,
     ): Pair<Branch, List<Commit>> {
-        logger.trace("Traversing $branchName with skipMerges={}, useMailmap={}", cfg.gix.skipMerges, cfg.gix.useMailmap)
+        logger.trace("Traversing $branchName with skipMerges={}, useMailmap={}", cfg.vcs.skipMerges, cfg.vcs.useMailmap)
         val branchTraversalResult =
             com.inso_world.binocular.ffi.internal
                 .traverseBranch(
                     repo.toFfi(),
                     branchName,
-                    skipMerges = cfg.gix.skipMerges,
-                    useMailmap = cfg.gix.useMailmap,
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
                 )
 
         val commits: List<Commit> = branchTraversalResult.commits.toDomain(repo)
-        val branch: Branch = with(commits.associateBy { it.sha }.getValue(branchTraversalResult.branch.target)) {
-            branchTraversalResult.branch.toDomain(
-                repo,
-                this
-            )
-        }
+        val branch: Branch =
+            with(commits.associateBy { it.sha }.getValue(branchTraversalResult.branch.target)) {
+                branchTraversalResult.branch.toDomain(
+                    repo,
+                    this,
+                )
+            }
 
         return Pair(branch, commits)
     }
@@ -78,11 +78,13 @@ class GixIndexer : GitIndexer {
         return com.inso_world.binocular.ffi.internal
             .findAllBranches(binocularRepo)
             .map {
-                val head = com.inso_world.binocular.ffi.internal.findCommit(
-                    binocularRepo,
-                    it.target,
-                    useMailmap = cfg.gix.useMailmap,
-                ).toDomain(repo)
+                val head =
+                    com.inso_world.binocular.ffi.internal
+                        .findCommit(
+                            binocularRepo,
+                            it.target,
+                            useMailmap = cfg.vcs.useMailmap,
+                        ).toDomain(repo)
                 val branch = it.toDomain(repo, head)
                 branch
             }
@@ -96,9 +98,8 @@ class GixIndexer : GitIndexer {
             .findCommit(
                 repo.toFfi(),
                 hash,
-                useMailmap = cfg.gix.useMailmap
-            )
-            .toDomain(repo)
+                useMailmap = cfg.vcs.useMailmap,
+            ).toDomain(repo)
 
     override fun traverse(
         repo: Repository,
@@ -107,9 +108,9 @@ class GixIndexer : GitIndexer {
     ): List<Commit> =
         com.inso_world.binocular.ffi.internal
             .traverseHistory(
-                repo.toFfi(), source.sha,
+                repo.toFfi(),
+                source.sha,
                 target?.sha,
-                useMailmap = cfg.gix.useMailmap
-            )
-            .toDomain(repo)
+                useMailmap = cfg.vcs.useMailmap,
+            ).toDomain(repo)
 }

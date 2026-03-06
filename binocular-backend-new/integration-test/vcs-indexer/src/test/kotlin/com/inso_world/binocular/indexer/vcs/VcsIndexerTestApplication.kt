@@ -16,8 +16,8 @@ import org.springframework.boot.runApplication
 @SpringBootApplication(
     scanBasePackages = [
         "com.inso_world.binocular.indexer.vcs.config",
-        "com.inso_world.binocular.core"
-    ]
+        "com.inso_world.binocular.core",
+    ],
 )
 open class VcsIndexerTestApplication
 
