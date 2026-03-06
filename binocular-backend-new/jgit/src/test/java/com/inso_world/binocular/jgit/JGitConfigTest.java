@@ -1,14 +1,14 @@
 package com.inso_world.binocular.jgit;
 
+import com.inso_world.binocular.core.config.VcsConfig;
 import com.inso_world.binocular.core.unit.base.BaseUnitTest;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for {@link JGitConfig} and {@link JGitConfig.JGitSettings}.
+ * Unit tests for {@link JGitConfig} and {@link VcsConfig}.
  * Tests all getters and setters to ensure full mutation coverage.
  */
 class JGitConfigTest extends BaseUnitTest {
@@ -20,21 +20,21 @@ class JGitConfigTest extends BaseUnitTest {
         void getJgit_returnsDefaultSettings() {
             JGitConfig config = new JGitConfig();
 
-            JGitConfig.JGitSettings settings = config.getJgit();
+            VcsConfig settings = config.getVcs();
 
-            assertNotNull(settings, "Default JGitSettings should not be null");
+            assertNotNull(settings, "Default VcsConfig should not be null");
         }
 
         @Test
         void setJgit_updatesSettings() {
             JGitConfig config = new JGitConfig();
-            JGitConfig.JGitSettings newSettings = new JGitConfig.JGitSettings();
+            VcsConfig newSettings = new VcsConfig();
             newSettings.setSkipMerges(true);
             newSettings.setUseMailmap(true);
 
-            config.setJgit(newSettings);
+            config.setVcs(newSettings);
 
-            assertSame(newSettings, config.getJgit(), "getJgit should return the settings set by setJgit");
+            assertSame(newSettings, config.getVcs(), "getVcs should return the settings set by getVcs");
         }
     }
 
@@ -46,39 +46,39 @@ class JGitConfigTest extends BaseUnitTest {
 
             @Test
             void isSkipMerges_defaultsToFalse() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
 
-                assertFalse(settings.isSkipMerges(), "skipMerges should default to false");
+                assertFalse(settings.getSkipMerges(), "skipMerges should default to false");
             }
 
             @Test
             void isSkipMerges_returnsTrueWhenSetToTrue() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
 
                 settings.setSkipMerges(true);
 
-                assertTrue(settings.isSkipMerges(), "isSkipMerges should return true after setting to true");
+                assertTrue(settings.getSkipMerges(), "isSkipMerges should return true after setting to true");
             }
 
             @Test
             void isSkipMerges_returnsFalseWhenSetToFalse() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
                 settings.setSkipMerges(true); // First set to true
 
                 settings.setSkipMerges(false); // Then set back to false
 
-                assertFalse(settings.isSkipMerges(), "isSkipMerges should return false after setting to false");
+                assertFalse(settings.getSkipMerges(), "isSkipMerges should return false after setting to false");
             }
 
             @Test
             void setSkipMerges_modifiesValue() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
 
                 settings.setSkipMerges(true);
-                boolean afterSetTrue = settings.isSkipMerges();
+                boolean afterSetTrue = settings.getSkipMerges();
 
                 settings.setSkipMerges(false);
-                boolean afterSetFalse = settings.isSkipMerges();
+                boolean afterSetFalse = settings.getSkipMerges();
 
                 assertAll(
                         () -> assertTrue(afterSetTrue, "Should be true after setSkipMerges(true)"),
@@ -91,40 +91,40 @@ class JGitConfigTest extends BaseUnitTest {
         class UseMailmapProperty {
 
             @Test
-            void isUseMailmap_defaultsToFalse() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+            void isUseMailmap_defaultsToTrue() {
+                VcsConfig settings = new VcsConfig();
 
-                assertFalse(settings.isUseMailmap(), "useMailmap should default to false");
+                assertTrue(settings.getUseMailmap(), "useMailmap should default to true");
             }
 
             @Test
             void isUseMailmap_returnsTrueWhenSetToTrue() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
 
                 settings.setUseMailmap(true);
 
-                assertTrue(settings.isUseMailmap(), "isUseMailmap should return true after setting to true");
+                assertTrue(settings.getUseMailmap(), "isUseMailmap should return true after setting to true");
             }
 
             @Test
             void isUseMailmap_returnsFalseWhenSetToFalse() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
                 settings.setUseMailmap(true); // First set to true
 
                 settings.setUseMailmap(false); // Then set back to false
 
-                assertFalse(settings.isUseMailmap(), "isUseMailmap should return false after setting to false");
+                assertFalse(settings.getUseMailmap(), "isUseMailmap should return false after setting to false");
             }
 
             @Test
             void setUseMailmap_modifiesValue() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
 
                 settings.setUseMailmap(true);
-                boolean afterSetTrue = settings.isUseMailmap();
+                boolean afterSetTrue = settings.getUseMailmap();
 
                 settings.setUseMailmap(false);
-                boolean afterSetFalse = settings.isUseMailmap();
+                boolean afterSetFalse = settings.getUseMailmap();
 
                 assertAll(
                         () -> assertTrue(afterSetTrue, "Should be true after setUseMailmap(true)"),
@@ -138,27 +138,27 @@ class JGitConfigTest extends BaseUnitTest {
 
             @Test
             void bothSettings_canBeSetIndependently() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
 
                 settings.setSkipMerges(true);
                 settings.setUseMailmap(false);
 
                 assertAll(
-                        () -> assertTrue(settings.isSkipMerges(), "skipMerges should be true"),
-                        () -> assertFalse(settings.isUseMailmap(), "useMailmap should be false")
+                        () -> assertTrue(settings.getSkipMerges(), "skipMerges should be true"),
+                        () -> assertFalse(settings.getUseMailmap(), "useMailmap should be false")
                 );
             }
 
             @Test
             void bothSettings_canBeTrueSimultaneously() {
-                JGitConfig.JGitSettings settings = new JGitConfig.JGitSettings();
+                VcsConfig settings = new VcsConfig();
 
                 settings.setSkipMerges(true);
                 settings.setUseMailmap(true);
 
                 assertAll(
-                        () -> assertTrue(settings.isSkipMerges(), "skipMerges should be true"),
-                        () -> assertTrue(settings.isUseMailmap(), "useMailmap should be true")
+                        () -> assertTrue(settings.getSkipMerges(), "skipMerges should be true"),
+                        () -> assertTrue(settings.getUseMailmap(), "useMailmap should be true")
                 );
             }
         }
@@ -171,12 +171,12 @@ class JGitConfigTest extends BaseUnitTest {
         void config_accessesNestedSettings() {
             JGitConfig config = new JGitConfig();
 
-            config.getJgit().setSkipMerges(true);
-            config.getJgit().setUseMailmap(true);
+            config.getVcs().setSkipMerges(true);
+            config.getVcs().setUseMailmap(true);
 
             assertAll(
-                    () -> assertTrue(config.getJgit().isSkipMerges(), "skipMerges should be accessible through config"),
-                    () -> assertTrue(config.getJgit().isUseMailmap(), "useMailmap should be accessible through config")
+                    () -> assertTrue(config.getVcs().getSkipMerges(), "skipMerges should be accessible through config"),
+                    () -> assertTrue(config.getVcs().getUseMailmap(), "useMailmap should be accessible through config")
             );
         }
     }

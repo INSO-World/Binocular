@@ -78,8 +78,8 @@ public class JGitGitIndexer implements GitIndexer {
         Objects.requireNonNull(repo, "repo");
         Objects.requireNonNull(branchName, "branchName");
 
-        boolean skipMerges = config.getJgit().isSkipMerges();
-        boolean useMailmap = config.getJgit().isUseMailmap();
+        boolean skipMerges = config.getVcs().getSkipMerges();
+        boolean useMailmap = config.getVcs().getUseMailmap();
         logger.trace("Traversing {} with skipMerges={}, useMailmap={}", branchName, skipMerges, useMailmap);
 
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
@@ -134,7 +134,7 @@ public class JGitGitIndexer implements GitIndexer {
     public List<Branch> findAllBranches(@NotNull Repository repo) {
         Objects.requireNonNull(repo, "repo");
 
-        boolean useMailmap = config.getJgit().isUseMailmap();
+        boolean useMailmap = config.getVcs().getUseMailmap();
 
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
             Mailmap mailmap = useMailmap ? Mailmap.read(jgitRepo) : null;
@@ -174,7 +174,7 @@ public class JGitGitIndexer implements GitIndexer {
         Objects.requireNonNull(repo, "repo");
         Objects.requireNonNull(hash, "hash");
 
-        boolean useMailmap = config.getJgit().isUseMailmap();
+        boolean useMailmap = config.getVcs().getUseMailmap();
 
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
             Mailmap mailmap = useMailmap ? Mailmap.read(jgitRepo) : null;
@@ -224,7 +224,7 @@ public class JGitGitIndexer implements GitIndexer {
         Objects.requireNonNull(repo, "repo");
         Objects.requireNonNull(source, "source");
 
-        boolean useMailmap = config.getJgit().isUseMailmap();
+        boolean useMailmap = config.getVcs().getUseMailmap();
 
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(Path.of(repo.getLocalPath()))) {
             Mailmap mailmap = useMailmap ? Mailmap.read(jgitRepo) : null;
@@ -581,9 +581,9 @@ public class JGitGitIndexer implements GitIndexer {
     }
 
     private static LocalDateTime toLocalDateTime(PersonIdent ident) {
-        if (ident == null || ident.getWhen() == null) {
+        if (ident == null || ident.getWhenAsInstant() == null) {
             return LocalDateTime.now();
         }
-        return ident.getWhen().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
+        return ident.getWhenAsInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
     }
 }
