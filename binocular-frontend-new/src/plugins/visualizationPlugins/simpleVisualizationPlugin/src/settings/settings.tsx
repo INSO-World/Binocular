@@ -3,11 +3,6 @@ export interface DefaultSettings {
   showSprints: boolean;
 }
 
-export interface SumSettings extends DefaultSettings {
-  showMean: boolean;
-  showOther: boolean;
-}
-
 // TODO this function is currently ignored, generalization should be done for the basic settings as well
 function Settings(props: { settings: DefaultSettings; setSettings: (newSettings: DefaultSettings) => void }) {
   return (

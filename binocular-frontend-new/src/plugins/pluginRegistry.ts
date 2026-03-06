@@ -15,8 +15,8 @@ import type { IssueSettings } from './visualizationPlugins/issues/issues/src/set
 import type { BuildSettings } from './visualizationPlugins/builds/builds/src/settings/settings.tsx';
 import type { TimeSpentSettings } from './visualizationPlugins/authorBehaviour/timeSpent/src/settings/settings.tsx';
 import type { ChangesSettings } from './visualizationPlugins/commits/changes/src/settings/settings.tsx';
+import type { SumSettings } from './visualizationPlugins/commits/sumCommits/src/settings/settings.tsx';
 import type { MergeRequestsSettings } from './visualizationPlugins/issues/mergeRequests/src/settings/settings.tsx';
-import type { SumSettings } from './visualizationPlugins/simpleVisualizationPlugin/src/settings/settings.tsx';
 import Builds from './visualizationPlugins/builds/builds';
 import Changes from './visualizationPlugins/commits/changes/src/index.tsx';
 import Issues from './visualizationPlugins/issues/issues';
