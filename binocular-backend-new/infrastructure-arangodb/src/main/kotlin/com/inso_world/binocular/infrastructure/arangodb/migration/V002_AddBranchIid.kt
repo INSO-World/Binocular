@@ -17,6 +17,7 @@ import kotlin.uuid.Uuid
  */
 @OptIn(ExperimentalUuidApi::class)
 @Component
+@Suppress("ktlint:standard:class-naming")
 class V002_AddBranchIid : Migration {
     companion object {
         private val logger by logger()
@@ -27,10 +28,12 @@ class V002_AddBranchIid : Migration {
 
     override fun migrate(db: ArangoDatabase) {
         // Get all commit keys that don't have an iid
-        val keysWithoutIid = db.query(
-            "FOR c IN branches FILTER c.iid == null RETURN c._key",
-            String::class.java,
-        ).asListRemaining()
+        val keysWithoutIid =
+            db
+                .query(
+                    "FOR c IN branches FILTER c.iid == null RETURN c._key",
+                    String::class.java,
+                ).asListRemaining()
 
         if (keysWithoutIid.isEmpty()) {
             logger.info("No branches need iid backfill")
@@ -38,9 +41,10 @@ class V002_AddBranchIid : Migration {
         }
 
         // Generate Kotlin UUIDs and create update map
-        val updates = keysWithoutIid.map { key ->
-            mapOf("_key" to key, "iid" to Uuid.random().toString())
-        }
+        val updates =
+            keysWithoutIid.map { key ->
+                mapOf("_key" to key, "iid" to Uuid.random().toString())
+            }
 
         // Batch update all branches
         db.query(
