@@ -17,6 +17,7 @@ import kotlin.uuid.Uuid
  */
 @OptIn(ExperimentalUuidApi::class)
 @Component
+@Suppress("ktlint:standard:class-naming")
 class V001_AddCommitIid : Migration {
     companion object {
         private val logger by logger()

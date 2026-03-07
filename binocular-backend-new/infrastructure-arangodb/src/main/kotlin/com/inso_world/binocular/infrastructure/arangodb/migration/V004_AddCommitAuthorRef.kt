@@ -22,6 +22,7 @@ import kotlin.uuid.Uuid
  */
 @OptIn(ExperimentalUuidApi::class)
 @Component
+@Suppress("ktlint:standard:class-naming")
 class V004_AddCommitAuthorRef : Migration {
     companion object {
         private val logger by logger()
@@ -40,32 +41,35 @@ class V004_AddCommitAuthorRef : Migration {
      * inserts a new developer document with a generated `iid`.
      */
     private fun createDevelopersFromUsers(db: ArangoDatabase) {
-        val usersWithoutDeveloper = db.query(
-            """
-            FOR u IN users
-            LET existing = (
-                FOR d IN developers
-                FILTER d.gitSignature == u.gitSignature
-                LIMIT 1
-                RETURN d
-            )
-            FILTER LENGTH(existing) == 0
-            RETURN u
-            """.trimIndent(),
-            Map::class.java,
-        ).asListRemaining()
+        val usersWithoutDeveloper =
+            db
+                .query(
+                    """
+                    FOR u IN users
+                    LET existing = (
+                        FOR d IN developers
+                        FILTER d.gitSignature == u.gitSignature
+                        LIMIT 1
+                        RETURN d
+                    )
+                    FILTER LENGTH(existing) == 0
+                    RETURN u
+                    """.trimIndent(),
+                    Map::class.java,
+                ).asListRemaining()
 
         if (usersWithoutDeveloper.isEmpty()) {
             logger.info("All users already have a matching developer")
             return
         }
 
-        val developerDocs = usersWithoutDeveloper.map { user ->
-            mapOf(
-                "gitSignature" to user["gitSignature"],
-                "iid" to Uuid.random().toString(),
-            )
-        }
+        val developerDocs =
+            usersWithoutDeveloper.map { user ->
+                mapOf(
+                    "gitSignature" to user["gitSignature"],
+                    "iid" to Uuid.random().toString(),
+                )
+            }
 
         db.query(
             """
@@ -85,26 +89,28 @@ class V004_AddCommitAuthorRef : Migration {
      * and sets both `author` and `committer` to that developer's document ID.
      */
     private fun backfillCommitAuthorRef(db: ArangoDatabase) {
-        val result = db.query(
-            """
-            FOR c IN commits
-            FILTER c.author == null
-            LET userEdge = FIRST(
-                FOR v, e IN 1..1 OUTBOUND c `commits-users`
-                RETURN v
-            )
-            FILTER userEdge != null
-            LET dev = FIRST(
-                FOR d IN developers
-                FILTER d.gitSignature == userEdge.gitSignature
-                RETURN d
-            )
-            FILTER dev != null
-            UPDATE c WITH { author: dev._id, committer: dev._id } IN commits
-            RETURN 1
-            """.trimIndent(),
-            Int::class.java,
-        ).asListRemaining()
+        val result =
+            db
+                .query(
+                    """
+                    FOR c IN commits
+                    FILTER c.author == null
+                    LET userEdge = FIRST(
+                        FOR v, e IN 1..1 OUTBOUND c `commits-users`
+                        RETURN v
+                    )
+                    FILTER userEdge != null
+                    LET dev = FIRST(
+                        FOR d IN developers
+                        FILTER d.gitSignature == userEdge.gitSignature
+                        RETURN d
+                    )
+                    FILTER dev != null
+                    UPDATE c WITH { author: dev._id, committer: dev._id } IN commits
+                    RETURN 1
+                    """.trimIndent(),
+                    Int::class.java,
+                ).asListRemaining()
 
         val updatedCount = result.size
         if (updatedCount == 0) {
