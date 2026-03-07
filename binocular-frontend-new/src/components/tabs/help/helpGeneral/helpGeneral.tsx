@@ -34,6 +34,11 @@ function HelpGeneral() {
               </li>
             </ul>
           </div>
+          <div className={'mt-2 p-2 bg-warning/20 border border-warning rounded text-sm'}>
+            <span className={'font-bold'}>Note:</span> When a strong zoom is applied and the visualization style is set to{' '}
+            <span className={'font-bold'}>Curved</span> or <span className={'font-bold'}>Linear</span>, tooltip values may not be fully
+            accurate.
+          </div>
         </div>
       </div>
       <div className="collapse collapse-plus bg-base-200 mb-1">

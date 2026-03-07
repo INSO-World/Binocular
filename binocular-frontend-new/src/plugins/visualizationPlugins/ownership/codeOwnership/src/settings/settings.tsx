@@ -32,8 +32,7 @@ function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSet
     </option>,
   ]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getBranchOptions = useMemo(() => {
+  useMemo(() => {
     if (allBranches.length === 0) {
       return;
     }
@@ -90,6 +89,40 @@ function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSet
             }}>
             {branchOptions}
           </select>
+        </label>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Visualization Style:</span>
+          <select
+            value={props.settings.visualizationStyle ?? ''}
+            className="select select-bordered select-xs w-36"
+            onChange={(e) =>
+              props.setSettings({
+                displayMode: props.settings.displayMode,
+                currentBranch: props.settings.currentBranch,
+                visualizationStyle: e.target.value,
+                showSprints: props.settings.showSprints,
+              })
+            }>
+            <option value={'curved'}>curved</option>
+            <option value={'stepped'}>stepped</option>
+            <option value={'linear'}>linear</option>
+          </select>
+        </label>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Show Sprints:</span>
+          <input
+            type="checkbox"
+            className="toggle toggle-accent toggle-sm"
+            defaultChecked={props.settings.showSprints}
+            onChange={(e) =>
+              props.setSettings({
+                displayMode: props.settings.displayMode,
+                currentBranch: props.settings.currentBranch,
+                visualizationStyle: props.settings.visualizationStyle,
+                showSprints: e.target.checked,
+              })
+            }
+          />
         </label>
       </div>
     </>
