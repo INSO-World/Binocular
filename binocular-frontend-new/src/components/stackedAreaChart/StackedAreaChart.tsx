@@ -147,11 +147,15 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const t = (d3.transition() as any).duration(TRANSITION_MS).ease(d3.easeCubicOut);
 
-    svg.select<SVGGElement>('.xAxis').attr('transform', `translate(0,${boundsHeight})`).transition(t).call(d3.axisBottom(xScale));
-    svg.select<SVGGElement>('.yAxis').transition(t).call(d3.axisLeft(yScale));
+    svg
+      .select<SVGGElement>('.xAxis')
+      .attr('transform', `translate(0,${boundsHeight})`)
+      .transition()
+      .duration(TRANSITION_MS)
+      .ease(d3.easeCubicOut)
+      .call(d3.axisBottom(xScale));
+    svg.select<SVGGElement>('.yAxis').transition().duration(TRANSITION_MS).ease(d3.easeCubicOut).call(d3.axisLeft(yScale));
     svg.select<SVGGElement>('.brush').call(brush);
 
     const allKeys = Object.keys(palette);
@@ -168,7 +172,7 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
 
     updateAreaPaths(
       svg.select<SVGGElement>('.areas'),
-      t,
+      TRANSITION_MS,
       palette,
       data,
       settings.visualizationStyle,
@@ -194,9 +198,9 @@ export const StackedAreaChart = ({ width, height, data, scale, palette, sprintLi
       for (const { keys, stacked } of allStacked) {
         for (let i = keys.length - 1; i >= 0; i--) {
           if (closestIndex >= stacked[i].length) continue;
-          const topPx = yScale(stacked[i][closestIndex][1]);
-          const bottomPx = yScale(stacked[i][closestIndex][0]);
-          if (y >= topPx && y <= bottomPx) {
+          const px0 = yScale(stacked[i][closestIndex][0]);
+          const px1 = yScale(stacked[i][closestIndex][1]);
+          if (y >= Math.min(px0, px1) && y <= Math.max(px0, px1)) {
             const key = keys[i];
             tooltip.style('visibility', 'visible').style('border-color', palette[key].secondary);
             setTooltipContent(tooltip, key, `${round(data[closestIndex][key])}`);
