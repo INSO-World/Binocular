@@ -157,3 +157,4 @@ class ShaclValidator: ShaclValidationPort {
         return ShaclReport(conforms, criticalErrors, warnings, rawRdfWriter.toString())
     }
 }
+//TODO: All placeholders should be caught by the validation(Commit message, Committer ID,...)

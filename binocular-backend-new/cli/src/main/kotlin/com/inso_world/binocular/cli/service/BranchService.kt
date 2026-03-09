@@ -32,24 +32,24 @@ class BranchService (
     }
 
     fun getBranchExportData(
-        branchId: String,
+        branchIdentifier: String,
         repoPath: String,
         exportAll: Boolean,
         includeContent: Boolean
     ): BranchExportData {
-        val branch = getBranch(branchId)
+        val branch = getBranch(branchIdentifier)
 
         return branch?.let { b ->
-            val commitSha = b.head.sha ?: return@let createEmptyExportData(b.name, "No SHA")
+            val commitSha = b.head.sha ?: return@let createEmptyExportData(b.name, branchIdentifier, "No SHA")
 
             val commit = getLatestCommit(b) ?: run {
                 println("FATAL: Commit with SHA $commitSha was retrieved but has a NULL ID. Check database mapping!")
-                return@let createEmptyExportData(b.name, commitSha)
+                return@let createEmptyExportData(b.name, branchIdentifier, commitSha)
             }
             //Use IID not id
             val commitId = commit.id ?: run {
                 println("FATAL: Commit with SHA $commitSha was retrieved but has a NULL ID. Check database mapping!")
-                return@let createEmptyExportData(b.name, commitSha)
+                return@let createEmptyExportData(b.name, branchIdentifier,commitSha)
             }
 
             val gitFolder = JFile(repoPath, ".git")
@@ -63,7 +63,7 @@ class BranchService (
                 ExportConfigLoader.loadDefaultPolicy()
             }
 
-            val fileContentList = getSnapshotFromGit(repository, commitSha, cfg, includeContent)
+            val fileContentList = getSnapshotFromGit(repository, commitSha, cfg, includeContent, exportAll)
 
             val committerId = userService.findUserByCommit(commitId).firstOrNull()?.id ?: "N/A"
 
@@ -92,6 +92,7 @@ class BranchService (
             // Return the fully assembled DTO
             BranchExportData(
                 branchName = b.name,
+                branchId = branchIdentifier,
                 commitSha = commitSha,
                 commitId = commitId,
                 committerId = committerId,
@@ -102,7 +103,7 @@ class BranchService (
                 childrenCommits = childrenDetails,
 
             )
-        } ?: createEmptyExportData("Branch ID: $branchId", "Branch not found")
+        } ?: createEmptyExportData("Branch name not found.","Branch ID: $branchIdentifier", "Branch not found")
         // If 'branch' was null, return the default/empty DTO here.
     }
 
@@ -117,9 +118,10 @@ class BranchService (
     }
 
     // --- Helper function for returning a predictable empty DTO ---
-    private fun createEmptyExportData(branchName: String, latestCommitSha: String): BranchExportData {
+    private fun createEmptyExportData(branchName: String, branchIdentifier: String, latestCommitSha: String): BranchExportData {
         return BranchExportData(
             branchName = branchName,
+            branchId = branchIdentifier,
             commitSha = latestCommitSha,
             commitId = "N/A",
             committerId = "N/A",
@@ -135,7 +137,8 @@ class BranchService (
         repository: Repository,
         sha: String,
         cfg: ExportSelectionConfig,
-        includeContent: Boolean
+        includeContent: Boolean,
+        exportAll: Boolean
     ): List<FileContent>
     {
         val fileList = mutableListOf<FileContent>()
@@ -153,11 +156,12 @@ class BranchService (
 
             val path = treeWalk.pathString
 
-            if (cfg.includePrefixes.isNotEmpty() && cfg.includePrefixes.none {
-                path.startsWith(it)
-                }) continue
 
-            if (cfg.excludePrefixes.any { path.startsWith(it) }) continue
+                if (cfg.includePrefixes.isNotEmpty() && cfg.includePrefixes.none {
+                        path.startsWith(it)
+                    }) continue
+
+                if (cfg.excludePrefixes.any { path.startsWith(it) }) continue
 
             val objectId = treeWalk.getObjectId(0)
             val blobSha = objectId.name // This is the Blob SHA
@@ -174,7 +178,7 @@ class BranchService (
                 content = listOf(
                     Content(
                         id = blobSha,
-                        content = contentString
+                        contentText = contentString
                     )
                 )
             ))

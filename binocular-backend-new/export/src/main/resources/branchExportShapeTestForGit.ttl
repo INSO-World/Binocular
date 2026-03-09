@@ -1,127 +1,189 @@
-@prefix sh:        <http://www.w3.org/ns/shacl#> .
-@prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix binocular: <https://data.inso-world.com/ontology/binocular#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix schema:  <https://schema.org/> .
 
-binocular:BranchExport
-    a rdfs:Class .
+# SEON terms must be written as full IRIs because names contain "::", "+", "()", etc.
 
-binocular:ChildCommitDetail
-    a rdfs:Class .
+#################################################################
+# Baseline (root BranchExport) -> CMPO::Baseline
+#################################################################
 
-binocular:FileContent
-    a rdfs:Class .
-
-binocular:Content
-    a rdfs:Class .
-
-binocular:BranchExportShape
-    a              sh:NodeShape ;
-    sh:targetClass binocular:BranchExport ;
-    sh:severity    sh:Violation ;
-
-    sh:property    [ sh:path     binocular:branch ;
-                     sh:name     "Branch Name" ;
-                     sh:minCount 1 ;
-                     sh:maxCount 1 ;
-                     sh:datatype xsd:string ;
-                     sh:message   "Branch name is required and must be a string."@en ] ;
-
-    sh:property    [ sh:path     binocular:commitSHA ;
-                     sh:name     "Latest Commit SHA" ;
-                     sh:minCount 1 ;
-                     sh:maxCount 1 ;
-                     sh:datatype xsd:string ;
-                     sh:pattern  "^[0-9a-fA-F]{40}$" ;
-                     sh:message   "Latest commit SHA must be a 40-character hex string."@en ] ;
-
-    sh:property    [ sh:path     binocular:commitMessage ;
-                     sh:minCount 1 ;
-                     sh:maxCount 1 ;
-                     sh:datatype xsd:string ;
-                     sh:message   "Commit message is missing or invalid."@en ] ;
-
-    sh:property    [ sh:path     binocular:commitMessage ;
-                     sh:minLength 10 ;
-                     sh:severity sh:Warning ;
-                     sh:datatype xsd:string ;
-                     sh:message  "Best Practice: Commit messages should be at least 10 characters long to be descriptive."@en ] ;
-
-    sh:property    [ sh:path     binocular:wasAttributedTo ;
-                     sh:datatype xsd:string ;
-                     sh:minCount 1 ;
-                     sh:maxCount 1 ;
-                     sh:message   "The committer ID (wasAttributedTo) is required."@en ] ;
-
-    sh:property    [ sh:path     binocular:commitId ;
-                     sh:minCount 1 ;
-                     sh:maxCount 1 ;
-                     sh:datatype xsd:string ;
-                     sh:message   "Internal commit ID is missing."@en] ;
-
-    sh:property    [ sh:path     binocular:hasChildCommits ;
-                     sh:minCount 1 ;
-                     sh:nodeKind sh:IRI ;
-                     sh:node     binocular:ChildCommitDetailShape ;
-                     sh:message  "Child commits must be referenced as IRIs and conform to ChildCommitDetailShape."@en ] ;
-    sh:property    [ sh:path     binocular:fileContents ;
-                     sh:name     "Commit Content Snapshot" ;
-                     sh:minCount 1 ;
-                     sh:message "The export is missing the file snapshot list (fileContents)."@en ;
-
-                     sh:property [ sh:path     binocular:filePath ;
-                                   sh:minCount 1 ;
-                                   sh:datatype xsd:string ;
-                                   sh:message "File path is missing for an entry in the snapshot."@en ] ;
-                     sh:property [ sh:path     binocular:fileContentData ;
-                                   sh:minCount 1 ;
-                                   sh:message "File entry is missing its content container."@en ;
-                                   sh:property [ sh:path     binocular:blobId ;
-                                                 sh:minCount 1 ;
-                                                 sh:message "Git Blob ID (id) is missing. Check context mapping for binocular:blobId."@en ] ;
-                                   sh:property [ sh:path     binocular:fileContentData ;
-                                                 sh:minCount 1 ;
-                                                 sh:datatype xsd:string ;
-                                                 sh:message "The actual file content string is missing."@en ;
-                                               ] ] ] .
-
-binocular:ChildCommitDetailShape
-    a              sh:NodeShape ;
-    sh:targetClass binocular:ChildCommitDetail ;
-    sh:property    [ sh:path     binocular:wasAttributedTo ;
-                     sh:minCount 1 ;
-                     sh:maxCount 1 ;
-                     sh:datatype xsd:string ;
-                     sh:message "Child commit is missing a committer attribution."@en ] .
-
-binocular:FileContentExportShape
-    a           sh:NodeShape ;
+<https://schemas.inso-world.com/shapes#BranchExportShape>
+    a sh:NodeShape ;
+    sh:targetClass <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CMPO::Baseline> ;
     sh:severity sh:Violation ;
 
-    sh:property [ sh:path     binocular:filePath ;
-                  sh:minCount 1 ;
-                  sh:maxCount 1 ;
-                  sh:datatype xsd:string ;
-                  sh:message   "Individual file export missing its path."@en ] ;
     sh:property [
-                    sh:path     binocular:fileContentData ;
-                    sh:node     binocular:ContentShape ;
-                    sh:minCount 1 ;
-                    sh:message   "Individual file export missing its content data."@en ] .
+          sh:path rdfs:label ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Baseline must have exactly one branch label (rdfs:label)."@en
+      ] ;
 
-binocular:ContentShape
-    a           sh:NodeShape ;
+    sh:property [
+          sh:path dcterms:identifier ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:pattern "^[0-9a-fA-F]{40}$" ;
+          sh:message "Baseline must have a 40-hex commit SHA as dcterms:identifier."@en
+      ] ;
+
+    sh:property [
+          sh:path dcterms:description ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Baseline must have a commit message (dcterms:description)."@en
+      ] ;
+
+    sh:property [
+          sh:path dcterms:description ;
+          sh:minLength 10 ;
+          sh:datatype xsd:string ;
+          sh:severity sh:Warning ;
+          sh:message "Best practice: commit messages should be at least 10 characters."@en
+      ] ;
+
+    sh:property [
+          sh:path schema:identifier ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Baseline must include an internal commitId as schema:identifier."@en
+      ] ;
+
+    sh:property [
+          sh:path prov:wasAssociatedWith ;
+          sh:minCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:class <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CPO::Programmer> ;
+          sh:message "Baseline must link to a Programmer via prov:wasAssociatedWith (IRI)."@en
+      ] ;
+
+    sh:property [
+          sh:path prov:wasInformedBy ;
+          sh:nodeKind sh:IRI ;
+          sh:class <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CMPO::Checkin> ;
+          sh:message "Commit dependency links must be IRIs to Checkin nodes (prov:wasInformedBy)."@en
+      ] ;
+
+    sh:property [
+          sh:path <https://dev.nemo.inf.ufes.br/seon/SEON.owl#packages.Baseline+Version> ;
+          sh:minCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:class <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CMPO::Version> ;
+          sh:message "Baseline must package Version IRIs via seon:packages.Baseline+Version."@en
+      ] .
+
+#################################################################
+# Checkin (ChildCommitDetail) -> CMPO::Checkin
+#################################################################
+
+<https://schemas.inso-world.com/shapes#CheckinShape>
+    a sh:NodeShape ;
+    sh:targetClass <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CMPO::Checkin> ;
     sh:severity sh:Violation ;
-    sh:property [
 
-                    sh:path     binocular:blobId ;
-                    sh:minCount 1 ;
-                    sh:maxCount 1 ;
-                    sh:datatype xsd:string ;
-                    sh:message   "Content object missing required Blob ID."@en] ;
     sh:property [
-                    sh:path     binocular:fileContentData ;
-                    sh:minCount 1 ;
-                    sh:maxCount 1 ;
-                    sh:datatype xsd:string ;
-                    sh:message   "Content object missing raw text data."@en] .
+          sh:path dcterms:identifier ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:pattern "^[0-9a-fA-F]{40}$" ;
+          sh:message "Checkin must have a 40-hex commit SHA as dcterms:identifier."@en
+      ] ;
+
+    sh:property [
+          sh:path dcterms:description ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Checkin must have a commit message (dcterms:description)."@en
+      ] ;
+
+    sh:property [
+          sh:path schema:identifier ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Checkin must include an internal commitId as schema:identifier."@en
+      ] ;
+
+    sh:property [
+          sh:path prov:wasAssociatedWith ;
+          sh:minCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:class <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CPO::Programmer> ;
+          sh:message "Checkin must link to a Programmer via prov:wasAssociatedWith (IRI)."@en
+      ] .
+
+#################################################################
+# Programmer -> CPO::Programmer
+#################################################################
+
+<https://schemas.inso-world.com/shapes#ProgrammerShape>
+    a sh:NodeShape ;
+    sh:targetClass <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CPO::Programmer> ;
+    sh:severity sh:Violation ;
+
+    sh:property [
+          sh:path schema:identifier ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Programmer must have an identifier (schema:identifier)."@en
+      ] .
+
+#################################################################
+# Artifact_CI (FileContent) -> CMPO::Artifact_CI
+#################################################################
+
+<https://schemas.inso-world.com/shapes#ArtifactShape>
+    a sh:NodeShape ;
+    sh:targetClass <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CMPO::Artifact_CI> ;
+    sh:severity sh:Violation ;
+
+    sh:property [
+          sh:path dcterms:identifier ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Artifact_CI must have a file path identifier (dcterms:identifier)."@en
+      ] ;
+
+    sh:property [
+          sh:path <https://dev.nemo.inf.ufes.br/seon/SEON.owl#has.Configuration_Item_(CI)+Version> ;
+          sh:minCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:class <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CMPO::Version> ;
+          sh:message "Artifact_CI must link to Version IRIs via seon:has.Configuration_Item_(CI)+Version."@en
+      ] .
+
+#################################################################
+# Version (Content) -> CMPO::Version
+#################################################################
+
+<https://schemas.inso-world.com/shapes#VersionShape>
+    a sh:NodeShape ;
+    sh:targetClass <https://dev.nemo.inf.ufes.br/seon/SEON.owl#CMPO::Version> ;
+    sh:severity sh:Violation ;
+
+    sh:property [
+          sh:path dcterms:identifier ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Version must have a blob identifier (dcterms:identifier)."@en
+      ] ;
+
+    sh:property [
+          sh:path prov:value ;
+          sh:minCount 1 ;
+          sh:datatype xsd:string ;
+          sh:message "Version must have a content string (prov:value). Omission markers are allowed."@en
+      ] .

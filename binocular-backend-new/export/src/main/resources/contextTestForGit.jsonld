@@ -1,33 +1,50 @@
 {
-    "@context": {
-      "@version": 1.1,
-      "binocular": "https://data.inso-world.com/ontology/binocular#",
-      "xsd": "http://www.w3.org/2001/XMLSchema#",
+  "@context": {
+    "@version": 1.1,
 
-      "BranchExport": "binocular:BranchExport",
-      "ChildCommitDetail": "binocular:ChildCommitDetail",
-      "FileContent": "binocular:FileContent",
+    "seon": "https://dev.nemo.inf.ufes.br/seon/SEON.owl#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
 
-      "branchName": "binocular:branch",
+    "BranchExport": "seon:CMPO::Baseline",
+    "ChildCommitDetail": "seon:CMPO::Checkin",
+    "FileContent": "seon:CMPO::Artifact_CI",
+    "Content": "seon:CMPO::Version",
+    "Programmer": "seon:CPO::Programmer",
 
-      "commitSha": "binocular:commitSHA",
-      "message": "binocular:commitMessage",
-      "committerId": "binocular:wasAttributedTo",
-      "commitId": "binocular:commitId",
-
-
-      "filePath": "binocular:filePath",
-      "content": "binocular:fileContentData",
-      "id": "binocular:blobId",
-      "childrenCommits": {
-        "@id": "binocular:hasChildCommits",
-        "@type": "@id",
-        "@container": "@set"
-      },
-
-      "fileContents": {
-        "@id": "binocular:fileContents",
-        "@container": "@set"
-      }
+    "_section": "schema:description",
+    "branchName": "rdfs:label",
+    "commitSha": "dcterms:identifier",
+    "message": "dcterms:description",
+    "commitId": "schema:identifier",
+    "committerId": {
+      "@id": "prov:wasAssociatedWith",
+      "@type": "@id"
+    },
+    "programmerId": "schema:identifier",
+    "childrenCommits": {
+      "@id": "prov:wasInformedBy",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "fileContents": {
+      "@id": "seon:packages.Baseline+Version",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "filePath": "dcterms:identifier",
+    "content": {
+      "@id": "seon:has.Configuration_Item_(CI)+Version",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "id": "dcterms:identifier",
+    "contentText": {
+      "@id": "prov:value",
+      "@type": "xsd:string"
     }
+  }
 }

@@ -1,9 +1,8 @@
 package com.inso_world.binocular.model
 
-import java.time.LocalDateTime
-
 data class BranchExportData(
     val branchName: String,
+    val branchId: String,
 
     // Latest Commit Information
     val commitSha: String,
@@ -37,5 +36,5 @@ data class FileContent (
 
 data class Content (
     val id: String?,
-    val content: String?
+    val contentText: String?
 )

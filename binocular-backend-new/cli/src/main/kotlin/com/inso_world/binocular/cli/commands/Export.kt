@@ -89,4 +89,4 @@ open class Export (
     }
 }
 // The branch to use: branches/15385, has multiple children commits
-// export project -b branches/15385 -p "D:/Binocular"
+// export project -b branches/15385 -p "D:/Binocular" --export-all
