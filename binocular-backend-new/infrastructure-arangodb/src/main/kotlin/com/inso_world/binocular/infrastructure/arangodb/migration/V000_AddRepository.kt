@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.migration
 
 import com.arangodb.ArangoDatabase
 import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig
 import org.springframework.stereotype.Component
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -18,7 +19,9 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 @Component
 @Suppress("ktlint:standard:class-naming")
-class V000_AddRepository : Migration {
+class V000_AddRepository(
+    private val infraConfig: InfrastructureConfig,
+) : Migration {
     companion object {
         private val logger by logger()
     }
@@ -28,12 +31,13 @@ class V000_AddRepository : Migration {
 
     override fun migrate(db: ArangoDatabase) {
         val iid = Uuid.random().toString()
+        val defaultProjectName = infraConfig.arangodb.migration.defaultProjectName
 
         val query =
             """
             LET proj = (
                 FOR p IN projects
-                FILTER p.name == "INSO-World/Binocular"
+                FILTER p.name == "$defaultProjectName"
                 LIMIT 1
                 RETURN p
             )[0]

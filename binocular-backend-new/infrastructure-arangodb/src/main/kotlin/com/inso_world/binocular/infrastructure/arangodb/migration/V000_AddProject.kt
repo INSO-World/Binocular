@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.migration
 
 import com.arangodb.ArangoDatabase
 import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig
 import org.springframework.stereotype.Component
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -18,7 +19,9 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 @Component
 @Suppress("ktlint:standard:class-naming")
-class V000_AddProject : Migration {
+class V000_AddProject(
+    private val infraConfig: InfrastructureConfig,
+) : Migration {
     companion object {
         private val logger by logger()
     }
@@ -28,12 +31,13 @@ class V000_AddProject : Migration {
 
     override fun migrate(db: ArangoDatabase) {
         val iid = Uuid.random().toString()
+        val defaultProjectName = infraConfig.arangodb.migration.defaultProjectName
 
         val query =
             """
             INSERT {
                 iid: "$iid",
-                name: "INSO-World/Binocular",
+                name: "$defaultProjectName",
                 description: "Binocular is a tool for visualizing data from various software-engineering tools."
             }
             INTO projects
