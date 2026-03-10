@@ -1,5 +1,5 @@
 import { StackedAreaChart, type ChartData, type Palette } from '../../../../../components/stackedAreaChart/StackedAreaChart.tsx';
-import { ColumnChart } from './columnChart.tsx';
+import { ColumnChart, type ColumnChartData } from '../../../../../components/columnChart/columnChart.tsx';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
@@ -8,20 +8,6 @@ import { handlePopoutResizing } from '../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 export type { ChartData, Palette };
-export interface ChartData {
-  date: number;
-  [signature: string]: number;
-}
-
-export interface BarChartData {
-  user: string;
-  value: number;
-  avgCommitsPerWeek: number;
-}
-
-export interface Palette {
-  [signature: string]: { main: string; secondary: string };
-}
 
 function Chart<SettingsType extends DefaultSettings, DataType>(props: VisualizationPluginProperties<SettingsType, DataType>) {
   /*
@@ -43,7 +29,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
 
   const isSumCommits = props.dataName?.toLowerCase() === 'sum commits';
 
-  const [chartData, setChartData] = useState<ChartData[] | BarChartData[]>([]);
+  const [chartData, setChartData] = useState<ChartData[] | ColumnChartData[]>([]);
   const [chartScale, setChartScale] = useState<number[]>([]);
   const [chartPalette, setChartPalette] = useState<Palette>({});
   const [calculating, setCalculating] = useState(false);
@@ -112,7 +98,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
           (chartData.length !== 0 ? (
             isSumCommits ? (
               <ColumnChart
-                data={chartData as BarChartData[]}
+                data={chartData as ColumnChartData[]}
                 scale={chartScale}
                 palette={chartPalette}
                 sprintList={props.sprintList}
