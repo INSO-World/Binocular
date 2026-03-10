@@ -33,7 +33,7 @@ import CollaborationVisualization from './visualizationPlugins/authorBehaviour/c
 import KnowledgeRadar from './visualizationPlugins/expertise/knowledgeRadar';
 import CodeExpertise from './visualizationPlugins/expertise/codeExpertise';
 import RepositoryActivity from './visualizationPlugins/authorBehaviour/repositoryActivity';
-import Sprints from './visualizationPlugins/issues/sprints';
+import IssuesTimeline from './visualizationPlugins/issues/issuesTimeline';
 import Burndown from './visualizationPlugins/issues/burndown';
 import SumCommits from './visualizationPlugins/commits/sumCommits';
 
@@ -54,7 +54,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   issues,
   mergeRequest,
   timeSpent,
-  Sprints,
+  IssuesTimeline,
   RepositoryStats,
   CodeOwnership,
   FileChanges,

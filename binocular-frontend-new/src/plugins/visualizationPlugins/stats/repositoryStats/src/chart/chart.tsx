@@ -63,12 +63,12 @@ function Chart(props: {
     setIssues(issueNumber);
     setBuilds(buildNumber);
     setMergeRequests(mergeRequestNumber);
-  }, [commitNumber, users, props.parameters, userNumber, issueNumber, buildNumber]);
+  }, [commitNumber, users, userNumber, issueNumber, buildNumber]);
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
     dispatch(setDateRange(props.parameters.parametersDateRange));
-  }, [props.parameters]);
+  }, [props.parameters.parametersDateRange]);
 
   //Trigger Refresh when dataConnection changes
   useEffect(() => {

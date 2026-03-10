@@ -9,6 +9,7 @@ export interface SettingsInitialState {
   initialized: boolean;
   database: DatabaseSettingsType;
   localDatabaseLoadingState: LocalDatabaseLoadingState;
+  localDatabaseLoadingMessage: string;
 }
 
 export enum LocalDatabaseLoadingState {
@@ -26,6 +27,7 @@ const initialState: SettingsInitialState = {
     dataPlugins: [],
   },
   localDatabaseLoadingState: LocalDatabaseLoadingState.none,
+  localDatabaseLoadingMessage: '',
 };
 
 export const settingsSlice = createSlice({
@@ -103,6 +105,9 @@ export const settingsSlice = createSlice({
     setLocalDatabaseLoadingState: (state, action: PayloadAction<LocalDatabaseLoadingState>) => {
       state.localDatabaseLoadingState = action.payload;
     },
+    setLocalDatabaseLoadingMessage: (state, action: PayloadAction<string>) => {
+      state.localDatabaseLoadingMessage = action.payload;
+    },
     initializeSettingsState: (state) => {
       state.initialized = true;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
@@ -118,6 +123,7 @@ export const {
   clearSettingsStorage,
   importSettingsStorage,
   setLocalDatabaseLoadingState,
+  setLocalDatabaseLoadingMessage,
   initializeSettingsState,
 } = settingsSlice.actions;
 export default settingsSlice.reducer;

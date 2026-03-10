@@ -1,12 +1,13 @@
-import { StackedAreaChart } from './stackedAreaChart.tsx';
+import { StackedAreaChart, type ChartData, type Palette } from '../../../../../components/stackedAreaChart/StackedAreaChart.tsx';
 import { ColumnChart } from './columnChart.tsx';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
 import type { DefaultSettings } from '../settings/settings.tsx';
-import { handelPopoutResizing } from '../../../../utils/resizing.ts';
+import { handlePopoutResizing } from '../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
+export type { ChartData, Palette };
 export interface ChartData {
   date: number;
   [signature: string]: number;
@@ -45,6 +46,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
   const [chartData, setChartData] = useState<ChartData[] | BarChartData[]>([]);
   const [chartScale, setChartScale] = useState<number[]>([]);
   const [chartPalette, setChartPalette] = useState<Palette>({});
+  const [calculating, setCalculating] = useState(false);
 
   /**
    * RESIZE Logic START
@@ -63,7 +65,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
     resize();
   }, [props.chartContainerRef, chartHeight, chartWidth]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
   /**
    * RESIZE Logic END
    */
@@ -72,20 +74,22 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
   useEffect(() => {
     try {
       if (props.dataConverter) {
+        setCalculating(true);
         const { chartData, scale, palette } = props.dataConverter(data, props);
         setChartData(chartData);
         setChartScale(scale);
         setChartPalette(palette);
+        setCalculating(false);
       }
     } catch (e) {
       console.error(e);
     }
-  }, [data, props]);
+  }, [data, props.parameters.parametersGeneral, props.settings, props.authorList, props.fileList]);
 
   //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
     dispatch(getDataSlice(props.dataName!).actions.setDateRange(props.parameters.parametersDateRange));
-  }, [props.parameters]);
+  }, [props.parameters.parametersDateRange]);
 
   //Trigger Refresh when dataConnection changes
   useEffect(() => {
@@ -98,12 +102,13 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
     <>
       <div className={'w-full h-full flex justify-center items-center'} ref={props.chartContainerRef}>
         {dataState === DataState.EMPTY && <div>NoData</div>}
-        {dataState === DataState.FETCHING && (
+        {(dataState === DataState.FETCHING || calculating) && (
           <div>
             <span className="loading loading-spinner loading-lg text-accent"></span>
           </div>
         )}
         {dataState === DataState.COMPLETE &&
+          !calculating &&
           (chartData.length !== 0 ? (
             isSumCommits ? (
               <ColumnChart

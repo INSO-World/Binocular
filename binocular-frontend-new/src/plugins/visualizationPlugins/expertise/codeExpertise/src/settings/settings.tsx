@@ -1,48 +1,55 @@
 import type { DataPluginBranch } from '../../../../../interfaces/dataPluginInterfaces/dataPluginBranches.ts';
-import { useEffect, useState } from 'react';
-import { setCurrentBranch } from '../reducer';
-import { useSelector } from 'react-redux';
+import { useCallback, useMemo, useState, useSyncExternalStore, type JSX } from 'react';
 import { toNumber } from 'lodash';
+import type { Store } from '@reduxjs/toolkit';
 
 export interface BranchSettings {
   allBranches: DataPluginBranch[];
   currentBranch?: number;
 }
 
-function Settings(props: { settings: BranchSettings; setSettings: (newSettings: BranchSettings) => void }) {
-  const state = useSelector((state) => state);
+const EMPTY_BRANCHES: DataPluginBranch[] = [];
 
-  const [branchOptions, setBranchOptions] = useState([
+function Settings(props: { settings: BranchSettings; setSettings: (newSettings: BranchSettings) => void; store?: Store }) {
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!props.store) return () => {};
+      return props.store.subscribe(callback);
+    },
+    [props.store],
+  );
+
+  const getSnapshot = useCallback(() => {
+    return props.store?.getState()?.plugin?.allBranches ?? EMPTY_BRANCHES;
+  }, [props.store]);
+
+  const allBranches: DataPluginBranch[] = useSyncExternalStore(subscribe, getSnapshot);
+  const [branchOptions, setBranchOptions] = useState<JSX.Element[]>([
     <option key={-1} value={''}>
       Select a Branch
     </option>,
   ]);
 
-  function setBranches() {
-    if (props.settings.allBranches) {
-      const branches = props.settings.allBranches.sort((a, b) => a.branch.localeCompare(b.branch)).map((b) => b.branch);
-      //build the selection box
-      const temp = [];
-      //placeholder option
-      temp.push(
-        <option key={-1} value={''}>
-          Select a Branch
+  useMemo(() => {
+    if (allBranches.length === 0) {
+      return;
+    }
+    const sorted = [...allBranches].sort((a, b) => a.branch.localeCompare(b.branch)).map((b) => b.branch);
+    const options = [
+      <option key={-1} value={''}>
+        Select a Branch
+      </option>,
+    ];
+    sorted.forEach((value: string, index: number) => {
+      options.push(
+        <option key={index} value={index}>
+          {value}
         </option>,
       );
-      branches.forEach((value: string, index: number) => {
-        temp.push(
-          <option key={index} value={index}>
-            {value}
-          </option>,
-        );
-      });
-      setBranchOptions(temp);
-    }
-  }
-
-  useEffect(() => {
-    if (props.settings.allBranches.length > 0) setBranches();
-  }, [props.settings.allBranches, state]);
+    });
+    setBranchOptions(options);
+    return options;
+  }, [allBranches]);
 
   return (
     <>
@@ -52,12 +59,11 @@ function Settings(props: { settings: BranchSettings; setSettings: (newSettings: 
             <span className="label-text">Branch:</span>
           </div>
           <select
-            value={props.settings.currentBranch ? props.settings.currentBranch : ''}
+            value={props.settings.currentBranch != undefined ? props.settings.currentBranch : ''}
             className="select select-bordered select-sm"
             onChange={(e) => {
-              setCurrentBranch(toNumber(e.target.value));
               props.setSettings({
-                allBranches: props.settings.allBranches,
+                allBranches: allBranches,
                 currentBranch: toNumber(e.target.value),
               });
             }}>

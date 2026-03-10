@@ -28,6 +28,7 @@ import {
 } from './dashboardHelper.ts';
 import _ from 'lodash';
 import { DragDropElementType } from '../../types/general/dragDropElementType.ts';
+import { debounce } from 'throttle-debounce';
 
 function Dashboard() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -76,6 +77,9 @@ function Dashboard() {
   // eslint-disable-next-line prefer-const
   let [dashboardState1, setDashboardState1] = useState(store.getState().dashboard.dashboardState);
 
+  const [dashboardHeight, setDashboardHeight] = useState(dashboardRef.current?.offsetHeight);
+  const [dashboardWidth, setDashboardWidth] = useState(dashboardRef.current?.offsetWidth);
+
   const placeableItem: DashboardItemType = useSelector((state: RootState) => state.dashboard.placeableItem);
 
   const configuredDataPlugins: DatabaseSettingsDataPluginType[] = useSelector((state: RootState) => state.settings.database.dataPlugins);
@@ -99,7 +103,6 @@ function Dashboard() {
       case deleteDashboardItem.type:
         setDashboardItems(newDashboardItems);
         setDashboardState1(newDashboardState);
-
         break;
     }
   });
@@ -242,14 +245,24 @@ function Dashboard() {
     }
   }, [columnCount, gridSize]);
 
-  const resizeObserver = new ResizeObserver(() => {
-    requestAnimationFrame(() => {
-      if (dashboardRef.current) {
-        setCellSize(dashboardRef.current.offsetWidth / columnCount);
-        dispatch({ type: 'RESIZE' });
-      }
-    });
-  });
+  const resizeObserver = new ResizeObserver(
+    /**
+     * Throttle the resize of the dashboard to every 100ms to not overwhelm the renderer.
+     * As a general resize action triggers a resize action for every single visualization as well, this can be quite intensive.
+     */
+    debounce(100, () => {
+      requestAnimationFrame(() => {
+        if (dashboardRef.current) {
+          setCellSize(dashboardRef.current.offsetWidth / columnCount);
+          if (dashboardHeight != dashboardRef.current.offsetHeight || dashboardWidth != dashboardRef.current.offsetWidth) {
+            dispatch({ type: 'RESIZE' });
+            setDashboardHeight(dashboardRef.current.offsetHeight);
+            setDashboardWidth(dashboardRef.current.offsetWidth);
+          }
+        }
+      });
+    }),
+  );
 
   useEffect(() => {
     if (dashboardRef.current) {

@@ -1,7 +1,7 @@
 import type { ReactNode, RefObject } from 'react';
 import type { DataPlugin } from './dataPlugin.ts';
 import type { Reducer, Store } from '@reduxjs/toolkit';
-import type { ChartData, Palette } from '../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
+import type { ChartData, Palette } from '../../components/stackedAreaChart/StackedAreaChart.tsx';
 import type { VisualizationPluginProperties } from './visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import type { VisualizationPluginMetadata } from './visualizationPluginInterfaces/visualizationPluginMetadata.ts';
 
