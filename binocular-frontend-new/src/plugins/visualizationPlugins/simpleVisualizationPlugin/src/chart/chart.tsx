@@ -40,10 +40,9 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
   const [chartWidth, setChartWidth] = useState(100);
   const [chartHeight, setChartHeight] = useState(100);
 
-  const ChartRenderer = props.dataName?.toLowerCase() === 'sum commits' ? ColumnChart : StackedAreaChart;
-  type AreaOrBarChart = ChartData | BarChartData;
+  const isSumCommits = props.dataName?.toLowerCase() === 'sum commits';
 
-  const [chartData, setChartData] = useState<AreaOrBarChart[]>([]);
+  const [chartData, setChartData] = useState<ChartData[] | BarChartData[]>([]);
   const [chartScale, setChartScale] = useState<number[]>([]);
   const [chartPalette, setChartPalette] = useState<Palette>({});
 
@@ -106,15 +105,27 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
         )}
         {dataState === DataState.COMPLETE &&
           (chartData.length !== 0 ? (
-            <ChartRenderer
-              data={chartData as never}
-              scale={chartScale}
-              palette={chartPalette}
-              sprintList={props.sprintList}
-              width={chartWidth}
-              height={chartHeight}
-              settings={props.settings}
-            />
+            isSumCommits ? (
+              <ColumnChart
+                data={chartData as BarChartData[]}
+                scale={chartScale}
+                palette={chartPalette}
+                sprintList={props.sprintList}
+                width={chartWidth}
+                height={chartHeight}
+                settings={props.settings}
+              />
+            ) : (
+              <StackedAreaChart
+                data={chartData as ChartData[]}
+                scale={chartScale}
+                palette={chartPalette}
+                sprintList={props.sprintList}
+                width={chartWidth}
+                height={chartHeight}
+                settings={props.settings}
+              />
+            )
           ) : (
             <div>No Data matching the selected Parameters!</div>
           ))}
