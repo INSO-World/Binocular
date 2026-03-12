@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import Config from '../../../config';
 import type { DashboardLayout } from '../../../types/general/dashboardLayoutType.ts';
+import { cloneDeep } from 'lodash';
 
 export interface LayoutsInitialState {
   customLayouts: DashboardLayout[];
@@ -26,8 +27,9 @@ export const layoutSlice = createSlice({
 
   reducers: {
     addCustomLayout(state, action: { payload: DashboardLayout }) {
-      action.payload.id = state.customLayoutCount;
-      state.customLayouts = [...state.customLayouts, action.payload];
+      const newLayout = cloneDeep(action.payload);
+      newLayout.id = state.customLayoutCount
+      state.customLayouts = [...state.customLayouts, newLayout];
       state.customLayoutCount++;
       localStorage.setItem(`${layoutSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
