@@ -91,9 +91,9 @@ function Dashboard() {
       case moveDashboardItem.type:
         newDashboardItems.forEach((dashboardItem: DashboardItemType) => {
           moveResizeDashboardItem(dashboardItem, rowCount, gridMultiplier, columnCount);
-          dashboardItems = newDashboardItems;
-          dashboardState1 = newDashboardState;
         });
+        setDashboardItems(newDashboardItems);
+        setDashboardState1(newDashboardState);
         break;
       case setDashboardState.type:
       case clearDashboard.type:
