@@ -28,7 +28,7 @@ export const layoutSlice = createSlice({
   reducers: {
     addCustomLayout(state, action: { payload: DashboardLayout }) {
       const newLayout = cloneDeep(action.payload);
-      newLayout.id = state.customLayoutCount
+      newLayout.id = state.customLayoutCount;
       state.customLayouts = [...state.customLayouts, newLayout];
       state.customLayoutCount++;
       localStorage.setItem(`${layoutSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
