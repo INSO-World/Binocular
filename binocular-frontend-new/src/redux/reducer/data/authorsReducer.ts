@@ -43,7 +43,7 @@ export const authorsSlice = createSlice({
         // add new authors that are not in the list
         action.payload.authors.forEach((author) => {
           if (!authorList.find((a: AuthorType) => a.user.id === author.user.id)) {
-            const newAuthor = cloneDeep(author)
+            const newAuthor = cloneDeep(author);
             newAuthor.id = authorList.length + 1;
             authorList.push(newAuthor);
           }

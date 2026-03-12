@@ -50,7 +50,6 @@ export const settingsSlice = createSlice({
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
       const newDataPlugin = cloneDeep(action.payload);
       if (newDataPlugin.id === undefined) {
-
         const colors = distinctColors({ count: 100 });
         newDataPlugin.isDefault = state.database.dataPlugins.length === 0;
 

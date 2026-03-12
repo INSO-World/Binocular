@@ -152,7 +152,7 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   // Ensure only one listener is active at a time
   useEffect(() => {
-    const unsubscribe = globalStore.subscribe(() => {      
+    const unsubscribe = globalStore.subscribe(() => {
       if (store !== undefined) {
         switch (globalStore.getState().actions.lastAction) {
           case 'REFRESH_PLUGIN':
@@ -177,7 +177,7 @@ const DashboardItem = memo(function DashboardItem(props: {
     return () => {
       unsubscribe();
     };
-  }, [store])
+  }, [store]);
 
   // WINDOW SHIFT MODE
   function keyDown(e: KeyboardEvent) {
