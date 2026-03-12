@@ -150,28 +150,34 @@ const DashboardItem = memo(function DashboardItem(props: {
     dispatch(updateDashboardItem(updatedItem));
   }, [ignoreGlobalParameters, parametersGeneralLocal, parametersDateRangeLocal]);
 
-  globalStore.subscribe(() => {
-    if (store !== undefined) {
-      switch (globalStore.getState().actions.lastAction) {
-        case 'REFRESH_PLUGIN':
-          if (selectedDataPlugin && doAutomaticUpdate) {
-            if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
-              console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
-              store.dispatch({ type: 'REFRESH' });
+  // Ensure only one listener is active at a time
+  useEffect(() => {
+    const unsubscribe = globalStore.subscribe(() => {      
+      if (store !== undefined) {
+        switch (globalStore.getState().actions.lastAction) {
+          case 'REFRESH_PLUGIN':
+            if (selectedDataPlugin && doAutomaticUpdate) {
+              if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
+                console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
+                store.dispatch({ type: 'REFRESH' });
+              }
             }
-          }
-          break;
-        case 'RESIZE_DASHBOARD_ITEM':
-          if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+            break;
+          case 'RESIZE_DASHBOARD_ITEM':
+            if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+              store.dispatch({ type: 'RESIZE' });
+            }
+            break;
+          case 'RESIZE':
             store.dispatch({ type: 'RESIZE' });
-          }
-          break;
-        case 'RESIZE':
-          store.dispatch({ type: 'RESIZE' });
-          break;
+            break;
+        }
       }
-    }
-  });
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [store])
 
   // WINDOW SHIFT MODE
   function keyDown(e: KeyboardEvent) {
