@@ -48,7 +48,7 @@
     {
       "name": "binocular.arangodb.migration.defaultProjectName",
       "type": "java.lang.String",
-      "description": "Name of the default project which will be used when migrations are executed.",
+      "description": "Name of the default project used by ArangoDB migrations and startup seeding. Must match the existing project name in the database for legacy deployments.",
       "defaultValue": "Binocular"
     }
   ],
