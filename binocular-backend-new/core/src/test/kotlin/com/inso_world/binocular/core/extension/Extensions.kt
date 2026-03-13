@@ -20,12 +20,14 @@ fun NonRemovingMutableSet<*>.reset() {
 }
 
 fun MappingContext.reset() {
-
     for (prop in arrayOf("d2e", "e2d", "e2dByObjectIdentity")) {
-        val field = this::class.memberProperties
-            .first { property -> property.name == prop }
-            .apply { isAccessible = true }
-            .getter.call(this)
+        val field =
+            this::class
+                .memberProperties
+                .first { property -> property.name == prop }
+                .apply { isAccessible = true }
+                .getter
+                .call(this)
         (field as ConcurrentHashMap<*, *>).clear()
     }
 }

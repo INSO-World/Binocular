@@ -17,7 +17,6 @@ import java.time.Instant
 import java.time.ZoneOffset
 
 class GixCommitTest : BaseUnitTest() {
-
     private lateinit var repository: Repository
 
     private val validSha = "a".repeat(40)
@@ -27,10 +26,11 @@ class GixCommitTest : BaseUnitTest() {
 
     @BeforeEach
     fun setUp() {
-        repository = Repository(
-            localPath = "/path/to/repo",
-            project = Project(name = "test-project")
-        )
+        repository =
+            Repository(
+                localPath = "/path/to/repo",
+                project = Project(name = "test-project"),
+            )
     }
 
     private fun gixCommit(
@@ -47,17 +47,17 @@ class GixCommitTest : BaseUnitTest() {
             author = author,
             branch = null,
             parents = parents,
-            fileTree = emptyList()
+            fileTree = emptyList(),
         )
 
     private fun GixTime.toLocalDateTime() =
-        Instant.ofEpochSecond(this.seconds)
+        Instant
+            .ofEpochSecond(this.seconds)
             .atOffset(ZoneOffset.ofTotalSeconds(this.offset.coerceIn(-18 * 3600, 18 * 3600)))
             .toLocalDateTime()
 
     @Nested
     inner class SingleItemMapper {
-
         @Test
         fun `creates commit with author and committer signatures`() {
             val result = gixCommit().toDomain(repository)
@@ -83,18 +83,21 @@ class GixCommitTest : BaseUnitTest() {
 
         @Test
         fun `reuses existing commit by sha`() {
-            val existing = Commit(
-                sha = validSha,
-                authorSignature = com.inso_world.binocular.model.Signature(
-                    developer = com.inso_world.binocular.model.Developer(
-                        name = "Existing",
-                        email = "existing@test.com",
-                        repository = repository
-                    ),
-                    timestamp = authorTime.toLocalDateTime()
-                ),
-                repository = repository
-            )
+            val existing =
+                Commit(
+                    sha = validSha,
+                    authorSignature =
+                        com.inso_world.binocular.model.Signature(
+                            developer =
+                                com.inso_world.binocular.model.Developer(
+                                    name = "Existing",
+                                    email = "existing@test.com",
+                                    repository = repository,
+                                ),
+                            timestamp = authorTime.toLocalDateTime(),
+                        ),
+                    repository = repository,
+                )
 
             val result = gixCommit().toDomain(repository)
 
@@ -113,7 +116,6 @@ class GixCommitTest : BaseUnitTest() {
 
     @Nested
     inner class BatchMapper {
-
         @Test
         fun `wires parents bidirectionally`() {
             val parentVec = gixCommit(sha = parentSha)

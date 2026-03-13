@@ -16,26 +16,27 @@ import org.junit.jupiter.api.assertThrows
  * Unit tests for mapping FFI signatures to domain [Developer]/[Signature].
  */
 class GixSignatureTest : BaseUnitTest() {
-
     private lateinit var project: Project
     private lateinit var repository: Repository
 
     @BeforeEach
     fun setUp() {
         project = Project(name = "test-project")
-        repository = Repository(
-            localPath = "/path/to/repo",
-            project = project
-        )
+        repository =
+            Repository(
+                localPath = "/path/to/repo",
+                project = project,
+            )
     }
 
     @Test
     fun `toDeveloper creates and registers developer with trimmed values`() {
-        val ffiSig = GixSignature(
-            name = "  Jane Dev  ",
-            email = "  jane@example.com ",
-            time = GixTime(seconds = 0L, offset = 0)
-        )
+        val ffiSig =
+            GixSignature(
+                name = "  Jane Dev  ",
+                email = "  jane@example.com ",
+                time = GixTime(seconds = 0L, offset = 0),
+            )
 
         val developer = ffiSig.toDeveloper(repository)
 
@@ -47,11 +48,12 @@ class GixSignatureTest : BaseUnitTest() {
 
     @Test
     fun `toSignature wraps developer and timestamp`() {
-        val ffiSig = GixSignature(
-            name = "John Doe",
-            email = "john@example.com",
-            time = GixTime(seconds = 1704067200L, offset = 0) // 2024-01-01T00:00:00Z
-        )
+        val ffiSig =
+            GixSignature(
+                name = "John Doe",
+                email = "john@example.com",
+                time = GixTime(seconds = 1704067200L, offset = 0), // 2024-01-01T00:00:00Z
+            )
 
         val signature = ffiSig.toSignature(repository)
 
@@ -63,17 +65,19 @@ class GixSignatureTest : BaseUnitTest() {
 
     @Test
     fun `toDeveloper reuses existing developer by git signature`() {
-        val existing = com.inso_world.binocular.model.Developer(
-            name = "Existing Dev",
-            email = "existing@example.com",
-            repository = repository
-        )
+        val existing =
+            com.inso_world.binocular.model.Developer(
+                name = "Existing Dev",
+                email = "existing@example.com",
+                repository = repository,
+            )
 
-        val ffiSig = GixSignature(
-            name = "Existing Dev",
-            email = "existing@example.com",
-            time = GixTime(seconds = 0L, offset = 0)
-        )
+        val ffiSig =
+            GixSignature(
+                name = "Existing Dev",
+                email = "existing@example.com",
+                time = GixTime(seconds = 0L, offset = 0),
+            )
 
         val result = ffiSig.toDeveloper(repository)
 
@@ -82,11 +86,12 @@ class GixSignatureTest : BaseUnitTest() {
 
     @Test
     fun `toDeveloper rejects blank name`() {
-        val ffiSig = GixSignature(
-            name = "   ",
-            email = "dev@example.com",
-            time = GixTime(seconds = 0L, offset = 0)
-        )
+        val ffiSig =
+            GixSignature(
+                name = "   ",
+                email = "dev@example.com",
+                time = GixTime(seconds = 0L, offset = 0),
+            )
 
         assertThrows<IllegalArgumentException> {
             ffiSig.toDeveloper(repository)
@@ -95,11 +100,12 @@ class GixSignatureTest : BaseUnitTest() {
 
     @Test
     fun `toDeveloper rejects blank email`() {
-        val ffiSig = GixSignature(
-            name = "Dev",
-            email = "   ",
-            time = GixTime(seconds = 0L, offset = 0)
-        )
+        val ffiSig =
+            GixSignature(
+                name = "Dev",
+                email = "   ",
+                time = GixTime(seconds = 0L, offset = 0),
+            )
 
         assertThrows<IllegalArgumentException> {
             ffiSig.toDeveloper(repository)

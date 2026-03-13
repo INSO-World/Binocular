@@ -19,11 +19,12 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
     override fun toEntity(domain: Remote): RemoteEntity {
         ctx.findEntity<Remote.Key, Remote, RemoteEntity>(domain)?.let { return it }
 
-        val repository = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-            ?: throw IllegalStateException(
-                "RepositoryEntity must be mapped before RemoteEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity()."
-            )
+        val repository =
+            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+                ?: throw IllegalStateException(
+                    "RepositoryEntity must be mapped before RemoteEntity. " +
+                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
+                )
 
         val entity = domain.toEntity(repository)
         ctx.remember(domain, entity)
@@ -34,11 +35,12 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
     override fun toDomain(entity: RemoteEntity): Remote {
         ctx.findDomain<Remote, RemoteEntity>(entity)?.let { return it }
 
-        val repository = ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before Remote. " +
-                        "Ensure Repository is in MappingContext before calling toDomain()."
-            )
+        val repository =
+            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
+                ?: throw IllegalStateException(
+                    "Repository must be mapped before Remote. " +
+                        "Ensure Repository is in MappingContext before calling toDomain().",
+                )
 
         val domain = entity.toDomain(repository)
         setField(
@@ -61,7 +63,10 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
      * @param entity The RemoteEntity with updated data
      * @return The refreshed Remote domain object
      */
-    fun refreshDomain(target: Remote, entity: RemoteEntity): Remote {
+    fun refreshDomain(
+        target: Remote,
+        entity: RemoteEntity,
+    ): Remote {
         setField(
             RemoteEntity::class.java.getDeclaredField("id"),
             target,

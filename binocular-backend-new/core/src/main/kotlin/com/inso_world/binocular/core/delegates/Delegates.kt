@@ -26,9 +26,7 @@ import kotlin.reflect.full.companionObject
  * - Uses [lazy] with the default [LazyThreadSafetyMode.SYNCHRONIZED].
  * - Resolves the correct class via [unwrapCompanionClass].
  */
-fun <R : Any> R.logger(): Lazy<Logger> {
-    return lazy { LoggerFactory.getLogger(unwrapCompanionClass(this.javaClass).name) }
-}
+fun <R : Any> R.logger(): Lazy<Logger> = lazy { LoggerFactory.getLogger(unwrapCompanionClass(this.javaClass).name) }
 
 /**
  * Resolves the declaring [KClass] for a possibly companion-object class.
@@ -37,9 +35,7 @@ fun <R : Any> R.logger(): Lazy<Logger> {
  * @return the enclosing class if [ofClass] is a companion object; otherwise [ofClass] itself.
  * @see unwrapCompanionClass for the `java.lang.Class` variant.
  */
-internal fun <T : Any> unwrapCompanionClass(ofClass: KClass<T>): KClass<*> {
-    return unwrapCompanionClass(ofClass.java).kotlin
-}
+internal fun <T : Any> unwrapCompanionClass(ofClass: KClass<T>): KClass<*> = unwrapCompanionClass(ofClass.java).kotlin
 
 /**
  * Unwraps companion class to enclosing class given a Java Class.
@@ -47,8 +43,8 @@ internal fun <T : Any> unwrapCompanionClass(ofClass: KClass<T>): KClass<*> {
  * @param ofClass Java class that may represent a companion object.
  * @return the enclosing class if [ofClass] is a companion object; otherwise [ofClass] itself.
  */
-fun <T : Any> unwrapCompanionClass(ofClass: Class<T>): Class<*> {
-    return ofClass.enclosingClass?.takeIf {
-        ofClass.enclosingClass.kotlin.companionObject?.java == ofClass
+fun <T : Any> unwrapCompanionClass(ofClass: Class<T>): Class<*> =
+    ofClass.enclosingClass?.takeIf {
+        ofClass.enclosingClass.kotlin.companionObject
+            ?.java == ofClass
     } ?: ofClass
-}

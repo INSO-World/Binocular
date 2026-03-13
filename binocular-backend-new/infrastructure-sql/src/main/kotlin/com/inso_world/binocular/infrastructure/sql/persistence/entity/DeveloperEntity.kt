@@ -40,7 +40,10 @@ internal data class DeveloperEntity(
     @Convert(KotlinUuidConverter::class)
     val iid: Developer.Id,
 ) : AbstractEntity<Long, DeveloperEntity.Key>() {
-    data class Key(val repositoryIid: Repository.Id, val email: String)
+    data class Key(
+        val repositoryIid: Repository.Id,
+        val email: String,
+    )
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -54,6 +57,7 @@ internal data class DeveloperEntity(
         get() = Key(repositoryIid = repository.iid, email = email)
 
     override fun equals(other: Any?): Boolean = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 
     fun toDomain(repository: Repository): Developer =
@@ -65,8 +69,7 @@ internal data class DeveloperEntity(
             this.id = this@DeveloperEntity.id?.toString()
         }
 
-    override fun toString(): String =
-        "DeveloperEntity(id=$id, iid=$iid, name='$name', email='$email', repositoryId=${repository.id})"
+    override fun toString(): String = "DeveloperEntity(id=$id, iid=$iid, name='$name', email='$email', repositoryId=${repository.id})"
 }
 
 internal fun Developer.toEntity(repository: RepositoryEntity): DeveloperEntity =

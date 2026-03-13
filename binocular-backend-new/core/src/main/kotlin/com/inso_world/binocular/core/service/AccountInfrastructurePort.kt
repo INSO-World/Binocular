@@ -58,5 +58,4 @@ interface AccountInfrastructurePort : BinocularInfrastructurePort<Account, Accou
      * @return List of accounts associated with the user
      */
     fun findAccountsByUserId(userId: String): List<Account>
-
 }

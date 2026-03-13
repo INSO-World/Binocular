@@ -76,7 +76,6 @@ internal class ArangodbInfrastructureDataSetup(
     @Autowired private val projectRepository: ProjectInfrastructurePortImpl,
     @Autowired private val repositoryRepository: RepositoryInfrastructurePortImpl,
 ) : InfrastructureDataSetup {
-
     companion object {
         private val logger by logger()
     }

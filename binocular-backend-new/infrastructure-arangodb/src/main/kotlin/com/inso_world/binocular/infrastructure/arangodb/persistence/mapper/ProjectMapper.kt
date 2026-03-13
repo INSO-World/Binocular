@@ -88,7 +88,10 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
      * @param target The Project domain object to refresh
      * @param entity The ProjectEntity with updated data
      */
-    fun refreshDomain(target: Project, entity: ProjectEntity) {
+    fun refreshDomain(
+        target: Project,
+        entity: ProjectEntity,
+    ) {
         target.id = entity.id
     }
 }
