@@ -95,7 +95,7 @@ class GitComparison : BaseIntegrationTest() {
         // localPath points to .git directory, so get the parent for git commands
         val repoDir = File(repo.gitDir).parentFile
 
-        val committerGroups = branchCommits.filter { it.committer != null }.groupBy { it.committer!!.email }
+        val committerGroups = branchCommits.groupBy { it.committer.email }
         for ((committer, commits) in committerGroups) {
             val gitLogProcess =
                 ProcessBuilder(
@@ -142,7 +142,7 @@ class GitComparison : BaseIntegrationTest() {
         // localPath points to .git directory, so get the parent for git commands
         val repoDir = File(repo.gitDir).parentFile
 
-        val authorGroups = branchCommits.filter { it.author != null }.groupBy { it.author!!.email }
+        val authorGroups = branchCommits.groupBy { it.author.email }
         for ((author, commits) in authorGroups) {
             val gitLogProcess =
                 ProcessBuilder(

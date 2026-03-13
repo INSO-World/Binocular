@@ -11,9 +11,7 @@ import kotlin.uuid.toKotlinUuid
 @Converter
 @OptIn(ExperimentalUuidApi::class)
 internal class KotlinUuidConverter : AttributeConverter<Uuid, UUID> {
-    override fun convertToDatabaseColumn(attribute: Uuid?): UUID? =
-        attribute?.toJavaUuid()
+    override fun convertToDatabaseColumn(attribute: Uuid?): UUID? = attribute?.toJavaUuid()
 
-    override fun convertToEntityAttribute(dbData: UUID?): Uuid? =
-        dbData?.toKotlinUuid()
+    override fun convertToEntityAttribute(dbData: UUID?): Uuid? = dbData?.toKotlinUuid()
 }

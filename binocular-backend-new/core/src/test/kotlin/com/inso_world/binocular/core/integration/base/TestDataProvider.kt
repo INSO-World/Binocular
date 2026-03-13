@@ -24,7 +24,7 @@ import java.time.LocalDateTime
  */
 @Deprecated(
     "Objects are singletons, every change is propagated over tests. Instead, use the MockTestDataProvider class and create a new object before each test rung to have a clean state",
-    replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider")
+    replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider"),
 )
 object TestDataProvider {
     private val project = Project(name = "proj-pg-0")
@@ -282,7 +282,7 @@ object TestDataProvider {
             Project(name = "proj-pg-3").apply { this.id = "4" },
             Project(name = "proj-pg-4").apply { this.id = "5" },
             Project(name = "proj-pg-7").apply { this.id = "7" },
-            Project(name = "proj-for-repos").apply {this.id = "6" },
+            Project(name = "proj-for-repos").apply { this.id = "6" },
         )
     private val testProjectsByName = testProjects.associateBy { it.name }
 

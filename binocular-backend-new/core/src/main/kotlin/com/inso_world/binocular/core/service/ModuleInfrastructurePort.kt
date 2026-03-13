@@ -15,7 +15,8 @@ import com.inso_world.binocular.model.File
     replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
     level = DeprecationLevel.WARNING
 )
-interface ModuleInfrastructurePort : BinocularInfrastructurePort<com.inso_world.binocular.model.Module, com.inso_world.binocular.model.Module.Id> {
+interface ModuleInfrastructurePort :
+    BinocularInfrastructurePort<com.inso_world.binocular.model.Module, com.inso_world.binocular.model.Module.Id> {
     /**
      * Find commits by module ID.
      *

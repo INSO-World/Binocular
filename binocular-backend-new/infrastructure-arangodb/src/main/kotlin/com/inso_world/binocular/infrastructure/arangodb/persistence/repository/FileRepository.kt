@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface FileRepository : ArangoRepository<FileEntity, String> {
-
     @Query(
         """
         FOR f IN files

@@ -80,7 +80,9 @@ internal data class CommitEntity(
     @OnDelete(action = OnDeleteAction.CASCADE)
     val repository: RepositoryEntity,
 ) : AbstractEntity<Long, CommitEntity.Key>() {
-    data class Key(val sha: String)
+    data class Key(
+        val sha: String,
+    )
 
     init {
         this.repository.commits.add(this)

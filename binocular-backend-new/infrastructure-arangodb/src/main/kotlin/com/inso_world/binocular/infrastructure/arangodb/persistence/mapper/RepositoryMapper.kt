@@ -56,11 +56,12 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
-            ?: throw IllegalStateException(
-                "ProjectEntity must be mapped before RepositoryEntity. " +
-                        "Ensure ProjectEntity is in MappingContext before calling toEntity()."
-            )
+        val owner: ProjectEntity =
+            ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+                ?: throw IllegalStateException(
+                    "ProjectEntity must be mapped before RepositoryEntity. " +
+                        "Ensure ProjectEntity is in MappingContext before calling toEntity().",
+                )
 
         // Create entity and remember in context
         val entity = domain.toEntity(owner)
@@ -89,11 +90,12 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
-            ?: throw IllegalStateException(
-                "Project must be mapped before Repository. " +
-                        "Ensure Project is in MappingContext before calling toDomain()."
-            )
+        val owner =
+            ctx.findDomain<Project, ProjectEntity>(entity.project)
+                ?: throw IllegalStateException(
+                    "Project must be mapped before Repository. " +
+                        "Ensure Project is in MappingContext before calling toDomain().",
+                )
 
         val domain = entity.toDomain(owner)
         setField(
@@ -117,7 +119,10 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
      * @param entity The RepositoryEntity with updated data
      * @return The refreshed Repository domain object
      */
-    fun refreshDomain(target: Repository, entity: RepositoryEntity): Repository {
+    fun refreshDomain(
+        target: Repository,
+        entity: RepositoryEntity,
+    ): Repository {
         setField(
             target.javaClass.getDeclaredField("id"),
             target,

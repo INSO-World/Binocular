@@ -133,7 +133,10 @@ internal class ProjectAssembler {
         return domain
     }
 
-    fun refresh(domain: Project, entity: ProjectEntity) {
+    fun refresh(
+        domain: Project,
+        entity: ProjectEntity,
+    ) {
         logger.trace("Refreshing Repository domain: ${domain.iid}")
         this.projectMapper.refreshDomain(domain, entity)
         if (domain.repo != null) {
