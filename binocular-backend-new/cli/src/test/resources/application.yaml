@@ -15,10 +15,8 @@ logging:
   file:
     name: logs/test.log
   level:
+    root: off
     #    org.hibernate.orm.jdbc.bind: trace
     com:
       inso_world:
         binocular: DEBUG
-      zaxxer:
-        hikari: TRACE
-    root: off

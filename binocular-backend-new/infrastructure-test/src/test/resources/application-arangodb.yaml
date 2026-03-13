@@ -1,10 +1,11 @@
 binocular:
-  database:
-    database_name: "binocular-1234"
-    host: "localhost"
-    port: 8529
-    user: TODO
-    password: TODO
+  arangodb:
+    database:
+      host: "localhost"
+      port: 8529
+      user: TODO
+      password: TODO
+      name: "binocular-1234"
 
 spring:
   # Prevent Spring Boot from trying to configure SQL/JPA when running ArangoDB tests

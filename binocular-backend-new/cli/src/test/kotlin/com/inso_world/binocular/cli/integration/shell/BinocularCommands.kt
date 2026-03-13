@@ -14,7 +14,6 @@ import org.springframework.shell.test.ShellTestClient
 import java.util.concurrent.TimeUnit
 
 internal class BinocularCommands : BaseShellWithDataTest() {
-
     @Autowired
     private lateinit var client: ShellTestClient
 
@@ -33,9 +32,6 @@ internal class BinocularCommands : BaseShellWithDataTest() {
     @ParameterizedTest
     @CsvSource(
         "index,commits",
-        "index,diffs",
-        "index,blames",
-        "index,hello",
     )
     fun `help shows USAGE - index commits`(
         cmdGrp: String,

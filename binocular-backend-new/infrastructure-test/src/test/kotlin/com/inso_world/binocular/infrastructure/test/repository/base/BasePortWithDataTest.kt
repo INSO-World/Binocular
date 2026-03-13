@@ -24,8 +24,8 @@ import kotlin.io.path.Path
     classes = [LocalArangodbConfig::class, LocalPostgresConfig::class, LocalGixConfig::class],
     initializers = [
         com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig.Initializer::class,
-        com.inso_world.binocular.infrastructure.sql.SqlTestConfig.Initializer::class
-    ]
+        com.inso_world.binocular.infrastructure.sql.SqlTestConfig.Initializer::class,
+    ],
 )
 @ComponentScan(basePackages = ["com.inso_world.binocular.infrastructure.test", "com.inso_world.binocular.core"])
 class BasePortWithDataTest : BaseFixturesIntegrationTest() {
@@ -46,7 +46,11 @@ class BasePortWithDataTest : BaseFixturesIntegrationTest() {
      * @param branchName Name of the branch to traverse (e.g., "main", "refs/heads/main")
      * @return The persisted Project with repository and commit data
      */
-    protected fun prepare(path: String, projectName: String, branchName: String): Project {
+    protected fun prepare(
+        path: String,
+        projectName: String,
+        branchName: String,
+    ): Project {
         val project = Project(name = projectName)
         val repo = indexer.findRepo(Path(path), project)
 

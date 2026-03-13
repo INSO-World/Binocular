@@ -1,8 +1,5 @@
 binocular:
-  gix:
-    skip-merges: false
-    use-mailmap: true
-  jgit:
+  vcs:
     skip-merges: false
     use-mailmap: true
 
