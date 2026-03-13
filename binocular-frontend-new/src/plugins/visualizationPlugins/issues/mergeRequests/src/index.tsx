@@ -7,6 +7,7 @@ import { convertToChartData } from './utilities/dataConverter.ts';
 import Saga from './saga';
 import Help from './help/help.tsx';
 import { VisualizationPluginMetadataCategory } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import { VisualizationPluginDependencyType } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginDependencies.ts';
 import type { DataPluginMergeRequest } from '../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
 
 const MergeRequests: VisualizationPlugin<MergeRequestsSettings, DataPluginMergeRequest> = {
@@ -23,6 +24,12 @@ const MergeRequests: VisualizationPlugin<MergeRequestsSettings, DataPluginMergeR
   capabilities: {
     popoutOnly: false,
     export: true,
+  },
+  dependencies: {
+    authors: VisualizationPluginDependencyType.Recalculate,
+    files: VisualizationPluginDependencyType.None,
+    generalParameters: VisualizationPluginDependencyType.Recalculate,
+    dateRange: VisualizationPluginDependencyType.Refresh,
   },
   images: {
     thumbnail: PreviewImage,
