@@ -5,6 +5,7 @@ import { DataState, getDataSlice } from '../reducer';
 import type { DefaultSettings } from '../settings/settings.tsx';
 import { handlePopoutResizing } from '../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import { VisualizationPluginDependencyType } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginDependencies.ts';
 
 export type { ChartData, Palette };
 
@@ -44,17 +45,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
     }
   }
 
-  useEffect(() => {
-    resize();
-  }, [props.chartContainerRef, chartHeight, chartWidth]);
-
-  handlePopoutResizing(props.store, resize);
-  /**
-   * RESIZE Logic END
-   */
-
-  // Effect on data change
-  useEffect(() => {
+  function recalculate() {
     try {
       if (props.dataConverter) {
         setCalculating(true);
@@ -67,11 +58,83 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
     } catch (e) {
       console.error(e);
     }
-  }, [data, props.parameters.parametersGeneral, props.settings, props.authorList, props.fileList]);
+  }
 
-  //Set Global state when parameters change. This will also conclude in a refresh of the data.
   useEffect(() => {
-    dispatch(getDataSlice(props.dataName!).actions.setDateRange(props.parameters.parametersDateRange));
+    resize();
+  }, [props.chartContainerRef, chartHeight, chartWidth]);
+
+  handlePopoutResizing(props.store, resize);
+  /**
+   * RESIZE Logic END
+   */
+
+  // Effect on data change
+  useEffect(() => {
+    recalculate();
+  }, [data, props.settings]);
+
+  // Effect on parameters general change
+  useEffect(() => {
+    // when dependency information not provided refresh just to be safe
+    if (!props.dependencies) dispatch({ type: 'REFRESH' });
+    else {
+      switch (props.dependencies.generalParameters) {
+        case VisualizationPluginDependencyType.Refresh:
+          dispatch({ type: 'REFRESH' });
+          break;
+        case VisualizationPluginDependencyType.Recalculate:
+          recalculate();
+          break;
+      }
+    }
+  }, [props.parameters.parametersGeneral]);
+
+  // Effect on authors list change
+  useEffect(() => {
+    // when dependency information not provided refresh just to be safe
+    if (!props.dependencies) dispatch({ type: 'REFRESH' });
+    else {
+      switch (props.dependencies.authors) {
+        case VisualizationPluginDependencyType.Refresh:
+          dispatch({ type: 'REFRESH' });
+          break;
+        case VisualizationPluginDependencyType.Recalculate:
+          recalculate();
+          break;
+      }
+    }
+  }, [props.authorList]);
+
+  // Effect on file list change
+  useEffect(() => {
+    // when dependency information not provided refresh just to be safe
+    if (!props.dependencies) dispatch({ type: 'REFRESH' });
+    else {
+      switch (props.dependencies.files) {
+        case VisualizationPluginDependencyType.Refresh:
+          dispatch({ type: 'REFRESH' });
+          break;
+        case VisualizationPluginDependencyType.Recalculate:
+          recalculate();
+          break;
+      }
+    }
+  }, [props.fileList]);
+
+  // Effect on date range change
+  useEffect(() => {
+    if (!props.dependencies) dispatch(getDataSlice(props.dataName!).actions.setDateRange(props.parameters.parametersDateRange));
+    else {
+      switch (props.dependencies.dateRange) {
+        case VisualizationPluginDependencyType.Refresh:
+          dispatch(getDataSlice(props.dataName!).actions.setDateRange(props.parameters.parametersDateRange));
+          break;
+        case VisualizationPluginDependencyType.Recalculate:
+          recalculate();
+          break;
+      }
+    }
   }, [props.parameters.parametersDateRange]);
 
   //Trigger Refresh when dataConnection changes

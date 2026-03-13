@@ -4,6 +4,7 @@ import type { Reducer, Store } from '@reduxjs/toolkit';
 import type { ChartData, Palette } from '../../components/stackedAreaChart/StackedAreaChart.tsx';
 import type { VisualizationPluginProperties } from './visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import type { VisualizationPluginMetadata } from './visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import type { VisualizationPluginDependencies } from './visualizationPluginInterfaces/visualizationPluginDependencies.ts';
 
 export interface VisualizationPlugin<SettingsType, DataType> {
   name: string;
@@ -13,6 +14,7 @@ export interface VisualizationPlugin<SettingsType, DataType> {
   helpComponent: () => ReactNode;
   // dataConnectionName and dataConverter only strictly needed when using the simpleVisualizationPlugin class
   dataConnectionName?: string;
+  // optional
   dataConverter?: (
     data: DataType[],
     props: VisualizationPluginProperties<SettingsType, DataType>,
@@ -26,6 +28,7 @@ export interface VisualizationPlugin<SettingsType, DataType> {
     popoutOnly: boolean;
     export: boolean;
   };
+  dependencies?: VisualizationPluginDependencies;
   images: {
     // media a visualization provides for Binocular
     thumbnail: string;

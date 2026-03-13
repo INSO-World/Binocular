@@ -262,6 +262,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                         dataConverter={plugin.dataConverter}
                         chartContainerRef={chartContainerRef}
                         store={store}
+                        dependencies={plugin.dependencies}
                         dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
                     ) : (
                       <div>No Chart Component Found!</div>
@@ -306,6 +307,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                       dataConverter={plugin.dataConverter}
                       chartContainerRef={chartContainerRef}
                       store={store}
+                      dependencies={plugin.dependencies}
                       dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
                   ) : (
                     <div>No Chart Component Found!</div>

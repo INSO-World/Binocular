@@ -8,6 +8,7 @@ import Saga from './saga';
 import Help from './help/help.tsx';
 import type { DataPluginBuild } from '../../../../interfaces/dataPluginInterfaces/dataPluginBuilds.ts';
 import { VisualizationPluginMetadataCategory } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import { VisualizationPluginDependencyType } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginDependencies.ts';
 
 const Builds: VisualizationPlugin<BuildSettings, DataPluginBuild> = {
   name: 'Builds',
@@ -23,6 +24,12 @@ const Builds: VisualizationPlugin<BuildSettings, DataPluginBuild> = {
   capabilities: {
     popoutOnly: false,
     export: true,
+  },
+  dependencies: {
+    authors: VisualizationPluginDependencyType.Recalculate,
+    files: VisualizationPluginDependencyType.None,
+    generalParameters: VisualizationPluginDependencyType.Recalculate,
+    dateRange: VisualizationPluginDependencyType.Refresh,
   },
   images: {
     thumbnail: PreviewImage,
