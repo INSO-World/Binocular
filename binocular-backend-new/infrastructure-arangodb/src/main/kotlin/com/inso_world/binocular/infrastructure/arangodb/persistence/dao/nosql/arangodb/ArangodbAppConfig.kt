@@ -17,7 +17,10 @@ import org.springframework.context.annotation.DependsOn
 
 @Configuration
 @EnableArangoRepositories(
-    basePackages = ["com.inso_world.binocular.infrastructure.arangodb.persistence", "com.inso_world.binocular.infrastructure.arangodb.model"],
+    basePackages = [
+        "com.inso_world.binocular.infrastructure.arangodb.persistence",
+        "com.inso_world.binocular.infrastructure.arangodb.model",
+    ],
 )
 class ArangodbAppConfig(
     @Autowired private val infraConfig: InfrastructureConfig,

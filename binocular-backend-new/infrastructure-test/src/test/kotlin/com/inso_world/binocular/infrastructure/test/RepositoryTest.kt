@@ -1,8 +1,8 @@
 package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.data.MockTestDataProvider
-import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 
@@ -40,20 +41,22 @@ internal class RepositoryTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `find all repositories, expect non empty list`() {
-        assertThat(repositoryPort.findAll()).hasSize(6)
+        assertThat(repositoryPort.findAll()).hasSize(7)
     }
 
     @Test
-    fun `create repository and find by name`() {
+    fun `create repository and find by iid`() {
         val repo = Repository(localPath = "repo-rt-001", project = project)
         val created = repositoryPort.create(repo)
         assertNotNull(created.id)
 
-        val loadedById = repositoryPort.findById(requireNotNull(created.id))
-        assertNotNull(loadedById)
-        assertEquals(created.id, loadedById!!.id)
-        assertEquals(repo.localPath, loadedById.localPath)
-        assertEquals(project.id, loadedById.project?.id)
+        val loadedByIid = repositoryPort.findByIid(requireNotNull(created.iid))
+        assertNotNull(loadedByIid)
+        assertAll(
+            { assertEquals(created.id, loadedByIid!!.id) },
+            { assertEquals(repo.localPath, loadedByIid!!.localPath) },
+            { assertEquals(project.id, loadedByIid!!.project?.id) },
+        )
 
         val loadedByName = repositoryPort.findByName(repo.localPath)
         assertNotNull(loadedByName)
@@ -62,30 +65,36 @@ internal class RepositoryTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `create repository, verify automatic registration with project`() {
-        val newProject = Project(name = "test-project-for-repo")
+        val newProject = this.project
         val repo = Repository(localPath = "repo-rt-002", project = newProject)
 
         // Repository auto-registers with project during construction
-        assertNotNull(newProject.repo)
-        assertEquals(repo, newProject.repo)
+        assertAll(
+            { assertNotNull(newProject.repo) },
+            { assertEquals(repo, newProject.repo) },
+        )
 
         val created = repositoryPort.create(repo)
         assertNotNull(created.id)
 
         // Verify bidirectional relationship persists
-        assertEquals(newProject.id, created.project?.id)
+        assertAll(
+            { assertEquals(newProject.iid, created.project.iid, "created.project.iid") },
+            { assertEquals(repo.iid, created.iid, "created.iid") },
+        )
     }
 
     @Test
     fun `repository commits collection is add-only`() {
         val repo = Repository(localPath = "repo-rt-003", project = Project(name = "test-project-2"))
         val developer = Developer(name = "Test Committer", email = "committer@test.com", repository = repo)
-        val commit = Commit(
-            sha = "d".repeat(40),
-            message = "test commit",
-            authorSignature = Signature(developer = developer, timestamp = LocalDateTime.now()),
-            repository = repo,
-        )
+        val commit =
+            Commit(
+                sha = "d".repeat(40),
+                message = "test commit",
+                authorSignature = Signature(developer = developer, timestamp = LocalDateTime.now()),
+                repository = repo,
+            )
 
         // Commits auto-register with repository during construction
         assertEquals(1, repo.commits.size)

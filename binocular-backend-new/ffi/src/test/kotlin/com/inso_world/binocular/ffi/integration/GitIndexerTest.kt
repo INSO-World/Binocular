@@ -1,12 +1,13 @@
-package com.inso_world.binocular.indexer.vcs
+package com.inso_world.binocular.ffi.integration
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.index.GitIndexer
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
+import com.inso_world.binocular.ffi.BinocularFfiTestApplication
+import com.inso_world.binocular.ffi.internal.UniffiException
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.ClassOrderer
 import org.junit.jupiter.api.DisplayName
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestClassOrder
 import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
@@ -26,7 +28,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.File
 import java.nio.file.Files
@@ -34,24 +35,16 @@ import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
-import kotlin.collections.iterator
 import kotlin.io.path.Path
 
 /**
  * Comprehensive integration tests for [com.inso_world.binocular.core.index.GitIndexer].
  *
- * Tests the GitIndexer implementations (both gix/FFI and JGit) for Git operations, verifying:
+ * Tests the GitIndexer component which wraps the FFI layer for Git operations, verifying:
  * - Repository discovery and initialization
  * - Branch traversal and retrieval
  * - Commit finding and traversal
  * - Exception handling and error scenarios
- *
- * ### Profile Support
- * This test supports two profiles:
- * - `gix`: Uses the FFI-based GitIndexer (GixIndexer) powered by Rust's gix library
- * - `jgit`: Uses the JGit-based GitIndexer (JGitGitIndexer) powered by Eclipse JGit
- *
- * Set the active profile via `-Dspring.profiles.active=gix` or `-Dspring.profiles.active=jgit`.
  *
  * ### Test Organization
  * Tests are organized into nested classes by functionality:
@@ -63,12 +56,13 @@ import kotlin.io.path.Path
  */
 @TestClassOrder(ClassOrderer.OrderAnnotation::class)
 @SpringBootTest(
-    classes = [VcsIndexerTestApplication::class],
+    classes = [BinocularFfiTestApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-internal class GitIndexerTest : BaseFixturesIntegrationTest() {
+internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
+
     @Autowired
     private lateinit var indexer: GitIndexer
 
@@ -82,6 +76,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Repository operations")
     inner class RepositoryOperations {
+
         @ParameterizedTest
         @ValueSource(strings = [SIMPLE_REPO, OCTO_REPO, ADVANCED_REPO])
         fun `findRepo should locate existing repositories`(repoName: String) {
@@ -96,7 +91,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 },
                 { assertThat(repo.project).isSameAs(project) },
                 { assertThat(repo.commits).isEmpty() },
-                { assertThat(repo.branches).isEmpty() },
+                { assertThat(repo.branches).isEmpty() }
             )
         }
 
@@ -104,11 +99,9 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
         fun `findRepo with non-git directory should throw exception`() {
             val nonGitPath = Files.createTempDirectory(LocalDateTime.now().toString())
 
-            // FFI throws UniffiException (extends Exception), JGit throws JGitException (extends RuntimeException)
-            val e =
-                assertThrows<Exception> {
-                    indexer.findRepo(nonGitPath, project)
-                }
+            val e = assertThrows<UniffiException.GixDiscoverException> {
+                indexer.findRepo(nonGitPath, project)
+            }
             assertThat(e.message).contains(nonGitPath.toString())
         }
 
@@ -124,7 +117,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 { assertThat(repo1).isNotSameAs(repo2) },
                 { assertThat(repo1.project).isSameAs(project1) },
                 { assertThat(repo2.project).isSameAs(project2) },
-                { assertThat(repo1.localPath).isEqualTo(repo2.localPath) },
+                { assertThat(repo1.localPath).isEqualTo(repo2.localPath) }
             )
         }
     }
@@ -134,13 +127,14 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Order(Int.MAX_VALUE)
     @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
     inner class BranchOperations {
+
         @ParameterizedTest
-        @MethodSource("com.inso_world.binocular.indexer.vcs.GitIndexerTest#findAllBranchesData")
+        @MethodSource("com.inso_world.binocular.ffi.integration.GitIndexerTest#findAllBranchesData")
         fun `findAllBranches should return all branches for repository`(
             repoName: String,
             localBranches: Collection<String>,
             remoteBranches: Collection<String>,
-            expectedBranchCount: Int,
+            expectedBranchCount: Int
         ) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val branches = indexer.findAllBranches(repo)
@@ -171,12 +165,12 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
             "${OCTO_REPO},refs/heads/imported,1",
             // ADVANCED
             "${ADVANCED_REPO},refs/heads/master,35",
-            "${ADVANCED_REPO},refs/heads/imported,4",
+            "${ADVANCED_REPO},refs/heads/imported,4"
         )
         fun `traverseBranch should return branch with correct commit count`(
             repoName: String,
             branchName: String,
-            expectedCommitCount: Int,
+            expectedCommitCount: Int
         ) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val (branch, commits) = indexer.traverseBranch(repo, branchName)
@@ -191,7 +185,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 { assertThat(branch.head).isIn(commits) },
                 { assertThat(branch.commits).containsOnly(*commits.toTypedArray()) },
                 { assertThat(repo.commits).containsOnly(*commits.toTypedArray()) },
-                { assertThat(repo.branches).containsOnly(branch) },
+                { assertThat(repo.branches).containsOnly(branch) }
             )
         }
 
@@ -199,8 +193,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
         fun `traverseBranch with non-existent branch should throw exception`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${SIMPLE_REPO}"), project)
 
-            // Both implementations throw RuntimeException subclasses for reference errors
-            assertThrows<Exception> {
+            assertThrows<UniffiException.ReferenceException> {
                 indexer.traverseBranch(repo, "non-existent-branch")
             }
         }
@@ -238,7 +231,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 { assertThat(repo.commits).hasSize(13) },
                 { assertThat(originCommits).hasSize(13) },
                 { assertThat(originMaster.commits).hasSize(13) },
-                { assertThat(repo.commits).containsExactlyInAnyOrder(*originMaster.commits.toTypedArray()) },
+                { assertThat(repo.commits).containsExactlyInAnyOrder(*originMaster.commits.toTypedArray()) }
             )
 
             val (master, masterCommits) = indexer.traverseBranch(repo, "refs/heads/master")
@@ -249,7 +242,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 { assertThat(repo.commits).hasSize(14) },
                 { assertThat(masterCommits).hasSize(14) },
                 { assertThat(master.commits).hasSize(14) },
-                { assertThat(repo.commits).containsExactlyInAnyOrder(*master.commits.toTypedArray()) },
+                { assertThat(repo.commits).containsExactlyInAnyOrder(*master.commits.toTypedArray()) }
             )
         }
 
@@ -291,16 +284,14 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Commit operations")
     inner class CommitOperations {
+
         @ParameterizedTest
         @CsvSource(
             "${SIMPLE_REPO},b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
             "${OCTO_REPO},4dedc3c738eee6b69c43cde7d89f146912532cff",
-            "${ADVANCED_REPO},379dc91fb055ba385b5e5446428ffbe38804fa99",
+            "${ADVANCED_REPO},379dc91fb055ba385b5e5446428ffbe38804fa99"
         )
-        fun `findCommit with HEAD should return correct commit`(
-            repoName: String,
-            expectedSha: String,
-        ) {
+        fun `findCommit with HEAD should return correct commit`(repoName: String, expectedSha: String) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val commit = indexer.findCommit(repo, "HEAD")
 
@@ -308,7 +299,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 "HEAD commit for $repoName",
                 { assertThat(commit).isNotNull() },
                 { assertThat(commit.sha).isEqualTo(expectedSha) },
-                { assertThat(commit.repository).isSameAs(repo) },
+                { assertThat(commit.repository).isSameAs(repo) }
             )
         }
 
@@ -316,19 +307,16 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
         @CsvSource(
             "${SIMPLE_REPO},48a384a6a9188f376835005cd10fd97542e69bf7",
             "${OCTO_REPO},d16fb2d78e3d867377c078a03aadc5aa34bdb408",
-            "${ADVANCED_REPO},5c81ebfb36467b8d1f70295adf2f9ae5a93a2c33",
+            "${ADVANCED_REPO},5c81ebfb36467b8d1f70295adf2f9ae5a93a2c33"
         )
-        fun `findCommit with specific SHA should return correct commit`(
-            repoName: String,
-            sha: String,
-        ) {
+        fun `findCommit with specific SHA should return correct commit`(repoName: String, sha: String) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val commit = indexer.findCommit(repo, sha)
 
             assertAll(
                 { assertThat(commit).isNotNull() },
                 { assertThat(commit.sha).isEqualTo(sha) },
-                { assertThat(commit.repository).isSameAs(repo) },
+                { assertThat(commit.repository).isSameAs(repo) }
             )
         }
 
@@ -351,7 +339,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 { assertThat(commit1.sha).isEqualTo(commit2.sha) },
-                { assertThat(commit1.repository).isSameAs(commit2.repository) },
+                { assertThat(commit1.repository).isSameAs(commit2.repository) }
             )
         }
 
@@ -378,12 +366,12 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
             "${ADVANCED_REPO},82df82770ef416d66c52b383281d21e03376fde0,29",
             "${ADVANCED_REPO},09aa9cb6a6322b4ba4506f168b944f0045b11cbe,4",
             "${ADVANCED_REPO},ed167f854e871a1566317302c158704f71f8d16c,1",
-            "${ADVANCED_REPO},5c81ebfb36467b8d1f70295adf2f9ae5a93a2c33,1",
+            "${ADVANCED_REPO},5c81ebfb36467b8d1f70295adf2f9ae5a93a2c33,1"
         )
         fun `traverse from commit should return correct number of commits`(
             repoName: String,
             startSha: String,
-            expectedCount: Int,
+            expectedCount: Int
         ) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val startCommit = indexer.findCommit(repo, startSha)
@@ -394,7 +382,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 { assertThat(commits).isNotEmpty() },
                 { assertThat(commits).hasSize(expectedCount) },
                 { assertThat(commits).allSatisfy { assertThat(it.repository).isSameAs(repo) } },
-                { assertThat(commits.first()).isSameAs(startCommit) },
+                { assertThat(commits.first()).isSameAs(startCommit) }
             )
         }
 
@@ -407,7 +395,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(commits).hasSize(1) },
                 { assertThat(commits.first()).isSameAs(initialCommit) },
-                { assertThat(commits.first().parents).isEmpty() },
+                { assertThat(commits.first().parents).isEmpty() }
             )
         }
 
@@ -422,7 +410,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(commits).isNotEmpty() },
                 { assertThat(commits.first()).isSameAs(head) },
-                { assertThat(commits).doesNotContain(target) },
+                { assertThat(commits).doesNotContain(target) }
             )
         }
 
@@ -442,7 +430,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                             assertThat(commits).contains(parent)
                         }
                     }
-                },
+                }
             )
         }
     }
@@ -450,31 +438,30 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Error handling")
     inner class ErrorHandling {
+
         @Test
         fun `operations on invalid repository should fail gracefully`() {
-            val invalidRepo =
-                Repository(
-                    localPath = "/invalid/path",
-                    project = project,
-                )
+            val invalidRepo = Repository(
+                localPath = "/invalid/path",
+                project = project
+            )
 
             assertAll(
                 {
-                    // Both implementations throw RuntimeException subclasses for discovery errors
-                    assertThrows<Exception> {
+                    assertThrows<UniffiException.GixDiscoverException> {
                         indexer.traverseBranch(invalidRepo, "refs/heads/master")
                     }
                 },
                 {
-                    assertThrows<Exception> {
+                    assertThrows<UniffiException.GixDiscoverException> {
                         indexer.findCommit(invalidRepo, "HEAD")
                     }
                 },
                 {
-                    assertThrows<Exception> {
+                    assertThrows<UniffiException.GixDiscoverException> {
                         indexer.findAllBranches(invalidRepo)
                     }
-                },
+                }
             )
         }
     }
@@ -482,14 +469,16 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Integration scenarios")
     inner class Integration {
+
         @Test
         fun `complete workflow - Binocular`() {
             val repo = indexer.findRepo(Path("./"), project)
             assertThat(repo).isNotNull()
 
-            val (branch, branchCommits) = indexer.traverseBranch(repo, "origin/main")
+            val (_, branchCommits) = indexer.traverseBranch(repo, "origin/main")
             assertAll(
-                { assertThat(branchCommits).hasSize(2456) },
+                // when this test fails, check the number of `git rev-list --count origin/main`
+                { assertThat(branchCommits).hasSize(2456) }
             )
         }
 
@@ -503,19 +492,19 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 { assertThat(branch).isNotNull() },
                 { assertThat(branchCommits).hasSize(14) },
                 { assertThat(repo.branches).containsOnly(branch) },
-                { assertThat(repo.commits).hasSize(14) },
+                { assertThat(repo.commits).hasSize(14) }
             )
 
             val specificCommit = indexer.findCommit(repo, "48a384a6a9188f376835005cd10fd97542e69bf7")
             assertAll(
                 { assertThat(specificCommit).isNotNull() },
-                { assertThat(branchCommits).contains(specificCommit) },
+                { assertThat(branchCommits).contains(specificCommit) }
             )
 
             val commitsFromSpecific = indexer.traverse(repo, specificCommit, null)
             assertAll(
                 { assertThat(commitsFromSpecific).hasSize(1) },
-                { assertThat(commitsFromSpecific.first()).isSameAs(specificCommit) },
+                { assertThat(commitsFromSpecific.first()).isSameAs(specificCommit) }
             )
 
             val allBranches = indexer.findAllBranches(repo)
@@ -524,9 +513,9 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 {
                     assertThat(allBranches.map { it.name }).containsExactlyInAnyOrder(
                         normalizeBranchName("refs/heads/master"),
-                        normalizeBranchName("refs/remotes/origin/master"),
+                        normalizeBranchName("refs/remotes/origin/master")
                     )
-                },
+                }
             )
         }
 
@@ -550,7 +539,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                 { assertThat(commits1).hasSize(14) },
                 { assertThat(commits2).hasSize(19) },
                 { assertThat(commits1).allSatisfy { assertThat(it.repository).isSameAs(repo1) } },
-                { assertThat(commits2).allSatisfy { assertThat(it.repository).isSameAs(repo2) } },
+                { assertThat(commits2).allSatisfy { assertThat(it.repository).isSameAs(repo2) } }
             )
         }
 
@@ -570,7 +559,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                     branches.forEach { branch ->
                         assertThat(repo.commits).containsAll(branch.commits)
                     }
-                },
+                }
             )
         }
 
@@ -593,10 +582,10 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                                     assertThat(parent.repository).isSameAs(repo)
                                     assertThat(masterBranch.commits).contains(parent)
                                 }
-                            },
+                            }
                         )
                     }
-                },
+                }
             )
         }
     }
@@ -607,8 +596,8 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
         @CsvSource(
             value = [
                 "origin/main",
-                "origin/develop",
-            ],
+                "origin/develop"
+            ]
         )
         fun `Binocular, traverse branch, check committer`(branchName: String) {
             logger.info(branchName)
@@ -621,22 +610,18 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
 
             val committerGroups = branchCommits.groupBy { it.committer }
             for ((committer, commits) in committerGroups) {
-                val gitLogProcess =
-                    ProcessBuilder(
-                        "git",
-                        "log",
-                        "--use-mailmap",
-                        "--pretty=format:'%cN <%cE>'",
-                        branchName,
-                    ).directory(repoDir)
-                        .redirectErrorStream(true)
-                        .start()
+                val gitLogProcess = ProcessBuilder(
+                    "git", "log", "--use-mailmap", "--pretty=format:'%cN <%cE>'",
+                    branchName
+                )
+                    .directory(repoDir)
+                    .redirectErrorStream(true)
+                    .start()
                 logger.debug("{}", gitLogProcess.info())
 
-                val lineCount =
-                    gitLogProcess.inputStream.bufferedReader().useLines { lines ->
-                        lines.count { it.contains(committer.email.orEmpty()) }
-                    }
+                val lineCount = gitLogProcess.inputStream.bufferedReader().useLines { lines ->
+                    lines.count { it.contains(committer.email.orEmpty()) }
+                }
                 gitLogProcess.waitFor(5, TimeUnit.SECONDS)
 
                 logger.info("Committer: ${committer.email} - Commits: $lineCount")
@@ -648,8 +633,8 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
         @CsvSource(
             value = [
                 "origin/main",
-                "origin/develop",
-            ],
+                "origin/develop"
+            ]
         )
         fun `Binocular, traverse branch, check authors`(branchName: String) {
             logger.info(branchName)
@@ -662,29 +647,25 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
 
             val authorGroups = branchCommits.filter { it.author != null }.groupBy { requireNotNull(it.author) }
             for ((author, commits) in authorGroups) {
-                val gitLogProcess =
-                    ProcessBuilder(
-                        "git",
-                        "log",
-                        "--use-mailmap",
-                        "--pretty=format:'%aN <%aE>'",
-                        branchName,
-                    ).directory(repoDir)
-                        .redirectErrorStream(true)
-                        .start()
+                val gitLogProcess = ProcessBuilder(
+                    "git", "log", "--use-mailmap", "--pretty=format:'%aN <%aE>'",
+                    branchName
+                )
+                    .directory(repoDir)
+                    .redirectErrorStream(true)
+                    .start()
                 logger.debug("{}", gitLogProcess.info())
 
-                val lineCount =
-                    gitLogProcess.inputStream.bufferedReader().useLines { lines ->
-                        lines.count { it.contains(author.email.orEmpty()) }
-                    }
+                val lineCount = gitLogProcess.inputStream.bufferedReader().useLines { lines ->
+                    lines.count { it.contains(author.email.orEmpty()) }
+                }
                 gitLogProcess.waitFor(5, TimeUnit.SECONDS)
 
                 logger.info("Author: ${author.email} - Commits: $lineCount")
                 assertAll(
                     { assertThat(author.authoredCommits).hasSameSizeAs(commits) },
                     { assertThat(author.authoredCommits).containsExactlyInAnyOrder(*commits.toTypedArray()) },
-                    { assertThat(author.authoredCommits.size).isEqualTo(lineCount) },
+                    { assertThat(author.authoredCommits.size).isEqualTo(lineCount) }
                 )
             }
         }
@@ -706,7 +687,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                     SIMPLE_REPO,
                     listOf("refs/heads/master"),
                     listOf("refs/remotes/origin/master"),
-                    2,
+                    2
                 ),
                 Arguments.of(
                     OCTO_REPO,
@@ -717,10 +698,10 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                         "master",
                         "octo1",
                         "octo2",
-                        "octo3",
+                        "octo3"
                     ).map { "refs/heads/$it" },
                     emptyList<String>(),
-                    7,
+                    7
                 ),
                 Arguments.of(
                     ADVANCED_REPO,
@@ -732,11 +713,11 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
                         "master",
                         "octo1",
                         "octo2",
-                        "octo3",
+                        "octo3"
                     ).map { "refs/heads/$it" },
                     emptyList<String>(),
-                    8,
-                ),
+                    8
+                )
             )
     }
 }

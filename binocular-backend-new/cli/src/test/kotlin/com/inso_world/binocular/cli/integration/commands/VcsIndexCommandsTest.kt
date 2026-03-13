@@ -42,11 +42,10 @@ import kotlin.io.path.exists
 @ContextConfiguration(
     initializers = [
         SqlTestConfig.Initializer::class,
-    ]
+    ],
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
-
+internal class VcsIndexCommandsTest : BaseFixturesIntegrationTest() {
     @all:Autowired
     private lateinit var infrastructureDataSetup: InfrastructureDataSetup
 
@@ -56,9 +55,9 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
     @all:Autowired
     private lateinit var idxClient: Index
 
-
     companion object {
         val BINOCULAR_REPO_PATH = Path("../../.git")
+
         @JvmStatic
         @BeforeAll
         fun checkPath() {
@@ -85,13 +84,14 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         repository: Repository,
         developerName: String = "Test User",
         developerEmail: String = "test@example.com",
-        timestamp: LocalDateTime = LocalDateTime.now().minusHours(1)
+        timestamp: LocalDateTime = LocalDateTime.now().minusHours(1),
     ): Commit {
-        val developer = Developer(
-            name = developerName,
-            email = developerEmail,
-            repository = repository
-        )
+        val developer =
+            Developer(
+                name = developerName,
+                email = developerEmail,
+                repository = repository,
+            )
         val signature = Signature(developer = developer, timestamp = timestamp)
         return Commit(
             sha = sha,
@@ -103,7 +103,6 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
     @Nested
     inner class BinocularRepo {
-
         @BeforeEach
         fun `cleanup inner`() {
             cleanup()
@@ -141,7 +140,8 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
             val repo = repoService.findRepo(BINOCULAR_REPO_PATH.absolutePathString())
             assertNotNull(repo)
-            assertThat(repo.commits).hasSize(2443)
+            // git rev-list --count origin/develop
+            assertThat(repo.commits).hasSize(2514)
         }
 
         @Test
@@ -152,7 +152,6 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
                 projectName = "Binocular",
             )
         }
-
 
         @Test
         fun `index branch origin-feature-6 and then origin-feature-5`() {
@@ -225,8 +224,9 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
                     projectName = OCTO_PROJECT_NAME,
                 )
             }
-            val repo = repoService.findRepo("$FIXTURES_PATH/$OCTO_REPO")
-                ?: throw IllegalStateException("repo cannot be null here")
+            val repo =
+                repoService.findRepo("$FIXTURES_PATH/$OCTO_REPO")
+                    ?: throw IllegalStateException("repo cannot be null here")
             assertAll(
                 "check numbers",
                 { assertThat(repo).isNotNull() },
@@ -242,7 +242,6 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
     @Nested
     inner class SimpleRepo {
-
         @BeforeEach
         fun setup() {
             cleanup()
@@ -332,9 +331,10 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
             val repo1 =
                 run {
-                    val repo = requireNotNull(
-                        this@VcsIndexCommandsTest.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO")
-                    )
+                    val repo =
+                        requireNotNull(
+                            this@VcsIndexCommandsTest.repoService.findRepo("$FIXTURES_PATH/$SIMPLE_REPO"),
+                        )
                     assertAll(
                         { assertThat(repo).isNotNull() },
                         { assertThat(repo.branches).isNotEmpty() },
@@ -408,23 +408,25 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
             val newVcsCommit =
                 run {
                     // Find existing parent commit
-                    val parent = repo1.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
-                        ?: createTestCommit(
-                            sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
-                            message = "parent",
-                            repository = repo1,
-                            developerName = "User B",
-                            developerEmail = "b@test.com"
-                        )
+                    val parent =
+                        repo1.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+                            ?: createTestCommit(
+                                sha = "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
+                                message = "parent",
+                                repository = repo1,
+                                developerName = "User B",
+                                developerEmail = "b@test.com",
+                            )
 
                     // Create child commit with new developer
-                    val child = createTestCommit(
-                        sha = "123456789a123456789b123456789c123456789d",
-                        message = "msg1",
-                        repository = repo1,
-                        developerName = "User A",
-                        developerEmail = "a@test.com"
-                    )
+                    val child =
+                        createTestCommit(
+                            sha = "123456789a123456789b123456789c123456789d",
+                            message = "msg1",
+                            repository = repo1,
+                            developerName = "User A",
+                            developerEmail = "a@test.com",
+                        )
 
                     child.parents.add(parent)
                     return@run child
@@ -432,12 +434,13 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
             repo1.branches.first().head = newVcsCommit
 
             assertThat(
-                repo1.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+                repo1.commits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" },
             ).isNotNull()
 
-            val repo2 = assertDoesNotThrow {
-                this@VcsIndexCommandsTest.repoService.addCommits(repo1, listOf(newVcsCommit))
-            }
+            val repo2 =
+                assertDoesNotThrow {
+                    this@VcsIndexCommandsTest.repoService.addCommits(repo1, listOf(newVcsCommit))
+                }
 
             run {
                 assertThat(repo2).isNotNull()

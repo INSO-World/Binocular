@@ -23,7 +23,6 @@ import kotlin.io.path.Path
  * These tests complement [MailmapTest] by verifying that without mailmap,
  * the original author/committer identities are preserved.
  *
- * Only runs with the gix profile to ensure consistent behavior testing.
  */
 @SpringBootTest(
     classes = [VcsIndexerTestApplication::class],
@@ -31,9 +30,8 @@ import kotlin.io.path.Path
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestPropertySource(properties = ["binocular.gix.use-mailmap=false", "binocular.jgit.use-mailmap=false"])
+@TestPropertySource(properties = ["binocular.vcs.use-mailmap=false"])
 internal class MailmapDisabledTest : BaseFixturesIntegrationTest() {
-
     @Autowired
     private lateinit var indexer: GitIndexer
 
@@ -45,28 +43,30 @@ internal class MailmapDisabledTest : BaseFixturesIntegrationTest() {
         /**
          * Old email addresses that should be present when mailmap is disabled.
          */
-        val OLD_EMAILS = setOf(
-            "alice@example.com",
-            "alice@home.local",
-            "bob@example.com",
-            "bobby@personal.net",
-            "carol@example.com",
-            "ccoder@oldcompany.org",
-            "dave@example.com"
-        )
+        val OLD_EMAILS =
+            setOf(
+                "alice@example.com",
+                "alice@home.local",
+                "bob@example.com",
+                "bobby@personal.net",
+                "carol@example.com",
+                "ccoder@oldcompany.org",
+                "dave@example.com",
+            )
 
         /**
          * Old names that should be present when mailmap is disabled.
          */
-        val OLD_NAMES = setOf(
-            "Alice",
-            "alice",
-            "Bob",
-            "Bobby",
-            "Carol",
-            "C. Coder",
-            "Dave"
-        )
+        val OLD_NAMES =
+            setOf(
+                "Alice",
+                "alice",
+                "Bob",
+                "Bobby",
+                "Carol",
+                "C. Coder",
+                "Dave",
+            )
     }
 
     @BeforeEach
@@ -77,7 +77,6 @@ internal class MailmapDisabledTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Original identities preserved when mailmap disabled")
     inner class OriginalIdentitiesPreserved {
-
         @Test
         fun `traverseBranch without mailmap should preserve original author emails`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${MAILMAP_REPO}"), project)
@@ -142,7 +141,6 @@ internal class MailmapDisabledTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Multiple developer identities when mailmap disabled")
     inner class MultipleDeveloperIdentities {
-
         @Test
         fun `repository should have multiple developer identities for same person when mailmap disabled`() {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/${MAILMAP_REPO}"), project)

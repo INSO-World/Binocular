@@ -1,12 +1,36 @@
 package com.inso_world.binocular.ffi.integration
 
 import com.inso_world.binocular.core.integration.base.BaseFixturesIntegrationTest
-import com.inso_world.binocular.ffi.FfiConfig
 import com.inso_world.binocular.ffi.BinocularFfiTestApplication
-import com.inso_world.binocular.ffi.internal.*
+import com.inso_world.binocular.ffi.GixModuleConfig
+import com.inso_world.binocular.ffi.internal.GixBranch
+import com.inso_world.binocular.ffi.internal.GixChangeType
+import com.inso_world.binocular.ffi.internal.GixDiffAlgorithm
+import com.inso_world.binocular.ffi.internal.GixDiffInput
+import com.inso_world.binocular.ffi.internal.GixReferenceCategory
+import com.inso_world.binocular.ffi.internal.GixRepository
+import com.inso_world.binocular.ffi.internal.UniffiException
+import com.inso_world.binocular.ffi.internal.blames
+import com.inso_world.binocular.ffi.internal.diffs
+import com.inso_world.binocular.ffi.internal.findAllBranches
+import com.inso_world.binocular.ffi.internal.findCommit
+import com.inso_world.binocular.ffi.internal.findRepo
+import com.inso_world.binocular.ffi.internal.hello
+import com.inso_world.binocular.ffi.internal.traverseBranch
+import com.inso_world.binocular.ffi.internal.traverseHistory
 import com.inso_world.binocular.ffi.util.Utils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.ClassOrderer
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Order
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestClassOrder
+import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -49,9 +73,8 @@ import java.util.stream.Stream
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
-
     @Autowired
-    private lateinit var cfg: FfiConfig
+    private lateinit var cfg: GixModuleConfig
 
     companion object {
         private lateinit var simpleRepo: GixRepository
@@ -66,27 +89,29 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         }
 
         @JvmStatic
-        fun branchTestData(): Stream<Arguments> = Stream.of(
-            Arguments.of(SIMPLE_REPO, "refs/heads/master", 14),
-            Arguments.of(SIMPLE_REPO, "refs/remotes/origin/master", 13),
-            Arguments.of(OCTO_REPO, "refs/heads/master", 19),
-            Arguments.of(OCTO_REPO, "refs/heads/octo1", 16),
-            Arguments.of(OCTO_REPO, "refs/heads/octo2", 16),
-            Arguments.of(OCTO_REPO, "refs/heads/octo3", 16),
-            Arguments.of(ADVANCED_REPO, "refs/heads/master", 35),
-            Arguments.of(ADVANCED_REPO, "refs/heads/imported", 4)
-        )
+        fun branchTestData(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(SIMPLE_REPO, "refs/heads/master", 14),
+                Arguments.of(SIMPLE_REPO, "refs/remotes/origin/master", 13),
+                Arguments.of(OCTO_REPO, "refs/heads/master", 19),
+                Arguments.of(OCTO_REPO, "refs/heads/octo1", 16),
+                Arguments.of(OCTO_REPO, "refs/heads/octo2", 16),
+                Arguments.of(OCTO_REPO, "refs/heads/octo3", 16),
+                Arguments.of(ADVANCED_REPO, "refs/heads/master", 35),
+                Arguments.of(ADVANCED_REPO, "refs/heads/imported", 4),
+            )
 
         @JvmStatic
-        fun commitHistoryData(): Stream<Arguments> = Stream.of(
-            Arguments.of(SIMPLE_REPO, "HEAD", null, 14),
-            Arguments.of(SIMPLE_REPO, "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", null, 14),
-            Arguments.of(SIMPLE_REPO, "48a384a6a9188f376835005cd10fd97542e69bf7", null, 1),
-            Arguments.of(OCTO_REPO, "HEAD", null, 19),
-            Arguments.of(OCTO_REPO, "4dedc3c738eee6b69c43cde7d89f146912532cff", null, 19),
-            Arguments.of(ADVANCED_REPO, "HEAD", null, 35),
-            Arguments.of(ADVANCED_REPO, "379dc91fb055ba385b5e5446428ffbe38804fa99", null, 35)
-        )
+        fun commitHistoryData(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(SIMPLE_REPO, "HEAD", null, 14),
+                Arguments.of(SIMPLE_REPO, "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a", null, 14),
+                Arguments.of(SIMPLE_REPO, "48a384a6a9188f376835005cd10fd97542e69bf7", null, 1),
+                Arguments.of(OCTO_REPO, "HEAD", null, 19),
+                Arguments.of(OCTO_REPO, "4dedc3c738eee6b69c43cde7d89f146912532cff", null, 19),
+                Arguments.of(ADVANCED_REPO, "HEAD", null, 35),
+                Arguments.of(ADVANCED_REPO, "379dc91fb055ba385b5e5446428ffbe38804fa99", null, 35),
+            )
 
         private fun normalizeBranchName(refName: String): String =
             refName
@@ -112,7 +137,6 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(1)
     @DisplayName("Basic FFI operations")
     inner class BasicOperations {
-
         @Test
         fun `hello should execute without errors`() {
             assertDoesNotThrow {
@@ -132,7 +156,6 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(2)
     @DisplayName("Repository operations via FFI")
     inner class RepositoryOperations {
-
         @ParameterizedTest
         @ValueSource(strings = [SIMPLE_REPO, OCTO_REPO, ADVANCED_REPO])
         fun `findRepo should discover repository and return metadata`(repoName: String) {
@@ -143,7 +166,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                 { assertThat(repo.gitDir).contains(".git") },
                 { assertThat(repo.gitDir).contains(repoName) },
                 { assertThat(repo.workTree).isNotNull() },
-                { assertThat(repo.remotes).isNotNull() }
+                { assertThat(repo.remotes).isNotNull() },
             )
         }
 
@@ -153,7 +176,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 { assertThat(repo.remotes).isNotEmpty() },
-                { assertThat(repo.remotes.map { it.name }).contains("origin") }
+                { assertThat(repo.remotes.map { it.name }).contains("origin") },
             )
         }
 
@@ -161,9 +184,10 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         fun `findRepo with non-git directory should throw GixDiscoverException`() {
             val nonGitPath = Files.createTempDirectory(LocalDateTime.now().toString())
 
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo(nonGitPath.toString())
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo(nonGitPath.toString())
+                }
 
             assertThat(exception.message).contains(nonGitPath.toString())
         }
@@ -183,7 +207,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(repo1.gitDir).isEqualTo(repo2.gitDir) },
                 { assertThat(repo1.workTree).isEqualTo(repo2.workTree) },
-                { assertThat(repo1.remotes.size).isEqualTo(repo2.remotes.size) }
+                { assertThat(repo1.remotes.size).isEqualTo(repo2.remotes.size) },
             )
         }
 
@@ -194,7 +218,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(repo.workTree).isNotNull() },
                 { assertThat(repo.workTree).contains(SIMPLE_REPO) },
-                { assertThat(repo.workTree).doesNotContain(".git") }
+                { assertThat(repo.workTree).doesNotContain(".git") },
             )
         }
     }
@@ -203,14 +227,16 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(3)
     @DisplayName("Branch operations via FFI")
     inner class BranchOperations {
-
         @ParameterizedTest
         @CsvSource(
             "${SIMPLE_REPO},2",
             "${OCTO_REPO},7",
-            "${ADVANCED_REPO},8"
+            "${ADVANCED_REPO},8",
         )
-        fun `findAllBranches should return all branches in repository`(repoName: String, expectedCount: Int) {
+        fun `findAllBranches should return all branches in repository`(
+            repoName: String,
+            expectedCount: Int,
+        ) {
             val repo = findRepo("${FIXTURES_PATH}/$repoName")
             val branches = findAllBranches(repo)
 
@@ -219,7 +245,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                 { assertThat(branches).hasSize(expectedCount) },
                 { assertThat(branches).allMatch { it.name.isNotEmpty() } },
                 { assertThat(branches).allMatch { it.fullName.isNotEmpty() } },
-                { assertThat(branches).allMatch { it.target.isNotEmpty() } }
+                { assertThat(branches).allMatch { it.target.isNotEmpty() } },
             )
         }
 
@@ -231,7 +257,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(branches).hasSize(2) },
                 { assertThat(branchNames).contains("master") },
-                { assertThat(branchNames).contains("origin/master") }
+                { assertThat(branchNames).contains("origin/master") },
             )
         }
 
@@ -245,7 +271,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(localBranches).isNotEmpty() },
                 { assertThat(remoteBranches).isNotEmpty() },
-                { assertThat(localBranches.size + remoteBranches.size).isEqualTo(branches.size) }
+                { assertThat(localBranches.size + remoteBranches.size).isEqualTo(branches.size) },
             )
         }
 
@@ -254,37 +280,41 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         fun `traverseBranch should return branch with commits`(
             repoName: String,
             branchName: String,
-            expectedCommitCount: Int
+            expectedCommitCount: Int,
         ) {
             val repo = findRepo("${FIXTURES_PATH}/$repoName")
-            val result = traverseBranch(
-                repo, branchName,
-                skipMerges = cfg.gix.skipMerges,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val result =
+                traverseBranch(
+                    repo,
+                    branchName,
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 "Branch $branchName in $repoName",
                 { assertThat(result.branch.name).isEqualTo(normalizeBranchName(branchName)) },
                 { assertThat(result.commits).hasSize(expectedCommitCount) },
                 { assertThat(result.commits).allMatch { it.oid.isNotEmpty() } },
-                { assertThat(result.commits).allMatch { it.message.isNotEmpty() } }
+                { assertThat(result.commits).allMatch { it.message.isNotEmpty() } },
             )
         }
 
         @Test
         fun `traverseBranch should populate commit metadata correctly`() {
-            val result = traverseBranch(
-                simpleRepo, "refs/heads/master",
-                skipMerges = cfg.gix.skipMerges,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val result =
+                traverseBranch(
+                    simpleRepo,
+                    "refs/heads/master",
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 { assertThat(result.commits).allMatch { it.oid.length == 40 } },
                 { assertThat(result.commits).allMatch { it.message.isNotBlank() } },
                 { assertThat(result.commits).allMatch { it.author != null } },
-                { assertThat(result.commits).allMatch { it.committer != null } }
+                { assertThat(result.commits).allMatch { it.committer != null } },
             )
         }
 
@@ -292,20 +322,23 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         fun `traverseBranch with non-existent branch should throw ReferenceException`() {
             assertThrows<UniffiException.ReferenceException> {
                 traverseBranch(
-                    simpleRepo, "refs/heads/nonexistent-branch",
-                    skipMerges = cfg.gix.skipMerges,
-                    useMailmap = cfg.gix.useMailmap
+                    simpleRepo,
+                    "refs/heads/nonexistent-branch",
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
                 )
             }
         }
 
         @Test
         fun `traverseBranch should populate parent relationships`() {
-            val result = traverseBranch(
-                simpleRepo, "refs/heads/master",
-                skipMerges = cfg.gix.skipMerges,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val result =
+                traverseBranch(
+                    simpleRepo,
+                    "refs/heads/master",
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             val commitsWithParents = result.commits.filter { it.parents.isNotEmpty() }
             assertAll(
@@ -314,17 +347,19 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                     commitsWithParents.forEach { commit ->
                         assertThat(commit.parents).allMatch { it.length == 40 }
                     }
-                }
+                },
             )
         }
 
         @Test
         fun `traverseBranch should handle merge commits with multiple parents`() {
-            val result = traverseBranch(
-                octoRepo, "refs/heads/master",
-                skipMerges = cfg.gix.skipMerges,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val result =
+                traverseBranch(
+                    octoRepo,
+                    "refs/heads/master",
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             val mergeCommits = result.commits.filter { it.parents.size > 1 }
             assertAll(
@@ -333,17 +368,19 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                     mergeCommits.forEach { commit ->
                         assertThat(commit.parents.size).isGreaterThan(1)
                     }
-                }
+                },
             )
         }
 
         @Test
         fun `traverseBranch should include file tree information`() {
-            val result = traverseBranch(
-                simpleRepo, "refs/heads/master",
-                skipMerges = cfg.gix.skipMerges,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val result =
+                traverseBranch(
+                    simpleRepo,
+                    "refs/heads/master",
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             val commitsWithFiles = result.commits.filter { it.fileTree.isNotEmpty() }
             assertAll(
@@ -352,7 +389,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                     commitsWithFiles.forEach { commit ->
                         assertThat(commit.fileTree).allMatch { it.isNotEmpty() }
                     }
-                }
+                },
             )
         }
     }
@@ -361,39 +398,42 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(4)
     @DisplayName("Commit operations via FFI")
     inner class CommitOperations {
-
         @ParameterizedTest
         @CsvSource(
             "${SIMPLE_REPO},HEAD,b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
             "${SIMPLE_REPO},b51199ab8b83e31f64b631e42b2ee0b1c7e3259a,b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
             "${OCTO_REPO},HEAD,4dedc3c738eee6b69c43cde7d89f146912532cff",
-            "${ADVANCED_REPO},HEAD,379dc91fb055ba385b5e5446428ffbe38804fa99"
+            "${ADVANCED_REPO},HEAD,379dc91fb055ba385b5e5446428ffbe38804fa99",
         )
         fun `findCommit should return commit with correct SHA`(
             repoName: String,
             commitRef: String,
-            expectedSha: String
+            expectedSha: String,
         ) {
             val repo = findRepo("${FIXTURES_PATH}/$repoName")
-            val commit = findCommit(
-                repo, commitRef,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    repo,
+                    commitRef,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 { assertThat(commit.oid).isEqualTo(expectedSha) },
                 { assertThat(commit.message).isNotBlank() },
                 { assertThat(commit.author).isNotNull() },
-                { assertThat(commit.committer).isNotNull() }
+                { assertThat(commit.committer).isNotNull() },
             )
         }
 
         @Test
         fun `findCommit should populate signature fields correctly`() {
-            val commit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 "Commit signatures",
@@ -402,7 +442,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                 { assertThat(commit.author?.email).isNotBlank() },
                 { assertThat(commit.committer).isNotNull() },
                 { assertThat(commit.committer?.name).isNotBlank() },
-                { assertThat(commit.committer?.email).isNotBlank() }
+                { assertThat(commit.committer?.email).isNotBlank() },
             )
         }
 
@@ -410,8 +450,9 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         fun `findCommit with invalid SHA should throw RevisionParseException`() {
             assertThrows<UniffiException.RevisionParseException> {
                 findCommit(
-                    simpleRepo, "invalid-sha-format",
-                    useMailmap = cfg.gix.useMailmap
+                    simpleRepo,
+                    "invalid-sha-format",
+                    useMailmap = cfg.vcs.useMailmap,
                 )
             }
         }
@@ -420,8 +461,9 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         fun `findCommit with non-existent SHA should throw RevisionParseException`() {
             assertThrows<UniffiException.RevisionParseException> {
                 findCommit(
-                    simpleRepo, "0000000000000000000000000000000000000000",
-                    useMailmap = cfg.gix.useMailmap
+                    simpleRepo,
+                    "0000000000000000000000000000000000000000",
+                    useMailmap = cfg.vcs.useMailmap,
                 )
             }
         }
@@ -432,70 +474,87 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             repoName: String,
             startRef: String,
             targetSha: String?,
-            expectedCount: Int
+            expectedCount: Int,
         ) {
             val repo = findRepo("${FIXTURES_PATH}/$repoName")
-            val startCommit = findCommit(
-                repo, startRef,
-                useMailmap = cfg.gix.useMailmap
-            )
-            val commits = traverseHistory(
-                repo, startCommit.oid, targetSha,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val startCommit =
+                findCommit(
+                    repo,
+                    startRef,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
+            val commits =
+                traverseHistory(
+                    repo,
+                    startCommit.oid,
+                    targetSha,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 "Traversing from $startRef in $repoName",
                 { assertThat(commits).hasSize(expectedCount) },
                 { assertThat(commits.first().oid).isEqualTo(startCommit.oid) },
-                { assertThat(commits).allMatch { it.oid.length == 40 } }
+                { assertThat(commits).allMatch { it.oid.length == 40 } },
             )
         }
 
         @Test
         fun `traverseHistory from initial commit should return single commit`() {
             val initialSha = "48a384a6a9188f376835005cd10fd97542e69bf7"
-            val commits = traverseHistory(
-                simpleRepo, initialSha, null,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    initialSha,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 { assertThat(commits).hasSize(1) },
                 { assertThat(commits.first().oid).isEqualTo(initialSha) },
-                { assertThat(commits.first().parents).isEmpty() }
+                { assertThat(commits.first().parents).isEmpty() },
             )
         }
 
         @Test
         fun `traverseHistory with target should stop at target commit`() {
-            val headCommit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val headCommit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val targetSha = "48a384a6a9188f376835005cd10fd97542e69bf7"
 
-            val commits = traverseHistory(
-                simpleRepo, headCommit.oid, targetSha,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    headCommit.oid,
+                    targetSha,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 { assertThat(commits).isNotEmpty() },
                 { assertThat(commits.first().oid).isEqualTo(headCommit.oid) },
-                { assertThat(commits.map { it.oid }).doesNotContain(targetSha) }
+                { assertThat(commits.map { it.oid }).doesNotContain(targetSha) },
             )
         }
 
         @Test
         fun `traverseHistory should preserve commit order (newest first)`() {
-            val commits = traverseHistory(
-                simpleRepo, findCommit(
-                    simpleRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    findCommit(
+                        simpleRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             // Verify chronological order by checking that each commit's timestamp
             // is older than or equal to the previous commit
@@ -507,18 +566,22 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
         @Test
         fun `traverseHistory should handle merge commits correctly`() {
-            val commits = traverseHistory(
-                octoRepo, findCommit(
-                    octoRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commits =
+                traverseHistory(
+                    octoRepo,
+                    findCommit(
+                        octoRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             val mergeCommits = commits.filter { it.parents.size > 1 }
             assertAll(
                 { assertThat(mergeCommits).isNotEmpty() },
-                { assertThat(commits).contains(*mergeCommits.toTypedArray()) }
+                { assertThat(commits).contains(*mergeCommits.toTypedArray()) },
             )
         }
     }
@@ -527,19 +590,21 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(5)
     @DisplayName("Diff operations via FFI")
     inner class DiffOperations {
-
         @Test
         fun `diffs should calculate diff for single commit pair`() {
-            val headCommit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val headCommit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val parentSha = headCommit.parents.firstOrNull()
 
-            val diffInput = GixDiffInput(
-                suspect = headCommit.oid,
-                target = parentSha
-            )
+            val diffInput =
+                GixDiffInput(
+                    suspect = headCommit.oid,
+                    target = parentSha,
+                )
 
             val diffs = diffs(simpleRepo, listOf(diffInput), 1u, GixDiffAlgorithm.HISTOGRAM)
 
@@ -547,42 +612,50 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                 { assertThat(diffs).hasSize(1) },
                 { assertThat(diffs.first().commit.oid).isEqualTo(headCommit.oid) },
                 { assertThat(diffs.first().parent?.oid).isEqualTo(parentSha) },
-                { assertThat(diffs.first().files).isNotEmpty() }
+                { assertThat(diffs.first().files).isNotEmpty() },
             )
         }
 
         @Test
         fun `diffs should handle multiple commit pairs`() {
-            val commits = traverseHistory(
-                simpleRepo, findCommit(
-                    simpleRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
-                .take(3)
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    findCommit(
+                        simpleRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                ).take(3)
 
-            val diffInputs = commits.mapNotNull { commit ->
-                val parent = commit.parents.firstOrNull()
-                if (parent != null) {
-                    GixDiffInput(commit.oid, parent)
-                } else null
-            }
+            val diffInputs =
+                commits.mapNotNull { commit ->
+                    val parent = commit.parents.firstOrNull()
+                    if (parent != null) {
+                        GixDiffInput(commit.oid, parent)
+                    } else {
+                        null
+                    }
+                }
 
             val diffs = diffs(simpleRepo, diffInputs, 2u, GixDiffAlgorithm.HISTOGRAM)
 
             assertAll(
                 { assertThat(diffs).hasSizeGreaterThanOrEqualTo(diffInputs.size) },
-                { assertThat(diffs).allMatch { it.files.isNotEmpty() } }
+                { assertThat(diffs).allMatch { it.files.isNotEmpty() } },
             )
         }
 
         @Test
         fun `diffs should populate file change statistics`() {
-            val headCommit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val headCommit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val diffInput = GixDiffInput(headCommit.oid, headCommit.parents.firstOrNull())
 
             val diffs = diffs(simpleRepo, listOf(diffInput), 1u, GixDiffAlgorithm.HISTOGRAM)
@@ -595,23 +668,28 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                         assertThat(file.insertions).isGreaterThanOrEqualTo(0u)
                         assertThat(file.deletions).isGreaterThanOrEqualTo(0u)
                     }
-                }
+                },
             )
         }
 
         @Test
         fun `diffs should identify change types correctly`() {
-            val commits = traverseHistory(
-                simpleRepo, findCommit(
-                    simpleRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
-            val diffInputs = commits.take(5).mapNotNull { commit ->
-                val parent = commit.parents.firstOrNull()
-                if (parent != null) GixDiffInput(commit.oid, parent) else null
-            }
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    findCommit(
+                        simpleRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
+            val diffInputs =
+                commits.take(5).mapNotNull { commit ->
+                    val parent = commit.parents.firstOrNull()
+                    if (parent != null) GixDiffInput(commit.oid, parent) else null
+                }
 
             val diffs = diffs(simpleRepo, diffInputs, 2u, GixDiffAlgorithm.HISTOGRAM)
 
@@ -622,23 +700,26 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                     allChanges.forEach { change ->
                         assertThat(change.change).isNotNull()
                     }
-                }
+                },
             )
         }
 
         @Test
         fun `diffs with different algorithms should produce results`() {
-            val headCommit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val headCommit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val diffInput = GixDiffInput(headCommit.oid, headCommit.parents.firstOrNull())
 
-            val algorithms = listOf(
-                GixDiffAlgorithm.HISTOGRAM,
-                GixDiffAlgorithm.MYERS,
-                GixDiffAlgorithm.MYERS_MINIMAL
-            )
+            val algorithms =
+                listOf(
+                    GixDiffAlgorithm.HISTOGRAM,
+                    GixDiffAlgorithm.MYERS,
+                    GixDiffAlgorithm.MYERS_MINIMAL,
+                )
 
             algorithms.forEach { algorithm ->
                 val result = diffs(simpleRepo, listOf(diffInput), 1u, algorithm)
@@ -657,30 +738,35 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                 { assertThat(diffs).hasSize(1) },
                 { assertThat(diffs.first().commit.oid).isEqualTo(initialSha) },
                 { assertThat(diffs.first().parent).isNull() },
-                { assertThat(diffs.first().files).isNotEmpty() }
+                { assertThat(diffs.first().files).isNotEmpty() },
             )
         }
 
         @Test
         fun `diffs with multiple threads should complete successfully`() {
-            val commits = traverseHistory(
-                simpleRepo, findCommit(
-                    simpleRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
-            val diffInputs = commits.take(10).mapNotNull { commit ->
-                val parent = commit.parents.firstOrNull()
-                if (parent != null) GixDiffInput(commit.oid, parent) else null
-            }
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    findCommit(
+                        simpleRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
+            val diffInputs =
+                commits.take(10).mapNotNull { commit ->
+                    val parent = commit.parents.firstOrNull()
+                    if (parent != null) GixDiffInput(commit.oid, parent) else null
+                }
 
             val singleThreaded = diffs(simpleRepo, diffInputs, 1u, GixDiffAlgorithm.HISTOGRAM)
             val multiThreaded = diffs(simpleRepo, diffInputs, 4u, GixDiffAlgorithm.HISTOGRAM)
 
             assertAll(
                 { assertThat(singleThreaded.size).isEqualTo(multiThreaded.size) },
-                { assertThat(singleThreaded.map { it.commit }).containsAll(multiThreaded.map { it.commit }) }
+                { assertThat(singleThreaded.map { it.commit }).containsAll(multiThreaded.map { it.commit }) },
             )
         }
     }
@@ -689,13 +775,14 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(6)
     @DisplayName("Blame operations via FFI")
     inner class BlameOperations {
-
         @Test
         fun `blames should calculate blame for single file in commit`() {
-            val headCommit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val headCommit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val filePath = "file2.txt"
 
             val defines = mapOf(headCommit.oid to listOf(filePath))
@@ -705,16 +792,18 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(blames).hasSize(1) },
                 { assertThat(blames.first().commit).isEqualTo(headCommit.oid) },
-                { assertThat(blames.first().blames).isNotEmpty() }
+                { assertThat(blames.first().blames).isNotEmpty() },
             )
         }
 
         @Test
         fun `blames should populate blame entries correctly`() {
-            val commit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val filePath = "file2.txt"
             val defines = mapOf(commit.oid to listOf(filePath))
 
@@ -729,16 +818,18 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                         assertThat(entry.commitId).isNotEmpty()
                         assertThat(entry.len).isGreaterThan(0u)
                     }
-                }
+                },
             )
         }
 
         @Test
         fun `blames should handle multiple files in same commit`() {
-            val commit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val files = listOf("file2.txt", ".gitignore")
 
             val defines = mapOf(commit.oid to files)
@@ -747,20 +838,23 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 { assertThat(blames).hasSize(1) },
-                { assertThat(blames.first().blames).hasSizeGreaterThanOrEqualTo(1) }
+                { assertThat(blames.first().blames).hasSizeGreaterThanOrEqualTo(1) },
             )
         }
 
         @Test
         fun `blames should handle multiple commits`() {
-            val commits = traverseHistory(
-                simpleRepo, findCommit(
-                    simpleRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
-                .take(3)
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    findCommit(
+                        simpleRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                ).take(3)
 
             val defines = commits.associate { it.oid to listOf("file2.txt") }
 
@@ -768,23 +862,26 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 { assertThat(blames).hasSizeGreaterThanOrEqualTo(1) },
-                { assertThat(blames.map { it.commit }).containsAnyOf(*commits.map { it.oid }.toTypedArray()) }
+                { assertThat(blames.map { it.commit }).containsAnyOf(*commits.map { it.oid }.toTypedArray()) },
             )
         }
 
         @Test
         fun `blames with different algorithms should produce results`() {
-            val commit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val defines = mapOf(commit.oid to listOf("file2.txt"))
 
-            val algorithms = listOf(
-                GixDiffAlgorithm.HISTOGRAM,
-                GixDiffAlgorithm.MYERS,
-                GixDiffAlgorithm.MYERS_MINIMAL
-            )
+            val algorithms =
+                listOf(
+                    GixDiffAlgorithm.HISTOGRAM,
+                    GixDiffAlgorithm.MYERS,
+                    GixDiffAlgorithm.MYERS_MINIMAL,
+                )
 
             algorithms.forEach { algorithm ->
                 val result = blames(simpleRepo, defines, algorithm, 1u)
@@ -794,14 +891,21 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
         @Test
         fun `blames should verify line ranges are valid`() {
-            val commit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val defines = mapOf(commit.oid to listOf("file2.txt"))
 
             val blames = blames(simpleRepo, defines, GixDiffAlgorithm.HISTOGRAM, 1u)
-            val entries = blames.first().blames.first().entries
+            val entries =
+                blames
+                    .first()
+                    .blames
+                    .first()
+                    .entries
 
             assertAll(
                 { assertThat(entries).isNotEmpty() },
@@ -811,7 +915,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                         assertThat(entry.startInSourceFile).isGreaterThanOrEqualTo(0u)
                         assertThat(entry.len).isGreaterThan(0u)
                     }
-                }
+                },
             )
         }
     }
@@ -820,7 +924,6 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(7)
     @DisplayName("Error handling across FFI boundary")
     inner class ErrorHandling {
-
         @Test
         fun `invalid repository path should throw appropriate exception`() {
             assertThrows<UniffiException.GixDiscoverException> {
@@ -832,8 +935,9 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         fun `invalid commit reference should throw RevisionParseException`() {
             assertThrows<UniffiException.RevisionParseException> {
                 findCommit(
-                    simpleRepo, "not-a-valid-ref",
-                    useMailmap = cfg.gix.useMailmap
+                    simpleRepo,
+                    "not-a-valid-ref",
+                    useMailmap = cfg.vcs.useMailmap,
                 )
             }
         }
@@ -842,18 +946,20 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
         fun `invalid branch reference should throw ReferenceException`() {
             assertThrows<UniffiException.ReferenceException> {
                 traverseBranch(
-                    simpleRepo, "refs/heads/does-not-exist",
-                    skipMerges = cfg.gix.skipMerges,
-                    useMailmap = cfg.gix.useMailmap
+                    simpleRepo,
+                    "refs/heads/does-not-exist",
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
                 )
             }
         }
 
         @Test
         fun `exception messages should be descriptive`() {
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo("/invalid/path")
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo("/invalid/path")
+                }
 
             assertThat(exception.message)
                 .isNotBlank()
@@ -875,26 +981,29 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Order(8)
     @DisplayName("Data marshalling and type conversion")
     inner class DataMarshalling {
-
         @Test
         fun `ObjectId should be correctly marshalled as SHA string`() {
-            val commit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 { assertThat(commit.oid).hasSize(40) },
-                { assertThat(commit.oid).matches("[0-9a-f]{40}") }
+                { assertThat(commit.oid).matches("[0-9a-f]{40}") },
             )
         }
 
         @Test
         fun `GixSignature should preserve all fields`() {
-            val commit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             assertAll(
                 "Author signature",
@@ -902,7 +1011,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                 { assertThat(commit.author?.name).isNotBlank() },
                 { assertThat(commit.author?.email).isNotBlank() },
                 { assertThat(commit.author?.time).isNotNull() },
-                { assertThat(commit.author?.time?.seconds).isGreaterThan(0L) }
+                { assertThat(commit.author?.time?.seconds).isGreaterThan(0L) },
             )
         }
 
@@ -913,19 +1022,23 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             val categories = branches.map { it.category }.toSet()
             assertAll(
                 { assertThat(categories).isNotEmpty() },
-                { assertThat(categories).contains(GixReferenceCategory.LOCAL_BRANCH) }
+                { assertThat(categories).contains(GixReferenceCategory.LOCAL_BRANCH) },
             )
         }
 
         @Test
         fun `GixCommit parents should be marshalled as ObjectId list`() {
-            val commits = traverseHistory(
-                simpleRepo, findCommit(
-                    simpleRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    findCommit(
+                        simpleRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val commitsWithParents = commits.filter { it.parents.isNotEmpty() }
 
             assertAll(
@@ -934,16 +1047,18 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                     commitsWithParents.forEach { commit ->
                         assertThat(commit.parents).allMatch { it.length == 40 }
                     }
-                }
+                },
             )
         }
 
         @Test
         fun `GixDiff should preserve all file change metadata`() {
-            val headCommit = findCommit(
-                simpleRepo, "HEAD",
-                useMailmap = cfg.gix.useMailmap
-            )
+            val headCommit =
+                findCommit(
+                    simpleRepo,
+                    "HEAD",
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val diffInput = GixDiffInput(headCommit.oid, headCommit.parents.firstOrNull())
 
             val diffs = diffs(simpleRepo, listOf(diffInput), 1u, GixDiffAlgorithm.HISTOGRAM)
@@ -974,19 +1089,23 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                             }
                         }
                     }
-                }
+                },
             )
         }
 
         @Test
         fun `Optional fields should be correctly marshalled`() {
-            val commits = traverseHistory(
-                simpleRepo, findCommit(
-                    simpleRepo, "HEAD",
-                    useMailmap = cfg.gix.useMailmap
-                ).oid, null,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val commits =
+                traverseHistory(
+                    simpleRepo,
+                    findCommit(
+                        simpleRepo,
+                        "HEAD",
+                        useMailmap = cfg.vcs.useMailmap,
+                    ).oid,
+                    null,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
 
             val initialCommit = commits.find { it.parents.isEmpty() }
             assertThat(initialCommit).isNotNull()
@@ -996,22 +1115,24 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
             assertAll(
                 { assertThat(diffs.first().parent).isNull() },
-                { assertThat(diffs.first().commit).isNotNull() }
+                { assertThat(diffs.first().commit).isNotNull() },
             )
         }
 
         @Test
         fun `BString should be correctly marshalled to Kotlin String`() {
-            val result = traverseBranch(
-                simpleRepo, "refs/heads/master",
-                skipMerges = cfg.gix.skipMerges,
-                useMailmap = cfg.gix.useMailmap
-            )
+            val result =
+                traverseBranch(
+                    simpleRepo,
+                    "refs/heads/master",
+                    skipMerges = cfg.vcs.skipMerges,
+                    useMailmap = cfg.vcs.useMailmap,
+                )
             val fileTree = result.commits.flatMap { it.fileTree }
 
             assertAll(
                 { assertThat(fileTree).isNotEmpty() },
-                { assertThat(fileTree).allMatch { it.isNotEmpty() } }
+                { assertThat(fileTree).allMatch { it.isNotEmpty() } },
             )
         }
 
@@ -1029,7 +1150,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                             assertThat(remote.url).isNotBlank()
                         }
                     }
-                }
+                },
             )
         }
     }
