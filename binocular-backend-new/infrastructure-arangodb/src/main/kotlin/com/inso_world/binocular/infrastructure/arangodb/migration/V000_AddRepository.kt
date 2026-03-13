@@ -37,12 +37,12 @@ class V000_AddRepository(
             """
             LET proj = (
                 FOR p IN projects
-                FILTER p.name == "$defaultProjectName"
+                FILTER p.name == @projectName
                 LIMIT 1
                 RETURN p
             )[0]
             INSERT {
-                iid: "$iid",
+                iid: @iid,
                 localPath: "./",
                 project: proj._id
             }
@@ -54,6 +54,10 @@ class V000_AddRepository(
                 .query(
                     query,
                     Map::class.java,
+                    mapOf(
+                        "iid" to iid,
+                        "projectName" to defaultProjectName,
+                    ),
                 ).asListRemaining()
 
         logger.info("Inserted repository: {}", result)

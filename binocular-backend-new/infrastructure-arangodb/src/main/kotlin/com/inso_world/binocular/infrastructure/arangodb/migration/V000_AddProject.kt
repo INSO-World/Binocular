@@ -36,9 +36,9 @@ class V000_AddProject(
         val query =
             """
             INSERT {
-                iid: "$iid",
-                name: "$defaultProjectName",
-                description: "Binocular is a tool for visualizing data from various software-engineering tools."
+                iid: @iid,
+                name: @projectName,
+                description: @description
             }
             INTO projects
             RETURN NEW
@@ -48,6 +48,11 @@ class V000_AddProject(
                 .query(
                     query,
                     Map::class.java,
+                    mapOf(
+                        "iid" to iid,
+                        "projectName" to defaultProjectName,
+                        "description" to "Binocular is a tool for visualizing data from various software-engineering tools.",
+                    ),
                 ).asListRemaining()
 
         logger.info("Inserted project: {}", result)
