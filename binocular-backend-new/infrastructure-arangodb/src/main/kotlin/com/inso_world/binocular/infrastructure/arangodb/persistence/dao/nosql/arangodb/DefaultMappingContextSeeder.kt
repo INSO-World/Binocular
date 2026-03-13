@@ -35,11 +35,13 @@ internal class DefaultMappingContextSeeder(
 
     @PostConstruct
     fun init() {
-        val repo = repositoryRepository.findByProject_Name(infraConfig.arangodb.migration.defaultProjectName)
-            ?: error(
-                "Default repository not found for project '${infraConfig.arangodb.migration.defaultProjectName}'. " +
-                    "Ensure V000_AddProject migration has run.",
-            )
+        val repo =
+            repositoryRepository.findByProject_Name(infraConfig.arangodb.migration.defaultProjectName)
+                ?: error(
+                    "Default repository not found for project '${infraConfig.arangodb.migration.defaultProjectName}'. " +
+                        "Set binocular.arangodb.migration.defaultProjectName to the existing project name in this database. " +
+                        "Ensure V000_AddProject migration has run for fresh deployments.",
+                )
         defaultProject = repo.project
         defaultRepository = repo
     }
