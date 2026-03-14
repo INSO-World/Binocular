@@ -1,13 +1,10 @@
-@reference "../../../../../index.scss";
-
+@reference "../../../index.scss";
 
 .element{
   display: flex;
   align-items: center;
   justify-content: start;
   cursor: pointer;
-  border-bottom: 1px solid;
-  @apply border-base-300;
   height: 1.5rem;
 }
 
@@ -27,9 +24,18 @@
 }
 
 .searchMark{
-  @apply bg-accent;
+  position: relative;
+  @apply bg-accent/20;
   border-radius: 2px;
-  padding: 0 .1rem;
-  margin: 0 .1rem;
-  border: 1px solid;
+}
+
+.searchMark::after{
+  content: "";
+  position: absolute;
+  @apply bg-accent;
+  height: 4px;
+  border-radius: 2px;
+  width: 100%;
+  bottom: -2px;
+  left: 0;
 }

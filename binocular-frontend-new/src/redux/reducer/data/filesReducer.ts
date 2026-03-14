@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
 import type { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
+import {updateFileTreeRecursive} from "../../../components/fileTree/utils/fileTreeUtilities";
 
 export interface FilesInitialState {
   fileTrees: { [id: number]: FileTreeElementType };
@@ -67,28 +68,3 @@ export const filesSlice = createSlice({
 
 export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo, clearFileStorage } = filesSlice.actions;
 export default filesSlice.reducer;
-
-function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
-  const updatedPaths: string[] = [];
-  if (fileTree.children) {
-    fileTree.children = fileTree.children.map((f: FileTreeElementType) => {
-      let elementChecked = checked;
-      if (f.id === element.id) {
-        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
-          updatedPaths.push(f.element.path);
-        }
-        elementChecked = element.checked;
-        f.foldedOut = element.foldedOut;
-      }
-      if (elementChecked !== undefined) {
-        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
-          updatedPaths.push(f.element.path);
-        }
-        f.checked = elementChecked;
-      }
-      updatedPaths.push(...updateFileTreeRecursive(f, element, elementChecked));
-      return f;
-    });
-  }
-  return updatedPaths;
-}
