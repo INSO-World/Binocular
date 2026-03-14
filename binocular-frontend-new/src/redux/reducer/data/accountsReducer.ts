@@ -39,7 +39,7 @@ export const accountsSlice = createSlice({
           if (!accountList.find((a: AccountType) => a.id === account.id)) {
             const newAccount = cloneDeep(account);
             newAccount.localId = accountList.length + 1;
-            accountList.push(account);
+            accountList.push(newAccount);
           }
         });
       }

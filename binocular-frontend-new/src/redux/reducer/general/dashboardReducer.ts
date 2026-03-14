@@ -116,9 +116,11 @@ export const dashboardSlice = createSlice({
     },
     setDashboardState: (state, action: PayloadAction<DashboardItemType[]>) => {
       const dashboardItems = action.payload.map((item, id) => {
-        item.id = id + 1;
-        state.dashboardItemCount = item.id;
-        return item;
+        state.dashboardItemCount = id + 1;
+        return {
+          ...item,
+          id: id + 1,
+        };
       });
       state.dashboardState = Array.from(Array(40), () => new Array(40).fill(0));
       dashboardItems.forEach((item: DashboardItemType) => {
