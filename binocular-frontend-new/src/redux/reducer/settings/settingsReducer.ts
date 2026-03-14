@@ -3,6 +3,7 @@ import Config from '../../../config.ts';
 import { type GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
 import type { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../../types/settings/databaseSettingsType.ts';
 import distinctColors from 'distinct-colors';
+import { cloneDeep } from 'lodash';
 
 export interface SettingsInitialState {
   general: GeneralSettingsType;
@@ -47,37 +48,38 @@ export const settingsSlice = createSlice({
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
-      if (action.payload.id === undefined) {
+      const newDataPlugin = cloneDeep(action.payload);
+      if (newDataPlugin.id === undefined) {
         const colors = distinctColors({ count: 100 });
-        action.payload.isDefault = state.database.dataPlugins.length === 0;
+        newDataPlugin.isDefault = state.database.dataPlugins.length === 0;
 
         state.database.currID++;
-        if (action.payload.color === '#000') {
-          action.payload.color = colors[state.database.currID].hex() + '22';
+        if (newDataPlugin.color === '#000') {
+          newDataPlugin.color = colors[state.database.currID].hex() + '22';
         }
-        action.payload.id = state.database.currID;
-        if (action.payload.isDefault) {
-          state.database.defaultDataPluginItemId = action.payload.id;
+        newDataPlugin.id = state.database.currID;
+        if (newDataPlugin.isDefault) {
+          state.database.defaultDataPluginItemId = newDataPlugin.id;
         }
-        state.database.dataPlugins.push(action.payload);
-        console.log(`Inserted dataPlugin ${action.payload.id}`);
+        state.database.dataPlugins.push(newDataPlugin);
+        console.log(`Inserted dataPlugin ${newDataPlugin.id}`);
       } else {
         let found = false;
         state.database.dataPlugins = state.database.dataPlugins.map((dp: DatabaseSettingsDataPluginType) => {
-          if (dp.id === action.payload.id) {
+          if (dp.id === newDataPlugin.id) {
             found = true;
-            return action.payload;
+            return newDataPlugin;
           }
           return dp;
         });
-        if (action.payload.isDefault) {
-          state.database.defaultDataPluginItemId = action.payload.id;
+        if (newDataPlugin.isDefault) {
+          state.database.defaultDataPluginItemId = newDataPlugin.id;
         }
         if (!found) {
-          state.database.dataPlugins.push(action.payload);
-          console.log(`Inserted dataPlugin ${action.payload.id}`);
+          state.database.dataPlugins.push(newDataPlugin);
+          console.log(`Inserted dataPlugin ${newDataPlugin.id}`);
         } else {
-          console.log(`Updated dataPlugin ${action.payload.id}`);
+          console.log(`Updated dataPlugin ${newDataPlugin.id}`);
         }
       }
       state.initialized = true;
