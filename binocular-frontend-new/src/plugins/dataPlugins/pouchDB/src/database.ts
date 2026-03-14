@@ -4,7 +4,7 @@ import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 import JSZip from 'jszip';
 
 import { WorkerPouchDB } from './worker/WorkerPouchDB';
-import { decompressJson } from '../../../../../../utils/json-utils';
+import { decompressJson } from '../../../../utils/json-utils';
 import type { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles';
 import type { MetadataType } from '../../../../types/data/MetadataType';
 
@@ -143,13 +143,13 @@ export default class Database {
 
     return new Promise((resolve) => {
       keys.forEach(async (name) => {
-        if (setUploadInfo) setUploadInfo(`${imported}/${keys.length} importing ${name}`);
         if (name.includes('-')) {
           await this.importEdge(name, dbObjects[name]);
         } else {
           await this.importDocument(name, dbObjects[name]);
         }
 
+        if (setUploadInfo) setUploadInfo(`${imported}/${keys.length} ${name} imported`);
         imported++;
         const end = performance.now();
         console.log(`${imported}/${keys.length} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
