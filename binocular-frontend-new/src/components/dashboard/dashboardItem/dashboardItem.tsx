@@ -23,7 +23,7 @@ import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
 import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
-import { refreshFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities';
+import {refreshFileList} from "../../tabs/fileTree/utils/fileListUtilities";
 
 const logger = createLogger({
   collapsed: () => true,
