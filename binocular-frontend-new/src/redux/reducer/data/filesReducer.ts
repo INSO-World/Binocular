@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
 import type { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
-import {updateFileTreeRecursive} from "../../../components/fileTree/utils/fileTreeUtilities";
+import { updateFileTreeRecursive } from '../../../components/fileTree/utils/fileTreeUtilities';
 
 export interface FilesInitialState {
   fileTrees: { [id: number]: FileTreeElementType };

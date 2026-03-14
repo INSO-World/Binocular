@@ -107,7 +107,7 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
 
 function splitAtFirst(str: string, delimiter: string): [string, string] {
   const index = str.indexOf(delimiter);
-  if (index === -1) return [str, ""];
+  if (index === -1) return [str, ''];
   return [str.slice(0, index), str.slice(index + delimiter.length)];
 }
 
