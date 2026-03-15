@@ -38,7 +38,7 @@ abstract class BaseGraphQlCompatibilityIT {
     companion object {
         private val adbContainer =
             ArangoContainer(
-                DockerImageName.parse("markus-test")
+                DockerImageName.parse("ghcr.io/inso-world/binocular-database:3.12.test-data")
 
                     .asCompatibleSubstituteFor("arangodb")
             )
