@@ -36,7 +36,8 @@ data class ItsGitHubIssue(
             state = state,
             webUrl = url,
             project = project,
-            // TODO map labels, author, timelineItems etc
+            labels = labels?.nodes?.map { it.name } ?: emptyList(), // TODO decide if label as own entity or only as string
+            // TODO map labels, timelineItems etc
         )
     }
 }
