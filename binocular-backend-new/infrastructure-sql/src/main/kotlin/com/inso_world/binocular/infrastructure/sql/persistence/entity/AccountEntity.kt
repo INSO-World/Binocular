@@ -92,7 +92,6 @@ internal data class AccountEntity(
         this.avatarUrl = this@AccountEntity.avatarUrl
         this.url = this@AccountEntity.url
     }
-        //TODO relationships (maybe needs mapping context)
 
         // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
 //                issues =
