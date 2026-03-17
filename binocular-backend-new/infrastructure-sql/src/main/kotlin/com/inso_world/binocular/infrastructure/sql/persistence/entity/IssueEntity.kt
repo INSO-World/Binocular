@@ -1,8 +1,11 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity.Key
+import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Project
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -29,7 +32,9 @@ internal data class IssueEntity(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     override var id: Long? = null,
     val gid: String, // external GitHub id
-    var iid: Int? = null,
+    val platformIid: Int? = null, // issue number from e.g. GitHub
+    @Convert(KotlinUuidConverter::class)
+    var iid: Issue.Id, //TODO change iid to Issue.Id
     var title: String? = null,
     @Column(columnDefinition = "TEXT")
     var description: String? = null,
@@ -63,7 +68,7 @@ internal data class IssueEntity(
         joinColumns = [JoinColumn(name = "issue_id")],
         inverseJoinColumns = [JoinColumn(name = "account_id")],
     )
-    var accounts: MutableList<AccountEntity> = mutableListOf(),
+    var accounts: MutableSet<AccountEntity> = mutableSetOf(),
 
 // @ManyToMany
 // @JoinTable(
@@ -158,11 +163,11 @@ internal data class IssueEntity(
 //    }
 
     // TODO map labels and mentions
-    fun toDomain(project: Project) = com.inso_world.binocular.model.Issue(
+    fun toDomain(project: Project) = Issue(
         project = project,
         id = this.id?.toString(),
-        platformIid = this.iid,
         gid = this.gid,
+        platformIid = this.platformIid,
         title = this.title,
         description = this.description,
         createdAt = this.createdAt,
@@ -182,12 +187,16 @@ internal data class IssueEntity(
 
     override val uniqueKey: Key
         get() = Key(project.iid, gid)
+
+    override fun toString(): String {
+        return "IssueEntity(id=$id, gid=$gid, title=$title)"
+    }
 }
 
 internal fun com.inso_world.binocular.model.Issue.toEntity(owner: ProjectEntity): IssueEntity {
     val entity = IssueEntity(
         id = this.id?.toLong(),
-        iid = this.platformIid,
+        iid = this.iid,
         title = this.title,
         description = this.description,
         createdAt = this.createdAt,
@@ -196,6 +205,7 @@ internal fun com.inso_world.binocular.model.Issue.toEntity(owner: ProjectEntity)
         state = this.state,
         webUrl = this.webUrl,
         gid = this.gid,
+        platformIid = this.platformIid,
         project = owner,
     )
 

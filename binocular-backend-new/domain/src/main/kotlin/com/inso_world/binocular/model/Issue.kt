@@ -14,7 +14,7 @@ data class Issue(
 
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null,
-    var platformIid: Int? = null,
+    var platformIid: Int? = null, // issue number from e.g. GitHub
     val gid: String,
     var title: String? = null,
     var description: String? = null,
@@ -39,6 +39,7 @@ data class Issue(
     value class Id(val value: Uuid)
 
     data class Key(val projectId: Project.Id, val gid: String) // value object for lookups
+
     private val _accounts: MutableSet<Account> = mutableSetOf()
 
     val accounts: MutableSet<Account> =

@@ -19,5 +19,7 @@ databaseChangeLog:
       path: db/changelog/2025/12
   - include:
       file: db/changelog/2026/03/01-03-changelog.yaml
+  - include:
+      file: db/changelog/2026/03/17-01-changelog.yaml
 #  - includeAll:
 #      path: db/changelog/2025/11
