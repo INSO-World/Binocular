@@ -10,7 +10,6 @@ import kotlin.uuid.Uuid
  */
 @OptIn(ExperimentalUuidApi::class)
 data class Issue(
-    // TODO implement iid (uuid)
 
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null,
