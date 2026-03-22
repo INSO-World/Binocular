@@ -33,7 +33,7 @@ import java.time.Duration
         BaseGraphQlCompatibilityIT.Initializer::class,
     ]
 )
-abstract class BaseGraphQlCompatibilityIT {
+internal abstract class BaseGraphQlCompatibilityIT {
 
     companion object {
         private val adbContainer =
