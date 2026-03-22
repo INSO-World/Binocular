@@ -19,7 +19,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Issue")
-class IssueController(
+internal class IssueController(
     @Autowired private val issueService: IssueInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {
