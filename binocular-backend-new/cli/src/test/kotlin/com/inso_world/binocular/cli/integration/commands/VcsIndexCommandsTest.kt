@@ -23,7 +23,6 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
@@ -36,7 +35,6 @@ import java.util.concurrent.TimeUnit
         SqlTestConfig.Initializer::class,
     ]
 )
-@DisabledIf("true")
 internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
     @all:Autowired
