@@ -19,6 +19,7 @@ import java.time.Duration
 import java.util.stream.Stream
 
 internal class IndexCommandsTest : PerformanceTest() {
+
     @Autowired
     lateinit var idxClient: Index
 
