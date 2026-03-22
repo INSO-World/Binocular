@@ -19,7 +19,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "mergeRequest")
-class MergeRequestController(
+internal class MergeRequestController(
     @Autowired private val mergeRequestService: MergeRequestInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {

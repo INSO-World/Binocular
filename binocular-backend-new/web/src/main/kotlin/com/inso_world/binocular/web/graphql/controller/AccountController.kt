@@ -17,7 +17,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Account")
-class AccountController(
+internal class AccountController(
     @Autowired private val accountService: AccountInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {
