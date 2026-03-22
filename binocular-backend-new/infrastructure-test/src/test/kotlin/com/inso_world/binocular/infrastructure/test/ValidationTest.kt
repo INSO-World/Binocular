@@ -16,14 +16,12 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 
 /**
  * Verifies that domain constraints are enforced via the core ports.
  * Only imports from core and model are used, as requested.
  */
-@DisabledIf("true")
 internal class ValidationTest : BaseInfrastructureSpringTest() {
     @Autowired lateinit var projectPort: ProjectInfrastructurePort
 
