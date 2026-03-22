@@ -24,7 +24,7 @@ import java.time.LocalDateTime
  * Only imports from core and model are used, as requested.
  */
 @DisabledIf("true")
-class ValidationTest : BaseInfrastructureSpringTest() {
+internal class ValidationTest : BaseInfrastructureSpringTest() {
     @Autowired lateinit var projectPort: ProjectInfrastructurePort
 
     @Autowired lateinit var repositoryPort: RepositoryInfrastructurePort

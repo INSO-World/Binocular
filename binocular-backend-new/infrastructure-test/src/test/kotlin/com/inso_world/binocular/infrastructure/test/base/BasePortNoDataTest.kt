@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 //@EnableAutoConfiguration
 //@DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 //@ExtendWith(SpringExtension::class)
-class BasePortNoDataTest : BaseInfrastructureSpringTest() {
+internal class BasePortNoDataTest : BaseInfrastructureSpringTest() {
 //    @all:Autowired
 //    private lateinit var testDataSetupService: InfrastructureDataSetup
 //

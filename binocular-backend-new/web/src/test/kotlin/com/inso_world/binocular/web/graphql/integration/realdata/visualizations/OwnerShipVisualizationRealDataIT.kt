@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import com.inso_world.binocular.web.graphql.integration.realdata.assertions.DateAssertions.assertIsoInstantEquals
 
-class OwnerShipVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
+internal class OwnerShipVisualizationRealDataIT : BaseGraphQlCompatibilityIT() {
 
     @Test
     fun `branches sorted ascending returns expected snapshot for first items`() {

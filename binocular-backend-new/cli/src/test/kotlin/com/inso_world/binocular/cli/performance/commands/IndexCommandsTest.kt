@@ -20,7 +20,7 @@ import java.time.Duration
 import java.util.stream.Stream
 
 @DisabledIf("true")
-class IndexCommandsTest : PerformanceTest() {
+internal class IndexCommandsTest : PerformanceTest() {
 
     @Autowired
     lateinit var idxClient: Index
