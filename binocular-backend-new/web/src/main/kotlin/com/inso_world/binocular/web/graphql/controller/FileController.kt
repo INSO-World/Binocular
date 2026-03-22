@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "File")
-class FileController(
+internal class FileController(
     @Autowired private val fileService: FileInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {

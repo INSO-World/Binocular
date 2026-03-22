@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Branch")
-class BranchController(
+internal class BranchController(
     @Autowired private val branchService: BranchInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {

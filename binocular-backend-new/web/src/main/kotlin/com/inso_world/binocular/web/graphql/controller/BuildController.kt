@@ -20,7 +20,7 @@ import java.time.ZoneOffset
 
 @Controller
 @SchemaMapping(typeName = "Build")
-class BuildController(
+internal class BuildController(
     @Autowired private val buildService: BuildInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {
