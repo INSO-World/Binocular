@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit
     ]
 )
 @DisabledIf("true")
-class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
+internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
 
     @all:Autowired
     private lateinit var infrastructureDataSetup: InfrastructureDataSetup

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 
-class PerformanceTest : AbstractCliIntegrationTest() {
+internal class PerformanceTest : AbstractCliIntegrationTest() {
     @Autowired
     private lateinit var testDataSetupService: InfrastructureDataSetup
 
