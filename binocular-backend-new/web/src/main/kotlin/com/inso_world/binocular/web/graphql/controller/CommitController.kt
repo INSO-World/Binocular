@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Commit")
-class CommitController(
+internal class CommitController(
     @Autowired private val commitService: CommitInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {

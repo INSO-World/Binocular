@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Note")
-class NoteController(
+internal class NoteController(
     @Autowired private val noteService: NoteInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Module")
-class ModuleController(
+internal class ModuleController(
     @Autowired private val moduleService: ModuleInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Milestone")
-class MilestoneController(
+internal class MilestoneController(
     @Autowired private val milestoneService: MilestoneInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {

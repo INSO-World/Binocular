@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "User")
-class UserController(
+internal class UserController(
     @Autowired private val userService: UserInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {
