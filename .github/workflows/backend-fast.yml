@@ -232,7 +232,7 @@ jobs:
           { name: 'infrastructure-arangodb' },
           { name: 'infrastructure-sql' },
           { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' },
-          # { name: 'infrastructure-test', springProfile: 'test,gix,postgres' }
+          { name: 'infrastructure-test', springProfile: 'test,gix,postgres' }
         ]
         os: [ ubuntu-latest ]
         java_version: [ '23' ]
