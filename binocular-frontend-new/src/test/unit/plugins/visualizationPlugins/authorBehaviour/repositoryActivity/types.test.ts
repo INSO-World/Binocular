@@ -29,12 +29,27 @@ const mrWithMergedAt = {
   createdAt: '2023-06-15T00:00:00Z',
 } as unknown as AnyActivityDataPlugin;
 // Actual DataPluginMergeRequest without mergedAt (bug: isDataPluginMergeRequest won't match)
-const actualMR = { iid: 1, title: 'MR', state: 'MERGED', createdAt: '2023-06-15T00:00:00Z', closedAt: null } as unknown as AnyActivityDataPlugin;
+const actualMR = {
+  iid: 1,
+  title: 'MR',
+  state: 'MERGED',
+  createdAt: '2023-06-15T00:00:00Z',
+  closedAt: null,
+} as unknown as AnyActivityDataPlugin;
 // Note: actual DataPluginNote has no noteableType, so this is a plain object with noteableType
-const noteWithNoteableType = { body: 'hello', noteableType: 'Issue', createdAt: '2023-06-15T00:00:00Z' } as unknown as AnyActivityDataPlugin;
+const noteWithNoteableType = {
+  body: 'hello',
+  noteableType: 'Issue',
+  createdAt: '2023-06-15T00:00:00Z',
+} as unknown as AnyActivityDataPlugin;
 // Actual DataPluginNote without noteableType
 const actualNote = { body: 'hello', createdAt: '2023-06-15T00:00:00Z' } as unknown as AnyActivityDataPlugin;
-const branch = { branch: 'main', active: true, tracksFileRenames: false, latestCommit: '2023-06-15T00:00:00Z' } as unknown as AnyActivityDataPlugin;
+const branch = {
+  branch: 'main',
+  active: true,
+  tracksFileRenames: false,
+  latestCommit: '2023-06-15T00:00:00Z',
+} as unknown as AnyActivityDataPlugin;
 
 describe('isDataPluginCommit', () => {
   it('U39.1 returns true for object with sha, messageHeader, stats', () => {
