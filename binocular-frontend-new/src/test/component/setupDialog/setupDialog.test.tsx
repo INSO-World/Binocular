@@ -30,7 +30,7 @@ import ExportReducer from '../../../redux/reducer/export/exportReducer.ts';
 import TabsReducer from '../../../redux/reducer/general/tabsReducer.ts';
 import ActionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
 import LayoutReducer from '../../../redux/reducer/general/layoutReducer.ts';
-import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import actionsMiddleware from '../../../redux/middleware/actions/actionsMiddleware.ts';
 import type { Middleware } from 'redux';
 
 const reducerMap = {
