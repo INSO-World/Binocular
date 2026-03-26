@@ -25,12 +25,11 @@ data class Issue(
     var webUrl: String? = null,
     var mentions: List<Mention> = emptyList(),
     // Relationships
-    var project: Project,
+    val project: Project,
     var commits: List<Commit> = emptyList(),
     var milestones: List<Milestone> = emptyList(),
     var notes: List<Note> = emptyList(),
     var users: List<User> = emptyList(),
-    var author: Account? = null
 ) : AbstractDomainObject<Issue.Id, Issue.Key>(
     Id(Uuid.random())
 )  {
@@ -38,6 +37,22 @@ data class Issue(
     value class Id(val value: Uuid)
 
     data class Key(val projectId: Project.Id, val gid: String) // value object for lookups
+
+    var author: Account? = null
+        set(value) {
+            requireNotNull(value) { "Author must not be null" }
+            if (value == this.author) {
+                return
+            }
+            if (this.author != null) {
+                throw IllegalArgumentException("Author already set for Issue $platformIid: $author")
+            }
+            if (this.project !in value.projects) {
+                throw IllegalArgumentException("Author ${value.login} is not in Issues Project: ${this.project.name}")
+            }
+            field = value
+            value.issues.add(this)
+        }
 
     private val _accounts: MutableSet<Account> = mutableSetOf()
 
