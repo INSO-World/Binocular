@@ -57,16 +57,10 @@ internal class IssueInfrastructurePortImpl
         ids: List<String>,
         project: Project
     ): Iterable<Issue> {
-        val projectEntity = projectDao.findByName(project.name)
-            ?: throw NotFoundException("Project ${project.name} not found")
-
-        val projectModel = projectEntity.toDomain()
-
-        return issueDao.findExistingGid(projectEntity, ids)
+        return this.issueDao
+            .findExistingGid(project, ids)
             .map {
-                issueMapper.toDomain(it).also { issue ->
-                    projectModel.issues.add(issue)
-                }
+                this.issueMapper.toDomain(it)
             }
     }
 
