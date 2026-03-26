@@ -7,6 +7,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEnt
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.IssueRepository
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.ProjectRepository
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
@@ -42,7 +43,7 @@ internal class IssueDao(
     }
 
     override fun findExistingGid(
-        project: ProjectEntity,
+        project: com.inso_world.binocular.model.Project,
         ids: List<String>,
     ): Iterable<IssueEntity> {
         val projectId = project.id
