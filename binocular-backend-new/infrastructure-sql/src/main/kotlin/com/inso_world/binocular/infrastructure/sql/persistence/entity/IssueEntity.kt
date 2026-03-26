@@ -34,7 +34,7 @@ internal data class IssueEntity(
     val gid: String, // external GitHub id
     val platformIid: Int? = null, // issue number from e.g. GitHub
     @Convert(KotlinUuidConverter::class)
-    var iid: Issue.Id, //TODO change iid to Issue.Id
+    var iid: Issue.Id,
     var title: String? = null,
     @Column(columnDefinition = "TEXT")
     var description: String? = null,
