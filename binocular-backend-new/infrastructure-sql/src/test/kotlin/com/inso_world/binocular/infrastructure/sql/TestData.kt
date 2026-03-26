@@ -484,11 +484,11 @@ internal object TestData {
             state = state,
             webUrl = webUrl,
             project = project,
-            author = author,
         ).apply {
             this.id = id
             this.accounts.addAll(accounts)
             this.users = users
+            this.author = author
         }
 
         fun testRemote(
