@@ -76,6 +76,7 @@ internal class ProjectAssemblerTest : BaseAssemblerTest() {
         mockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntityKt")
         mockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntityKt")
         mockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntityKt")
+        mockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntityKt")
     }
 
     @AfterEach
@@ -85,6 +86,7 @@ internal class ProjectAssemblerTest : BaseAssemblerTest() {
         unmockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntityKt")
         unmockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntityKt")
         unmockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntityKt")
+        unmockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntityKt")
     }
 
     @Nested
@@ -312,6 +314,22 @@ internal class ProjectAssemblerTest : BaseAssemblerTest() {
             verify(exactly = 1) {
                 repositoryAssembler.toEntity(repository)
             }
+        }
+
+        @Test
+        fun `Project with Accounts, maps accounts correctly`() {
+            val project = Project(name = "TestProject")
+
+            val acc1 = TestData.Domain.testAccount(login = "user1", gid = "MJDGJI9837", projects = mutableSetOf(project))
+            val acc2 = TestData.Domain.testAccount(login = "user2", gid = "MJDKJD234", projects = mutableSetOf(project))
+
+            project.accounts.addAll(listOf(acc1, acc2))
+
+            val entity = projectAssembler.toEntity(project)
+
+            assertThat(entity.accounts).hasSize(2)
+            assertThat(entity.accounts.map { it.login })
+                .containsExactlyInAnyOrder("user1", "user2")
         }
     }
 
@@ -627,6 +645,22 @@ internal class ProjectAssemblerTest : BaseAssemblerTest() {
             verify(exactly = 1) {
                 repositoryAssembler.toDomain(repositoryEntity)
             }
+        }
+
+        @Test
+        fun `ProjectEntity with Accounts, maps to domain correctly`() {
+            val projectEntity = TestData.Entity.testProjectEntity()
+
+            val acc1 = TestData.Entity.testAccountEntity(login = "user1", gid="aöslfdj2", projects = mutableSetOf(projectEntity))
+            val acc2 = TestData.Entity.testAccountEntity(login = "user2", gid="öjleor24", projects = mutableSetOf(projectEntity))
+
+            projectEntity.accounts.addAll(listOf(acc1, acc2))
+
+            val domain = projectAssembler.toDomain(projectEntity)
+
+            assertThat(domain.accounts).hasSize(2)
+            assertThat(domain.accounts.map { it.login })
+                .containsExactlyInAnyOrder("user1", "user2")
         }
     }
 

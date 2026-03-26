@@ -4,8 +4,10 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.unit.base.BaseUnitTest
 import com.inso_world.binocular.infrastructure.sql.assembler.ProjectAssembler
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
+import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RemoteMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
@@ -35,6 +37,8 @@ internal open class BaseAssemblerTest : BaseUnitTest() {
     lateinit var branchMapper: BranchMapper
     lateinit var remoteMapper: RemoteMapper
     lateinit var userMapper: UserMapper
+    lateinit var accountMapper: AccountMapper
+    lateinit var issueMapper: IssueMapper
 
     // Assemblers
     lateinit var projectAssembler: ProjectAssembler
@@ -52,6 +56,8 @@ internal open class BaseAssemblerTest : BaseUnitTest() {
         userMapper = spyk(UserMapper())
         repositoryMapper = spyk(RepositoryMapper())
         projectMapper = spyk(ProjectMapper())
+        accountMapper = spyk(AccountMapper())
+        issueMapper = spyk(IssueMapper())
 
         // Create assembler spies
         repositoryAssembler = spyk(RepositoryAssembler())
@@ -116,6 +122,24 @@ internal open class BaseAssemblerTest : BaseUnitTest() {
             )
         }
 
+        // Wire up accountMapper
+        with(accountMapper) {
+            setField(
+                this.javaClass.getDeclaredField("ctx"),
+                this,
+                ctx
+            )
+        }
+
+        // Wire up issueMapper
+        with(issueMapper) {
+            setField(
+                this.javaClass.getDeclaredField("ctx"),
+                this,
+                ctx
+            )
+        }
+
         // Wire up repositoryAssembler
         with(repositoryAssembler) {
             setField(
@@ -171,6 +195,16 @@ internal open class BaseAssemblerTest : BaseUnitTest() {
                 this.javaClass.getDeclaredField("repositoryAssembler"),
                 this,
                 repositoryAssembler
+            )
+            setField(
+                this.javaClass.getDeclaredField("accountMapper"),
+                this,
+                accountMapper
+            )
+            setField(
+                this.javaClass.getDeclaredField("issueMapper"),
+                this,
+                issueMapper
             )
         }
     }
