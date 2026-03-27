@@ -1,5 +1,5 @@
 import React, { type RefObject } from 'react';
-import { hydrateRoot } from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 
 export interface infoTooltipContent {
   headline: string;
@@ -34,8 +34,9 @@ export function showInfoTooltip(
 
   if (content.reactContent) {
     const reactContent = document.createElement('div');
-    hydrateRoot(
-      reactContent,
+
+    const root = createRoot(reactContent);
+    root.render(
       <div
         style={{ margin: '0' }}
         onMouseOver={() => {
@@ -44,6 +45,7 @@ export function showInfoTooltip(
         {content.reactContent}
       </div>,
     );
+
     tooltipContent.appendChild(reactContent);
   }
 
@@ -74,5 +76,5 @@ export function hideInfoTooltip(ref: RefObject<HTMLDivElement | null>, tooltipVi
     if (ref.current && !tooltipVisibleFlagRef.current) {
       ref.current.style.display = 'none';
     }
-  }, 1000);
+  }, 500);
 }
