@@ -69,21 +69,23 @@ function EditAuthorDialog() {
                 onChange={(e) => setDisplayName(e.target.value)}
               />
             </label>
-            <div className="label">
-              <span className="label-text font-bold">Author Color:</span>
+            <div className="flex items-center gap-1 mb-2 mt-2">
+              <label className="label">
+                <span className="label-text font-bold">Author Color:</span>
+              </label>
+              <input
+                type={'color'}
+                className={editAuthorDialogStyles.colorPicker}
+                id={'hs-color-input'}
+                value={colorMain}
+                style={{ borderColor: colorMain, backgroundColor: colorSecondary }}
+                title={'Choose your color'}
+                onChange={(event) => {
+                  setColorMain(event.target.value);
+                  setColorSecondary(event.target.value + '55');
+                }}
+              />
             </div>
-            <input
-              type={'color'}
-              className={editAuthorDialogStyles.colorPicker}
-              id={'hs-color-input'}
-              value={colorMain}
-              style={{ borderColor: colorMain, backgroundColor: colorSecondary }}
-              title={'Choose your color'}
-              onChange={(event) => {
-                setColorMain(event.target.value);
-                setColorSecondary(event.target.value + '55');
-              }}
-            />
             {parent ? (
               <>
                 <div className="label">
@@ -151,82 +153,82 @@ function EditAuthorDialog() {
                       ))
                     : 'No authors merged!'}
                 </div>
-                {/* Assign Account*/}
-                <div className="label">
-                  <span className="label-text font-bold">Assigned Account:</span>
-                </div>
-                <div>
-                  {!(assignedAccount !== undefined && assignedAccount !== null) && (
-                    <input
-                      type={'text'}
-                      list="allAccounts"
-                      className="input input-xs input-bordered w-full mb-2"
-                      placeholder={'Assign Account'}
-                      onChange={(e) => {
-                        if (e.target.value.length > 0) {
-                          const searchedAccounts = accounts.filter((a: AccountType) => Number(a.localId) === Number(e.target.value));
-                          if (searchedAccounts.length === 1) {
-                            const isAlreadyAssigned = authors.some((a: AuthorType) => {
-                              return a.user.account?.id != null && a.user.account.id === searchedAccounts[0].id && a.id !== authorToEdit.id;
-                            });
-                            if (isAlreadyAssigned) {
-                              const rect = (e.target as HTMLInputElement).getBoundingClientRect();
-                              const dialogWidth = 350;
-                              const dialogHeight = 90;
-                              const x = rect.left + rect.width / 2 - dialogWidth / 2 + window.scrollX;
-                              const y = rect.top + rect.height / 2 + dialogHeight / 2 + window.scrollY;
-                              showConfirmationDialog(
-                                x,
-                                y,
-                                dialogWidth,
-                                `This will remove the connection between this account and another author! Are you sure?`,
-                                [
-                                  {
-                                    label: 'Yes',
-                                    icon: null,
-                                    function: () => dispatch(assignAccount({ account: searchedAccounts[0], author: authorToEdit.id })),
-                                  },
-                                  {
-                                    label: 'No',
-                                    icon: null,
-                                    function: () => {},
-                                  },
-                                ],
-                              );
-                              e.target.value = '';
-                              return;
-                            }
-                            e.target.value = '';
-                            dispatch(assignAccount({ account: searchedAccounts[0], author: authorToEdit.id }));
-                          }
-                        }
-                      }}
-                    />
-                  )}
-                  <datalist id="allAccounts">
-                    {accounts.map((a: AccountType) => (
-                      <option key={a.localId} value={a.localId}>
-                        {a.name || a.user?.gitSignature}
-                      </option>
-                    ))}
-                  </datalist>
-                </div>
-                <div className={editAuthorDialogStyles.authorList}>
-                  {assignedAccount !== undefined && assignedAccount !== null ? (
-                    <div className={editAuthorDialogStyles.authorListItem} key={assignedAccount.id}>
-                      <span style={{ borderColor: 'green', background: 'lightgreen' }} className={editAuthorDialogStyles.authorName}>
-                        {assignedAccount.name}
-                      </span>
-                      <button className={editAuthorDialogStyles.removeButton} onClick={() => dispatch(resetAccount(assignedAccount.id))}>
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    'No account assigned!'
-                  )}
-                </div>
               </>
             )}
+            {/* Assign Account*/}
+            <div className="label">
+              <span className="label-text font-bold">Assigned Account:</span>
+            </div>
+            <div>
+              {!(assignedAccount !== undefined && assignedAccount !== null) && (
+                <input
+                  type={'text'}
+                  list="allAccounts"
+                  className="input input-xs input-bordered w-full mb-2"
+                  placeholder={'Assign Account'}
+                  onChange={(e) => {
+                    if (e.target.value.length > 0) {
+                      const searchedAccounts = accounts.filter((a: AccountType) => Number(a.localId) === Number(e.target.value));
+                      if (searchedAccounts.length === 1) {
+                        const isAlreadyAssigned = authors.some((a: AuthorType) => {
+                          return a.user.account?.id != null && a.user.account.id === searchedAccounts[0].id && a.id !== authorToEdit.id;
+                        });
+                        if (isAlreadyAssigned) {
+                          const rect = (e.target as HTMLInputElement).getBoundingClientRect();
+                          const dialogWidth = 350;
+                          const dialogHeight = 90;
+                          const x = rect.left + rect.width / 2 - dialogWidth / 2 + window.scrollX;
+                          const y = rect.top + rect.height / 2 + dialogHeight / 2 + window.scrollY;
+                          showConfirmationDialog(
+                            x,
+                            y,
+                            dialogWidth,
+                            `This will remove the connection between this account and another author! Are you sure?`,
+                            [
+                              {
+                                label: 'Yes',
+                                icon: null,
+                                function: () => dispatch(assignAccount({ account: searchedAccounts[0], author: authorToEdit.id })),
+                              },
+                              {
+                                label: 'No',
+                                icon: null,
+                                function: () => {},
+                              },
+                            ],
+                          );
+                          e.target.value = '';
+                          return;
+                        }
+                        e.target.value = '';
+                        dispatch(assignAccount({ account: searchedAccounts[0], author: authorToEdit.id }));
+                      }
+                    }
+                  }}
+                />
+              )}
+              <datalist id="allAccounts">
+                {accounts.map((a: AccountType) => (
+                  <option key={a.localId} value={a.localId}>
+                    {a.name || a.user?.gitSignature}
+                  </option>
+                ))}
+              </datalist>
+            </div>
+            <div className={editAuthorDialogStyles.authorList}>
+              {assignedAccount !== undefined && assignedAccount !== null ? (
+                <div className={editAuthorDialogStyles.authorListItem} key={assignedAccount.id}>
+                  <span style={{ borderColor: 'green', background: 'lightgreen' }} className={editAuthorDialogStyles.authorName}>
+                    {assignedAccount.name}
+                  </span>
+                  <button className={editAuthorDialogStyles.removeButton} onClick={() => dispatch(resetAccount(assignedAccount.id))}>
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                'No account assigned!'
+              )}
+            </div>
           </>
         )}
 

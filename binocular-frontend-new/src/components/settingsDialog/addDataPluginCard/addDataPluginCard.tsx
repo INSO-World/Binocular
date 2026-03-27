@@ -2,6 +2,7 @@ import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.t
 import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import { createRef, useState } from 'react';
 import { type AppDispatch, useAppDispatch } from '../../../redux';
+import type { MetadataType } from '../../../types/data/MetadataType.ts';
 
 enum State {
   unconfigured,
@@ -23,7 +24,10 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
   const progressUpdateUseRef = createRef<HTMLInputElement>();
   const progressUpdateEndpointRef = createRef<HTMLInputElement>();
 
+  const [uploadInfo, setUploadInfo] = useState<string>('');
+
   const [fileName, setFileName] = useState<string | undefined>(undefined);
+  const [metadata, setMetadata] = useState<MetadataType | undefined>(undefined);
 
   const [state, setState] = useState(State.unconfigured);
 
@@ -102,9 +106,11 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                           undefined,
                           { name: fileNameInput.value.replace(' ', '_'), file: file, dbObjects: undefined },
                           undefined,
+                          setUploadInfo,
                         )
-                        .then(() => {
+                        .then((meta) => {
                           setFileName(fileNameInput.value.replace(' ', '_'));
+                          setMetadata(meta);
                           setState(State.configured);
                         })
                         .catch(() => {
@@ -149,6 +155,13 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
           <div>
             <span>Uploading Database</span>
             <span className="loading loading-spinner loading-xs"></span>
+            <br />
+            <progress
+              className="progress progress-primary w-56"
+              value={uploadInfo.split('/')[0]}
+              max={uploadInfo.includes('/') ? parseInt(uploadInfo.split('/')[1]) : 0}></progress>
+            <br />
+            <span>{uploadInfo}</span>
           </div>
         )}
         {props.dataPlugin.requirements.file && state === State.configured && (
@@ -194,9 +207,11 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                         }
                       : undefined,
                   },
+                  metadata: metadata,
                 }),
               );
               setState(State.unconfigured);
+              setMetadata(undefined);
             }}>
             Add
           </button>
