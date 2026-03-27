@@ -4,8 +4,9 @@ import type { DataPlugin } from '../dataPlugin.ts';
 import type { AuthorType } from '../../../types/data/authorType.ts';
 import type { SprintType } from '../../../types/data/sprintType.ts';
 import type { ParametersType } from '../../../types/parameters/parametersType.ts';
-import type { ChartData, Palette } from '../../visualizationPlugins/simpleVisualizationPlugin/src/chart/chart.tsx';
+import type { ChartData, Palette } from '../../../components/stackedAreaChart/StackedAreaChart.tsx';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
+import type { VisualizationPluginDependencies } from './visualizationPluginDependencies.ts';
 
 export interface VisualizationPluginProperties<SettingsType, DataType> {
   settings: SettingsType; // Interface for settings defines which settings are transported
@@ -24,6 +25,8 @@ export interface VisualizationPluginProperties<SettingsType, DataType> {
   parameters: ParametersType; // General Parameters Provided By Binocular
   chartContainerRef: RefObject<HTMLDivElement | null>; //forwarded ref that should reference the chart div
   store: Store; //Redux store is needed
+  // optional information what dependencies the visualization has
+  dependencies?: VisualizationPluginDependencies;
   // for creating the redux dispatch within the chart component so that it can change the store.
   // The store gets dynamically created for each visualization item within the components/dashboard/dashboardItem component
   dataName?: string | undefined;

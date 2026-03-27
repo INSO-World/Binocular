@@ -83,6 +83,7 @@ import NoteAccountConnection from './models/connections/NoteAccountConnection.ts
 import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
 import AccountUserConnection from './models/connections/AccountUserConnection.ts';
 import { findBestUserMatchLeve } from './models/utils.ts';
+import debug from 'debug';
 
 cli.parse(
   (targetPath, options) => {
@@ -92,9 +93,6 @@ cli.parse(
     ctx.setOptions(options);
     ctx.setTargetPath(targetPath);
     config.loadConfig(ctx);
-    if (options.frontend) {
-      runFrontend();
-    }
     if (options.backend) {
       runBackend();
     }
@@ -104,8 +102,6 @@ cli.parse(
       projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
       const indexerOptions = {
         backend: true,
-        frontend: false,
-        open: false,
         clean: true,
         vcs: true,
         its: true,
@@ -349,15 +345,15 @@ function runBackend() {
       const indexer = await getIndexer(indexers, context, reporter, indexingThread);
       const providers = await Promise.all(indexer);
 
-      /*for (const indexer of providers.filter((exist) => exist)) {
+      for (const indexer of providers.filter((exist) => exist)) {
         if (!indexer) {
           return;
         }
-  
+
         if ('setGateway' in indexer) {
           indexer.setGateway(gateway);
         }
-  
+
         threadLog(indexingThread, `${indexer.constructor.name} fetching data...`);
         await indexer.index();
         threadLog(indexingThread, `${indexer.constructor.name} ${indexer.isStopping() ? 'stopped' : 'finished'}...`);
@@ -365,9 +361,9 @@ function runBackend() {
       // make sure that the services has not been stopped
       const activeProviders = providers.filter((provider) => {
         return !provider || !provider.isStopping();
-      });*/
+      });
       // start indexer
-      const activeIndexers = await Promise.all(
+      /*const activeIndexers = await Promise.all(
         providers
           .filter((exist) => exist)
           .map(async (indexer) => {
@@ -389,17 +385,10 @@ function runBackend() {
       // make sure that the services has not been stopped
       const activeProviders = activeIndexers.filter((provider) => {
         return !provider || !provider.isStopping();
-      });
-
-      // export db if required
-      if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
-        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend-new/src');
-      }
+      });*/
 
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
-        return;
       }
 
       await Issue.deduceUsers();
@@ -419,6 +408,17 @@ function runBackend() {
       const executionTime = Moment(endTime).diff(startTime, 'seconds');
       console.log('Execution Time: ' + Math.floor(executionTime / 60) + ':' + (executionTime % 60));
       threadLog(indexingThread, 'Indexing finished');
+
+      // export db if required
+      if (context.argv.export) {
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
+        projectStructureHelper.createAndFillDbExportFolder(
+          context.db,
+          __dirname + '/../binocular-frontend-new/src',
+          context.vcsUrlProvider.project,
+          context.ciUrlProvider.provider,
+        );
+      }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'Gitlab401Error') {
         threadWarn(indexingThread, 'Unable to access GitLab API. Please configure a valid private access token in the UI.');
@@ -714,6 +714,7 @@ function runBackend() {
 
   // this function is only used for matching one User to each account, not the other way around
   async function connectAccountsAndUsers() {
+    const log = debug('indexer:account-user-connection');
     const accounts = await Account.findAll();
     const accountUserConnections = await AccountUserConnection.findAll();
     for (const account of accounts) {
@@ -734,7 +735,7 @@ function runBackend() {
       }
       const user = await findBestUserMatchLeve(account.data);
       if (user && account) {
-        console.debug(`Connecting ${account.data.name} to ${user.data.gitSignature}`);
+        log(`Connecting ${account.data.name} to ${user.data.gitSignature}`);
         await AccountUserConnection.connect({}, { from: account, to: user });
       }
     }
@@ -766,19 +767,6 @@ function runBackend() {
     if (!ctx.argv.server) {
       stop();
     }
-  });
-}
-
-function runFrontend() {
-  const fronted = spawn('npm run dev:frontend', [], { shell: true, cwd: __dirname + '/..' });
-  fronted.stdout.on('data', (data) => {
-    console.log(chalk.cyan(`${data}`));
-  });
-  fronted.stderr.on('data', (data) => {
-    console.error(chalk.blue(`${data}`));
-  });
-  fronted.on('close', (code) => {
-    console.log(chalk.blueBright(`frontend process exited with code ${code}`));
   });
 }
 
