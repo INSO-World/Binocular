@@ -71,6 +71,7 @@ function FileTreeFolder(props: {
                         foldedOut={false}
                         listOnly={props.listOnly}
                         showSelect={props.showSelect}
+                        onElementSelectionChange={props.onElementSelectionChange}
                         onElementClick={props.onElementClick}
                         onShowContextMenu={props.onShowContextMenu}></FileTreeFolder>
                     );

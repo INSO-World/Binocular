@@ -2,7 +2,7 @@ import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
-import { filterFileTree, loadFileList, refreshFileList } from '../../../fileTree/utils/fileTreeUtilities';
+import { filterFileTree } from '../../../fileTree/utils/fileTreeUtilities';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import { type ContextMenuOption, showContextMenu } from '../../../contextMenu/contextMenuHelper';
 import infoIcon from '../../../../assets/info_gray.svg';
@@ -14,7 +14,10 @@ import {
   checkAllFiles,
   uncheckAllFiles,
   switchAllFileSelection,
+  updateFileListElement,
+  showFileTreeElementInfo,
 } from '../../../../redux/reducer/data/filesReducer.ts';
+import { loadFileList, refreshFileList } from '../utils/fileListUtilities';
 
 function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();

@@ -1,5 +1,5 @@
-import type { DataPluginHunk } from '../../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
-import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
+import type { DataPluginHunk } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
+import type { DataPluginCommit } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
 
 function HeatMapColumn(props: { hunks: DataPluginHunk[] | undefined; commit: DataPluginCommit; lineHeight: number; topOffset: number }) {
   return (

@@ -13,11 +13,11 @@ import CodeExpertise from './visualizationPlugins/expertise/codeExpertise';
 import RepositoryActivity from './visualizationPlugins/authorBehaviour/repositoryActivity';
 import IssuesTimeline from './visualizationPlugins/issues/issuesTimeline';
 import Burndown from './visualizationPlugins/issues/burndown';
-import CodeHotspots from './visualizationPlugins/codeHotspots';
+import CodeHotspots from './visualizationPlugins/expertise/codeHotspots';
 
-import ExampleComplex from './visualizationPlugins/exampleComplex';
-import ExampleStats from './visualizationPlugins/exampleStats';
-import ExampleVisualization from './visualizationPlugins/exampleVisualization';
+import ExampleComplex from './visualizationPlugins/example/exampleComplex';
+import ExampleStats from './visualizationPlugins/example/exampleStats';
+import ExampleVisualization from './visualizationPlugins/example/exampleVisualization';
 
 import type { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import type { DataPluginBuild } from './interfaces/dataPluginInterfaces/dataPluginBuilds.ts';

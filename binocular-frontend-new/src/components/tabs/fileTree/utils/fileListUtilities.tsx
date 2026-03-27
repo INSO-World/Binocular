@@ -3,8 +3,44 @@ import { FileTreeElementTypeType } from '../../../../types/data/fileListType';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType';
 import type { AppDispatch } from '../../../../redux';
 import DataPluginStorage from '../../../../utils/dataPluginStorage';
-import { setFileList } from '../../../../redux/reducer/data/filesReducer';
+import { loadState, setFileList } from '../../../../redux/reducer/data/filesReducer';
 import { generateFileTree } from '../../../fileTree/utils/fileTreeUtilities';
+
+let opfsRoot: FileSystemDirectoryHandle | undefined = undefined;
+let fileHandle: FileSystemFileHandle | undefined = undefined;
+try {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  opfsRoot = await navigator.storage.getDirectory();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  fileHandle = await opfsRoot.getFileHandle('files', { create: true });
+} catch (e) {
+  console.log('Could not access OPFS', e);
+}
+
+export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
+  if (fileHandle)
+    fileHandle.getFile().then((files) => {
+      if (files !== null) {
+        files.text().then(
+          (list) => {
+            const files = list ? JSON.parse(list) : undefined;
+            if (files && Object.keys(files.fileLists).includes('' + dP.id)) {
+              dispatch(loadState(JSON.parse(list)));
+            } else refreshFileList(dP, dispatch);
+          },
+          (error) => {
+            console.log('Could not access files: Reloading list', error);
+            refreshFileList(dP, dispatch);
+          },
+        );
+      }
+    });
+  else {
+    refreshFileList(dP, dispatch);
+  }
+}
 
 export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
   if (dP && dP.id !== undefined) {
@@ -40,4 +76,12 @@ export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: Ap
       })
       .catch((e) => console.log(e));
   }
+}
+
+export function writeFileListToStorage(filesState: string) {
+  if (fileHandle) fileHandle.createWritable().then((access) => access.write(filesState).then(() => access.close()));
+}
+
+export function clearStorage() {
+  if (opfsRoot) opfsRoot.removeEntry('files');
 }

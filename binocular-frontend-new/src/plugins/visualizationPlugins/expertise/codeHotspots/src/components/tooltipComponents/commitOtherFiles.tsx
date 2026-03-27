@@ -1,6 +1,6 @@
-import type { DataPluginFileInCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
+import type { DataPluginFileInCommit } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
 import { useState } from 'react';
-import SearchBar from '../../../../../../components/searchBar/searchBar';
+import SearchBar from '../../../../../../../components/searchBar/searchBar';
 
 function CommitOtherFiles(props: { files: DataPluginFileInCommit[]; onSetFile: (path?: string, url?: string) => void }) {
   const [files, setFiles] = useState<DataPluginFileInCommit[]>(props.files);

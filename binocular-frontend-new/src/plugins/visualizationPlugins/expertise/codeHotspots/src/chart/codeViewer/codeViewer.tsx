@@ -7,7 +7,7 @@ import { loadLanguage } from '@uiw/codemirror-extensions-langs';
 import LanguageDetection from './utils/languageDetection';
 import { codeMirrorThemeLight } from './codeMirrorThemeLight';
 import { EditorView } from '@codemirror/view';
-import type { DataPluginBranch } from '../../../../../interfaces/dataPluginInterfaces/dataPluginBranches';
+import type { DataPluginBranch } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginBranches';
 import type { CodeHotspotsGitlabSettings } from '../../types/CodeHotspotsGitlabSettings';
 
 function CodeViewer(props: {

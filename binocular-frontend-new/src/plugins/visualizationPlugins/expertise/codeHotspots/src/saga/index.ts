@@ -1,9 +1,9 @@
 import { put, takeEvery, fork, call, select, throttle } from 'redux-saga/effects';
 import { type CodeHotspotsState, DataState, setBranches, setCommits, setDataState, setDateRange, setFile, setFiles } from '../reducer';
-import type { DataPlugin } from '../../../../interfaces/dataPlugin.ts';
-import type { DataPluginCommit } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
-import type { DataPluginBranch } from '../../../../interfaces/dataPluginInterfaces/dataPluginBranches';
-import type { DataPluginFile } from '../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
+import type { DataPlugin } from '../../../../../interfaces/dataPlugin.ts';
+import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { DataPluginBranch } from '../../../../../interfaces/dataPluginInterfaces/dataPluginBranches';
+import type { DataPluginFile } from '../../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
 
 export default function* (dataConnection: DataPlugin) {
   yield call(() => fetchGeneralData(dataConnection));
