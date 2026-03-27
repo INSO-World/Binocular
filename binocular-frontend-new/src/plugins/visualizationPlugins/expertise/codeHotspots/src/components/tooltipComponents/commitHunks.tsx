@@ -1,4 +1,4 @@
-import type { DataPluginHunk } from '../../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
+import type { DataPluginHunk } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginFiles';
 
 function CommitHunks(props: { hunks?: DataPluginHunk[] }) {
   return (

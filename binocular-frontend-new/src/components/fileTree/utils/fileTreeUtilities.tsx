@@ -2,19 +2,6 @@ import fileListElementsStyles from '../fileTreeElements/fileTreeElements.module.
 import type { JSX } from 'react';
 import { type FileTreeElementType, FileTreeElementTypeType } from '../../../types/data/fileListType';
 import type { DataPluginFile } from '../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles';
-import type { DatabaseSettingsDataPluginType } from '../../../../../types/settings/databaseSettingsType';
-import DataPluginStorage from '../../../../../utils/dataPluginStorage';
-import { loadState, setFileList } from '../../../../../redux/reducer/data/filesReducer';
-import type { AppDispatch } from '../../../../../redux';
-
-let opfsRoot: FileSystemDirectoryHandle | undefined = undefined;
-let fileHandle: FileSystemFileHandle | undefined = undefined;
-try {
-  opfsRoot = await navigator.storage.getDirectory();
-  fileHandle = await opfsRoot.getFileHandle('files', { create: true });
-} catch (e) {
-  console.log('Could not access OPFS', e);
-}
 
 export function generateFileTree(files: DataPluginFile[]): FileTreeElementType[] {
   return convertData(files).content;
@@ -104,7 +91,7 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
     for (const searchPart of searchParts) {
       if (name.toLowerCase().includes(searchPart.toLowerCase())) {
         const nameParts = splitAtFirst(name, searchPart).map((part, i) => <span key={`formatedNamePart${i}`}>{part}</span>);
-        formatedName = [
+        formattedName = [
           nameParts[0],
           <span key={'formattedNamePartMatch'} className={fileListElementsStyles.searchMark}>
             {searchPart}
@@ -116,65 +103,6 @@ export function formatName(searchTerm: string | undefined, name: string): JSX.El
     }
   }
   return formattedName;
-}
-
-export function loadFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
-  if (fileHandle)
-    fileHandle.getFile().then((files) => {
-      if (files !== null) {
-        files.text().then(
-          (list) => {
-            const files = list ? JSON.parse(list) : undefined;
-            if (files && Object.keys(files.fileLists).includes('' + dP.id)) {
-              dispatch(loadState(JSON.parse(list)));
-            } else refreshFileList(dP, dispatch);
-          },
-          (error) => {
-            console.log('Could not access files: Reloading list', error);
-            refreshFileList(dP, dispatch);
-          },
-        );
-      }
-    });
-  else {
-    refreshFileList(dP, dispatch);
-  }
-}
-
-export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: AppDispatch) {
-  if (dP && dP.id !== undefined) {
-    console.log(`REFRESH FILES (${dP.name} #${dP.id})`);
-    DataPluginStorage.getDataPlugin(dP)
-      .then((dataPlugin) => {
-        if (dataPlugin) {
-          dataPlugin.files
-            .getAll()
-            .then((files) =>
-              dispatch(
-                setFileList({
-                  dataPluginId: dP.id !== undefined ? dP.id : -1,
-                  fileTree: {
-                    name: '/',
-                    type: FileTreeElementTypeType.Folder,
-                    children: generateFileTree(files),
-                    checked: true,
-                    foldedOut: true,
-                    isRoot: true,
-                  },
-                  files: files.map((f: DataPluginFile) => {
-                    return {
-                      element: f,
-                      checked: true,
-                    };
-                  }),
-                }),
-              ),
-            )
-            .catch((e) => console.log('Error loading Files from selected data source!', e));
-        }
-      })
-      .catch((e) => console.log(e));
-  }
 }
 
 function splitAtFirst(str: string, delimiter: string): [string, string] {
@@ -208,10 +136,11 @@ export function updateFileTreeRecursive(fileTree: FileTreeElementType, element: 
   return updatedPaths;
 }
 
-export function writeFileListToStorage(filesState: string) {
-  if (fileHandle) fileHandle.createWritable().then((access) => access.write(filesState).then(() => access.close()));
-}
-
-export function clearStorage() {
-  if (opfsRoot) opfsRoot.removeEntry('files');
+export function invertFileTreeSelection(fileTree: FileTreeElementType) {
+  if (fileTree.children) {
+    fileTree.children.map((f: FileTreeElementType) => {
+      f.checked = !f.checked;
+      invertFileTreeSelection(f);
+    });
+  }
 }

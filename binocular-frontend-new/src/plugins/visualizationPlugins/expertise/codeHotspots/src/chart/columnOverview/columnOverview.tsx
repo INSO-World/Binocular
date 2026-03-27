@@ -1,8 +1,8 @@
-import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
+import type { DataPluginCommit } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
 import type { SelectedFile } from '../../reducer';
 import { useRef } from 'react';
-import InfoTooltip from '../../../../../../components/infoTooltip/infoTooltip';
-import { hideInfoTooltip, showInfoTooltip } from '../../../../../../components/infoTooltip/infoTooltipHelper';
+import InfoTooltip from '../../../../../../../components/infoTooltip/infoTooltip';
+import { hideInfoTooltip, showInfoTooltip } from '../../../../../../../components/infoTooltip/infoTooltipHelper';
 import CommitInfo from '../../components/tooltipComponents/commitInfo';
 import CommitHunks from '../../components/tooltipComponents/commitHunks';
 import CommitOtherFiles from '../../components/tooltipComponents/commitOtherFiles';

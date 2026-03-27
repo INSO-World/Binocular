@@ -1,12 +1,11 @@
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import type { Store } from '@reduxjs/toolkit';
-import { handelPopoutResizing } from '../../../../utils/resizing.ts';
-import type { DataPlugin } from '../../../../interfaces/dataPlugin';
-import type { ParametersType } from '../../../../../types/parameters/parametersType';
+import type { DataPlugin } from '../../../../../interfaces/dataPlugin';
+import type { ParametersType } from '../../../../../../types/parameters/parametersType';
 import type { SettingsType } from '../settings/settings';
-import type { AuthorType } from '../../../../../types/data/authorType';
-import type { SprintType } from '../../../../../types/data/sprintType';
-import { type FileListElementType, type FileTreeElementType, FileTreeElementTypeType } from '../../../../../types/data/fileListType';
+import type { AuthorType } from '../../../../../../types/data/authorType';
+import type { SprintType } from '../../../../../../types/data/sprintType';
+import { type FileListElementType, type FileTreeElementType, FileTreeElementTypeType } from '../../../../../../types/data/fileListType';
 import { useDispatch, useSelector } from 'react-redux';
 import { type CodeHotspotsState, DataState, setFile } from '../reducer';
 import CodeViewer from './codeViewer/codeViewer';
@@ -14,12 +13,13 @@ import HeatMap from './heatmap/heatMap';
 import { EditorView } from '@codemirror/view';
 import ColumnOverview from './columnOverview/columnOverview';
 import RowOverview from './rowOverview/rowOverview';
-import { filterFileTree, generateFileTree, updateFileTreeRecursive } from '../../../../../components/fileTree/utils/fileTreeUtilities';
-import FileTreeFolder from '../../../../../components/fileTree/fileTreeElements/fileTreeFolder/fileTreeFolder';
-import SearchBar from '../../../../../components/searchBar/searchBar';
-import type { DataPluginBranch } from '../../../../interfaces/dataPluginInterfaces/dataPluginBranches';
+import { filterFileTree, generateFileTree, updateFileTreeRecursive } from '../../../../../../components/fileTree/utils/fileTreeUtilities';
+import FileTreeFolder from '../../../../../../components/fileTree/fileTreeElements/fileTreeFolder/fileTreeFolder';
+import SearchBar from '../../../../../../components/searchBar/searchBar';
+import type { DataPluginBranch } from '../../../../../interfaces/dataPluginInterfaces/dataPluginBranches';
 import { OverLaySettings } from '../components/overLaySettings/overLaySettings';
 import type { CodeHotspotsGitlabSettings } from '../types/CodeHotspotsGitlabSettings';
+import { handlePopoutResizing } from '../../../../../utils/resizing';
 
 const CODE_HOTSPOTS_GITLAB_SETTINGS_KEY = 'code_hotspots_gitlab_settings';
 
@@ -62,7 +62,7 @@ function Chart(props: {
     resize();
   }, [chartContainerRef, chartHeight, chartWidth]);
 
-  handelPopoutResizing(props.store, resize);
+  handlePopoutResizing(props.store, resize);
   /**
    * RESIZE Logic END
    */

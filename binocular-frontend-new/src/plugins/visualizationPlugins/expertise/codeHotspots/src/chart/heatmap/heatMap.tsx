@@ -1,4 +1,4 @@
-import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
+import type { DataPluginCommit } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
 import HeatMapColumn from './heatMapColumn';
 import type { SelectedFile } from '../../reducer';
 

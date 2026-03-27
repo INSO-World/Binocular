@@ -1,9 +1,9 @@
-import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
+import type { DataPluginCommit } from '../../../../../../interfaces/dataPluginInterfaces/dataPluginCommits';
 import type { SelectedFile } from '../../reducer';
 import { useRef } from 'react';
-import InfoTooltip from '../../../../../../components/infoTooltip/infoTooltip';
+import InfoTooltip from '../../../../../../../components/infoTooltip/infoTooltip';
 import chroma from 'chroma-js';
-import { hideInfoTooltip, showInfoTooltip } from '../../../../../../components/infoTooltip/infoTooltipHelper';
+import { hideInfoTooltip, showInfoTooltip } from '../../../../../../../components/infoTooltip/infoTooltipHelper';
 import CommitsList from '../../components/tooltipComponents/commitsList';
 
 interface RowInfo {
