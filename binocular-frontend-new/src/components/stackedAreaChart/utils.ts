@@ -67,7 +67,7 @@ export function computeVisibleYDomain(
   }
 
   if (negativeKeys.length > 0) {
-    const stackedNegative = d3.stack().keys(negativeKeys)(negativeData);
+    const stackedNegative = d3.stack().keys(negativeKeys).offset(d3.stackOffsetDiverging)(negativeData);
     stackedNegative.forEach((layer) => {
       layer.forEach((point) => {
         if (point[0] < minVal) minVal = point[0];
