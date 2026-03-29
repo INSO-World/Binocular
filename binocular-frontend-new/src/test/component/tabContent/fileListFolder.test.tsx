@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 
@@ -90,6 +90,14 @@ describe('FileListFolder', () => {
 
   beforeEach(() => {
     store = createTestStore();
+    // showFileTreeElementInfo reducer calls document.getElementById('fileTreeElementInfoDialog').showModal()
+    // Provide a stub dialog element to prevent errors in tests that trigger that action
+    if (!document.getElementById('fileTreeElementInfoDialog')) {
+      const dialog = document.createElement('dialog');
+      dialog.id = 'fileTreeElementInfoDialog';
+      dialog.showModal = vi.fn();
+      document.body.appendChild(dialog);
+    }
   });
 
   it('C8.1 renders the folder name', () => {
@@ -148,5 +156,158 @@ describe('FileListFolder', () => {
     );
     // parent is expanded so we see its children (subFolder)
     expect(screen.getByText('subFolder')).toBeInTheDocument();
+  });
+
+  it('C8.6 foldedOut=false → children NOT rendered', () => {
+    render(
+      <Provider store={store}>
+        <FileListFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
+      </Provider>,
+    );
+    expect(screen.queryByText('index.ts')).not.toBeInTheDocument();
+  });
+
+  it('C8.7 foldedOut=true → children ARE rendered', () => {
+    render(
+      <Provider store={store}>
+        <FileListFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
+      </Provider>,
+    );
+    expect(screen.getByText('index.ts')).toBeInTheDocument();
+  });
+
+  it('C8.8 clicking collapsed folder dispatches updateFileListElement with foldedOut: true', () => {
+    const dispatchSpy = vi.fn();
+    const testStore = createTestStore();
+    const originalDispatch = testStore.dispatch.bind(testStore);
+    testStore.dispatch = ((action: Parameters<typeof originalDispatch>[0]) => {
+      dispatchSpy(action);
+      try {
+        return originalDispatch(action);
+      } catch {
+        return action as ReturnType<typeof originalDispatch>;
+      }
+    }) as typeof testStore.dispatch;
+
+    render(
+      <Provider store={testStore}>
+        <FileListFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
+      </Provider>,
+    );
+
+    // In collapsed state the folder name element is clickable
+    const folderNameEl = screen.getByText('components');
+    fireEvent.click(folderNameEl);
+
+    const updateCalls = dispatchSpy.mock.calls
+      .map((call) => call[0] as { type: string; payload: FileTreeElementType & { foldedOut: boolean } })
+      .filter((action) => action.type === 'files/updateFileListElement');
+
+    expect(updateCalls.length).toBeGreaterThan(0);
+    expect(updateCalls[0].payload.foldedOut).toBe(true);
+  });
+
+  it('C8.9 clicking expanded folder dispatches updateFileListElement with foldedOut: false', () => {
+    const dispatchSpy = vi.fn();
+    const testStore = createTestStore();
+    const originalDispatch = testStore.dispatch.bind(testStore);
+    testStore.dispatch = ((action: Parameters<typeof originalDispatch>[0]) => {
+      dispatchSpy(action);
+      try {
+        return originalDispatch(action);
+      } catch {
+        return action as ReturnType<typeof originalDispatch>;
+      }
+    }) as typeof testStore.dispatch;
+
+    render(
+      <Provider store={testStore}>
+        <FileListFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
+      </Provider>,
+    );
+
+    // In expanded state, the folder name element is clickable
+    const folderNameEl = screen.getByText('components');
+    fireEvent.click(folderNameEl);
+
+    const updateCalls = dispatchSpy.mock.calls
+      .map((call) => call[0] as { type: string; payload: FileTreeElementType & { foldedOut: boolean } })
+      .filter((action) => action.type === 'files/updateFileListElement');
+
+    expect(updateCalls.length).toBeGreaterThan(0);
+    expect(updateCalls[0].payload.foldedOut).toBe(false);
+  });
+
+  it('C8.10 listOnly=true always shows children regardless of foldedOut=false', () => {
+    render(
+      <Provider store={store}>
+        <FileListFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} listOnly={true} />
+      </Provider>,
+    );
+    // listOnly forces the expanded branch, so children must be visible
+    expect(screen.getByText('index.ts')).toBeInTheDocument();
+  });
+
+  it('C8.11 folder with id === undefined has no checkbox when expanded', () => {
+    const folderWithoutId: FileTreeElementType = {
+      name: 'noIdFolder',
+      // id is intentionally omitted → undefined
+      type: FileTreeElementTypeType.Folder,
+      checked: true,
+      foldedOut: true,
+      isRoot: false,
+      children: [],
+    };
+
+    render(
+      <Provider store={store}>
+        <FileListFolder folder={folderWithoutId} foldedOut={true} />
+      </Provider>,
+    );
+
+    // In the expanded branch, checkbox is only rendered when !listOnly && id !== undefined
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('C8.12 checking folder checkbox dispatches updateFileListElement with updated checked', () => {
+    const dispatchSpy = vi.fn();
+    const testStore = createTestStore();
+    const originalDispatch = testStore.dispatch.bind(testStore);
+    testStore.dispatch = ((action: Parameters<typeof originalDispatch>[0]) => {
+      dispatchSpy(action);
+      try {
+        return originalDispatch(action);
+      } catch {
+        return action as ReturnType<typeof originalDispatch>;
+      }
+    }) as typeof testStore.dispatch;
+
+    // Use a collapsed folder (id present, not listOnly) — the collapsed branch always shows a checkbox
+    const collapsedFolder: FileTreeElementType = {
+      name: 'myFolder',
+      id: 42,
+      type: FileTreeElementTypeType.Folder,
+      checked: false,
+      foldedOut: false,
+      isRoot: false,
+      children: [],
+    };
+
+    render(
+      <Provider store={testStore}>
+        <FileListFolder folder={collapsedFolder} foldedOut={false} />
+      </Provider>,
+    );
+
+    const checkbox = screen.getByRole('checkbox');
+    fireEvent.click(checkbox);
+
+    const updateCalls = dispatchSpy.mock.calls
+      .map((call) => call[0] as { type: string; payload: FileTreeElementType & { checked: boolean; update: boolean } })
+      .filter((action) => action.type === 'files/updateFileListElement');
+
+    expect(updateCalls.length).toBeGreaterThan(0);
+    // The onChange handler passes e.target.checked — after clicking an unchecked box it becomes true
+    expect(updateCalls[0].payload.checked).toBe(true);
   });
 });

@@ -74,6 +74,14 @@ describe('FileListFile', () => {
 
   beforeEach(() => {
     store = createTestStore();
+    // showFileTreeElementInfo reducer calls document.getElementById('fileTreeElementInfoDialog').showModal()
+    // Provide a stub dialog element to prevent errors in tests that trigger that action
+    if (!document.getElementById('fileTreeElementInfoDialog')) {
+      const dialog = document.createElement('dialog');
+      dialog.id = 'fileTreeElementInfoDialog';
+      dialog.showModal = vi.fn();
+      document.body.appendChild(dialog);
+    }
   });
 
   it('C7.1 renders the file name', () => {
@@ -138,5 +146,106 @@ describe('FileListFile', () => {
     fireEvent.click(checkbox);
     // The dispatch happens; verify the file checked state was toggled in store
     expect(storeWithFileTree.getState().files.fileLists[1][0].checked).toBe(false);
+  });
+
+  it('C7.5 without listOnly, checkbox is rendered', () => {
+    render(
+      <Provider store={store}>
+        <FileListFile file={fileElement} />
+      </Provider>,
+    );
+    expect(screen.getByRole('checkbox')).toBeInTheDocument();
+  });
+
+  it('C7.6 with listOnly=true, checkbox is NOT rendered', () => {
+    render(
+      <Provider store={store}>
+        <FileListFile file={fileElement} listOnly={true} />
+      </Provider>,
+    );
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('C7.7 checking the checkbox dispatches updateFileListElement with checked: true, update: true', () => {
+    const storeWithFileTree = configureStore({
+      reducer: reducerMap,
+      preloadedState: {
+        files: {
+          fileTrees: {
+            1: {
+              name: '/',
+              id: 0,
+              type: FileTreeElementTypeType.Folder,
+              checked: true,
+              foldedOut: true,
+              isRoot: true,
+              children: [{ ...fileElement, checked: false }],
+            },
+          },
+          fileLists: {
+            1: [{ element: { path: 'src/utils/foo.ts', webUrl: '', maxLength: 0 }, checked: false }],
+          },
+          fileCounts: { 1: 1 },
+          dataPluginId: 1,
+        } as FilesInitialState,
+      },
+    });
+
+    render(
+      <Provider store={storeWithFileTree}>
+        <FileListFile file={{ ...fileElement, checked: false }} />
+      </Provider>,
+    );
+    const checkbox = screen.getByRole('checkbox');
+    // Fire change event with checked: true to simulate checking the box
+    fireEvent.click(checkbox);
+    // After toggling false → true, fileList entry should now be checked: true
+    expect(storeWithFileTree.getState().files.fileLists[1][0].checked).toBe(true);
+  });
+
+  it('C7.8 clicking the element with listOnly=true dispatches showFileTreeElementInfo', () => {
+    const dispatchSpy = vi.fn();
+    // Patch store.dispatch to spy on dispatched actions
+    const testStore = createTestStore();
+    const originalDispatch = testStore.dispatch.bind(testStore);
+    testStore.dispatch = (action: Parameters<typeof originalDispatch>[0]) => {
+      dispatchSpy(action);
+      return originalDispatch(action);
+    };
+
+    render(
+      <Provider store={testStore}>
+        <FileListFile file={fileElement} listOnly={true} />
+      </Provider>,
+    );
+
+    // The clickable element wraps the file icon and name
+    const fileNameEl = screen.getByText('foo.ts');
+    fireEvent.click(fileNameEl);
+
+    const actionTypes = dispatchSpy.mock.calls.map((call) => (call[0] as { type: string }).type);
+    expect(actionTypes).toContain('files/showFileTreeElementInfo');
+  });
+
+  it('C7.9 clicking the element without listOnly does NOT dispatch showFileTreeElementInfo', () => {
+    const dispatchSpy = vi.fn();
+    const testStore = createTestStore();
+    const originalDispatch = testStore.dispatch.bind(testStore);
+    testStore.dispatch = (action: Parameters<typeof originalDispatch>[0]) => {
+      dispatchSpy(action);
+      return originalDispatch(action);
+    };
+
+    render(
+      <Provider store={testStore}>
+        <FileListFile file={fileElement} />
+      </Provider>,
+    );
+
+    const fileNameEl = screen.getByText('foo.ts');
+    fireEvent.click(fileNameEl);
+
+    const actionTypes = dispatchSpy.mock.calls.map((call) => (call[0] as { type: string }).type);
+    expect(actionTypes).not.toContain('files/showFileTreeElementInfo');
   });
 });

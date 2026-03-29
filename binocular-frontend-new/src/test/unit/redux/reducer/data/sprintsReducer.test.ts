@@ -121,3 +121,41 @@ describe('sprintsReducer – clearSprintStorage', () => {
     expect(spy).toHaveBeenCalled();
   });
 });
+
+describe('sprintsReducer – saveSprint (U62)', () => {
+  it('U62.1 saving a sprint with an unknown ID leaves the sprint list unchanged', () => {
+    const stateWithSprint: SprintsInitialState = {
+      sprintList: [{ id: 0, name: 'Existing', startDate: '2024-01-01', endDate: '2024-01-14' }],
+      currID: 1,
+      sprintToEdit: null,
+    };
+    const nonExistent = { id: 99, name: 'Ghost', startDate: '2024-03-01', endDate: '2024-03-14' };
+    const state = reducer(stateWithSprint, saveSprint(nonExistent));
+    expect(state.sprintList).toHaveLength(1);
+    expect(state.sprintList[0].name).toBe('Existing');
+  });
+});
+
+describe('sprintsReducer – deleteSprint (U62)', () => {
+  it('U62.2 deleting a sprint with an unknown ID leaves the sprint list unchanged', () => {
+    const stateWithSprint: SprintsInitialState = {
+      sprintList: [{ id: 0, name: 'Existing', startDate: '2024-01-01', endDate: '2024-01-14' }],
+      currID: 1,
+      sprintToEdit: null,
+    };
+    const nonExistent = makeSprint('Ghost', 99);
+    const state = reducer(stateWithSprint, deleteSprint(nonExistent));
+    expect(state.sprintList).toHaveLength(1);
+    expect(state.sprintList[0].name).toBe('Existing');
+  });
+});
+
+describe('sprintsReducer – addSprint (U62)', () => {
+  it('U62.3 second sprint ID is greater than the first (auto-increment)', () => {
+    const state1 = reducer(emptyState, addSprint(makeSprint('First')));
+    const firstId = state1.sprintList[0].id!;
+    const state2 = reducer(state1, addSprint(makeSprint('Second')));
+    const secondId = state2.sprintList[1].id!;
+    expect(secondId).toBeGreaterThan(firstId);
+  });
+});

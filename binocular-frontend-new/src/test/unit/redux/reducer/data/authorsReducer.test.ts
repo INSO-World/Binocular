@@ -128,3 +128,104 @@ describe('authorsReducer – clearAuthorsStorage', () => {
     expect(spy).toHaveBeenCalled();
   });
 });
+
+import { setAuthorList, switchAllAuthorSelection, assignAccount } from '../../../../../redux/reducer/data/authorsReducer';
+import type { AccountType } from '../../../../../types/data/accountType';
+
+function makeAccount(id: string): AccountType {
+  return { localId: 0, id, name: `Account ${id}`, user: null, platform: 'github' };
+}
+
+function makeAuthorWithAccount(id: number, parent: number, account: AccountType | null): AuthorType {
+  return {
+    id,
+    parent,
+    selected: true,
+    color: { main: '#ff0000', secondary: '#000000' },
+    user: { id: `user-${id}`, gitSignature: `sig-${id}`, account },
+  };
+}
+
+describe('authorsReducer – setParentAuthor (U40)', () => {
+  it('U40.1 self-reference leaves parent unchanged', () => {
+    // author1 has parent -1; dispatching setParentAuthor({ author: 1, parent: 1 }) is a no-op
+    const state = reducer(emptyState, setParentAuthor({ author: 1, parent: 1 }));
+    const a = (state.authorLists[1] as AuthorType[]).find((a) => a.id === 1);
+    expect(a?.parent).toBe(-1);
+  });
+});
+
+describe('authorsReducer – assignAccount (U40)', () => {
+  it('U40.2 assigning account X to author B removes it from author A', () => {
+    const account = makeAccount('1'); // numeric string so Number(id) comparison in reducer works
+    const authorA = makeAuthorWithAccount(1, -1, account);
+    const authorB = makeAuthorWithAccount(2, -1, null); // null !== undefined, so assignment triggers
+    const stateWithAccounts: AuthorsInitialState = {
+      ...emptyState,
+      authorLists: { 1: [authorA, authorB] },
+    };
+    const state = reducer(stateWithAccounts, assignAccount({ account, author: 2 }));
+    const list = state.authorLists[1] as AuthorType[];
+    // author B now has the account
+    expect(list.find((a) => a.id === 2)?.user.account?.id).toBe('1');
+    // author A lost the account
+    expect(list.find((a) => a.id === 1)?.user.account).toBeNull();
+  });
+});
+
+describe('authorsReducer – setAuthorList (U40)', () => {
+  it('U40.3 dispatching twice with identical data does not duplicate authors', () => {
+    const authors = [
+      { ...makeAuthor(1, -1), user: { id: 'user-1', gitSignature: 'sig-1', account: null } },
+      { ...makeAuthor(2, -1), user: { id: 'user-2', gitSignature: 'sig-2', account: null } },
+    ];
+    const base: AuthorsInitialState = {
+      authorLists: {},
+      dragging: false,
+      authorToEdit: undefined,
+      dataPluginId: 1,
+    };
+    const state1 = reducer(base, setAuthorList({ dataPluginId: 1, authors }));
+    const state2 = reducer(state1, setAuthorList({ dataPluginId: 1, authors }));
+    expect((state2.authorLists[1] as AuthorType[]).length).toBe(2);
+  });
+});
+
+describe('authorsReducer – switchAllAuthorSelection (U40)', () => {
+  it('U40.4 all-unselected list → all become selected', () => {
+    const allUnselected: AuthorsInitialState = {
+      ...emptyState,
+      authorLists: { 1: [makeAuthor(1, -1, false), makeAuthor(2, -1, false)] },
+    };
+    const state = reducer(allUnselected, switchAllAuthorSelection());
+    const list = state.authorLists[1] as AuthorType[];
+    expect(list.every((a) => a.selected === true)).toBe(true);
+  });
+
+  it('U40.5 all-selected list → all become unselected', () => {
+    const allSelected: AuthorsInitialState = {
+      ...emptyState,
+      authorLists: { 1: [makeAuthor(1, -1, true), makeAuthor(2, -1, true)] },
+    };
+    const state = reducer(allSelected, switchAllAuthorSelection());
+    const list = state.authorLists[1] as AuthorType[];
+    expect(list.every((a) => a.selected === false)).toBe(true);
+  });
+});
+
+describe('authorsReducer – moveAuthorToOther with children (U40)', () => {
+  it('U40.6 author AND its children are moved (parent set to 0)', () => {
+    const parent = makeAuthor(10, -1, true);
+    const child1 = makeAuthor(11, 10, true);
+    const child2 = makeAuthor(12, 10, true);
+    const stateWithFamily: AuthorsInitialState = {
+      ...emptyState,
+      authorLists: { 1: [parent, child1, child2] },
+    };
+    const state = reducer(stateWithFamily, moveAuthorToOther(10));
+    const list = state.authorLists[1] as AuthorType[];
+    expect(list.find((a) => a.id === 10)?.parent).toBe(0);
+    expect(list.find((a) => a.id === 11)?.parent).toBe(0);
+    expect(list.find((a) => a.id === 12)?.parent).toBe(0);
+  });
+});
