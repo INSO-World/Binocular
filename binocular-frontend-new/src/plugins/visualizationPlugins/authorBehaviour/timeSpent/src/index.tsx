@@ -8,6 +8,7 @@ import Saga from './saga';
 import Help from './help/help.tsx';
 import type { DataPluginNote } from '../../../../interfaces/dataPluginInterfaces/dataPluginNotes.ts';
 import { VisualizationPluginMetadataCategory } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+import { VisualizationPluginDependencyType } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginDependencies.ts';
 
 const TimeSpent: VisualizationPlugin<TimeSpentSettings, DataPluginNote> = {
   name: 'Time Spent',
@@ -29,6 +30,12 @@ const TimeSpent: VisualizationPlugin<TimeSpentSettings, DataPluginNote> = {
   capabilities: {
     popoutOnly: false,
     export: true,
+  },
+  dependencies: {
+    authors: VisualizationPluginDependencyType.Recalculate,
+    files: VisualizationPluginDependencyType.None,
+    generalParameters: VisualizationPluginDependencyType.Recalculate,
+    dateRange: VisualizationPluginDependencyType.Refresh,
   },
   images: {
     thumbnail: PreviewImage,

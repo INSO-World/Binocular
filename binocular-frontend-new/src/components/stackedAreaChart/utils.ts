@@ -113,8 +113,7 @@ export function setTooltipContent(tooltip: TooltipSelection, label: string, valu
 
 export function updateAreaPaths(
   areasGroup: d3.Selection<SVGGElement, unknown, null, undefined>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: any,
+  transitionDuration: number,
   palette: Palette,
   data: ChartData[],
   visualizationStyle: string,
@@ -134,7 +133,7 @@ export function updateAreaPaths(
 
   const paths = areasGroup.selectAll<SVGPathElement, PathDatum>('path').data(pathData, (d) => `${d.side}-${d.key}`);
 
-  paths.exit().transition(t).attr('fill-opacity', 0).remove();
+  paths.exit().transition().duration(transitionDuration).ease(d3.easeCubicOut).attr('fill-opacity', 0).remove();
 
   const entered = paths.enter().append<SVGPathElement>('path').attr('fill-opacity', 0).attr('stroke-width', 1);
 
@@ -142,7 +141,9 @@ export function updateAreaPaths(
     .merge(paths)
     .attr('fill', (d) => palette[d.key].main)
     .attr('stroke', (d) => palette[d.key].main)
-    .transition(t)
+    .transition()
+    .duration(transitionDuration)
+    .ease(d3.easeCubicOut)
     .attr('fill-opacity', 0.3)
     .attr('d', (d) => {
       const stackedData = d.side === 'positive' ? stackedPositiveData : stackedNegativeData;

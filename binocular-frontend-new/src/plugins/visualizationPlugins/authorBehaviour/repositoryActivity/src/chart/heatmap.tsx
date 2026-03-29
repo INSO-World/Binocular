@@ -14,6 +14,8 @@ const createTooltip = () => {
     .style('background-color', 'rgba(0, 0, 0, 0.8)')
     .style('color', 'white')
     .style('padding', '8px 12px')
+    .style('left', '4px')
+    .style('top', '6px')
     .style('border-radius', '4px')
     .style('font-size', '12px')
     .style('pointer-events', 'none')
