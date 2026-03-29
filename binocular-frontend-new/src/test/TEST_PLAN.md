@@ -50,6 +50,16 @@ File indices are assigned in alphabetical order within each category.
 | U2.10 | Computes `avgChangeset` as mean changeset size | commits with changeset sizes 2 and 4 | `avgChangeset ≈ 3` |
 | U2.11 | Handles custom `burstSize` threshold | 2 commits, `burstSize: 3` | `maxBurst === 0` |
 
+### `convertCommitDataToChangesChartData(commits, authors, splitAdditionsDeletions, parameters)`
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| U2.12 | Returns empty result for empty commits array | `[]` | `{ commitChartData: [], commitPalette: {}, commitScale: [] }` |
+| U2.13 | `splitAdditionsDeletions=false` → palette key is author signature | 1 author, 1 commit | `"Alice"` in palette, no `"(Additions)"` keys |
+| U2.14 | `splitAdditionsDeletions=true` → palette keys contain `"(Additions)"` and `"(Deletions)"` | 1 author, 1 commit | `"(Additions) Alice"` and `"(Deletions) Alice"` in palette |
+| U2.15 | `commitScale[1]` is positive when commits have additions | commit with 5 additions | `commitScale[1] > 0` |
+| U2.16 | `commitChartData` has one or more time-bucket entries | 1 commit | `commitChartData.length > 0` |
+
 ---
 
 ## U3 — `expertise/codeExpertise/dbUtils`
@@ -696,6 +706,9 @@ File indices are assigned in alphabetical order within each category.
 | U34.3 | `breakdown:false, state:'CLOSED'` → negative `Closed` count |
 | U34.4 | `breakdown:true` → `Open` count positive when MR is open |
 | U34.5 | Scale `[1]` > 0 for opened MRs |
+| U34.6 | `splitMergeRequestsPerAuthor:true` → palette keys include `"Opened/Merged/Closed Merge Requests {name}"` |
+| U34.7 | `splitMergeRequestsPerAuthor:true` → palette does NOT contain bare `"Opened"` key |
+| U34.8 | `splitMergeRequestsPerAuthor:true, breakdown:true` → palette key is `"Open Merge Requests {name}"` |
 
 ---
 
@@ -739,6 +752,9 @@ File indices are assigned in alphabetical order within each category.
 | U37.3 | `splitTimePerIssue:true` — chart keys include issue title |
 | U37.4 | `splitTimePerIssue:false` — author-name or `"others"` key appears |
 | U37.5 | Scale `[1]` ≥ 0 when time is spent |
+| U37.6 | `splitSpentRemoved:true, splitTimePerIssue:false` — palette keys contain `"(Spent)"` and `"(Removed)"` |
+| U37.7 | `breakdown:true, splitSpentRemoved:false, splitTimePerIssue:false` — palette keys contain `"(Total)"` |
+| U37.8 | `splitSpentRemoved:true, splitTimePerIssue:true` — palette keys contain `"(Spent)"` and `"(Removed)"` for issue |
 
 ---
 
@@ -829,6 +845,230 @@ File indices are assigned in alphabetical order within each category.
 | U41.8 | `filterFileTree` — search matching all files returns all |
 | U41.9 | `filterFileTree` — leaf node (no children) returned unchanged |
 
+---
+
+## U42 — `authorBehaviour/repositoryActivity/weeklyUtils`
+**File**: `src/test/unit/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/weeklyUtils.test.ts`
+**Source**: `src/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/src/utilities/weeklyUtils.ts`
+
+### `convertToWeeklyFormat(data, weekStart)`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U42.1 | Returns 168 cells (24×7) for empty data | `[]`, any weekStart | `chartData.length === 168` |
+| U42.2 | All cells have value 0 for empty data | `[]` | every `cell.value === 0` |
+| U42.3 | `rowLabels` is always 7 entries | any input | `rowLabels.length === 7` |
+| U42.4 | `colLabels` is always 24 entries | any input | `colLabels.length === 24` |
+| U42.5 | Commit within week is counted in correct cell | commit on day 0 at hour 9 | cell with `row:0, col:9` has `value === 1` |
+| U42.6 | Activity outside the week is excluded | commit 1 day before weekStart | all cells remain 0 |
+| U42.7 | Multiple activities in same hour/day sum correctly | 3 commits in same cell | cell `value === 3` |
+| U42.8 | Cell `row` equals days-from-weekStart, `col` equals hour | commit on day 2 at hour 14 | `row:2, col:14` has value ≥ 1 |
+
+---
+
+## U43 — `progressReducer`
+**File**: `src/test/unit/redux/reducer/general/progressReducer.test.ts`
+**Source**: `src/redux/reducer/general/progressReducer.ts`
+
+| # | Description | Expected |
+|---|---|---|
+| U43.1 | Initial state has `progress.type === ''` | `state.progress.type === ''` |
+| U43.2 | Initial `socketConnection.status` is `Idle` | `SocketConnectionStatusType.Idle` |
+| U43.3 | `setProgress` replaces entire progress object | `state.progress.type === 'indexing'` |
+| U43.4 | `setProgress` can be dispatched twice, last wins | second payload in state |
+| U43.5 | `setConnectionStatus` updates `socketConnection` | status updated to Connected |
+
+---
+
+## U44 — `actionsReducer`
+**File**: `src/test/unit/redux/reducer/general/actionsReducer.test.ts`
+**Source**: `src/redux/reducer/general/actionsReducer.ts`
+
+| # | Description | Expected |
+|---|---|---|
+| U44.1 | Initial `lastAction` is `undefined` | `state.lastAction === undefined` |
+| U44.2 | `setLastAction` sets `lastAction` string | `state.lastAction === 'myAction'` |
+| U44.3 | `setLastAction` sets `payload` | `state.payload === 42` |
+| U44.4 | Dispatching again overwrites previous values | new action/payload in state |
+
+---
+
+## U45 — `showConfirmationDialog`
+**File**: `src/test/unit/components/confirmationDialog/showConfirmationDialog.test.ts`
+**Source**: `src/components/confirmationDialog/confirmationDialog.tsx`
+
+> Sets up the 3 required DOM elements in `beforeEach`; mocks `window.innerWidth/Height` and `showModal`.
+
+| # | Description | Expected |
+|---|---|---|
+| U45.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `container.style.top` set |
+| U45.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `container.style.bottom` set |
+| U45.3 | `x < innerWidth/2` → `left` set, `right: auto` | `container.style.left` set |
+| U45.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `container.style.right` set |
+| U45.5 | Displays message text in a `<div>` | `div.textContent === 'Are you sure?'` |
+| U45.6 | Renders two buttons with the option labels | two buttons, text matches options |
+| U45.7 | Clicking option[0] button invokes its function | mock called once |
+| U45.8 | Calls `showModal()` on the dialog | spy called |
+| U45.9 | Adds icon `<img>` when option has an icon | `img` element present in button |
+| U45.10 | Does not add `<img>` when option icon is `null` | no `<img>` in that button |
+
+---
+
+## U46 — `showDialog` (dialogHelper)
+**File**: `src/test/unit/components/informationDialog/showDialog.test.ts`
+**Source**: `src/components/informationDialog/dialogHelper.ts`
+
+> Sets up three DOM elements in `beforeEach` and spies on `showModal`.
+
+| # | Description | Expected |
+|---|---|---|
+| U46.1 | Sets `innerText` of `#informationDialogHeadline` | `element.innerText === 'My headline'` |
+| U46.2 | Sets `innerText` of `#informationDialogText` | `element.innerText === 'My text'` |
+| U46.3 | Calls `showModal()` on `#informationDialog` | spy called once |
+
+---
+
+## U47 — `getSVGData` (shared across 11 plugin utilities files)
+**File**: `src/test/unit/plugins/visualizationPlugins/getSVGData.test.ts`
+**Sources**: 9 files use `children[1].outerHTML` pattern; 2 files (`codeExpertise`, `knowledgeRadar`) use a safer SVGElement-find pattern. Tested separately via two `describe.each` blocks.
+
+### `children[1]` variant (9 files)
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U47.1 | Returns fallback SVG when `ref.current` is `null` | `{ current: null }` | `'<svg xmlns="http://www.w3.org/2000/svg"></svg>'` |
+| U47.2 | BUG: throws `TypeError` when `children[1]` is absent (missing optional chaining on index access) | div with 1 child | `TypeError` thrown |
+| U47.3 | Returns `outerHTML` of `children[1]` when present | div with 2 children | second child's `outerHTML` |
+
+### SVGElement-find variant (`codeExpertise`, `knowledgeRadar`)
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U47.1 | Returns fallback SVG when `ref.current` is `null` | `{ current: null }` | fallback string |
+| U47.2 | Returns fallback SVG when no SVGElement child exists | div with only `<span>` | fallback string |
+| U47.3 | Returns `outerHTML` of the first SVGElement child | div with `<svg>` child | SVG's `outerHTML` |
+
+---
+
+## U48 — `showLayoutOverview`
+**File**: `src/test/unit/components/layoutOverview/showLayoutOverview.test.ts`
+**Source**: `src/components/tabs/layouts/layoutOverview/layoutOverviewHelper.ts`
+
+> Sets up `#layoutOverview` and `#layoutOverviewPositionController` in `beforeEach`, mocks `showModal`. `offsetWidth = 0` in jsdom.
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U48.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `y=200` (H=800) | `top = '180px'`, `bottom = 'auto'` |
+| U48.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `y=600` | `bottom = '180px'`, `top = 'auto'` |
+| U48.3 | `x < innerWidth/2` → `left` set, `right: auto` | `x=200` (W=1000) | `left = '200px'`, `right = 'auto'` |
+| U48.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `x=700` | `right = '280px'`, `left = 'auto'` |
+| U48.5 | `y=20` edge case: `y-20=0 < 10` → `top` clamped to `10px` | `y=20` | `top = '10px'` |
+| U48.6 | Calls `showModal()` on `#layoutOverview` | any call | spy called |
+
+---
+
+## U49 — `showVisualizationOverview` + `disableVisualizationOverview`
+**File**: `src/test/unit/components/visualizationOverview/showVisualizationOverview.test.ts`
+**Source**: `src/components/tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverviewHelper.ts`
+
+> Same DOM setup pattern as U48 with `#visualizationOverview` and `#visualizationOverviewPositionController`.
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U49.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `y=200` | `top = '180px'` |
+| U49.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `y=600` | `bottom = '180px'` |
+| U49.3 | `x < innerWidth/2` → `left` set, `right: auto` | `x=200` | `left = '200px'` |
+| U49.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `x=700` | `right = '280px'` |
+| U49.5 | Calls `showModal()` on `#visualizationOverview` | any call | spy called |
+| U49.6 | `disableVisualizationOverview` returns `false` when `pluginOptions` is `undefined` | any filter, `undefined` | `false` |
+| U49.7 | Returns `false` when no filter key is `true` | all filter false | `false` |
+| U49.8 | Returns `true` when filter `github=true` but plugin `github=false` | mismatch | `true` |
+| U49.9 | Returns `false` when filter `github=true` and plugin `github=true` | match | `false` |
+| U49.10 | Returns `true` on `pouchDB` key mismatch | `pouchDB` mismatch | `true` |
+
+---
+
+## U50 — `actionsMiddleware`
+**File**: `src/test/unit/redux/middleware/actionsMiddleware.test.ts`
+**Source**: `src/redux/middelware/actions/actionsMiddleware.ts`
+
+> Intercepts every Redux action: non-`setLastAction` actions are forwarded via `next` AND trigger a `setLastAction` dispatch; `setLastAction` itself is only forwarded.
+
+| # | Description | Expected |
+|---|---|---|
+| U50.1 | Non-setLastAction: `next` is called once | `next` spy called once |
+| U50.2 | Non-setLastAction: `store.dispatch` called with `setLastAction` | dispatch called with `{ action: type, payload }` |
+| U50.3 | `setLastAction` itself: `next` called, `store.dispatch` NOT called again | no second dispatch |
+| U50.4 | Payload is forwarded correctly inside setLastAction dispatch | `dispatchedPayload.payload === originalPayload` |
+
+---
+
+## U51 — `refreshMiddleware`
+**File**: `src/test/unit/redux/middleware/refreshMiddleware.test.ts`
+**Source**: `src/redux/middelware/refresh/refreshMiddleware.ts`
+
+> When action type is `'progress/setProgress'`, passes through AND dispatches `REFRESH_PLUGIN` to the global store. All other actions just pass through.
+
+| # | Description | Expected |
+|---|---|---|
+| U51.1 | `setProgress` action: `next` called | `next` spy called |
+| U51.2 | `setProgress` action: `globalStore.dispatch` called with `REFRESH_PLUGIN` | dispatch called with `{ type: 'REFRESH_PLUGIN', payload: { pluginId } }` |
+| U51.3 | Unrelated action: `next` called, global dispatch NOT called | no second dispatch |
+
+---
+
+## U52 — `convertToActivityTimelineFormat`
+**File**: `src/test/unit/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/activityTimelineUtils.test.ts`
+**Source**: `src/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/src/utilities/activityTimelineUtils.ts`
+
+> Groups activities by calendar day, sums counts per type, sorts chronologically.
+
+| # | Description | Expected |
+|---|---|---|
+| U52.1 | Empty array → empty chartData | `chartData.length === 0` |
+| U52.2 | Single activity → one chart entry with `value: 1` | `chartData.length === 1`, `value === 1` |
+| U52.3 | Two activities on same day → one entry with `value: 2` | `chartData.length === 1`, `value === 2` |
+| U52.4 | Activities on different days → separate entries | `chartData.length === 2` |
+| U52.5 | Branch activity without latestCommit (null date) is skipped | entry not in chartData |
+| U52.6 | Output is sorted ascending by date | `chartData[0].date < chartData[1].date` |
+
+---
+
+## U53 — `pouchDB/utils` (pure functions only)
+**File**: `src/test/unit/plugins/dataPlugins/pouchDB/utils.test.ts`
+**Source**: `src/plugins/dataPlugins/pouchDB/src/utils.ts`
+
+> Only the three pure algorithm exports are tested. PouchDB imports are mocked via `vi.mock`.
+
+| # | Description | Expected |
+|---|---|---|
+| U53.1 | `binarySearchArray` — empty array returns `[]` | `[]` |
+| U53.2 | `binarySearchArray` — single match returns array with that element | `[match]` |
+| U53.3 | `binarySearchArray` — multiple matches returns all | `[a, b]` |
+| U53.4 | `binarySearchArray` — no match returns `[]` | `[]` |
+| U53.5 | `binarySearch` — returns the matching element | element found |
+| U53.6 | `binarySearch` — returns `null` when not found | `null` |
+| U53.7 | `sortByAttributeString` — ascending sorts A → Z | sorted ascending |
+| U53.8 | `sortByAttributeString` — descending sorts Z → A | sorted descending |
+
+---
+
+## U54 — `dashboardHelper` (remaining functions)
+**File**: `src/test/unit/components/dashboard/dashboardHelper.test.ts`
+**Source**: `src/components/dashboard/dashboardHelper.ts`
+
+> Tests `clearHighlightDropArea`, `setDragResizeMode`, and `placeDragIndicator`. CSS module mocked via `vi.mock`.
+
+| # | Description | Function | Expected |
+|---|---|---|---|
+| U54.1 | Hides drag indicator (display none) | `clearHighlightDropArea` | `ref.current.style.display === 'none'` |
+| U54.2 | Removes highlight classes from all cells | `clearHighlightDropArea` | no cells have highlight class |
+| U54.3 | No-op when `ref.current` is null | `clearHighlightDropArea` | no error thrown |
+| U54.4 | Sets `dragResizeMode.current` to new value | `setDragResizeMode` | `ref.current === newMode` |
+| U54.5 | Shows div when mode is non-none | `setDragResizeMode` | `style.display === 'block'` |
+| U54.6 | Hides div when mode is none | `setDragResizeMode` | `style.display === 'none'` |
+| U54.7 | Sets `display: block` and correct top/left/width/height | `placeDragIndicator` | style properties set as calc strings |
+| U54.8 | No-op when `ref.current` is null | `placeDragIndicator` | no error |
 
 ---
 
@@ -1084,14 +1324,252 @@ Simple toolbar button.
 
 ---
 
+## C13 — `InformationDialog`
+**File**: `src/test/component/informationDialog/informationDialog.test.tsx`
+**Source**: `src/components/informationDialog/informationDialog.tsx`
+
+Pure presentational component — renders a `<dialog>` with static structure and a close button.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C13.1 | Renders a `<dialog>` element | render | `dialog` element in DOM |
+| C13.2 | Dialog has `id="informationDialog"` | render | `document.getElementById('informationDialog')` not null |
+| C13.3 | Has an element with id `informationDialogHeadline` | render | element present |
+| C13.4 | Has an element with id `informationDialogText` | render | element present |
+| C13.5 | Renders a Close button | render | button with text `/close/i` present (uses `getAllByRole` with `hidden: true`) |
+
+---
+
+## C14 — `StatusBarSeparator`
+**File**: `src/test/component/statusBarSeparator/statusBarSeparator.test.tsx`
+**Source**: `src/components/statusBar/statusBarSeparator/statusBarSeparator.tsx`
+
+Presentational component with conditional rendering based on `direction` prop.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C14.1 | `direction="horizontal"` renders a `<span>` | render | `<span>` in DOM |
+| C14.2 | `direction="vertical"` renders a `<span>` | render | `<span>` in DOM |
+| C14.3 | `direction="diagonal"` renders a `<span>` | render | `<span>` in DOM |
+| C14.4 | Unknown direction renders nothing | `direction="unknown"` | no `<span>` in DOM |
+
+---
+
+## C15 — `DotsPattern`
+**File**: `src/test/component/svg/dotsPattern.test.tsx`
+**Source**: `src/components/svg/patterns/dots.tsx`
+
+Pure SVG `<pattern>` presentational component. Rendered inside a wrapping `<svg>`.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C15.1 | Renders a `<pattern>` element | `id='dots', color='red'` | `pattern` element in DOM |
+| C15.2 | `<pattern>` has the supplied id | `id='myDots'` | `pattern.id === 'myDots'` |
+| C15.3 | `<circle>` has `stroke` set to the supplied color | `color='#ff0000'` | `circle[stroke] === '#ff0000'` |
+| C15.4 | `<use>` elements reference the circle by correct href | `id='dots'` | all `use[href] === '#circle_dots'` |
+
+---
+
+## C16 — `HatchPattern`
+**File**: `src/test/component/svg/hatchPattern.test.tsx`
+**Source**: `src/components/svg/patterns/hatch.tsx`
+
+Pure SVG `<pattern>` presentational component. Rendered inside a wrapping `<svg>`.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C16.1 | Renders a `<pattern>` element | `id='hatch', color='blue'` | `pattern` element in DOM |
+| C16.2 | `<pattern>` has the supplied id | `id='myHatch'` | `pattern.id === 'myHatch'` |
+| C16.3 | `<path>` style has the supplied color as `stroke` | `color='blue'` | `path.style.stroke === 'blue'` |
+| C16.4 | `<pattern>` has `width="4"` and `height="4"` | render | `width=4`, `height=4` |
+
+---
+
+## C17 — `TabControllerButtonThemeSwitch`
+**File**: `src/test/component/tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.test.tsx`
+**Source**: `src/components/tabMenu/tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx`
+
+No Redux. Props: `{ onChange: (theme: string) => void; theme: string }`. Uses `fireEvent.click` to toggle the uncontrolled checkbox.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C17.1 | Renders a checkbox input | `theme='binocularDark'` | `input[type=checkbox]` in DOM |
+| C17.2 | Checkbox is checked when `theme='binocularDark'` | `theme='binocularDark'` | `checkbox.defaultChecked === true` |
+| C17.3 | Checkbox is unchecked when `theme='binocularLight'` | `theme='binocularLight'` | `checkbox.defaultChecked === false` |
+| C17.4 | Clicking the checkbox (unchecked→checked) calls `onChange` with `'binocularDark'` | `fireEvent.click` on unchecked box | `onChange` called with `'binocularDark'` |
+| C17.5 | Clicking the checkbox (checked→unchecked) calls `onChange` with `'binocularLight'` | `fireEvent.click` on checked box | `onChange` called with `'binocularLight'` |
+
+---
+
+## C18 — `ContextMenu`
+**File**: `src/test/component/contextMenu/contextMenu.test.tsx`
+**Source**: `src/components/contextMenu/contextMenu.tsx`
+
+> Presentational dialog. DOM ids required by `showContextMenu()` helper are verified. `HTMLDialogElement.prototype.close` mocked via `vi.fn()`.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C18.1 | Renders a `<dialog>` element | render | `dialog` in DOM |
+| C18.2 | Dialog has `id="contextMenu"` | render | `getElementById('contextMenu')` not null |
+| C18.3 | Contains `id="contextMenuPositionController"` div | render | element present |
+| C18.4 | Contains `id="contextMenuContent"` `<ul>` | render | element present |
+| C18.5 | Clicking the dialog calls `.close()` on it | `fireEvent.click` on dialog | `close` spy called |
+
+---
+
+## C19 — `InfoTooltip`
+**File**: `src/test/component/infoTooltip/infoTooltip.test.tsx`
+**Source**: `src/components/infoTooltip/infoTooltip.tsx`
+
+> Presentational dialog. Checks required DOM ids.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C19.1 | Renders a `<dialog>` element | render | `dialog` in DOM |
+| C19.2 | Dialog has `id="infoTooltip"` | render | element present |
+| C19.3 | Contains `id="infoTooltipPositionController"` | render | element present |
+| C19.4 | Contains `id="infoTooltipContent"` | render | element present |
+
+---
+
+## C20 — `LoadingLocalDatabaseOverlay`
+**File**: `src/test/component/loadingLocalDatabaseOverlay/loadingLocalDatabaseOverlay.test.tsx`
+**Source**: `src/components/overlayController/overlays/loadingLocalDatabaseOverlay/loadingLocalDatabaseOverlay.tsx`
+
+> Redux-connected. Reads `settings.localDatabaseLoadingState`. Wrapped in `<Provider>` with preloaded state.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C20.1 | Renders nothing when state is not loading | `localDatabaseLoadingState: none` | no `dialog` in DOM |
+| C20.2 | Renders an open modal when state is loading | `localDatabaseLoadingState: loading` | `dialog[open]` present |
+| C20.3 | Modal contains "Loading Local Database" text | state = loading | text visible |
+
+---
+
+## C21 — `TabSection`
+**File**: `src/test/component/tabMenu/tabSection.test.tsx`
+**Source**: `src/components/tabMenu/tabSection/tabSection.tsx`
+
+> Renders horizontal/vertical container based on `alignment`. Clones children with `orientation` prop.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C21.1 | `alignment=top` → renders horizontal container | `alignment: TabAlignment.top` | container div rendered |
+| C21.2 | `alignment=left` → renders vertical container | `alignment: TabAlignment.left` | container div rendered |
+| C21.3 | `alignment=undefined` → renders horizontal layout | no alignment | container rendered |
+| C21.4 | Renders `name` label when provided | `name="My Section"` | text content matches name |
+| C21.5 | Clones single child with `orientation='horizontal'` | top alignment, single child | `data-orientation="horizontal"` on child |
+| C21.6 | Clones multiple children with orientation | array of children | all children receive orientation |
+| C21.7 | `alignment=left` + multiple children → each child gets `orientation='vertical'` | left alignment, 2 children | both spans have `data-orientation="vertical"` |
+
+---
+
+## C22 — `Tab`
+**File**: `src/test/component/tabMenu/tab.test.tsx`
+**Source**: `src/components/tabMenu/tab/tab.tsx`
+
+> Wraps children in a container div; injects `alignment` prop into `TabSection` children.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C22.1 | Renders a container div | render | div in DOM |
+| C22.2 | Single non-TabSection child passes through unchanged | plain child | child renders as-is |
+| C22.3 | Single TabSection child receives `alignment` prop | TabSection as child | TabSection mounts without error |
+| C22.4 | Array with TabSection child injects alignment | array with TabSection | TabSection in array rendered |
+| C22.5 | Array with non-TabSection children renders unmodified | array of plain children | both children rendered |
+
+---
+
+---
+
+## C23 — `DashboardPreview`
+**File**: `src/test/component/dashboard/dashboardPreview.test.tsx`
+**Source**: `src/components/dashboard/dashboardPreview/dashboardPreview.tsx`
+
+Pure presentational component. Renders a sized container with one child div per `layout.items` entry. In non-small mode shows `pluginName` and `{width}x{height}`; in small mode shows only `pluginName`.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C23.1 | Renders a container div | any layout | `div` in DOM |
+| C23.2 | Container uses `20rem` width/height by default | `small` omitted | `style.width === '20rem'`, `style.height === '20rem'` |
+| C23.3 | Container uses `15rem` when `small=true` | `small: true` | `style.width === '15rem'`, `style.height === '15rem'` |
+| C23.4 | Renders one child div per layout item | layout with 2 items | `outerDiv.children.length === 2` |
+| C23.5 | Renders `pluginName` text in non-small mode | `pluginName: 'TestViz'` | `'TestViz'` visible |
+| C23.6 | Renders `{width}x{height}` in non-small mode | `width: 8, height: 4` | `'8x4'` visible |
+| C23.7 | Does NOT render `{width}x{height}` in small mode | `small: true` | `'8x4'` absent |
+| C23.8 | Empty `items` array renders no item divs | `items: []` | `outerDiv.children.length === 0` |
+
+---
+
+## C24 — `DashboardItemPlaceholder`
+**File**: `src/test/component/dashboard/dashboardItemPlaceholder.test.tsx`
+**Source**: `src/components/dashboard/dashboardItemPlaceholder/dashboardItemPlaceholder.tsx`
+
+Pure presentational. Renders `div#dashboardItem{id}` with `calc(...)`-based inline styles and a label span.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C24.1 | Renders div with `id="dashboardItem{id}"` | `item.id: 5` | `getElementById('dashboardItem5')` not null |
+| C24.2 | Label span contains `"{pluginName} #{id}"` | `pluginName: 'Chart', id: 3` | text `'Chart #3'` visible |
+| C24.3 | `top` style is a `calc(...)` string | any valid item | `style.top` matches `/^calc\(/` |
+| C24.4 | `left` style is a `calc(...)` string | any valid item | `style.left` matches `/^calc\(/` |
+| C24.5 | Correct percentage for `top` when `rowCount=4, y=2` | `rowCount: 4, y: 2` | `style.top` contains `'50%'` |
+| C24.6 | Correct percentage for `left` when `colCount=5, x=1` | `colCount: 5, x: 1` | `style.left` contains `'20%'` |
+
+---
+
+## C25 — `TabDropHint`
+**File**: `src/test/component/tabMenu/tabDropHint.test.tsx`
+**Source**: `src/components/tabMenu/tabController/tabDropHint/tabDropHint.tsx`
+
+Simple conditional component. `dragState=false` renders nothing; `dragState=true` renders 4 "Drop Here" drop zones.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C25.1 | `dragState=false` renders no drop zones | `dragState: false` | 0 `"Drop Here"` elements |
+| C25.2 | `dragState=true` renders 4 drop zones | `dragState: true` | 4 `"Drop Here"` elements |
+| C25.3 | Switching from `false` to `true` shows drop zones | rerender with `true` | 4 zones appear |
+
+---
+
+## C26 — `ExportDialog`
+**File**: `src/test/component/exportDialog/exportDialog.test.tsx`
+**Source**: `src/components/exportDialog/exportDialog.tsx`
+
+Redux-connected (reads `state.export`). Wrapped in `<Provider>` with a minimal store containing only the `export` slice.
+
+| # | Description | Store state | Expected |
+|---|---|---|---|
+| C26.1 | Renders `dialog#exportDialog` | any | `getElementById('exportDialog')` not null |
+| C26.2 | Shows heading `"Export"` for `ExportType.all` | `exportType: all` | `'Export'` heading visible |
+| C26.3 | Shows heading `"Image Export"` for `ExportType.image` | `exportType: image` | `'Image Export'` visible |
+| C26.4 | Shows heading `"Data Export"` for `ExportType.data` | `exportType: data` | `'Data Export'` visible |
+| C26.5 | Shows `"Export SVG"` button for `ExportType.image` | `exportType: image` | button with `'Export SVG'` present |
+| C26.6 | No `"Export SVG"` button for `ExportType.all` | `exportType: all` | button absent |
+| C26.7 | Always renders a `"Close"` button | any | `'Close'` button present |
+
+---
+
 ## Component test file locations
 
 ```
 src/test/component/
+├── contextMenu/
+│   └── contextMenu.test.tsx                                       (C18)
 ├── dashboard/
-│   └── dashboardItem.test.tsx                                     (C12)
+│   ├── dashboardItem.test.tsx                                     (C12)
+│   ├── dashboardItemPlaceholder.test.tsx                          (C24)
+│   └── dashboardPreview.test.tsx                                  (C23)
 ├── dataPluginQuickSelect/
 │   └── dataPluginQuickSelect.test.tsx                             (C1)
+├── exportDialog/
+│   └── exportDialog.test.tsx                                      (C26)
+├── informationDialog/
+│   └── informationDialog.test.tsx                                 (C13)
+├── infoTooltip/
+│   └── infoTooltip.test.tsx                                       (C19)
+├── loadingLocalDatabaseOverlay/
+│   └── loadingLocalDatabaseOverlay.test.tsx                       (C20)
 ├── notificationController/
 │   └── notificationController.test.tsx                            (C2)
 ├── settingsDialog/
@@ -1101,13 +1579,24 @@ src/test/component/
 ├── stackedAreaChart/
 │   ├── StackedAreaChart.test.tsx                                  (C5)
 │   └── utils.test.ts                                              (C6)
+├── statusBarSeparator/
+│   └── statusBarSeparator.test.tsx                                (C14)
+├── svg/
+│   ├── dotsPattern.test.tsx                                       (C15)
+│   └── hatchPattern.test.tsx                                      (C16)
 ├── tabContent/
 │   ├── fileListFile.test.tsx                                      (C7)
 │   ├── fileListFolder.test.tsx                                    (C8)
 │   ├── fileSearch.test.tsx                                        (C9)
 │   └── parametersGeneral.test.tsx                                 (C10)
-└── tabController/
-    └── tabControllerButton.test.tsx                               (C11)
+├── tabController/
+│   └── tabControllerButton.test.tsx                               (C11)
+├── tabControllerButtonThemeSwitch/
+│   └── tabControllerButtonThemeSwitch.test.tsx                    (C17)
+└── tabMenu/
+    ├── tab.test.tsx                                               (C22)
+    ├── tabDropHint.test.tsx                                       (C25)
+    └── tabSection.test.tsx                                        (C21)
 ```
 
 ---

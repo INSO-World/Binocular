@@ -3,6 +3,9 @@ import { FileTreeElementTypeType } from '../../../types/data/fileListType';
 import type { FileTreeElementType } from '../../../types/data/fileListType';
 import type { DataPluginFile } from '../../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles';
 
+// Mock DataPluginStorage to prevent pluginRegistry → PouchDB initialization from hanging in jsdom
+vi.mock('../../../utils/dataPluginStorage', () => ({ default: {} }));
+
 // Stub OPFS before module loads
 vi.stubGlobal('navigator', {
   storage: {

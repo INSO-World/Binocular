@@ -22,6 +22,7 @@ vi.mock('../../../components/contextMenu/contextMenuHelper.ts', () => ({
 import FileListFile from '../../../components/tabs/fileTree/fileList/fileListElements/fileListFile.tsx';
 import { FileTreeElementTypeType } from '../../../types/data/fileListType.ts';
 import FilesReducer from '../../../redux/reducer/data/filesReducer.ts';
+import type { FilesInitialState } from '../../../redux/reducer/data/filesReducer.ts';
 import NotificationsReducer from '../../../redux/reducer/general/notificationsReducer.ts';
 import SettingsReducer from '../../../redux/reducer/settings/settingsReducer.ts';
 import DashboardReducer from '../../../redux/reducer/general/dashboardReducer.ts';
@@ -120,13 +121,12 @@ describe('FileListFile', () => {
             },
           },
           fileLists: {
-            1: [{ element: { path: 'src/utils/foo.ts' }, checked: true }],
+            1: [{ element: { path: 'src/utils/foo.ts', webUrl: '', maxLength: 0 }, checked: true }],
           },
           fileCounts: { 1: 1 },
           dataPluginId: 1,
-        },
+        } as FilesInitialState,
       },
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(actionsMiddleware() as Middleware),
     });
 
     render(
