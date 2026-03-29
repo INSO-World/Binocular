@@ -18,6 +18,7 @@ import reducer, {
   checkAllFiles,
   uncheckAllFiles,
   removeFileList,
+  switchAllFileSelection,
 } from '../../../../../redux/reducer/data/filesReducer';
 import type { FilesInitialState } from '../../../../../redux/reducer/data/filesReducer';
 import { FileTreeElementTypeType } from '../../../../../types/data/fileListType';
@@ -204,5 +205,96 @@ describe('filesReducer – removeFileList', () => {
     expect(state.fileCounts[1]).toBeUndefined();
     // id 2 remains
     expect(state.fileTrees[2]).toBeDefined();
+  });
+});
+
+describe('filesReducer – updateFileListElement (U61)', () => {
+  const stateForU61: FilesInitialState = {
+    fileTrees: {
+      1: {
+        name: '/',
+        id: 99,
+        type: FileTreeElementTypeType.Folder,
+        children: [
+          {
+            name: 'a.ts',
+            id: 1,
+            type: FileTreeElementTypeType.File,
+            element: { path: 'src/a.ts', webUrl: '', maxLength: 0 },
+            checked: true,
+            foldedOut: false,
+            isRoot: false,
+          },
+        ],
+        checked: true,
+        foldedOut: true,
+        isRoot: true,
+      },
+    },
+    fileLists: { 1: [{ element: { path: 'src/a.ts', webUrl: '', maxLength: 0 }, checked: true }] },
+    fileCounts: { 1: 1 },
+    dataPluginId: 1,
+  };
+
+  it('U61.1 update=false → tree node changes but flat fileList remains unchanged', () => {
+    const payload: FileTreeElementType & { update?: boolean } = {
+      name: 'a.ts',
+      id: 1,
+      type: FileTreeElementTypeType.File,
+      element: { path: 'src/a.ts', webUrl: '', maxLength: 0 },
+      checked: false,
+      foldedOut: false,
+      isRoot: false,
+      update: false,
+    };
+    const state = reducer(stateForU61, updateFileListElement(payload));
+    // flat list is NOT updated
+    expect(state.fileLists[1][0].checked).toBe(true);
+    // tree node IS updated
+    const treeChild = (state.fileTrees[1].children ?? [])[0];
+    expect(treeChild.checked).toBe(false);
+  });
+});
+
+describe('filesReducer – switchAllFileSelection (U61)', () => {
+  it('U61.2 inverts all checked states: checked→unchecked, unchecked→checked', () => {
+    const mixedState: FilesInitialState = {
+      fileTrees: { 1: makeFileTree(1) },
+      fileLists: {
+        1: [
+          { element: { path: 'a.ts', webUrl: '', maxLength: 0 }, checked: true },
+          { element: { path: 'b.ts', webUrl: '', maxLength: 0 }, checked: false },
+        ],
+      },
+      fileCounts: { 1: 2 },
+      dataPluginId: 1,
+    };
+    const state = reducer(mixedState, switchAllFileSelection());
+    const list = state.fileLists[1];
+    expect(list.find((f) => f.element.path === 'a.ts')?.checked).toBe(false);
+    expect(list.find((f) => f.element.path === 'b.ts')?.checked).toBe(true);
+  });
+});
+
+describe('filesReducer – removeFileList (U61)', () => {
+  it('U61.3 removes only the target plugin entry, leaving other plugins intact', () => {
+    const stateWith2: FilesInitialState = {
+      fileTrees: { 1: makeFileTree(1), 2: makeFileTree(2) },
+      fileLists: {
+        1: [{ element: { path: 'a.ts', webUrl: '', maxLength: 0 }, checked: true }],
+        2: [{ element: { path: 'b.ts', webUrl: '', maxLength: 0 }, checked: true }],
+      },
+      fileCounts: { 1: 1, 2: 1 },
+      dataPluginId: 2,
+    };
+    const state = reducer(stateWith2, removeFileList(1));
+    // plugin 1 entries are removed
+    expect(state.fileLists[1]).toBeUndefined();
+    expect(state.fileTrees[1]).toBeUndefined();
+    expect(state.fileCounts[1]).toBeUndefined();
+    // plugin 2 entries remain intact
+    expect(state.fileLists[2]).toHaveLength(1);
+    expect(state.fileTrees[2]).toBeDefined();
+    expect(state.fileCounts[2]).toBe(1);
   });
 });

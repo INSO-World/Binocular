@@ -83,4 +83,52 @@ describe('convertToChartData (builds)', () => {
     const result = convertToChartData([build], makeProps(defaultSettings));
     expect(result.scale[1]).toBeGreaterThan(0);
   });
+
+  it('U58.1 unknown status (e.g. pending) is mapped to others — pending key never appears in chartData', () => {
+    const build = makeBuild({ status: 'pending' });
+    const result = convertToChartData([build], makeProps(defaultSettings));
+    // Unknown statuses are renamed to 'others' in step 1, so 'pending' never appears as a chart key
+    const allKeys = result.chartData.flatMap((d) => Object.keys(d));
+    expect(allKeys).not.toContain('pending');
+    // 'others' key is always present (initialized to 0)
+    expect(allKeys).toContain('others');
+  });
+
+  it('U58.2 build with status failed has a negative chart value', () => {
+    const build = makeBuild({ status: 'failed' });
+    const result = convertToChartData([build], makeProps(defaultSettings));
+    const bucket = result.chartData.find((d) => d['failed'] < 0);
+    expect(bucket).toBeDefined();
+  });
+
+  it('U58.3 build with status cancelled has a negative chart value', () => {
+    const build = makeBuild({ status: 'cancelled' });
+    const result = convertToChartData([build], makeProps(defaultSettings));
+    const bucket = result.chartData.find((d) => d['cancelled'] < 0);
+    expect(bucket).toBeDefined();
+  });
+
+  it('U58.4 build with status success has a positive chart value', () => {
+    const build = makeBuild({ status: 'success' });
+    const result = convertToChartData([build], makeProps(defaultSettings));
+    const bucket = result.chartData.find((d) => d['success'] > 0);
+    expect(bucket).toBeDefined();
+  });
+
+  it('U58.5 author with selected=false — no data for that author in splitBuildsPerAuthor mode', () => {
+    const settings: BuildSettings = { ...defaultSettings, splitBuildsPerAuthor: true };
+    const author: AuthorType = {
+      id: 1,
+      parent: -1,
+      selected: false,
+      color: { main: '#ff0000', secondary: '#ff0000aa' },
+      user: { id: 'u1', gitSignature: 'Alice', account: null },
+    };
+    const build = makeBuild({ status: 'success', user: { id: 'u1', gitSignature: 'Alice', account: null } });
+    const result = convertToChartData([build], makeProps(settings, [author]));
+    // Author is not selected so their builds should not accumulate beyond the 0.001 placeholder
+    const successAlice = result.chartData.reduce((sum, d) => sum + (d['Successful builds Alice'] ?? 0), 0);
+    // 0.001 is the placeholder for un-accumulated authors; no real successes should be added
+    expect(successAlice).toBeLessThanOrEqual(0.001 * result.chartData.length);
+  });
 });

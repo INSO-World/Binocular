@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import ExportDialog from '../../../components/exportDialog/exportDialog';
@@ -12,9 +12,9 @@ function makeStore(exportType: ExportType = ExportType.all, exportSVGData = '<sv
   });
 }
 
-function renderDialog(exportType: ExportType = ExportType.all) {
+function renderDialog(exportType: ExportType = ExportType.all, exportSVGData = '<svg></svg>', exportName = 'export') {
   return render(
-    <Provider store={makeStore(exportType)}>
+    <Provider store={makeStore(exportType, exportSVGData, exportName)}>
       <ExportDialog />
     </Provider>,
   );
@@ -54,5 +54,39 @@ describe('ExportDialog', () => {
   it('C26.7 always renders a "Close" button', () => {
     const { getAllByText } = renderDialog(ExportType.all);
     expect(getAllByText('Close').length).toBeGreaterThan(0);
+  });
+});
+
+describe('ExportDialog — extended', () => {
+  beforeEach(() => {
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:test'), revokeObjectURL: vi.fn() });
+  });
+
+  it('C26.8 exportType === ExportType.all → "Export" heading visible; "Image Export" and "Data Export" headings absent', () => {
+    renderDialog(ExportType.all);
+    expect(screen.getByText('Export')).toBeInTheDocument();
+    expect(screen.queryByText('Image Export')).toBeNull();
+    expect(screen.queryByText('Data Export')).toBeNull();
+  });
+
+  it('C26.9 exportType === ExportType.data → "Data Export" heading visible; "Export SVG" button absent; no preview div', () => {
+    renderDialog(ExportType.data);
+    expect(screen.getByText('Data Export')).toBeInTheDocument();
+    expect(screen.queryByText('Export SVG')).toBeNull();
+    expect(screen.queryByText('Preview:')).toBeNull();
+  });
+
+  it('C26.10 exportType === ExportType.image → "Image Export" heading + preview div + "Export SVG" button all visible', () => {
+    renderDialog(ExportType.image, '<svg><circle r="5"/></svg>', 'my-chart');
+    expect(screen.getByText('Image Export')).toBeInTheDocument();
+    expect(screen.getByText('Preview:')).toBeInTheDocument();
+    expect(screen.getByText('Export SVG')).toBeInTheDocument();
+  });
+
+  it('C26.11 clicking "Export SVG" calls URL.createObjectURL', () => {
+    renderDialog(ExportType.image, '<svg></svg>', 'test-export');
+    const exportButton = screen.getByText('Export SVG');
+    fireEvent.click(exportButton);
+    expect(URL.createObjectURL).toHaveBeenCalledOnce();
   });
 });

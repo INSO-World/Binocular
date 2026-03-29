@@ -33,4 +33,27 @@ describe('ContextMenu', () => {
     fireEvent.click(dialog);
     expect(dialog.close).toHaveBeenCalled();
   });
+
+  it('C18.6 onMouseLeave on the dialog calls .close()', () => {
+    render(<ContextMenu />);
+    const dialog = document.getElementById('contextMenu') as HTMLDialogElement;
+    fireEvent.mouseLeave(dialog);
+    expect(dialog.close).toHaveBeenCalled();
+  });
+
+  it('C18.7 onContextMenu calls e.preventDefault()', () => {
+    render(<ContextMenu />);
+    const dialog = document.getElementById('contextMenu') as HTMLDialogElement;
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    dialog.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('C18.8 onMouseLeave on #contextMenuPositionController calls .close()', () => {
+    render(<ContextMenu />);
+    const dialog = document.getElementById('contextMenu') as HTMLDialogElement;
+    const inner = document.getElementById('contextMenuPositionController') as HTMLElement;
+    fireEvent.mouseLeave(inner);
+    expect(dialog.close).toHaveBeenCalled();
+  });
 });

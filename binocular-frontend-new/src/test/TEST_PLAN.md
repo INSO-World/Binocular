@@ -1229,7 +1229,7 @@ Pure utility functions for the StackedAreaChart component.
 **File**: `src/test/component/tabContent/fileListFile.test.tsx`
 **Source**: `src/components/tabs/fileTree/fileList/fileListElements/fileListFile.tsx`
 
-File entry component in the file tree.
+File entry component in the file tree. Tests checkbox visibility, dispatch of `updateFileListElement`, and `showFileTreeElementInfo`.
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
@@ -1237,6 +1237,11 @@ File entry component in the file tree.
 | C7.2 | Checkbox is checked when `file.checked` is true | `checked: true` | checkbox is checked |
 | C7.3 | Checkbox is unchecked when `file.checked` is false | `checked: false` | checkbox is unchecked |
 | C7.4 | Clicking checkbox dispatches `updateFileListElement` | click checkbox | file's `checked` state toggled in store |
+| C7.5 | Without `listOnly`, checkbox is rendered | `listOnly: undefined` | checkbox present |
+| C7.6 | `listOnly=true` → checkbox NOT rendered | `listOnly: true` | checkbox absent |
+| C7.7 | Checking the checkbox dispatches `updateFileListElement` with `checked: true, update: true` | check the checkbox | `dispatchSpy` called with matching payload |
+| C7.8 | Clicking element with `listOnly=true` dispatches `showFileTreeElementInfo` | `listOnly: true`; click | action with `element` payload dispatched |
+| C7.9 | Clicking element without `listOnly` does NOT dispatch `showFileTreeElementInfo` | `listOnly: undefined`; click | action NOT dispatched |
 
 ---
 
@@ -1244,7 +1249,7 @@ File entry component in the file tree.
 **File**: `src/test/component/tabContent/fileListFolder.test.tsx`
 **Source**: `src/components/tabs/fileTree/fileList/fileListElements/fileListFolder.tsx`
 
-Recursive folder node in the file tree.
+Recursive folder node in the file tree. Tests fold/unfold dispatch, `listOnly` mode, and checked state.
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
@@ -1253,6 +1258,13 @@ Recursive folder node in the file tree.
 | C8.3 | Children are visible when folder is expanded (`foldedOut: true`) | expanded folder with child | child name visible |
 | C8.4 | Folder with `foldedOut: false` shows collapsed state | collapsed | name visible, children hidden |
 | C8.5 | Renders nested folder when expanded | parent expanded, child sub-folder | sub-folder name visible |
+| C8.6 | `foldedOut=false` → children NOT rendered (extended fixture) | folder with child file; `foldedOut: false` | child file not in DOM |
+| C8.7 | `foldedOut=true` → children ARE rendered (extended fixture) | folder with child file; `foldedOut: true` | child file visible |
+| C8.8 | Clicking collapsed folder dispatches `updateFileListElement` with `foldedOut: true` | dispatch spy; `foldedOut: false`; click folder name | spy captures action with `foldedOut: true` |
+| C8.9 | Clicking expanded folder dispatches `updateFileListElement` with `foldedOut: false` | dispatch spy; `foldedOut: true`; click folder name | spy captures action with `foldedOut: false` |
+| C8.10 | `listOnly=true` always shows children regardless of `foldedOut=false` | `listOnly: true, foldedOut: false` | children rendered |
+| C8.11 | Folder with `id === undefined` has no checkbox when expanded | `foldedOut: true, id: undefined` | checkbox absent |
+| C8.12 | Checking folder checkbox dispatches `updateFileListElement` with updated `checked` | dispatch spy; check checkbox | spy captures updated checked value |
 
 ---
 
@@ -1414,6 +1426,9 @@ No Redux. Props: `{ onChange: (theme: string) => void; theme: string }`. Uses `f
 | C18.3 | Contains `id="contextMenuPositionController"` div | render | element present |
 | C18.4 | Contains `id="contextMenuContent"` `<ul>` | render | element present |
 | C18.5 | Clicking the dialog calls `.close()` on it | `fireEvent.click` on dialog | `close` spy called |
+| C18.6 | `onMouseLeave` on the dialog calls `.close()` | fire `mouseleave` on dialog | `dialog.close` called |
+| C18.7 | `onContextMenu` calls `e.preventDefault()` | fire `contextmenu` | `preventDefault` called |
+| C18.8 | `onMouseLeave` on `#contextMenuPositionController` calls `.close()` | fire `mouseleave` on position controller | `dialog.close` called |
 
 ---
 
@@ -1421,7 +1436,7 @@ No Redux. Props: `{ onChange: (theme: string) => void; theme: string }`. Uses `f
 **File**: `src/test/component/infoTooltip/infoTooltip.test.tsx`
 **Source**: `src/components/infoTooltip/infoTooltip.tsx`
 
-> Presentational dialog. Checks required DOM ids.
+> Presentational dialog. Checks required DOM ids and mouse/context-menu event handling.
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
@@ -1429,6 +1444,9 @@ No Redux. Props: `{ onChange: (theme: string) => void; theme: string }`. Uses `f
 | C19.2 | Dialog has `id="infoTooltip"` | render | element present |
 | C19.3 | Contains `id="infoTooltipPositionController"` | render | element present |
 | C19.4 | Contains `id="infoTooltipContent"` | render | element present |
+| C19.5 | `onMouseLeave` on the dialog calls `.close()` on `#infoTooltip` | fire `mouseleave` on dialog | `dialog.close` called |
+| C19.6 | `onContextMenu` calls `e.preventDefault()` | fire `contextmenu` | `preventDefault` called |
+| C19.7 | `onMouseLeave` on `#infoTooltipPositionController` calls `.close()` | fire `mouseleave` on position controller | `dialog.close` called |
 
 ---
 
@@ -1547,6 +1565,235 @@ Redux-connected (reads `state.export`). Wrapped in `<Provider>` with a minimal s
 | C26.5 | Shows `"Export SVG"` button for `ExportType.image` | `exportType: image` | button with `'Export SVG'` present |
 | C26.6 | No `"Export SVG"` button for `ExportType.all` | `exportType: all` | button absent |
 | C26.7 | Always renders a `"Close"` button | any | `'Close'` button present |
+| C26.8 | `ExportType.all` → "Export" heading visible; "Image Export" and "Data Export" absent | `exportType: all` | only "Export" heading |
+| C26.9 | `ExportType.data` → "Data Export" visible; "Export SVG" absent; no preview div | `exportType: data` | heading present; SVG absent |
+| C26.10 | `ExportType.image` → "Image Export" + preview + "Export SVG" all visible | `exportType: image` | all three visible |
+| C26.11 | Clicking "Export SVG" calls `URL.createObjectURL` once | click Export SVG | `URL.createObjectURL` called once |
+
+---
+
+## C27 — `AddDataPluginCard`
+**File**: `src/test/component/settingsDialog/addDataPluginCard.test.tsx`
+**Source**: `src/components/settingsDialog/addDataPluginCard/addDataPluginCard.tsx`
+
+Redux-connected (reads/writes `state.settings`). Wrapped in `<Provider>`. Tests plugin card rendering and the "Add" action.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C27.1 | Renders a name input field when `file` requirement is set | `requirements.file: true` | input with placeholder `'Name'` present |
+| C27.2 | Renders the plugin name as a card title | `name: 'TestPlugin'` | `'TestPlugin'` visible |
+| C27.3 | "Add" button is present | default plugin | `role="button" name=/add/i` present |
+| C27.4 | Clicking "Add" dispatches `addDataPlugin` and increases `dataPlugins` length | click Add | `settings.database.dataPlugins.length` incremented by 1 |
+| C27.5 | File input shown when `file` requirement is set | `requirements.file: true` | `#importStorageFilePicker` present |
+
+---
+
+## C28 — `StatusBar` / StatusBarDataPlugin
+**File**: `src/test/component/statusBar/statusBarDataPlugin.test.tsx`
+**Source**: `src/components/statusBar/statusBar.tsx`
+
+Redux-connected (reads `state.settings`). `dataPluginStorage.getDataPlugin` mocked to a never-resolving promise so loading state is always shown.
+
+| # | Description | Store state | Expected |
+|---|---|---|---|
+| C28.1 | One plugin → one "Loading Data Plugin" element with the plugin's RGBA color as background | 1 plugin with `color: '#ff000022'` | 1 loading div; `background` equals parsed RGBA |
+| C28.2 | No plugins → "No DataPlugins Configured" placeholder shown | `dataPlugins: []` | placeholder text present |
+| C28.3 | Two plugins → two loading elements each with a distinct background color | 2 plugins with different colors | 2 loading divs; backgrounds differ |
+
+---
+
+## C29 — `DashboardItemPopout`
+**File**: `src/test/component/dashboard/dashboardItemPopout.test.tsx`
+**Source**: `src/components/dashboard/dashboardItemPopout/dashboardItemPopout.tsx`
+
+`PopoutController` is mocked as a passthrough wrapper with a `data-title` attribute. Tests verify structural rendering without opening a real window.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C29.1 | Renders without crashing given minimal valid props | `name, onClosing, onResize, children` | `container` is truthy |
+| C29.2 | Plugin name appears in the popout title attribute | `name: 'MyVisualization'` | `data-title` on popout-controller contains `'MyVisualization'` |
+| C29.3 | Chart container child is present in the DOM | child `div[data-testid="chart-container"]` | element found |
+
+---
+
+## C30 — `DateRange`
+**File**: `src/test/component/tabContent/dateRange.test.tsx`
+**Source**: `src/components/tabs/parameters/dataRange/dateRange.tsx`
+
+Pure presentational with callbacks. No Redux. Tests datetime-local inputs and navigation buttons (+M, -M, +Y, -Y via Shift, T).
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C30.1 | Renders two datetime-local inputs | `disabled: false, defaultDateRange` | ≥2 inputs of type `datetime-local` |
+| C30.2 | From input value reflects `parametersDateRange.from` | `from: '2024-01-15T...'` | input value matches `/2024-01-15/` |
+| C30.3 | To input value reflects `parametersDateRange.to` | `to: '2024-06-15T...'` | input value matches `/2024-06-15/` |
+| C30.4 | Changing from input calls `setParametersDateRange` with updated `from` | fire change on first input | callback called once; `callArg.from` is new value |
+| C30.5 | Changing to input calls `setParametersDateRange` with updated `to` | fire change on second input | callback called once; `callArg.to` is new value |
+| C30.6 | Clicking "-M" (no Shift) subtracts ~1 month from from/to | click first then second `-M` | `from` → `2023-12`; `to` → `2024-05` |
+| C30.7 | Clicking "+M" (no Shift) adds ~1 month to from/to | click first then second `+M` | `from` → `2024-02`; `to` → `2024-07` |
+| C30.8 | Holding Shift then clicking "-M" subtracts ~1 year | `keyDown Shift`, click `-Y` | `from` → `2023-01` |
+| C30.9 | Holding Shift then clicking "+M" adds ~1 year | `keyDown Shift`, click `+Y` | `from` → `2025-01` |
+| C30.10 | Clicking "T" button sets from to today's date | click first `T` | `callArg.from` contains current year |
+| C30.11 | `disabled=true` makes both datetime-local inputs disabled | `disabled: true` | both inputs have `disabled` attribute |
+
+---
+
+## C31 — `GeneralSettings`
+**File**: `src/test/component/settingsDialog/generalSettings.test.tsx`
+**Source**: `src/components/settingsDialog/generalSettings/generalSettings.tsx`
+
+Redux-connected (reads/writes `state.settings`, `state.dashboard`, and several others). `dataPluginStorage` mocked to never-resolving promise.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C31.1 | Renders a grid size `<select>` element | default store | `role="combobox"` present |
+| C31.2 | Changing grid size select dispatches `setGeneralSettings` and updates store | fire change to `large` | `settings.general.gridSize === SettingsGeneralGridSize.large` |
+| C31.3 | "Clear Storage" button is rendered | default store | button with name `/clear storage/i` present |
+| C31.4 | "Reload Page" button NOT visible before clearing storage | default store | button absent |
+| C31.5 | Clicking "Clear Storage" makes "Reload Page" button appear | click Clear Storage | "Reload Page" button appears |
+| C31.6 | "Export Storage" button is present | default store | button with name `/export storage/i` present |
+| C31.7 | Invalid JSON in file import shows error message | mock FileReader returning bad JSON | text `/error reading file/i` visible |
+| C31.8 | JSON with wrong `storageVersion` shows error message | mock FileReader returning version 9999 | text `/storage version not compatible/i` visible |
+| C31.9 | Clicking "Reload Page" calls `location.reload` | stub `location.reload`; click button | mock called once |
+
+---
+
+## C32 — `ConnectedDataPlugins`
+**File**: `src/test/component/settingsDialog/connectedDataPlugins.test.tsx`
+**Source**: `src/components/settingsDialog/connectedDataPlugins/connectedDataPlugins.tsx`
+
+Redux-connected (reads/writes `state.settings`, `state.files`). `dataPluginStorage` mocked.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C32.1 | Empty plugin list shows empty-state text | `dataPlugins: []` | `/no database connections configured/i` visible |
+| C32.2 | One plugin — plugin name visible in DOM | `dataPlugins: [basePlugin]` | `'TestPlugin'` visible |
+| C32.3 | Plugin with `isDefault: true` shows "Default" badge | `isDefault: true` | `'Default'` text present |
+| C32.4 | Plugin with `id === 0` shows "pre-loaded" label | `id: 0` | `'pre-loaded'` present |
+| C32.5 | `interactable=true` shows "Set Default" button | `interactable: true` | button present |
+| C32.6 | `interactable=false` hides "Set Default" button | `interactable: false` | button absent |
+| C32.7 | `id === 0` + `interactable=true` has no "Delete" button | pre-loaded plugin | Delete absent |
+| C32.8 | Clicking "Set Default" updates `settings.database.defaultDataPluginItemId` | click Set Default for `id:5` | `defaultDataPluginItemId === 5` |
+| C32.9 | Clicking "Delete" on non-file plugin removes it from store | click Delete | plugin with `id:2` gone from `dataPlugins` |
+
+---
+
+## C33 — `StatusBarDataPluginElement`
+**File**: `src/test/component/statusBar/statusBarDataPluginElement.test.tsx`
+**Source**: `src/components/statusBar/statusBarDataPlugin/statusBarDataPluginElement/statusBarDataPluginElement.tsx`
+
+Redux-connected (reads `ProgressReducer`). Tests socket-status icon and progress bar visibility.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C33.1 | `id === 0` (pre-loaded) renders "pre-loaded" badge | `preloadedPluginConfig` | `'pre-loaded'` visible |
+| C33.2 | `id !== 0` renders `"<name> #<id>"` — no pre-loaded badge | `basePluginConfig` | `'TestPlugin #1'` visible; `'pre-loaded'` absent |
+| C33.3 | Socket status Idle → idle icon present | default store | `getAllByAltText('idle').length > 0` |
+| C33.4 | Socket status Connected → connected state reflected in store | dispatch `setConnectionStatus(Connected)` | store state is Connected; idle alt still present |
+| C33.5 | Socket status Disconnected → disconnected state reflected in store | dispatch `setConnectionStatus(Disconnected)` | store state is Disconnected |
+| C33.6 | `progressUpdate.useAutomaticUpdate: true` → `<progress>` elements rendered | config with `useAutomaticUpdate: true` | `querySelectorAll('progress').length > 0` |
+| C33.7 | `progressUpdate` not set → no progress bars; description text rendered | config without progressUpdate + `mockDataPlugin` | 0 progress elements; description text visible |
+
+---
+
+## C34 — `PopoutController`
+**File**: `src/test/component/dashboard/popoutController.test.tsx`
+**Source**: `src/components/dashboard/dashboardItemPopout/popoutController/popoutController.tsx`
+
+No Redux. `window.open` spied to return a mock window object. Tests window lifecycle without a real browser.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C34.1 | `window.open` called on mount with `props.url` | render with `url: 'about:blank'` | `window.open` called; first arg `=== 'about:blank'` |
+| C34.2 | `window.open` called with `props.title` as second arg | `title: 'My Popout Title'` | second arg `=== 'My Popout Title'` |
+| C34.3 | `window.open` returns null → `onError` called | mock returns `null` | `onError` called once |
+| C34.4 | Component renders nothing to main DOM | render | `container.firstChild === null` |
+| C34.5 | `mockWindow.closed` becomes true → polling fires `onClosing` | fake timers; advance 600ms | `onClosing` called |
+
+---
+
+## C37 — `DashboardItemSettings`
+**File**: `src/test/component/dashboard/dashboardItemSettings.test.tsx`
+**Source**: `src/components/dashboard/dashboardItemSettings/dashboardItemSettings.tsx`
+
+Redux-connected (reads `state.settings`). Tests heading, Refresh/Delete buttons, and conditional toggles.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C37.1 | Heading contains `"TestViz (#42)"` | `item.pluginName: 'TestViz', item.id: 42` | `<h2>` has text `'TestViz (#42)'` |
+| C37.2 | Clicking "Refresh" calls `onClickRefresh` | click button | callback called once |
+| C37.3 | Clicking "Delete" calls `onClickDelete` | click button | callback called once |
+| C37.4 | Toggling "Ignore Global Parameters" checkbox calls `setIgnoreGlobalParameters(true)` | click checkbox | callback called with `true` |
+| C37.5 | "Automatic Update" toggle shown when `selectedDataPlugin.parameters.progressUpdate.useAutomaticUpdate === true`; absent when `selectedDataPlugin` is undefined | two render passes | toggle present/absent accordingly |
+
+---
+
+## C39 — `VisualizationOverview`
+**File**: `src/test/component/tabContent/visualizationOverview.test.tsx`
+**Source**: `src/components/tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverview.tsx`
+
+`VisualizationSelectorDragButton` and `VisualizationFilter` mocked. Results queried via `data-testid="viz-button"` because the dialog is initially closed (hidden from accessibility tree).
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C39.1 | After render with empty search, at least one viz-button is present | default render | `queryAllByTestId('viz-button').length > 0` |
+| C39.2 | After typing `"ZZZZZ_NO_MATCH"` into search input, no `<h2>` headings rendered | filter by no-match string | `queryAllByRole('heading', { level: 2 }).length === 0` |
+| C39.3 | After typing `"Changes"`, only matching plugins visible — no non-matching buttons | filter by `'Changes'` | matching buttons > 0; non-matching buttons === 0 |
+
+---
+
+## C40 — `AddSprint`
+**File**: `src/test/component/tabContent/addSprint.test.tsx`
+**Source**: `src/components/tabs/sprints/addSprint/addSprint.tsx`
+
+Redux-connected (reads/writes `state.sprints`). `AddSprintDialog` mocked. `dialog#addSprintDialog` created and appended in `beforeEach`.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C40.1 | "Add Sprint" button is present in the DOM | default render | `getByRole('button', { name: /add sprint/i })` found |
+| C40.2 | Clicking "Add Sprint" dispatches `sprintToEdit(null)` and calls `showModal` | click button | `store.getState().sprints.sprintToEdit === null`; `showModal` called |
+
+---
+
+## C41 — `DatabaseSettings`
+**File**: `src/test/component/settingsDialog/databaseSettings.test.tsx`
+**Source**: `src/components/settingsDialog/databaseSettings/databaseSettings.tsx`
+
+Redux-connected (reads `state.settings`, `state.files`). `ConnectedDataPlugins` and `AddDataPluginCard` mocked. `dataPluginStorage` mocked.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C41.1 | "Add Database Connection:" heading is rendered | `dataPlugins: []` | heading text present |
+| C41.2 | When store contains one plugin, `DataPluginStorage.addDataPlugin` is called once on mount with that plugin | `dataPlugins: [plugin]` | `addDataPlugin` called once with the plugin |
+
+---
+
+## C42 — `FileTreeElementInfoDialog`
+**File**: `src/test/component/tabContent/fileTreeElementInfoDialog.test.tsx`
+**Source**: `src/components/tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx`
+
+Full store with 12 reducers. `fileTreeUtilities` and `contextMenuHelper` mocked. `dialog#fileTreeElementInfoDialog` appended in `beforeEach`.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C42.1 | `selectedFileTreeElement` undefined → no name heading, no type/path content; two Close buttons always present | `selectedFileTreeElement: undefined` | `#informationDialogHeadline` null; two Close buttons |
+| C42.2 | File element → name as heading; path; link to webUrl | `makeFile()` | `<h>` with `'readme.md'`; path `'src/readme.md'`; link to webUrl |
+| C42.3 | `foldedOut: false` → "folded in" badge; `foldedOut: true` → "folded out" badge | two separate renders | correct badge visible in each case |
+| C42.4 | `checked: false` → "unchecked" badge; `checked: true` → "checked" badge | two separate renders | correct badge visible in each case |
+| C42.5 | Folder element → "Folder Content" visible; Path heading and webUrl link absent | `makeFolder()` | `'Folder Content'` present; no Path; no link |
+
+---
+
+## C43 — `OverlayController`
+**File**: `src/test/component/overlayController/overlayController.test.tsx`
+**Source**: `src/components/overlayController/overlayController.tsx`
+
+All 12 child components mocked with `data-testid` stubs. No Redux required. Tests structural composition.
+
+| # | Description | Setup | Expected |
+|---|---|---|---|
+| C43.1 | Renders without crashing | mock all 12 children; render | `document.body.firstChild` not null |
+| C43.2 | All 12 overlay child components present in the DOM | render | all 12 `data-testid` stubs found in DOM |
 
 ---
 
@@ -1559,7 +1806,10 @@ src/test/component/
 ├── dashboard/
 │   ├── dashboardItem.test.tsx                                     (C12)
 │   ├── dashboardItemPlaceholder.test.tsx                          (C24)
-│   └── dashboardPreview.test.tsx                                  (C23)
+│   ├── dashboardItemPopout.test.tsx                               (C29)
+│   ├── dashboardItemSettings.test.tsx                             (C37)
+│   ├── dashboardPreview.test.tsx                                  (C23)
+│   └── popoutController.test.tsx                                  (C34)
 ├── dataPluginQuickSelect/
 │   └── dataPluginQuickSelect.test.tsx                             (C1)
 ├── exportDialog/
@@ -1572,23 +1822,36 @@ src/test/component/
 │   └── loadingLocalDatabaseOverlay.test.tsx                       (C20)
 ├── notificationController/
 │   └── notificationController.test.tsx                            (C2)
+├── overlayController/
+│   └── overlayController.test.tsx                                 (C43)
 ├── settingsDialog/
+│   ├── addDataPluginCard.test.tsx                                 (C27)
+│   ├── connectedDataPlugins.test.tsx                              (C32)
+│   ├── databaseSettings.test.tsx                                  (C41)
+│   ├── generalSettings.test.tsx                                   (C31)
 │   └── settingsDialog.test.tsx                                    (C3)
 ├── setupDialog/
 │   └── setupDialog.test.tsx                                       (C4)
 ├── stackedAreaChart/
 │   ├── StackedAreaChart.test.tsx                                  (C5)
 │   └── utils.test.ts                                              (C6)
+├── statusBar/
+│   ├── statusBarDataPlugin.test.tsx                               (C28)
+│   └── statusBarDataPluginElement.test.tsx                        (C33)
 ├── statusBarSeparator/
 │   └── statusBarSeparator.test.tsx                                (C14)
 ├── svg/
 │   ├── dotsPattern.test.tsx                                       (C15)
 │   └── hatchPattern.test.tsx                                      (C16)
 ├── tabContent/
+│   ├── addSprint.test.tsx                                         (C40)
+│   ├── dateRange.test.tsx                                         (C30)
 │   ├── fileListFile.test.tsx                                      (C7)
 │   ├── fileListFolder.test.tsx                                    (C8)
 │   ├── fileSearch.test.tsx                                        (C9)
-│   └── parametersGeneral.test.tsx                                 (C10)
+│   ├── fileTreeElementInfoDialog.test.tsx                         (C42)
+│   ├── parametersGeneral.test.tsx                                 (C10)
+│   └── visualizationOverview.test.tsx                             (C39)
 ├── tabController/
 │   └── tabControllerButton.test.tsx                               (C11)
 ├── tabControllerButtonThemeSwitch/
@@ -1607,4 +1870,404 @@ src/test/component/
 - **Timers** (C2.8, C2.9): Use `vi.useFakeTimers()` / `vi.advanceTimersByTime()`. Call `vi.useRealTimers()` in `afterEach`.
 - **D3 components** (C5): jsdom does not support `SVGElement.getBBox()` or layout. Mock or stub methods that require a real browser layout engine.
 - **SCSS modules**: Vitest handles CSS modules via identity proxy — use `data-testid` or element type selectors for assertions, not class names.
-- **ResizeObserver**: jsdom does not implement it. A global mock is defined in `setup.ts`.
+- **ResizeObserver**: jsdom does not implement it. A global mock is defined in `setup.ts`
+---
+
+---
+
+# Integration Tests
+
+**Test ID convention**: `I{file_index}.{test_index}` — all integration tests share a single `I` prefix. No backend required for any of these tests. Tests are organized into `redux/` and `plugins/` subdirectories.
+
+**Framework**: Vitest + jsdom
+**DB adapter** (where applicable): `pouchdb-memory` — no file I/O, no network
+
+**Setup notes**:
+- Call `localStorage.clear()` in `beforeEach` and `afterEach` — reducers read `localStorage` during their `initialState` factory, so the store must be created *after* clearing or seeding storage.
+- Use `createSagaMiddleware()` (not `runSaga`) for saga tests to mirror real app wiring.
+
+---
+
+## I1 — Redux store + actionsMiddleware
+**File**: `src/test/integration/redux/storeWithActionsMiddleware.test.ts`
+**Sources**: `src/redux/middleware/actions/actionsMiddleware.ts`, `src/redux/reducer/general/actionsReducer.ts`
+
+Verifies that `actionsMiddleware` intercepts every dispatched action (except `setLastAction` itself) and records it in `actionsReducer.lastAction`.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I1.1 | Fresh store has `lastAction === undefined` | create store | `actions.lastAction` is `undefined` |
+| I1.2 | Dispatching any action records its type | dispatch `{ type: 'test/foo' }` | `lastAction === 'test/foo'` |
+| I1.3 | `setLastAction` itself does not recurse | dispatch `setLastAction(...)` | no infinite loop; `lastAction` set to dispatched value |
+| I1.4 | Second dispatch overwrites `lastAction` | dispatch two actions | `lastAction` equals type of second action |
+| I1.5 | Object payload is preserved in `actions.payload` | dispatch action with object payload | `actions.payload` deep-equals the dispatched payload |
+| I1.6 | RTK slice action creator produces correct `lastAction` type | dispatch `addDataPlugin(...)` | `lastAction === 'settings/addDataPlugin'` |
+
+---
+
+## I2 — settingsReducer + localStorage persistence
+**File**: `src/test/integration/redux/settingsLocalStorage.test.ts`
+**Source**: `src/redux/reducer/settings/settingsReducer.ts`
+
+Verifies round-trip: every mutation writes to `localStorage` (`settingsStateV1`), and a new store created after the mutation hydrates from that persisted state.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I2.1 | Fresh store writes initial state to `localStorage` | create store | `localStorage['settingsStateV1']` exists with `dataPlugins: []` |
+| I2.2 | Store hydrates from pre-seeded `localStorage` | seed key before creating store | `settings.database.dataPlugins` matches seeded data |
+| I2.3 | `addDataPlugin` (no id) assigns `id: 1` and persists | dispatch `addDataPlugin` | `plugin.id === 1`; `localStorage` updated |
+| I2.4 | First added plugin is automatically default | dispatch `addDataPlugin` | `plugin.isDefault === true`; `defaultDataPluginItemId` set |
+| I2.5 | Second added plugin is not default | dispatch `addDataPlugin` twice | second plugin has `isDefault === false` |
+| I2.6 | `addDataPlugin` with existing id performs upsert | dispatch with existing id | list length unchanged; name updated |
+| I2.7 | `removeDataPlugin` removes entry and persists | dispatch `removeDataPlugin` | `dataPlugins` length 0; `localStorage` updated |
+| I2.8 | `setDataPluginAsDefault` marks exactly one plugin | add two plugins; set second as default | exactly one plugin has `isDefault === true` |
+| I2.9 | `clearSettingsStorage` removes `localStorage` key | dispatch `clearSettingsStorage` | `localStorage.getItem('settingsStateV1') === null` |
+| I2.10 | `setGeneralSettings` persists new value | dispatch with `gridSize: large` | `localStorage` and state both reflect new value |
+
+---
+
+## I3 — dashboardReducer: state grid + localStorage
+**File**: `src/test/integration/redux/dashboardStateGrid.test.ts`
+**Source**: `src/redux/reducer/general/dashboardReducer.ts`
+
+Verifies that the 40×40 `dashboardState` grid remains consistent with `dashboardItems` across add/move/delete/clear, that collision detection rejects illegal moves, and that `localStorage` (`dashboardStateV1`) is kept in sync.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I3.1 | `addDashboardItem` auto-assigns `id: 1` on first item | dispatch `addDashboardItem` | `dashboardItems[0].id === 1` |
+| I3.2 | Added 2×2 item marks exactly 4 grid cells | dispatch `addDashboardItem` with `width: 2, height: 2` | 4 grid cells contain the item's id |
+| I3.3 | Two items placed sequentially do not share grid cells | add two 2×2 items | no overlapping cells |
+| I3.4 | `moveDashboardItem` clears old cells and fills new ones | move item to free area | old cells → 0, new cells → item id |
+| I3.5 | `moveDashboardItem` to occupied cell is rejected | try to move onto another item | item position unchanged |
+| I3.6 | `deleteDashboardItem` removes item and zeros its cells | dispatch `deleteDashboardItem` | `dashboardItems` empty; cells → 0 |
+| I3.7 | `clearDashboard` resets items, count, and all grid cells | add 3 items then clear | `items: []`, `count: 0`, all cells 0 |
+| I3.8 | `setDashboardState` rebuilds grid from supplied items | dispatch with 2 positioned items | grid cells match item positions |
+| I3.9 | Every mutation persists to `localStorage` | dispatch `addDashboardItem` | `localStorage['dashboardStateV1']` updated |
+| I3.10 | Store hydrates `dashboardItems` and count from `localStorage` | seed via store1, create store2 | store2 has same items and count |
+
+---
+
+## I4 — tabsReducer + localStorage
+**File**: `src/test/integration/redux/tabsLocalStorage.test.ts`
+**Source**: `src/redux/reducer/general/tabsReducer.ts`
+
+Verifies `setTabList` persists to `localStorage` (`tabsStateV1`), the store hydrates from a pre-seeded key on creation, and `clearTabsStorage` removes the key.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I4.1 | Fresh store writes empty `tabList` to `localStorage` | create store | `localStorage['tabsStateV1']` has `tabList: []` |
+| I4.2 | `setTabList` updates state and persists | dispatch `setTabList([...])` | state and `localStorage` both have 2 tabs |
+| I4.3 | Store hydrates `tabList` from pre-seeded `localStorage` | seed key before creating store | `tabs.tabList` matches seeded tabs |
+| I4.4 | `clearTabsStorage` removes the `localStorage` key | dispatch `clearTabsStorage` | `localStorage.getItem('tabsStateV1') === null` |
+| I4.5 | Second `setTabList` replaces first list entirely | dispatch twice | only items from second dispatch remain |
+
+---
+
+## I5 — refreshMiddleware → REFRESH_PLUGIN dispatch
+**File**: `src/test/integration/redux/refreshMiddleware.test.ts`
+**Source**: `src/redux/middleware/refresh/refreshMiddleware.ts`
+
+Uses two stores: `globalStore` (spied on) and `localStore` (contains `refreshMiddleware`). Verifies that `progress/setProgress` triggers a `REFRESH_PLUGIN` dispatch on `globalStore`.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I5.1 | `progress/setProgress` dispatches `REFRESH_PLUGIN` on `globalStore` | dispatch to `localStore` | `globalStore.dispatch` called with `type: 'REFRESH_PLUGIN'` |
+| I5.2 | `REFRESH_PLUGIN` payload carries the configured `pluginId` | configure with `id: 42` | `payload.pluginId === 42` |
+| I5.3 | Non-matching actions do not trigger `REFRESH_PLUGIN` | dispatch `some/otherAction` | no `REFRESH_PLUGIN` call on `globalStore` |
+| I5.4 | Original action still reaches `next` middleware | dispatch `progress/setProgress` | no error thrown; action processed normally |
+
+---
+
+## I6 — Changes saga + reducer + MockData
+**File**: `src/test/integration/plugins/commitChangesSaga.test.ts`
+**Sources**: `src/plugins/visualizationPlugins/commits/changes/src/`, `src/plugins/dataPlugins/mockData/src/`
+
+Tests the full `setDateRange` / `REFRESH` → saga → `MockData.commits.getAll()` → store update flow. MockData always returns the same 11 hardcoded commits regardless of date range.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I6.1 | Fresh store has `dataState: EMPTY` | create store | `plugin.dataState === DataState.EMPTY` |
+| I6.2 | `dataState` transitions to `FETCHING` before `getAll` resolves | dispatch `setDateRange`; capture mid-saga state | captured state is `DataState.FETCHING` |
+| I6.3 | `dataState` reaches `COMPLETE` after saga finishes | dispatch `setDateRange` | `dataState === DataState.COMPLETE` |
+| I6.4 | `commits` array is non-empty after saga | dispatch `setDateRange` | `commits.length > 0` |
+| I6.5 | Each commit has `sha`, `date`, and `stats` fields | dispatch `setDateRange` | all commits have required fields |
+| I6.6 | Second `setDateRange` re-fetches and reaches `COMPLETE` again | dispatch twice | `COMPLETE` reached after each dispatch |
+| I6.7 | MockData always returns exactly 11 commits | dispatch `setDateRange` | `commits.length === 11` |
+| I6.8 | Rapid `REFRESH` dispatches are throttled to ≤1 fetch per 5s | dispatch `REFRESH` 3× quickly | `getAll` called exactly once |
+
+---
+
+## I7 — MockData → dataConverter pipeline
+**File**: `src/test/integration/plugins/mockDataToDataConverter.test.ts`
+**Sources**: `src/plugins/dataPlugins/mockData/src/`, two `dataConverter.ts` utilities
+
+Verifies that real MockData output can be piped through each `dataConverter` without errors and produces valid, non-NaN chart-ready data. No Redux involved.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I7.1 | `commits.getAll()` resolves to a non-empty array | call with 2024 date range | `length > 0`; first item has `sha` and `date` |
+| I7.2 | `accountsIssues.getAll()` resolves to a non-empty array | call `getAll()` | `length > 0`; first item has `id` and `issues` |
+| I7.3 | `convertCommitDataToMetrics` returns valid metrics with no `NaN` | pipe commits through converter | object has `mpc`, `entropy`, `maxBurst`, etc.; no `NaN` values |
+| I7.4 | `convertIssuesToGraphData` returns nodes and links with no `NaN` | pipe accounts through converter | `nodes.length > 0`; no `NaN` in `node.group` |
+| I7.5 | No exception thrown when piping commits through converter | call pipeline end-to-end | promise resolves without throwing |
+
+---
+
+## I8 — PouchDB data plugin collections
+**File**: `src/test/integration/plugins/pouchDbCollections.test.ts`
+**Source**: `src/plugins/dataPlugins/pouchDB/src/`
+
+Verifies that each collection method returns the correct shape and count when the in-memory PouchDB is pre-seeded with fixture documents. Also verifies date-range filtering on commits.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I8.1 | `commits.getAll()` returns all seeded commit docs | seed 3 commit docs | array of length 3 with correct `sha` and `date` fields |
+| I8.2 | `commits.getAll(from, to)` filters by date range | seed commits inside and outside range | only in-range commits returned |
+| I8.3 | `files.getAll()` returns all seeded file docs | seed 2 files | array of length 2 with correct shape |
+| I8.4 | `issues.getAll()` returns all seeded issue docs | seed 2 issues | array of length 2 with correct shape |
+| I8.5 | `builds.getAll()` returns all seeded build docs | seed 1 build | array of length 1 |
+| I8.6 | `accounts.getAll()` returns all seeded account docs | seed 2 accounts | array of length 2 |
+| I8.7 | Empty DB returns empty array for every collection | no seed | `length === 0` for commits, files, issues, builds, accounts |
+| I8.8 | `general.getIndexer()` returns PouchDB indexer identifiers | call `getIndexer()` | `vcs`, `its`, `ci` all equal `'PouchDB'` |
+
+---
+
+## I9 — DatabaseLoaders.loadJsonFilesToPouchDB dispatch sequence
+**File**: `src/test/integration/plugins/databaseLoaders.test.ts`
+**Source**: `src/utils/databaseLoaders.ts`
+
+Verifies the exact sequence of Redux dispatches emitted while loading pre-exported JSON into PouchDB. Uses a real Redux store and spies on `PouchDB.init` / `PouchDB.clearRemains` to avoid loading the full JSON export fixtures from disk.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I9.1 | Dispatches `setLocalDatabaseLoadingState(loading)` before `init` resolves | call `loadJsonFilesToPouchDB(dispatch)` | `localDatabaseLoadingState` is `loading` before `init` completes |
+| I9.2 | Dispatches `addDataPlugin` after `init` completes | call `loadJsonFilesToPouchDB` | `settings.database.dataPlugins` contains a new PouchDb entry |
+| I9.3 | Dispatches `setLocalDatabaseLoadingState(none)` as loading finishes | call `loadJsonFilesToPouchDB` | `localDatabaseLoadingState` ends at `none` |
+| I9.4 | Dispatches `REFRESH_PLUGIN` as the final action | call `loadJsonFilesToPouchDB` | `actions.lastAction === 'REFRESH_PLUGIN'` |
+| I9.5 | Skips loading when existing plugin `createdAt` is same or newer | pre-seed `localStorage` with `createdAt >= metadata.createdAt` | `PouchDB.init` not called |
+| I9.6 | Calls `PouchDB.clearRemains()` before `init` when existing plugin is stale | existing plugin with older `createdAt` | `clearRemains` called exactly once before `init` |
+| I9.7 | Added plugin carries correct `fileName` and `metadata` | call `loadJsonFilesToPouchDB` | `plugin.parameters.fileName === metadata.namespace`; `plugin.metadata.createdAt` is set |
+
+---
+
+## I10 — Offline saga + PouchDB plugin pipeline
+**File**: `src/test/integration/plugins/offlineCommitChangesSaga.test.ts`
+**Sources**:
+- `src/plugins/visualizationPlugins/commits/changes/src/saga/index.ts`
+- `src/plugins/visualizationPlugins/commits/changes/src/reducer/index.ts`
+- `src/plugins/dataPlugins/pouchDB/src/index.ts`
+
+Mirrors the Changes saga flow (I6) but wired to the real PouchDB plugin backed by `pouchdb-memory`. Confirms the offline path produces the same Redux state transitions.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I10.1 | `setDateRange` with seeded commits sets `dataState` to `COMPLETE` | seed commits in memory DB; dispatch `setDateRange` | `dataState === DataState.COMPLETE` |
+| I10.2 | `commits` is populated from PouchDB after saga runs | seed 3 commits | `commits.length === 3` |
+| I10.3 | `setDateRange` triggers a re-fetch from PouchDB | seed commits with two different dates; dispatch `setDateRange` twice | `commits` updated to match each range |
+| I10.4 | Empty PouchDB yields `commits: []` with `COMPLETE` state | no seeded commits; dispatch `setDateRange` | `commits: []`; `dataState === DataState.COMPLETE` |
+
+---
+
+---
+
+## I11 — parametersReducer + localStorage
+**File**: `src/test/integration/redux/parametersLocalStorage.test.ts`
+**Source**: `src/redux/reducer/parameters/parametersReducer.ts`
+
+Verifies that the parameters reducer reads and writes `parametersStateV1` in localStorage, hydrates state on creation, persists on mutation, and clears on demand.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I11.1 | Fresh store writes initial state to localStorage | create store | `parametersStateV1` exists; `granularity: 'weeks'`, `excludeMergeCommits: false` |
+| I11.2 | Store hydrates from pre-seeded localStorage | seed key before creating store | state matches seeded values |
+| I11.3 | `setParametersGeneral` updates state and persists | dispatch with `granularity: 'days'` | state and localStorage both updated |
+| I11.4 | `setParametersDateRange` updates state and persists | dispatch with `from`/`to` | `parametersDateRange` updated in state and localStorage |
+| I11.5 | `clearParametersStorage` removes the localStorage key | dispatch `clearParametersStorage` | `localStorage.getItem('parametersStateV1') === null` |
+| I11.6 | `importParametersStorage` writes payload to localStorage | dispatch with `granularity: 'days'` payload | localStorage reflects imported values |
+| I11.7 | `importParametersStorage` does NOT update Redux state (Immer no-op) | dispatch `importParametersStorage` | Redux state unchanged — documents `state = action.payload` Immer bug |
+
+---
+
+## I12 — layoutReducer + localStorage
+**File**: `src/test/integration/redux/layoutLocalStorage.test.ts`
+**Source**: `src/redux/reducer/general/layoutReducer.ts`
+
+Verifies custom dashboard layout creation, id assignment, deletion, and localStorage persistence under `layoutStateV1`.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I12.1 | Fresh store writes `{ customLayouts: [], customLayoutCount: 0 }` to localStorage | create store | key exists with empty array and zero count |
+| I12.2 | `addCustomLayout` assigns `id = customLayoutCount` before incrementing | dispatch `addCustomLayout` | `layouts[0].id === 0` |
+| I12.3 | Two `addCustomLayout` calls assign distinct IDs | dispatch twice | `layouts[0].id !== layouts[1].id` |
+| I12.4 | `deleteCustomLayout` removes entry and persists | add then delete | `customLayouts` empty in state and localStorage |
+| I12.5 | Store hydrates `customLayouts` from pre-seeded localStorage | seed key before creating store | layouts and count match seeded data |
+
+---
+
+## I13 — notificationsReducer + exportReducer (in-memory)
+**File**: `src/test/integration/redux/inMemoryReducers.test.ts`
+**Sources**: `src/redux/reducer/general/notificationsReducer.ts`, `src/redux/reducer/export/exportReducer.ts`
+
+Verifies two reducers that do not use localStorage. No `beforeEach` cleanup needed.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I13.1 | Fresh notifications store has `notificationList: []` and `currID: 0` | create store | initial values as stated |
+| I13.2 | `addNotification` assigns auto-incremented `id` and appends | dispatch with text and type | `notificationList[0].id === 0`; `currID === 1` |
+| I13.3 | `removeNotification(id)` removes the matching entry | add two; remove first | list length 1; second item remains |
+| I13.4 | Fresh export store has `exportType: all` and `exportName: 'export'` | create store | initial values as stated |
+| I13.5 | `setExportType(image)` updates `exportType` | dispatch | `exportType === ExportType.image` |
+| I13.6 | `setExportName` and `setExportSVGData` update their fields | dispatch both | name and SVG data updated in state |
+
+---
+
+## I14 — authorsReducer + localStorage
+**File**: `src/test/integration/redux/authorsLocalStorage.test.ts`
+**Source**: `src/redux/reducer/data/authorsReducer.ts`
+
+Verifies author list management per data-plugin-id. **Do NOT dispatch `editAuthor`** — it calls `showModal()` which crashes in jsdom.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I14.1 | Fresh store writes initial state to localStorage | create store | `authorsStateV1` key exists |
+| I14.2 | `setAuthorList` stores list under `dataPluginId` and persists | dispatch with 2 authors | list of 2 in state and localStorage |
+| I14.3 | `switchAuthorSelection(id)` toggles `selected` for matching author | add author; switch selection | `selected` flips from `false` to `true` |
+| I14.4 | `checkAllAuthors` sets all `selected: true` | add 2 authors; dispatch | all authors have `selected === true` |
+| I14.5 | `uncheckAllAuthors` sets all `selected: false` | check all; then uncheck all | all authors have `selected === false` |
+| I14.6 | `clearAuthorsStorage` removes the localStorage key | dispatch | `localStorage.getItem('authorsStateV1') === null` |
+
+---
+
+## I15 — accountsReducer + localStorage
+**File**: `src/test/integration/redux/accountsLocalStorage.test.ts`
+**Source**: `src/redux/reducer/data/accountsReducer.ts`
+
+Verifies account list management per data-plugin-id and persistence under `accountsStateV1`.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I15.1 | Fresh store writes initial state to localStorage | create store | `accountsStateV1` key exists |
+| I15.2 | `setAccountList` stores list under `dataPluginId` and persists | dispatch with 2 accounts | list of 2 in state and localStorage |
+| I15.3 | Second `setAccountList` for same `pluginId` replaces the previous list | dispatch twice | only accounts from second dispatch remain |
+| I15.4 | `clearAccountsStorage` removes the localStorage key | dispatch | `localStorage.getItem('accountsStateV1') === null` |
+
+---
+
+## I16 — sprintsReducer + localStorage
+**File**: `src/test/integration/redux/sprintsLocalStorage.test.ts`
+**Source**: `src/redux/reducer/data/sprintsReducer.ts`
+
+Verifies sprint CRUD and persistence under `sprintsStateV1`. **Do NOT dispatch `sprintToEdit`** — it calls `showModal()`. `SprintType` uses `startDate`/`endDate` (not `from`/`to`).
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I16.1 | Fresh store writes `{ sprintList: [], currID: 0 }` to localStorage | create store | key exists with empty list and zero count |
+| I16.2 | `addSprint` assigns `id = currID` before incrementing and persists | dispatch | `sprintList[0].id === 0`; `currID === 1` |
+| I16.3 | Two `addSprint` calls assign distinct IDs | dispatch twice | `sprintList[0].id !== sprintList[1].id` |
+| I16.4 | `deleteSprint(sprint)` removes the sprint and persists | add then delete | `sprintList` empty in state and localStorage |
+| I16.5 | `clearSprintStorage` removes the localStorage key | dispatch | `localStorage.getItem('sprintsStateV1') === null` |
+
+---
+
+## I17 — MockData → 6 convertToChartData functions
+**File**: `src/test/integration/plugins/mockDataToConverters.test.ts`
+**Sources**: MockData + 6 converter utilities
+
+Extends I7 to cover all six visualization plugin converters. Props are minimal stubs (split flags set to `false`, empty `authorList`).
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I17.1 | `builds/builds convertToChartData` returns `{ chartData, scale, palette }` with no NaN | MockData builds | all fields present; no NaN in `chartData` |
+| I17.2 | `commits/changes convertToChartData` returns same shape with no NaN | MockData commits | all fields present; no NaN |
+| I17.3 | `commits/fileChanges convertCommitDataToChangesChartData` returns `{ commitChartData, commitScale, commitPalette }` | MockData commits | all fields present; no NaN in `commitChartData` |
+| I17.4 | `issues/issues convertToChartData` returns correct shape with no NaN | MockData issues | all fields present; no NaN |
+| I17.5 | `issues/mergeRequests convertToChartData` returns correct shape with no NaN | MockData mergeRequests | all fields present; no NaN |
+| I17.6 | `authorBehaviour/timeSpent convertToChartData` returns correct shape with no NaN | MockData notes | all fields present; no NaN |
+
+---
+
+## I18 — issues/issues saga + MockData
+**File**: `src/test/integration/plugins/issuesSaga.test.ts`
+**Sources**: `src/plugins/visualizationPlugins/issues/issues/src/`, `src/plugins/dataPlugins/mockData/src/`
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I18.1 | Fresh store has `dataState: EMPTY` | create store | `plugin.dataState === DataState.EMPTY` |
+| I18.2 | `dataState` reaches `COMPLETE` after `setDateRange` | dispatch `setDateRange` | `dataState === DataState.COMPLETE` |
+| I18.3 | `issues` array is non-empty after saga | dispatch `setDateRange` | `issues.length > 0` |
+| I18.4 | Each issue has `iid`, `title`, and `state` fields | dispatch `setDateRange` | all issues have required fields |
+
+---
+
+## I19 — builds/builds saga + MockData
+**File**: `src/test/integration/plugins/buildsSaga.test.ts`
+**Sources**: `src/plugins/visualizationPlugins/builds/builds/src/`, `src/plugins/dataPlugins/mockData/src/`
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I19.1 | Fresh store has `dataState: EMPTY` | create store | `plugin.dataState === DataState.EMPTY` |
+| I19.2 | `dataState` reaches `COMPLETE` after `setDateRange` | dispatch `setDateRange` | `dataState === DataState.COMPLETE` |
+| I19.3 | `builds` array is non-empty after saga | dispatch `setDateRange` | `builds.length > 0` |
+| I19.4 | Each build has `id`, `status`, and `createdAt` fields | dispatch `setDateRange` | all builds have required fields |
+
+---
+
+## I20 — authorBehaviour/collaboration saga + MockData
+**File**: `src/test/integration/plugins/collaborationSaga.test.ts`
+**Sources**: `src/plugins/visualizationPlugins/authorBehaviour/collaboration/src/`, `src/plugins/dataPlugins/mockData/src/`
+
+The collaboration saga selects via `yield select((root) => root.plugin)` — store registered under key `'plugin'`.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I20.1 | Fresh store has `dataState: EMPTY` | create store | `plugin.dataState === DataState.EMPTY` |
+| I20.2 | `dataState` reaches `COMPLETE` after `setDateRange` | dispatch `setDateRange` | `dataState === DataState.COMPLETE` |
+| I20.3 | `accounts` array is non-empty after saga | dispatch `setDateRange` | `accounts.length > 0` |
+| I20.4 | Each account has `id` and `issues` fields | dispatch `setDateRange` | all accounts have required fields |
+
+---
+
+## I21 — authorBehaviour/timeSpent saga + MockData
+**File**: `src/test/integration/plugins/timeSpentSaga.test.ts`
+**Sources**: `src/plugins/visualizationPlugins/authorBehaviour/timeSpent/src/`, `src/plugins/dataPlugins/mockData/src/`
+
+The timeSpent saga uses a bare `yield select()` — the store must use `reducer: timeSpentReducer` directly (no `plugin` wrapper). State is accessed as `store.getState().dataState`. `DataPluginNote` has no `id` field.
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| I21.1 | Fresh store has `dataState: EMPTY` | create store | `store.getState().dataState === DataState.EMPTY` |
+| I21.2 | `dataState` reaches `COMPLETE` after `setDateRange` | dispatch `setDateRange` | `dataState === DataState.COMPLETE` |
+| I21.3 | `notes` array is non-empty after saga | dispatch `setDateRange` | `notes.length > 0` |
+| I21.4 | Each note has `body`, `createdAt`, and `author` fields | dispatch `setDateRange` | all notes have required fields (no `id` on `DataPluginNote`) |
+
+---
+
+## Integration test file locations
+
+```
+src/test/integration/
+├── helpers.ts                                (shared utilities)
+├── redux/
+│   ├── storeWithActionsMiddleware.test.ts    (I1)
+│   ├── settingsLocalStorage.test.ts          (I2)
+│   ├── dashboardStateGrid.test.ts            (I3)
+│   ├── tabsLocalStorage.test.ts              (I4)
+│   ├── refreshMiddleware.test.ts             (I5)
+│   ├── parametersLocalStorage.test.ts        (I11)
+│   ├── layoutLocalStorage.test.ts            (I12)
+│   ├── inMemoryReducers.test.ts              (I13)
+│   ├── authorsLocalStorage.test.ts           (I14)
+│   ├── accountsLocalStorage.test.ts          (I15)
+│   └── sprintsLocalStorage.test.ts           (I16)
+└── plugins/
+    ├── commitChangesSaga.test.ts             (I6)
+    ├── mockDataToDataConverter.test.ts       (I7)
+    ├── pouchDbCollections.test.ts            (I8)
+    ├── databaseLoaders.test.ts               (I9)
+    ├── offlineCommitChangesSaga.test.ts      (I10)
+    ├── mockDataToConverters.test.ts          (I17)
+    ├── issuesSaga.test.ts                    (I18)
+    ├── buildsSaga.test.ts                    (I19)
+    ├── collaborationSaga.test.ts             (I20)
+    └── timeSpentSaga.test.ts                 (I21)
+```
