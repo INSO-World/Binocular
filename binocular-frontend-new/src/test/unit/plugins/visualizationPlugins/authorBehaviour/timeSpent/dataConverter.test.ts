@@ -107,4 +107,29 @@ describe('convertToChartData (timeSpent)', () => {
     const result = convertToChartData([note], makeProps(settings));
     expect(result.scale[1]).toBeGreaterThanOrEqual(0);
   });
+
+  it('U37.6 splitSpentRemoved:true, splitTimePerIssue:false → palette keys contain "(Spent)" and "(Removed)"', () => {
+    const settings: TimeSpentSettings = { ...defaultSettings, splitSpentRemoved: true, splitTimePerIssue: false };
+    const author = makeAuthor('u1', 'Alice');
+    const note = makeNote('added 2h of time spent at 2023-06-15');
+    const result = convertToChartData([note], makeProps(settings, [author]));
+    expect(Object.keys(result.palette).some((k) => k.startsWith('(Spent)'))).toBe(true);
+    expect(Object.keys(result.palette).some((k) => k.startsWith('(Removed)'))).toBe(true);
+  });
+
+  it('U37.7 breakdown:true, splitSpentRemoved:false, splitTimePerIssue:false → palette keys contain "(Total)"', () => {
+    const settings: TimeSpentSettings = { ...defaultSettings, breakdown: true, splitSpentRemoved: false, splitTimePerIssue: false };
+    const author = makeAuthor('u1', 'Alice');
+    const note = makeNote('added 2h of time spent at 2023-06-15');
+    const result = convertToChartData([note], makeProps(settings, [author]));
+    expect(Object.keys(result.palette).some((k) => k.startsWith('(Total)'))).toBe(true);
+  });
+
+  it('U37.8 splitSpentRemoved:true, splitTimePerIssue:true → palette keys contain "(Spent)" and "(Removed)" for issue', () => {
+    const settings: TimeSpentSettings = { ...defaultSettings, splitSpentRemoved: true, splitTimePerIssue: true };
+    const note = makeNote('added 2h of time spent at 2023-06-15', 'issue-1', 1, 'My Issue');
+    const result = convertToChartData([note], makeProps(settings));
+    expect(Object.keys(result.palette).some((k) => k.startsWith('(Spent)'))).toBe(true);
+    expect(Object.keys(result.palette).some((k) => k.startsWith('(Removed)'))).toBe(true);
+  });
 });

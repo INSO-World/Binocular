@@ -29,6 +29,16 @@ const defaultSettings: MergeRequestsSettings = {
   showSprints: false,
 };
 
+function makeAuthorMR(userId: string, signature: string): AuthorType {
+  return {
+    id: 1,
+    parent: -1,
+    selected: true,
+    color: { main: '#ff0000', secondary: '#ff000055' },
+    user: { id: userId, gitSignature: signature, account: null },
+  };
+}
+
 function makeMR(overrides: Partial<DataPluginMergeRequest> = {}): DataPluginMergeRequest {
   return {
     id: 'mr1',
@@ -93,5 +103,32 @@ describe('convertToChartData (mergeRequests)', () => {
     const mr = makeMR({ createdAt: '2023-06-15T00:00:00Z', closedAt: null });
     const result = convertToChartData([mr], makeProps(defaultSettings));
     expect(result.scale[1]).toBeGreaterThan(0);
+  });
+
+  it('U34.6 splitMergeRequestsPerAuthor:true → palette keys include "Opened Merge Requests {name}"', () => {
+    const settings: MergeRequestsSettings = { ...defaultSettings, splitMergeRequestsPerAuthor: true };
+    const author = makeAuthorMR('u1', 'Alice');
+    const mr = makeMR({ createdAt: '2023-06-15T00:00:00Z' });
+    const result = convertToChartData([mr], makeProps(settings, [author]));
+    expect(Object.keys(result.palette)).toContain('Opened Merge Requests Alice');
+    expect(Object.keys(result.palette)).toContain('Merged Merge Requests Alice');
+    expect(Object.keys(result.palette)).toContain('Closed Merge Requests Alice');
+  });
+
+  it('U34.7 splitMergeRequestsPerAuthor:true → palette does NOT contain bare "Opened" key', () => {
+    const settings: MergeRequestsSettings = { ...defaultSettings, splitMergeRequestsPerAuthor: true };
+    const author = makeAuthorMR('u1', 'Alice');
+    const mr = makeMR({ createdAt: '2023-06-15T00:00:00Z' });
+    const result = convertToChartData([mr], makeProps(settings, [author]));
+    expect(Object.keys(result.palette)).not.toContain('Opened');
+  });
+
+  it('U34.8 splitMergeRequestsPerAuthor:true, breakdown:true → palette key is "Open Merge Requests {name}"', () => {
+    const settings: MergeRequestsSettings = { ...defaultSettings, splitMergeRequestsPerAuthor: true, breakdown: true };
+    const author = makeAuthorMR('u1', 'Alice');
+    const mr = makeMR({ createdAt: '2023-06-15T00:00:00Z' });
+    const result = convertToChartData([mr], makeProps(settings, [author]));
+    expect(Object.keys(result.palette)).toContain('Open Merge Requests Alice');
+    expect(Object.keys(result.palette)).not.toContain('Opened Merge Requests Alice');
   });
 });

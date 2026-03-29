@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { convertCommitDataToMetrics } from '../../../../../../plugins/visualizationPlugins/commits/fileChanges/src/utilities/dataConverter';
+import {
+  convertCommitDataToMetrics,
+  convertCommitDataToChangesChartData,
+} from '../../../../../../plugins/visualizationPlugins/commits/fileChanges/src/utilities/dataConverter';
 import type { DataPluginCommit } from '../../../../../../plugins/interfaces/dataPluginInterfaces/dataPluginCommits';
+import type { AuthorType } from '../../../../../../types/data/authorType';
 
 const FIRST = '2023-01-01T00:00:00Z';
 const LAST = '2023-12-31T23:59:59Z';
@@ -25,6 +29,44 @@ function makeCommit(date: string, filePaths: string[] = []): DataPluginCommit {
     },
   };
 }
+
+function makeAuthorFC(userId: string, signature: string): AuthorType {
+  return {
+    id: 1,
+    parent: -1,
+    selected: true,
+    color: { main: '#ff0000', secondary: '#ff000055' },
+    user: { id: userId, gitSignature: signature, account: null },
+  };
+}
+
+function makeCommitWithChanges(date: string, userId: string, additions: number, deletions: number): DataPluginCommit {
+  return {
+    sha: date,
+    shortSha: date.slice(0, 7),
+    messageHeader: 'commit',
+    message: 'commit',
+    user: { id: userId, gitSignature: userId, account: null },
+    branch: 'main',
+    date,
+    parents: [],
+    webUrl: '',
+    stats: { additions, deletions },
+    files: {
+      data: [
+        {
+          file: { path: 'a.ts', webUrl: '', maxLength: 0 },
+          hunks: [{ oldStart: 0, oldLines: deletions, newStart: 0, newLines: additions }],
+        },
+      ],
+    },
+  };
+}
+
+const defaultParams = {
+  parametersGeneral: { granularity: 'months', excludeMergeCommits: false },
+  parametersDateRange: { from: '', to: '' },
+};
 
 describe('convertCommitDataToMetrics', () => {
   it('U2.1 returns all zeros for an empty commits array', () => {
@@ -100,5 +142,44 @@ describe('convertCommitDataToMetrics', () => {
     const commits = [makeCommit('2023-06-01T10:00:00Z'), makeCommit('2023-06-01T10:30:00Z')];
     const { maxBurst } = convertCommitDataToMetrics(commits, FIRST, LAST, 1000 * 60 * 60 * 24, 3);
     expect(maxBurst).toBe(0);
+  });
+});
+
+describe('convertCommitDataToChangesChartData', () => {
+  it('U2.12 returns empty result for empty commits array', () => {
+    const result = convertCommitDataToChangesChartData([], [], false, defaultParams);
+    expect(result.commitChartData).toEqual([]);
+    expect(result.commitPalette).toEqual({});
+    expect(result.commitScale).toEqual([]);
+  });
+
+  it('U2.13 splitAdditionsDeletions=false → palette key is author signature, not (Additions)', () => {
+    const author = makeAuthorFC('u1', 'Alice');
+    const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 3, 2);
+    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams);
+    expect(Object.keys(result.commitPalette)).toContain('Alice');
+    expect(Object.keys(result.commitPalette).some((k) => k.startsWith('(Additions)'))).toBe(false);
+  });
+
+  it('U2.14 splitAdditionsDeletions=true → palette keys contain "(Additions)" and "(Deletions)"', () => {
+    const author = makeAuthorFC('u1', 'Alice');
+    const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 3, 2);
+    const result = convertCommitDataToChangesChartData([commit], [author], true, defaultParams);
+    expect(Object.keys(result.commitPalette)).toContain('(Additions) Alice');
+    expect(Object.keys(result.commitPalette)).toContain('(Deletions) Alice');
+  });
+
+  it('U2.15 commitScale[1] is positive when commits have additions', () => {
+    const author = makeAuthorFC('u1', 'Alice');
+    const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 5, 0);
+    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams);
+    expect(result.commitScale[1]).toBeGreaterThan(0);
+  });
+
+  it('U2.16 commitChartData has one or more time-bucket entries', () => {
+    const author = makeAuthorFC('u1', 'Alice');
+    const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 3, 2);
+    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams);
+    expect(result.commitChartData.length).toBeGreaterThan(0);
   });
 });
