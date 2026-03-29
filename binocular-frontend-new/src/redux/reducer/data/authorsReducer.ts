@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { AuthorType } from '../../../types/data/authorType.ts';
 import Config from '../../../config.ts';
 import type { AccountType } from '../../../types/data/accountType.ts';
+import { cloneDeep } from 'lodash';
 
 export interface AuthorsInitialState {
   authorLists: { [id: number]: AuthorType[] };
@@ -42,8 +43,9 @@ export const authorsSlice = createSlice({
         // add new authors that are not in the list
         action.payload.authors.forEach((author) => {
           if (!authorList.find((a: AuthorType) => a.user.id === author.user.id)) {
-            author.id = authorList.length + 1;
-            authorList.push(author);
+            const newAuthor = cloneDeep(author);
+            newAuthor.id = authorList.length + 1;
+            authorList.push(newAuthor);
           }
         });
       }

@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
 import type { AccountType } from '../../../types/data/accountType.ts';
+import { cloneDeep } from 'lodash';
 
 export interface AccountsInitialState {
   accountLists: { [id: number]: AccountType };
@@ -36,8 +37,9 @@ export const accountsSlice = createSlice({
         // add new accounts that are not in the list
         action.payload.accounts.forEach((account) => {
           if (!accountList.find((a: AccountType) => a.id === account.id)) {
-            account.localId = accountList.length + 1;
-            accountList.push(account);
+            const newAccount = cloneDeep(account);
+            newAccount.localId = accountList.length + 1;
+            accountList.push(newAccount);
           }
         });
       }

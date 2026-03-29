@@ -8,6 +8,6 @@
   ],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "target": "es2015"
+    "target": "ES2023"
   }
 }
