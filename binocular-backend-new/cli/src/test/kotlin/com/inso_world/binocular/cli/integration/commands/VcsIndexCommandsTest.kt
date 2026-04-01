@@ -62,7 +62,7 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         fun `index branch origin-feature-5`() {
             idxClient.commits(
                 repoPath = "../../",
-                branchName = "origin/feature/5",
+                branchName = "origin/not-merged/5",
                 "Binocular",
             )
         }
@@ -71,7 +71,7 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
         fun `index branch origin-feature-6`() {
             idxClient.commits(
                 repoPath = "../../",
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 "Binocular",
             )
         }
@@ -82,14 +82,14 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
             val path = "../../"
             idxClient.commits(
                 repoPath = path,
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 "Binocular",
             )
 //            assertThat(repoService.f?.commits).hasSize(207)
             assertDoesNotThrow {
                 idxClient.commits(
                     repoPath = path,
-                    branchName = "origin/feature/5",
+                    branchName = "origin/not-merged/5",
                     "Binocular",
                 )
             }
@@ -101,14 +101,14 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
             val path = "../../.git"
             idxClient.commits(
                 repoPath = path,
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 "Binocular",
             )
 //            assertThat(repoService.f?.commits).hasSize(207)
             assertDoesNotThrow {
                 idxClient.commits(
                     repoPath = path,
-                    branchName = "origin/feature/6",
+                    branchName = "origin/not-merged/6",
                     "Binocular",
                 )
             }
@@ -120,14 +120,14 @@ internal class VcsIndexCommandsTest() : BaseFixturesIntegrationTest() {
             val path = "../../.git"
             idxClient.commits(
                 repoPath = path,
-                branchName = "origin/feature/6",
+                branchName = "origin/not-merged/6",
                 "Binocular",
             )
 //            assertThat(repoService.findRepo(path)?.commits).hasSize(207)
             assertDoesNotThrow {
                 idxClient.commits(
                     repoPath = path,
-                    branchName = "origin/feature/9",
+                    branchName = "origin/not-merged/9",
                     "Binocular",
                 )
             }
