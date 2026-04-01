@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
+import jakarta.validation.Valid
 import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -26,17 +27,26 @@ internal class MergeRequestInfrastructurePortImpl(
     AbstractInfrastructurePort<MergeRequest, MergeRequestEntity, Long>(Long::class),
     MergeRequestInfrastructurePort {
 
-    override fun findAccountsByMergeRequestId(mergeRequestId: String): List<Account> =
-        linkDao.findAccountIdsByMergeRequestId(mergeRequestId).map { Account(id = it) }
+    override fun findAccountsByMergeRequestId(mergeRequestId: String): List<Account> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findAccountIdsByMergeRequestId(mergeRequestId).map { Account(id = it) }
 
-    override fun findMilestonesByMergeRequestId(mergeRequestId: String): List<Milestone> =
-        linkDao.findMilestoneIdsByMergeRequestId(mergeRequestId).map { Milestone(id = it) }
+    override fun findMilestonesByMergeRequestId(mergeRequestId: String): List<Milestone> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findMilestoneIdsByMergeRequestId(mergeRequestId).map { Milestone(id = it) }
 
-    override fun findNotesByMergeRequestId(mergeRequestId: String): List<Note> =
-        linkDao.findNoteIdsByMergeRequestId(mergeRequestId)
-            .mapNotNull { nid -> noteDao.findById(nid) }
+    override fun findNotesByMergeRequestId(mergeRequestId: String): List<Note> {
+        TODO("Not yet implemented")
+    }
+//        linkDao.findNoteIdsByMergeRequestId(mergeRequestId)
+//            .mapNotNull { nid -> noteDao.findById(nid) }
 
     override fun findById(id: String): MergeRequest? = mrDao.findById(id)
+    override fun findByIid(iid: MergeRequest.Id): @Valid MergeRequest? {
+        TODO("Not yet implemented")
+    }
 
     override fun create(value: MergeRequest): MergeRequest = mrDao.create(value)
 
@@ -56,8 +66,6 @@ internal class MergeRequestInfrastructurePortImpl(
     }
 
     override fun update(value: MergeRequest): MergeRequest = mrDao.update(value)
-
-    override fun updateAndFlush(value: MergeRequest): MergeRequest = update(value)
 
     override fun delete(value: MergeRequest) {
         value.id?.let { deleteById(it) }

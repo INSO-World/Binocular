@@ -1,3 +1,4 @@
+use crate::types::commit::GixCommit;
 use binocular_diff::{ChangeType, FileDiff, GitDiffOutcome};
 use gix::bstr::BString;
 use gix::ObjectId;
@@ -5,7 +6,7 @@ use gix::ObjectId;
 pub type GixDiffAlgorithm = gix::diff::blob::Algorithm;
 
 #[derive(Debug, uniffi::Enum)]
-pub enum BinocularChangeType {
+pub enum GixChangeType {
     Addition {
         location: BString,
     },
@@ -18,15 +19,15 @@ pub enum BinocularChangeType {
     Rewrite {
         source_location: BString,
         location: BString,
-        copy: bool
-    }
+        copy: bool,
+    },
 }
 
 #[derive(Debug, uniffi::Record)]
-pub struct BinocularFileDiff {
+pub struct GixFileDiff {
     pub insertions: u32,
     pub deletions: u32,
-    pub change: BinocularChangeType,
+    pub change: GixChangeType,
     pub old_file_content: Option<String>,
     pub new_file_content: Option<String>,
 }
@@ -39,59 +40,61 @@ pub enum GixDiffAlgorithm {
 }
 
 #[derive(Debug, uniffi::Record)]
-pub struct BinocularDiffVec {
-    pub files: Vec<BinocularFileDiff>,
-    pub commit: ObjectId,
-    pub parent: Option<ObjectId>,
-    pub committer: Option<crate::types::signature::BinocularSig>,
-    pub author: Option<crate::types::signature::BinocularSig>,
+pub struct GixDiff {
+    pub files: Vec<GixFileDiff>,
+    pub commit: GixCommit,
+    pub parent: Option<GixCommit>,
 }
 #[derive(Debug, uniffi::Record)]
-pub struct BinocularDiffStats {
+pub struct GixDiffStats {
     insertions: u32,
     deletions: u32,
     kind: String,
 }
 
 #[derive(Debug, uniffi::Record)]
-pub struct BinocularDiffInput {
+pub struct GixDiffInput {
     pub suspect: ObjectId,
     pub target: Option<ObjectId>,
 }
 
-impl From<GitDiffOutcome> for BinocularDiffVec {
+impl From<GitDiffOutcome> for GixDiff {
     fn from(value: GitDiffOutcome) -> Self {
         Self {
-            files: value.files.into_iter().map(BinocularFileDiff::from).collect(),
-            commit: value.commit,
-            parent: value.parent,
-            committer: value.committer,
-            author: value.author,
+            files: value.files.into_iter().map(GixFileDiff::from).collect(),
+            commit: GixCommit::from(value.commit),
+            parent: value.parent.map(GixCommit::from),
         }
     }
 }
 
-impl From<FileDiff> for BinocularFileDiff {
+impl From<FileDiff> for GixFileDiff {
     fn from(value: FileDiff) -> Self {
         Self {
             deletions: value.deletions,
             insertions: value.insertions,
-            change: BinocularChangeType::from(value.change),
+            change: GixChangeType::from(value.change),
             old_file_content: value.old_file_content,
             new_file_content: value.new_file_content,
         }
     }
 }
 
-impl From<ChangeType> for BinocularChangeType {
+impl From<ChangeType> for GixChangeType {
     fn from(v: ChangeType) -> Self {
         match v {
             ChangeType::Addition { location } => Self::Addition { location },
             ChangeType::Deletion { location } => Self::Deletion { location },
             ChangeType::Modification { location } => Self::Modification { location },
-            ChangeType::Rewrite { source_location, location, copy } =>
-                Self::Rewrite { source_location, location, copy },
+            ChangeType::Rewrite {
+                source_location,
+                location,
+                copy,
+            } => Self::Rewrite {
+                source_location,
+                location,
+                copy,
+            },
         }
     }
 }
-

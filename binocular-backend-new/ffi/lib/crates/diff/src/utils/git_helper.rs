@@ -83,7 +83,7 @@ fn gitoxide_diff_calculation(
                         };
                         let new_file_content = match prep.new.data {
                             Data::Missing => None,
-                            Data::Buffer { buf, is_derived, .. } => {
+                            Data::Buffer { buf, .. } => {
                                 String::from_utf8(buf.to_vec()).ok()       
                             }
                             Data::Binary { .. } => None

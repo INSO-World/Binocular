@@ -1,55 +1,45 @@
 package com.inso_world.binocular.cli.integration.utils
 
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.ffi.BinocularFfi
-import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.core.index.GitIndexer
+import com.inso_world.binocular.ffi.GixIndexer
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+import org.springframework.core.io.ClassPathResource
 import kotlin.io.path.Path
+
 
 internal data class RepositoryConfig(
     val repo: Repository,
-    val startCommit: String,
+    val startCommit: Commit,
     val hashes: List<Commit>,
     val project: Project,
 )
 
 internal fun setupRepoConfig(
+    indexer: GitIndexer,
     path: String,
     startSha: String? = "HEAD",
-    branch: Branch,
+    branchName: String,
     projectName: String,
 ): RepositoryConfig {
-    val ffi = BinocularFfi()
-    val repo = run {
-        val p = Path(path)
-        return@run ffi.findRepo(p)
-    }
-    require(repo.branches.add(branch))
-    val cmt = ffi.findCommit(repo, startSha ?: "HEAD")
-    val hashes = ffi.traverseBranch(repo,branch)
     val project =
         Project(
             name = projectName,
         )
-    project.repo = repo
-    repo.project = project
+    val repo = run {
+        val p = Path(path)
+        return@run indexer.findRepo(p, project)
+    }
+    val (branch, commits) = indexer.traverseBranch(repo, branchName)
+    val cmt = indexer.findCommit(repo, startSha ?: "HEAD")
     return RepositoryConfig(
         repo = repo,
         startCommit = cmt,
-        hashes = hashes,
+        hashes = commits,
         project = project,
     )
 }
-
-@Deprecated("legacy")
-internal fun generateCommits(
-    svc: RepositoryService,
-    repoConfig: RepositoryConfig,
-    concreteRepo: Repository,
-): List<Commit> =
-    svc.transformCommits(
-        concreteRepo,
-        repoConfig.hashes
-    ).toList()

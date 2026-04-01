@@ -17,9 +17,38 @@ env:
   WD: binocular-backend-new
 
 jobs:
+  lint: 
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup (cache/java/go-offline)
+        uses: ./.github/actions/java-maven-setup
+        with:
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          working-directory: ${{ env.WD }}
+          checkout-depth: 1
+
+      - name: Validate
+        run: mvn $MAVEN_CLI_OPTS ktlint:check
+
   # Merged: validate + compile-sources + compile-tests
   preflight:
     name: Preflight (validate + compile + test-compile)
+    # needs:
+    #   - lint
     strategy:
       fail-fast: true
       matrix:
@@ -87,15 +116,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Psql
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,gix,sql,postgres -Psql
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,gix,sql,postgres -Psql
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
         if: always()
@@ -146,18 +175,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mvn clean install -DskipTests --pl ${{ matrix.module }} --am -Parangodb
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
           ARANGODB_HOST=localhost \
-          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }} -Dspring.profiles.active=test,nosql,arangodb -Parangodb
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
         run: |
           ARANGODB_HOST=localhost \
-          mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am -Dspring.profiles.active=test,nosql,arangodb -Parangodb
+          mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
         if: always()
@@ -269,6 +298,11 @@ jobs:
       - name: Surefire report for module ${{ matrix.MODULE.name }}
         if: always()
         run: |
+          # 1. Sanitize the name: replace / with -
+          SAFE_NAME=$(echo "${{ matrix.MODULE.name }}" | tr '/' '-')
+          echo "SAFE_MODULE_NAME=$SAFE_NAME" >> $GITHUB_ENV
+
+          # 2. Run your existing command
           CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.MODULE.name }} -am"
           if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
             CMD="$CMD -Dspring.profiles.active=${{matrix.MODULE.springProfile}}"
@@ -280,5 +314,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.MODULE.name }}-${{ matrix.MODULE.springProfile }}-report
+          # Use the environment variable created above
+          name: ${{ env.SAFE_MODULE_NAME }}-${{ matrix.MODULE.springProfile }}-report
           path: ${{ env.WD }}/${{ matrix.MODULE.name }}/target/reports/

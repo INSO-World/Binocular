@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.test.repository.base
 
-import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Repository
 import org.junit.jupiter.api.BeforeEach
 
@@ -14,7 +13,7 @@ internal class BasePortOctoDataTest : BasePortWithDataTest() {
             prepare(
                 "${FIXTURES_PATH}/${OCTO_REPO}",
                 projectName = OCTO_PROJECT_NAME,
-                branch = Branch(name = "master")
+                branchName = "master"
             ).repo
         ) {
             "${FIXTURES_PATH}/${OCTO_REPO} repository cannot be null"

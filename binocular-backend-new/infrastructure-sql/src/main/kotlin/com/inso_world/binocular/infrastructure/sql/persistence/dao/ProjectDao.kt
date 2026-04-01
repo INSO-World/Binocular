@@ -3,9 +3,11 @@ package com.inso_world.binocular.infrastructure.sql.persistence.dao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.ProjectRepository
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Repository
+import kotlin.uuid.ExperimentalUuidApi
 
 @Repository
 internal class ProjectDao(
@@ -19,6 +21,9 @@ internal class ProjectDao(
     }
 
     override fun findByName(name: String): ProjectEntity? = repo.findByName(name)
+
+    @OptIn(ExperimentalUuidApi::class)
+    override fun findByIid(iid: Project.Id): ProjectEntity? = repo.findByIid(iid.value)
 
 //    @Transactional
 //    override fun delete(entity: ProjectEntity) {

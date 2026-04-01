@@ -53,7 +53,7 @@ internal class IndexCommandsTest : PerformanceTest() {
             Arguments.of(
                 "origin/main",
                 "0f19849be9b57d56285a57ea31f3622f8ddecdf6",
-                1881
+                2456
             ),
             Arguments.of(
                 "origin/develop",

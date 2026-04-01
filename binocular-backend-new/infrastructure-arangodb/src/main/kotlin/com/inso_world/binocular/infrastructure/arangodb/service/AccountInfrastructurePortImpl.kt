@@ -11,6 +11,8 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
+import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import com.inso_world.binocular.model.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,7 +21,15 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class AccountInfrastructurePortImpl : AccountInfrastructurePort {
+internal class AccountInfrastructurePortImpl :
+    AccountInfrastructurePort,
+    AbstractInfrastructurePort<Account, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = accountDao
+    }
+
     @Autowired
     private lateinit var accountDao: IAccountDao
 
@@ -45,6 +55,10 @@ class AccountInfrastructurePortImpl : AccountInfrastructurePort {
     override fun findById(id: String): Account? {
         logger.trace("Getting account by id: $id")
         return accountDao.findById(id)
+    }
+
+    override fun findByIid(iid: Account.Id): @Valid Account? {
+        TODO("Not yet implemented")
     }
 
     override fun findIssuesByAccountId(accountId: String): List<Issue> {
@@ -83,8 +97,6 @@ class AccountInfrastructurePortImpl : AccountInfrastructurePort {
     }
 
     override fun update(entity: Account): Account = this.accountDao.update(entity)
-
-    override fun updateAndFlush(entity: Account): Account = this.accountDao.updateAndFlush(entity)
 
     override fun deleteById(id: String) {
         TODO("Not yet implemented")

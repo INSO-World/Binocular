@@ -8,8 +8,16 @@ import org.springframework.data.domain.Pageable
 /**
  * Interface for BuildService.
  * Provides methods to retrieve builds and their related entities.
+ *
+ * @deprecated Use [RepositoryInfrastructurePort] instead. Build is part of the Repository aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface BuildInfrastructurePort : BinocularInfrastructurePort<Build> {
+@Deprecated(
+    message = "Use RepositoryInfrastructurePort instead. Build is part of the Repository aggregate.",
+    replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface BuildInfrastructurePort : BinocularInfrastructurePort<Build, Build.Id> {
     /**
      * Find all builds with pagination and timestamp filter.
      *

@@ -10,6 +10,8 @@ import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
+import jakarta.annotation.PostConstruct
+import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +23,13 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort {
+internal class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort,
+    AbstractInfrastructurePort<MergeRequest, String>() {
+
+    @PostConstruct
+    fun init() {
+        super.dao = mergeRequestDao
+    }
     @Autowired private lateinit var mergeRequestDao: IMergeRequestDao
 
     @Autowired private lateinit var mergeRequestAccountConnectionRepository: IMergeRequestAccountConnectionDao
@@ -44,6 +52,10 @@ class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort {
     override fun findById(id: String): MergeRequest? {
         logger.trace("Getting merge request by id: $id")
         return mergeRequestDao.findById(id)
+    }
+
+    override fun findByIid(iid: MergeRequest.Id): @Valid MergeRequest? {
+        TODO("Not yet implemented")
     }
 
     override fun findAccountsByMergeRequestId(mergeRequestId: String): List<Account> {
@@ -70,10 +82,6 @@ class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePort {
     override fun delete(entity: MergeRequest) = this.mergeRequestDao.delete(entity)
 
     override fun update(entity: MergeRequest): MergeRequest {
-        TODO("Not yet implemented")
-    }
-
-    override fun updateAndFlush(entity: MergeRequest): MergeRequest {
         TODO("Not yet implemented")
     }
 

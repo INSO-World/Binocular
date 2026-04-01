@@ -3,15 +3,20 @@ package com.inso_world.binocular.infrastructure.sql
 import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
+import com.inso_world.binocular.infrastructure.sql.integration.service.base.deleteAllEntities
 import com.inso_world.binocular.infrastructure.sql.service.BranchInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.ProjectInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.RepositoryInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.UserInfrastructurePortImpl
+import jakarta.persistence.EntityManager
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.transaction.support.TransactionTemplate
 
 @Component
 internal class SqlInfrastructureDataSetup(
+    private val entityManager: EntityManager,
     private val projectInfrastructurePort: ProjectInfrastructurePortImpl,
     private val commitInfrastructurePort: CommitInfrastructurePortImpl,
     private val repositoryInfrastructurePort: RepositoryInfrastructurePortImpl,
@@ -27,7 +32,11 @@ internal class SqlInfrastructureDataSetup(
 //    private val milestoneRepository: MilestoneInfrastructurePort,
 ) : InfrastructureDataSetup {
 
+    @Autowired
+    private lateinit var transactionTemplate: TransactionTemplate
+
     private lateinit var mockTestData: MockTestDataProvider
+
     companion object {
         private val logger by logger()
     }
@@ -35,12 +44,6 @@ internal class SqlInfrastructureDataSetup(
     override fun setup() {
         logger.info(">>> SqlInfrastructureDataSetup setup")
         this.mockTestData = MockTestDataProvider()
-
-        try { commitInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown commit failed: ${'$'}{ex.message}") }
-        try { userPort.deleteAll() } catch (ex: Exception) { logger.warn("teardown user failed: ${'$'}{ex.message}") }
-        try { branchInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown branch failed: ${'$'}{ex.message}") }
-        try { repositoryInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown repo failed: ${'$'}{ex.message}") }
-        try { projectInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown project failed: ${'$'}{ex.message}") }
 
         projectInfrastructurePort.saveAll(mockTestData.testProjects)
 //        repositoryInfrastructurePort.saveAll(mockTestData.testRepositories)
@@ -53,11 +56,15 @@ internal class SqlInfrastructureDataSetup(
     override fun teardown() {
         logger.info(">>> SqlInfrastructureDataSetup teardown")
 
-        try { commitInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown commit failed: ${'$'}{ex.message}") }
-        try { userPort.deleteAll() } catch (ex: Exception) { logger.warn("teardown user failed: ${'$'}{ex.message}") }
-        try { branchInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown branch failed: ${'$'}{ex.message}") }
-        try { repositoryInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown repo failed: ${'$'}{ex.message}") }
-        try { projectInfrastructurePort.deleteAll() } catch (ex: Exception) { logger.warn("teardown project failed: ${'$'}{ex.message}") }
+        transactionTemplate.execute {
+            projectInfrastructurePort.deleteAllEntities()
+            repositoryInfrastructurePort.deleteAllEntities()
+//        branchInfrastructurePort.deleteAll()
+//        commitInfrastructurePort.deleteAll()
+//        userPort.deleteAll()
+            entityManager.flush()
+        }
+
 
         logger.info("<<< SqlInfrastructureDataSetup teardown")
     }
