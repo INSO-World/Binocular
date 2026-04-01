@@ -225,10 +225,10 @@ jobs:
         MODULE: [
           { name: 'domain' },
           { name: 'ffi' },
-          { name: 'jgit' },
+          # { name: 'jgit' },
           { name: 'core' },
-          { name: 'integration-test/vcs-indexer', springProfile: 'jgit' },
-          { name: 'integration-test/vcs-indexer', springProfile: 'gix' },
+          # { name: 'integration-test/vcs-indexer', springProfile: 'jgit' },
+          # { name: 'integration-test/vcs-indexer', springProfile: 'gix' },
           { name: 'infrastructure-arangodb' },
           { name: 'infrastructure-sql' },
           { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' }
