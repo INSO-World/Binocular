@@ -51,8 +51,12 @@
         <kotlin.version>2.2.20</kotlin.version>
         <junit.version>5.13.1</junit.version>
         <mockk.version>1.14.4</mockk.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <!--        force set version of nested testcontainers to avoid docker bug:  -->
+        <!--        https://github.com/testcontainers/testcontainers-java/issues/11212-->
+        <testcontainers.version>2.0.2</testcontainers.version>
+        <sql-testcontainers.version>2.0.2</sql-testcontainers.version>
         <arangodb-testcontainer.version>4.0.0</arangodb-testcontainer.version>
+        <pitest.version>1.21.0</pitest.version>
     </properties>
     <modules>
         <module>domain</module>
@@ -63,7 +67,10 @@
         <module>infrastructure-test</module>
         <module>cli</module>
         <module>web</module>
+        <module>jgit</module>
+        <module>integration-test/vcs-indexer</module>
     </modules>
+
     <dependencyManagement>
         <!--
             Dependency management is a mechanism for centralizing the dependency information
@@ -138,9 +145,15 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>com.github.goodforgod</groupId>
+                <artifactId>arangodb-testcontainer</artifactId>
+                <version>${arangodb-testcontainer.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.testcontainers</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${testcontainers.version}</version>
+                <artifactId>testcontainers-postgresql</artifactId>
+                <version>${sql-testcontainers.version}</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -185,8 +198,45 @@
                     <artifactId>kotlin-maven-plugin</artifactId>
                     <version>${kotlin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-maven</artifactId>
+                    <version>${pitest.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.pitest</groupId>
+                            <artifactId>pitest-junit5-plugin</artifactId>
+                            <version>1.2.3</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <excludedMethods>
+                            <param>toString</param>
+                            <param>getLogger</param>
+                        </excludedMethods>
+                        <avoidCallsTo>
+                            <avoidCallsTo>kotlin.jvm.internal</avoidCallsTo>
+                            <avoidCallsTo>com.inso_world.binocular.core.delegates.logger</avoidCallsTo>
+                            <avoidCallsTo>org.slf4j</avoidCallsTo>
+                        </avoidCallsTo>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.gantsign.maven</groupId>
+                    <artifactId>ktlint-maven-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+
+        <!-- To use the plugin goals in your POM or parent POM -->
+        <plugins>
+            <plugin>
+                <groupId>com.github.gantsign.maven</groupId>
+                <artifactId>ktlint-maven-plugin</artifactId>
+                <version>3.5.0</version>
+            </plugin>
+        </plugins>
     </build>
 
     <reporting>
@@ -198,6 +248,11 @@
                 <configuration>
                     <aggregate>true</aggregate>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.gantsign.maven</groupId>
+                <artifactId>ktlint-maven-plugin</artifactId>
+                <version>3.5.0</version>
             </plugin>
         </plugins>
     </reporting>

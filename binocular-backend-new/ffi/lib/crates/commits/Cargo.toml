@@ -18,6 +18,8 @@ doctest = false
 [dependencies]
 base64 = "0.22.1"
 gix = { workspace = true, default-features = true, features = ["mailmap", "max-performance"] }
+gix-object = "0.52.0"
 log = { workspace = true }
 anyhow = { workspace = true }
+thiserror = { workspace = true }
 shared = { path = "../shared" }

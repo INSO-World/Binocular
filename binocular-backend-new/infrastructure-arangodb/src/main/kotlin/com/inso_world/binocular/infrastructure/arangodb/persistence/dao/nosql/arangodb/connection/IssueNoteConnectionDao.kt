@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository
  */
 
 @Repository
-class IssueNoteConnectionDao
+internal class IssueNoteConnectionDao
     @Autowired
     constructor(
         private val repository: IssueNoteConnectionRepository,

@@ -16,7 +16,7 @@ import org.springframework.test.context.ContextConfiguration
 @ContextConfiguration(initializers = [ArangodbTestConfig.Initializer::class])
 @Import(ArangodbAppConfig::class)
 class ArangodbTestConfig {
-    companion object Companion {
+    companion object {
         val adbContainer =
             ArangoContainer("arangodb:3.12")
                 .apply { withExposedPorts(8529) }
@@ -29,11 +29,12 @@ class ArangodbTestConfig {
             if (!ctx.environment.acceptsProfiles(Profiles.of("arangodb"))) return
             adbContainer.start()
 
-            TestPropertyValues.of(
-                "binocular.database.database_name=infrastructure_arangodb_it",
-                "binocular.database.host=${adbContainer.host}",
-                "binocular.database.port=${adbContainer.firstMappedPort}"
-            ).applyTo(ctx.environment)
+            TestPropertyValues
+                .of(
+                    "binocular.arangodb.database.name=infrastructure_arangodb_it",
+                    "binocular.arangodb.database.host=${adbContainer.host}",
+                    "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
+                ).applyTo(ctx.environment)
         }
     }
 }

@@ -1,27 +1,23 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.UserInfrastructurePort
-import com.inso_world.binocular.core.service.exception.NotFoundException
-import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.UserMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
-import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IUserDao
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IDeveloperDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,35 +30,31 @@ import org.springframework.validation.annotation.Validated
 @Service
 @Validated
 internal class UserInfrastructurePortImpl(
-    @Autowired private val userDao: IUserDao,
+    @Autowired private val developerDao: IDeveloperDao,
     @Autowired private val repositoryDao: RepositoryDao,
-    @Autowired private var userMapper: UserMapper,
-    @Autowired private var commitMapper: CommitMapper,
-) : AbstractInfrastructurePort<User, UserEntity, Long>(Long::class),
+    @Autowired private var repositoryMapper: RepositoryMapper,
+    @Autowired private var projectMapper: ProjectMapper,
+    @Autowired private var repositoryAssembler: RepositoryAssembler,
+) : AbstractInfrastructurePort<User, DeveloperEntity, Long>(Long::class),
     UserInfrastructurePort {
-    var logger: Logger = LoggerFactory.getLogger(UserInfrastructurePortImpl::class.java)
-
-    @Autowired
-    @Lazy
-    private lateinit var repositoryMapper: RepositoryMapper
-
-    @Autowired
-    @Lazy
-    private lateinit var projectMapper: ProjectMapper
+    companion object {
+        val logger by logger()
+    }
 
     @PostConstruct
     fun init() {
-        super.dao = userDao
+        super.dao = developerDao
     }
 
     @MappingSession
     @Transactional(readOnly = true)
     override fun findById(id: String): User? {
-        val entity = userDao.findById(id.toLong()) ?: return null
-        val repoEntity = entity.repository ?: return null
-        val project = projectMapper.toDomain(repoEntity.project)
-        val repository = repositoryMapper.toDomain(repoEntity, project)
-        return userMapper.toDomainFull(entity, repository)
+        logger.trace("Finding user with id: $id")
+        return this.developerDao.findById(id.toLong())?.toLegacyUser()
+    }
+
+    override fun findByIid(iid: User.Id): @Valid User? {
+        TODO("Not yet implemented")
     }
 
     override fun findCommitsByUserId(userId: String): List<Commit> {
@@ -77,103 +69,40 @@ internal class UserInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
-    @MappingSession
-    @Transactional
     override fun update(value: User): User {
-        val id = value.id?.toLong() ?: throw NotFoundException("User id is required for update")
-        val managed = userDao.findById(id) ?: throw NotFoundException("User ${'$'}id not found")
-        managed.name = value.name
-        managed.email = value.email
-        userDao.update(managed)
-        userDao.flush()
-        val repoEntity = managed.repository ?: throw IllegalStateException("Repository cannot be null")
-        val project = projectMapper.toDomain(repoEntity.project)
-        val repository = repositoryMapper.toDomain(repoEntity, project)
-        return userMapper.toDomainFull(managed, repository)
+        throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
     }
 
-    @Transactional
-    override fun delete(value: User) {
-        value.id?.let { deleteById(it) }
-    }
 
-    @Transactional
-    override fun updateAndFlush(value: User): User = update(value)
-
-    @MappingSession
-    @Transactional
     override fun create(value: User): User {
-        val repo = value.repository ?: throw IllegalArgumentException("repository must not be null")
-        val repoId = repo.id?.toLong()
-        val repoEntity = when {
-            repoId != null -> repositoryDao.findById(repoId) ?: throw NotFoundException("Repository ${'$'}repoId not found")
-            else -> repositoryDao.findByName(repo.localPath) ?: throw NotFoundException("Repository ${'$'}{repo.localPath} not found")
-        }
-        val entity = userMapper.toEntity(value)
-        entity.repository = repoEntity
-        val created = userDao.create(entity)
-        userDao.flush()
-        val project = projectMapper.toDomain(repoEntity.project)
-        val repository = repositoryMapper.toDomain(repoEntity, project)
-        return userMapper.toDomainFull(created, repository)
+        throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
     }
 
-    @Transactional
-    override fun saveAll(values: Collection<User>): Iterable<User> = values.map { create(it) }
+    override fun saveAll(values: Collection<User>): Iterable<User> {
+        throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
+    }
 
     @MappingSession
     @Transactional(readOnly = true)
     override fun findAll(): Iterable<User> {
-        val context: MutableMap<Long, Repository> = mutableMapOf()
-        val projectContext = mutableMapOf<String, Project>()
-
-        return super<AbstractInfrastructurePort>.findAllEntities().map { u ->
-            val repoEntity = u.repository
-            if (repoEntity == null) {
-                throw IllegalStateException("Repository cannot be null")
-            }
-            val project =
-                projectContext.getOrPut(repoEntity.project.uniqueKey()) {
-                    projectMapper.toDomain(
-                        repoEntity.project,
-                    )
-                }
-
-            if (repoEntity.id == null) {
-                throw IllegalStateException("Id of repository cannot be null")
-            }
-
-            val repository =
-                context.getOrPut(repoEntity.id) {
-                    this.repositoryMapper.toDomain(repoEntity, project)
-                }
-            userMapper.toDomainFull(u, repository)
-        }
+        val developers = super<AbstractInfrastructurePort>.findAllEntities()
+        return developers.mapNotNull { it.toLegacyUser() }
     }
 
     @MappingSession
     override fun findAll(repository: Repository): Iterable<User> {
-        TODO()
-//        val repoEntity =
-//            this.repositoryDao.findByName(repository.localPath) ?: throw NotFoundException("Could not find repository $repository")
-//
-//        this.userDao
-//            .findAll(repoEntity)
-//            .map {
-//                userMapper.toDomain(it)
-//            }
+        return emptyList()
     }
 
     override fun findAll(pageable: Pageable): Page<User> {
         TODO("Not yet implemented")
     }
 
-    override fun deleteById(id: String) {
-        TODO("Not yet implemented")
-    }
-
-    @Transactional
-    override fun deleteAll() {
-        super.deleteAllEntities()
+    private fun DeveloperEntity.toLegacyUser(): User? {
+        val repositoryDomain = repositoryAssembler.toDomain(this.repository)
+        return User(name = this.name, repository = repositoryDomain).apply {
+            this.id = this@toLegacyUser.id?.toString()
+            this.email = this@toLegacyUser.email
+        }
     }
 }

@@ -11,8 +11,16 @@ import org.springframework.data.domain.Pageable
 /**
  * Interface for FileService.
  * Provides methods to retrieve files and their related entities.
+ *
+ * @deprecated Use [RepositoryInfrastructurePort] instead. File is part of the Repository aggregate
+ *             and should be accessed through its aggregate root.
  */
-interface FileInfrastructurePort : BinocularInfrastructurePort<File> {
+@Deprecated(
+    message = "Use RepositoryInfrastructurePort instead. File is part of the Repository aggregate.",
+    replaceWith = ReplaceWith("RepositoryInfrastructurePort"),
+    level = DeprecationLevel.WARNING
+)
+interface FileInfrastructurePort : BinocularInfrastructurePort<File, File.Id> {
     /**
      * Find branches by file ID.
      *

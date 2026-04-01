@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 @Repository
-class MilestoneDao
+internal class MilestoneDao
     @Autowired
     constructor(
         milestoneRepository: MilestoneRepository,
