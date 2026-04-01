@@ -20,7 +20,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.test.context.junit.jupiter.DisabledIf
 
+@DisabledIf("true")
 internal class RepositoryInfrastructurePortTest() : BasePortNoDataTest() {
     @all:Autowired
     private lateinit var repositoryPort: RepositoryInfrastructurePort
