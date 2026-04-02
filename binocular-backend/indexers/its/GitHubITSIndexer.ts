@@ -56,7 +56,10 @@ GitHubITSIndexer.prototype.index = async function () {
       let issueEntry: Entry<IssueDataType | MergeRequestDataType>;
 
       // create GitHub account objects for each relevant user (author, assignee, assignees)
-      const authorEntry: Entry<AccountDataType> = (await Account.ensureGitHubAccount(this.controller.getUser(issue.author.login)))[0];
+      // author can be null for deleted accounts or bot-created issues
+      const authorEntry: Entry<AccountDataType> | undefined = issue.author
+        ? (await Account.ensureGitHubAccount(this.controller.getUser(issue.author.login)))[0]
+        : undefined;
       const assigneeEntries: Entry<AccountDataType>[] = [];
       for (const a of issue.assignees.nodes) {
         assigneeEntries.push((await Account.ensureGitHubAccount(this.controller.getUser(a.login)))[0]);
@@ -159,10 +162,12 @@ const connectIssuesToUsers = async (
     AccountDataType
   >,
   issue: Entry<IssueDataType | MergeRequestDataType>,
-  author: Entry<AccountDataType>,
+  author: Entry<AccountDataType> | undefined,
   assignees: Entry<AccountDataType>[],
 ) => {
-  await conn.ensureWithData({ role: 'author' }, { from: issue, to: author });
+  if (author) {
+    await conn.ensureWithData({ role: 'author' }, { from: issue, to: author });
+  }
   if (assignees.length > 0) {
     await conn.ensureWithData({ role: 'assignee' }, { from: issue, to: assignees[0] });
   }
