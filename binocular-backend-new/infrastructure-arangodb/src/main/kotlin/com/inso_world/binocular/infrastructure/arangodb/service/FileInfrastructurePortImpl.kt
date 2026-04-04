@@ -87,6 +87,14 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
         return commitFileUserConnectionRepository.findUsersByFile(fileId)
     }
 
+    override fun findAllRevisions(pageable: Pageable): Page<com.inso_world.binocular.model.Revision> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findRevisionById(id: String): com.inso_world.binocular.model.Revision? {
+        TODO("Not yet implemented")
+    }
+
     override fun findByPath(path: String): File? {
         logger.trace("Finding file by path: $path")
         return fileDao.findByPath(path)

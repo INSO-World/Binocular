@@ -5,4 +5,5 @@ data class FileDto(
     var path: String? = null,
     var maxLength: Long? = null,
     var webUrl: String? = null,
+    var revisions: List<RevisionDto> = emptyList(),
 )

@@ -258,15 +258,6 @@ class CommitResolver(
     fun user(commit: CommitDto): UserDto? {
         val id = commit.id ?: return null
         logger.info("Resolving user for commit: $id")
-        commit.author.let {
-            logger.info("Commit $id user resolved to AUTHOR: id=${it.id}, sig=${it.gitSignature}")
-            return it.toLegacyUser()
-        }
-        // should always be author, committer is from the old graphql impl
-        commit.committer.let {
-            logger.info("Commit $id user resolved to COMMITTER: id=${it.id}, sig=${it.gitSignature}")
-            return it.toLegacyUser()
-        }
         val users = commitService.findUsersByCommitId(id)
         val selected = users.firstOrNull()
         return selected?.let { mapper.toDto(it) }

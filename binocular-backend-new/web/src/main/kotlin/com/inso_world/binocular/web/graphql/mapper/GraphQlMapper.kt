@@ -6,7 +6,7 @@ import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlBranchMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlBuildMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlCommitMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlFileMapper
-import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlFileStateMapper
+import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlRevisionMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlIssueMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlJobMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlMentionMapper
@@ -34,7 +34,7 @@ class GraphQlMapper(
     private val userMapper: GraphQlUserMapper,
     private val mentionMapper: GraphQlMentionMapper,
     private val jobMapper: GraphQlJobMapper,
-    private val fileStateMapper: GraphQlFileStateMapper,
+    private val revisionMapper: GraphQlRevisionMapper,
     private val statsMapper: GraphQlStatsMapper
 ) {
     fun toDto(account: Account): AccountDto = accountMapper.toDto(account)
@@ -50,6 +50,6 @@ class GraphQlMapper(
     fun toDto(user: User): UserDto = userMapper.toDto(user)
     fun toDto(mention: Mention): MentionDto = mentionMapper.toDto(mention)
     fun toDto(job: Job): JobDto = jobMapper.toDto(job)
-    fun toDto(fileState: FileState): FileStateDto = fileStateMapper.toDto(fileState)
+    fun toDto(revision: Revision): RevisionDto = revisionMapper.toDto(revision)
     fun toDto(stats: Stats): StatsDto = statsMapper.toDto(stats)
 }

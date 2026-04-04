@@ -11,7 +11,7 @@ class GraphQlIssueMapper(
     fun toDto(issue: Issue): IssueDto {
         return IssueDto(
             id = issue.id,
-            iid = issue.iid,
+            iid = issue.platformIid,
             title = issue.title,
             description = issue.description,
             createdAt = issue.createdAt,

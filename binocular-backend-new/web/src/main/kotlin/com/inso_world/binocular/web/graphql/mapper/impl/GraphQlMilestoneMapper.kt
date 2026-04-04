@@ -9,7 +9,7 @@ class GraphQlMilestoneMapper {
     fun toDto(milestone: Milestone): MilestoneDto {
         return MilestoneDto(
             id = milestone.id,
-            iid = milestone.iid,
+            iid = milestone.platformIid,
             title = milestone.title,
             description = milestone.description,
             state = milestone.state,
