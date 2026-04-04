@@ -23,6 +23,7 @@ scalar Sort
   modules(page: Int, perPage: Int, sort: Sort): PaginatedModule!
   notes(page: Int, perPage: Int, sort: Sort): PaginatedNote!
   users(page: Int, perPage: Int, sort: Sort): PaginatedUser!
+  revisions(page: Int, perPage: Int, sort: Sort): PaginatedRevision!
 
   # Single item queries
   commit(sha: String!): Commit
@@ -36,6 +37,7 @@ scalar Sort
   module(id: ID!): Module
   note(id: ID!): Note
   user(id: ID!): User
+  revision(id: ID!): Revision
 }
 
 """
@@ -155,6 +157,7 @@ type File {
   modules: [Module]
   relatedFiles: [File]
   users: [User]
+  revisions: [Revision]
 }
 
 type Issue {
@@ -425,4 +428,24 @@ type PaginatedNote {
   page: Int!
   perPage: Int!
   data: [Note]!
+}
+
+"""
+A paginated response for Revision objects
+"""
+type PaginatedRevision {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Revision]!
+}
+
+"""
+A single file revision
+"""
+type Revision {
+  id: ID
+  content: String
+  commit: Commit
+  file: File
 }

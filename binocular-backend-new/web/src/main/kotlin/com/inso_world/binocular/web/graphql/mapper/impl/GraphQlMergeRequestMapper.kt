@@ -11,7 +11,7 @@ class GraphQlMergeRequestMapper(
     fun toDto(mergeRequest: MergeRequest): MergeRequestDto {
         return MergeRequestDto(
             id = mergeRequest.id,
-            iid = mergeRequest.iid,
+            iid = mergeRequest.platformIid,
             title = mergeRequest.title,
             description = mergeRequest.description,
             createdAt = mergeRequest.createdAt,

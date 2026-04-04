@@ -124,4 +124,16 @@ class FileResolver(
         return fileService.findUsersByFileId(id).map { mapper.toDto(it) }
     }
 
+    /**
+     * Resolves the revisions field for a File in GraphQL.
+     *
+     * @param file The file for which to retrieve revisions
+     * @return A list of revisions associated with the file, or an empty list if the file ID is null
+     */
+    @SchemaMapping(typeName = "File", field = "revisions")
+    fun revisions(file: FileDto): List<RevisionDto> {
+        val id = file.id ?: return emptyList()
+        logger.info("Resolving revisions for file: $id")
+        return fileService.findById(id)?.revisions?.map { mapper.toDto(it) } ?: emptyList()
+    }
 }
