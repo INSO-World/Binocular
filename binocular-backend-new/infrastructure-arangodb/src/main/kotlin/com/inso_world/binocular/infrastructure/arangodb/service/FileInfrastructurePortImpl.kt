@@ -24,13 +24,14 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class FileInfrastructurePortImpl : FileInfrastructurePort,
-    AbstractInfrastructurePort<File, String>() {
-
+internal class FileInfrastructurePortImpl :
+    AbstractInfrastructurePort<File, String>(),
+    FileInfrastructurePort {
     @PostConstruct
     fun init() {
         super.dao = fileDao
     }
+
     @Autowired private lateinit var fileDao: IFileDao
 
     @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
@@ -98,6 +99,16 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
     override fun findUsersByFileId(fileId: String): List<User> {
         logger.trace("Getting users for file: $fileId")
         return commitFileUserConnectionRepository.findUsersByFile(fileId)
+    }
+
+    @MappingSession
+    override fun findAllRevisions(pageable: Pageable): Page<com.inso_world.binocular.model.Revision> {
+        TODO("Not yet implemented")
+    }
+
+    @MappingSession
+    override fun findRevisionById(id: String): com.inso_world.binocular.model.Revision? {
+        TODO("Not yet implemented")
     }
 
     @MappingSession

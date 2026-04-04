@@ -5,6 +5,7 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Module
+import com.inso_world.binocular.model.Revision
 import com.inso_world.binocular.model.User
 import org.springframework.data.domain.Pageable
 
@@ -73,4 +74,14 @@ interface FileInfrastructurePort : BinocularInfrastructurePort<File, File.Id> {
      * @return List of users associated with the file
      */
     fun findUsersByFileId(fileId: String): List<User>
+
+    /**
+     * Find all revisions with pagination.
+     */
+    fun findAllRevisions(pageable: Pageable): Page<Revision>
+
+    /**
+     * Find a revision by its ID.
+     */
+    fun findRevisionById(id: String): Revision?
 }

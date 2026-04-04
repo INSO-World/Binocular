@@ -12,6 +12,7 @@ import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.Revision
 import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlAccountMapper
@@ -19,7 +20,6 @@ import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlBranchMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlBuildMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlCommitMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlFileMapper
-// import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlFileStateMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlIssueMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlJobMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlMentionMapper
@@ -27,6 +27,7 @@ import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlMergeRequestMappe
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlMilestoneMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlModuleMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlNoteMapper
+import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlRevisionMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlStatsMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlUserMapper
 import com.inso_world.binocular.web.graphql.model.AccountDto
@@ -41,6 +42,7 @@ import com.inso_world.binocular.web.graphql.model.MergeRequestDto
 import com.inso_world.binocular.web.graphql.model.MilestoneDto
 import com.inso_world.binocular.web.graphql.model.ModuleDto
 import com.inso_world.binocular.web.graphql.model.NoteDto
+import com.inso_world.binocular.web.graphql.model.RevisionDto
 import com.inso_world.binocular.web.graphql.model.StatsDto
 import com.inso_world.binocular.web.graphql.model.UserDto
 import org.springframework.stereotype.Component
@@ -60,6 +62,7 @@ class GraphQlMapper(
     private val userMapper: GraphQlUserMapper,
     private val mentionMapper: GraphQlMentionMapper,
     private val jobMapper: GraphQlJobMapper,
+    private val revisionMapper: GraphQlRevisionMapper,
     private val statsMapper: GraphQlStatsMapper
 ) {
     fun toDto(account: Account): AccountDto = accountMapper.toDto(account)
@@ -87,6 +90,8 @@ class GraphQlMapper(
     fun toDto(mention: Mention): MentionDto = mentionMapper.toDto(mention)
 
     fun toDto(job: Job): JobDto = jobMapper.toDto(job)
+
+    fun toDto(revision: Revision): RevisionDto = revisionMapper.toDto(revision)
 
     fun toDto(stats: Stats): StatsDto = statsMapper.toDto(stats)
 }
