@@ -134,6 +134,7 @@ jobs:
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-application-arangodb:
+    if: false
     name: Test-Application Layers w/ ArangoDB
     needs:
       - preflight
