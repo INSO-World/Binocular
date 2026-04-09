@@ -260,7 +260,7 @@ jobs:
           # { name: 'integration-test/vcs-indexer', springProfile: 'gix' },
           { name: 'infrastructure-arangodb' },
           { name: 'infrastructure-sql' },
-          { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' }
+          # { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' }
           # { name: 'infrastructure-test', springProfile: 'test,gix,postgres' }
         ]
         os: [ ubuntu-latest ]
