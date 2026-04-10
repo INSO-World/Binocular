@@ -23,8 +23,8 @@ import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
 import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import { refreshFileList } from '../../tabs/fileTree/utils/fileListUtilities';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
-import { loadFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -124,7 +124,7 @@ const DashboardItem = memo(function DashboardItem(props: {
     if (props.item.dataPluginId !== undefined) {
       if (fileLists[props.item.dataPluginId] == undefined) {
         const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
-        loadFileList(dataPlugin, dispatch);
+        refreshFileList(dataPlugin, dispatch);
       }
       if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)) {
         setFiles(fileLists[props.item.dataPluginId]);
@@ -238,7 +238,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                     event.stopPropagation();
                     setPoppedOut(false);
                   }}>
-                  <div>Dispatch Popout</div>
+                  <div>Close Popout</div>
                 </button>
               </div>
               {dataPlugin && store ? (

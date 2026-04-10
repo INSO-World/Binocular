@@ -79,6 +79,7 @@ export default class Commits implements DataPluginCommits {
                     data {
                       file {
                         path
+                        webUrl
                       }
                       stats {
                         additions
@@ -119,6 +120,7 @@ export default class Commits implements DataPluginCommits {
                   data {
                     file {
                       path
+                      webUrl
                     }
                     action
                     ownership {
@@ -205,6 +207,7 @@ export default class Commits implements DataPluginCommits {
                       data {
                         file {
                           path
+                          webUrl
                         }
                         hunks {
                           newStart

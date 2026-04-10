@@ -25,7 +25,10 @@
   h3 {
     @apply mt-1;
     @apply text-lg;
-    @apply underline;
+    @apply font-bold;
+  }
+  h4{
+    @apply font-bold;
   }
   a {
     @apply text-accent;
