@@ -1,0 +1,4 @@
+the dump_old does no longer work due to changes in the domain model
+i started adjusting it into a new dump but there are still open things
+for example i get the exception "CommitEntity must have a repository"
+anyway this can only be resolved when the domain model is fully done
