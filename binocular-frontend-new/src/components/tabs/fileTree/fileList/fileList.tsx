@@ -2,15 +2,22 @@ import fileListStyles from './fileList.module.scss';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState, store as globalStore, useAppDispatch } from '../../../../redux';
 import { useEffect } from 'react';
-import { filterFileTree, loadFileList, refreshFileList } from './fileListUtilities/fileTreeUtilities.tsx';
-import FileListFolder from './fileListElements/fileListFolder.tsx';
+import { filterFileTree } from '../../../fileTree/utils/fileTreeUtilities';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
+import { type ContextMenuOption, showContextMenu } from '../../../contextMenu/contextMenuHelper';
+import infoIcon from '../../../../assets/info_gray.svg';
+import { FileTreeElementTypeType } from '../../../../types/data/fileListType';
+import openInNewIcon from '../../../../assets/open_in_new_gray.svg';
+import FileTreeFolder from '../../../fileTree/fileTreeElements/fileTreeFolder/fileTreeFolder';
 import {
   setFilesDataPluginId,
   checkAllFiles,
   uncheckAllFiles,
   switchAllFileSelection,
+  updateFileListElement,
+  showFileTreeElementInfo,
 } from '../../../../redux/reducer/data/filesReducer.ts';
+import { loadFileList, refreshFileList } from '../utils/fileListUtilities';
 
 function FileList(props: { orientation?: string; search: string }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -88,9 +95,53 @@ function FileList(props: { orientation?: string; search: string }) {
         <div>{fileCounts[filesDataPluginId !== undefined ? filesDataPluginId : -1]} Files indexed</div>
         <div>
           {fileTrees[filesDataPluginId !== undefined ? filesDataPluginId : -1] ? (
-            <FileListFolder
+            <FileTreeFolder
               folder={filterFileTree(fileTrees[filesDataPluginId !== undefined ? filesDataPluginId : -1], props.search)}
-              foldedOut={true}></FileListFolder>
+              foldedOut={true}
+              showSelect={true}
+              onElementClick={(element, foldOutState) => {
+                if (element.type === FileTreeElementTypeType.Folder && foldOutState !== undefined) {
+                  dispatch(updateFileListElement({ ...element, foldedOut: foldOutState }));
+                }
+                if (element.type === FileTreeElementTypeType.File) {
+                  showFileTreeElementInfo(element);
+                }
+              }}
+              onShowContextMenu={(e, element) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (element.type === FileTreeElementTypeType.Folder) {
+                  showContextMenu(e.clientX, e.clientY, [
+                    {
+                      label: 'info',
+                      icon: infoIcon,
+                      function: () => dispatch(showFileTreeElementInfo(element)),
+                    },
+                  ]);
+                }
+                if (element.type === FileTreeElementTypeType.File) {
+                  const contextMenuOptions: ContextMenuOption[] = [
+                    {
+                      label: 'info',
+                      icon: infoIcon,
+                      function: () => dispatch(showFileTreeElementInfo(element)),
+                    },
+                  ];
+
+                  if (element.element?.webUrl) {
+                    contextMenuOptions.push({
+                      label: 'open in browser',
+                      icon: openInNewIcon,
+                      function: () => window.open(element.element?.webUrl, '_blank'),
+                    });
+                  }
+
+                  showContextMenu(e.clientX, e.clientY, contextMenuOptions);
+                }
+              }}
+              onElementSelectionChange={(element, selectionState) => {
+                dispatch(updateFileListElement({ ...element, checked: selectionState, update: true }));
+              }}></FileTreeFolder>
           ) : (
             <span className="loading loading-spinner loading-xs text-accent"></span>
           )}

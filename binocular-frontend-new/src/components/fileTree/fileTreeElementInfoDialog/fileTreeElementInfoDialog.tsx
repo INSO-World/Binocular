@@ -1,13 +1,16 @@
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../../../redux';
-import { type FileTreeElementType, FileTreeElementTypeType } from '../../../../types/data/fileListType.ts';
-import FileListFolder from '../fileList/fileListElements/fileListFolder.tsx';
-import { filterFileTree } from '../fileList/fileListUtilities/fileTreeUtilities.tsx';
-import FileSearch from '../fileSearch/fileSearch.tsx';
 import { useState } from 'react';
 import FileTreeElementInfoDialogStyled from './fileTreeElementInfoDialog.module.scss';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
+import { type FileTreeElementType, FileTreeElementTypeType } from '../../../types/data/fileListType';
+import FileSearch from '../../tabs/fileTree/fileSearch/fileSearch';
+import FileTreeFolder from '../fileTreeElements/fileTreeFolder/fileTreeFolder';
+import { filterFileTree } from '../utils/fileTreeUtilities';
+import { showFileTreeElementInfo } from '../../../redux/reducer/data/filesReducer';
 
 function FileTreeElementInfoDialog() {
+  const dispatch: AppDispatch = useAppDispatch();
+
   const selectedFileTreeElement: FileTreeElementType | undefined = useSelector((state: RootState) => state.files.selectedFileTreeElement);
   const [fileSearch, setFileSearch] = useState('');
 
@@ -60,10 +63,14 @@ function FileTreeElementInfoDialog() {
                 <h2>Folder Content</h2>
                 <FileSearch setFileSearch={setFileSearch}></FileSearch>
                 <div className={FileTreeElementInfoDialogStyled.FolderContentContainer}>
-                  <FileListFolder
+                  <FileTreeFolder
                     folder={filterFileTree(selectedFileTreeElement, fileSearch)}
                     foldedOut={true}
-                    listOnly={true}></FileListFolder>
+                    listOnly={true}
+                    showSelect={false}
+                    onElementClick={(folder) => {
+                      dispatch(showFileTreeElementInfo(folder));
+                    }}></FileTreeFolder>
                 </div>
               </>
             )}

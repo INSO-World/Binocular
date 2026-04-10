@@ -27,7 +27,7 @@ export interface DataPlugin {
   accounts: DataPluginAccounts;
   files: DataPluginFiles;
   accountsIssues: DataPluginAccountsIssues;
-  branches?: DataPluginBranches;
+  branches: DataPluginBranches;
   capabilities: string[];
   experimental: boolean;
   requirements: { apiKey: boolean; endpoint: boolean; file: boolean; progressUpdate: boolean };
