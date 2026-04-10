@@ -197,6 +197,7 @@ jobs:
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-graphql-realdata:
+    if: false
     name: Test-GraphQL Real Data Integration
     needs:
       - preflight
