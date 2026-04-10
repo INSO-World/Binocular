@@ -175,9 +175,9 @@ function Chart(props: {
           </div>
           <h2>Branch</h2>
           <div className={'p-2'}>
-            {data.currentBranch && data.branches.length > 0 ? (
+            {data.branches.length > 0 ? (
               <select
-                defaultValue={data.currentBranch.branch}
+                defaultValue={data.currentBranch?.branch}
                 className={'select p-2'}
                 onChange={(e) => {
                   const branch = data.branches.find((b) => b.branch === e.target.value);
@@ -259,7 +259,6 @@ function Chart(props: {
               <CodeViewer
                 ref={codeViewerRef}
                 file={data.selectedFile}
-                currentBranch={data.currentBranch}
                 selectedBranch={selectedBranch}
                 gitlabSettings={gitlabSettings}
                 selectedSha={selectedSha}></CodeViewer>

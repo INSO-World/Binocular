@@ -13,7 +13,6 @@ import type { CodeHotspotsGitlabSettings } from '../../types/CodeHotspotsGitlabS
 function CodeViewer(props: {
   ref: RefObject<EditorView | null>;
   file: SelectedFile | null;
-  currentBranch: DataPluginBranch | undefined;
   selectedBranch: DataPluginBranch | undefined;
   gitlabSettings: CodeHotspotsGitlabSettings;
   selectedSha: string | undefined;
@@ -22,20 +21,19 @@ function CodeViewer(props: {
   const [language, setLanguage] = useState('tsx');
 
   useEffect(() => {
-    if (props.file && props.currentBranch) {
+    if (props.file) {
       setLanguage(LanguageDetection.languageFromExtension(props.file.path.split('.').pop() || ''));
       SourceCodeRequest.getSourceCode(
         props.file.url,
         props.file.path,
-        props.currentBranch.branch,
-        props.selectedBranch ? props.selectedBranch.branch : props.currentBranch.branch,
+        props.selectedBranch?.branch,
         props.selectedSha,
         props.gitlabSettings.projectId,
         props.gitlabSettings.apiKey,
         props.gitlabSettings.serverUrl,
       ).then((newSourceCode) => setSourceCode(newSourceCode));
     }
-  }, [props.file, props.currentBranch, props.selectedBranch, props.gitlabSettings, props.selectedSha]);
+  }, [props.file, props.selectedBranch, props.gitlabSettings, props.selectedSha]);
 
   const alternatingLinesTheme = EditorView.theme({
     '.cm-line:nth-child(odd)': {

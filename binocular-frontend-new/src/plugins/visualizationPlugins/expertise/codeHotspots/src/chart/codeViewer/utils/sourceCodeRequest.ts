@@ -2,8 +2,7 @@ export default class SourceCodeRequest {
   static getSourceCode(
     fileUrl: string,
     path: string,
-    checkedOutBranch: string,
-    branch: string,
+    branch: string | undefined,
     sha: string | undefined,
     gitlabProjectID: string,
     apiKey: string,
@@ -44,12 +43,11 @@ export default class SourceCodeRequest {
     } else {
       return new Promise((resolve) => {
         const sourceCodeRequest = new XMLHttpRequest();
+        const match = fileUrl.match(/(.*?)\/blob\//);
+        const beforeBlob = match ? match[1] : '';
         sourceCodeRequest.open(
           'GET',
-          fileUrl
-            .replace('github.com', 'raw.githubusercontent.com')
-            .replace('/blob', '')
-            .replace(checkedOutBranch, sha ? sha : branch),
+          `${beforeBlob.replace('github.com', 'raw.githubusercontent.com')}/${sha ? sha : branch}/${path}`,
           true,
         );
         sourceCodeRequest.onload = function () {

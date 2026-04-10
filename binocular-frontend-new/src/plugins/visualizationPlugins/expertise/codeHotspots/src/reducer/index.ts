@@ -48,7 +48,12 @@ export const changesSlice = createSlice({
     },
     setBranches: (state, action: PayloadAction<DataPluginBranch[]>) => {
       state.branches = action.payload;
-      state.currentBranch = action.payload.find((branch) => branch.active === 'true');
+      const currentBranch = action.payload.find((branch) => branch.active === true);
+      if (currentBranch) {
+        state.currentBranch = currentBranch;
+      } else {
+        state.currentBranch = action.payload[0];
+      }
     },
     setFiles: (state, action: PayloadAction<DataPluginFile[]>) => {
       state.files = action.payload;
