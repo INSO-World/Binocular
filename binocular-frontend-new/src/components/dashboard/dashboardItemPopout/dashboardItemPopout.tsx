@@ -10,7 +10,6 @@ function DashboardItemPopout(props: { children: ReactElement; name: string; onCl
   const popupCount = useSelector((state: RootState) => state.dashboard.popupCount);
   return (
     <PopoutController
-      url={'popout.html'}
       title={`Binocular #${popupCount} - ${props.name}`}
       options={{ width: 1280, height: 720 }}
       onClosing={props.onClosing}
