@@ -112,7 +112,7 @@ function Settings(props: { settings: CodeOwnerShipSettings; setSettings: (newSet
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.showSprints}
             onChange={(e) =>
               props.setSettings({

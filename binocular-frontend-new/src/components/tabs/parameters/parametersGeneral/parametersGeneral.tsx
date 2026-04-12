@@ -29,7 +29,7 @@ function ParametersGeneral(props: {
         <span className="label-text">Exclude Merge Commits:</span>
         <input
           type={'checkbox'}
-          className={'toggle toggle-accent toggle-sm'}
+          className={'toggle toggle-primary toggle-sm'}
           disabled={props.disabled}
           checked={props.parametersGeneral.excludeMergeCommits}
           onChange={(e) =>

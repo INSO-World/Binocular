@@ -13,7 +13,7 @@ function Settings(props: { settings: MergeRequestsSettings; setSettings: (newSet
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
@@ -47,7 +47,7 @@ function Settings(props: { settings: MergeRequestsSettings; setSettings: (newSet
           <span className="label-text">Split Merge Requests per Assignee:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.splitMergeRequestsPerAuthor}
             onChange={(event) =>
               props.setSettings({
@@ -63,7 +63,7 @@ function Settings(props: { settings: MergeRequestsSettings; setSettings: (newSet
           <span className="label-text">Breakdown (Total Open Merge Requests):</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.breakdown}
             onChange={(event) =>
               props.setSettings({
