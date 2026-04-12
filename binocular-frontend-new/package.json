@@ -10,7 +10,14 @@
     "lint": "eslint binocular --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "check": "eslint .",
-    "fix": "eslint --fix ."
+    "fix": "eslint --fix .",
+    "test": "vitest run",
+    "test:unit": "vitest run src/test/unit",
+    "test:component": "vitest run src/test/component",
+    "test:integration": "vitest run src/test/integration",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui --coverage"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
@@ -47,6 +54,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/chroma-js": "^3.1.1",
     "@types/lodash": "^4.17.20",
     "@types/pouchdb-adapter-memory": "^6.1.6",
@@ -59,7 +69,10 @@
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.21",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
@@ -67,6 +80,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "jsdom": "^28.1.0",
     "prettier": "3.6.2",
     "react-refresh": "^0.17.0",
     "sass": "^1.89.2",
@@ -75,7 +89,8 @@
     "vite": "^7.2.2",
     "vite-plugin-conditional-compiler": "^0.3.1",
     "vite-plugin-node-polyfills": "^0.24.0",
-    "vite-plugin-singlefile": "^2.3.0"
+    "vite-plugin-singlefile": "^2.3.0",
+    "vitest": "^4.0.18"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.53.2",

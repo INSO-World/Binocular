@@ -37,7 +37,7 @@ function Settings(props: {
         <span className="label-text">Show Activity Timeline:</span>
         <input
           type="checkbox"
-          className="toggle toggle-accent toggle-sm"
+          className="toggle toggle-primary toggle-sm"
           checked={showActivityTimeLine}
           onChange={(event) => handleShowActivityTimeline(event.target.checked)}
         />

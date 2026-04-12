@@ -72,7 +72,7 @@ function SetupDialogDatabasePage() {
                 <span>It seems like you are using the default binocular backend.</span>
                 <div>
                   <button
-                    className="btn btn-sm btn-accent"
+                    className="btn btn-sm btn-primary"
                     onClick={() => {
                       dispatch(
                         addDataPlugin({
@@ -105,7 +105,7 @@ function SetupDialogDatabasePage() {
                   Alternatively you can connect to a different data connection from the list below.
                 </span>
                 <div>
-                  <button className="btn btn-sm btn-accent" onClick={() => searchDefaultBackend()}>
+                  <button className="btn btn-sm btn-primary" onClick={() => searchDefaultBackend()}>
                     Retry
                   </button>
                 </div>

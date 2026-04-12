@@ -16,7 +16,7 @@ function CommitOtherFiles(props: { files: DataPluginFileInCommit[]; onSetFile: (
               <tr key={index}>
                 <td>{file.file.path}</td>
                 <td style={{ minWidth: '10rem' }}>
-                  <button className={'btn btn-accent'} onClick={() => props.onSetFile(file.file.path, file.file.webUrl)}>
+                  <button className={'btn btn-primary'} onClick={() => props.onSetFile(file.file.path, file.file.webUrl)}>
                     View
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

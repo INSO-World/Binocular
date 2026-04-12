@@ -16,7 +16,7 @@ export default abstract class DataPluginStorage {
 
   public static async getDataPlugin(dP: DatabaseSettingsDataPluginType): Promise<DataPlugin | undefined> {
     if (dP.id !== undefined) {
-      const configuredDataPlugin = this.configuredDataPlugins[dP.id];
+      const configuredDataPlugin = this.configuredDataPlugins[dP.name + dP.id];
       if (configuredDataPlugin) {
         return configuredDataPlugin;
       } else {

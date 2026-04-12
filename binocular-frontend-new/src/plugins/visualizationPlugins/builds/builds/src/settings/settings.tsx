@@ -12,7 +12,7 @@ function Settings(props: { settings: BuildSettings; setSettings: (newSettings: B
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
@@ -44,7 +44,7 @@ function Settings(props: { settings: BuildSettings; setSettings: (newSettings: B
           <span className="label-text">Split Builds per Author:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.splitBuildsPerAuthor}
             onChange={(event) =>
               props.setSettings({

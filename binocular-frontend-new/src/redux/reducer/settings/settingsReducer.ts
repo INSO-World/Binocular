@@ -94,7 +94,7 @@ export const settingsSlice = createSlice({
         dP.isDefault = dP.id === action.payload;
         return dP;
       });
-      state.defaultDataPluginItemId = action.payload;
+      state.database.defaultDataPluginItemId = action.payload;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     clearSettingsStorage: () => {

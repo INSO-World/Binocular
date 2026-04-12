@@ -22,7 +22,7 @@ import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
-import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import actionsMiddleware from '../../../redux/middleware/actions/actionsMiddleware.ts';
 import { refreshFileList } from '../../tabs/fileTree/utils/fileListUtilities';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
 
@@ -280,7 +280,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                   <div>This Visualization is too complex to display as part of the Dashboard.</div>
                   <div> Please open it in a new window to view!</div>
                   <button
-                    className={'btn btn-accent'}
+                    className={'btn btn-primary'}
                     onClick={(event) => {
                       event.stopPropagation();
                       dispatch(increasePopupCount());
