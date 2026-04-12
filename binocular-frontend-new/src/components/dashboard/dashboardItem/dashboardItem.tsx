@@ -280,7 +280,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                   <div>This Visualization is too complex to display as part of the Dashboard.</div>
                   <div> Please open it in a new window to view!</div>
                   <button
-                    className={'btn btn-accent'}
+                    className={'btn btn-primary'}
                     onClick={(event) => {
                       event.stopPropagation();
                       dispatch(increasePopupCount());
