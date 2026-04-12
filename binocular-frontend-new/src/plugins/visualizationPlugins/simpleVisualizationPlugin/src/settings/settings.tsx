@@ -12,7 +12,7 @@ function Settings(props: { settings: DefaultSettings; setSettings: (newSettings:
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
