@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-vi.mock('../../../../../components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx', () => ({
+vi.mock('../../../../../components/tabs/fileTree/utils/fileListUtilities', () => ({
   writeFileListToStorage: vi.fn(),
-  generateFileTree: vi.fn(() => []),
-  filterFileTree: vi.fn(),
-  formatName: vi.fn(),
   loadFileList: vi.fn(),
   refreshFileList: vi.fn(),
   clearStorage: vi.fn(),
@@ -23,7 +20,7 @@ import reducer, {
 import type { FilesInitialState } from '../../../../../redux/reducer/data/filesReducer';
 import { FileTreeElementTypeType } from '../../../../../types/data/fileListType';
 import type { FileListElementType, FileTreeElementType } from '../../../../../types/data/fileListType';
-import { writeFileListToStorage } from '../../../../../components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx';
+import { writeFileListToStorage } from '../../../../../components/tabs/fileTree/utils/fileListUtilities';
 
 const emptyState: FilesInitialState = {
   fileTrees: {},
@@ -236,7 +233,7 @@ describe('filesReducer – updateFileListElement (U61)', () => {
     dataPluginId: 1,
   };
 
-  it('U61.1 update=false → tree node changes but flat fileList remains unchanged', () => {
+  it('U27.11 update=false → tree node changes but flat fileList remains unchanged', () => {
     const payload: FileTreeElementType & { update?: boolean } = {
       name: 'a.ts',
       id: 1,
@@ -256,8 +253,8 @@ describe('filesReducer – updateFileListElement (U61)', () => {
   });
 });
 
-describe('filesReducer – switchAllFileSelection (U61)', () => {
-  it('U61.2 inverts all checked states: checked→unchecked, unchecked→checked', () => {
+describe('filesReducer – switchAllFileSelection (extended)', () => {
+  it('U27.12 inverts all checked states: checked→unchecked, unchecked→checked', () => {
     const mixedState: FilesInitialState = {
       fileTrees: { 1: makeFileTree(1) },
       fileLists: {
@@ -276,8 +273,8 @@ describe('filesReducer – switchAllFileSelection (U61)', () => {
   });
 });
 
-describe('filesReducer – removeFileList (U61)', () => {
-  it('U61.3 removes only the target plugin entry, leaving other plugins intact', () => {
+describe('filesReducer – removeFileList (extended)', () => {
+  it('U27.13 removes only the target plugin entry, leaving other plugins intact', () => {
     const stateWith2: FilesInitialState = {
       fileTrees: { 1: makeFileTree(1), 2: makeFileTree(2) },
       fileLists: {

@@ -19,7 +19,7 @@ let filterFileTree: (fileTree: FileTreeElementType, search: string) => FileTreeE
 let formatName: (searchTerm: string | undefined, name: string) => JSX.Element[];
 
 beforeAll(async () => {
-  const mod = await import('../../../components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities');
+  const mod = await import('../../../components/fileTree/utils/fileTreeUtilities');
   generateFileTree = mod.generateFileTree;
   filterFileTree = mod.filterFileTree;
   formatName = mod.formatName;
@@ -30,19 +30,19 @@ function makeFile(path: string): DataPluginFile {
 }
 
 describe('generateFileTree', () => {
-  it('U41.1 empty files array → empty tree', () => {
+  it('U40.1 empty files array → empty tree', () => {
     const result = generateFileTree([]);
     expect(result).toEqual([]);
   });
 
-  it('U41.2 single flat file produces one File node', () => {
+  it('U40.2 single flat file produces one File node', () => {
     const result = generateFileTree([makeFile('index.ts')]);
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('index.ts');
     expect(result[0].type).toBe(FileTreeElementTypeType.File);
   });
 
-  it('U41.3 nested path a/b.ts produces folder a containing file b.ts', () => {
+  it('U40.3 nested path a/b.ts produces folder a containing file b.ts', () => {
     const result = generateFileTree([makeFile('src/index.ts')]);
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe(FileTreeElementTypeType.Folder);
@@ -51,14 +51,14 @@ describe('generateFileTree', () => {
     expect(result[0].children![0].name).toBe('index.ts');
   });
 
-  it('U41.4 two files in same folder share one folder node', () => {
+  it('U40.4 two files in same folder share one folder node', () => {
     const result = generateFileTree([makeFile('src/a.ts'), makeFile('src/b.ts')]);
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('src');
     expect(result[0].children).toHaveLength(2);
   });
 
-  it('U41.5 files at different roots produce separate root nodes', () => {
+  it('U40.5 files at different roots produce separate root nodes', () => {
     const result = generateFileTree([makeFile('src/a.ts'), makeFile('lib/b.ts')]);
     expect(result).toHaveLength(2);
     const names = result.map((r) => r.name);
@@ -109,25 +109,25 @@ describe('filterFileTree', () => {
     };
   }
 
-  it('U41.6 filter matching path returns file', () => {
+  it('U40.6 filter matching path returns file', () => {
     const result = filterFileTree(makeTree(), 'index');
     expect(result.children).toHaveLength(1); // src folder
     expect(result.children![0].children).toHaveLength(1); // only index.ts
     expect(result.children![0].children![0].name).toBe('index.ts');
   });
 
-  it('U41.7 filter with no match removes all files, empty folder removed', () => {
+  it('U40.7 filter with no match removes all files, empty folder removed', () => {
     const result = filterFileTree(makeTree(), 'notfound');
     // src folder should be removed (no children match)
     expect(result.children).toHaveLength(0);
   });
 
-  it('U41.8 filter matching all files returns all', () => {
+  it('U40.8 filter matching all files returns all', () => {
     const result = filterFileTree(makeTree(), '.ts');
     expect(result.children![0].children).toHaveLength(2);
   });
 
-  it('U41.9 leaf node (no children) returns unchanged', () => {
+  it('U40.9 leaf node (no children) returns unchanged', () => {
     const leaf: FileTreeElementType = {
       name: 'file.ts',
       id: 1,
@@ -142,8 +142,8 @@ describe('filterFileTree', () => {
   });
 });
 
-describe('generateFileTree (U56)', () => {
-  it('U56.1 flat file list with no slashes → each file becomes a leaf node at root level', () => {
+describe('generateFileTree (U40)', () => {
+  it('U40.10 flat file list with no slashes → each file becomes a leaf node at root level', () => {
     const result = generateFileTree([makeFile('readme.md'), makeFile('package.json')]);
     expect(result).toHaveLength(2);
     result.forEach((node) => {
@@ -154,7 +154,7 @@ describe('generateFileTree (U56)', () => {
     expect(names).toContain('package.json');
   });
 
-  it('U56.2 single path src/utils/helper.ts → root folder src containing folder utils containing leaf helper.ts', () => {
+  it('U40.11 single path src/utils/helper.ts → root folder src containing folder utils containing leaf helper.ts', () => {
     const result = generateFileTree([makeFile('src/utils/helper.ts')]);
     expect(result).toHaveLength(1);
     const src = result[0];
@@ -169,7 +169,7 @@ describe('generateFileTree (U56)', () => {
     expect(utils.children![0].type).toBe(FileTreeElementTypeType.File);
   });
 
-  it('U56.3 two paths sharing a folder → one folder node with two children', () => {
+  it('U40.12 two paths sharing a folder → one folder node with two children', () => {
     const result = generateFileTree([makeFile('src/a.ts'), makeFile('src/b.ts')]);
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('src');
@@ -179,12 +179,12 @@ describe('generateFileTree (U56)', () => {
     expect(childNames).toContain('b.ts');
   });
 
-  it('U56.4 empty input → returns empty array', () => {
+  it('U40.13 empty input → returns empty array', () => {
     const result = generateFileTree([]);
     expect(result).toEqual([]);
   });
 
-  it('U56.5 deeply nested path a/b/c/d/file.ts → 4 levels of nesting with leaf at bottom', () => {
+  it('U40.14 deeply nested path a/b/c/d/file.ts → 4 levels of nesting with leaf at bottom', () => {
     const result = generateFileTree([makeFile('a/b/c/d/file.ts')]);
     expect(result).toHaveLength(1);
     const a = result[0];
@@ -201,7 +201,7 @@ describe('generateFileTree (U56)', () => {
   });
 });
 
-describe('filterFileTree (U56)', () => {
+describe('filterFileTree (U40)', () => {
   function makeRootTree(): FileTreeElementType {
     return {
       name: '/',
@@ -243,25 +243,25 @@ describe('filterFileTree (U56)', () => {
     };
   }
 
-  it('U56.6 search string matches a leaf name → returns subtree containing that leaf', () => {
+  it('U40.15 search string matches a leaf name → returns subtree containing that leaf', () => {
     const result = filterFileTree(makeRootTree(), 'alpha');
     expect(result.children).toHaveLength(1);
     expect(result.children![0].children).toHaveLength(1);
     expect(result.children![0].children![0].name).toBe('alpha.ts');
   });
 
-  it('U56.7 search string matches nothing → returns empty children array', () => {
+  it('U40.16 search string matches nothing → returns empty children array', () => {
     const result = filterFileTree(makeRootTree(), 'zzznomatch');
     expect(result.children).toHaveLength(0);
   });
 
-  it('U56.8 empty search string → returns entire tree (all items included)', () => {
+  it('U40.17 empty search string → returns entire tree (all items included)', () => {
     const result = filterFileTree(makeRootTree(), '');
     expect(result.children).toHaveLength(1);
     expect(result.children![0].children).toHaveLength(2);
   });
 
-  it('U56.9 search term matches a folder path segment → returns that folder and its matching children', () => {
+  it('U40.18 search term matches a folder path segment → returns that folder and its matching children', () => {
     const result = filterFileTree(makeRootTree(), 'lib');
     // 'lib' appears in both 'lib/alpha.ts' and 'lib/beta.ts' paths
     expect(result.children).toHaveLength(1);
@@ -270,8 +270,8 @@ describe('filterFileTree (U56)', () => {
   });
 });
 
-describe('formatName (U56)', () => {
-  it('U56.10 match found in middle of name → array with 3 elements (prefix, match, suffix)', () => {
+describe('formatName (U40)', () => {
+  it('U40.19 match found in middle of name → array with 3 elements (prefix, match, suffix)', () => {
     const result = formatName('ello', 'hello world');
     expect(result).toHaveLength(3);
     expect(result[0].props.children).toBe('h');
@@ -279,13 +279,13 @@ describe('formatName (U56)', () => {
     expect(result[2].props.children).toBe(' world');
   });
 
-  it('U56.11 no match → returns array with one element containing full name', () => {
+  it('U40.20 no match → returns array with one element containing full name', () => {
     const result = formatName('zzz', 'hello world');
     expect(result).toHaveLength(1);
     expect(result[0].props.children).toBe('hello world');
   });
 
-  it('U56.12 match at start of name → first element of split is empty string', () => {
+  it('U40.21 match at start of name → first element of split is empty string', () => {
     const result = formatName('hello', 'hello world');
     expect(result).toHaveLength(3);
     expect(result[0].props.children).toBe('');

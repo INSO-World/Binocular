@@ -112,7 +112,7 @@ describe('convertToChartData (issues)', () => {
     expect(allKeys.some((k) => k.includes('unassigned'))).toBe(true);
   });
 
-  it('U59.1 splitIssuesPerAuthor:true with 2 issues from 2 different authors → 2 separate series in chartData', () => {
+  it('U33.8 splitIssuesPerAuthor:true with 2 issues from 2 different authors → 2 separate series in chartData', () => {
     const settings: IssueSettings = { ...defaultSettings, splitIssuesPerAuthor: true };
     const author1: AuthorType = {
       id: 1,
@@ -144,7 +144,7 @@ describe('convertToChartData (issues)', () => {
     expect(allKeys.some((k) => k.includes('Bob'))).toBe(true);
   });
 
-  it('U59.2 splitIssuesPerAuthor:false with 2 issues from 2 authors → 1 combined series', () => {
+  it('U33.9 splitIssuesPerAuthor:false with 2 issues from 2 authors → 1 combined series', () => {
     const settings: IssueSettings = { ...defaultSettings, splitIssuesPerAuthor: false };
     const issue1 = makeIssue({ id: 'i1', createdAt: '2023-06-15T00:00:00Z' });
     const issue2 = makeIssue({ id: 'i2', createdAt: '2023-06-20T00:00:00Z' });
@@ -156,7 +156,7 @@ describe('convertToChartData (issues)', () => {
     expect(allKeys.every((k) => !k.includes('Opened Issues '))).toBe(true);
   });
 
-  it('U59.3 issue with assignee=null and assignees=[] → placed in "unassigned" bucket', () => {
+  it('U33.10 issue with assignee=null and assignees=[] → placed in "unassigned" bucket', () => {
     const settings: IssueSettings = { ...defaultSettings, splitIssuesPerAuthor: true };
     const issue = makeIssue({
       createdAt: '2023-06-15T00:00:00Z',
@@ -170,7 +170,7 @@ describe('convertToChartData (issues)', () => {
     expect(allKeys.every((k) => !k.includes('account not assigned') || result.chartData.every((d) => (d[k] ?? 0) === 0))).toBe(true);
   });
 
-  it('U59.4 breakdown:true causes OPENED and OPEN states to appear as separate entries', () => {
+  it('U33.11 breakdown:true causes OPENED and OPEN states to appear as separate entries', () => {
     const settingsBreakdown: IssueSettings = { ...defaultSettings, breakdown: true };
     const settingsNoBreakdown: IssueSettings = { ...defaultSettings, breakdown: false };
     const issue = makeIssue({
@@ -188,7 +188,7 @@ describe('convertToChartData (issues)', () => {
     expect(keysNoBreakdown.some((k) => k === 'Closed')).toBe(true);
   });
 
-  it('U59.5 author with parent === -1 is included as a top-level root author', () => {
+  it('U33.12 author with parent === -1 is included as a top-level root author', () => {
     const settings: IssueSettings = { ...defaultSettings, splitIssuesPerAuthor: true };
     const rootAuthor: AuthorType = {
       id: 1,
@@ -207,7 +207,7 @@ describe('convertToChartData (issues)', () => {
     expect(allKeys.some((k) => k.includes('RootUser'))).toBe(true);
   });
 
-  it('U59.6 author with parent === 0 is treated as belonging to "others" group', () => {
+  it('U33.13 author with parent === 0 is treated as belonging to "others" group', () => {
     const settings: IssueSettings = { ...defaultSettings, splitIssuesPerAuthor: true };
     const othersAuthor: AuthorType = {
       id: 2,

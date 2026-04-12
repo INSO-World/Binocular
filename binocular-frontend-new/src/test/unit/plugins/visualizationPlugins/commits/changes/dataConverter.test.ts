@@ -107,7 +107,7 @@ describe('convertToChartData (changes)', () => {
     expect(result.scale[0]).toBeLessThanOrEqual(0);
   });
 
-  it('U57.1 excludeMergeCommits:true — merge commit is absent from output', () => {
+  it('U36.7 excludeMergeCommits:true — merge commit is absent from output', () => {
     const merge = makeCommit({ message: 'Merge branch feature into main', date: '2023-06-15T00:00:00Z' });
     const normal = makeCommit({ sha: 'def456', message: 'feat: normal commit', date: '2023-06-16T00:00:00Z' });
     const author = makeAuthor('u1', 'Alice');
@@ -128,7 +128,7 @@ describe('convertToChartData (changes)', () => {
     expect(allAdditions).toBeGreaterThanOrEqual(0);
   });
 
-  it('U57.2 excludeMergeCommits:false — merge commit IS included in output', () => {
+  it('U36.8 excludeMergeCommits:false — merge commit IS included in output', () => {
     const merge = makeCommit({
       message: 'Merge branch feature into main',
       date: '2023-06-15T00:00:00Z',
@@ -144,7 +144,7 @@ describe('convertToChartData (changes)', () => {
     expect(totalAlice).toBe(23);
   });
 
-  it('U57.3 returns empty chart data when fileList is undefined', () => {
+  it('U36.9 returns empty chart data when fileList is undefined', () => {
     const commit = makeCommit({ date: '2023-06-15T00:00:00Z' });
     const author = makeAuthor('u1', 'Alice');
     const props = makeProps(defaultSettings, [author], undefined as unknown as never[]);
@@ -154,7 +154,7 @@ describe('convertToChartData (changes)', () => {
     expect(result.chartData.length).toBeGreaterThan(0);
   });
 
-  it('U57.4 returns chart data with zero author contributions when all files have checked=false', () => {
+  it('U36.10 returns chart data with zero author contributions when all files have checked=false', () => {
     const filePath = 'src/foo.ts';
     const commit = makeCommit({
       date: '2023-06-15T00:00:00Z',
@@ -177,7 +177,7 @@ describe('convertToChartData (changes)', () => {
     expect(totalAlice).toBe(0);
   });
 
-  it('U57.5 per-file stats mode — commit with file-level stats uses file additions/deletions', () => {
+  it('U36.11 per-file stats mode — commit with file-level stats uses file additions/deletions', () => {
     const filePath = 'src/bar.ts';
     const commit = makeCommit({
       date: '2023-06-15T00:00:00Z',
@@ -201,7 +201,7 @@ describe('convertToChartData (changes)', () => {
     expect(totalAlice).toBe(10);
   });
 
-  it('U57.6 aggregate stats mode — commit without file-level stats uses commit totals', () => {
+  it('U36.12 aggregate stats mode — commit without file-level stats uses commit totals', () => {
     const commit = makeCommit({
       date: '2023-06-15T00:00:00Z',
       stats: { additions: 8, deletions: 4 },
@@ -216,7 +216,7 @@ describe('convertToChartData (changes)', () => {
     expect(totalAlice).toBe(12);
   });
 
-  it('U57.7 additions appear positive, deletions negative in splitAdditionsDeletions mode', () => {
+  it('U36.13 additions appear positive, deletions negative in splitAdditionsDeletions mode', () => {
     const settings: ChangesSettings = { ...defaultSettings, splitAdditionsDeletions: true };
     const commit = makeCommit({
       date: '2023-06-15T00:00:00Z',
@@ -231,7 +231,7 @@ describe('convertToChartData (changes)', () => {
     expect(deletionTotal).toBeLessThan(0);
   });
 
-  it('U57.8 splitAdditionsDeletions:true — separate additions and deletions series exist', () => {
+  it('U36.14 splitAdditionsDeletions:true — separate additions and deletions series exist', () => {
     const settings: ChangesSettings = { ...defaultSettings, splitAdditionsDeletions: true };
     const commit = makeCommit({ date: '2023-06-15T00:00:00Z', stats: { additions: 5, deletions: 2 } });
     const author = makeAuthor('u1', 'Alice');
@@ -243,7 +243,7 @@ describe('convertToChartData (changes)', () => {
     expect(allKeys.some((k) => k === 'Alice')).toBe(false);
   });
 
-  it('U57.9 splitAdditionsDeletions:false — single combined series without Additions/Deletions prefix', () => {
+  it('U36.15 splitAdditionsDeletions:false — single combined series without Additions/Deletions prefix', () => {
     const settings: ChangesSettings = { ...defaultSettings, splitAdditionsDeletions: false };
     const commit = makeCommit({ date: '2023-06-15T00:00:00Z', stats: { additions: 5, deletions: 2 } });
     const author = makeAuthor('u1', 'Alice');
@@ -255,7 +255,7 @@ describe('convertToChartData (changes)', () => {
     expect(allKeys.some((k) => k.startsWith('(Deletions)'))).toBe(false);
   });
 
-  it('U57.10 author with parent===-1 is treated as top-level and keyed by their own gitSignature', () => {
+  it('U36.16 author with parent===-1 is treated as top-level and keyed by their own gitSignature', () => {
     const commit = makeCommit({
       date: '2023-06-15T00:00:00Z',
       stats: { additions: 9, deletions: 1 },

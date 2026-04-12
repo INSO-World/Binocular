@@ -13,20 +13,20 @@ function buildMiddleware() {
 }
 
 describe('refreshMiddleware', () => {
-  it('U51.1 setProgress action: next is called', () => {
+  it('U50.1 setProgress action: next is called', () => {
     const { next, invoke } = buildMiddleware();
     invoke({ type: 'progress/setProgress', payload: 50 });
     expect(next).toHaveBeenCalledOnce();
   });
 
-  it('U51.2 setProgress action: globalStore.dispatch called with REFRESH_PLUGIN', () => {
+  it('U50.2 setProgress action: globalStore.dispatch called with REFRESH_PLUGIN', () => {
     const { globalDispatch, invoke } = buildMiddleware();
     invoke({ type: 'progress/setProgress', payload: 50 });
     expect(globalDispatch).toHaveBeenCalledOnce();
     expect(globalDispatch).toHaveBeenCalledWith({ type: 'REFRESH_PLUGIN', payload: { pluginId: testPlugin.id } });
   });
 
-  it('U51.3 unrelated action: next called, globalStore.dispatch NOT called', () => {
+  it('U50.3 unrelated action: next called, globalStore.dispatch NOT called', () => {
     const { globalDispatch, next, invoke } = buildMiddleware();
     invoke({ type: 'some/other', payload: 0 });
     expect(next).toHaveBeenCalledOnce();

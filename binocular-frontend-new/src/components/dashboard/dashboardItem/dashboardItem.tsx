@@ -22,7 +22,7 @@ import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
-import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import actionsMiddleware from '../../../redux/middleware/actions/actionsMiddleware.ts';
 import { refreshFileList } from '../../tabs/fileTree/utils/fileListUtilities';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
 

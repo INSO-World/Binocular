@@ -11,19 +11,19 @@ beforeEach(() => {
 });
 
 describe('showDialog', () => {
-  it('U46.1 sets innerText of #informationDialogHeadline', () => {
+  it('U45.1 sets innerText of #informationDialogHeadline', () => {
     showDialog('My headline', 'My text');
     const el = document.getElementById('informationDialogHeadline') as HTMLDivElement;
     expect(el.innerText).toBe('My headline');
   });
 
-  it('U46.2 sets innerText of #informationDialogText', () => {
+  it('U45.2 sets innerText of #informationDialogText', () => {
     showDialog('My headline', 'My text');
     const el = document.getElementById('informationDialogText') as HTMLDivElement;
     expect(el.innerText).toBe('My text');
   });
 
-  it('U46.3 calls showModal() on #informationDialog', () => {
+  it('U45.3 calls showModal() on #informationDialog', () => {
     showDialog('My headline', 'My text');
     const dialog = document.getElementById('informationDialog') as HTMLDialogElement;
     expect(dialog.showModal).toHaveBeenCalledOnce();

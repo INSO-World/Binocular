@@ -242,6 +242,26 @@ File indices are assigned in alphabetical order within each category.
 | U12.11 | `days` returns unit `'day'` and a 1-day duration | `'days'` | `unit === 'day'` |
 | U12.12 | Unknown resolution returns `{ interval: 0, unit: '' }` | `'hours'` | `{ interval: 0, unit: '' }` |
 
+### `formatDate` (extended)
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| U12.13 | `years` resolution returns just the 4-digit year | `new Date('2021-08-25'), 'years'` | `'2021'` |
+| U12.14 | `months` resolution returns month+year string | `new Date('2021-08-25'), 'months'` | `'August 2021'` |
+| U12.15 | `weeks` resolution returns a non-empty string | `new Date('2021-08-23'), 'weeks'` | non-empty string |
+| U12.16 | `days` resolution returns a day-level formatted string | `new Date('2021-08-23'), 'days'` | starts with `'Monday'`, contains `','` |
+| U12.17 | Unknown resolution `'hours'` falls through without throwing | `date, 'hours'` | equals `date.toLocaleDateString()` |
+
+### `getGranularityDuration` (extended)
+
+| # | Description | Input | Expected output |
+|---|---|---|---|
+| U12.18 | `years` returns a duration equivalent to 1 year | `'years'` | `isDuration === true`, `as('years') === 1` |
+| U12.19 | `months` returns a duration equivalent to 1 month | `'months'` | `as('months') === 1` |
+| U12.20 | `weeks` returns a duration equivalent to 1 week | `'weeks'` | `as('weeks') === 1` |
+| U12.21 | `days` returns a duration equivalent to 1 day | `'days'` | `as('days') === 1` |
+| U12.22 | Unknown resolution `'hours'` — result is defined with `interval === 0` and `unit === ''` | `'hours'` | `{ interval: 0, unit: '' }` |
+
 ---
 
 ## U13 — `ownership/codeOwnership/ownershipUtils`
@@ -535,6 +555,9 @@ File indices are assigned in alphabetical order within each category.
 | U25.9 | `saveSprint` updates the sprint in the list | name updated |
 | U25.10 | `saveSprint` clears `state.sprintToEdit` | `null` |
 | U25.11 | `clearSprintStorage` calls `localStorage.removeItem` | `removeItem` called |
+| U25.12 | `saveSprint` with unknown ID — sprint list unchanged | list length 1; original sprint untouched |
+| U25.13 | `deleteSprint` with unknown ID — sprint list unchanged | list length 1; original sprint untouched |
+| U25.14 | `addSprint` twice — second sprint ID is greater than first (auto-increment) | `secondId > firstId` |
 
 ---
 
@@ -556,6 +579,12 @@ File indices are assigned in alphabetical order within each category.
 | U26.8 | `uncheckAllAuthors` sets all `selected = false` | all false |
 | U26.9 | `switchAuthorSelection` toggles `selected` on target and children | both toggled |
 | U26.10 | `clearAuthorsStorage` calls `localStorage.removeItem` | `removeItem` called |
+| U26.11 | `setParentAuthor` self-reference — leaves parent unchanged | `a.parent === -1` |
+| U26.12 | `assignAccount` — assigning account X to author B removes it from author A | author B gets account; author A loses it |
+| U26.13 | `setAuthorList` dispatched twice with identical data — no duplicate authors | list length remains 2 |
+| U26.14 | `switchAllAuthorSelection` — all-unselected list → all become selected | all `selected === true` |
+| U26.15 | `switchAllAuthorSelection` — all-selected list → all become unselected | all `selected === false` |
+| U26.16 | `moveAuthorToOther` — author AND its children all get `parent = 0` | parent and both children have `parent === 0` |
 
 ---
 
@@ -577,6 +606,9 @@ File indices are assigned in alphabetical order within each category.
 | U27.8 | `checkAllFiles` sets `checked = true` for every file | all true |
 | U27.9 | `uncheckAllFiles` sets `checked = false` for every file | all false |
 | U27.10 | `removeFileList` deletes entries for the given id | all three maps cleaned |
+| U27.11 | `updateFileListElement` update=false — tree node changes but flat fileList remains unchanged | `fileLists` entry unchanged; tree child updated |
+| U27.12 | `switchAllFileSelection` — inverts all checked states (checked→unchecked, unchecked→checked) | both states swapped |
+| U27.13 | `removeFileList` — removes only target plugin entry, leaving other plugins intact | plugin 1 removed; plugin 2 still present |
 
 ---
 
@@ -659,23 +691,23 @@ File indices are assigned in alphabetical order within each category.
 
 ## U32 — `showInfoTooltip`
 **File**: `src/test/unit/components/infoTooltip/showInfoTooltip.test.ts`
-**Source**: `src/components/infoTooltip/infoTooltipHelper.ts`
+**Source**: `src/components/infoTooltip/infoTooltipHelper.tsx`
 
-> Same DOM setup pattern as U31.
+> Signature: `showInfoTooltip(ref, tooltipVisibleFlagRef, x, y, content)`. Positioning uses `body.clientHeight/clientWidth`. DOM structure is a `<div>` (not `<dialog>`).
 
 | # | Description | Expected outcome |
 |---|---|---|
-| U32.1 | `y < innerHeight/2` → `top` set, `bottom` `'auto'` | `top === '90px'` |
-| U32.2 | `y >= innerHeight/2` → `bottom` set, `top` `'auto'` | `bottom` computed correctly |
-| U32.3 | `x < innerWidth/2` → `left` set, `right` `'auto'` | `left === '190px'` |
-| U32.4 | `x >= innerWidth/2` → `right` set, `left` `'auto'` | `right` computed correctly |
+| U32.1 | `y < clientHeight/2` → `top` set, `bottom` `'auto'` | `top === '90px'` |
+| U32.2 | `y >= clientHeight/2` → `bottom` set, `top` `'auto'` | `bottom` computed correctly |
+| U32.3 | `x < clientWidth/2` → `left` set, `right` `'auto'` | `left === '190px'` |
+| U32.4 | `x >= clientWidth/2` → `right` set, `left` `'auto'` | `right` computed correctly |
 | U32.5 | Renders `<h1>` with correct headline | `h1.innerText === 'Overview'` |
 | U32.6 | Renders `<p>` with correct body text | `p.innerText === 'Shows commits...'` |
-| U32.7 | No compatibility section when arg omitted | `#compatibility` absent |
-| U32.8 | Compatibility section rendered when arg provided | `#compatibility` present |
-| U32.9 | `github: true` shows "yes" | content contains `'GitHub: yes'` |
-| U32.10 | `pouchDB: false` shows "no" | content contains `'PouchDB: no'` |
-| U32.11 | Calls `showModal()` on the dialog | spy called |
+| U32.7 | No `<p>` element when `textContent` is omitted | `p` absent |
+| U32.8 | Sets `tooltipVisibleFlagRef.current` to `true` | flag is `true` |
+| U32.9 | Sets `style.display` to `'block'` | `display === 'block'` |
+| U32.10 | Clears previous content before rendering new content | only 1 `<h1>` present after second call |
+| U32.11 | Returns early when `ref.current` is `null` | no throw; flag stays `false` |
 
 ---
 
@@ -692,6 +724,12 @@ File indices are assigned in alphabetical order within each category.
 | U33.5 | Scale `[0]` ≤ 0, `[1]` > 0 for opened issues |
 | U33.6 | `splitIssuesPerAuthor:true` — keys prefixed with `"Opened Issues"` or `"Open Issues"` |
 | U33.7 | Unassigned issue (no assignee) creates key containing `"unassigned"` |
+| U33.8 | `splitIssuesPerAuthor:true` with 2 issues from 2 different authors → 2 separate series in chartData |
+| U33.9 | `splitIssuesPerAuthor:false` with 2 issues from 2 authors → 1 combined series using bare status keys |
+| U33.10 | Issue with `assignee=null` and `assignees=[]` → placed in `"unassigned"` bucket |
+| U33.11 | `breakdown:true` causes `Open` key; `breakdown:false` causes `Opened`/`Closed` keys |
+| U33.12 | Author with `parent === -1` is included as a top-level root author (keyed by own gitSignature) |
+| U33.13 | Author with `parent === 0` is treated as belonging to `"others"` group |
 
 ---
 
@@ -709,6 +747,10 @@ File indices are assigned in alphabetical order within each category.
 | U34.6 | `splitMergeRequestsPerAuthor:true` → palette keys include `"Opened/Merged/Closed Merge Requests {name}"` |
 | U34.7 | `splitMergeRequestsPerAuthor:true` → palette does NOT contain bare `"Opened"` key |
 | U34.8 | `splitMergeRequestsPerAuthor:true, breakdown:true` → palette key is `"Open Merge Requests {name}"` |
+| U34.9 | `state:MERGED` → negative `Merged` count in chartData; `scale[0] < 0` |
+| U34.10 | `state:CLOSED` → negative `Closed` count in chartData; `scale[0] < 0` |
+| U34.11 | `state:OPENED`, not merged/closed → positive `Opened` count; `scale[1] > 0` |
+| U34.12 | `splitMergeRequestsPerAuthor:true`, assignee with `user===null` → `"account not assigned"` bucket |
 
 ---
 
@@ -723,6 +765,11 @@ File indices are assigned in alphabetical order within each category.
 | U35.3 | `splitBuildsPerAuthor:false` — failed builds are negated |
 | U35.4 | `splitBuildsPerAuthor:true` — keys include `"builds"` substring |
 | U35.5 | Scale `[1]` > 0 for success builds |
+| U35.6 | Unknown status (e.g. `pending`) is mapped to `"others"` — `"pending"` never appears as a chart key |
+| U35.7 | Build with `status: failed` has a negative chart value |
+| U35.8 | Build with `status: cancelled` has a negative chart value |
+| U35.9 | Build with `status: success` has a positive chart value |
+| U35.10 | `splitBuildsPerAuthor:true`, author with `selected=false` — no data beyond the `0.001` placeholder for that author |
 
 ---
 
@@ -738,6 +785,16 @@ File indices are assigned in alphabetical order within each category.
 | U36.4 | `splitAdditionsDeletions:true` — `(Additions)` and `(Deletions)` keys appear |
 | U36.5 | BUG: `excludeMergeCommits:true` with all-merge input crashes (no empty-check after filter) |
 | U36.6 | Scale `[1]` ≥ 0 and `[0]` ≤ 0 for `splitAdditionsDeletions:true` |
+| U36.7 | `excludeMergeCommits:true` — merge commit absent from output; only normal commit contributes |
+| U36.8 | `excludeMergeCommits:false` — merge commit IS included; `totalAlice === 23` (additions+deletions) |
+| U36.9 | `fileList` undefined — falls back to commit-level stats; no crash; chartData non-empty |
+| U36.10 | All files have `checked=false` — no file-level contributions for author; `totalAlice === 0` |
+| U36.11 | Per-file stats mode — file-level additions/deletions used (not commit-level); `totalAlice === 10` |
+| U36.12 | Aggregate stats mode — commit without file data uses commit totals; `totalAlice === 12` |
+| U36.13 | `splitAdditionsDeletions:true` — additions positive, deletions negative in chart |
+| U36.14 | `splitAdditionsDeletions:true` — separate `(Additions)` and `(Deletions)` series exist; no bare author key |
+| U36.15 | `splitAdditionsDeletions:false` — single combined series; bare author key present, no `(Additions)`/`(Deletions)` prefix |
+| U36.16 | Author with `parent === -1` keyed by own gitSignature; correct totals (`additions + deletions`) |
 
 ---
 
@@ -808,46 +865,38 @@ File indices are assigned in alphabetical order within each category.
 
 ---
 
-## U40 — `infoTooltipHelper` (`showInfoTooltip`)
-**File**: `src/test/unit/components/infoTooltip/showInfoTooltip.test.ts`
-**Source**: `src/components/infoTooltip/infoTooltipHelper.ts`
-
-| # | Description |
-|---|---|
-| U32.1 | `y < innerHeight/2` → `top` set, `bottom: auto` |
-| U32.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` |
-| U32.3 | `x < innerWidth/2` → `left` set, `right: auto` |
-| U32.4 | `x >= innerWidth/2` → `right` set, `left: auto` |
-| U32.5 | Renders `<h1>` with correct headline |
-| U32.6 | Renders `<p>` with correct body text |
-| U32.7 | No compatibility section when `compatibilityInfo` is omitted |
-| U32.8 | Compatibility section rendered when arg provided |
-| U32.9 | `github: true` shows `"yes"` for GitHub |
-| U32.10 | `pouchDB: false` shows `"no"` for PouchDB |
-| U32.11 | Calls `showModal()` on the dialog |
-
----
-
-## U41 — `fileTreeUtilities` (`generateFileTree`, `filterFileTree`)
+## U40 — `fileTreeUtilities` (`generateFileTree`, `filterFileTree`)
 **File**: `src/test/unit/components/fileTreeUtilities.test.ts`
-**Source**: `src/components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx`
+**Source**: `src/components/fileTree/utils/fileTreeUtilities.tsx`
 **Note**: Module has top-level `await navigator.storage.getDirectory()`. Uses `vi.stubGlobal` + dynamic `import()` in `beforeAll` to handle OPFS.
 
 | # | Description |
 |---|---|
-| U41.1 | `generateFileTree` — empty files array → empty tree |
-| U41.2 | `generateFileTree` — single flat file → one File node |
-| U41.3 | `generateFileTree` — nested path `src/index.ts` → Folder `src` containing File `index.ts` |
-| U41.4 | `generateFileTree` — two files in same folder share one folder node |
-| U41.5 | `generateFileTree` — files at different roots produce separate root nodes |
-| U41.6 | `filterFileTree` — matching search returns only matching file |
-| U41.7 | `filterFileTree` — no match removes all files and empty folders |
-| U41.8 | `filterFileTree` — search matching all files returns all |
-| U41.9 | `filterFileTree` — leaf node (no children) returned unchanged |
+| U40.1 | `generateFileTree` — empty files array → empty tree |
+| U40.2 | `generateFileTree` — single flat file → one File node |
+| U40.3 | `generateFileTree` — nested path `src/index.ts` → Folder `src` containing File `index.ts` |
+| U40.4 | `generateFileTree` — two files in same folder share one folder node |
+| U40.5 | `generateFileTree` — files at different roots produce separate root nodes |
+| U40.6 | `filterFileTree` — matching search returns only matching file |
+| U40.7 | `filterFileTree` — no match removes all files and empty folders |
+| U40.8 | `filterFileTree` — search matching all files returns all |
+| U40.9 | `filterFileTree` — leaf node (no children) returned unchanged |
+| U40.10 | `generateFileTree` — flat file list with no slashes → each file becomes a leaf node at root level |
+| U40.11 | `generateFileTree` — single path `src/utils/helper.ts` → root folder `src` containing folder `utils` containing leaf `helper.ts` |
+| U40.12 | `generateFileTree` — two paths sharing a folder → one folder node with two children |
+| U40.13 | `generateFileTree` — empty input → returns empty array |
+| U40.14 | `generateFileTree` — deeply nested path `a/b/c/d/file.ts` → 4 levels of nesting with leaf at bottom |
+| U40.15 | `filterFileTree` — search string matches a leaf name → returns subtree containing that leaf |
+| U40.16 | `filterFileTree` — search string matches nothing → returns empty children array |
+| U40.17 | `filterFileTree` — empty search string → returns entire tree (all items included) |
+| U40.18 | `filterFileTree` — search term matches a folder path segment → returns that folder and its matching children |
+| U40.19 | `formatName` — match found in middle of name → array with 3 elements (prefix, match, suffix) |
+| U40.20 | `formatName` — no match → returns array with one element containing full name |
+| U40.21 | `formatName` — match at start of name → first element of split is empty string |
 
 ---
 
-## U42 — `authorBehaviour/repositoryActivity/weeklyUtils`
+## U41 — `authorBehaviour/repositoryActivity/weeklyUtils`
 **File**: `src/test/unit/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/weeklyUtils.test.ts`
 **Source**: `src/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/src/utilities/weeklyUtils.ts`
 
@@ -855,45 +904,45 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Input | Expected |
 |---|---|---|---|
-| U42.1 | Returns 168 cells (24×7) for empty data | `[]`, any weekStart | `chartData.length === 168` |
-| U42.2 | All cells have value 0 for empty data | `[]` | every `cell.value === 0` |
-| U42.3 | `rowLabels` is always 7 entries | any input | `rowLabels.length === 7` |
-| U42.4 | `colLabels` is always 24 entries | any input | `colLabels.length === 24` |
-| U42.5 | Commit within week is counted in correct cell | commit on day 0 at hour 9 | cell with `row:0, col:9` has `value === 1` |
-| U42.6 | Activity outside the week is excluded | commit 1 day before weekStart | all cells remain 0 |
-| U42.7 | Multiple activities in same hour/day sum correctly | 3 commits in same cell | cell `value === 3` |
-| U42.8 | Cell `row` equals days-from-weekStart, `col` equals hour | commit on day 2 at hour 14 | `row:2, col:14` has value ≥ 1 |
+| U41.1 | Returns 168 cells (24×7) for empty data | `[]`, any weekStart | `chartData.length === 168` |
+| U41.2 | All cells have value 0 for empty data | `[]` | every `cell.value === 0` |
+| U41.3 | `rowLabels` is always 7 entries | any input | `rowLabels.length === 7` |
+| U41.4 | `colLabels` is always 24 entries | any input | `colLabels.length === 24` |
+| U41.5 | Commit within week is counted in correct cell | commit on day 0 at hour 9 | cell with `row:0, col:9` has `value === 1` |
+| U41.6 | Activity outside the week is excluded | commit 1 day before weekStart | all cells remain 0 |
+| U41.7 | Multiple activities in same hour/day sum correctly | 3 commits in same cell | cell `value === 3` |
+| U41.8 | Cell `row` equals days-from-weekStart, `col` equals hour | commit on day 2 at hour 14 | `row:2, col:14` has value ≥ 1 |
 
 ---
 
-## U43 — `progressReducer`
+## U42 — `progressReducer`
 **File**: `src/test/unit/redux/reducer/general/progressReducer.test.ts`
 **Source**: `src/redux/reducer/general/progressReducer.ts`
 
 | # | Description | Expected |
 |---|---|---|
-| U43.1 | Initial state has `progress.type === ''` | `state.progress.type === ''` |
-| U43.2 | Initial `socketConnection.status` is `Idle` | `SocketConnectionStatusType.Idle` |
-| U43.3 | `setProgress` replaces entire progress object | `state.progress.type === 'indexing'` |
-| U43.4 | `setProgress` can be dispatched twice, last wins | second payload in state |
-| U43.5 | `setConnectionStatus` updates `socketConnection` | status updated to Connected |
+| U42.1 | Initial state has `progress.type === ''` | `state.progress.type === ''` |
+| U42.2 | Initial `socketConnection.status` is `Idle` | `SocketConnectionStatusType.Idle` |
+| U42.3 | `setProgress` replaces entire progress object | `state.progress.type === 'indexing'` |
+| U42.4 | `setProgress` can be dispatched twice, last wins | second payload in state |
+| U42.5 | `setConnectionStatus` updates `socketConnection` | status updated to Connected |
 
 ---
 
-## U44 — `actionsReducer`
+## U43 — `actionsReducer`
 **File**: `src/test/unit/redux/reducer/general/actionsReducer.test.ts`
 **Source**: `src/redux/reducer/general/actionsReducer.ts`
 
 | # | Description | Expected |
 |---|---|---|
-| U44.1 | Initial `lastAction` is `undefined` | `state.lastAction === undefined` |
-| U44.2 | `setLastAction` sets `lastAction` string | `state.lastAction === 'myAction'` |
-| U44.3 | `setLastAction` sets `payload` | `state.payload === 42` |
-| U44.4 | Dispatching again overwrites previous values | new action/payload in state |
+| U43.1 | Initial `lastAction` is `undefined` | `state.lastAction === undefined` |
+| U43.2 | `setLastAction` sets `lastAction` string | `state.lastAction === 'myAction'` |
+| U43.3 | `setLastAction` sets `payload` | `state.payload === 42` |
+| U43.4 | Dispatching again overwrites previous values | new action/payload in state |
 
 ---
 
-## U45 — `showConfirmationDialog`
+## U44 — `showConfirmationDialog`
 **File**: `src/test/unit/components/confirmationDialog/showConfirmationDialog.test.ts`
 **Source**: `src/components/confirmationDialog/confirmationDialog.tsx`
 
@@ -901,20 +950,20 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Expected |
 |---|---|---|
-| U45.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `container.style.top` set |
-| U45.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `container.style.bottom` set |
-| U45.3 | `x < innerWidth/2` → `left` set, `right: auto` | `container.style.left` set |
-| U45.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `container.style.right` set |
-| U45.5 | Displays message text in a `<div>` | `div.textContent === 'Are you sure?'` |
-| U45.6 | Renders two buttons with the option labels | two buttons, text matches options |
-| U45.7 | Clicking option[0] button invokes its function | mock called once |
-| U45.8 | Calls `showModal()` on the dialog | spy called |
-| U45.9 | Adds icon `<img>` when option has an icon | `img` element present in button |
-| U45.10 | Does not add `<img>` when option icon is `null` | no `<img>` in that button |
+| U44.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `container.style.top` set |
+| U44.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `container.style.bottom` set |
+| U44.3 | `x < innerWidth/2` → `left` set, `right: auto` | `container.style.left` set |
+| U44.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `container.style.right` set |
+| U44.5 | Displays message text in a `<div>` | `div.textContent === 'Are you sure?'` |
+| U44.6 | Renders two buttons with the option labels | two buttons, text matches options |
+| U44.7 | Clicking option[0] button invokes its function | mock called once |
+| U44.8 | Calls `showModal()` on the dialog | spy called |
+| U44.9 | Adds icon `<img>` when option has an icon | `img` element present in button |
+| U44.10 | Does not add `<img>` when option icon is `null` | no `<img>` in that button |
 
 ---
 
-## U46 — `showDialog` (dialogHelper)
+## U45 — `showDialog` (dialogHelper)
 **File**: `src/test/unit/components/informationDialog/showDialog.test.ts`
 **Source**: `src/components/informationDialog/dialogHelper.ts`
 
@@ -922,13 +971,13 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Expected |
 |---|---|---|
-| U46.1 | Sets `innerText` of `#informationDialogHeadline` | `element.innerText === 'My headline'` |
-| U46.2 | Sets `innerText` of `#informationDialogText` | `element.innerText === 'My text'` |
-| U46.3 | Calls `showModal()` on `#informationDialog` | spy called once |
+| U45.1 | Sets `innerText` of `#informationDialogHeadline` | `element.innerText === 'My headline'` |
+| U45.2 | Sets `innerText` of `#informationDialogText` | `element.innerText === 'My text'` |
+| U45.3 | Calls `showModal()` on `#informationDialog` | spy called once |
 
 ---
 
-## U47 — `getSVGData` (shared across 11 plugin utilities files)
+## U46 — `getSVGData` (shared across 11 plugin utilities files)
 **File**: `src/test/unit/plugins/visualizationPlugins/getSVGData.test.ts`
 **Sources**: 9 files use `children[1].outerHTML` pattern; 2 files (`codeExpertise`, `knowledgeRadar`) use a safer SVGElement-find pattern. Tested separately via two `describe.each` blocks.
 
@@ -936,21 +985,21 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Input | Expected |
 |---|---|---|---|
-| U47.1 | Returns fallback SVG when `ref.current` is `null` | `{ current: null }` | `'<svg xmlns="http://www.w3.org/2000/svg"></svg>'` |
-| U47.2 | BUG: throws `TypeError` when `children[1]` is absent (missing optional chaining on index access) | div with 1 child | `TypeError` thrown |
-| U47.3 | Returns `outerHTML` of `children[1]` when present | div with 2 children | second child's `outerHTML` |
+| U46.1 | Returns fallback SVG when `ref.current` is `null` | `{ current: null }` | `'<svg xmlns="http://www.w3.org/2000/svg"></svg>'` |
+| U46.2 | BUG: throws `TypeError` when `children[1]` is absent (missing optional chaining on index access) | div with 1 child | `TypeError` thrown |
+| U46.3 | Returns `outerHTML` of `children[1]` when present | div with 2 children | second child's `outerHTML` |
 
 ### SVGElement-find variant (`codeExpertise`, `knowledgeRadar`)
 
 | # | Description | Input | Expected |
 |---|---|---|---|
-| U47.1 | Returns fallback SVG when `ref.current` is `null` | `{ current: null }` | fallback string |
-| U47.2 | Returns fallback SVG when no SVGElement child exists | div with only `<span>` | fallback string |
-| U47.3 | Returns `outerHTML` of the first SVGElement child | div with `<svg>` child | SVG's `outerHTML` |
+| U46.4 | Returns fallback SVG when `ref.current` is `null` | `{ current: null }` | fallback string |
+| U46.5 | Returns fallback SVG when no SVGElement child exists | div with only `<span>` | fallback string |
+| U46.6 | Returns `outerHTML` of the first SVGElement child | div with `<svg>` child | SVG's `outerHTML` |
 
 ---
 
-## U48 — `showLayoutOverview`
+## U47 — `showLayoutOverview`
 **File**: `src/test/unit/components/layoutOverview/showLayoutOverview.test.ts`
 **Source**: `src/components/tabs/layouts/layoutOverview/layoutOverviewHelper.ts`
 
@@ -958,66 +1007,66 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Input | Expected |
 |---|---|---|---|
-| U48.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `y=200` (H=800) | `top = '180px'`, `bottom = 'auto'` |
-| U48.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `y=600` | `bottom = '180px'`, `top = 'auto'` |
-| U48.3 | `x < innerWidth/2` → `left` set, `right: auto` | `x=200` (W=1000) | `left = '200px'`, `right = 'auto'` |
-| U48.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `x=700` | `right = '280px'`, `left = 'auto'` |
-| U48.5 | `y=20` edge case: `y-20=0 < 10` → `top` clamped to `10px` | `y=20` | `top = '10px'` |
-| U48.6 | Calls `showModal()` on `#layoutOverview` | any call | spy called |
+| U47.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `y=200` (H=800) | `top = '180px'`, `bottom = 'auto'` |
+| U47.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `y=600` | `bottom = '180px'`, `top = 'auto'` |
+| U47.3 | `x < innerWidth/2` → `left` set, `right: auto` | `x=200` (W=1000) | `left = '200px'`, `right = 'auto'` |
+| U47.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `x=700` | `right = '280px'`, `left = 'auto'` |
+| U47.5 | `y=20` edge case: `y-20=0 < 10` → `top` clamped to `10px` | `y=20` | `top = '10px'` |
+| U47.6 | Calls `showModal()` on `#layoutOverview` | any call | spy called |
 
 ---
 
-## U49 — `showVisualizationOverview` + `disableVisualizationOverview`
+## U48 — `showVisualizationOverview` + `disableVisualizationOverview`
 **File**: `src/test/unit/components/visualizationOverview/showVisualizationOverview.test.ts`
 **Source**: `src/components/tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverviewHelper.ts`
 
-> Same DOM setup pattern as U48 with `#visualizationOverview` and `#visualizationOverviewPositionController`.
+> Same DOM setup pattern as U47 with `#visualizationOverview` and `#visualizationOverviewPositionController`.
 
 | # | Description | Input | Expected |
 |---|---|---|---|
-| U49.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `y=200` | `top = '180px'` |
-| U49.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `y=600` | `bottom = '180px'` |
-| U49.3 | `x < innerWidth/2` → `left` set, `right: auto` | `x=200` | `left = '200px'` |
-| U49.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `x=700` | `right = '280px'` |
-| U49.5 | Calls `showModal()` on `#visualizationOverview` | any call | spy called |
-| U49.6 | `disableVisualizationOverview` returns `false` when `pluginOptions` is `undefined` | any filter, `undefined` | `false` |
-| U49.7 | Returns `false` when no filter key is `true` | all filter false | `false` |
-| U49.8 | Returns `true` when filter `github=true` but plugin `github=false` | mismatch | `true` |
-| U49.9 | Returns `false` when filter `github=true` and plugin `github=true` | match | `false` |
-| U49.10 | Returns `true` on `pouchDB` key mismatch | `pouchDB` mismatch | `true` |
+| U48.1 | `y < innerHeight/2` → `top` set, `bottom: auto` | `y=200` | `top = '180px'` |
+| U48.2 | `y >= innerHeight/2` → `bottom` set, `top: auto` | `y=600` | `bottom = '180px'` |
+| U48.3 | `x < innerWidth/2` → `left` set, `right: auto` | `x=200` | `left = '200px'` |
+| U48.4 | `x >= innerWidth/2` → `right` set, `left: auto` | `x=700` | `right = '280px'` |
+| U48.5 | Calls `showModal()` on `#visualizationOverview` | any call | spy called |
+| U48.6 | `disableVisualizationOverview` returns `false` when `pluginOptions` is `undefined` | any filter, `undefined` | `false` |
+| U48.7 | Returns `false` when no filter key is `true` | all filter false | `false` |
+| U48.8 | Returns `true` when filter `github=true` but plugin `github=false` | mismatch | `true` |
+| U48.9 | Returns `false` when filter `github=true` and plugin `github=true` | match | `false` |
+| U48.10 | Returns `true` on `pouchDB` key mismatch | `pouchDB` mismatch | `true` |
 
 ---
 
-## U50 — `actionsMiddleware`
+## U49 — `actionsMiddleware`
 **File**: `src/test/unit/redux/middleware/actionsMiddleware.test.ts`
-**Source**: `src/redux/middelware/actions/actionsMiddleware.ts`
+**Source**: `src/redux/middleware/actions/actionsMiddleware.ts`
 
 > Intercepts every Redux action: non-`setLastAction` actions are forwarded via `next` AND trigger a `setLastAction` dispatch; `setLastAction` itself is only forwarded.
 
 | # | Description | Expected |
 |---|---|---|
-| U50.1 | Non-setLastAction: `next` is called once | `next` spy called once |
-| U50.2 | Non-setLastAction: `store.dispatch` called with `setLastAction` | dispatch called with `{ action: type, payload }` |
-| U50.3 | `setLastAction` itself: `next` called, `store.dispatch` NOT called again | no second dispatch |
-| U50.4 | Payload is forwarded correctly inside setLastAction dispatch | `dispatchedPayload.payload === originalPayload` |
+| U49.1 | Non-setLastAction: `next` is called once | `next` spy called once |
+| U49.2 | Non-setLastAction: `store.dispatch` called with `setLastAction` | dispatch called with `{ action: type, payload }` |
+| U49.3 | `setLastAction` itself: `next` called, `store.dispatch` NOT called again | no second dispatch |
+| U49.4 | Payload is forwarded correctly inside setLastAction dispatch | `dispatchedPayload.payload === originalPayload` |
 
 ---
 
-## U51 — `refreshMiddleware`
+## U50 — `refreshMiddleware`
 **File**: `src/test/unit/redux/middleware/refreshMiddleware.test.ts`
-**Source**: `src/redux/middelware/refresh/refreshMiddleware.ts`
+**Source**: `src/redux/middleware/refresh/refreshMiddleware.ts`
 
 > When action type is `'progress/setProgress'`, passes through AND dispatches `REFRESH_PLUGIN` to the global store. All other actions just pass through.
 
 | # | Description | Expected |
 |---|---|---|
-| U51.1 | `setProgress` action: `next` called | `next` spy called |
-| U51.2 | `setProgress` action: `globalStore.dispatch` called with `REFRESH_PLUGIN` | dispatch called with `{ type: 'REFRESH_PLUGIN', payload: { pluginId } }` |
-| U51.3 | Unrelated action: `next` called, global dispatch NOT called | no second dispatch |
+| U50.1 | `setProgress` action: `next` called | `next` spy called |
+| U50.2 | `setProgress` action: `globalStore.dispatch` called with `REFRESH_PLUGIN` | dispatch called with `{ type: 'REFRESH_PLUGIN', payload: { pluginId } }` |
+| U50.3 | Unrelated action: `next` called, global dispatch NOT called | no second dispatch |
 
 ---
 
-## U52 — `convertToActivityTimelineFormat`
+## U51 — `convertToActivityTimelineFormat`
 **File**: `src/test/unit/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/activityTimelineUtils.test.ts`
 **Source**: `src/plugins/visualizationPlugins/authorBehaviour/repositoryActivity/src/utilities/activityTimelineUtils.ts`
 
@@ -1025,16 +1074,16 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Expected |
 |---|---|---|
-| U52.1 | Empty array → empty chartData | `chartData.length === 0` |
-| U52.2 | Single activity → one chart entry with `value: 1` | `chartData.length === 1`, `value === 1` |
-| U52.3 | Two activities on same day → one entry with `value: 2` | `chartData.length === 1`, `value === 2` |
-| U52.4 | Activities on different days → separate entries | `chartData.length === 2` |
-| U52.5 | Branch activity without latestCommit (null date) is skipped | entry not in chartData |
-| U52.6 | Output is sorted ascending by date | `chartData[0].date < chartData[1].date` |
+| U51.1 | Empty array → empty chartData | `chartData.length === 0` |
+| U51.2 | Single activity → one chart entry with `value: 1` | `chartData.length === 1`, `value === 1` |
+| U51.3 | Two activities on same day → one entry with `value: 2` | `chartData.length === 1`, `value === 2` |
+| U51.4 | Activities on different days → separate entries | `chartData.length === 2` |
+| U51.5 | Branch activity without latestCommit (null date) is skipped | entry not in chartData |
+| U51.6 | Output is sorted ascending by date | `chartData[0].date < chartData[1].date` |
 
 ---
 
-## U53 — `pouchDB/utils` (pure functions only)
+## U52 — `pouchDB/utils` (pure functions only)
 **File**: `src/test/unit/plugins/dataPlugins/pouchDB/utils.test.ts`
 **Source**: `src/plugins/dataPlugins/pouchDB/src/utils.ts`
 
@@ -1042,18 +1091,18 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Expected |
 |---|---|---|
-| U53.1 | `binarySearchArray` — empty array returns `[]` | `[]` |
-| U53.2 | `binarySearchArray` — single match returns array with that element | `[match]` |
-| U53.3 | `binarySearchArray` — multiple matches returns all | `[a, b]` |
-| U53.4 | `binarySearchArray` — no match returns `[]` | `[]` |
-| U53.5 | `binarySearch` — returns the matching element | element found |
-| U53.6 | `binarySearch` — returns `null` when not found | `null` |
-| U53.7 | `sortByAttributeString` — ascending sorts A → Z | sorted ascending |
-| U53.8 | `sortByAttributeString` — descending sorts Z → A | sorted descending |
+| U52.1 | `binarySearchArray` — empty array returns `[]` | `[]` |
+| U52.2 | `binarySearchArray` — single match returns array with that element | `[match]` |
+| U52.3 | `binarySearchArray` — multiple matches returns all | `[a, b]` |
+| U52.4 | `binarySearchArray` — no match returns `[]` | `[]` |
+| U52.5 | `binarySearch` — returns the matching element | element found |
+| U52.6 | `binarySearch` — returns `null` when not found | `null` |
+| U52.7 | `sortByAttributeString` — ascending sorts A → Z | sorted ascending |
+| U52.8 | `sortByAttributeString` — descending sorts Z → A | sorted descending |
 
 ---
 
-## U54 — `dashboardHelper` (remaining functions)
+## U53 — `dashboardHelper` (remaining functions)
 **File**: `src/test/unit/components/dashboard/dashboardHelper.test.ts`
 **Source**: `src/components/dashboard/dashboardHelper.ts`
 
@@ -1061,18 +1110,18 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Function | Expected |
 |---|---|---|---|
-| U54.1 | Hides drag indicator (display none) | `clearHighlightDropArea` | `ref.current.style.display === 'none'` |
-| U54.2 | Removes highlight classes from all cells | `clearHighlightDropArea` | no cells have highlight class |
-| U54.3 | No-op when `ref.current` is null | `clearHighlightDropArea` | no error thrown |
-| U54.4 | Sets `dragResizeMode.current` to new value | `setDragResizeMode` | `ref.current === newMode` |
-| U54.5 | Shows div when mode is non-none | `setDragResizeMode` | `style.display === 'block'` |
-| U54.6 | Hides div when mode is none | `setDragResizeMode` | `style.display === 'none'` |
-| U54.7 | Sets `display: block` and correct top/left/width/height | `placeDragIndicator` | style properties set as calc strings |
-| U54.8 | No-op when `ref.current` is null | `placeDragIndicator` | no error |
+| U53.1 | Hides drag indicator (display none) | `clearHighlightDropArea` | `ref.current.style.display === 'none'` |
+| U53.2 | Removes highlight classes from all cells | `clearHighlightDropArea` | no cells have highlight class |
+| U53.3 | No-op when `ref.current` is null | `clearHighlightDropArea` | no error thrown |
+| U53.4 | Sets `dragResizeMode.current` to new value | `setDragResizeMode` | `ref.current === newMode` |
+| U53.5 | Shows div when mode is non-none | `setDragResizeMode` | `style.display === 'block'` |
+| U53.6 | Hides div when mode is none | `setDragResizeMode` | `style.display === 'none'` |
+| U53.7 | Sets `display: block` and correct top/left/width/height | `placeDragIndicator` | style properties set as calc strings |
+| U53.8 | No-op when `ref.current` is null | `placeDragIndicator` | no error |
 
 ---
 
-## U55 — `utils/dataPluginStorage`
+## U54 — `utils/dataPluginStorage`
 **File**: `src/test/unit/utils/dataPluginStorage.test.ts`
 **Source**: `src/utils/dataPluginStorage.ts`
 
@@ -1080,20 +1129,20 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Input | Expected |
 |---|---|---|---|
-| U55.1 | `addDataPlugin` is a no-op when `id` is undefined | `{ id: undefined, name: 'FakeName', ... }` | `init` not called; cache empty |
-| U55.2 | `addDataPlugin` calls `init` on the matched plugin class | `{ id: 1, name: 'FakeName', ... }` | `mockInit` called once |
-| U55.3 | `addDataPlugin` stores instance under `name+id` key | `{ id: 7, name: 'FakeName', ... }` | `cache['FakeName7']` is `FakePlugin` instance |
-| U55.4 | `addDataPlugin` passes apiKey, endpoint, fileName, progressUpdate to `init` | `params: { apiKey: 'k', endpoint: 'u', fileName: 'f.json' }` | `init('k', 'u', { name: 'f.json', file: undefined, dbObjects: undefined }, undefined)` |
-| U55.5 | `addDataPlugin` does nothing when no plugin class matches the name | `{ id: 1, name: 'Unknown', ... }` | cache stays empty |
-| U55.6 | `getDataPlugin` returns `undefined` when `id` is undefined | `{ id: undefined, ... }` | `undefined` |
-| U55.7 | `getDataPlugin` creates and returns a plugin instance on cache miss | `{ id: 1, name: 'FakeName', ... }` | returns `FakePlugin` instance |
-| U55.8 | `getDataPlugin` returns `undefined` when no plugin class matches | `{ id: 1, name: 'NoSuchPlugin', ... }` | `undefined` |
-| U55.9 | `getDataPlugin` stores the created instance under `name+id` key | `{ id: 2, name: 'FakeName', ... }` | `cache['FakeName2']` is `FakePlugin` |
-| U55.10 | `getDataPlugin` returns the cached instance from a prior `addDataPlugin` without re-calling `init` | `addDataPlugin` then `getDataPlugin` with same descriptor | same instance; `init` called exactly once |
+| U54.1 | `addDataPlugin` is a no-op when `id` is undefined | `{ id: undefined, name: 'FakeName', ... }` | `init` not called; cache empty |
+| U54.2 | `addDataPlugin` calls `init` on the matched plugin class | `{ id: 1, name: 'FakeName', ... }` | `mockInit` called once |
+| U54.3 | `addDataPlugin` stores instance under `name+id` key | `{ id: 7, name: 'FakeName', ... }` | `cache['FakeName7']` is `FakePlugin` instance |
+| U54.4 | `addDataPlugin` passes apiKey, endpoint, fileName, progressUpdate to `init` | `params: { apiKey: 'k', endpoint: 'u', fileName: 'f.json' }` | `init('k', 'u', { name: 'f.json', file: undefined, dbObjects: undefined }, undefined)` |
+| U54.5 | `addDataPlugin` does nothing when no plugin class matches the name | `{ id: 1, name: 'Unknown', ... }` | cache stays empty |
+| U54.6 | `getDataPlugin` returns `undefined` when `id` is undefined | `{ id: undefined, ... }` | `undefined` |
+| U54.7 | `getDataPlugin` creates and returns a plugin instance on cache miss | `{ id: 1, name: 'FakeName', ... }` | returns `FakePlugin` instance |
+| U54.8 | `getDataPlugin` returns `undefined` when no plugin class matches | `{ id: 1, name: 'NoSuchPlugin', ... }` | `undefined` |
+| U54.9 | `getDataPlugin` stores the created instance under `name+id` key | `{ id: 2, name: 'FakeName', ... }` | `cache['FakeName2']` is `FakePlugin` |
+| U54.10 | `getDataPlugin` returns the cached instance from a prior `addDataPlugin` without re-calling `init` | `addDataPlugin` then `getDataPlugin` with same descriptor | same instance; `init` called exactly once |
 
 ---
 
-## U56 — `utils/json-utils`
+## U55 — `utils/json-utils`
 **File**: `src/test/unit/utils/jsonUtils.test.ts`
 **Source**: `src/utils/json-utils.ts`
 
@@ -1101,40 +1150,149 @@ File indices are assigned in alphabetical order within each category.
 
 | # | Description | Input | Expected |
 |---|---|---|---|
-| U56.1 | `compressJson` plain collection strips `_key` | `[{ _id: 'commits/x', _key: 'x', _rev: '_r' }]` | no `_key` in result |
-| U56.2 | `compressJson` plain collection strips `_rev` | same | no `_rev` in result |
-| U56.3 | `compressJson` plain collection removes collection prefix from `_id` | `_id: 'commits/abc'` | `_id: 'abc'` |
-| U56.4 | `compressJson` plain collection preserves other fields | `{ sha: 'abc' }` | `sha` unchanged |
-| U56.5 | `compressJson` plain collection handles empty input | `[]` | `[]` |
-| U56.6 | `decompressJson` plain collection restores collection prefix to `_id` | `[{ _id: 'abc' }]`, collection `'commits'` | `_id: 'commits/abc'` |
-| U56.7 | `decompressJson` skips decompression when `_id` already contains `/` | `[{ _id: 'commits/abc' }]` | returned unchanged |
-| U56.8 | `decompressJson` plain collection handles empty input | `[]` | `[]` |
-| U56.9 | `compressJson` simple connection strips `_from` prefix | `_from: 'commits/a'`, collection `'commits-files'` | `_from: 'a'` |
-| U56.10 | `compressJson` simple connection strips `_to` prefix | `_to: 'files/b'` | `_to: 'b'` |
-| U56.11 | `decompressJson` simple connection restores `_from` prefix | `_from: 'a'`, collection `'commits-files'` | `_from: 'commits/a'` |
-| U56.12 | `decompressJson` simple connection restores `_to` prefix | `_to: 'b'` | `_to: 'files/b'` |
-| U56.13 | `compressJson` registered 3-part connection strips `_from` | `_from: 'commits-files/cf1'`, collection `'commits-files-users'` | `_from: 'cf1'` |
-| U56.14 | `compressJson` registered 3-part connection strips `_to` | `_to: 'users/u1'` | `_to: 'u1'` |
-| U56.15 | `compressJson` unregistered 3-part connection leaves `_from` untouched | collection `'foo-bar-baz'` | `_from` unchanged |
-| U56.16 | `compressJson` unregistered 3-part connection leaves `_to` untouched | collection `'foo-bar-baz'` | `_to` unchanged |
-| U56.17 | `decompressJson` registered 3-part restores `_from` via connections map | collection `'commits-files-users'` | `_from: 'commits-files/cf1'` |
-| U56.18 | `decompressJson` registered 3-part restores `_to` via connections map | collection `'commits-files-users'` | `_to: 'users/u1'` |
-| U56.19 | `compressJson` ownership hunks renames `originalCommit` → `oc` | hunk with `originalCommit: 'sha1'` | `oc: 'sha1'`; no `originalCommit` |
-| U56.20 | `compressJson` ownership hunks encodes lines as `"from,to"` strings | `lines: [{ from: 1, to: 5 }]` | `lines: ['1,5']` |
-| U56.21 | `decompressJson` ownership hunks renames `oc` → `originalCommit` | `oc: 'sha1'` | `originalCommit: 'sha1'`; no `oc` |
-| U56.22 | `decompressJson` ownership hunks decodes strings to `{ from, to }` | `lines: ['1,5']` | `lines: [{ from: '1', to: '5' }]` |
-| U56.23 | Roundtrip plain collection restores `_id` prefix; drops `_key`/`_rev` | compress then decompress | `_id` restored; no `_key`/`_rev` |
-| U56.24 | Roundtrip simple connection restores `_from` and `_to` | compress then decompress `'commits-files'` | `_from: 'commits/a'`; `_to: 'files/b'` |
-| U56.25 | Roundtrip registered 3-part restores all fields including hunks | compress then decompress `'commits-files-users'` | `_from`, `_to`, `originalCommit`, `lines` all restored |
+| U55.1 | `compressJson` plain collection strips `_key` | `[{ _id: 'commits/x', _key: 'x', _rev: '_r' }]` | no `_key` in result |
+| U55.2 | `compressJson` plain collection strips `_rev` | same | no `_rev` in result |
+| U55.3 | `compressJson` plain collection removes collection prefix from `_id` | `_id: 'commits/abc'` | `_id: 'abc'` |
+| U55.4 | `compressJson` plain collection preserves other fields | `{ sha: 'abc' }` | `sha` unchanged |
+| U55.5 | `compressJson` plain collection handles empty input | `[]` | `[]` |
+| U55.6 | `decompressJson` plain collection restores collection prefix to `_id` | `[{ _id: 'abc' }]`, collection `'commits'` | `_id: 'commits/abc'` |
+| U55.7 | `decompressJson` skips decompression when `_id` already contains `/` | `[{ _id: 'commits/abc' }]` | returned unchanged |
+| U55.8 | `decompressJson` plain collection handles empty input | `[]` | `[]` |
+| U55.9 | `compressJson` simple connection strips `_from` prefix | `_from: 'commits/a'`, collection `'commits-files'` | `_from: 'a'` |
+| U55.10 | `compressJson` simple connection strips `_to` prefix | `_to: 'files/b'` | `_to: 'b'` |
+| U55.11 | `decompressJson` simple connection restores `_from` prefix | `_from: 'a'`, collection `'commits-files'` | `_from: 'commits/a'` |
+| U55.12 | `decompressJson` simple connection restores `_to` prefix | `_to: 'b'` | `_to: 'files/b'` |
+| U55.13 | `compressJson` registered 3-part connection strips `_from` | `_from: 'commits-files/cf1'`, collection `'commits-files-users'` | `_from: 'cf1'` |
+| U55.14 | `compressJson` registered 3-part connection strips `_to` | `_to: 'users/u1'` | `_to: 'u1'` |
+| U55.15 | `compressJson` unregistered 3-part connection leaves `_from` untouched | collection `'foo-bar-baz'` | `_from` unchanged |
+| U55.16 | `compressJson` unregistered 3-part connection leaves `_to` untouched | collection `'foo-bar-baz'` | `_to` unchanged |
+| U55.17 | `decompressJson` registered 3-part restores `_from` via connections map | collection `'commits-files-users'` | `_from: 'commits-files/cf1'` |
+| U55.18 | `decompressJson` registered 3-part restores `_to` via connections map | collection `'commits-files-users'` | `_to: 'users/u1'` |
+| U55.19 | `compressJson` ownership hunks renames `originalCommit` → `oc` | hunk with `originalCommit: 'sha1'` | `oc: 'sha1'`; no `originalCommit` |
+| U55.20 | `compressJson` ownership hunks encodes lines as `"from,to"` strings | `lines: [{ from: 1, to: 5 }]` | `lines: ['1,5']` |
+| U55.21 | `decompressJson` ownership hunks renames `oc` → `originalCommit` | `oc: 'sha1'` | `originalCommit: 'sha1'`; no `oc` |
+| U55.22 | `decompressJson` ownership hunks decodes strings to `{ from, to }` | `lines: ['1,5']` | `lines: [{ from: '1', to: '5' }]` |
+| U55.23 | Roundtrip plain collection restores `_id` prefix; drops `_key`/`_rev` | compress then decompress | `_id` restored; no `_key`/`_rev` |
+| U55.24 | Roundtrip simple connection restores `_from` and `_to` | compress then decompress `'commits-files'` | `_from: 'commits/a'`; `_to: 'files/b'` |
+| U55.25 | Roundtrip registered 3-part restores all fields including hunks | compress then decompress `'commits-files-users'` | `_from`, `_to`, `originalCommit`, `lines` all restored |
 
 ---
 
-## Unit test file locations (utils/)
+## U56 — `ownership/codeOwnership/dbUtils`
+**File**: `src/test/unit/plugins/visualizationPlugins/ownership/codeOwnership/dbUtils.test.ts`
+**Source**: `src/plugins/visualizationPlugins/ownership/codeOwnership/src/utils/dbUtils.ts`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U56.1 | Linear 3-commit chain returns SHA array in descending date order | chain sha1→sha2→sha3, query sha3 | `['sha3', 'sha2', 'sha1']` |
+| U56.2 | Genesis commit (no parents) returns only its own SHA | commit with `parents: []` | `['sha-genesis']` |
+| U56.3 | Merge commit (2 parents) includes both parent chains | diamond graph, query merge | all 4 SHAs present; merge is first |
+| U56.4 | Missing parent SHA throws `TypeError` | parent SHA not in `allCommits` | `expect(...).toThrow(TypeError)` |
+| U56.5 | Circular parent references terminate without infinite loop | sha1↔sha2 cycle | does not throw; both SHAs in result |
+
+---
+
+## Unit test file locations
 
 ```
-src/test/unit/utils/
-├── dataPluginStorage.test.ts    (U55)
-└── jsonUtils.test.ts            (U56)
+src/test/unit/
+├── components/
+│   ├── confirmationDialog/
+│   │   └── showConfirmationDialog.test.ts                              (U44)
+│   ├── contextMenu/
+│   │   └── showContextMenu.test.ts                                     (U31)
+│   ├── dashboard/
+│   │   ├── dashboardHelper.test.ts                                     (U53)
+│   │   └── highlightDropArea.test.ts                                   (U30)
+│   ├── fileTreeUtilities.test.ts                                       (U40)
+│   ├── infoTooltip/
+│   │   └── showInfoTooltip.test.ts                                     (U32)
+│   ├── informationDialog/
+│   │   └── showDialog.test.ts                                          (U45)
+│   ├── layoutOverview/
+│   │   └── showLayoutOverview.test.ts                                  (U47)
+│   └── visualizationOverview/
+│       └── showVisualizationOverview.test.ts                           (U48)
+├── plugins/
+│   ├── dataPlugins/
+│   │   └── pouchDB/
+│   │       └── utils.test.ts                                           (U52)
+│   └── visualizationPlugins/
+│       ├── authorBehaviour/
+│       │   ├── collaboration/
+│       │   │   └── dataConverter.test.ts                               (U1)
+│       │   ├── repositoryActivity/
+│       │   │   ├── activityTimelineUtils.test.ts                       (U51)
+│       │   │   ├── types.test.ts                                       (U39)
+│       │   │   └── weeklyUtils.test.ts                                 (U41)
+│       │   └── timeSpent/
+│       │       └── dataConverter.test.ts                               (U37)
+│       ├── builds/
+│       │   └── builds/
+│       │       └── dataConverter.test.ts                               (U35)
+│       ├── commits/
+│       │   ├── changes/
+│       │   │   └── dataConverter.test.ts                               (U36)
+│       │   └── fileChanges/
+│       │       └── dataConverter.test.ts                               (U2)
+│       ├── expertise/
+│       │   ├── codeExpertise/
+│       │   │   └── dbUtils.test.ts                                     (U3)
+│       │   └── knowledgeRadar/
+│       │       └── dataConverter.test.ts                               (U38)
+│       ├── getSVGData.test.ts                                          (U46)
+│       ├── issues/
+│       │   ├── burndown/
+│       │   │   ├── groupIssuesByGranularity.test.ts                    (U4)
+│       │   │   └── pairUpDataPoints.test.ts                            (U5)
+│       │   ├── issues/
+│       │   │   └── dataConverter.test.ts                               (U33)
+│       │   ├── issuesTimeline/
+│       │   │   ├── aggregateTimeTrackingData.test.ts                   (U6)
+│       │   │   ├── findAuthorWithMaxSpentTime.test.ts                  (U21)
+│       │   │   ├── groupIntoTracks.test.ts                             (U22)
+│       │   │   ├── groupMergeRequests.test.ts                          (U23)
+│       │   │   ├── groupSimilarLabels.test.ts                          (U7)
+│       │   │   ├── initializeLevenshteinDPTable.test.ts                (U8)
+│       │   │   ├── initializeLevenshteinMatrix.test.ts                 (U9)
+│       │   │   └── levenshteinDistance.test.ts                         (U10)
+│       │   └── mergeRequests/
+│       │       └── dataConverter.test.ts                               (U34)
+│       ├── ownership/
+│       │   └── codeOwnership/
+│       │       ├── cryptoUtils.test.ts                                 (U11)
+│       │       ├── dateUtils.test.ts                                   (U12)
+│       │       ├── dbUtils.test.ts                                     (U56)
+│       │       ├── exceptions.test.ts                                  (U20)
+│       │       └── ownershipUtils.test.ts                              (U13)
+│       └── utils/
+│           └── extractTimeTrackingDataFromNotes.test.ts                (U14)
+├── redux/
+│   ├── middleware/
+│   │   ├── actionsMiddleware.test.ts                                   (U49)
+│   │   └── refreshMiddleware.test.ts                                   (U50)
+│   └── reducer/
+│       ├── data/
+│       │   ├── accountsReducer.test.ts                                 (U24)
+│       │   ├── authorsReducer.test.ts                                  (U26)
+│       │   ├── filesReducer.test.ts                                    (U27)
+│       │   └── sprintsReducer.test.ts                                  (U25)
+│       ├── export/
+│       │   └── exportReducer.test.ts                                   (U19)
+│       ├── general/
+│       │   ├── actionsReducer.test.ts                                  (U43)
+│       │   ├── dashboardReducer.test.ts                                (U15)
+│       │   ├── layoutReducer.test.ts                                   (U28)
+│       │   ├── notificationsReducer.test.ts                            (U16)
+│       │   ├── progressReducer.test.ts                                 (U42)
+│       │   └── tabsReducer.test.ts                                     (U17)
+│       ├── parameters/
+│       │   └── parametersReducer.test.ts                               (U18)
+│       └── settings/
+│           └── settingsReducer.test.ts                                 (U29)
+└── utils/
+    ├── dataPluginStorage.test.ts                                       (U54)
+    └── jsonUtils.test.ts                                               (U55)
 ```
 
 ---
@@ -1292,29 +1450,29 @@ Pure utility functions for the StackedAreaChart component.
 
 ---
 
-## C7 — `tabContent/fileListFile`
+## C7 — `tabContent/fileListFile` (`FileTreeFile`)
 **File**: `src/test/component/tabContent/fileListFile.test.tsx`
-**Source**: `src/components/tabs/fileTree/fileList/fileListElements/fileListFile.tsx`
+**Source**: `src/components/fileTree/fileTreeElements/fileTreeFile/fileTreeFile.tsx`
 
 File entry component in the file tree. Tests checkbox visibility, dispatch of `updateFileListElement`, and `showFileTreeElementInfo`.
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
 | C7.1 | Renders the file name | `file.name: 'foo.ts'` | `'foo.ts'` visible |
-| C7.2 | Checkbox is checked when `file.checked` is true | `checked: true` | checkbox is checked |
-| C7.3 | Checkbox is unchecked when `file.checked` is false | `checked: false` | checkbox is unchecked |
-| C7.4 | Clicking checkbox dispatches `updateFileListElement` | click checkbox | file's `checked` state toggled in store |
-| C7.5 | Without `listOnly`, checkbox is rendered | `listOnly: undefined` | checkbox present |
+| C7.2 | Checkbox is checked when `file.checked` is true | `checked: true`, `showSelect: true` | checkbox is checked |
+| C7.3 | Checkbox is unchecked when `file.checked` is false | `checked: false`, `showSelect: true` | checkbox is unchecked |
+| C7.4 | Clicking checkbox calls `onElementSelectionChange` which dispatches `updateFileListElement` | `showSelect: true`; click checkbox | file's `checked` state toggled in store |
+| C7.5 | With `showSelect: true` and no `listOnly`, checkbox is rendered | `showSelect: true`, `listOnly: undefined` | checkbox present |
 | C7.6 | `listOnly=true` → checkbox NOT rendered | `listOnly: true` | checkbox absent |
-| C7.7 | Checking the checkbox dispatches `updateFileListElement` with `checked: true, update: true` | check the checkbox | `dispatchSpy` called with matching payload |
-| C7.8 | Clicking element with `listOnly=true` dispatches `showFileTreeElementInfo` | `listOnly: true`; click | action with `element` payload dispatched |
+| C7.7 | Checking the checkbox dispatches `updateFileListElement` with `checked: true, update: true` | `showSelect: true`; check the checkbox | fileList entry updated in store |
+| C7.8 | Clicking element with `listOnly=true` calls `onElementClick` which dispatches `showFileTreeElementInfo` | `listOnly: true`; `onElementClick` provided; click | action with `element` payload dispatched |
 | C7.9 | Clicking element without `listOnly` does NOT dispatch `showFileTreeElementInfo` | `listOnly: undefined`; click | action NOT dispatched |
 
 ---
 
-## C8 — `tabContent/fileListFolder`
+## C8 — `tabContent/fileListFolder` (`FileTreeFolder`)
 **File**: `src/test/component/tabContent/fileListFolder.test.tsx`
-**Source**: `src/components/tabs/fileTree/fileList/fileListElements/fileListFolder.tsx`
+**Source**: `src/components/fileTree/fileTreeElements/fileTreeFolder/fileTreeFolder.tsx`
 
 Recursive folder node in the file tree. Tests fold/unfold dispatch, `listOnly` mode, and checked state.
 
@@ -1327,11 +1485,11 @@ Recursive folder node in the file tree. Tests fold/unfold dispatch, `listOnly` m
 | C8.5 | Renders nested folder when expanded | parent expanded, child sub-folder | sub-folder name visible |
 | C8.6 | `foldedOut=false` → children NOT rendered (extended fixture) | folder with child file; `foldedOut: false` | child file not in DOM |
 | C8.7 | `foldedOut=true` → children ARE rendered (extended fixture) | folder with child file; `foldedOut: true` | child file visible |
-| C8.8 | Clicking collapsed folder dispatches `updateFileListElement` with `foldedOut: true` | dispatch spy; `foldedOut: false`; click folder name | spy captures action with `foldedOut: true` |
-| C8.9 | Clicking expanded folder dispatches `updateFileListElement` with `foldedOut: false` | dispatch spy; `foldedOut: true`; click folder name | spy captures action with `foldedOut: false` |
+| C8.8 | Clicking collapsed folder calls `onElementClick` which dispatches `updateFileListElement` with `foldedOut: true` | `onElementClick` provided; `foldedOut: false`; click folder name | spy captures action with `foldedOut: true` |
+| C8.9 | Clicking expanded folder calls `onElementClick` which dispatches `updateFileListElement` with `foldedOut: false` | `onElementClick` provided; `foldedOut: true`; click folder name | spy captures action with `foldedOut: false` |
 | C8.10 | `listOnly=true` always shows children regardless of `foldedOut=false` | `listOnly: true, foldedOut: false` | children rendered |
 | C8.11 | Folder with `id === undefined` has no checkbox when expanded | `foldedOut: true, id: undefined` | checkbox absent |
-| C8.12 | Checking folder checkbox dispatches `updateFileListElement` with updated `checked` | dispatch spy; check checkbox | spy captures updated checked value |
+| C8.12 | Checking folder checkbox calls `onElementSelectionChange` which dispatches `updateFileListElement` | `showSelect: true`; `onElementSelectionChange` provided; check checkbox | spy captures updated checked value |
 
 ---
 
@@ -1507,13 +1665,13 @@ No Redux. Props: `{ onChange: (theme: string) => void; theme: string }`. Uses `f
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C19.1 | Renders a `<dialog>` element | render | `dialog` in DOM |
-| C19.2 | Dialog has `id="infoTooltip"` | render | element present |
+| C19.1 | Renders a div with `id="infoTooltip"` | render with `ref`/`tooltipVisibleFlagRef` props | element present in DOM |
+| C19.2 | Div has `id="infoTooltip"` | render | element present |
 | C19.3 | Contains `id="infoTooltipPositionController"` | render | element present |
 | C19.4 | Contains `id="infoTooltipContent"` | render | element present |
-| C19.5 | `onMouseLeave` on the dialog calls `.close()` on `#infoTooltip` | fire `mouseleave` on dialog | `dialog.close` called |
+| C19.5 | `onMouseLeave` hides the tooltip after 500ms timeout | fire `mouseleave`; advance timers 600ms | `style.display === 'none'` |
 | C19.6 | `onContextMenu` calls `e.preventDefault()` | fire `contextmenu` | `preventDefault` called |
-| C19.7 | `onMouseLeave` on `#infoTooltipPositionController` calls `.close()` | fire `mouseleave` on position controller | `dialog.close` called |
+| C19.7 | `onMouseLeave` sets `tooltipVisibleFlagRef.current` to `false` | fire `mouseleave` | flag is `false` |
 
 ---
 
@@ -1771,15 +1929,15 @@ No Redux. `window.open` spied to return a mock window object. Tests window lifec
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C34.1 | `window.open` called on mount with `props.url` | render with `url: 'about:blank'` | `window.open` called; first arg `=== 'about:blank'` |
+| C34.1 | `window.open` called on mount | render | `window.open` called; first arg `=== ''` |
 | C34.2 | `window.open` called with `props.title` as second arg | `title: 'My Popout Title'` | second arg `=== 'My Popout Title'` |
 | C34.3 | `window.open` returns null → `onError` called | mock returns `null` | `onError` called once |
 | C34.4 | Component renders nothing to main DOM | render | `container.firstChild === null` |
-| C34.5 | `mockWindow.closed` becomes true → polling fires `onClosing` | fake timers; advance 600ms | `onClosing` called |
+| C34.5 | `beforeunload` event on the popout window fires `onClosing` | retrieve registered listener; call it | `onClosing` called |
 
 ---
 
-## C37 — `DashboardItemSettings`
+## C35 — `DashboardItemSettings`
 **File**: `src/test/component/dashboard/dashboardItemSettings.test.tsx`
 **Source**: `src/components/dashboard/dashboardItemSettings/dashboardItemSettings.tsx`
 
@@ -1787,15 +1945,15 @@ Redux-connected (reads `state.settings`). Tests heading, Refresh/Delete buttons,
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C37.1 | Heading contains `"TestViz (#42)"` | `item.pluginName: 'TestViz', item.id: 42` | `<h2>` has text `'TestViz (#42)'` |
-| C37.2 | Clicking "Refresh" calls `onClickRefresh` | click button | callback called once |
-| C37.3 | Clicking "Delete" calls `onClickDelete` | click button | callback called once |
-| C37.4 | Toggling "Ignore Global Parameters" checkbox calls `setIgnoreGlobalParameters(true)` | click checkbox | callback called with `true` |
-| C37.5 | "Automatic Update" toggle shown when `selectedDataPlugin.parameters.progressUpdate.useAutomaticUpdate === true`; absent when `selectedDataPlugin` is undefined | two render passes | toggle present/absent accordingly |
+| C35.1 | Heading contains `"TestViz (#42)"` | `item.pluginName: 'TestViz', item.id: 42` | `<h2>` has text `'TestViz (#42)'` |
+| C35.2 | Clicking "Refresh" calls `onClickRefresh` | click button | callback called once |
+| C35.3 | Clicking "Delete" calls `onClickDelete` | click button | callback called once |
+| C35.4 | Toggling "Ignore Global Parameters" checkbox calls `setIgnoreGlobalParameters(true)` | click checkbox | callback called with `true` |
+| C35.5 | "Automatic Update" toggle shown when `selectedDataPlugin.parameters.progressUpdate.useAutomaticUpdate === true`; absent when `selectedDataPlugin` is undefined | two render passes | toggle present/absent accordingly |
 
 ---
 
-## C39 — `VisualizationOverview`
+## C36 — `VisualizationOverview`
 **File**: `src/test/component/tabContent/visualizationOverview.test.tsx`
 **Source**: `src/components/tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverview.tsx`
 
@@ -1803,13 +1961,13 @@ Redux-connected (reads `state.settings`). Tests heading, Refresh/Delete buttons,
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C39.1 | After render with empty search, at least one viz-button is present | default render | `queryAllByTestId('viz-button').length > 0` |
-| C39.2 | After typing `"ZZZZZ_NO_MATCH"` into search input, no `<h2>` headings rendered | filter by no-match string | `queryAllByRole('heading', { level: 2 }).length === 0` |
-| C39.3 | After typing `"Changes"`, only matching plugins visible — no non-matching buttons | filter by `'Changes'` | matching buttons > 0; non-matching buttons === 0 |
+| C36.1 | After render with empty search, at least one viz-button is present | default render | `queryAllByTestId('viz-button').length > 0` |
+| C36.2 | After typing `"ZZZZZ_NO_MATCH"` into search input, no `<h2>` headings rendered | filter by no-match string | `queryAllByRole('heading', { level: 2 }).length === 0` |
+| C36.3 | After typing `"Changes"`, only matching plugins visible — no non-matching buttons | filter by `'Changes'` | matching buttons > 0; non-matching buttons === 0 |
 
 ---
 
-## C40 — `AddSprint`
+## C37 — `AddSprint`
 **File**: `src/test/component/tabContent/addSprint.test.tsx`
 **Source**: `src/components/tabs/sprints/addSprint/addSprint.tsx`
 
@@ -1817,12 +1975,12 @@ Redux-connected (reads/writes `state.sprints`). `AddSprintDialog` mocked. `dialo
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C40.1 | "Add Sprint" button is present in the DOM | default render | `getByRole('button', { name: /add sprint/i })` found |
-| C40.2 | Clicking "Add Sprint" dispatches `sprintToEdit(null)` and calls `showModal` | click button | `store.getState().sprints.sprintToEdit === null`; `showModal` called |
+| C37.1 | "Add Sprint" button is present in the DOM | default render | `getByRole('button', { name: /add sprint/i })` found |
+| C37.2 | Clicking "Add Sprint" dispatches `sprintToEdit(null)` and calls `showModal` | click button | `store.getState().sprints.sprintToEdit === null`; `showModal` called |
 
 ---
 
-## C41 — `DatabaseSettings`
+## C38 — `DatabaseSettings`
 **File**: `src/test/component/settingsDialog/databaseSettings.test.tsx`
 **Source**: `src/components/settingsDialog/databaseSettings/databaseSettings.tsx`
 
@@ -1830,37 +1988,37 @@ Redux-connected (reads `state.settings`, `state.files`). `ConnectedDataPlugins` 
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C41.1 | "Add Database Connection:" heading is rendered | `dataPlugins: []` | heading text present |
-| C41.2 | When store contains one plugin, `DataPluginStorage.addDataPlugin` is called once on mount with that plugin | `dataPlugins: [plugin]` | `addDataPlugin` called once with the plugin |
+| C38.1 | "Add Database Connection:" heading is rendered | `dataPlugins: []` | heading text present |
+| C38.2 | When store contains one plugin, `DataPluginStorage.addDataPlugin` is called once on mount with that plugin | `dataPlugins: [plugin]` | `addDataPlugin` called once with the plugin |
 
 ---
 
-## C42 — `FileTreeElementInfoDialog`
+## C39 — `FileTreeElementInfoDialog`
 **File**: `src/test/component/tabContent/fileTreeElementInfoDialog.test.tsx`
-**Source**: `src/components/tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx`
+**Source**: `src/components/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx`
 
 Full store with 12 reducers. `fileTreeUtilities` and `contextMenuHelper` mocked. `dialog#fileTreeElementInfoDialog` appended in `beforeEach`.
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C42.1 | `selectedFileTreeElement` undefined → no name heading, no type/path content; two Close buttons always present | `selectedFileTreeElement: undefined` | `#informationDialogHeadline` null; two Close buttons |
-| C42.2 | File element → name as heading; path; link to webUrl | `makeFile()` | `<h>` with `'readme.md'`; path `'src/readme.md'`; link to webUrl |
-| C42.3 | `foldedOut: false` → "folded in" badge; `foldedOut: true` → "folded out" badge | two separate renders | correct badge visible in each case |
-| C42.4 | `checked: false` → "unchecked" badge; `checked: true` → "checked" badge | two separate renders | correct badge visible in each case |
-| C42.5 | Folder element → "Folder Content" visible; Path heading and webUrl link absent | `makeFolder()` | `'Folder Content'` present; no Path; no link |
+| C39.1 | `selectedFileTreeElement` undefined → no name heading, no type/path content; two Close buttons always present | `selectedFileTreeElement: undefined` | `#informationDialogHeadline` null; two Close buttons |
+| C39.2 | File element → name as heading; path; link to webUrl | `makeFile()` | `<h>` with `'readme.md'`; path `'src/readme.md'`; link to webUrl |
+| C39.3 | `foldedOut: false` → "folded in" badge; `foldedOut: true` → "folded out" badge | two separate renders | correct badge visible in each case |
+| C39.4 | `checked: false` → "unchecked" badge; `checked: true` → "checked" badge | two separate renders | correct badge visible in each case |
+| C39.5 | Folder element → "Folder Content" visible; Path heading and webUrl link absent | `makeFolder()` | `'Folder Content'` present; no Path; no link |
 
 ---
 
-## C43 — `OverlayController`
+## C40 — `OverlayController`
 **File**: `src/test/component/overlayController/overlayController.test.tsx`
 **Source**: `src/components/overlayController/overlayController.tsx`
 
-All 12 child components mocked with `data-testid` stubs. No Redux required. Tests structural composition.
+All 11 child components mocked with `data-testid` stubs. No Redux required. Tests structural composition.
 
 | # | Description | Setup | Expected |
 |---|---|---|---|
-| C43.1 | Renders without crashing | mock all 12 children; render | `document.body.firstChild` not null |
-| C43.2 | All 12 overlay child components present in the DOM | render | all 12 `data-testid` stubs found in DOM |
+| C40.1 | Renders without crashing | mock all 11 children; render | `document.body.firstChild` not null |
+| C40.2 | All 11 overlay child components present in the DOM | render | all 11 `data-testid` stubs found in DOM |
 
 ---
 
@@ -1874,7 +2032,7 @@ src/test/component/
 │   ├── dashboardItem.test.tsx                                     (C12)
 │   ├── dashboardItemPlaceholder.test.tsx                          (C24)
 │   ├── dashboardItemPopout.test.tsx                               (C29)
-│   ├── dashboardItemSettings.test.tsx                             (C37)
+│   ├── dashboardItemSettings.test.tsx                             (C35)
 │   ├── dashboardPreview.test.tsx                                  (C23)
 │   └── popoutController.test.tsx                                  (C34)
 ├── dataPluginQuickSelect/
@@ -1890,11 +2048,11 @@ src/test/component/
 ├── notificationController/
 │   └── notificationController.test.tsx                            (C2)
 ├── overlayController/
-│   └── overlayController.test.tsx                                 (C43)
+│   └── overlayController.test.tsx                                 (C40)
 ├── settingsDialog/
 │   ├── addDataPluginCard.test.tsx                                 (C27)
 │   ├── connectedDataPlugins.test.tsx                              (C32)
-│   ├── databaseSettings.test.tsx                                  (C41)
+│   ├── databaseSettings.test.tsx                                  (C38)
 │   ├── generalSettings.test.tsx                                   (C31)
 │   └── settingsDialog.test.tsx                                    (C3)
 ├── setupDialog/
@@ -1911,14 +2069,14 @@ src/test/component/
 │   ├── dotsPattern.test.tsx                                       (C15)
 │   └── hatchPattern.test.tsx                                      (C16)
 ├── tabContent/
-│   ├── addSprint.test.tsx                                         (C40)
+│   ├── addSprint.test.tsx                                         (C37)
 │   ├── dateRange.test.tsx                                         (C30)
 │   ├── fileListFile.test.tsx                                      (C7)
 │   ├── fileListFolder.test.tsx                                    (C8)
 │   ├── fileSearch.test.tsx                                        (C9)
-│   ├── fileTreeElementInfoDialog.test.tsx                         (C42)
+│   ├── fileTreeElementInfoDialog.test.tsx                         (C39)
 │   ├── parametersGeneral.test.tsx                                 (C10)
-│   └── visualizationOverview.test.tsx                             (C39)
+│   └── visualizationOverview.test.tsx                             (C36)
 ├── tabController/
 │   └── tabControllerButton.test.tsx                               (C11)
 ├── tabControllerButtonThemeSwitch/

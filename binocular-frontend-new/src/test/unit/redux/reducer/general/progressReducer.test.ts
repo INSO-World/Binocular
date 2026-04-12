@@ -17,25 +17,25 @@ const emptyReport: ProgressType = {
 };
 
 describe('progressReducer – initial state', () => {
-  it('U43.1 initial state has progress.type === empty string', () => {
+  it('U42.1 initial state has progress.type === empty string', () => {
     const state = reducer(undefined, { type: '@@INIT' });
     expect(state.progress?.type).toBe('');
   });
 
-  it('U43.2 initial socketConnection.status is Idle', () => {
+  it('U42.2 initial socketConnection.status is Idle', () => {
     const state = reducer(undefined, { type: '@@INIT' });
     expect(state.socketConnection.status).toBe(SocketConnectionStatusType.Idle);
   });
 });
 
 describe('progressReducer – setProgress', () => {
-  it('U43.3 setProgress replaces entire progress object', () => {
+  it('U42.3 setProgress replaces entire progress object', () => {
     const payload: ProgressType = { ...emptyReport, type: 'indexing' };
     const state = reducer(undefined, setProgress(payload));
     expect(state.progress?.type).toBe('indexing');
   });
 
-  it('U43.4 setProgress dispatched twice — last value wins', () => {
+  it('U42.4 setProgress dispatched twice — last value wins', () => {
     const first: ProgressType = { ...emptyReport, type: 'first' };
     const second: ProgressType = { ...emptyReport, type: 'second' };
     let state = reducer(undefined, setProgress(first));
@@ -45,7 +45,7 @@ describe('progressReducer – setProgress', () => {
 });
 
 describe('progressReducer – setConnectionStatus', () => {
-  it('U43.5 setConnectionStatus updates socketConnection', () => {
+  it('U42.5 setConnectionStatus updates socketConnection', () => {
     const state = reducer(undefined, setConnectionStatus({ status: SocketConnectionStatusType.Connected }));
     expect(state.socketConnection.status).toBe(SocketConnectionStatusType.Connected);
   });

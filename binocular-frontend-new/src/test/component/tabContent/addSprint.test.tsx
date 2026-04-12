@@ -56,13 +56,13 @@ describe('AddSprint', () => {
     localStorage.clear();
   });
 
-  it('C40.1 "Add Sprint" button is present in the DOM', () => {
+  it('C37.1 "Add Sprint" button is present in the DOM', () => {
     const store = createTestStore();
     renderWithStore(store);
     expect(screen.getByRole('button', { name: /add sprint/i })).toBeInTheDocument();
   });
 
-  it('C40.2 clicking "Add Sprint" dispatches sprintToEdit(null) and calls showModal', () => {
+  it('C37.2 clicking "Add Sprint" dispatches sprintToEdit(null) and calls showModal', () => {
     const store = createTestStore();
     renderWithStore(store);
 

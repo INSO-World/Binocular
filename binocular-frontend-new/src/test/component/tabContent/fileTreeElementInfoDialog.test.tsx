@@ -4,21 +4,18 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import type { Middleware } from 'redux';
 
-// Mock the fileTreeUtilities module that has top-level await
-vi.mock('../../../components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx', () => ({
-  filterFileTree: vi.fn((element) => element),
-  generateFileTree: vi.fn(),
+// Mock the fileListUtilities module that has top-level await
+vi.mock('../../../components/tabs/fileTree/utils/fileListUtilities.tsx', () => ({
   loadFileList: vi.fn(),
   refreshFileList: vi.fn(),
   writeFileListToStorage: vi.fn(),
   clearStorage: vi.fn(),
-  formatName: (_: string | undefined, name: string) => [<span key="n">{name}</span>],
 }));
 
 // Mock contextMenuHelper
 vi.mock('../../../components/contextMenu/contextMenuHelper.ts', () => ({ showContextMenu: vi.fn() }));
 
-import FileTreeElementInfoDialog from '../../../components/tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx';
+import FileTreeElementInfoDialog from '../../../components/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx';
 import { FileTreeElementTypeType, type FileTreeElementType } from '../../../types/data/fileListType.ts';
 import FilesReducer, { type FilesInitialState } from '../../../redux/reducer/data/filesReducer.ts';
 import SettingsReducer from '../../../redux/reducer/settings/settingsReducer.ts';
@@ -101,7 +98,7 @@ describe('FileTreeElementInfoDialog', () => {
     }
   });
 
-  it('C42.1 when selectedFileTreeElement is undefined, no element name heading, type, or path content is shown (only Close button)', () => {
+  it('C39.1 when selectedFileTreeElement is undefined, no element name heading, type, or path content is shown (only Close button)', () => {
     const store = createTestStore({ selectedFileTreeElement: undefined });
 
     render(
@@ -121,7 +118,7 @@ describe('FileTreeElementInfoDialog', () => {
     expect(screen.getAllByRole('button', { name: /close/i, hidden: true })).toHaveLength(2);
   });
 
-  it('C42.2 File element: name "readme.md" appears as heading; "src/readme.md" appears as path; link to webUrl appears', () => {
+  it('C39.2 File element: name "readme.md" appears as heading; "src/readme.md" appears as path; link to webUrl appears', () => {
     const store = createTestStore({ selectedFileTreeElement: makeFile() });
 
     render(
@@ -139,7 +136,7 @@ describe('FileTreeElementInfoDialog', () => {
     expect(link).toHaveAttribute('href', 'https://example.com/readme');
   });
 
-  it('C42.3 foldedOut: false → "folded in" badge; foldedOut: true → "folded out" badge', () => {
+  it('C39.3 foldedOut: false → "folded in" badge; foldedOut: true → "folded out" badge', () => {
     // foldedOut: false → "folded in"
     const storeFoldedIn = createTestStore({ selectedFileTreeElement: { ...makeFile(), foldedOut: false } });
     const { unmount } = render(
@@ -162,7 +159,7 @@ describe('FileTreeElementInfoDialog', () => {
     expect(screen.queryByText('folded in')).not.toBeInTheDocument();
   });
 
-  it('C42.4 checked: false → "unchecked" badge; checked: true → "checked" badge', () => {
+  it('C39.4 checked: false → "unchecked" badge; checked: true → "checked" badge', () => {
     // checked: false → "unchecked"
     const storeUnchecked = createTestStore({ selectedFileTreeElement: { ...makeFile(), checked: false } });
     const { unmount } = render(
@@ -185,7 +182,7 @@ describe('FileTreeElementInfoDialog', () => {
     expect(screen.queryByText('unchecked')).not.toBeInTheDocument();
   });
 
-  it('C42.5 Folder element: "Folder Content" text appears; Path heading and webUrl link are absent', () => {
+  it('C39.5 Folder element: "Folder Content" text appears; Path heading and webUrl link are absent', () => {
     const folderElement = makeFolder();
     const store = createTestStore({
       selectedFileTreeElement: folderElement,

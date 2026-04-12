@@ -3,11 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 
-// Mock the fileTreeUtilities module that has top-level await
-vi.mock('../../../components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx', () => ({
-  formatName: (_searchTerm: string | undefined, name: string) => [<span key="name">{name}</span>],
-  generateFileTree: vi.fn(),
-  filterFileTree: vi.fn(),
+// Mock the fileTreeUtilities modules
+vi.mock('../../../components/tabs/fileTree/utils/fileListUtilities.tsx', () => ({
   loadFileList: vi.fn(),
   refreshFileList: vi.fn(),
   writeFileListToStorage: vi.fn(),
@@ -19,9 +16,9 @@ vi.mock('../../../components/contextMenu/contextMenuHelper.ts', () => ({
   showContextMenu: vi.fn(),
 }));
 
-import FileListFolder from '../../../components/tabs/fileTree/fileList/fileListElements/fileListFolder.tsx';
+import FileTreeFolder from '../../../components/fileTree/fileTreeElements/fileTreeFolder/fileTreeFolder.tsx';
 import { FileTreeElementTypeType, type FileTreeElementType } from '../../../types/data/fileListType.ts';
-import FilesReducer from '../../../redux/reducer/data/filesReducer.ts';
+import FilesReducer, { updateFileListElement } from '../../../redux/reducer/data/filesReducer.ts';
 import NotificationsReducer from '../../../redux/reducer/general/notificationsReducer.ts';
 import SettingsReducer from '../../../redux/reducer/settings/settingsReducer.ts';
 import DashboardReducer from '../../../redux/reducer/general/dashboardReducer.ts';
@@ -103,7 +100,7 @@ describe('FileListFolder', () => {
   it('C8.1 renders the folder name', () => {
     render(
       <Provider store={store}>
-        <FileListFolder folder={folderElement} foldedOut={false} />
+        <FileTreeFolder folder={folderElement} foldedOut={false} />
       </Provider>,
     );
     expect(screen.getByText('components')).toBeInTheDocument();
@@ -112,7 +109,7 @@ describe('FileListFolder', () => {
   it('C8.2 children are hidden when folder is collapsed (foldedOut: false)', () => {
     render(
       <Provider store={store}>
-        <FileListFolder folder={folderElement} foldedOut={false} />
+        <FileTreeFolder folder={folderElement} foldedOut={false} />
       </Provider>,
     );
     // When collapsed, the child file name should not be visible
@@ -122,7 +119,7 @@ describe('FileListFolder', () => {
   it('C8.3 children are visible when folder is expanded (foldedOut: true)', () => {
     render(
       <Provider store={store}>
-        <FileListFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
       </Provider>,
     );
     expect(screen.getByText('index.ts')).toBeInTheDocument();
@@ -131,7 +128,7 @@ describe('FileListFolder', () => {
   it('C8.4 folder with foldedOut false shows collapsed state', () => {
     render(
       <Provider store={store}>
-        <FileListFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
       </Provider>,
     );
     // Collapsed folder shows its name but not children
@@ -151,7 +148,7 @@ describe('FileListFolder', () => {
 
     render(
       <Provider store={store}>
-        <FileListFolder folder={nestedFolder} foldedOut={true} />
+        <FileTreeFolder folder={nestedFolder} foldedOut={true} />
       </Provider>,
     );
     // parent is expanded so we see its children (subFolder)
@@ -161,7 +158,7 @@ describe('FileListFolder', () => {
   it('C8.6 foldedOut=false → children NOT rendered', () => {
     render(
       <Provider store={store}>
-        <FileListFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
       </Provider>,
     );
     expect(screen.queryByText('index.ts')).not.toBeInTheDocument();
@@ -170,7 +167,7 @@ describe('FileListFolder', () => {
   it('C8.7 foldedOut=true → children ARE rendered', () => {
     render(
       <Provider store={store}>
-        <FileListFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
       </Provider>,
     );
     expect(screen.getByText('index.ts')).toBeInTheDocument();
@@ -191,7 +188,14 @@ describe('FileListFolder', () => {
 
     render(
       <Provider store={testStore}>
-        <FileListFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
+        <FileTreeFolder
+          folder={{ ...folderElement, foldedOut: false }}
+          foldedOut={false}
+          showSelect={false}
+          onElementClick={(folder, foldOut) => {
+            testStore.dispatch(updateFileListElement({ ...folder, foldedOut: foldOut ?? true }));
+          }}
+        />
       </Provider>,
     );
 
@@ -222,7 +226,14 @@ describe('FileListFolder', () => {
 
     render(
       <Provider store={testStore}>
-        <FileListFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
+        <FileTreeFolder
+          folder={{ ...folderElement, foldedOut: true }}
+          foldedOut={true}
+          showSelect={false}
+          onElementClick={(folder, foldOut) => {
+            testStore.dispatch(updateFileListElement({ ...folder, foldedOut: foldOut ?? false }));
+          }}
+        />
       </Provider>,
     );
 
@@ -241,7 +252,7 @@ describe('FileListFolder', () => {
   it('C8.10 listOnly=true always shows children regardless of foldedOut=false', () => {
     render(
       <Provider store={store}>
-        <FileListFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} listOnly={true} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} listOnly={true} />
       </Provider>,
     );
     // listOnly forces the expanded branch, so children must be visible
@@ -261,7 +272,7 @@ describe('FileListFolder', () => {
 
     render(
       <Provider store={store}>
-        <FileListFolder folder={folderWithoutId} foldedOut={true} />
+        <FileTreeFolder folder={folderWithoutId} foldedOut={true} />
       </Provider>,
     );
 
@@ -295,7 +306,14 @@ describe('FileListFolder', () => {
 
     render(
       <Provider store={testStore}>
-        <FileListFolder folder={collapsedFolder} foldedOut={false} />
+        <FileTreeFolder
+          folder={collapsedFolder}
+          foldedOut={false}
+          showSelect={true}
+          onElementSelectionChange={(folder, checked) => {
+            testStore.dispatch(updateFileListElement({ ...folder, checked }));
+          }}
+        />
       </Provider>,
     );
 

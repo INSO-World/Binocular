@@ -78,13 +78,13 @@ describe('DatabaseSettings', () => {
     vi.clearAllMocks();
   });
 
-  it('C41.1 "Add Database Connection:" heading is rendered', () => {
+  it('C38.1 "Add Database Connection:" heading is rendered', () => {
     const store = createTestStore([]);
     renderWithStore(store);
     expect(screen.getByText('Add Database Connection:')).toBeInTheDocument();
   });
 
-  it('C41.2 when store contains one plugin, DataPluginStorage.addDataPlugin is called once on mount with that plugin', () => {
+  it('C38.2 when store contains one plugin, DataPluginStorage.addDataPlugin is called once on mount with that plugin', () => {
     const plugin: DatabaseSettingsDataPluginType = {
       id: 1,
       name: 'MyPlugin',

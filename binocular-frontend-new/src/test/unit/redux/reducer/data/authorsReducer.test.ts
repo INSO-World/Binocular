@@ -146,8 +146,8 @@ function makeAuthorWithAccount(id: number, parent: number, account: AccountType 
   };
 }
 
-describe('authorsReducer – setParentAuthor (U40)', () => {
-  it('U40.1 self-reference leaves parent unchanged', () => {
+describe('authorsReducer – setParentAuthor (extended)', () => {
+  it('U26.11 self-reference leaves parent unchanged', () => {
     // author1 has parent -1; dispatching setParentAuthor({ author: 1, parent: 1 }) is a no-op
     const state = reducer(emptyState, setParentAuthor({ author: 1, parent: 1 }));
     const a = (state.authorLists[1] as AuthorType[]).find((a) => a.id === 1);
@@ -155,8 +155,8 @@ describe('authorsReducer – setParentAuthor (U40)', () => {
   });
 });
 
-describe('authorsReducer – assignAccount (U40)', () => {
-  it('U40.2 assigning account X to author B removes it from author A', () => {
+describe('authorsReducer – assignAccount (extended)', () => {
+  it('U26.12 assigning account X to author B removes it from author A', () => {
     const account = makeAccount('1'); // numeric string so Number(id) comparison in reducer works
     const authorA = makeAuthorWithAccount(1, -1, account);
     const authorB = makeAuthorWithAccount(2, -1, null); // null !== undefined, so assignment triggers
@@ -173,8 +173,8 @@ describe('authorsReducer – assignAccount (U40)', () => {
   });
 });
 
-describe('authorsReducer – setAuthorList (U40)', () => {
-  it('U40.3 dispatching twice with identical data does not duplicate authors', () => {
+describe('authorsReducer – setAuthorList (extended)', () => {
+  it('U26.13 dispatching twice with identical data does not duplicate authors', () => {
     const authors = [
       { ...makeAuthor(1, -1), user: { id: 'user-1', gitSignature: 'sig-1', account: null } },
       { ...makeAuthor(2, -1), user: { id: 'user-2', gitSignature: 'sig-2', account: null } },
@@ -191,8 +191,8 @@ describe('authorsReducer – setAuthorList (U40)', () => {
   });
 });
 
-describe('authorsReducer – switchAllAuthorSelection (U40)', () => {
-  it('U40.4 all-unselected list → all become selected', () => {
+describe('authorsReducer – switchAllAuthorSelection (extended)', () => {
+  it('U26.14 all-unselected list → all become selected', () => {
     const allUnselected: AuthorsInitialState = {
       ...emptyState,
       authorLists: { 1: [makeAuthor(1, -1, false), makeAuthor(2, -1, false)] },
@@ -202,7 +202,7 @@ describe('authorsReducer – switchAllAuthorSelection (U40)', () => {
     expect(list.every((a) => a.selected === true)).toBe(true);
   });
 
-  it('U40.5 all-selected list → all become unselected', () => {
+  it('U26.15 all-selected list → all become unselected', () => {
     const allSelected: AuthorsInitialState = {
       ...emptyState,
       authorLists: { 1: [makeAuthor(1, -1, true), makeAuthor(2, -1, true)] },
@@ -213,8 +213,8 @@ describe('authorsReducer – switchAllAuthorSelection (U40)', () => {
   });
 });
 
-describe('authorsReducer – moveAuthorToOther with children (U40)', () => {
-  it('U40.6 author AND its children are moved (parent set to 0)', () => {
+describe('authorsReducer – moveAuthorToOther with children (extended)', () => {
+  it('U26.16 author AND its children are moved (parent set to 0)', () => {
     const parent = makeAuthor(10, -1, true);
     const child1 = makeAuthor(11, 10, true);
     const child2 = makeAuthor(12, 10, true);

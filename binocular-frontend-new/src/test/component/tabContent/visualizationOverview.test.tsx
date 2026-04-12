@@ -25,14 +25,14 @@ import VisualizationOverview from '../../../components/tabs/visualizations/visua
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('VisualizationOverview', () => {
-  it('C39.1 after render with empty search, at least one category <h2> heading is present in the DOM', () => {
+  it('C36.1 after render with empty search, at least one category <h2> heading is present in the DOM', () => {
     render(<VisualizationOverview />);
     // The dialog is closed so role queries exclude inner elements; query by testid instead
     const buttons = screen.queryAllByTestId('viz-button');
     expect(buttons.length).toBeGreaterThan(0);
   });
 
-  it('C39.2 after typing "ZZZZZ_NO_MATCH" into the search input, no category <h2> headings are rendered', () => {
+  it('C36.2 after typing "ZZZZZ_NO_MATCH" into the search input, no category <h2> headings are rendered', () => {
     render(<VisualizationOverview />);
     const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'ZZZZZ_NO_MATCH' } });
@@ -40,7 +40,7 @@ describe('VisualizationOverview', () => {
     expect(headings.length).toBe(0);
   });
 
-  it('C39.3 after typing "Changes" into the search input, only category sections containing that plugin are visible', () => {
+  it('C36.3 after typing "Changes" into the search input, only category sections containing that plugin are visible', () => {
     render(<VisualizationOverview />);
     const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'Changes' } });

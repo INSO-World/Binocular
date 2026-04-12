@@ -11,13 +11,13 @@ function buildMiddleware() {
 }
 
 describe('actionsMiddleware', () => {
-  it('U50.1 non-setLastAction: next is called once', () => {
+  it('U49.1 non-setLastAction: next is called once', () => {
     const { next, invoke } = buildMiddleware();
     invoke({ type: 'some/action', payload: 42 });
     expect(next).toHaveBeenCalledOnce();
   });
 
-  it('U50.2 non-setLastAction: store.dispatch called with setLastAction', () => {
+  it('U49.2 non-setLastAction: store.dispatch called with setLastAction', () => {
     const { dispatch, invoke } = buildMiddleware();
     invoke({ type: 'some/action', payload: 42 });
     expect(dispatch).toHaveBeenCalledOnce();
@@ -26,14 +26,14 @@ describe('actionsMiddleware', () => {
     expect(dispatchedAction.payload).toEqual({ action: 'some/action', payload: 42 });
   });
 
-  it('U50.3 setLastAction itself: next called, store.dispatch NOT called', () => {
+  it('U49.3 setLastAction itself: next called, store.dispatch NOT called', () => {
     const { dispatch, next, invoke } = buildMiddleware();
     invoke({ type: setLastAction.type, payload: { action: 'x', payload: null } });
     expect(next).toHaveBeenCalledOnce();
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('U50.4 payload is forwarded correctly inside setLastAction dispatch', () => {
+  it('U49.4 payload is forwarded correctly inside setLastAction dispatch', () => {
     const { dispatch, invoke } = buildMiddleware();
     const originalPayload = { data: 'hello' };
     invoke({ type: 'test/action', payload: originalPayload });

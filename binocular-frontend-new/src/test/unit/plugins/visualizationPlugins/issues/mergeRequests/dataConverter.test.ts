@@ -132,7 +132,7 @@ describe('convertToChartData (mergeRequests)', () => {
     expect(Object.keys(result.palette)).not.toContain('Opened Merge Requests Alice');
   });
 
-  it('U60.1 state:merged (lowercase) → counted in negative/closed series', () => {
+  it('U34.9 state:merged (lowercase) → counted in negative/closed series', () => {
     const mr = makeMR({
       createdAt: '2023-05-01T00:00:00Z',
       closedAt: '2023-06-15T00:00:00Z',
@@ -145,7 +145,7 @@ describe('convertToChartData (mergeRequests)', () => {
     expect(result.scale[0]).toBeLessThan(0);
   });
 
-  it('U60.2 state:closed (lowercase) → counted in negative/closed series', () => {
+  it('U34.10 state:closed (lowercase) → counted in negative/closed series', () => {
     const mr = makeMR({
       createdAt: '2023-05-01T00:00:00Z',
       closedAt: '2023-06-15T00:00:00Z',
@@ -158,7 +158,7 @@ describe('convertToChartData (mergeRequests)', () => {
     expect(result.scale[0]).toBeLessThan(0);
   });
 
-  it('U60.3 state:opened, not yet merged/closed → counted as positive in Opened series', () => {
+  it('U34.11 state:opened, not yet merged/closed → counted as positive in Opened series', () => {
     const mr = makeMR({
       createdAt: '2023-06-15T00:00:00Z',
       closedAt: null,
@@ -171,7 +171,7 @@ describe('convertToChartData (mergeRequests)', () => {
     expect(result.scale[1]).toBeGreaterThan(0);
   });
 
-  it('U60.4 splitMergeRequestsPerAuthor:true, assignee present but assignee.user===null → account-not-assigned bucket', () => {
+  it('U34.12 splitMergeRequestsPerAuthor:true, assignee present but assignee.user===null → account-not-assigned bucket', () => {
     const settings: MergeRequestsSettings = { ...defaultSettings, splitMergeRequestsPerAuthor: true };
     const mr = makeMR({
       createdAt: '2023-06-15T00:00:00Z',
