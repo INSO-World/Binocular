@@ -26,9 +26,6 @@ function SetupDialog() {
   return (
     <dialog id={'setupDialog'} className={'modal'}>
       <div className={'modal-box max-w-full'}>
-        <h3 id={'informationDialogHeadline'} className={'font-bold text-lg underline'}>
-          Setup
-        </h3>
         <ul className="steps steps-vertical lg:steps-horizontal w-full">
           <li data-content="●" className="step" id={'setupStep1'}>
             Start
@@ -57,7 +54,7 @@ function SetupDialog() {
           )}
           {page >= pageCount ? (
             <button
-              className="btn btn-sm btn-success"
+              className="btn btn-sm btn-primary"
               onClick={() => {
                 // initialize settings and dashboard state
                 dispatch(initializeSettingsState());
@@ -70,7 +67,7 @@ function SetupDialog() {
               Save
             </button>
           ) : (
-            <button className={'btn btn-sm btn-accent'} onClick={() => setPage(page + 1)}>
+            <button className={'btn btn-sm btn-primary'} onClick={() => setPage(page + 1)}>
               Next
             </button>
           )}

@@ -8,7 +8,7 @@ function AddSprint() {
   return (
     <div className={'text-xs'}>
       <button
-        className={'button btn btn-accent w-full'}
+        className={'button btn btn-primary w-full'}
         onClick={() => {
           dispatch(sprintToEdit(null));
           (document.getElementById('addSprintDialog') as HTMLDialogElement).showModal();

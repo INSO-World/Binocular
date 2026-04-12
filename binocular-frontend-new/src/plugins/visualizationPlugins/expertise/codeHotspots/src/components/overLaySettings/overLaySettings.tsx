@@ -56,7 +56,7 @@ export function OverLaySettings(props: {
           />
         </fieldset>
         <button
-          className={'btn btn-accent mt-5'}
+          className={'btn btn-primary mt-5'}
           onClick={() => props.onGitLabSettingsChange({ serverUrl: gitlabServerUrl, projectId: gitlabProjectId, apiKey: gitlabApiKey })}>
           <svg
             xmlns="http://www.w3.org/2000/svg"

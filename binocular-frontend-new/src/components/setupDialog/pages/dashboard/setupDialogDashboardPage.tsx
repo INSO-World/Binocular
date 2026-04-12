@@ -36,7 +36,7 @@ function SetupDialogDashboardPage() {
                 <h2 className={'card-title'}>{recommendedDashboard.name}</h2>
                 <DashboardPreview layout={recommendedDashboard}></DashboardPreview>
                 <button
-                  className={'btn btn-accent w-fit'}
+                  className={'btn btn-primary w-fit'}
                   disabled={recommendedDashboard.name === selectedDashboard}
                   onClick={() => {
                     setSelectedDashboard(recommendedDashboard.name);
