@@ -100,7 +100,7 @@ describe('FileListFolder', () => {
   it('C8.1 renders the folder name', () => {
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={folderElement} foldedOut={false} />
+        <FileTreeFolder folder={folderElement} foldedOut={false} showSelect={false} />
       </Provider>,
     );
     expect(screen.getByText('components')).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('FileListFolder', () => {
   it('C8.2 children are hidden when folder is collapsed (foldedOut: false)', () => {
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={folderElement} foldedOut={false} />
+        <FileTreeFolder folder={folderElement} foldedOut={false} showSelect={false} />
       </Provider>,
     );
     // When collapsed, the child file name should not be visible
@@ -119,7 +119,7 @@ describe('FileListFolder', () => {
   it('C8.3 children are visible when folder is expanded (foldedOut: true)', () => {
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} showSelect={false} />
       </Provider>,
     );
     expect(screen.getByText('index.ts')).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe('FileListFolder', () => {
   it('C8.4 folder with foldedOut false shows collapsed state', () => {
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} showSelect={false} />
       </Provider>,
     );
     // Collapsed folder shows its name but not children
@@ -148,7 +148,7 @@ describe('FileListFolder', () => {
 
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={nestedFolder} foldedOut={true} />
+        <FileTreeFolder folder={nestedFolder} foldedOut={true} showSelect={false} />
       </Provider>,
     );
     // parent is expanded so we see its children (subFolder)
@@ -158,7 +158,7 @@ describe('FileListFolder', () => {
   it('C8.6 foldedOut=false → children NOT rendered', () => {
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} showSelect={false} />
       </Provider>,
     );
     expect(screen.queryByText('index.ts')).not.toBeInTheDocument();
@@ -167,7 +167,7 @@ describe('FileListFolder', () => {
   it('C8.7 foldedOut=true → children ARE rendered', () => {
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: true }} foldedOut={true} showSelect={false} />
       </Provider>,
     );
     expect(screen.getByText('index.ts')).toBeInTheDocument();
@@ -252,7 +252,7 @@ describe('FileListFolder', () => {
   it('C8.10 listOnly=true always shows children regardless of foldedOut=false', () => {
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} listOnly={true} />
+        <FileTreeFolder folder={{ ...folderElement, foldedOut: false }} foldedOut={false} listOnly={true} showSelect={false} />
       </Provider>,
     );
     // listOnly forces the expanded branch, so children must be visible
@@ -272,7 +272,7 @@ describe('FileListFolder', () => {
 
     render(
       <Provider store={store}>
-        <FileTreeFolder folder={folderWithoutId} foldedOut={true} />
+        <FileTreeFolder folder={folderWithoutId} foldedOut={true} showSelect={true} />
       </Provider>,
     );
 

@@ -2263,6 +2263,8 @@ Verifies that each collection method returns the correct shape and count when th
 
 Verifies the exact sequence of Redux dispatches emitted while loading pre-exported JSON into PouchDB. Uses a real Redux store and spies on `PouchDB.init` / `PouchDB.clearRemains` to avoid loading the full JSON export fixtures from disk.
 
+> **CI note**: `src/db_export/` is gitignored (runtime data). `vitest.config.ts` contains a `dbExportStubPlugin` that intercepts all `db_export/*.json` imports at module resolution time — `metadata.json` resolves to a minimal fixture (`namespace`, `createdAt`); all other collection files resolve to `[]`. No actual export files are needed to run these tests.
+
 | # | Description | Input | Expected output |
 |---|---|---|---|
 | I9.1 | Dispatches `setLocalDatabaseLoadingState(loading)` before `init` resolves | call `loadJsonFilesToPouchDB(dispatch)` | `localDatabaseLoadingState` is `loading` before `init` completes |
