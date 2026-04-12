@@ -84,7 +84,7 @@ describe('FileTreeFile', () => {
   it('C7.1 renders the file name', () => {
     render(
       <Provider store={store}>
-        <FileTreeFile file={fileElement} />
+        <FileTreeFile file={fileElement} showSelect={false} />
       </Provider>,
     );
     expect(screen.getByText('foo.ts')).toBeInTheDocument();
@@ -163,7 +163,7 @@ describe('FileTreeFile', () => {
   it('C7.6 with listOnly=true, checkbox is NOT rendered', () => {
     render(
       <Provider store={store}>
-        <FileTreeFile file={fileElement} listOnly={true} />
+        <FileTreeFile file={fileElement} listOnly={true} showSelect={true} />
       </Provider>,
     );
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
@@ -217,10 +217,10 @@ describe('FileTreeFile', () => {
     // Patch store.dispatch to spy on dispatched actions
     const testStore = createTestStore();
     const originalDispatch = testStore.dispatch.bind(testStore);
-    testStore.dispatch = (action: Parameters<typeof originalDispatch>[0]) => {
+    testStore.dispatch = ((action: Parameters<typeof originalDispatch>[0]) => {
       dispatchSpy(action);
       return originalDispatch(action);
-    };
+    }) as typeof testStore.dispatch;
 
     render(
       <Provider store={testStore}>
@@ -247,14 +247,14 @@ describe('FileTreeFile', () => {
     const dispatchSpy = vi.fn();
     const testStore = createTestStore();
     const originalDispatch = testStore.dispatch.bind(testStore);
-    testStore.dispatch = (action: Parameters<typeof originalDispatch>[0]) => {
+    testStore.dispatch = ((action: Parameters<typeof originalDispatch>[0]) => {
       dispatchSpy(action);
       return originalDispatch(action);
-    };
+    }) as typeof testStore.dispatch;
 
     render(
       <Provider store={testStore}>
-        <FileTreeFile file={fileElement} />
+        <FileTreeFile file={fileElement} showSelect={false} />
       </Provider>,
     );
 

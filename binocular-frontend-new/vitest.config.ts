@@ -1,8 +1,38 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import type { Plugin } from 'vite';
+
+/**
+ * Stubs all `src/db_export/*.json` imports during testing.
+ * The real db_export directory is gitignored (large runtime data) so tests
+ * must not depend on its presence. metadata.json gets a minimal fixture with
+ * values that match the constants hardcoded in databaseLoaders.test.ts;
+ * every other collection file resolves to an empty array.
+ */
+function dbExportStubPlugin(): Plugin {
+  const VIRTUAL_METADATA = '\0db-export-metadata';
+  const VIRTUAL_EMPTY = '\0db-export-empty';
+
+  return {
+    name: 'db-export-stub',
+    enforce: 'pre',
+    resolveId(id) {
+      if (id.includes('db_export/metadata')) return VIRTUAL_METADATA;
+      if (id.includes('db_export/')) return VIRTUAL_EMPTY;
+    },
+    load(id) {
+      if (id === VIRTUAL_METADATA) {
+        return `export default ${JSON.stringify({ namespace: 'INSO-World/Binocular', createdAt: '2026-03-20T14:23:44.145Z' })};`;
+      }
+      if (id === VIRTUAL_EMPTY) {
+        return 'export default [];';
+      }
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), dbExportStubPlugin()],
   test: {
     environment: 'jsdom',
     globals: true,
