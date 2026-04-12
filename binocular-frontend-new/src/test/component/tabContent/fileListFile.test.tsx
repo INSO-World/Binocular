@@ -3,11 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 
-// Mock the fileTreeUtilities module that has top-level await
-vi.mock('../../../components/tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx', () => ({
-  formatName: (_searchTerm: string | undefined, name: string) => [<span key="name">{name}</span>],
-  generateFileTree: vi.fn(),
-  filterFileTree: vi.fn(),
+// Mock the fileTreeUtilities modules
+vi.mock('../../../components/tabs/fileTree/utils/fileListUtilities.tsx', () => ({
   loadFileList: vi.fn(),
   refreshFileList: vi.fn(),
   writeFileListToStorage: vi.fn(),
@@ -19,9 +16,9 @@ vi.mock('../../../components/contextMenu/contextMenuHelper.ts', () => ({
   showContextMenu: vi.fn(),
 }));
 
-import FileListFile from '../../../components/tabs/fileTree/fileList/fileListElements/fileListFile.tsx';
+import FileTreeFile from '../../../components/fileTree/fileTreeElements/fileTreeFile/fileTreeFile.tsx';
 import { FileTreeElementTypeType } from '../../../types/data/fileListType.ts';
-import FilesReducer from '../../../redux/reducer/data/filesReducer.ts';
+import FilesReducer, { updateFileListElement, showFileTreeElementInfo } from '../../../redux/reducer/data/filesReducer.ts';
 import type { FilesInitialState } from '../../../redux/reducer/data/filesReducer.ts';
 import NotificationsReducer from '../../../redux/reducer/general/notificationsReducer.ts';
 import SettingsReducer from '../../../redux/reducer/settings/settingsReducer.ts';
@@ -69,7 +66,7 @@ const fileElement = {
   element: { path: 'src/utils/foo.ts', webUrl: '', maxLength: 0 },
 };
 
-describe('FileListFile', () => {
+describe('FileTreeFile', () => {
   let store: ReturnType<typeof createTestStore>;
 
   beforeEach(() => {
@@ -87,7 +84,7 @@ describe('FileListFile', () => {
   it('C7.1 renders the file name', () => {
     render(
       <Provider store={store}>
-        <FileListFile file={fileElement} />
+        <FileTreeFile file={fileElement} />
       </Provider>,
     );
     expect(screen.getByText('foo.ts')).toBeInTheDocument();
@@ -96,7 +93,7 @@ describe('FileListFile', () => {
   it('C7.2 checkbox is checked when file.checked is true', () => {
     render(
       <Provider store={store}>
-        <FileListFile file={{ ...fileElement, checked: true }} />
+        <FileTreeFile file={{ ...fileElement, checked: true }} showSelect={true} />
       </Provider>,
     );
     expect(screen.getByRole('checkbox')).toBeChecked();
@@ -105,7 +102,7 @@ describe('FileListFile', () => {
   it('C7.3 checkbox is unchecked when file.checked is false', () => {
     render(
       <Provider store={store}>
-        <FileListFile file={{ ...fileElement, checked: false }} />
+        <FileTreeFile file={{ ...fileElement, checked: false }} showSelect={true} />
       </Provider>,
     );
     expect(screen.getByRole('checkbox')).not.toBeChecked();
@@ -139,7 +136,13 @@ describe('FileListFile', () => {
 
     render(
       <Provider store={storeWithFileTree}>
-        <FileListFile file={fileElement} />
+        <FileTreeFile
+          file={fileElement}
+          showSelect={true}
+          onElementSelectionChange={(element, checked) => {
+            storeWithFileTree.dispatch(updateFileListElement({ ...element, checked, update: true }));
+          }}
+        />
       </Provider>,
     );
     const checkbox = screen.getByRole('checkbox');
@@ -151,7 +154,7 @@ describe('FileListFile', () => {
   it('C7.5 without listOnly, checkbox is rendered', () => {
     render(
       <Provider store={store}>
-        <FileListFile file={fileElement} />
+        <FileTreeFile file={fileElement} showSelect={true} />
       </Provider>,
     );
     expect(screen.getByRole('checkbox')).toBeInTheDocument();
@@ -160,7 +163,7 @@ describe('FileListFile', () => {
   it('C7.6 with listOnly=true, checkbox is NOT rendered', () => {
     render(
       <Provider store={store}>
-        <FileListFile file={fileElement} listOnly={true} />
+        <FileTreeFile file={fileElement} listOnly={true} />
       </Provider>,
     );
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
@@ -193,7 +196,13 @@ describe('FileListFile', () => {
 
     render(
       <Provider store={storeWithFileTree}>
-        <FileListFile file={{ ...fileElement, checked: false }} />
+        <FileTreeFile
+          file={{ ...fileElement, checked: false }}
+          showSelect={true}
+          onElementSelectionChange={(element, checked) => {
+            storeWithFileTree.dispatch(updateFileListElement({ ...element, checked, update: true }));
+          }}
+        />
       </Provider>,
     );
     const checkbox = screen.getByRole('checkbox');
@@ -215,7 +224,14 @@ describe('FileListFile', () => {
 
     render(
       <Provider store={testStore}>
-        <FileListFile file={fileElement} listOnly={true} />
+        <FileTreeFile
+          file={fileElement}
+          listOnly={true}
+          showSelect={false}
+          onElementClick={(element) => {
+            testStore.dispatch(showFileTreeElementInfo(element));
+          }}
+        />
       </Provider>,
     );
 
@@ -238,7 +254,7 @@ describe('FileListFile', () => {
 
     render(
       <Provider store={testStore}>
-        <FileListFile file={fileElement} />
+        <FileTreeFile file={fileElement} />
       </Provider>,
     );
 

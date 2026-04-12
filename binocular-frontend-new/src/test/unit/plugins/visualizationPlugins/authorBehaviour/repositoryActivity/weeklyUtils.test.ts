@@ -20,44 +20,44 @@ function makeCommit(date: Date): AnyActivityDataPlugin {
 }
 
 describe('convertToWeeklyFormat – empty data', () => {
-  it('U42.1 returns 168 cells (24×7) for empty data', () => {
+  it('U41.1 returns 168 cells (24×7) for empty data', () => {
     const { chartData } = convertToWeeklyFormat([], WEEK_START);
     expect(chartData).toHaveLength(168);
   });
 
-  it('U42.2 all cells have value 0 for empty data', () => {
+  it('U41.2 all cells have value 0 for empty data', () => {
     const { chartData } = convertToWeeklyFormat([], WEEK_START);
     expect(chartData.every((cell) => cell.value === 0)).toBe(true);
   });
 });
 
 describe('convertToWeeklyFormat – labels', () => {
-  it('U42.3 rowLabels is always 7 entries', () => {
+  it('U41.3 rowLabels is always 7 entries', () => {
     const { rowLabels } = convertToWeeklyFormat([], WEEK_START);
     expect(rowLabels).toHaveLength(7);
   });
 
-  it('U42.4 colLabels is always 24 entries', () => {
+  it('U41.4 colLabels is always 24 entries', () => {
     const { colLabels } = convertToWeeklyFormat([], WEEK_START);
     expect(colLabels).toHaveLength(24);
   });
 });
 
 describe('convertToWeeklyFormat – activity placement', () => {
-  it('U42.5 commit within week is counted in correct cell (day 0, hour 9)', () => {
+  it('U41.5 commit within week is counted in correct cell (day 0, hour 9)', () => {
     const commitDate = new Date(2024, 0, 1, 9, 0, 0, 0);
     const { chartData } = convertToWeeklyFormat([makeCommit(commitDate)], WEEK_START);
     const cell = chartData.find((c) => c.row === 0 && c.col === 9);
     expect(cell?.value).toBe(1);
   });
 
-  it('U42.6 activity outside the week is excluded (1 day before weekStart)', () => {
+  it('U41.6 activity outside the week is excluded (1 day before weekStart)', () => {
     const beforeWeek = new Date(2023, 11, 31, 12, 0, 0, 0);
     const { chartData } = convertToWeeklyFormat([makeCommit(beforeWeek)], WEEK_START);
     expect(chartData.every((c) => c.value === 0)).toBe(true);
   });
 
-  it('U42.7 multiple activities in same hour/day sum correctly (3 commits → value 3)', () => {
+  it('U41.7 multiple activities in same hour/day sum correctly (3 commits → value 3)', () => {
     const commitDate = new Date(2024, 0, 1, 9, 0, 0, 0);
     const data = [makeCommit(commitDate), makeCommit(commitDate), makeCommit(commitDate)];
     const { chartData } = convertToWeeklyFormat(data, WEEK_START);
@@ -65,7 +65,7 @@ describe('convertToWeeklyFormat – activity placement', () => {
     expect(cell?.value).toBe(3);
   });
 
-  it('U42.8 cell row equals days-from-weekStart, col equals hour (day 2, hour 14)', () => {
+  it('U41.8 cell row equals days-from-weekStart, col equals hour (day 2, hour 14)', () => {
     const commitDate = new Date(2024, 0, 3, 14, 0, 0, 0);
     const { chartData } = convertToWeeklyFormat([makeCommit(commitDate)], WEEK_START);
     const cell = chartData.find((c) => c.row === 2 && c.col === 14);

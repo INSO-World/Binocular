@@ -22,12 +22,12 @@ const svgElementFindPaths = [
 const FALLBACK = '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
 
 describe.each(childrenIndexPaths)('getSVGData (children[1] variant) — %s', (modulePath) => {
-  it('U47.1 returns fallback SVG when ref.current is null', async () => {
+  it('U46.1 returns fallback SVG when ref.current is null', async () => {
     const { getSVGData } = await import(modulePath);
     expect(getSVGData({ current: null })).toBe(FALLBACK);
   });
 
-  it('U47.2 BUG: throws TypeError when children[1] is absent (missing optional chaining on index)', async () => {
+  it('U46.2 BUG: throws TypeError when children[1] is absent (missing optional chaining on index)', async () => {
     const { getSVGData } = await import(modulePath);
     const div = document.createElement('div');
     div.appendChild(document.createElement('span'));
@@ -35,7 +35,7 @@ describe.each(childrenIndexPaths)('getSVGData (children[1] variant) — %s', (mo
     expect(() => getSVGData({ current: div })).toThrow(TypeError);
   });
 
-  it('U47.3 returns outerHTML of children[1] when present', async () => {
+  it('U46.3 returns outerHTML of children[1] when present', async () => {
     const { getSVGData } = await import(modulePath);
     const div = document.createElement('div');
     div.appendChild(document.createElement('span'));
@@ -46,19 +46,19 @@ describe.each(childrenIndexPaths)('getSVGData (children[1] variant) — %s', (mo
 });
 
 describe.each(svgElementFindPaths)('getSVGData (SVGElement-find variant) — %s', (modulePath) => {
-  it('U47.1 returns fallback SVG when ref.current is null', async () => {
+  it('U46.4 returns fallback SVG when ref.current is null', async () => {
     const { getSVGData } = await import(modulePath);
     expect(getSVGData({ current: null })).toBe(FALLBACK);
   });
 
-  it('U47.2 returns fallback SVG when no SVGElement child exists', async () => {
+  it('U46.5 returns fallback SVG when no SVGElement child exists', async () => {
     const { getSVGData } = await import(modulePath);
     const div = document.createElement('div');
     div.appendChild(document.createElement('span'));
     expect(getSVGData({ current: div })).toBe(FALLBACK);
   });
 
-  it('U47.3 returns outerHTML of the first SVGElement child', async () => {
+  it('U46.6 returns outerHTML of the first SVGElement child', async () => {
     const { getSVGData } = await import(modulePath);
     const div = document.createElement('div');
     div.appendChild(document.createElement('span'));

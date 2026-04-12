@@ -75,12 +75,12 @@ describe('sprintsReducer – deleteSprint', () => {
 
   it('U25.6 removes matching sprint', () => {
     const state = reducer(stateWithSprints, deleteSprint(makeSprint('S1', 0)));
-    expect(state.sprintList.find((s) => s.id === 0)).toBeUndefined();
+    expect(state.sprintList.find((s: SprintType) => s.id === 0)).toBeUndefined();
   });
 
   it('U25.7 leaves other sprints intact', () => {
     const state = reducer(stateWithSprints, deleteSprint(makeSprint('S1', 0)));
-    expect(state.sprintList.find((s) => s.id === 1)).toBeDefined();
+    expect(state.sprintList.find((s: SprintType) => s.id === 1)).toBeDefined();
   });
 });
 
@@ -122,8 +122,8 @@ describe('sprintsReducer – clearSprintStorage', () => {
   });
 });
 
-describe('sprintsReducer – saveSprint (U62)', () => {
-  it('U62.1 saving a sprint with an unknown ID leaves the sprint list unchanged', () => {
+describe('sprintsReducer – saveSprint (extended)', () => {
+  it('U25.12 saving a sprint with an unknown ID leaves the sprint list unchanged', () => {
     const stateWithSprint: SprintsInitialState = {
       sprintList: [{ id: 0, name: 'Existing', startDate: '2024-01-01', endDate: '2024-01-14' }],
       currID: 1,
@@ -136,8 +136,8 @@ describe('sprintsReducer – saveSprint (U62)', () => {
   });
 });
 
-describe('sprintsReducer – deleteSprint (U62)', () => {
-  it('U62.2 deleting a sprint with an unknown ID leaves the sprint list unchanged', () => {
+describe('sprintsReducer – deleteSprint (extended)', () => {
+  it('U25.13 deleting a sprint with an unknown ID leaves the sprint list unchanged', () => {
     const stateWithSprint: SprintsInitialState = {
       sprintList: [{ id: 0, name: 'Existing', startDate: '2024-01-01', endDate: '2024-01-14' }],
       currID: 1,
@@ -150,8 +150,8 @@ describe('sprintsReducer – deleteSprint (U62)', () => {
   });
 });
 
-describe('sprintsReducer – addSprint (U62)', () => {
-  it('U62.3 second sprint ID is greater than the first (auto-increment)', () => {
+describe('sprintsReducer – addSprint (extended)', () => {
+  it('U25.14 second sprint ID is greater than the first (auto-increment)', () => {
     const state1 = reducer(emptyState, addSprint(makeSprint('First')));
     const firstId = state1.sprintList[0].id!;
     const state2 = reducer(state1, addSprint(makeSprint('Second')));

@@ -38,29 +38,29 @@ beforeEach(() => {
 // ─── addDataPlugin ─────────────────────────────────────────────────────────────
 
 describe('addDataPlugin', () => {
-  it('U55.1 is a no-op when id is undefined', async () => {
+  it('U54.1 is a no-op when id is undefined', async () => {
     await DataPluginStorage.addDataPlugin({ id: undefined, name: 'FakeName', color: '#fff', parameters: {} });
     expect(mockInit).not.toHaveBeenCalled();
     expect(Object.keys(internals().configuredDataPlugins)).toHaveLength(0);
   });
 
-  it('U55.2 calls init on the matched plugin class', async () => {
+  it('U54.2 calls init on the matched plugin class', async () => {
     await DataPluginStorage.addDataPlugin({ id: 1, name: 'FakeName', color: '#fff', parameters: {} });
     expect(mockInit).toHaveBeenCalledOnce();
   });
 
-  it('U55.3 stores the instance in the cache under name+id key', async () => {
+  it('U54.3 stores the instance in the cache under name+id key', async () => {
     await DataPluginStorage.addDataPlugin({ id: 7, name: 'FakeName', color: '#fff', parameters: {} });
     expect(internals().configuredDataPlugins['FakeName7']).toBeInstanceOf(FakePlugin);
   });
 
-  it('U55.4 passes apiKey, endpoint, fileName, and progressUpdate to init', async () => {
+  it('U54.4 passes apiKey, endpoint, fileName, and progressUpdate to init', async () => {
     const params = { apiKey: 'key', endpoint: 'http://x', fileName: 'db.json', progressUpdate: undefined };
     await DataPluginStorage.addDataPlugin({ id: 1, name: 'FakeName', color: '#fff', parameters: params });
     expect(mockInit).toHaveBeenCalledWith('key', 'http://x', { name: 'db.json', file: undefined, dbObjects: undefined }, undefined);
   });
 
-  it('U55.5 does nothing when no plugin class matches the name', async () => {
+  it('U54.5 does nothing when no plugin class matches the name', async () => {
     await DataPluginStorage.addDataPlugin({ id: 1, name: 'UnknownPlugin', color: '#fff', parameters: {} });
     expect(Object.keys(internals().configuredDataPlugins)).toHaveLength(0);
   });
@@ -69,27 +69,27 @@ describe('addDataPlugin', () => {
 // ─── getDataPlugin ─────────────────────────────────────────────────────────────
 
 describe('getDataPlugin', () => {
-  it('U55.6 returns undefined when id is undefined', async () => {
+  it('U54.6 returns undefined when id is undefined', async () => {
     const result = await DataPluginStorage.getDataPlugin({ id: undefined, name: 'FakeName', color: '#fff', parameters: {} });
     expect(result).toBeUndefined();
   });
 
-  it('U55.7 creates and returns a plugin instance on cache miss', async () => {
+  it('U54.7 creates and returns a plugin instance on cache miss', async () => {
     const result = await DataPluginStorage.getDataPlugin({ id: 1, name: 'FakeName', color: '#fff', parameters: {} });
     expect(result).toBeInstanceOf(FakePlugin);
   });
 
-  it('U55.8 returns undefined when no plugin class matches', async () => {
+  it('U54.8 returns undefined when no plugin class matches', async () => {
     const result = await DataPluginStorage.getDataPlugin({ id: 1, name: 'NoSuchPlugin', color: '#fff', parameters: {} });
     expect(result).toBeUndefined();
   });
 
-  it('U55.9 stores the created plugin in the cache under name+id key', async () => {
+  it('U54.9 stores the created plugin in the cache under name+id key', async () => {
     await DataPluginStorage.getDataPlugin({ id: 2, name: 'FakeName', color: '#fff', parameters: {} });
     expect(internals().configuredDataPlugins['FakeName2']).toBeInstanceOf(FakePlugin);
   });
 
-  it('U55.10 returns the cached instance added by addDataPlugin without re-calling init', async () => {
+  it('U54.10 returns the cached instance added by addDataPlugin without re-calling init', async () => {
     const dp = { id: 1, name: 'FakeName', color: '#fff', parameters: {} };
     await DataPluginStorage.addDataPlugin(dp);
     const result = await DataPluginStorage.getDataPlugin(dp);

@@ -13,7 +13,7 @@ vi.mock('../../../components/notificationController/notificationController.tsx',
 vi.mock('../../../components/tabs/authors/editAuthorDialog/editAuthorDialog.tsx', () => ({
   default: () => <div data-testid="mock-edit-author-dialog" />,
 }));
-vi.mock('../../../components/tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx', () => ({
+vi.mock('../../../components/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx', () => ({
   default: () => <div data-testid="mock-file-tree-info-dialog" />,
 }));
 vi.mock('../../../components/tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverview.tsx', () => ({
@@ -26,17 +26,16 @@ vi.mock('../../../components/overlayController/overlays/loadingLocalDatabaseOver
   default: () => <div data-testid="mock-loading-overlay" />,
 }));
 vi.mock('../../../components/contextMenu/contextMenu.tsx', () => ({ default: () => <div data-testid="mock-context-menu" /> }));
-vi.mock('../../../components/infoTooltip/infoTooltip.tsx', () => ({ default: () => <div data-testid="mock-info-tooltip" /> }));
 
 import OverlayController from '../../../components/overlayController/overlayController.tsx';
 
 describe('OverlayController', () => {
-  it('C43.1 renders without crashing', () => {
+  it('C40.1 renders without crashing', () => {
     render(<OverlayController />);
     expect(document.body.firstChild).not.toBeNull();
   });
 
-  it('C43.2 all 12 overlay child components are present in the DOM', () => {
+  it('C40.2 all 11 overlay child components are present in the DOM', () => {
     render(<OverlayController />);
     const expectedTestIds = [
       'mock-information-dialog',
@@ -50,7 +49,6 @@ describe('OverlayController', () => {
       'mock-layout-overview',
       'mock-loading-overlay',
       'mock-context-menu',
-      'mock-info-tooltip',
     ];
     for (const testId of expectedTestIds) {
       expect(screen.getByTestId(testId)).toBeInTheDocument();

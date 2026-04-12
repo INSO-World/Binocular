@@ -84,7 +84,7 @@ describe('convertToChartData (builds)', () => {
     expect(result.scale[1]).toBeGreaterThan(0);
   });
 
-  it('U58.1 unknown status (e.g. pending) is mapped to others — pending key never appears in chartData', () => {
+  it('U35.6 unknown status (e.g. pending) is mapped to others — pending key never appears in chartData', () => {
     const build = makeBuild({ status: 'pending' });
     const result = convertToChartData([build], makeProps(defaultSettings));
     // Unknown statuses are renamed to 'others' in step 1, so 'pending' never appears as a chart key
@@ -94,28 +94,28 @@ describe('convertToChartData (builds)', () => {
     expect(allKeys).toContain('others');
   });
 
-  it('U58.2 build with status failed has a negative chart value', () => {
+  it('U35.7 build with status failed has a negative chart value', () => {
     const build = makeBuild({ status: 'failed' });
     const result = convertToChartData([build], makeProps(defaultSettings));
     const bucket = result.chartData.find((d) => d['failed'] < 0);
     expect(bucket).toBeDefined();
   });
 
-  it('U58.3 build with status cancelled has a negative chart value', () => {
+  it('U35.8 build with status cancelled has a negative chart value', () => {
     const build = makeBuild({ status: 'cancelled' });
     const result = convertToChartData([build], makeProps(defaultSettings));
     const bucket = result.chartData.find((d) => d['cancelled'] < 0);
     expect(bucket).toBeDefined();
   });
 
-  it('U58.4 build with status success has a positive chart value', () => {
+  it('U35.9 build with status success has a positive chart value', () => {
     const build = makeBuild({ status: 'success' });
     const result = convertToChartData([build], makeProps(defaultSettings));
     const bucket = result.chartData.find((d) => d['success'] > 0);
     expect(bucket).toBeDefined();
   });
 
-  it('U58.5 author with selected=false — no data for that author in splitBuildsPerAuthor mode', () => {
+  it('U35.10 author with selected=false — no data for that author in splitBuildsPerAuthor mode', () => {
     const settings: BuildSettings = { ...defaultSettings, splitBuildsPerAuthor: true };
     const author: AuthorType = {
       id: 1,

@@ -11,7 +11,6 @@ const defaultOptions = { width: 800, height: 600 };
 
 function makeProps(overrides: Partial<React.ComponentProps<typeof PopoutController>> = {}) {
   return {
-    url: 'about:blank',
     title: 'Test Popout',
     options: defaultOptions,
     onClosing: vi.fn(),
@@ -53,12 +52,12 @@ describe('PopoutController', () => {
     vi.useRealTimers();
   });
 
-  it('C34.1: window.open is called on mount with props.url', () => {
-    const props = makeProps({ url: 'about:blank' });
+  it('C34.1: window.open is called on mount', () => {
+    const props = makeProps();
     render(<PopoutController {...props} />);
     expect(window.open).toHaveBeenCalled();
     const firstArg = (window.open as ReturnType<typeof vi.spyOn>).mock.calls[0][0];
-    expect(firstArg).toBe('about:blank');
+    expect(firstArg).toBe('');
   });
 
   it('C34.2: window.open is called with props.title as the second argument', () => {
@@ -84,8 +83,7 @@ describe('PopoutController', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('C34.5: when mockWindow.closed becomes true and poll interval fires, onClosing is called', async () => {
-    vi.useFakeTimers();
+  it('C34.5: when the beforeunload event fires on the popout window, onClosing is called', async () => {
     const onClosing = vi.fn();
     const props = makeProps({ onClosing });
 
@@ -93,18 +91,18 @@ describe('PopoutController', () => {
       render(<PopoutController {...props} />);
     });
 
-    // Allow React state updates (setPopoutWindow) and the second useEffect to run
+    // Allow React state updates (container set) and the second useEffect to run
     await act(async () => {
       // Flush pending microtasks / state updates
     });
 
-    // Now make the mock window appear closed
-    mockWindow.closed = true;
+    // Retrieve the 'beforeunload' listener that was registered on the mock window
+    const beforeUnloadCall = mockWindow.addEventListener.mock.calls.find((call) => call[0] === 'beforeunload');
+    expect(beforeUnloadCall).toBeDefined();
+    const beforeUnloadHandler = beforeUnloadCall![1] as () => void;
 
-    // Advance past the 500ms polling interval
-    await act(async () => {
-      vi.advanceTimersByTime(600);
-    });
+    // Simulate the popout window closing
+    beforeUnloadHandler();
 
     expect(onClosing).toHaveBeenCalled();
   });

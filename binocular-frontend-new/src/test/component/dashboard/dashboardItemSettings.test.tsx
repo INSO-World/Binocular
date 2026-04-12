@@ -96,26 +96,26 @@ beforeEach(() => {
 });
 
 describe('DashboardItemSettings', () => {
-  it('C37.1 heading contains "TestViz (#42)"', () => {
+  it('C35.1 heading contains "TestViz (#42)"', () => {
     renderComponent();
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('TestViz (#42)');
   });
 
-  it('C37.2 clicking "Refresh" button calls onClickRefresh', () => {
+  it('C35.2 clicking "Refresh" button calls onClickRefresh', () => {
     const onClickRefresh = vi.fn();
     renderComponent({ ...defaultProps, onClickRefresh });
     fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
     expect(onClickRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('C37.3 clicking "Delete" button calls onClickDelete', () => {
+  it('C35.3 clicking "Delete" button calls onClickDelete', () => {
     const onClickDelete = vi.fn();
     renderComponent({ ...defaultProps, onClickDelete });
     fireEvent.click(screen.getByRole('button', { name: /delete/i }));
     expect(onClickDelete).toHaveBeenCalledTimes(1);
   });
 
-  it('C37.4 toggling the "Ignore Global Parameters" checkbox calls setIgnoreGlobalParameters with true', () => {
+  it('C35.4 toggling the "Ignore Global Parameters" checkbox calls setIgnoreGlobalParameters with true', () => {
     const setIgnoreGlobalParameters = vi.fn();
     renderComponent({ ...defaultProps, setIgnoreGlobalParameters });
     // Find the checkbox associated with "Ignore Global Parameters"
@@ -125,7 +125,7 @@ describe('DashboardItemSettings', () => {
     expect(setIgnoreGlobalParameters).toHaveBeenCalledWith(true);
   });
 
-  it('C37.5 "Automatic Update" toggle is shown when selectedDataPlugin.parameters.progressUpdate.useAutomaticUpdate === true; absent when selectedDataPlugin is undefined', () => {
+  it('C35.5 "Automatic Update" toggle is shown when selectedDataPlugin.parameters.progressUpdate.useAutomaticUpdate === true; absent when selectedDataPlugin is undefined', () => {
     // When selectedDataPlugin is undefined — no Automatic Update toggle
     renderComponent({ ...defaultProps, selectedDataPlugin: undefined });
     expect(screen.queryByText(/automatic update/i)).toBeNull();

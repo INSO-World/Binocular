@@ -32,7 +32,7 @@ function makeOwnership(sha: string, date: string, parents: string[]): DataPlugin
 // ─── getHistoryForCommit ───────────────────────────────────────────────────────
 
 describe('getHistoryForCommit', () => {
-  it('linear 3-commit chain: returns SHA array in descending date order', () => {
+  it('U56.1 linear 3-commit chain: returns SHA array in descending date order', () => {
     const c1 = makeOwnership('sha1', '2023-01-01T00:00:00Z', []);
     const c2 = makeOwnership('sha2', '2023-02-01T00:00:00Z', ['sha1']);
     const c3 = makeOwnership('sha3', '2023-03-01T00:00:00Z', ['sha2']);
@@ -43,7 +43,7 @@ describe('getHistoryForCommit', () => {
     expect(result).toEqual(['sha3', 'sha2', 'sha1']);
   });
 
-  it('genesis commit (empty parents array): returns only that commit SHA', () => {
+  it('U56.2 genesis commit (empty parents array): returns only that commit SHA', () => {
     const genesis = makeCommit('sha-genesis', '2023-01-01T00:00:00Z', []);
     const ownershipGenesis = makeOwnership('sha-genesis', '2023-01-01T00:00:00Z', []);
 
@@ -52,7 +52,7 @@ describe('getHistoryForCommit', () => {
     expect(result).toEqual(['sha-genesis']);
   });
 
-  it('merge commit (2 parents): includes both parent chains in the result', () => {
+  it('U56.3 merge commit (2 parents): includes both parent chains in the result', () => {
     const base = makeOwnership('base', '2023-01-01T00:00:00Z', []);
     const branchA = makeOwnership('branchA', '2023-02-01T00:00:00Z', ['base']);
     const branchB = makeOwnership('branchB', '2023-02-15T00:00:00Z', ['base']);
@@ -69,7 +69,7 @@ describe('getHistoryForCommit', () => {
     expect(result[0]).toBe('merge');
   });
 
-  it('parent SHA missing from allCommits: throws because the source does not guard against undefined commits', () => {
+  it('U56.4 parent SHA missing from allCommits: throws because the source does not guard against undefined commits', () => {
     const c2 = makeOwnership('sha2', '2023-02-01T00:00:00Z', ['sha1-missing']);
     const head = makeCommit('sha3', '2023-03-01T00:00:00Z', ['sha2']);
 
@@ -77,7 +77,7 @@ describe('getHistoryForCommit', () => {
     expect(() => getHistoryForCommit(head, [c2])).toThrow(TypeError);
   });
 
-  it('cycle prevention: circular parent references terminate without infinite loop', () => {
+  it('U56.5 cycle prevention: circular parent references terminate without infinite loop', () => {
     // Manually craft ownership objects that reference each other as parents.
     // This is not a valid git state but the function must not hang.
     const c1 = makeOwnership('sha1', '2023-01-01T00:00:00Z', ['sha2']);
