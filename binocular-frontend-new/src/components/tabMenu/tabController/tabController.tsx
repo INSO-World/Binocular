@@ -22,6 +22,7 @@ import { DragDropElementType } from '../../../types/general/dragDropElementType.
 import { addNotification } from '../../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../../types/general/alertType.ts';
 import { placeDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
+import LogoIconText from '../../../assets/logo_icon_text.svg';
 
 interface TabContents {
   [id: number]: ReactElement;
@@ -128,7 +129,9 @@ function TabController(props: {
               moveTab(transferredData.tabName, TabAlignment.top, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
             }
           }}>
-          <div className={tabControllerStyles.appName}>{props.appName}</div>
+          <div className={tabControllerStyles.appName}>
+            <img src={LogoIconText} alt={props.appName} className={'h-full'} />
+          </div>
 
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.top)

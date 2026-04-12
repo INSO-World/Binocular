@@ -14,7 +14,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Show contributors:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.contributors}
             onChange={(event) =>
               props.setSettings({
@@ -31,7 +31,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Show commits:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.commits}
             onChange={(event) =>
               props.setSettings({
@@ -48,7 +48,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Show issues:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.issues}
             onChange={(event) =>
               props.setSettings({
@@ -65,7 +65,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Show builds:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.builds}
             onChange={(event) =>
               props.setSettings({
@@ -82,7 +82,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Show merge requests:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.mergeRequests}
             onChange={(event) =>
               props.setSettings({

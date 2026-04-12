@@ -1,0 +1,26 @@
+name: Frontend Tests
+
+on:
+  push:
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Run unit tests
+        run: npm run test:unit
+        working-directory: binocular-frontend-new
+      - name: Run component tests
+        run: npm run test:component
+        working-directory: binocular-frontend-new
+      - name: Run integration tests
+        run: npm run test:integration
+        working-directory: binocular-frontend-new
