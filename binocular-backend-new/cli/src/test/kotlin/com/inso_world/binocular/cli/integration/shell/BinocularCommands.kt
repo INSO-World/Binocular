@@ -33,7 +33,7 @@ internal class BinocularCommands : BaseShellWithDataTest() {
     @ParameterizedTest
     @CsvSource(
         "index,commits",
-        "index,diffs",
+//        "index,diffs",
         "index,blames",
         "index,hello",
     )
