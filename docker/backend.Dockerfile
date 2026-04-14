@@ -68,7 +68,7 @@ RUN mkdir -p /app/binocular/repo
 RUN chown node:node /app/binocular/repo
 RUN chown node:node $(npm root -g)
 
-RUN git config --global --add safe.directory /app/binocular/repo/*
+RUN git config --global --add safe.directory /app/binocular/repo
 
 RUN chown node:node -R /app/binocular
 USER node

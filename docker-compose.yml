@@ -1,15 +1,13 @@
 x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest}
 x-node-image: &node-image node:22.21.1-alpine # check if same as in .nvmrc!
 x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
-x-binocular-depends-on: &binocular-depends-on
-  - db
 x-binocular-volumes-backend: &binocular-volumes-backend
   - ./foxx:/app/binocular/foxx
   - ./utils:/app/binocular/utils
   - ./binocular-backend:/app/binocular/backend
   - ./services:/app/binocular/services
-  - /path_to_repo:/app/binocular/repo #TODO: change as required, e.g. ./ for local Binocular
-  - ./.binocularrc-binocular:/app/binocular/.binocularrc
+  - "${REPO_PATH:-./}:/app/binocular/repo"
+  - "${REPO_PATH:-.}/.binocularrc:/app/binocular/.binocularrc.source:ro"
 x-binocular-build-args: &binocular-build-args
   NODE_VERSION: "22.21.1" # check if same as in .nvmrc!
 
@@ -29,24 +27,32 @@ services:
       - binocular
     volumes:
       - ./docker/arangodb/data:/var/lib/arangodb3
+    healthcheck:
+      test: ["CMD", "/usr/bin/wget", "-qO", "/dev/null", "http://127.0.0.1:8529/_api/version"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   binocular-init:
     image: *binocular-backend-image
-    depends_on: *binocular-depends-on
+    depends_on:
+      db:
+        condition: service_healthy
     container_name: "binocular_init"
+    working_dir: "/app/binocular/backend"
+    entrypoint: ["/bin/sh"]
     environment:
       - DEBUG=idx*,importer*,git*,db*,context*
-    command: [
-      "binocular",
-      "run",
-      # "--clean", # uncomment to truncate all documents
-      # "--no-vcs",
-      # "--no-ci",
-      # "--no-its",
-      # "--no-jobs",
-      "--no-server",
-      "/app/binocular/repo/",
-    ]
+      # Override config via env vars (rc env vars take highest priority over config files)
+      - binocular_arango__host=db
+    # To skip indexers add flags: --no-vcs --no-ci --no-its --no-jobs
+    # To truncate all documents add: --clean
+    command:
+      - "-c"
+      - |
+        git config --global --add safe.directory /app/binocular/repo
+        binocular run --no-server /app/binocular/repo/
     volumes: *binocular-volumes-backend
     networks:
       - binocular
@@ -79,17 +85,23 @@ services:
 
   binocular-backend:
     image: *binocular-backend-image
-    depends_on: *binocular-depends-on
+    depends_on:
+      db:
+        condition: service_healthy
+      binocular-init:
+        condition: service_completed_successfully
     container_name: "binocular_backend"
     # user: root
     environment:
       - DEBUG=idx*,importer*,git*,db*,context*
+      # Override config via env vars (rc env vars take highest priority over config files)
+      - binocular_arango__host=db
     entrypoint: ["/bin/sh"]
     command:
-      [
-        "-c",
-        "npm i && npm i -g tsx ts-node && npm i --include=dev mocha && tsx watch binocular.ts run --no-vcs --no-ci --no-its --no-jobs /app/binocular/repo"
-      ]
+      - "-c"
+      - |
+        git config --global --add safe.directory /app/binocular/repo
+        npm i && npm i --include=dev mocha && npx tsx watch binocular.ts run --no-vcs --no-ci --no-its --no-jobs /app/binocular/repo
     working_dir: "/app/binocular/backend"
     ports:
       - "8080:8080"
