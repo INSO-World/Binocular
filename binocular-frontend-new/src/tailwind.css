@@ -47,8 +47,9 @@
 
   --color-base-content: "#111111";
 
-  --color-primary: "#555555";
-  --color-accent: "#007AFF";
+  --color-primary: "#0c74bb";
+  --color-primary-content: "#FFFFFF";
+  --color-accent: "#555555";
   --color-accent-content:"#FFFFFF";
   --color-neutral: "#CCC";
   --color-neutral-content:"#555";
@@ -57,7 +58,7 @@
   --color-base-300: "#E0E0E0";
   --color-success:"#4cd964";
   --color-success-content: "#FFFFFF";
-  --color-error:"#ff3b30";
+  --color-error:"#db131f";
   --color-error-content: "#FFFFFF";
   --color-warning:"#ffcc00";
   --color-info:"#5ac8fa";
@@ -85,7 +86,8 @@
   prefersdark: true; /* set as default dark mode (prefers-color-scheme:dark) */
   color-scheme: dark; /* color of browser-provided UI */
 
-  --color-primary: "#555555";
+  --color-primary: "#0c74bb";
+  --color-primary-content: "#FFFFFF";
   --color-accent: "#0062cc";
   --color-accent-content:"#FFFFFF";
   --color-neutral: "#555";
@@ -96,7 +98,7 @@
   --color-base-content: "#fff";
   --color-success:"#229e37";
   --color-success-content: "#fff";
-  --color-error:"#c90a00";
+  --color-error:"#db131f";
   --color-error-content: "#fff";
   --color-warning:"#ffcc00";
   --color-info:"#5ac8fa";

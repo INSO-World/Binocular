@@ -134,7 +134,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
               <div className="label">
                 <span className="font-bold">Use Progress Update:</span>
               </div>
-              <input type="checkbox" className="toggle" ref={progressUpdateUseRef} />
+              <input type="checkbox" className="toggle toggle-primary" ref={progressUpdateUseRef} />
             </label>
             <label className="form-control w-full max-w-xs">
               <div className="label">

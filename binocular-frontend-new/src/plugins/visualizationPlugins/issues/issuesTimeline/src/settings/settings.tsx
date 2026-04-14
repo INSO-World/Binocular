@@ -18,7 +18,7 @@ export const Settings = ({ settings, setSettings }: Props) => (
         <span className="label-text">Show Sprints:</span>
         <input
           type="checkbox"
-          className="toggle toggle-accent toggle-sm"
+          className="toggle toggle-primary toggle-sm"
           defaultChecked={settings.showSprints}
           onChange={(event) => setSettings({ ...settings, showSprints: event.target.checked })}
         />

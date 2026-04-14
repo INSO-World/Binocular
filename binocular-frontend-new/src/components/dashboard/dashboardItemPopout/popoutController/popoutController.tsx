@@ -64,10 +64,16 @@ export default function PopoutController(props: PropsType) {
   useEffect(() => {
     if (container) {
       popoutWindow.current = window.open('', props.title, createOptions());
-      popoutWindow.current?.document.body.setAttribute('style', 'margin:0');
-      popoutWindow.current?.document.body.appendChild(container);
-      popoutWindow.current?.addEventListener('beforeunload', popoutWindowUnloading);
-      popoutWindow.current?.addEventListener('resize', throttledResize);
+
+      if (!popoutWindow.current) {
+        props.onError();
+        return;
+      }
+
+      popoutWindow.current.document.body.setAttribute('style', 'margin:0');
+      popoutWindow.current.document.body.appendChild(container);
+      popoutWindow.current.addEventListener('beforeunload', popoutWindowUnloading);
+      popoutWindow.current.addEventListener('resize', throttledResize);
 
       const styleSheets = Array.from(document.styleSheets);
       styleSheets.forEach((styleSheet) => {

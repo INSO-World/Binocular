@@ -69,7 +69,7 @@ export function showConfirmationDialog(x: number, y: number, width: number, text
 
   // Button No
   const noButton = document.createElement('button');
-  noButton.className = 'btn btn-sm btn-accent';
+  noButton.className = 'btn btn-sm btn-primary';
   noButton.onclick = options[1].function;
   noButton.style.display = 'inline-flex';
   noButton.style.alignItems = 'center';

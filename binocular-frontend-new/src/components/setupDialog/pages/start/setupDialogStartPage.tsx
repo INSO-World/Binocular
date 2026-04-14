@@ -1,7 +1,12 @@
+import LogoIcon from '../../../../assets/logo_icon.svg';
+
 function SetupDialogStartPage() {
   return (
     <>
-      <h1>Welcome to Binocular</h1>
+      <div className={'flex items-center gap-3'}>
+        <img src={LogoIcon} alt={'Binocular'} className={'h-12'} />
+        <h1>Welcome to Binocular</h1>
+      </div>
       <p>
         Binocular is a tool for visualizing data from various software-engineering tools. It works as a command-line tool run from a
         git-repository. When run, Binocular will gather data from the repository and the GitHub or GitLab API and persist it to a configured
@@ -14,7 +19,7 @@ function SetupDialogStartPage() {
         backend at all.
       </p>
       <p>
-        Just press the <span className={'btn btn-accent btn-xs no-animation'}>Next</span> button to start with the setup process!
+        Just press the <span className={'btn btn-primary btn-xs no-animation'}>Next</span> button to start with the setup process!
       </p>
     </>
   );

@@ -14,7 +14,7 @@ function Settings(props: { settings: TimeSpentSettings; setSettings: (newSetting
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
@@ -50,7 +50,7 @@ function Settings(props: { settings: TimeSpentSettings; setSettings: (newSetting
           <span className="label-text">Split Time per Issue:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.splitTimePerIssue}
             onChange={(event) =>
               props.setSettings({
@@ -67,7 +67,7 @@ function Settings(props: { settings: TimeSpentSettings; setSettings: (newSetting
           <span className="label-text">Split Spent and Removed:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.splitSpentRemoved}
             checked={Boolean(props.settings.splitSpentRemoved)}
             onChange={(event) =>
@@ -85,7 +85,7 @@ function Settings(props: { settings: TimeSpentSettings; setSettings: (newSetting
           <span className="label-text">Breakdown (Total Time):</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.breakdown}
             onChange={(event) =>
               props.setSettings({

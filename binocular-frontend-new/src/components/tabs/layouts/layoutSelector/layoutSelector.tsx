@@ -91,11 +91,11 @@ function LayoutSelector(props: { orientation?: string }) {
               </button>
             ))}
         </div>
-        <button className="btn btn-square btn-accent btn-sm" onClick={(e) => showLayoutOverview(e.clientX, e.clientY)}>
+        <button className="btn btn-square btn-primary btn-sm" onClick={(e) => showLayoutOverview(e.clientX, e.clientY)}>
           <img src={VisualizationsIcon} />
         </button>
       </div>
-      <button className="btn btn-accent w-fit m-auto" onClick={() => setShowModal(true)}>
+      <button className="btn btn-primary w-fit m-auto" onClick={() => setShowModal(true)}>
         Save Dashboard
       </button>
 
@@ -114,7 +114,7 @@ function LayoutSelector(props: { orientation?: string }) {
             />
 
             <div className="modal-action">
-              <button className="btn btn-square btn-accent " onClick={handleSave}>
+              <button className="btn btn-square btn-primary" onClick={handleSave}>
                 Save
               </button>
               <button className="btn btn-fit" onClick={() => setShowModal(false)}>
