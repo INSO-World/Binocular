@@ -1,0 +1,6 @@
+# Assuming a Custom Type named URL using a String as the builtin.
+[bindings.kotlin]
+package_name = "com.inso_world.binocular.ffi.internal"
+#rust-crate-name="com.inso_world.binocular.cli.uniffi"
+#cdylib_name="mylib"
+#omit_checksums=true

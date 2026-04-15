@@ -30,6 +30,7 @@ const JobStatus = new gql.GraphQLEnumType({
   name: 'JobStatus',
   values: {
     failed: {},
+    failure: {},
     success: {},
     cancelled: {},
     skipped: {},

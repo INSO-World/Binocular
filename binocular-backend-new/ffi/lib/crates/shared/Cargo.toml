@@ -1,0 +1,20 @@
+[package]
+name = "shared"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+env_logger = { workspace = true, optional = true }
+chrono = { workspace = true, features = ["serde"] }
+gix = { workspace = true }
+serde = { version = "1.0.217" }
+
+[dev-dependencies]
+pretty_assertions = { version = "1.4.1" }
+serde_test = { version = "1.0.177" }
+
+[lib]
+doctest = false

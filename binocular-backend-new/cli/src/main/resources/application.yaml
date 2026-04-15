@@ -1,0 +1,22 @@
+binocular:
+  cli:
+    index:
+      scm:
+        path: "../../.git"
+spring:
+  profiles:
+    active: postgres,gix
+  application:
+    name: binocular-cli
+  shell:
+    script:
+      enabled: true
+    interactive:
+      enabled: true
+## disable console logging
+logging:
+  level:
+    com:
+      inso_world:
+        binocular: trace
+    root: warn
