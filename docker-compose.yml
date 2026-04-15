@@ -6,7 +6,7 @@ x-binocular-volumes-backend: &binocular-volumes-backend
   - ./utils:/app/binocular/utils
   - ./binocular-backend:/app/binocular/backend
   - ./services:/app/binocular/services
-  - "${REPO_PATH:-./}:/app/binocular/${REPO_NAME}"
+  - "${REPO_PATH:-./}:/app/binocular/${REPO_NAME:-repo}"
 x-binocular-build-args: &binocular-build-args
   NODE_VERSION: "22.21.1" # check if same as in .nvmrc!
 
@@ -50,8 +50,8 @@ services:
     command:
       - "-c"
       - |
-        git config --global --add safe.directory /app/binocular/${REPO_NAME}
-        binocular run --no-server /app/binocular/${REPO_NAME}/
+        git config --global --add safe.directory /app/binocular/${REPO_NAME:-repo}
+        binocular run --no-server /app/binocular/${REPO_NAME:-repo}/
     volumes: *binocular-volumes-backend
     networks:
       - binocular
@@ -99,8 +99,8 @@ services:
     command:
       - "-c"
       - |
-        git config --global --add safe.directory /app/binocular/${REPO_NAME}
-        npm i && npm i --include=dev mocha && npx tsx watch binocular.ts run --no-vcs --no-ci --no-its --no-jobs /app/binocular/${REPO_NAME}
+        git config --global --add safe.directory /app/binocular/${REPO_NAME:-repo}
+        npm i && npm i --include=dev mocha && npx tsx watch binocular.ts run --no-vcs --no-ci --no-its --no-jobs /app/binocular/${REPO_NAME:-repo}
     working_dir: "/app/binocular/backend"
     ports:
       - "8080:8080"
