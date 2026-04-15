@@ -5,7 +5,7 @@ on:
 
 jobs:
   unit-tests:
-    name: Unit Tests
+    name: Frontend Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
