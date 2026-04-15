@@ -2,8 +2,7 @@ x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular
 x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
 x-binocular-frontend-image: &binocular-frontend-image ghcr.io/inso-world/binocular-frontend:${TAG:-latest}
 x-binocular-volumes-backend: &binocular-volumes-backend
-  - "${REPO_PATH:-./}:/app/binocular/repo"
-  - "${REPO_PATH:-.}/.binocularrc:/app/binocular/.binocularrc.source:ro"
+  - "${REPO_PATH:-./}:/app/binocular/${REPO_NAME:-repo}"
 x-binocular-build-args: &binocular-build-args
   NODE_VERSION: "22.21.1" # check if same as in .nvmrc!
 
@@ -47,8 +46,8 @@ services:
     command:
       - "-c"
       - |
-        git config --global --add safe.directory /app/binocular/repo
-        binocular run --no-server /app/binocular/repo/
+        git config --global --add safe.directory /app/binocular/${REPO_NAME:-repo}
+        binocular run --no-server /app/binocular/${REPO_NAME:-repo}/
     volumes: *binocular-volumes-backend
     networks:
       - binocular
@@ -75,8 +74,8 @@ services:
     command:
       - "-c"
       - |
-        git config --global --add safe.directory /app/binocular/repo
-        binocular run --no-vcs --no-ci --no-its --no-jobs /app/binocular/repo/
+        git config --global --add safe.directory /app/binocular/${REPO_NAME:-repo}
+        binocular run --no-vcs --no-ci --no-its --no-jobs /app/binocular/${REPO_NAME:-repo}/
     ports:
       - "8080:8080"
       - "48763:48763"
