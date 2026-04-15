@@ -1,0 +1,428 @@
+"""
+Timestamp scalar representing moments in time.
+- Input: epoch milliseconds or ISO-8601 date-time string (UTC assumed if zone is missing).
+- Output: ISO-8601 UTC string with milliseconds (e.g. 2025-01-02T03:04:05.678Z).
+"""
+scalar Timestamp
+
+"""
+Sort direction (ASC or DESC, case-insensitive).
+Accepted values: ASC, DESC (case-insensitive)
+"""
+scalar Sort
+
+ type Query {
+  commits(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedCommit!
+  accounts(page: Int, perPage: Int, sort: Sort): PaginatedAccount!
+  branches(page: Int, perPage: Int, sort: Sort): PaginatedBranch!
+  builds(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedBuild!
+  files(page: Int, perPage: Int, sort: Sort): PaginatedFile!
+  issues(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedIssue!
+  mergeRequests(page: Int, perPage: Int, since: Timestamp, until: Timestamp, sort: Sort): PaginatedmergeRequest!
+  milestones(page: Int, perPage: Int, sort: Sort): PaginatedMilestone!
+  modules(page: Int, perPage: Int, sort: Sort): PaginatedModule!
+  notes(page: Int, perPage: Int, sort: Sort): PaginatedNote!
+  users(page: Int, perPage: Int, sort: Sort): PaginatedUser!
+
+  # Single item queries
+  commit(sha: String!): Commit
+  account(id: ID!): Account
+  branch(id: ID, branchName: String): Branch
+  build(id: ID!): Build
+  file(id: ID, path: String): File
+  issue(id: ID!): Issue
+  mergeRequest(id: ID!): mergeRequest
+  milestone(id: ID!): Milestone
+  module(id: ID!): Module
+  note(id: ID!): Note
+  user(id: ID!): User
+}
+
+"""
+A single git commit
+"""
+type Commit {
+  id: ID
+  sha: String
+  shortSha: String
+  date: Timestamp
+  message: String
+  messageHeader: String
+  webUrl: String
+  branch: String
+  stats: Stats
+  """
+  Parent commits as a list of strings (doesn't require subselection)
+  """
+  parents: [String]
+  """
+  Parent commits as a scalar (doesn't require subselection)
+  """
+  parentsScalar: String
+  """
+  Parent commit SHAs (scalar array that doesn't require subselection)
+  """
+  parentShas: [String]
+  """
+  Child commits
+  """
+  children: [Commit]
+  builds: [Build]
+  files(page: Int, perPage: Int): PaginatedFileInCommit
+  modules: [Module]
+  users: [User]
+  user: User
+  issues: [Issue]
+  pageInfo: PageInfo
+}
+
+type Stats {
+  additions: Int
+  deletions: Int
+}
+
+type PageInfo {
+  startCursor: ID
+  endCursor: ID
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type Account {
+  id: ID
+  platform: Platform
+  login: String
+  name: String
+  avatarUrl: String
+  url: String
+  issues(from: Timestamp, to: Timestamp): [Issue]
+  mergeRequests: [mergeRequest]
+  notes: [Note]
+  user: User
+}
+
+enum Platform {
+  GitHub
+  GitLab
+}
+
+type Branch {
+  id: ID
+  branch: String
+  active: Boolean
+  tracksFileRenames: Boolean
+  latestCommit: String
+  files(page: Int, perPage: Int): PaginatedFileInBranch
+}
+
+type Build {
+  id: ID
+  sha: String
+  ref: String
+  status: String
+  tag: String
+  user: String
+  userFullName: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  startedAt: Timestamp
+  finishedAt: Timestamp
+  committedAt: Timestamp
+  duration: Int
+  jobs: [Job]
+  webUrl: String
+  commits: [Commit]
+  commit: Commit
+}
+
+type Job {
+  id: ID
+  name: String
+  status: String
+  stage: String
+  createdAt: Timestamp
+  finishedAt: Timestamp
+  webUrl: String
+}
+
+type File {
+  id: ID
+  path: String
+  webUrl: String
+  maxLength: Int
+  commits(page: Int, perPage: Int): PaginatedCommitInFile
+  branches: [Branch]
+  modules: [Module]
+  relatedFiles: [File]
+  users: [User]
+}
+
+type Issue {
+  id: ID
+  iid: Int
+  title: String
+  description: String
+  createdAt: Timestamp
+  closedAt: Timestamp
+  updatedAt: Timestamp
+  labels: [String]
+  state: String
+  webUrl: String
+  mentions: [Mention]
+  accounts: [Account]
+  commits: [Commit]
+  milestones: [Milestone]
+  notes: [Note]
+  users: [User]
+  author: Account
+  assignee: Account
+  assignees: [Account]
+}
+
+type Mention {
+  commit: String
+  createdAt: Timestamp
+  closes: Boolean
+}
+
+type mergeRequest {
+  id: ID
+  iid: Int
+  title: String
+  description: String
+  createdAt: Timestamp
+  closedAt: Timestamp
+  updatedAt: Timestamp
+  labels: [String]
+  state: String
+  webUrl: String
+  mentions: [Mention]
+  accounts: [Account]
+  milestones: [Milestone]
+  notes: [Note]
+  sourceBranch: String
+  targetBranch: String
+  author: Account
+  assignee: Account
+  assignees: [Account]
+}
+
+type Milestone {
+  id: ID
+  iid: Int
+  title: String
+  description: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  startDate: Timestamp
+  dueDate: Timestamp
+  state: String
+  expired: Boolean
+  webUrl: String
+  issues: [Issue]
+  mergeRequests: [mergeRequest]
+}
+
+type Module {
+  id: ID
+  path: String
+  commits: [Commit]
+  files: [File]
+  childModules: [Module]
+  parentModules: [Module]
+}
+
+type Note {
+  id: ID
+  body: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  system: Boolean
+  resolvable: Boolean
+  confidential: Boolean
+  internal: Boolean
+  imported: Boolean
+  importedFrom: String
+  accounts: [Account]
+  issues: [Issue]
+  mergeRequests: [mergeRequest]
+  author: Account
+}
+
+type User {
+  id: ID
+  gitSignature: String
+  commits: [Commit]
+  issues: [Issue]
+  files: [File]
+  account: Account
+}
+
+type Hunk {
+  newStart: Int
+  newLines: Int
+  oldStart: Int
+  oldLines: Int
+}
+
+type OwnershipLine {
+  from: Int!
+  to: Int!
+}
+
+type OwnershipHunk {
+  originalCommit: String
+  lines: [OwnershipLine!]!
+}
+
+type FileOwnership {
+  user: String!
+  hunks: [OwnershipHunk!]!
+}
+
+type FileInCommit {
+  file: File
+  stats: Stats
+  action: String
+  hunks: [Hunk]!
+  ownership: [FileOwnership!]
+}
+
+type PaginatedFileInCommit {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [FileInCommit]!
+}
+
+type CommitInFile {
+  commit: Commit
+}
+
+type PaginatedCommitInFile {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [CommitInFile]!
+}
+
+type FileInBranch {
+  file: File
+}
+
+type PaginatedFileInBranch {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [FileInBranch]!
+}
+
+"""
+A paginated response for User objects
+"""
+type PaginatedUser {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [User]!
+}
+
+"""
+A paginated response for Account objects
+"""
+type PaginatedAccount {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Account]!
+}
+
+"""
+A paginated response for Branch objects
+"""
+type PaginatedBranch {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Branch]!
+}
+
+"""
+A paginated response for Build objects
+"""
+type PaginatedBuild {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Build]!
+}
+
+"""
+A paginated response for Commit objects
+"""
+type PaginatedCommit {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Commit]!
+}
+
+"""
+A paginated response for File objects
+"""
+type PaginatedFile {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [File]!
+}
+
+"""
+A paginated response for Issue objects
+"""
+type PaginatedIssue {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Issue]!
+}
+
+"""
+A paginated response for MergeRequest objects
+"""
+type PaginatedmergeRequest {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [mergeRequest]!
+}
+
+"""
+A paginated response for Milestone objects
+"""
+type PaginatedMilestone {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Milestone]!
+}
+
+"""
+A paginated response for Module objects
+"""
+type PaginatedModule {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Module]!
+}
+
+"""
+A paginated response for Note objects
+"""
+type PaginatedNote {
+  count: Int!
+  page: Int!
+  perPage: Int!
+  data: [Note]!
+}

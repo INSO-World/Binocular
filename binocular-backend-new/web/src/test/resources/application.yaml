@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: test,arangodb
+  application:
+    name: binocular-test
+  graphql:
+    http:
+      path: '/graphQl'
+    graphiql:
+      enabled: false
+
+logging:
+  level:
+    com:
+      inso_world:
+        binocular: debug
+    root: warn 

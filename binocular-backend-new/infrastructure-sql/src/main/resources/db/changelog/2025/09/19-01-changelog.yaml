@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1758286436735-1-!h2
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      dbms: "!h2"
+      changes:
+        - renameSequence:
+            oldSequenceName: commit-diffs_seq
+            newSequenceName: commit_diffs_seq
+  - changeSet:
+      id: 1758286436735-1-h2
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      dbms: "h2"
+      changes:
+        - dropSequence:
+            sequenceName: commit-diffs_seq
+        - createSequence:
+            sequenceName: commit_diffs_seq
+            incrementBy: 50
+            startValue: 1
+  - changeSet:
+      id: 1758286436735-2
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - renameTable:
+            oldTableName: commit-diffs
+            newTableName: commit_diffs
+        - addUniqueConstraint:
+            columnNames: source_id, target_id
+            constraintName: uc_b6b8e27ad25ae97cde2d9bc1a
+            tableName: commit_diffs
+

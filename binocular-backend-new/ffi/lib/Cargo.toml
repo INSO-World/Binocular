@@ -1,0 +1,50 @@
+[package]
+name = "gix-binocular"
+edition = "2021"
+
+[workspace.package]
+edition = "2021"
+version = "0.0.1"
+authors = ["Manuel Stöger <manuel.stoeger@inso-world.com>"]
+description = "gix binocular"
+documentation = "gix binocular"
+license = "MIT"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[workspace]
+members = [
+    "crates/diff",
+    "crates/commits",
+    "crates/commits/tests",
+    "crates/blame",
+    "crates/shared",
+]
+
+
+[workspace.dependencies]
+gix = { version = "0.75.0", default-features = true, features = ["blame"] }
+log = "0.4.28"
+env_logger = "0.11.8"
+anyhow = "1.0.100"
+chrono = { version = "0.4.42" }
+thiserror = { version = "2.0.17", default-features = false }
+
+[dependencies]
+uniffi = { version = "0.30", features = ["cli"] }
+gix = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+shared = { path = "./crates/shared" }
+commits = { path = "./crates/commits" }
+binocular-diff = { path = "./crates/diff" }
+binocular-blame = { path = "./crates/blame" }
+
+[build-dependencies]
+uniffi = { version = "0.30.0", features = ["build"] }

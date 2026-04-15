@@ -1,0 +1,11 @@
+binocular:
+  arangodb:
+    database:
+      database: "binocular-1234"
+      host: "localhost"
+      port: 8529
+      user: root
+      password: test
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration

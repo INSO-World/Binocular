@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1758299713-1
+      author: manuel
+      changes:
+        - addColumn:
+            tableName: file_diffs
+            columns:
+              - column:
+                  name: old_file_content
+                  type: TEXT
+              - column:
+                  name: new_file_content
+                  type: TEXT

@@ -1,0 +1,14 @@
+binocular:
+  arangodb:
+    database:
+      host: "localhost"
+      port: 8529
+      user: TODO
+      password: TODO
+      name: "binocular-1234"
+
+spring:
+  # Prevent Spring Boot from trying to configure SQL/JPA when running ArangoDB tests
+  # in IDEs that include all module outputs on classpath
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
