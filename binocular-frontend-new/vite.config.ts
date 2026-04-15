@@ -7,21 +7,22 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
+const backendHost = process.env.BACKEND_URL ?? 'localhost';
 export default defineConfig({
   server: {
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://localhost:48763/',
+        target: `http://${backendHost}:48763/`,
         secure: false,
       },
       '/graphQl': {
-        target: 'http://localhost:48763/',
+        target: `http://${backendHost}:48763/`,
         secure: false,
         changeOrigin: true,
       },
       '/wsapi': {
-        target: 'ws://localhost:48763',
+        target: `ws://${backendHost}:48763`,
         ws: true,
       },
     },
