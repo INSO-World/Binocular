@@ -14,6 +14,7 @@ import Branches from './collections/branches.ts';
 import MergeRequests from './collections/mergeRequests.ts';
 import AccountsIssues from './collections/accounts-issues';
 import CommitsFiles from './collections/commitsFiles';
+import type { MetadataType } from '../../../../types/data/MetadataType.ts';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
@@ -63,10 +64,11 @@ class PouchDb implements DataPlugin {
     _endpoint: string | undefined,
     file: FileConfig | undefined,
     _progressUpdateConfig: ProgressUpdateConfig | undefined,
+    setUploadInfo?: (message: string) => void | undefined,
   ) {
     if (file !== undefined) {
       const startTime = performance.now();
-      const metadata = await this.database.initDB(file, startTime);
+      const metadata = await this.database.initDB(file, startTime, setUploadInfo);
       this.commits = new Commits(this.database);
       this.builds = new Builds(this.database);
       this.notes = new Notes(this.database);
@@ -85,6 +87,10 @@ class PouchDb implements DataPlugin {
 
   public async clearRemains() {
     await this.database.delete();
+  }
+
+  public async export(metadata: MetadataType | undefined) {
+    return this.database.export(metadata);
   }
 }
 

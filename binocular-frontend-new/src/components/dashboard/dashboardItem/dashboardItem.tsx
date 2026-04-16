@@ -22,9 +22,9 @@ import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
-import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import actionsMiddleware from '../../../redux/middleware/actions/actionsMiddleware.ts';
+import { refreshFileList } from '../../tabs/fileTree/utils/fileListUtilities';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
-import { loadFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -47,12 +47,16 @@ const DashboardItem = memo(function DashboardItem(props: {
   const sprintList = useSelector((state: RootState) => state.sprints.sprintList);
   const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
 
-  const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(false);
+  const [ignoreGlobalParameters, setIgnoreGlobalParameters] = useState(props.item.ignoreGlobalParameters ?? false);
   const [doAutomaticUpdate, setDoAutomaticUpdate] = useState(false);
   const parametersGeneralGlobal = useSelector((state: RootState) => state.parameters.parametersGeneral);
-  const [parametersGeneralLocal, setParametersGeneralLocal] = useState(parametersInitialState.parametersGeneral);
+  const [parametersGeneralLocal, setParametersGeneralLocal] = useState(
+    props.item.localParametersGeneral ?? parametersInitialState.parametersGeneral,
+  );
   const parametersDateRangeGlobal = useSelector((state: RootState) => state.parameters.parametersDateRange);
-  const [parametersDateRangeLocal, setParametersDateRangeLocal] = useState(parametersInitialState.parametersDateRange);
+  const [parametersDateRangeLocal, setParametersDateRangeLocal] = useState(
+    props.item.localParametersDateRange ?? parametersInitialState.parametersDateRange,
+  );
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +79,12 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   const [dataPlugin, setDataPlugin] = useState<DataPlugin | undefined>(undefined);
 
+  /**
+   * Redux Store will be created for individual item once a data plugin is selected.
+   * To run the correct middleware it has to be reconfigured everytime the dataplugin changes.
+   */
+  const [store, setStore] = useState<Store | undefined>(undefined);
+
   useEffect(() => {
     if (selectedDataPlugin && selectedDataPlugin.id !== undefined) {
       if (selectedDataPlugin.parameters.progressUpdate?.useAutomaticUpdate) {
@@ -83,8 +93,17 @@ const DashboardItem = memo(function DashboardItem(props: {
       DataPluginStorage.getDataPlugin(selectedDataPlugin)
         .then((newDataPlugin) => {
           if (newDataPlugin) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+            const sagaMiddleware = createSagaMiddleware();
+            setStore(
+              configureStore({
+                reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
+                middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
+                // preserve state if store already existed
+                preloadedState: store ? store.getState() : undefined,
+              }),
+            );
+            sagaMiddleware.run(() => plugin.saga(newDataPlugin, plugin.name, plugin.dataConnectionName));
+
             setDataPlugin(newDataPlugin);
           }
         })
@@ -105,52 +124,60 @@ const DashboardItem = memo(function DashboardItem(props: {
     if (props.item.dataPluginId !== undefined) {
       if (fileLists[props.item.dataPluginId] == undefined) {
         const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
-        loadFileList(dataPlugin, dispatch);
+        refreshFileList(dataPlugin, dispatch);
       }
       if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)) {
         setFiles(fileLists[props.item.dataPluginId]);
       }
     }
   }, [availableDataPlugins, fileLists, props.item.dataPluginId]);
-  const [settings, setSettings] = useState(plugin.defaultSettings);
+  const [settings, setSettingsState] = useState(props.item.settings ?? plugin.defaultSettings);
 
-  /**
-   * Create Redux Store from Reducer for individual Item and run saga
-   */
-  let store: Store | undefined;
-  if (dataPlugin) {
-    const sagaMiddleware = createSagaMiddleware();
-    store = configureStore({
-      reducer: combineReducers({ plugin: plugin.reducer, actions: actionsReducer }),
-      middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(sagaMiddleware, logger, actionsMiddleware()),
-    });
-    sagaMiddleware.run(() => plugin.saga(dataPlugin, plugin.name, plugin.dataConnectionName));
-  } else {
-    store = undefined;
-  }
+  // Persist settings changes to the dashboard store (and localStorage)
+  const setSettings = (newSettings: typeof settings) => {
+    setSettingsState(newSettings);
+    const updatedItem = _.clone(props.item);
+    updatedItem.settings = newSettings as DashboardItemType['settings'];
+    dispatch(updateDashboardItem(updatedItem));
+  };
 
-  globalStore.subscribe(() => {
-    if (store !== undefined) {
-      switch (globalStore.getState().actions.lastAction) {
-        case 'REFRESH_PLUGIN':
-          if (selectedDataPlugin && doAutomaticUpdate) {
-            if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
-              console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
-              store.dispatch({ type: 'REFRESH' });
+  // Persist local parameter changes to the dashboard store
+  useEffect(() => {
+    const updatedItem = _.clone(props.item);
+    updatedItem.ignoreGlobalParameters = ignoreGlobalParameters;
+    updatedItem.localParametersGeneral = parametersGeneralLocal;
+    updatedItem.localParametersDateRange = parametersDateRangeLocal;
+    dispatch(updateDashboardItem(updatedItem));
+  }, [ignoreGlobalParameters, parametersGeneralLocal, parametersDateRangeLocal]);
+
+  // Ensure only one listener is active at a time
+  useEffect(() => {
+    const unsubscribe = globalStore.subscribe(() => {
+      if (store !== undefined) {
+        switch (globalStore.getState().actions.lastAction) {
+          case 'REFRESH_PLUGIN':
+            if (selectedDataPlugin && doAutomaticUpdate) {
+              if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
+                console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
+                store.dispatch({ type: 'REFRESH' });
+              }
             }
-          }
-          break;
-        case 'RESIZE_DASHBOARD_ITEM':
-          if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+            break;
+          case 'RESIZE_DASHBOARD_ITEM':
+            if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+              store.dispatch({ type: 'RESIZE' });
+            }
+            break;
+          case 'RESIZE':
             store.dispatch({ type: 'RESIZE' });
-          }
-          break;
-        case 'RESIZE':
-          store.dispatch({ type: 'RESIZE' });
-          break;
+            break;
+        }
       }
-    }
-  });
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [store]);
 
   // WINDOW SHIFT MODE
   function keyDown(e: KeyboardEvent) {
@@ -211,7 +238,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                     event.stopPropagation();
                     setPoppedOut(false);
                   }}>
-                  <div>Dispatch Popout</div>
+                  <div>Close Popout</div>
                 </button>
               </div>
               {dataPlugin && store ? (
@@ -235,6 +262,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                         dataConverter={plugin.dataConverter}
                         chartContainerRef={chartContainerRef}
                         store={store}
+                        dependencies={plugin.dependencies}
                         dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
                     ) : (
                       <div>No Chart Component Found!</div>
@@ -252,7 +280,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                   <div>This Visualization is too complex to display as part of the Dashboard.</div>
                   <div> Please open it in a new window to view!</div>
                   <button
-                    className={'btn btn-accent'}
+                    className={'btn btn-primary'}
                     onClick={(event) => {
                       event.stopPropagation();
                       dispatch(increasePopupCount());
@@ -279,6 +307,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                       dataConverter={plugin.dataConverter}
                       chartContainerRef={chartContainerRef}
                       store={store}
+                      dependencies={plugin.dependencies}
                       dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
                   ) : (
                     <div>No Chart Component Found!</div>
@@ -433,7 +462,11 @@ const DashboardItem = memo(function DashboardItem(props: {
                 }}
                 item={props.item}
                 settingsComponent={
-                  <plugin.settingsComponent key={plugin.name} settings={settings} setSettings={setSettings}></plugin.settingsComponent>
+                  <plugin.settingsComponent
+                    key={plugin.name}
+                    settings={settings}
+                    setSettings={setSettings}
+                    store={store}></plugin.settingsComponent>
                 }
                 onClickDelete={() => props.deleteItem(props.item.id)}
                 onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}

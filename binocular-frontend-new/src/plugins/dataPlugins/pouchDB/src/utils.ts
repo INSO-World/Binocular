@@ -234,6 +234,11 @@ function preprocessCommit(
   commitFiles: JSONObject[],
   files: JSONObject[],
 ) {
+  //add messageHeader from message (first line of the commit message) similar to Bino BE
+  if (commit.message && !commit.messageHeader) {
+    commit.messageHeader = (commit.message as string).split('\n')[0];
+  }
+
   //add parents: first get the ids of the parents using the commits-commits connection, then find the actual commits to get the hashes
   commit.parents = binarySearchArray(commitCommit, commit._id, 'from').map((r) => {
     const parent = binarySearch(allCommits, r.to, '_id');

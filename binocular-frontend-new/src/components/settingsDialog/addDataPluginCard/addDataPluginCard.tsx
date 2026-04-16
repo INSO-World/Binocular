@@ -24,6 +24,8 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
   const progressUpdateUseRef = createRef<HTMLInputElement>();
   const progressUpdateEndpointRef = createRef<HTMLInputElement>();
 
+  const [uploadInfo, setUploadInfo] = useState<string>('');
+
   const [fileName, setFileName] = useState<string | undefined>(undefined);
   const [metadata, setMetadata] = useState<MetadataType | undefined>(undefined);
 
@@ -104,6 +106,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                           undefined,
                           { name: fileNameInput.value.replace(' ', '_'), file: file, dbObjects: undefined },
                           undefined,
+                          setUploadInfo,
                         )
                         .then((meta) => {
                           setFileName(fileNameInput.value.replace(' ', '_'));
@@ -131,7 +134,7 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
               <div className="label">
                 <span className="font-bold">Use Progress Update:</span>
               </div>
-              <input type="checkbox" className="toggle" ref={progressUpdateUseRef} />
+              <input type="checkbox" className="toggle toggle-primary" ref={progressUpdateUseRef} />
             </label>
             <label className="form-control w-full max-w-xs">
               <div className="label">
@@ -152,6 +155,13 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
           <div>
             <span>Uploading Database</span>
             <span className="loading loading-spinner loading-xs"></span>
+            <br />
+            <progress
+              className="progress progress-primary w-56"
+              value={uploadInfo.split('/')[0]}
+              max={uploadInfo.includes('/') ? parseInt(uploadInfo.split('/')[1]) : 0}></progress>
+            <br />
+            <span>{uploadInfo}</span>
           </div>
         )}
         {props.dataPlugin.requirements.file && state === State.configured && (

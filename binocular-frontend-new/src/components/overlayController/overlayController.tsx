@@ -5,11 +5,10 @@ import NotificationController from '../notificationController/notificationContro
 import EditAuthorDialog from '../tabs/authors/editAuthorDialog/editAuthorDialog.tsx';
 import ContextMenu from '../contextMenu/contextMenu.tsx';
 import LoadingLocalDatabaseOverlay from './overlays/loadingLocalDatabaseOverlay/loadingLocalDatabaseOverlay.tsx';
-import FileTreeElementInfoDialog from '../tabs/fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog.tsx';
 import SetupDialog from '../setupDialog/setupDialog.tsx';
 import VisualizationOverview from '../tabs/visualizations/visualizationSelector/visualizationOverview/visualizationOverview.tsx';
-import InfoTooltip from '../infoTooltip/infoTooltip';
 import LayoutOverview from '../tabs/layouts/layoutOverview/layoutOverview';
+import FileTreeElementInfoDialog from '../fileTree/fileTreeElementInfoDialog/fileTreeElementInfoDialog';
 
 function OverlayController() {
   return (
@@ -25,7 +24,6 @@ function OverlayController() {
       <LayoutOverview></LayoutOverview>
       <LoadingLocalDatabaseOverlay></LoadingLocalDatabaseOverlay>
       <ContextMenu></ContextMenu>
-      <InfoTooltip></InfoTooltip>
     </>
   );
 }

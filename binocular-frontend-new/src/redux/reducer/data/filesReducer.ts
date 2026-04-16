@@ -1,5 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
+import { writeFileListToStorage } from '../../../components/tabs/fileTree/utils/fileListUtilities';
+import { invertFileTreeSelection, updateFileTreeRecursive } from '../../../components/fileTree/utils/fileTreeUtilities';
 
 export interface FilesInitialState {
   fileTrees: { [id: number]: FileTreeElementType };
@@ -16,9 +18,6 @@ const initialState: FilesInitialState = {
   dataPluginId: undefined,
   selectedFileTreeElement: undefined,
 };
-
-const opfsRoot = await navigator.storage.getDirectory();
-const fileHandle = await opfsRoot.getFileHandle('files', { create: true });
 
 export const filesSlice = createSlice({
   name: 'files',
@@ -38,12 +37,12 @@ export const filesSlice = createSlice({
       state.fileLists[action.payload.dataPluginId] = action.payload.files;
 
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     setFilesDataPluginId: (state, action: PayloadAction<number>) => {
       state.dataPluginId = action.payload;
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     updateFileListElement: (state, action: PayloadAction<FileTreeElementType & { update?: boolean }>) => {
       const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], action.payload);
@@ -55,7 +54,7 @@ export const filesSlice = createSlice({
           return f;
         });
         const newState = JSON.stringify(state);
-        fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+        writeFileListToStorage(newState);
       }
     },
     showFileTreeElementInfo: (state, action: PayloadAction<FileTreeElementType>) => {
@@ -69,7 +68,7 @@ export const filesSlice = createSlice({
       });
       updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], true);
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     uncheckAllFiles: (state) => {
       updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], false);
@@ -78,7 +77,7 @@ export const filesSlice = createSlice({
         return f;
       });
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
     },
     switchAllFileSelection: (state) => {
       state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
@@ -87,10 +86,17 @@ export const filesSlice = createSlice({
       });
       invertFileTreeSelection(state.fileTrees[state.dataPluginId!]);
       const newState = JSON.stringify(state);
-      fileHandle.createWritable().then((access) => access.write(newState).then(() => access.close()));
+      writeFileListToStorage(newState);
+    },
+    removeFileList: (state, action: PayloadAction<number>) => {
+      delete state.fileLists[action.payload];
+      delete state.fileTrees[action.payload];
+      delete state.fileCounts[action.payload];
+      const newState = JSON.stringify(state);
+      writeFileListToStorage(newState);
     },
     clearFileStorage: () => {
-      opfsRoot.removeEntry('files');
+      clearFileStorage();
     },
   },
 });
@@ -100,6 +106,7 @@ export const {
   setFileList,
   updateFileListElement,
   showFileTreeElementInfo,
+  removeFileList,
   clearFileStorage,
   loadState,
   checkAllFiles,
@@ -107,37 +114,3 @@ export const {
   switchAllFileSelection,
 } = filesSlice.actions;
 export default filesSlice.reducer;
-
-function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
-  const updatedPaths: string[] = [];
-  if (fileTree.children) {
-    fileTree.children = fileTree.children.map((f: FileTreeElementType) => {
-      let elementChecked = checked;
-      if (f.id === element.id) {
-        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
-          updatedPaths.push(f.element.path);
-        }
-        elementChecked = element.checked;
-        f.foldedOut = element.foldedOut;
-      }
-      if (elementChecked !== undefined) {
-        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
-          updatedPaths.push(f.element.path);
-        }
-        f.checked = elementChecked;
-      }
-      updatedPaths.push(...updateFileTreeRecursive(f, element, elementChecked));
-      return f;
-    });
-  }
-  return updatedPaths;
-}
-
-function invertFileTreeSelection(fileTree: FileTreeElementType) {
-  if (fileTree.children) {
-    fileTree.children.map((f: FileTreeElementType) => {
-      f.checked = !f.checked;
-      invertFileTreeSelection(f);
-    });
-  }
-}

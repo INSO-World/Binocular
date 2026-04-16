@@ -27,7 +27,7 @@ function VisualizationSelector(props: { orientation?: string }) {
               );
             })}
         </div>
-        <button className="btn btn-square btn-accent btn-sm" onClick={(e) => showVisualizationOverview(e.clientX, e.clientY)}>
+        <button className="btn btn-square btn-primary btn-sm" onClick={(e) => showVisualizationOverview(e.clientX, e.clientY)}>
           <img src={VisualizationsIcon} />
         </button>
       </div>

@@ -39,7 +39,7 @@ function VisualizationFilter(props: {
               <span className="label-text">Github data:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.github}
                 key={'github' + props.filterOptions.github}
                 onChange={(event) => {
@@ -58,7 +58,7 @@ function VisualizationFilter(props: {
               <span className="label-text">GitLab data:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.gitlab}
                 key={'gitlab' + props.filterOptions.gitlab}
                 onChange={(event) => {
@@ -86,7 +86,7 @@ function VisualizationFilter(props: {
               <span className="label-text">Binocular Backend:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.binocularBackend}
                 key={'binocularBackend' + props.filterOptions.binocularBackend}
                 onChange={(event) => {
@@ -105,7 +105,7 @@ function VisualizationFilter(props: {
               <span className="label-text">PouchDB:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.pouchDB}
                 key={'pouchDB' + props.filterOptions.pouchDB}
                 onChange={(event) => {
@@ -124,7 +124,7 @@ function VisualizationFilter(props: {
               <span className="label-text">Mock Data:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.mockData}
                 key={'mockData' + props.filterOptions.mockData}
                 onChange={(event) => {
@@ -143,7 +143,7 @@ function VisualizationFilter(props: {
               <span className="label-text">Github API:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.githubAPI}
                 key={'githubAPI' + props.filterOptions.githubAPI}
                 onChange={(event) => {
@@ -177,8 +177,8 @@ function VisualizationFilter(props: {
       pouchDB: defaultDataPlugin.name.includes('PouchDb'),
       // a way to automatically detect data type is not implemented yet
       // TODO: implement feature once implemented
-      github: false,
-      gitlab: false,
+      github: defaultDataPlugin.metadata?.type ? defaultDataPlugin.metadata.type == 'github' : false,
+      gitlab: defaultDataPlugin.metadata?.type ? defaultDataPlugin.metadata.type == 'gitlab' : false,
     });
   }
 }

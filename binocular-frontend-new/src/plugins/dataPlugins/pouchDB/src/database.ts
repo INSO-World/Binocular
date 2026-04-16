@@ -4,7 +4,7 @@ import PouchDBAdapterMemory from 'pouchdb-adapter-memory';
 import JSZip from 'jszip';
 
 import { WorkerPouchDB } from './worker/WorkerPouchDB';
-import { decompressJson } from '../../../../../../utils/json-utils';
+import { decompressJson } from '../../../../utils/json-utils';
 import type { FileConfig, JSONObject } from '../../../interfaces/dataPluginInterfaces/dataPluginFiles';
 import type { MetadataType } from '../../../../types/data/MetadataType';
 
@@ -17,7 +17,11 @@ export default class Database {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public edgeStore: any;
 
-  async initDB(file: FileConfig, startTime?: number): Promise<MetadataType | undefined> {
+  async initDB(
+    file: FileConfig,
+    startTime?: number,
+    setUploadInfo?: (message: string) => void | undefined,
+  ): Promise<MetadataType | undefined> {
     if (!file.name) return undefined;
 
     const initialized = await this.createDB(file.name);
@@ -25,11 +29,11 @@ export default class Database {
     if (!initialized) return undefined;
 
     if (file.file) {
-      return this.importFromZip(file.file, startTime);
+      return this.importFromZip(file.file, startTime, setUploadInfo);
     }
 
     if (file.dbObjects) {
-      return this.importFromObjects(file.dbObjects, startTime);
+      return this.importFromObjects(file.dbObjects, startTime, setUploadInfo);
     }
 
     return undefined;
@@ -86,7 +90,11 @@ export default class Database {
   }
 
   // both import functions are not running in parallel to avoid overloading pouchDB(testing necessary before changing to parallel)
-  async importFromZip(file: Blob, startTime?: number): Promise<MetadataType | undefined> {
+  async importFromZip(
+    file: Blob,
+    startTime?: number,
+    setUploadInfo?: (message: string) => void | undefined,
+  ): Promise<MetadataType | undefined> {
     const zip = await new JSZip().loadAsync(file);
 
     // Read metadata first
@@ -110,6 +118,7 @@ export default class Database {
       const json = JSON.parse(raw);
 
       const name = fileEntry.name.split('/')[1].replace('.json', '');
+      if (setUploadInfo) setUploadInfo(`${imported}/${totalFiles} importing ${name}`);
 
       if (name.includes('-')) {
         await this.importEdge(name, json);
@@ -124,7 +133,11 @@ export default class Database {
     return metadata;
   }
 
-  async importFromObjects(dbObjects: Record<string, JSONObject[]>, startTime?: number): Promise<undefined> {
+  async importFromObjects(
+    dbObjects: Record<string, JSONObject[]>,
+    startTime?: number,
+    setUploadInfo?: (message: string) => void | undefined,
+  ): Promise<undefined> {
     const keys = Object.keys(dbObjects);
     let imported = 0;
 
@@ -136,12 +149,52 @@ export default class Database {
           await this.importDocument(name, dbObjects[name]);
         }
 
+        if (setUploadInfo) setUploadInfo(`${imported}/${keys.length} ${name} imported`);
         imported++;
         const end = performance.now();
         console.log(`${imported}/${keys.length} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
 
         if (imported >= keys.length) resolve(undefined);
       });
+    });
+  }
+
+  async export(metadata: MetadataType | undefined) {
+    const edges = await this.edgeStore.export();
+    const docs = await this.documentStore.export();
+    const zip = await new JSZip();
+    const db_export = zip.folder('db_export');
+    db_export!.file('metadata.json', metadata ? JSON.stringify(metadata) : '');
+    let data: object[] = [];
+    let collectionName = docs.rows[0].id.split('/')[0];
+    docs.rows.forEach((row: { id: string; doc: JSONObject }) => {
+      if (row.id.split('/')[0] == collectionName) data.push(row.doc);
+      else {
+        db_export!.file(collectionName + '.json', JSON.stringify(data));
+        data = [];
+        collectionName = row.id.split('/')[0];
+        data.push(row.doc);
+      }
+    });
+    edges.rows.forEach((row: { id: string; doc: JSONObject }) => {
+      if (row.id.startsWith(collectionName)) data.push(row.doc);
+      else {
+        db_export!.file(collectionName + '.json', JSON.stringify(data));
+        data = [];
+        collectionName = row.id.split('/')[0];
+        data.push(row.doc);
+      }
+    });
+    db_export!.file(collectionName + '.json', JSON.stringify(data));
+    zip.generateAsync({ type: 'blob' }).then((file) => {
+      const a = document.createElement('a');
+      document.body.appendChild(a);
+      a.style = 'display: none';
+      const url = window.URL.createObjectURL(file);
+      a.href = url;
+      a.download = 'export.zip';
+      a.click();
+      window.URL.revokeObjectURL(url);
     });
   }
 }

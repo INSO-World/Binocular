@@ -234,7 +234,7 @@ function EditAuthorDialog() {
 
         <div className={'modal-action'}>
           <button
-            className={'btn btn-sm btn-success text-base-100 mr-4'}
+            className={'btn btn-sm btn-primary mr-4'}
             onClick={() => {
               if (authorToEdit) {
                 dispatch(
@@ -260,7 +260,7 @@ function EditAuthorDialog() {
             Save
           </button>
           <form method={'dialog'}>
-            <button className={'btn btn-sm btn-accent'}>Close</button>
+            <button className={'btn btn-sm btn-ghost'}>Close</button>
           </form>
         </div>
       </div>

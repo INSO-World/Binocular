@@ -30,6 +30,7 @@ export default function createVisualizationPlugin<SettingsType extends DefaultSe
       popoutOnly: false,
       export: true,
     },
+    dependencies: component.dependencies,
     images: {
       thumbnail: component.images.thumbnail,
     },

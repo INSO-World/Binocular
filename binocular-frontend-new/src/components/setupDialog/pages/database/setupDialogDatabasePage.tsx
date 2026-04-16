@@ -17,6 +17,7 @@ function SetupDialogDatabasePage() {
   const [defaultBackendAvaliable, setDefaultBackendAvaliable] = useState(false);
 
   const localDatabaseLoadingState: LocalDatabaseLoadingState = useSelector((state: RootState) => state.settings.localDatabaseLoadingState);
+  const localDatabaseLoadingMessage: string = useSelector((state: RootState) => state.settings.localDatabaseLoadingMessage);
 
   function searchDefaultBackend() {
     void fetch('/graphQl').then((resp) => {
@@ -44,6 +45,13 @@ function SetupDialogDatabasePage() {
           <h2>Currently Loading Local Database</h2>
           <div>
             <span className="loading loading-spinner loading-lg text-accent"></span>
+            <br />
+            <progress
+              className="progress progress-primary w-56"
+              value={localDatabaseLoadingMessage.split('/')[0]}
+              max={localDatabaseLoadingMessage.includes('/') ? parseInt(localDatabaseLoadingMessage.split('/')[1]) : 0}></progress>
+            <br />
+            <span>{localDatabaseLoadingMessage}</span>
           </div>
         </>
       )}
@@ -64,7 +72,7 @@ function SetupDialogDatabasePage() {
                 <span>It seems like you are using the default binocular backend.</span>
                 <div>
                   <button
-                    className="btn btn-sm btn-accent"
+                    className="btn btn-sm btn-primary"
                     onClick={() => {
                       dispatch(
                         addDataPlugin({
@@ -97,7 +105,7 @@ function SetupDialogDatabasePage() {
                   Alternatively you can connect to a different data connection from the list below.
                 </span>
                 <div>
-                  <button className="btn btn-sm btn-accent" onClick={() => searchDefaultBackend()}>
+                  <button className="btn btn-sm btn-primary" onClick={() => searchDefaultBackend()}>
                     Retry
                   </button>
                 </div>

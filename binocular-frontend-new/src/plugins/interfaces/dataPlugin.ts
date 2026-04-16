@@ -27,7 +27,7 @@ export interface DataPlugin {
   accounts: DataPluginAccounts;
   files: DataPluginFiles;
   accountsIssues: DataPluginAccountsIssues;
-  branches?: DataPluginBranches;
+  branches: DataPluginBranches;
   capabilities: string[];
   experimental: boolean;
   requirements: { apiKey: boolean; endpoint: boolean; file: boolean; progressUpdate: boolean };
@@ -36,6 +36,8 @@ export interface DataPlugin {
     endpoint: string | undefined,
     fileConfig: FileConfig | undefined,
     progressUpdateConfig: ProgressUpdateConfig | undefined,
+    setUploadInfo: (message: string) => void | undefined,
   ) => Promise<MetadataType | undefined>;
   clearRemains: () => Promise<void>;
+  export?: (metadata: MetadataType | undefined) => void;
 }
