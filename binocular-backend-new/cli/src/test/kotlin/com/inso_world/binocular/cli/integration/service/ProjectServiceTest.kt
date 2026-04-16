@@ -8,7 +8,6 @@ import com.inso_world.binocular.github.dto.issue.ItsAssigneeWrapper
 import com.inso_world.binocular.github.dto.issue.ItsGitHubIssue
 import com.inso_world.binocular.github.dto.issue.ItsUser
 import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Project
 import org.apache.commons.collections4.CollectionUtils.emptyCollection
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
