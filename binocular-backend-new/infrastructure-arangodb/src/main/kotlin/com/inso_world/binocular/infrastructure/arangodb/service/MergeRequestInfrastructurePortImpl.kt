@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IMergeRequestAccountConnectionDao
@@ -39,40 +40,58 @@ internal class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePo
     @Autowired private lateinit var mergeRequestNoteConnectionRepository: IMergeRequestNoteConnectionDao
     var logger: Logger = LoggerFactory.getLogger(MergeRequestInfrastructurePortImpl::class.java)
 
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<MergeRequest> {
         logger.trace("Getting all merge requests with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return mergeRequestDao.findAll(pageable)
     }
 
-    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<MergeRequest> {
-        logger.trace("Getting merge requests with pageable: page={}, size={}, since={}, until={}", pageable.pageNumber, pageable.pageSize, since, until)
+    @MappingSession
+    override fun findAll(
+        pageable: Pageable,
+        since: Long?,
+        until: Long?,
+    ): Page<MergeRequest> {
+        logger.trace(
+            "Getting merge requests with pageable: page={}, size={}, since={}, until={}",
+            pageable.pageNumber,
+            pageable.pageSize,
+            since,
+            until,
+        )
         return mergeRequestDao.findAll(pageable, since, until)
     }
 
+    @MappingSession
     override fun findById(id: String): MergeRequest? {
         logger.trace("Getting merge request by id: $id")
         return mergeRequestDao.findById(id)
     }
 
+    @MappingSession
     override fun findByIid(iid: MergeRequest.Id): @Valid MergeRequest? {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findAccountsByMergeRequestId(mergeRequestId: String): List<Account> {
         logger.trace("Getting accounts for merge request: $mergeRequestId")
         return mergeRequestAccountConnectionRepository.findAccountsByMergeRequest(mergeRequestId)
     }
 
+    @MappingSession
     override fun findMilestonesByMergeRequestId(mergeRequestId: String): List<Milestone> {
         logger.trace("Getting milestones for merge request: $mergeRequestId")
         return mergeRequestMilestoneConnectionRepository.findMilestonesByMergeRequest(mergeRequestId)
     }
 
+    @MappingSession
     override fun findNotesByMergeRequestId(mergeRequestId: String): List<Note> {
         logger.trace("Getting notes for merge request: $mergeRequestId")
         return mergeRequestNoteConnectionRepository.findNotesByMergeRequest(mergeRequestId)
     }
 
+    @MappingSession
     override fun findAll(): Iterable<MergeRequest> = this.mergeRequestDao.findAll()
 
     override fun create(entity: MergeRequest): MergeRequest = this.mergeRequestDao.save(entity)

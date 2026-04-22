@@ -5,23 +5,17 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 
-
 // Simple concrete Kotlin subclass for normal cases
 private class KObj(
     iid: Int,
-    override val uniqueKey: String
+    override val uniqueKey: String,
 ) : AbstractDomainObject<Int, String>(iid) {
-    override fun hashCode(): Int {
-        return super.hashCode()
-    }
+    override fun hashCode(): Int = super.hashCode()
 
-    override fun equals(other: Any?): Boolean {
-        return super.equals(other)
-    }
+    override fun equals(other: Any?): Boolean = super.equals(other)
 }
 
 internal class AbstractDomainObjectEqualsTest {
-
     @Test
     fun `equals false when same class & same iid but different uniqueKey (covers uniqueKey branch)`() {
         val a = KObj(iid = 1, uniqueKey = "A")
@@ -30,7 +24,7 @@ internal class AbstractDomainObjectEqualsTest {
         // Hits: javaClass check passes -> cast executes -> iid equal -> uniqueKey differs -> return false
         assertAll(
             { assertFalse(a == b) },
-            { assertFalse(b == a) }
+            { assertFalse(b == a) },
         )
     }
 
@@ -42,7 +36,7 @@ internal class AbstractDomainObjectEqualsTest {
         // Hits: javaClass check passes -> cast executes -> iid equal -> uniqueKey equal -> return true
         assertAll(
             { assertTrue(a == b) },
-            { assertTrue(b == a) }
+            { assertTrue(b == a) },
         )
     }
 
@@ -54,7 +48,7 @@ internal class AbstractDomainObjectEqualsTest {
         // Hits: javaClass check passes -> cast executes -> iid differs -> return false (doesn't reach uniqueKey)
         assertAll(
             { assertFalse(a == b) },
-            { assertFalse(b == a) }
+            { assertFalse(b == a) },
         )
     }
 
@@ -69,15 +63,14 @@ internal class AbstractDomainObjectEqualsTest {
 
     @Test
     fun `equals triggers Kotlin null-assertion on other_uniqueKey (kills removed Intrinsics_checkNotNull)`() {
-        val a = NullKeyAdo(1, "A")     // non-null uniqueKey
-        val b = NullKeyAdo(1, null)    // null uniqueKey to trip Kotlin callsite null-check
+        val a = NullKeyAdo(1, "A") // non-null uniqueKey
+        val b = NullKeyAdo(1, null) // null uniqueKey to trip Kotlin callsite null-check
 
         // Path: same concrete class -> cast executes -> iid equal -> accessing other.uniqueKey
         // Kotlin inserts Intrinsics.checkNotNull on the property read; expect NPE.
         assertAll(
             { assertFalse(a == b) },
-            { assertFalse(b == a) }
+            { assertFalse(b == a) },
         )
     }
 }
-

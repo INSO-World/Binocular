@@ -25,7 +25,6 @@ import java.util.Date
  */
 @Component
 internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
-
     @Autowired
     private lateinit var ctx: MappingContext
 
@@ -59,7 +58,8 @@ internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
         return Mention(
             commit = entity.commit,
             createdAt =
-                entity.createdAt?.toInstant()
+                entity.createdAt
+                    ?.toInstant()
                     ?.atZone(ZoneOffset.UTC)
                     ?.toLocalDateTime(),
             closes = entity.closes

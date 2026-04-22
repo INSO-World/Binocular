@@ -27,9 +27,10 @@ internal class ProjectMapperTest : BaseMapperTest() {
 
     @Test
     fun `toEntity maps domain object to entity, without repository`() {
-        val domain = Project(
-            name = "test-project",
-        ).apply { description = "my super long description" }
+        val domain =
+            Project(
+                name = "test-project",
+            ).apply { description = "my super long description" }
 
         val entity = projectMapper.toEntity(domain)
 

@@ -35,7 +35,6 @@ internal class NoteMapper
         @Lazy private val issueMapper: IssueMapper,
         @Lazy private val mergeRequestMapper: MergeRequestMapper,
     ) : EntityMapper<Note, NoteEntity> {
-
         @Autowired
         private lateinit var ctx: MappingContext
 

@@ -29,7 +29,6 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         return entity
     }
 
-
     override fun toDomain(entity: ProjectEntity): Project {
         ctx.findDomain<Project, ProjectEntity>(entity)?.let { return it }
 
@@ -45,7 +44,10 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         return domain
     }
 
-    fun refreshDomain(target: Project, entity: ProjectEntity) {
+    fun refreshDomain(
+        target: Project,
+        entity: ProjectEntity,
+    ) {
         target.id = entity.id?.toString()
     }
 }

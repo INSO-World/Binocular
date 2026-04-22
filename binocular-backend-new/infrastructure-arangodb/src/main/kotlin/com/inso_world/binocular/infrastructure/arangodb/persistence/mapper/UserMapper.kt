@@ -57,11 +57,12 @@ internal class UserMapper : EntityMapper<User, UserEntity> {
     override fun toEntity(domain: User): UserEntity {
         ctx.findEntity<User.Key, User, UserEntity>(domain)?.let { return it }
 
-        val owner = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-            ?: throw IllegalStateException(
-                "RepositoryEntity must be mapped before UserEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity()."
-            )
+        val owner =
+            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+                ?: throw IllegalStateException(
+                    "RepositoryEntity must be mapped before UserEntity. " +
+                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
+                )
 
         val entity = domain.toEntity(owner)
         ctx.remember(domain, entity)
@@ -85,11 +86,12 @@ internal class UserMapper : EntityMapper<User, UserEntity> {
     override fun toDomain(entity: UserEntity): User {
         ctx.findDomain<User, UserEntity>(entity)?.let { return it }
 
-        val owner = ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before User. " +
-                        "Ensure Repository is in MappingContext before calling toDomain()."
-            )
+        val owner =
+            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
+                ?: throw IllegalStateException(
+                    "Repository must be mapped before User. " +
+                        "Ensure Repository is in MappingContext before calling toDomain().",
+                )
 
         val domain = entity.toDomain(owner)
         setField(
@@ -111,7 +113,10 @@ internal class UserMapper : EntityMapper<User, UserEntity> {
      * @param entity The UserEntity with updated data
      * @return The refreshed User domain object
      */
-    fun refreshDomain(target: User, entity: UserEntity): User {
+    fun refreshDomain(
+        target: User,
+        entity: UserEntity,
+    ): User {
         if (target.id.equals(entity.id)) {
             return target
         }

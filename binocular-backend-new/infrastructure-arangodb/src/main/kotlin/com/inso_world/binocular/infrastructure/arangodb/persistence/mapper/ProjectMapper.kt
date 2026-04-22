@@ -72,7 +72,7 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Project.Id(entity.iid),
         )
 
         ctx.remember(domain, entity)
@@ -88,7 +88,10 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
      * @param target The Project domain object to refresh
      * @param entity The ProjectEntity with updated data
      */
-    fun refreshDomain(target: Project, entity: ProjectEntity) {
+    fun refreshDomain(
+        target: Project,
+        entity: ProjectEntity,
+    ) {
         target.id = entity.id
     }
 }

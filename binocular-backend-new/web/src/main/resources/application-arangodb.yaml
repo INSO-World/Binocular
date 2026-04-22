@@ -1,9 +1,10 @@
 binocular:
   arangodb:
+    migration:
+      default-project-name: Binocular
     database:
       name: "binocular-repo"
       host: "localhost"
       port: 8529
       user: TODO
       password: TODO
-

@@ -11,7 +11,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
 import org.springframework.core.io.ClassPathResource
 import kotlin.io.path.Path
 
-
 internal data class RepositoryConfig(
     val repo: Repository,
     val startCommit: Commit,
@@ -30,10 +29,11 @@ internal fun setupRepoConfig(
         Project(
             name = projectName,
         )
-    val repo = run {
-        val p = Path(path)
-        return@run indexer.findRepo(p, project)
-    }
+    val repo =
+        run {
+            val p = Path(path)
+            return@run indexer.findRepo(p, project)
+        }
     val (branch, commits) = indexer.traverseBranch(repo, branchName)
     val cmt = indexer.findCommit(repo, startSha ?: "HEAD")
     return RepositoryConfig(

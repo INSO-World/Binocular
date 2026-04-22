@@ -9,12 +9,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 internal class ProjectValidationTest : ValidationTest() {
-
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `should fail when localPath is blank`(
-        name: String,
-    ) {
+    fun `should fail when localPath is blank`(name: String) {
         // Given
         val project = Project(name = "test-project")
         // change field via reflection, otherwise constructor check fails
@@ -30,5 +27,4 @@ internal class ProjectValidationTest : ValidationTest() {
         assertThat(violation).isInstanceOf(ConstraintViolation::class.java)
         assertThat(violation.propertyPath.toString()).isEqualTo("name")
     }
-
 }
