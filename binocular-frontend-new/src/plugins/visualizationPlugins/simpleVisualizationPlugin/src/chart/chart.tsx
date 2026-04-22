@@ -1,11 +1,10 @@
 import { StackedAreaChart, type ChartData, type Palette } from '../../../../../components/stackedAreaChart/StackedAreaChart.tsx';
-import { ColumnChart, type ColumnChartData } from '../../../../../components/columnChart/columnChart.tsx';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataState, getDataSlice } from '../reducer';
 import type { DefaultSettings } from '../settings/settings.tsx';
 import { handlePopoutResizing } from '../../../../utils/resizing.ts';
-import type { VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import { type VisualizationPluginProperties } from '../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 
 export type { ChartData, Palette };
 
@@ -26,10 +25,7 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
   //React Component State
   const [chartWidth, setChartWidth] = useState(100);
   const [chartHeight, setChartHeight] = useState(100);
-
-  const isSumCommits = props.dataName?.toLowerCase() === 'sum commits';
-
-  const [chartData, setChartData] = useState<ChartData[] | ColumnChartData[]>([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
   const [chartScale, setChartScale] = useState<number[]>([]);
   const [chartPalette, setChartPalette] = useState<Palette>({});
   const [calculating, setCalculating] = useState(false);
@@ -96,27 +92,15 @@ function Chart<SettingsType extends DefaultSettings, DataType>(props: Visualizat
         {dataState === DataState.COMPLETE &&
           !calculating &&
           (chartData.length !== 0 ? (
-            isSumCommits ? (
-              <ColumnChart
-                data={chartData as ColumnChartData[]}
-                scale={chartScale}
-                palette={chartPalette}
-                sprintList={props.sprintList}
-                width={chartWidth}
-                height={chartHeight}
-                settings={props.settings}
-              />
-            ) : (
-              <StackedAreaChart
-                data={chartData as ChartData[]}
-                scale={chartScale}
-                palette={chartPalette}
-                sprintList={props.sprintList}
-                width={chartWidth}
-                height={chartHeight}
-                settings={props.settings}
-              />
-            )
+            <StackedAreaChart
+              data={chartData}
+              scale={chartScale}
+              palette={chartPalette}
+              sprintList={props.sprintList}
+              width={chartWidth}
+              height={chartHeight}
+              settings={props.settings}
+            />
           ) : (
             <div>No Data matching the selected Parameters!</div>
           ))}

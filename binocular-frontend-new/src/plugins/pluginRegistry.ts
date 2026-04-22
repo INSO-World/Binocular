@@ -15,7 +15,6 @@ import type { IssueSettings } from './visualizationPlugins/issues/issues/src/set
 import type { BuildSettings } from './visualizationPlugins/builds/builds/src/settings/settings.tsx';
 import type { TimeSpentSettings } from './visualizationPlugins/authorBehaviour/timeSpent/src/settings/settings.tsx';
 import type { ChangesSettings } from './visualizationPlugins/commits/changes/src/settings/settings.tsx';
-import type { SumSettings } from './visualizationPlugins/commits/sumCommits/src/settings/settings.tsx';
 import type { MergeRequestsSettings } from './visualizationPlugins/issues/mergeRequests/src/settings/settings.tsx';
 import Builds from './visualizationPlugins/builds/builds';
 import Changes from './visualizationPlugins/commits/changes/src/index.tsx';
@@ -43,13 +42,11 @@ const builds = createVisualizationPlugin<BuildSettings, DataPluginBuild>(Builds)
 const issues = createVisualizationPlugin<IssueSettings, DataPluginIssue>(Issues);
 const mergeRequest = createVisualizationPlugin<MergeRequestsSettings, DataPluginMergeRequest>(MergeRequests);
 const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginNote>(TimeSpent);
-const sumCommits = createVisualizationPlugin<SumSettings, DataPluginCommit>(SumCommits);
 
 //The implicit type here has to be any because every Visualization plugin has a different settings type implied
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   changes,
-  sumCommits,
   builds,
   issues,
   mergeRequest,
@@ -67,6 +64,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   CodeExpertise,
   RepositoryActivity,
   Burndown,
+  SumCommits,
 ];
 
 //Order = priority used when nothing selected by the user.
