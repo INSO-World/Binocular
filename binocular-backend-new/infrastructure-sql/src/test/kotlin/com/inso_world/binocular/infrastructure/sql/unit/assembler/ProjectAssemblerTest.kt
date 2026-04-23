@@ -331,6 +331,32 @@ internal class ProjectAssemblerTest : BaseAssemblerTest() {
             assertThat(entity.accounts.map { it.login })
                 .containsExactlyInAnyOrder("user1", "user2")
         }
+
+        @Test
+        fun `Project with Issues, maps author and assignees correctly`() {
+            val project = Project(name = "TestProject")
+
+            val author = TestData.Domain.testAccount(login = "author", projects = mutableSetOf(project))
+            val assignee = TestData.Domain.testAccount(login = "assignee", projects = mutableSetOf(project))
+
+            project.accounts.addAll(listOf(author, assignee))
+
+            val issue = TestData.Domain.testIssue(project = project, author = author, accounts = mutableSetOf(assignee))
+
+
+            project.issues.add(issue)
+
+            val entity = projectAssembler.toEntity(project)
+
+            val issueEntity = entity.issues.first()
+
+            assertAll(
+                { assertThat(entity.issues).hasSize(1) },
+                { assertThat(issueEntity.author?.login).isEqualTo("author") },
+                { assertThat(issueEntity.accounts.map { it.login })
+                    .containsExactlyInAnyOrder("assignee") }
+            )
+        }
     }
 
     @Nested
@@ -662,6 +688,34 @@ internal class ProjectAssemblerTest : BaseAssemblerTest() {
             assertThat(domain.accounts.map { it.login })
                 .containsExactlyInAnyOrder("user1", "user2")
         }
+
+        @Test
+        fun `ProjectEntity with Issues maps author and assignees correctly`() {
+            val projectEntity = TestData.Entity.testProjectEntity()
+
+            val author = TestData.Entity.testAccountEntity(login = "author", gid = "MJDGFJI9837", projects = mutableSetOf(projectEntity))
+            val assignee = TestData.Entity.testAccountEntity(login = "assignee", gid = "MJDKJD234OD", projects = mutableSetOf(projectEntity))
+
+            projectEntity.accounts.addAll(listOf(author, assignee))
+
+            val issue = TestData.Entity.testIssueEntity(project = projectEntity).apply {
+                this.author = author
+                this.accounts.add(assignee)
+            }
+
+            projectEntity.issues.add(issue)
+
+            val domain = projectAssembler.toDomain(projectEntity)
+
+            val issueDomain = domain.issues.first()
+
+            assertAll(
+                { assertThat(issueDomain.author?.login).isEqualTo("author") },
+                { assertThat(issueDomain.accounts.map { it.login })
+                    .containsExactlyInAnyOrder("assignee", "testlogin") }
+            )
+        }
+
     }
 
     @Nested
