@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../redux';
-import { ExportType } from '../../redux/reducer/export/exportReducer.ts';
+import { type AppDispatch, type RootState, useAppDispatch }  from '../../redux';
+import { ExportType, setExportLoading } from '../../redux/reducer/export/exportReducer.ts';
 import dataExportStyles from './dataExport/dataExport.module.scss';
 function ViewIcon() {
   return (
@@ -23,8 +23,6 @@ import type { DatabaseSettingsDataPluginType } from '../../types/settings/databa
 import { useEffect, useState } from 'react';
 import DataPluginStorage from '../../utils/dataPluginStorage.ts';
 import type { JSONObject } from '../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
-import type { DataPlugin } from '../../plugins/interfaces/dataPlugin.ts';
-import type BinocularBackend from '../../plugins/dataPlugins/binocularBackend/src/index.ts';
 
 const emptyState = {
   collections: {
@@ -73,14 +71,17 @@ const allItemNames = [...Object.keys(emptyState.collections), ...Object.keys(emp
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 function ExportDialog() {
+  const dispatch: AppDispatch = useAppDispatch();
+  
   const exportType = useSelector((state: RootState) => state.export.exportType);
   const exportSVGData = useSelector((state: RootState) => state.export.exportSVGData);
   const exportName = useSelector((state: RootState) => state.export.exportName);
+  const loading = useSelector((state: RootState) => state.export.exportLoading);
 
   const availableDataPlugins: DatabaseSettingsDataPluginType[] = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const [selectedDataPlugin, setSelectedDataPlugin] = useState<DatabaseSettingsDataPluginType | undefined>(undefined);
-
   const [state, setState] = useState<ExportState>(emptyState);
+  const [spinner, setSpinner] = useState(false);
   const [previewTableHeader, setPreviewTableHeader] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set(allItemNames));
   const [previewName, setPreviewName] = useState<string>('');
@@ -91,16 +92,6 @@ function ExportDialog() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
   const [expandColumns, setExpandColumns] = useState<boolean>(false);
-
-  // Auto-select the first available data plugin on load
-  useEffect(() => {
-    if (!selectedDataPlugin) {
-      const filtered = availableDataPlugins.filter((dP) => dP.name === 'PouchDb' || dP.name === 'Binocular Backend');
-      if (filtered.length > 0) {
-        setSelectedDataPlugin(filtered[0]);
-      }
-    }
-  }, [availableDataPlugins, selectedDataPlugin]);
 
   // Reset state when the selected plugin changes, but keep all chips selected
   useEffect(() => {
@@ -122,6 +113,10 @@ function ExportDialog() {
     setExpandColumns(false);
   }, [previewName]);
 
+  useEffect(() => {
+    setSpinner(loading);
+  }, [loading])
+
   const selectAll = () => setSelectedItems(new Set(allItemNames));
   const deselectAll = () => setSelectedItems(new Set());
   const toggleSelection = (name: string) => {
@@ -136,9 +131,10 @@ function ExportDialog() {
     });
   };
 
-  async function loadData(name: string): Promise<JSONObject[]> {
+  async function loadData() {
+    dispatch(setExportLoading(true));
     const dP = selectedDataPlugin ? await DataPluginStorage.getDataPlugin(selectedDataPlugin) : undefined;
-    let data: JSONObject[] = [];
+    let data: { [id: string]: JSONObject[] } = {};
     if (dP) {
       switch (dP.name) {
         case 'PouchDb':
@@ -151,22 +147,27 @@ function ExportDialog() {
             data = JSON.parse(xhr.responseText);
             
           break;
-        }
         default:
-          data = initialState;
+          data = {};
           break;
       }
-      const newState = { collections: {}, relations: {}, previewTable: state.previewTable, exportType: state };
+      const newState = { collections: emptyState.collections, relations: emptyState.relations, previewTable: [] as JSONObject[], exportType: state.exportType };
       for (const [key, value] of Object.entries(data)) {
         if (key.includes('_')) {
-          newState.relations[key.replace('_', '-') as keyof typeof state.relations] = value;
+          newState.relations[key.replaceAll('_', '-') as keyof typeof state.relations] = value;
         } else {
           newState.collections[key as keyof typeof state.collections] = value;
         }
       }
       setState(newState);
-      console.log(state);
     }
+    dispatch(setExportLoading(false));
+  }
+
+  function setPreviewTable(name: string) {
+    setPreviewTableHeader(name.includes('-') ? (Object.keys(state.relations[name as keyof typeof state.relations][0]) ?? []) : (Object.keys(state.collections[name as keyof typeof state.collections][0]) ?? []));
+    setPreviewName(name);
+    setState({ ...state, previewTable: name.includes('-') ? state.relations[name as keyof typeof state.relations] : state.collections[name as keyof typeof state.collections] });
   }
 
   function download(name: string, data: Blob) {
@@ -185,6 +186,13 @@ function ExportDialog() {
       default:
         download(name + '.json', new Blob([JSON.stringify(data)], { type: 'data:text/json;charset=utf-8' }));
         break;
+    }
+  }
+
+  async function downloadSelected() {
+    for (const name of Array.from(selectedItems)) {
+      if (name.includes('-')) downloadFile(name, state.relations[name as keyof typeof emptyState.relations]);
+      else downloadFile(name, state.collections[name as keyof typeof emptyState.collections]);
     }
   }
 
@@ -219,9 +227,9 @@ function ExportDialog() {
         {count > 0 && <span className="text-xs font-mono">({count})</span>}
         <button
           className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
-          onClick={(e) => {
+          onClick={(e) => {            
+            setPreviewTable(name);
             e.stopPropagation();
-            void handleView(name);
           }}>
           <ViewIcon />
         </button>
@@ -269,7 +277,7 @@ function ExportDialog() {
           <div className={dataExportStyles.chartContainer}>
             <div className={dataExportStyles.mg1}>
               {/* Step 1: Choose Database */}
-              <h1>1. Choose Database</h1>
+              <h1>1. Choose Database {String(spinner)}{spinner && <span className="loading loading-spinner loading-lg text-accent"></span>}</h1> 
               <div className={'flex flex-wrap gap-3 mb-4'}>
                 {availableDataPlugins
                   .filter((dP) => dP.name === 'PouchDb' || dP.name === 'Binocular Backend')
@@ -281,7 +289,10 @@ function ExportDialog() {
                           ${isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-base-300 hover:border-primary/50'}`}
                         style={{ background: dP.color }}
                         key={`settingsDatabasePlugin${dP.id}`}
-                        onClick={() => setSelectedDataPlugin(dP)}>
+                        onClick={() => {
+                          setSelectedDataPlugin(dP);
+                          loadData();
+                        }}>
                         <div className="card-body py-3 px-4">
                           <div className="flex items-center gap-2">
                             <h2 className="card-title text-sm">
