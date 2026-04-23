@@ -60,7 +60,7 @@ internal class IssueInfrastructurePortImpl
         return this.issueDao
             .findExistingGid(project, ids)
             .map {
-                this.issueMapper.toDomain(it)
+                this.issueMapper.toDomain(it, project)
             }
     }
 

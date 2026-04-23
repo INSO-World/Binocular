@@ -35,7 +35,7 @@ data class ItsGitHubIssue(
             updatedAt = updatedAt?.let { parseDateTime(it) },
             state = state,
             webUrl = url,
-            project = project,
+            project = project.iid,
             labels = labels?.nodes?.map { it.name } ?: emptyList(), // TODO decide if label as own entity or only as string
             // TODO map labels, timelineItems etc
         )

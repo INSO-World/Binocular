@@ -43,9 +43,9 @@ data class Account(
 
     val issues: MutableSet<Issue> = object : NonRemovingMutableSet<Issue>() {
         override fun add(element: Issue): Boolean {
-            require(element.project in this@Account.projects) {
-                "Issue.project (${element.project}) doesn't match any of the account's projects (${this@Account.projects})."
-            }
+//            require(element.project in this@Account.projects) {
+//                "Issue.project (${element.project}) doesn't match any of the account's projects (${this@Account.projects})."
+//            }
             val added = super.add(element)
             return added
         }

@@ -108,7 +108,7 @@ internal class ProjectAssembler {
 
         // Phase 4: Map and wire Issues (with assignees and author)
         domain.issues.forEach { issue ->
-            val issueEntity = issueMapper.toEntity(issue)
+            val issueEntity = issueMapper.toEntity(issue, entity)
             entity.addIssue(issueEntity)
 
             // author
@@ -174,7 +174,7 @@ internal class ProjectAssembler {
 
         // Phase 4: Map and wire Issues (with assignees and author)
         entity.issues.forEach { issue ->
-            val issueDomain = issueMapper.toDomain(issue)
+            val issueDomain = issueMapper.toDomain(issue, domain)
             domain.issues.add(issueDomain)
 
             // author

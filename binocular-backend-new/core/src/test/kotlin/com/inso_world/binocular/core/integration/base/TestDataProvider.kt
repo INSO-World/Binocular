@@ -209,7 +209,7 @@ object TestDataProvider {
                         false,
                     ),
                 ),
-                project = project
+                project = project.iid
             ),
             Issue(
                 "2",
@@ -230,7 +230,7 @@ object TestDataProvider {
                         true,
                     ),
                 ),
-                project = project
+                project = project.iid
             ),
         )
 

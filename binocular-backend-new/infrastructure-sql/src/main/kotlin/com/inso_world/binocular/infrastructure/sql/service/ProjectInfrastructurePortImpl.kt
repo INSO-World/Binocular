@@ -166,7 +166,7 @@ internal class ProjectInfrastructurePortImpl(
         // Add or update issues
         logger.debug("Update issues")
         value.issues.forEach { issue ->
-            val issueEntity = issueMapper.toEntity(issue)
+            val issueEntity = issueMapper.toEntity(issue, managedEntity)
             // Only add if not already present
             if (!managedEntity.issues.contains(issueEntity)) {
                 managedEntity.addIssue(issueEntity)

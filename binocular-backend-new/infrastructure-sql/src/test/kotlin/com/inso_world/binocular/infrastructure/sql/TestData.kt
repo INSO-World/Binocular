@@ -472,7 +472,7 @@ internal object TestData {
             project: Project = testProject(),
             accounts: MutableSet<Account> = mutableSetOf(testAccount()),
             users: MutableList<User> = mutableListOf(),
-            author: Account? = testAccount(),
+            author: Account? = null,
             id: String? = null
         ): Issue = Issue(
             gid = gid,
@@ -483,7 +483,7 @@ internal object TestData {
             updatedAt = updatedAt,
             state = state,
             webUrl = webUrl,
-            project = project,
+            project = project.iid,
         ).apply {
             this.id = id
             this.accounts.addAll(accounts)
