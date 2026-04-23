@@ -3,17 +3,11 @@ package com.inso_world.binocular.cli.integration.service
 import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.ProjectService
 import com.inso_world.binocular.cli.service.its.IssueService
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
-import com.inso_world.binocular.core.service.IssueInfrastructurePort
-import com.inso_world.binocular.core.service.ProjectInfrastructurePort
-import com.inso_world.binocular.data.ProjectTestDataProvider
 import com.inso_world.binocular.github.dto.issue.ItsAssigneeWrapper
 import com.inso_world.binocular.github.dto.issue.ItsGitHubIssue
 import com.inso_world.binocular.github.dto.issue.ItsUser
 import com.inso_world.binocular.github.dto.user.ItsGitHubUser
 import com.inso_world.binocular.github.service.GitHubService
-import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.Project
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.junit.jupiter.api.Test
