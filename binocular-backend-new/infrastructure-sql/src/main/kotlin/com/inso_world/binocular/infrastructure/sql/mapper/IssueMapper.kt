@@ -34,16 +34,16 @@ internal class IssueMapper {
     /**
      * Converts a domain Issue to a SQL IssueEntity
      */
-    fun toEntity(domain: Issue): IssueEntity {
+    fun toEntity(domain: Issue, owner: ProjectEntity): IssueEntity {
         ctx.findEntity<Issue.Key, Issue, IssueEntity>(domain)?.let { return it }
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
-            ?: throw IllegalStateException(
-                "ProjectEntity must be mapped before RepositoryEntity. " +
-                        "Ensure ProjectEntity is in MappingContext before calling toEntity()."
-            )
+//        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+//            ?: throw IllegalStateException(
+//                "ProjectEntity must be mapped before RepositoryEntity. " +
+//                        "Ensure ProjectEntity is in MappingContext before calling toEntity()."
+//            )
 
         val entity = domain.toEntity(owner)
 
@@ -59,17 +59,17 @@ internal class IssueMapper {
      * when accessed. This provides a consistent API regardless of the database
      * implementation and avoids the N+1 query problem.
      */
-    fun toDomain(entity: IssueEntity): Issue {
+    fun toDomain(entity: IssueEntity, owner: Project): Issue {
         // Fast-path: Check if already mapped
         ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
-            ?: throw IllegalStateException(
-                "Project must be mapped before Repository. " +
-                        "Ensure Project is in MappingContext before calling toDomain()."
-            )
+//        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
+//            ?: throw IllegalStateException(
+//                "Project must be mapped before Repository. " +
+//                        "Ensure Project is in MappingContext before calling toDomain()."
+//            )
 
         val domain = entity.toDomain(owner)
         setField(
@@ -96,7 +96,7 @@ internal class IssueMapper {
     /**
      * Converts a list of SQL IssueEntity objects to a list of domain Issue objects
      */
-    fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it) }
+    fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it, TODO()) }
 }
 
 

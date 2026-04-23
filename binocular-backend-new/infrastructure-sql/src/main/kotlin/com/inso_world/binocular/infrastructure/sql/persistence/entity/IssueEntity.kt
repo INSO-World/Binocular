@@ -164,7 +164,7 @@ internal data class IssueEntity(
 
     // TODO map labels and mentions
     fun toDomain(project: Project) = Issue(
-        project = project,
+        project = project.iid,
         id = this.id?.toString(),
         gid = this.gid,
         platformIid = this.platformIid,

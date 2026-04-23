@@ -54,7 +54,7 @@ class ProjectTestDataProvider {
             val issue = Issue(
                 platformIid = 1,
                 gid = "1abc",
-                project = projectsByName.getValue("proj-pg-0")
+                project = projectsByName.getValue("proj-pg-0").iid
             )
             issue
         },
@@ -62,7 +62,7 @@ class ProjectTestDataProvider {
             val issue = Issue(
                 platformIid = 2,
                 gid = "2abc",
-                project = projectsByName.getValue("proj-pg-0")
+                project = projectsByName.getValue("proj-pg-0").iid
             )
             issue
         },
@@ -70,7 +70,7 @@ class ProjectTestDataProvider {
             val issue = Issue(
                 platformIid = 3,
                 gid = "3abc",
-                project = projectsByName.getValue("proj-pg-0")
+                project = projectsByName.getValue("proj-pg-0").iid
             )
             issue
         },

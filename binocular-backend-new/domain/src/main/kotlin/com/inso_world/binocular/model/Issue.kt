@@ -25,7 +25,7 @@ data class Issue(
     var webUrl: String? = null,
     var mentions: List<Mention> = emptyList(),
     // Relationships
-    val project: Project,
+    val project: Project.Id,
     var commits: List<Commit> = emptyList(),
     var milestones: List<Milestone> = emptyList(),
     var notes: List<Note> = emptyList(),
@@ -47,9 +47,9 @@ data class Issue(
             if (this.author != null) {
                 throw IllegalArgumentException("Author already set for Issue $platformIid: $author")
             }
-            if (this.project !in value.projects) {
-                throw IllegalArgumentException("Author ${value.login} is not in Issues Project: ${this.project.name}")
-            }
+//            if (this.project !in value.projects) {
+//                throw IllegalArgumentException("Author ${value.login} is not in Issues Project: ${this.project.name}")
+//            }
             field = value
             value.issues.add(this)
         }
@@ -72,5 +72,5 @@ data class Issue(
     }
 
     override val uniqueKey: Key
-        get() = Issue.Key(project.iid, gid)
+        get() = Issue.Key(project, gid)
 }

@@ -65,9 +65,9 @@ data class Project(
 
     val issues: MutableSet<Issue> = object : NonRemovingMutableSet<Issue>() {
         override fun add(element: Issue): Boolean {
-            require(element.project == this@Project) {
-                "Issue.project (${element.project}) doesn't match the project (${this@Project})."
-            }
+//            require(element.project == this@Project) {
+//                "Issue.project (${element.project}) doesn't match the project (${this@Project})."
+//            }
             val added = super.add(element)
             return added
         }
