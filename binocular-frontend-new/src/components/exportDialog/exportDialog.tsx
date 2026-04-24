@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
-import { type AppDispatch, type RootState, useAppDispatch }  from '../../redux';
-import { ExportType, setExportLoading } from '../../redux/reducer/export/exportReducer.ts';
+import { useAppDispatch, type AppDispatch, type RootState } from '../../redux';
+import { ExportType, setExportData, setExportDataType, setExportLoading } from '../../redux/reducer/export/exportReducer.ts';
 import dataExportStyles from './dataExport/dataExport.module.scss';
 function ViewIcon() {
   return (
@@ -23,66 +23,62 @@ import type { DatabaseSettingsDataPluginType } from '../../types/settings/databa
 import { useEffect, useState } from 'react';
 import DataPluginStorage from '../../utils/dataPluginStorage.ts';
 import type { JSONObject } from '../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import { downloadExportCompressed } from '../../plugins/utils/export.ts';
 
-const emptyState = {
-  collections: {
-    accounts: [] as JSONObject[],
-    branches: [] as JSONObject[],
-    builds: [] as JSONObject[],
-    commits: [] as JSONObject[],
-    files: [] as JSONObject[],
-    issues: [] as JSONObject[],
-    mergeRequests: [] as JSONObject[],
-    milestones: [] as JSONObject[],
-    modules: [] as JSONObject[],
-    notes: [] as JSONObject[],
-    users: [] as JSONObject[],
-  },
-  relations: {
-    'accounts-users': [] as JSONObject[],
-    'branches-files': [] as JSONObject[],
-    'branches-files-files': [] as JSONObject[],
-    'commits-builds': [] as JSONObject[],
-    'commits-commits': [] as JSONObject[],
-    'commits-files': [] as JSONObject[],
-    'commits-files-users': [] as JSONObject[],
-    'commits-modules': [] as JSONObject[],
-    'commits-users': [] as JSONObject[],
-    'issues-accounts': [] as JSONObject[],
-    'issues-commits': [] as JSONObject[],
-    'issues-milestones': [] as JSONObject[],
-    'issues-notes': [] as JSONObject[],
-    'issues-users': [] as JSONObject[],
-    'mergeRequests-accounts': [] as JSONObject[],
-    'mergeRequests-milestones': [] as JSONObject[],
-    'mergeRequests-notes': [] as JSONObject[],
-    'modules-files': [] as JSONObject[],
-    'modules-modules': [] as JSONObject[],
-    'notes-accounts': [] as JSONObject[],
-  },
-  previewTable: [] as JSONObject[],
-  exportType: 'json',
+const emptyData = {
+  accounts: [] as JSONObject[],
+  branches: [] as JSONObject[],
+  builds: [] as JSONObject[],
+  commits: [] as JSONObject[],
+  files: [] as JSONObject[],
+  issues: [] as JSONObject[],
+  mergeRequests: [] as JSONObject[],
+  milestones: [] as JSONObject[],
+  modules: [] as JSONObject[],
+  notes: [] as JSONObject[],
+  users: [] as JSONObject[],
+  'accounts-users': [] as JSONObject[],
+  'branches-files': [] as JSONObject[],
+  'branches-files-files': [] as JSONObject[],
+  'commits-builds': [] as JSONObject[],
+  'commits-commits': [] as JSONObject[],
+  'commits-files': [] as JSONObject[],
+  'commits-files-users': [] as JSONObject[],
+  'commits-modules': [] as JSONObject[],
+  'commits-users': [] as JSONObject[],
+  'issues-accounts': [] as JSONObject[],
+  'issues-commits': [] as JSONObject[],
+  'issues-milestones': [] as JSONObject[],
+  'issues-notes': [] as JSONObject[],
+  'issues-users': [] as JSONObject[],
+  'mergeRequests-accounts': [] as JSONObject[],
+  'mergeRequests-milestones': [] as JSONObject[],
+  'mergeRequests-notes': [] as JSONObject[],
+  'modules-files': [] as JSONObject[],
+  'modules-modules': [] as JSONObject[],
+  'notes-accounts': [] as JSONObject[],
 };
 
-type ExportState = typeof emptyState;
+type ExportDataType = typeof emptyData;
 
-const allItemNames = [...Object.keys(emptyState.collections), ...Object.keys(emptyState.relations)];
+const allItemNames = [...Object.keys(emptyData)];
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 function ExportDialog() {
   const dispatch: AppDispatch = useAppDispatch();
-  
+
   const exportType = useSelector((state: RootState) => state.export.exportType);
   const exportSVGData = useSelector((state: RootState) => state.export.exportSVGData);
   const exportName = useSelector((state: RootState) => state.export.exportName);
   const loading = useSelector((state: RootState) => state.export.exportLoading);
+  const exportDataType = useSelector((state: RootState) => state.export.exportDataType);
+  const exportData = useSelector((state: RootState) => state.export.exportData);
 
   const availableDataPlugins: DatabaseSettingsDataPluginType[] = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const [selectedDataPlugin, setSelectedDataPlugin] = useState<DatabaseSettingsDataPluginType | undefined>(undefined);
-  const [state, setState] = useState<ExportState>(emptyState);
-  const [spinner, setSpinner] = useState(false);
   const [previewTableHeader, setPreviewTableHeader] = useState<string[]>([]);
+  const [previewTableData, setPreviewTableData] = useState<JSONObject[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set(allItemNames));
   const [previewName, setPreviewName] = useState<string>('');
 
@@ -95,10 +91,11 @@ function ExportDialog() {
 
   // Reset state when the selected plugin changes, but keep all chips selected
   useEffect(() => {
-    setState(emptyState);
+    dispatch(setExportData(emptyData));
     setSelectedItems(new Set(allItemNames));
     setPreviewName('');
     setPreviewTableHeader([]);
+    if (selectedDataPlugin) loadData();
   }, [selectedDataPlugin]);
 
   // Reset pagination when search or preview changes
@@ -112,10 +109,6 @@ function ExportDialog() {
     setSearchColumn('');
     setExpandColumns(false);
   }, [previewName]);
-
-  useEffect(() => {
-    setSpinner(loading);
-  }, [loading])
 
   const selectAll = () => setSelectedItems(new Set(allItemNames));
   const deselectAll = () => setSelectedItems(new Set());
@@ -134,40 +127,33 @@ function ExportDialog() {
   async function loadData() {
     dispatch(setExportLoading(true));
     const dP = selectedDataPlugin ? await DataPluginStorage.getDataPlugin(selectedDataPlugin) : undefined;
-    let data: { [id: string]: JSONObject[] } = {};
     if (dP) {
       switch (dP.name) {
         case 'PouchDb':
-          //data = await (dP as PouchDb).getCollection();
+          dispatch(setExportData(await dP.export!()));
           break;
-        case 'Binocular Backend':
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', window.location.protocol + '//' + window.location.hostname + ':48763/api/db-export', false);
-            xhr.send();
-            data = JSON.parse(xhr.responseText);
-            
+
+        case 'Binocular Backend': {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', window.location.protocol + '//' + window.location.hostname + ':48763/api/db-export', true);
+          xhr.onload = () => {
+            const data = JSON.parse(JSON.stringify(emptyData));
+            for (const [key, value] of Object.entries(JSON.parse(xhr.responseText) as ExportDataType)) {
+              data[key.replaceAll('_', '-') as keyof ExportDataType] = value;
+            }
+            dispatch(setExportData(data));
+          };
+          xhr.send();
           break;
-        default:
-          data = {};
-          break;
-      }
-      const newState = { collections: emptyState.collections, relations: emptyState.relations, previewTable: [] as JSONObject[], exportType: state.exportType };
-      for (const [key, value] of Object.entries(data)) {
-        if (key.includes('_')) {
-          newState.relations[key.replaceAll('_', '-') as keyof typeof state.relations] = value;
-        } else {
-          newState.collections[key as keyof typeof state.collections] = value;
         }
       }
-      setState(newState);
     }
-    dispatch(setExportLoading(false));
   }
 
   function setPreviewTable(name: string) {
-    setPreviewTableHeader(name.includes('-') ? (Object.keys(state.relations[name as keyof typeof state.relations][0]) ?? []) : (Object.keys(state.collections[name as keyof typeof state.collections][0]) ?? []));
+    setPreviewTableHeader(Object.keys(exportData[name as keyof ExportDataType][0]) ?? []);
     setPreviewName(name);
-    setState({ ...state, previewTable: name.includes('-') ? state.relations[name as keyof typeof state.relations] : state.collections[name as keyof typeof state.collections] });
+    setPreviewTableData(exportData[name as keyof ExportDataType]);
   }
 
   function download(name: string, data: Blob) {
@@ -179,7 +165,7 @@ function ExportDialog() {
   }
 
   function downloadFile(name: string, data: JSONObject[]) {
-    switch (state.exportType) {
+    switch (exportDataType) {
       case 'csv':
         download(name + '.csv', new Blob([convertToCSV(data)], { type: 'data:text/csv;charset=utf-8' }));
         break;
@@ -190,10 +176,11 @@ function ExportDialog() {
   }
 
   async function downloadSelected() {
+    const data: { [id: string]: JSONObject[] } = {};
     for (const name of Array.from(selectedItems)) {
-      if (name.includes('-')) downloadFile(name, state.relations[name as keyof typeof emptyState.relations]);
-      else downloadFile(name, state.collections[name as keyof typeof emptyState.collections]);
+      data[name] = exportData[name];
     }
+    downloadExportCompressed(data, undefined, exportDataType);
   }
 
   function convertToCSV(jsonObject: JSONObject[]) {
@@ -206,7 +193,7 @@ function ExportDialog() {
   }
 
   // Filtered + paginated preview rows
-  const filteredRows = state.previewTable.filter((row) => {
+  const filteredRows = previewTableData.filter((row) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     if (searchColumn) {
@@ -227,7 +214,7 @@ function ExportDialog() {
         {count > 0 && <span className="text-xs font-mono">({count})</span>}
         <button
           className="btn btn-ghost btn-xs p-0 h-auto min-h-0"
-          onClick={(e) => {            
+          onClick={(e) => {
             setPreviewTable(name);
             e.stopPropagation();
           }}>
@@ -277,7 +264,7 @@ function ExportDialog() {
           <div className={dataExportStyles.chartContainer}>
             <div className={dataExportStyles.mg1}>
               {/* Step 1: Choose Database */}
-              <h1>1. Choose Database {String(spinner)}{spinner && <span className="loading loading-spinner loading-lg text-accent"></span>}</h1> 
+              <h1>1. Choose Database</h1>
               <div className={'flex flex-wrap gap-3 mb-4'}>
                 {availableDataPlugins
                   .filter((dP) => dP.name === 'PouchDb' || dP.name === 'Binocular Backend')
@@ -290,8 +277,8 @@ function ExportDialog() {
                         style={{ background: dP.color }}
                         key={`settingsDatabasePlugin${dP.id}`}
                         onClick={() => {
-                          setSelectedDataPlugin(dP);
-                          loadData();
+                          // disable switching while data is loading to not overwhelm the website
+                          if (!loading) setSelectedDataPlugin(dP);
                         }}>
                         <div className="card-body py-3 px-4">
                           <div className="flex items-center gap-2">
@@ -315,29 +302,35 @@ function ExportDialog() {
                             </div>
                           )}
                         </div>
-                        {isSelected && (
+                        {isSelected && !loading && (
                           <span
                             className="badge badge-sm absolute bottom-2 right-2 border-0 text-white"
                             style={{ background: 'rgba(0,0,0,0.35)' }}>
                             &#10003;
                           </span>
                         )}
+                        {isSelected && loading && (
+                          <span
+                            className="loading loading-spinner loading-lg absolute bottom-2 right-2"
+                            style={{ background: 'rgba(0,0,0,0.35)' }}></span>
+                        )}
                       </div>
                     );
                   })}
               </div>
+              {loading && <p>Be patient, this might take a while</p>}
 
               {/* Step 2: Choose Export Format */}
               <h1>2. Choose Export Format</h1>
               <div className="flex gap-2 mb-4">
                 <button
-                  className={`btn btn-sm ${state.exportType === 'json' ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => setState({ ...state, exportType: 'json' })}>
+                  className={`btn btn-sm ${exportDataType === 'json' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => dispatch(setExportDataType('json'))}>
                   JSON
                 </button>
                 <button
-                  className={`btn btn-sm ${state.exportType === 'csv' ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => setState({ ...state, exportType: 'csv' })}>
+                  className={`btn btn-sm ${exportDataType === 'csv' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => dispatch(setExportDataType('csv'))}>
                   CSV
                 </button>
               </div>
@@ -355,18 +348,22 @@ function ExportDialog() {
 
               <h2>Collections</h2>
               <div className="flex flex-wrap gap-2 mb-4">
-                {Object.keys(state.collections).map((name) => {
-                  const count: number = state.collections[name as keyof typeof state.collections].length;
-                  return renderChip(name, count, selectedItems.has(name));
-                })}
+                {Object.keys(exportData)
+                  .filter((name) => !name.includes('-'))
+                  .map((name) => {
+                    const count: number = exportData[name as keyof ExportDataType].length;
+                    return renderChip(name, count, selectedItems.has(name));
+                  })}
               </div>
 
               <h2>Relations</h2>
               <div className="flex flex-wrap gap-2 mb-4">
-                {Object.keys(state.relations).map((name) => {
-                  const count: number = state.relations[name as keyof typeof state.relations].length;
-                  return renderChip(name, count, selectedItems.has(name));
-                })}
+                {Object.keys(exportData)
+                  .filter((name) => name.includes('-'))
+                  .map((name) => {
+                    const count: number = exportData[name as keyof ExportDataType].length;
+                    return renderChip(name, count, selectedItems.has(name));
+                  })}
               </div>
 
               {/* Action buttons */}
@@ -382,11 +379,9 @@ function ExportDialog() {
                   className="btn btn-outline btn-sm"
                   disabled={!selectedDataPlugin}
                   onClick={() => {
-                    void DataPluginStorage.getDataPlugin(selectedDataPlugin!).then((dataPlugin) => {
-                      if (dataPlugin?.export) {
-                        dataPlugin.export(selectedDataPlugin?.metadata);
-                      }
-                    });
+                    if (selectedDataPlugin && !loading) {
+                      downloadExportCompressed(exportData, selectedDataPlugin!.metadata, exportDataType);
+                    }
                   }}>
                   <DownloadIcon />
                   Download Complete Database
@@ -400,11 +395,11 @@ function ExportDialog() {
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-semibold text-sm">
                       Preview: <code className="bg-base-200 px-1 rounded">{previewName}</code>
-                      {state.previewTable.length > 10000 && (
+                      {previewTableData.length > 10000 && (
                         <span className="ml-2 text-warning text-xs">(Too many entries — preview may be slow)</span>
                       )}
                     </span>
-                    {state.previewTable.length > 0 && (
+                    {previewTableData.length > 0 && (
                       <div className="flex gap-2">
                         <button
                           className={`btn btn-sm ${expandColumns ? 'btn-primary' : 'btn-outline'}`}
@@ -418,7 +413,7 @@ function ExportDialog() {
                           </svg>
                           Expand Columns
                         </button>
-                        <button className="btn btn-sm btn-outline" onClick={() => downloadFile(previewName, state.previewTable)}>
+                        <button className="btn btn-sm btn-outline" onClick={() => downloadFile(previewName, previewTableData)}>
                           <DownloadIcon />
                           Download Preview
                         </button>
@@ -427,7 +422,7 @@ function ExportDialog() {
                   </div>
 
                   {/* Search bar */}
-                  {state.previewTable.length > 0 && (
+                  {previewTableData.length > 0 && (
                     <div className="flex gap-2 mb-2">
                       <select
                         className="select select-sm select-bordered"
@@ -457,14 +452,14 @@ function ExportDialog() {
                         </svg>
                       </label>
                       <span className="text-xs self-center opacity-60 whitespace-nowrap">
-                        {filteredRows.length} / {state.previewTable.length} rows
+                        {filteredRows.length} / {previewTableData.length} rows
                       </span>
                     </div>
                   )}
 
                   {/* Table */}
                   <div className={dataExportStyles.previewTableContainer}>
-                    {state.previewTable.length !== 0 ? (
+                    {previewTableData.length !== 0 ? (
                       <table className="table table-zebra table-sm w-full">
                         <thead>
                           <tr>
@@ -493,7 +488,7 @@ function ExportDialog() {
                   </div>
 
                   {/* Pagination */}
-                  {state.previewTable.length > 0 && (
+                  {previewTableData.length > 0 && (
                     <div className="flex items-center justify-between mt-2">
                       <div className="join">
                         <button className="join-item btn btn-sm" disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>
