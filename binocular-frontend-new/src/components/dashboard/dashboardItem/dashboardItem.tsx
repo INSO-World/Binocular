@@ -22,9 +22,9 @@ import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
 import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { store as globalStore } from '../../../redux';
 import actionsReducer from '../../../redux/reducer/general/actionsReducer.ts';
-import actionsMiddleware from '../../../redux/middelware/actions/actionsMiddleware.ts';
+import actionsMiddleware from '../../../redux/middleware/actions/actionsMiddleware.ts';
+import { refreshFileList } from '../../tabs/fileTree/utils/fileListUtilities';
 import type { FileListElementType } from '../../../types/data/fileListType.ts';
-import { loadFileList } from '../../tabs/fileTree/fileList/fileListUtilities/fileTreeUtilities.tsx';
 
 const logger = createLogger({
   collapsed: () => true,
@@ -124,7 +124,7 @@ const DashboardItem = memo(function DashboardItem(props: {
     if (props.item.dataPluginId !== undefined) {
       if (fileLists[props.item.dataPluginId] == undefined) {
         const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
-        loadFileList(dataPlugin, dispatch);
+        refreshFileList(dataPlugin, dispatch);
       }
       if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)) {
         setFiles(fileLists[props.item.dataPluginId]);
@@ -150,28 +150,34 @@ const DashboardItem = memo(function DashboardItem(props: {
     dispatch(updateDashboardItem(updatedItem));
   }, [ignoreGlobalParameters, parametersGeneralLocal, parametersDateRangeLocal]);
 
-  globalStore.subscribe(() => {
-    if (store !== undefined) {
-      switch (globalStore.getState().actions.lastAction) {
-        case 'REFRESH_PLUGIN':
-          if (selectedDataPlugin && doAutomaticUpdate) {
-            if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
-              console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
-              store.dispatch({ type: 'REFRESH' });
+  // Ensure only one listener is active at a time
+  useEffect(() => {
+    const unsubscribe = globalStore.subscribe(() => {
+      if (store !== undefined) {
+        switch (globalStore.getState().actions.lastAction) {
+          case 'REFRESH_PLUGIN':
+            if (selectedDataPlugin && doAutomaticUpdate) {
+              if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === props.item.dataPluginId) {
+                console.log(`REFRESH ${props.item.pluginName} (${selectedDataPlugin.name} #${selectedDataPlugin.id})`);
+                store.dispatch({ type: 'REFRESH' });
+              }
             }
-          }
-          break;
-        case 'RESIZE_DASHBOARD_ITEM':
-          if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+            break;
+          case 'RESIZE_DASHBOARD_ITEM':
+            if ((globalStore.getState().actions.payload as { dashboardItemId: number }).dashboardItemId === props.item.id) {
+              store.dispatch({ type: 'RESIZE' });
+            }
+            break;
+          case 'RESIZE':
             store.dispatch({ type: 'RESIZE' });
-          }
-          break;
-        case 'RESIZE':
-          store.dispatch({ type: 'RESIZE' });
-          break;
+            break;
+        }
       }
-    }
-  });
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [store]);
 
   // WINDOW SHIFT MODE
   function keyDown(e: KeyboardEvent) {
@@ -232,7 +238,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                     event.stopPropagation();
                     setPoppedOut(false);
                   }}>
-                  <div>Dispatch Popout</div>
+                  <div>Close Popout</div>
                 </button>
               </div>
               {dataPlugin && store ? (
@@ -256,6 +262,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                         dataConverter={plugin.dataConverter}
                         chartContainerRef={chartContainerRef}
                         store={store}
+                        dependencies={plugin.dependencies}
                         dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
                     ) : (
                       <div>No Chart Component Found!</div>
@@ -273,7 +280,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                   <div>This Visualization is too complex to display as part of the Dashboard.</div>
                   <div> Please open it in a new window to view!</div>
                   <button
-                    className={'btn btn-accent'}
+                    className={'btn btn-primary'}
                     onClick={(event) => {
                       event.stopPropagation();
                       dispatch(increasePopupCount());
@@ -300,6 +307,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                       dataConverter={plugin.dataConverter}
                       chartContainerRef={chartContainerRef}
                       store={store}
+                      dependencies={plugin.dependencies}
                       dataName={plugin.name.toLowerCase()}></plugin.chartComponent>
                   ) : (
                     <div>No Chart Component Found!</div>

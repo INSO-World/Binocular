@@ -70,7 +70,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Show Sprints:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.showSprints}
             onChange={(event) =>
               props.setSettings({
@@ -115,7 +115,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Split Additions and Deletions:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.splitAdditionsDeletions}
             onChange={(event) =>
               props.setSettings({
@@ -129,7 +129,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
           <span className="label-text">Show extra Metrics</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.settings.showExtraMetrics}
             onChange={(event) =>
               props.setSettings({

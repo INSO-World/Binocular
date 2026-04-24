@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { SprintType } from '../../../types/data/sprintType.ts';
 import Config from '../../../config.ts';
+import { cloneDeep } from 'lodash';
 
 export interface SprintsInitialState {
   sprintList: SprintType[];
@@ -31,8 +32,9 @@ export const sprintsSlice = createSlice({
       localStorage.setItem(`${sprintsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     addSprint: (state, action: PayloadAction<SprintType>) => {
-      action.payload.id = state.currID;
-      state.sprintList.push(action.payload);
+      const newSprint = cloneDeep(action.payload);
+      newSprint.id = state.currID;
+      state.sprintList.push(newSprint);
       state.currID++;
       localStorage.setItem(`${sprintsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },

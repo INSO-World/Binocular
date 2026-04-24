@@ -144,8 +144,8 @@ const AuthorSelection: React.FC<AuthorSelectionProps> = ({ authorList, selectedA
           backgroundColor: 'var(--color-base-100)',
           borderWidth: '1px',
           borderStyle: 'solid',
-          borderColor: isOpen ? 'var(--color-accent)' : 'var(--color-base-300)',
-          boxShadow: isOpen ? '0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent)' : 'none',
+          borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-base-300)',
+          boxShadow: isOpen ? '0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent)' : 'none',
           color: 'var(--color-base-content)',
           padding: getPadding(),
           borderRadius: '0.375em',
@@ -417,7 +417,7 @@ const AuthorSelection: React.FC<AuthorSelectionProps> = ({ authorList, selectedA
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--color-accent)',
+                  color: 'var(--color-primary)',
                   cursor: 'pointer',
                   padding: '0.3em 0.6em',
                   fontSize: '0.9em',
@@ -432,8 +432,8 @@ const AuthorSelection: React.FC<AuthorSelectionProps> = ({ authorList, selectedA
               onMouseEnter={() => setButtonHover(true)}
               onMouseLeave={() => setButtonHover(false)}
               style={{
-                backgroundColor: buttonHover ? 'color-mix(in srgb, var(--color-accent) 90%, black)' : 'var(--color-accent)',
-                color: 'var(--color-accent-content)',
+                backgroundColor: buttonHover ? 'color-mix(in srgb, var(--color-primary) 90%, black)' : 'var(--color-primary)',
+                color: 'var(--color-primary-content)',
                 border: 'none',
                 borderRadius: '0.375em',
                 padding: '0.4em 0.9em',

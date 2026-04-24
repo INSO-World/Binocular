@@ -9,7 +9,12 @@
   max-height: 100vh;
   position: fixed;
   margin: 0;
+  top:0;
+  left:0;
   overflow: hidden;
+  display: none;
+  z-index: 9999999999999;
+  pointer-events: none;
 }
 
 .infoTooltip::backdrop{
@@ -19,22 +24,22 @@
 .infoTooltip>div{
   position: absolute;
   top:100px;
+  pointer-events: all;
 }
 
 .infoTooltip>div>div{
   @apply menu;
   @apply bg-base-100;
   @apply rounded;
-  @apply w-80;
   @apply text-neutral-content;
   box-shadow: $shadow-default;
+  overflow-y: auto;
+  max-height: 30rem;
+  max-width: 30rem;
+  word-break: break-all;
 }
 
-.infoTooltip>div>div>div>div{
-  display: flex;
-  width: max-content;
-  justify-content: space-between;
-}
+
 
 .infoTooltip>div>div>div>div>*{
   margin-right: 2rem;

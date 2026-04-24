@@ -15,31 +15,23 @@ function VisualizationFilter(props: {
   const defaultDataPlugin = configuredDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0];
 
   return (
-    <div className={VisualizationFilterStyles.filters + ' tabs tabs-box'}>
-      <div
-        className="tab"
-        onClick={() => {
-          if (databases && datatypes) {
+    <div className={VisualizationFilterStyles.filters}>
+      <div className={VisualizationFilterStyles.filterGroup}>
+        <button
+          className={`btn btn-xs ${datatypes ? 'btn-primary' : 'btn-ghost border border-base-300'}`}
+          onClick={() => {
+            setDatatypes(!datatypes);
             setDatabases(false);
-            setDatatypes(false);
-          } else {
-            setDatabases(true);
-            setDatatypes(true);
-          }
-        }}>
-        Filters:
-      </div>
-      <div className="tabs-content">
-        <a className={'tab no-underline ' + (datatypes ? 'tab-active' : '')} onClick={() => setDatatypes(!datatypes)}>
+          }}>
           Datatypes
-        </a>
+        </button>
         {datatypes && (
-          <div>
+          <div className={`${VisualizationFilterStyles.filterDropdown} bg-base-100 shadow-lg border border-base-300`}>
             <label className="label cursor-pointer flex w-full items-center mt-0.5">
               <span className="label-text">Github data:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.github}
                 key={'github' + props.filterOptions.github}
                 onChange={(event) => {
@@ -58,7 +50,7 @@ function VisualizationFilter(props: {
               <span className="label-text">GitLab data:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.gitlab}
                 key={'gitlab' + props.filterOptions.gitlab}
                 onChange={(event) => {
@@ -76,17 +68,23 @@ function VisualizationFilter(props: {
           </div>
         )}
       </div>
-      <div className="tabs-content">
-        <a className={'tab no-underline ' + (databases ? 'tab-active' : '')} onClick={() => setDatabases(!databases)}>
-          DataBases
-        </a>
+
+      <div className={VisualizationFilterStyles.filterGroup}>
+        <button
+          className={`btn btn-xs ${databases ? 'btn-primary' : 'btn-ghost border border-base-300'}`}
+          onClick={() => {
+            setDatabases(!databases);
+            setDatatypes(false);
+          }}>
+          Databases
+        </button>
         {databases && (
-          <div>
+          <div className={`${VisualizationFilterStyles.filterDropdown} bg-base-100 shadow-lg border border-base-300`}>
             <label className="label cursor-pointer flex w-full items-center mt-0.5">
               <span className="label-text">Binocular Backend:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.binocularBackend}
                 key={'binocularBackend' + props.filterOptions.binocularBackend}
                 onChange={(event) => {
@@ -105,7 +103,7 @@ function VisualizationFilter(props: {
               <span className="label-text">PouchDB:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.pouchDB}
                 key={'pouchDB' + props.filterOptions.pouchDB}
                 onChange={(event) => {
@@ -124,7 +122,7 @@ function VisualizationFilter(props: {
               <span className="label-text">Mock Data:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.mockData}
                 key={'mockData' + props.filterOptions.mockData}
                 onChange={(event) => {
@@ -143,7 +141,7 @@ function VisualizationFilter(props: {
               <span className="label-text">Github API:</span>
               <input
                 type="checkbox"
-                className="toggle toggle-accent toggle-sm"
+                className="toggle toggle-primary toggle-sm"
                 defaultChecked={props.filterOptions.githubAPI}
                 key={'githubAPI' + props.filterOptions.githubAPI}
                 onChange={(event) => {
@@ -161,11 +159,10 @@ function VisualizationFilter(props: {
           </div>
         )}
       </div>
-      <div className="tabs-content">
-        <a className={'tab no-underline'} onClick={() => setDefaultFilter(defaultDataPlugin)}>
-          Auto detect
-        </a>
-      </div>
+
+      <button className="btn btn-xs btn-ghost border border-base-300" onClick={() => setDefaultFilter(defaultDataPlugin)}>
+        Auto detect
+      </button>
     </div>
   );
 

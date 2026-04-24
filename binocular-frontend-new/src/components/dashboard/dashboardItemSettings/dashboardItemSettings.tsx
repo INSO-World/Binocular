@@ -29,7 +29,7 @@ function DashboardItemSettings(props: {
       <hr className={'text-base-300 m-1'} />
       <DataPluginQuickSelect selected={props.selectedDataPlugin} onChange={props.onSelectDataPlugin}></DataPluginQuickSelect>
       <hr className={'text-base-300 m-1'} />
-      <button className={'btn btn-accent btn-xs w-full'} onClick={props.onClickRefresh}>
+      <button className={'btn btn-primary btn-xs w-full'} onClick={props.onClickRefresh}>
         Refresh
       </button>
       <hr className={'text-base-300 m-1'} />
@@ -38,7 +38,7 @@ function DashboardItemSettings(props: {
           <span className="label-text">Ignore Global Parameters:</span>
           <input
             type="checkbox"
-            className="toggle toggle-accent toggle-sm"
+            className="toggle toggle-primary toggle-sm"
             defaultChecked={props.ignoreGlobalParameters}
             onChange={(e) => props.setIgnoreGlobalParameters(e.target.checked)}
           />
@@ -50,7 +50,7 @@ function DashboardItemSettings(props: {
             <span className="label-text">Automatic Update:</span>
             <input
               type="checkbox"
-              className="toggle toggle-accent toggle-sm"
+              className="toggle toggle-primary toggle-sm"
               defaultChecked={props.doAutomaticUpdate}
               onChange={(e) => props.setDoAutomaticUpdate(e.target.checked)}
             />

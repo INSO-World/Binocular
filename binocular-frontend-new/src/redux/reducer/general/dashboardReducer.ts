@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
 import type { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import { cloneDeep } from 'lodash';
 
 export interface DashboardInitialState {
   dashboardItems: DashboardItemType[];
@@ -40,18 +41,19 @@ export const dashboardSlice = createSlice({
   reducers: {
     addDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
       state.placeableItem = undefined;
+      const payload = cloneDeep(action.payload);
       const nextFreePosition = findNextFreePosition(state.dashboardState, action.payload);
       if (nextFreePosition !== null) {
         state.dashboardItemCount++;
-        action.payload.id = state.dashboardItemCount;
-        if (action.payload.x === undefined) {
-          action.payload.x = nextFreePosition.x;
+        payload.id = state.dashboardItemCount;
+        if (payload.x === undefined) {
+          payload.x = nextFreePosition.x;
         }
-        if (action.payload.y === undefined) {
-          action.payload.y = nextFreePosition.y;
+        if (payload.y === undefined) {
+          payload.y = nextFreePosition.y;
         }
-        state.dashboardItems = [...state.dashboardItems, action.payload];
-        updateDashboardState(state.dashboardState, action.payload, DashboardStateUpdateType.place);
+        state.dashboardItems = [...state.dashboardItems, payload];
+        updateDashboardState(state.dashboardState, payload, DashboardStateUpdateType.place);
         localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
       }
       state.initialized = true;
@@ -114,9 +116,11 @@ export const dashboardSlice = createSlice({
     },
     setDashboardState: (state, action: PayloadAction<DashboardItemType[]>) => {
       const dashboardItems = action.payload.map((item, id) => {
-        item.id = id + 1;
-        state.dashboardItemCount = item.id;
-        return item;
+        state.dashboardItemCount = id + 1;
+        return {
+          ...item,
+          id: id + 1,
+        };
       });
       state.dashboardState = Array.from(Array(40), () => new Array(40).fill(0));
       dashboardItems.forEach((item: DashboardItemType) => {

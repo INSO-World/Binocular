@@ -5,10 +5,10 @@ import DataPluginStorage from '../../../utils/dataPluginStorage.ts';
 import { configureStore } from '@reduxjs/toolkit';
 import { createLogger } from 'redux-logger';
 import ProgressReducer from '../../../redux/reducer/general/progressReducer.ts';
-import socketMiddleware from '../../../redux/middelware/socket/socketMiddleware.ts';
+import socketMiddleware from '../../../redux/middleware/socket/socketMiddleware.ts';
 import StatusBarDataPluginElement from './statusBarDataPluginElement/statusBarDataPluginElement.tsx';
 import { Provider } from 'react-redux';
-import refreshMiddleware from '../../../redux/middelware/refresh/refreshMiddleware.ts';
+import refreshMiddleware from '../../../redux/middleware/refresh/refreshMiddleware.ts';
 
 import { store as globalStore } from '../../../redux';
 

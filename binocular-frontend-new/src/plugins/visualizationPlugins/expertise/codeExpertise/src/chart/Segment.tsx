@@ -417,7 +417,7 @@ function Segment({ rad, startPercent, endPercent, devName, devData, devColor, ma
             textAnchor="middle"
             alignmentBaseline="middle"
             stroke={devColorDark}
-            fill="var(--color-accent-content)"
+            fill="var(--color-primary-content)"
             strokeWidth={3}
             paintOrder="stroke">
             {additionsText}
