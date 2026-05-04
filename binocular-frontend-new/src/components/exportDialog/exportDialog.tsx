@@ -151,6 +151,7 @@ function ExportDialog() {
   }
 
   function setPreviewTable(name: string) {
+    if (!exportData[name as keyof ExportDataType]) return;
     setPreviewTableHeader(Object.keys(exportData[name as keyof ExportDataType][0]) ?? []);
     setPreviewName(name);
     setPreviewTableData(exportData[name as keyof ExportDataType]);
