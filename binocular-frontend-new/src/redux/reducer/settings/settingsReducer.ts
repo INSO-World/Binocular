@@ -3,6 +3,15 @@ import Config from '../../../config.ts';
 import { type GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
 import type { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../../types/settings/databaseSettingsType.ts';
 import distinctColors from 'distinct-colors';
+
+const BASE_PALETTE = distinctColors({ count: 10, chromaMin: 40 });
+
+function generateColorById(id: number, isDark: boolean): string {
+  const base = BASE_PALETTE[id % 10];
+  const cycle = Math.floor(id / 10);
+  const adjusted = base.set('hsl.l', Math.min(0.85, base.get('hsl.l') + cycle * 0.08));
+  return adjusted.hex() + (isDark ? '75' : '25');
+}
 import { cloneDeep } from 'lodash';
 
 export interface SettingsInitialState {
@@ -50,12 +59,12 @@ export const settingsSlice = createSlice({
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
       const newDataPlugin = cloneDeep(action.payload);
       if (newDataPlugin.id === undefined) {
-        const colors = distinctColors({ count: 100 });
+        const isDark = localStorage.getItem('theme') === 'binocularDark';
         newDataPlugin.isDefault = state.database.dataPlugins.length === 0;
 
         state.database.currID++;
         if (newDataPlugin.color === '#000') {
-          newDataPlugin.color = colors[state.database.currID].hex() + '22';
+          newDataPlugin.color = generateColorById(state.database.currID, isDark);
         }
         newDataPlugin.id = state.database.currID;
         if (newDataPlugin.isDefault) {
@@ -86,7 +95,14 @@ export const settingsSlice = createSlice({
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     removeDataPlugin: (state, action: PayloadAction<number>) => {
+      const wasDefault = state.database.defaultDataPluginItemId === action.payload;
       state.database.dataPlugins = state.database.dataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id !== action.payload);
+      if (wasDefault && state.database.dataPlugins.length > 0) {
+        state.database.dataPlugins[0].isDefault = true;
+        state.database.defaultDataPluginItemId = state.database.dataPlugins[0].id;
+      } else if (wasDefault) {
+        state.database.defaultDataPluginItemId = undefined;
+      }
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     setDataPluginAsDefault: (state, action: PayloadAction<number>) => {
@@ -114,6 +130,14 @@ export const settingsSlice = createSlice({
       state.initialized = true;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
+    recalculateDataPluginColors: (state, action: PayloadAction<string>) => {
+      const isDark = action.payload === 'binocularDark';
+      state.database.dataPlugins = state.database.dataPlugins.map((dp: DatabaseSettingsDataPluginType) => ({
+        ...dp,
+        color: generateColorById(dp.id ?? 0, isDark),
+      }));
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
   },
 });
 
@@ -127,5 +151,6 @@ export const {
   setLocalDatabaseLoadingState,
   setLocalDatabaseLoadingMessage,
   initializeSettingsState,
+  recalculateDataPluginColors,
 } = settingsSlice.actions;
 export default settingsSlice.reducer;

@@ -14,7 +14,6 @@ import Branches from './collections/branches.ts';
 import MergeRequests from './collections/mergeRequests.ts';
 import AccountsIssues from './collections/accounts-issues';
 import CommitsFiles from './collections/commitsFiles';
-import type { MetadataType } from '../../../../types/data/MetadataType.ts';
 
 class PouchDb implements DataPlugin {
   public name = 'PouchDb';
@@ -89,8 +88,8 @@ class PouchDb implements DataPlugin {
     await this.database.delete();
   }
 
-  public async export(metadata: MetadataType | undefined) {
-    return this.database.export(metadata);
+  public async export() {
+    return this.database.export();
   }
 }
 
