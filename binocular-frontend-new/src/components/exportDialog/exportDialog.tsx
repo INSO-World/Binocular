@@ -2,23 +2,8 @@ import { useSelector } from 'react-redux';
 import { useAppDispatch, type AppDispatch, type RootState } from '../../redux';
 import { ExportType, setExportData, setExportDataType, setExportLoading } from '../../redux/reducer/export/exportReducer.ts';
 import dataExportStyles from './dataExport/dataExport.module.scss';
-function ViewIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
-      <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8z M1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
-      <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
-    </svg>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
-      <path d="M8 2a.75.75 0 0 1 .75.75v6.69l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 1 1 1.06-1.06l1.72 1.72V2.75A.75.75 0 0 1 8 2Z" />
-      <path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z" />
-    </svg>
-  );
-}
+import ShowIcon from '../../assets/show_gray.svg?react';
+import DownloadIcon from '../../assets/download.svg?react';
 import type { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
 import { useEffect, useState } from 'react';
 import DataPluginStorage from '../../utils/dataPluginStorage.ts';
@@ -219,7 +204,7 @@ function ExportDialog() {
             setPreviewTable(name);
             e.stopPropagation();
           }}>
-          <ViewIcon />
+          <ShowIcon fill="currentColor" width="1.8em" height="1.8em" />
         </button>
       </div>
     );
@@ -273,17 +258,17 @@ function ExportDialog() {
                     const isSelected = selectedDataPlugin?.id === dP.id;
                     return (
                       <div
-                        className={`card w-52 bg-base-100 shadow-md border cursor-pointer transition-all relative
+                        className={`card w-52 min-h-20 bg-base-100 shadow-md border cursor-pointer transition-all relative overflow-hidden
                           ${isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-base-300 hover:border-primary/50'}`}
-                        style={{ background: dP.color }}
                         key={`settingsDatabasePlugin${dP.id}`}
                         onClick={() => {
                           // disable switching while data is loading to not overwhelm the website
                           if (!loading) setSelectedDataPlugin(dP);
                         }}>
-                        <div className="card-body py-3 px-4">
+                        {dP.color && <div className="absolute left-0 inset-y-0 w-3" style={{ background: dP.color }} />}
+                        <div className="card-body py-3 px-4 justify-center">
                           <div className="flex items-center gap-2">
-                            <h2 className="card-title text-sm">
+                            <h2 className="card-title text-sm justify-center w-full !mb-0">
                               {dP.name} #{dP.id}
                             </h2>
                           </div>
@@ -311,9 +296,7 @@ function ExportDialog() {
                           </span>
                         )}
                         {isSelected && loading && (
-                          <span
-                            className="loading loading-spinner loading-lg absolute bottom-2 right-2"
-                            style={{ background: 'rgba(0,0,0,0.35)' }}></span>
+                          <span className="loading loading-spinner loading-md absolute bottom-2 right-2 text-primary"></span>
                         )}
                       </div>
                     );
@@ -321,6 +304,7 @@ function ExportDialog() {
               </div>
               {loading && <p>Be patient, this might take a while</p>}
 
+              <div className="divider my-1"></div>
               {/* Step 2: Choose Export Format */}
               <h1>2. Choose Export Format</h1>
               <div className="flex gap-2 mb-4">
@@ -336,6 +320,7 @@ function ExportDialog() {
                 </button>
               </div>
 
+              <div className="divider my-1"></div>
               {/* Step 3: View and Download Data */}
               <h1>3. View and Download Data</h1>
               <div className="flex gap-2 mb-3">
@@ -373,7 +358,7 @@ function ExportDialog() {
                   className="btn btn-primary btn-sm"
                   disabled={selectedItems.size === 0 || !selectedDataPlugin}
                   onClick={() => void downloadSelected()}>
-                  <DownloadIcon />
+                  <DownloadIcon fill="currentColor" width="1.8em" height="1.8em" />
                   Download Selected ({selectedItems.size})
                 </button>
                 <button
@@ -384,7 +369,7 @@ function ExportDialog() {
                       downloadExportCompressed(exportData, selectedDataPlugin!.metadata, exportDataType);
                     }
                   }}>
-                  <DownloadIcon />
+                  <DownloadIcon fill="currentColor" width="1.8em" height="1.8em" />
                   Download Complete Database
                 </button>
               </div>
@@ -415,7 +400,7 @@ function ExportDialog() {
                           Expand Columns
                         </button>
                         <button className="btn btn-sm btn-outline" onClick={() => downloadFile(previewName, previewTableData)}>
-                          <DownloadIcon />
+                          <DownloadIcon fill="currentColor" width="1.8em" height="1.8em" />
                           Download Preview
                         </button>
                       </div>
