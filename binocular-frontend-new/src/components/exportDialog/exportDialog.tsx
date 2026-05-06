@@ -257,46 +257,50 @@ function ExportDialog() {
                   .map((dP: DatabaseSettingsDataPluginType) => {
                     const isSelected = selectedDataPlugin?.id === dP.id;
                     return (
-                      <div
-                        className={`card w-52 min-h-20 bg-base-100 shadow-md border cursor-pointer transition-all relative overflow-hidden
-                          ${isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-base-300 hover:border-primary/50'}`}
-                        key={`settingsDatabasePlugin${dP.id}`}
-                        onClick={() => {
-                          // disable switching while data is loading to not overwhelm the website
-                          if (!loading) setSelectedDataPlugin(dP);
-                        }}>
-                        {dP.color && <div className="absolute left-0 inset-y-0 w-3" style={{ background: dP.color }} />}
-                        <div className="card-body py-3 px-4 justify-center">
-                          <div className="flex items-center gap-2">
-                            <h2 className="card-title text-sm justify-center w-full !mb-0">
-                              {dP.name} #{dP.id}
-                            </h2>
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {dP.id === 0 && <div className="badge badge-outline badge-sm">pre-loaded</div>}
-                          </div>
-                          {dP.parameters.endpoint && (
-                            <div className="text-xs">
-                              <span className={'font-bold'}>Endpoint: </span>
-                              <span>{dP.parameters.endpoint}</span>
+                      <div key={`settingsDatabasePlugin${dP.id}`}>
+                        {dP.color && (
+                          <div
+                            className={`card w-52 min-h-20 bg-base-100 shadow-md border-2 cursor-pointer transition-all relative overflow-hidden
+                          ${isSelected ? 'border-primary ring-1 ring-primary ring-offset-1' : ''}`}
+                            style={{ borderColor: dP.color }}
+                            onClick={() => {
+                              // disable switching while data is loading to not overwhelm the website
+                              if (!loading) setSelectedDataPlugin(dP);
+                            }}>
+                            {dP.color && <div className="absolute left-0 inset-y-0 w-3" style={{ background: dP.color }} />}
+                            <div className="card-body py-3 px-4 justify-center">
+                              <div className="flex items-center gap-2">
+                                <h2 className="card-title text-sm justify-center w-full !mb-0">
+                                  {dP.name} #{dP.id}
+                                </h2>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {dP.id === 0 && <div className="badge badge-outline badge-sm">pre-loaded</div>}
+                              </div>
+                              {dP.parameters.endpoint && (
+                                <div className="text-xs">
+                                  <span className={'font-bold'}>Endpoint: </span>
+                                  <span>{dP.parameters.endpoint}</span>
+                                </div>
+                              )}
+                              {dP.parameters.fileName && (
+                                <div className="text-xs">
+                                  <span className={'font-bold'}>Database: </span>
+                                  <span>{dP.parameters.fileName}</span>
+                                </div>
+                              )}
                             </div>
-                          )}
-                          {dP.parameters.fileName && (
-                            <div className="text-xs">
-                              <span className={'font-bold'}>Database: </span>
-                              <span>{dP.parameters.fileName}</span>
-                            </div>
-                          )}
-                        </div>
-                        {isSelected && !loading && (
-                          <span
-                            className="badge badge-sm absolute bottom-2 right-2 border-0 text-white"
-                            style={{ background: 'rgba(0,0,0,0.35)' }}>
-                            &#10003;
-                          </span>
-                        )}
-                        {isSelected && loading && (
-                          <span className="loading loading-spinner loading-md absolute bottom-2 right-2 text-primary"></span>
+                            {isSelected && !loading && (
+                              <span
+                                className="badge badge-sm absolute bottom-2 right-2 border-0 text-white"
+                                style={{ background: 'rgba(0,0,0,0.35)' }}>
+                                &#10003;
+                              </span>
+                            )}
+                            {isSelected && loading && (
+                              <span className="loading loading-spinner loading-md absolute bottom-2 right-2 text-primary"></span>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
