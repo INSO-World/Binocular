@@ -1,0 +1,234 @@
+classDiagram
+    direction TB
+
+%% Technical Inheritance & Base Classes
+    class Stakeholder {
+        +String name
+        +String email
+    }
+
+    class Reference {
+        +String name
+        +ReferenceCategory category
+    }
+
+%% High-Level Organizations
+    class Project {
+        +Id iid
+        +String name
+        +String description
+        +Repository repo
+        +Set~Issue~ issues
+        +Set~MergeRequest~ mergeRequests
+    }
+
+    class Repository {
+        +Id iid
+        +String localPath
+        +Project project
+        +Set~Commit~ commits
+        +Set~Branch~ branches
+        +Set~Developer~ developers
+        +Set~Remote~ remotes
+    }
+
+%% VCS Technical Domain
+    class Commit {
+        +Id iid
+        +String sha
+        +Signature authorSignature
+        +Signature committerSignature
+        +Stats stats
+        +String message
+        +Repository repository
+        +MutableSet~Commit~ parents
+        +MutableSet~Commit~ children
+    }
+
+    class Signature {
+        +Developer developer
+        +LocalDateTime timestamp
+    }
+
+    class Branch {
+        +String name
+        +String fullName
+        +ReferenceCategory category
+        +Commit head
+        +Repository repository
+        +Set~Commit~ commits
+    }
+
+    class Developer {
+        +String name
+        +String email
+        +String gitSignature
+        +Repository repository
+        +MutableSet~Commit~ authoredCommits
+        +MutableSet~Commit~ committedCommits
+    }
+
+    class Remote {
+        +Id iid
+        +String name
+        +String url
+        +Repository repository
+    }
+
+%% ITS (Issue Tracking) Domain
+    class Issue {
+        +Id iid
+        +String title
+        +String description
+        +List~Account~ accounts
+        +List~Commit~ commits
+        +List~Milestone~ milestones
+        +List~Note~ notes
+        +List~Mention~ mentions
+        +List~User~ users
+    }
+
+    class MergeRequest {
+        +Id iid
+        +String title
+        +String description
+        +String createdAt
+        +String closedAt
+        +String updatedAt
+        +List~Account~ accounts
+        +List~Milestone~ milestones
+        +List~Note~ notes
+        +List~Mention~ mentions
+    }
+
+    class Account {
+        +Id iid
+        +String login
+        +String name
+        +Platform platform
+    }
+
+    class Milestone {
+        +Id iid
+        +String title
+        +String state
+        +List~Issue~ issues
+        +List~MergeRequest~ mergeRequests
+    }
+
+    class Note {
+        +Id iid
+        +String body
+        +String createdAt
+        +Boolean system
+        +Boolean resolvable
+        +Boolean confidential
+        +Boolean internal
+    }
+
+%% Type Definitions & Enums
+    class Platform {
+        <<enumeration>>
+        GitHub
+        GitLab
+    }
+
+    class ReferenceCategory {
+        <<enumeration>>
+        LOCAL_BRANCH
+        REMOTE_BRANCH
+        TAG
+        NOTE
+        PSEUDO_REF
+        UNKNOWN
+    }
+
+    class StatsKind {
+        <<enumeration>>
+        ADDITION
+        DELETION
+        MODIFICATION
+    }
+
+    class Stats {
+        +Long additions
+        +Long deletions
+        +StatsKind kind
+    }
+
+%% CI/CD & Structure Domain
+    class Build {
+        +Id iid
+        +String status
+        +List~Job~ jobs
+        +List~Commit~ commits
+    }
+
+    class Job {
+        +String name
+        +String status
+    }
+
+    class Module {
+        +Id iid
+        +String path
+        +List~File~ files
+        +List~Module~ childModules
+    }
+
+    class File {
+        +Id iid
+        +String path
+    }
+
+    class Revision {
+        +Id iid
+        +String content
+        +Commit commit
+        +File file
+    }
+
+    class User {
+        <<deprecated>>
+        +String name
+        +String email
+        +Repository repository
+    }
+
+%% Relationships
+    Stakeholder <|-- Developer
+    Stakeholder <|-- User
+
+    Reference <|-- Branch
+
+    Project "1" -- "0..1" Repository : scopes
+    Project "1" -- "*" Issue : contains
+    Repository "1" -- "*" Commit : owns
+    Repository "1" -- "*" Branch : owns
+    Repository "1" -- "*" Developer : involves
+    Repository "1" -- "*" Remote : references
+    Repository "1" -- "*" User : legacy
+
+    Commit "1" *-- "0..1" Stats : describes
+    Commit "1" -- "1" Signature : author
+    Commit "1" -- "0..1" Signature : committer
+    Signature "*" -- "1" Developer : belongs to
+    
+    Commit "0..*" -- "0..*" Commit : parents/children
+    Commit "1" -- "*" Revision : includes
+    Commit "*" -- "*" Build : triggers
+    Commit "*" -- "*" Issue : references
+    
+    Issue "1" -- "*" Note : has
+    Issue "1" -- "*" Mention : has
+    Issue "*" -- "*" Milestone : belongs to
+    Issue "*" -- "*" Account : reporter/assignee
+    
+    MergeRequest "1" -- "*" Note : has
+    MergeRequest "1" -- "*" Mention : has
+    MergeRequest "*" -- "*" Milestone : targets
+    
+    Module "1" -- "*" File : contains
+    Module "1" -- "*" Module : submodules
+    File "1" -- "*" Revision : history
+    Build "1" -- "*" Job : executes

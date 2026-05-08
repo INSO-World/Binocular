@@ -1,0 +1,112 @@
+classDiagram
+    direction TB
+
+    class Stakeholder {
+        +String name
+        +String email
+    }
+
+    class Reference {
+        +String name
+        +ReferenceCategory category
+    }
+
+    class Repository {
+        +Id iid
+        +String localPath
+        +Project project
+        +MutableSet~Commit~ commits
+        +MutableSet~Branch~ branches
+        +MutableSet~Developer~ developers
+        +MutableSet~Remote~ remotes
+    }
+
+    class Commit {
+        +String sha
+        +Signature authorSignature
+        +Signature committerSignature
+        +String message
+        +Repository repository
+        +String webUrl
+        +Stats stats
+        +MutableSet~Commit~ parents
+        +MutableSet~Commit~ children
+    }
+
+    class Signature {
+        +Developer developer
+        +LocalDateTime timestamp
+    }
+
+    class Branch {
+        +String name
+        +String fullName
+        +ReferenceCategory category
+        +Repository repository
+        +Commit head
+        +Set~File~ files
+    }
+
+    class Developer {
+        +String name
+        +String email
+        +Repository repository
+        +MutableSet~Commit~ committedCommits
+        +MutableSet~Commit~ authoredCommits
+        +String gitSignature
+    }
+
+    class ReferenceCategory {
+        <<enumeration>>
+        LOCAL_BRANCH
+        REMOTE_BRANCH
+        TAG
+        NOTE
+        PSEUDO_REF
+        UNKNOWN
+    }
+
+    class Stats {
+        +Long additions
+        +Long deletions
+        +StatsKind kind
+    }
+
+    class Remote {
+        +Id iid
+        +String name
+        +String url
+        +Repository repository
+    }
+
+    class File {
+        +Id iid
+        +String path
+    }
+
+    class Revision {
+        +Id iid
+        +String content
+        +Commit commit
+        +File file
+    }
+
+    Repository "1" -- "*" Commit : owns
+    Repository "1" -- "*" Branch : owns
+    Repository "1" -- "*" Developer : involves
+    Repository "1" -- "*" Remote : references
+
+    Stakeholder <|-- Developer
+    Reference <|-- Branch
+
+    Commit "1" *-- "0..1" Stats : describes
+    Commit "1" -- "1" Signature : author
+    Commit "1" -- "0..1" Signature : committer
+    Signature "*" -- "1" Developer : identifies
+
+    Commit "0..*" -- "0..*" Commit : parent/child
+    Commit "1" -- "*" Revision : records
+    Branch "*" -- "1" Commit : head
+    
+    Branch "1" -- "*" File : tracks
+    File "1" -- "*" Revision : has

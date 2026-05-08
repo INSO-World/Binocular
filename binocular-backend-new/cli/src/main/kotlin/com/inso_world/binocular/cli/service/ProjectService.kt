@@ -21,6 +21,11 @@ class ProjectService(
     }
 
     @Transactional
+    fun save(project: Project): Project {
+        return this.projectInfrastructurePort.create(project)
+    }
+
+    @Transactional
     fun getOrCreateProject(name: String): Project {
         val find = this.findByName(name)
         if (find == null) {
