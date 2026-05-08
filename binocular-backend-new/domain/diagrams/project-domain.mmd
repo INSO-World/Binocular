@@ -1,0 +1,72 @@
+classDiagram
+    direction TB
+
+    class Project {
+        +Id iid
+        +String name
+        +String description
+        +Repository repo
+        +Set~Issue~ issues
+    }
+
+    class Repository {
+        +Id iid
+        +String localPath
+        +Project project
+    }
+
+    class Issue {
+        +Id iid
+        +String title
+        +String description
+        +List~Account~ accounts
+        +List~Commit~ commits
+        +List~Milestone~ milestones
+        +List~Note~ notes
+        +List~Mention~ mentions
+        +List~User~ users
+    }
+
+    class MergeRequest {
+        +Id iid
+        +String title
+        +String description
+        +String createdAt
+        +String closedAt
+        +String updatedAt
+        +List~Account~ accounts
+        +List~Milestone~ milestones
+        +List~Note~ notes
+        +List~Mention~ mentions
+    }
+
+    class Note {
+        +Id iid
+        +String body
+        +String createdAt
+        +Boolean system
+        +Boolean resolvable
+        +Boolean confidential
+        +Boolean internal
+    }
+
+    class User {
+        <<deprecated>>
+        +String name
+        +String email
+        +Repository repository
+    }
+
+    class Mention {
+        +String commit
+        +LocalDateTime createdAt
+        +Boolean closes
+    }
+
+    Project "1" -- "0..1" Repository : scopes
+    Project "1" -- "*" Issue : contains
+    Issue "1" -- "*" Note : has
+    Issue "1" -- "*" Mention : has
+    MergeRequest "1" -- "*" Note : has
+    MergeRequest "1" -- "*" Mention : has
+    Repository "1" -- "*" User : legacy

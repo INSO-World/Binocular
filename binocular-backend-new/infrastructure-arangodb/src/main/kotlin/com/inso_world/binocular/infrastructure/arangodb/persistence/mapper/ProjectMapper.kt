@@ -31,6 +31,12 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
     @Autowired
     private lateinit var ctx: MappingContext
 
+    @Autowired
+    private lateinit var issueMapper: IssueMapper
+
+    @Autowired
+    private lateinit var mergeRequestMapper: MergeRequestMapper
+
     companion object {
         private val logger by logger()
     }
@@ -48,7 +54,11 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         // Fast-path: if this Project was already mapped in the current context, return it.
         ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)?.let { return it }
 
-        val entity = domain.toEntity()
+        val entity =
+            domain.toEntity().apply {
+                issues = domain.issues.map { issueMapper.toEntity(it) }
+                mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }
+            }
 
         ctx.remember(domain, entity)
         return entity

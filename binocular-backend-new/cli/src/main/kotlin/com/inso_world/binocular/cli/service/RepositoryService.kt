@@ -45,10 +45,17 @@ class RepositoryService(
         private val logger by logger()
     }
 
-    fun findBranch(repo: Repository, name: String): Branch? {
-        return this.repositoryPort.findBranch(repo, name)
-    }
+    fun findBranch(
+        repo: Repository,
+        name: String
+    ): Branch? = this.repositoryPort.findBranch(repo, name)
 
+    /**
+     * Persists a new [Repository] via the repository infrastructure port.
+     *
+     * @param repository The repository to persist.
+     * @return The persisted repository, as returned by the infrastructure port.
+     */
     @Transactional
     fun save(repository: Repository): Repository = this.repositoryPort.create(repository)
 
@@ -80,9 +87,10 @@ class RepositoryService(
         val developersBySignature = repo.developers.associateByTo(mutableMapOf()) { it.gitSignature }
 
         // Also index by email for coalescing (case-insensitive)
-        val developersByEmail = repo.developers
-            .mapNotNull { dev -> normalizeEmail(dev.email)?.let { it to dev } }
-            .toMap(mutableMapOf())
+        val developersByEmail =
+            repo.developers
+                .mapNotNull { dev -> normalizeEmail(dev.email)?.let { it to dev } }
+                .toMap(mutableMapOf())
 
         // Build index of canonical branches
         val branchesByKey = repo.branches.associateByTo(mutableMapOf()) { it.uniqueKey }
@@ -173,9 +181,12 @@ class RepositoryService(
 
     private fun normalizeEmail(email: String?): String? = email?.trim()?.lowercase()
 
-    private fun sameEmail(a: Developer, b: Developer): Boolean =
+    private fun sameEmail(
+        a: Developer,
+        b: Developer
+    ): Boolean =
         normalizeEmail(a.email) != null &&
-                normalizeEmail(a.email) == normalizeEmail(b.email)
+            normalizeEmail(a.email) == normalizeEmail(b.email)
 
     private fun normalizePath(path: String): String =
         (if (path.endsWith(".git")) path else "$path/.git").let {
@@ -251,5 +262,4 @@ class RepositoryService(
 //            return repo
 //        }
     }
-
 }

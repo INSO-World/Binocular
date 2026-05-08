@@ -3,6 +3,8 @@ package com.inso_world.binocular.infrastructure.arangodb.assembler
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.IssueMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.MergeRequestMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,6 +48,12 @@ internal class ProjectAssembler {
     private lateinit var projectMapper: ProjectMapper
 
     @Autowired
+    private lateinit var issueMapper: IssueMapper
+
+    @Autowired
+    private lateinit var mergeRequestMapper: MergeRequestMapper
+
+    @Autowired
     @Lazy
     private lateinit var repositoryAssembler: RepositoryAssembler
 
@@ -81,7 +89,12 @@ internal class ProjectAssembler {
         val entity = projectMapper.toEntity(domain)
         logger.trace("Mapped Project structure: id=${entity.id}")
 
-        // Phase 2: Assemble owned Repository if present
+        // Phase 2: Map Issues and MergeRequests to context
+        logger.trace("Mapping ${domain.issues.size} issues and ${domain.mergeRequests.size} merge requests")
+        domain.issues.forEach { issueMapper.toEntity(it) }
+        domain.mergeRequests.forEach { mergeRequestMapper.toEntity(it) }
+
+        // Phase 3: Assemble owned Repository if present
         domain.repo?.let { repository ->
             logger.trace("Assembling owned Repository for Project")
             val repoEntity = repositoryAssembler.toEntity(repository)
