@@ -40,6 +40,9 @@ data class Project(
     val issues: MutableSet<Issue> = mutableSetOf()
 //        object : NonRemovingMutableSetSet<Issue>() {}
 
+    // TODO: should MRs be included here?
+    val mergeRequests: MutableSet<MergeRequest> = mutableSetOf()
+
     var description: String? = null
 
     /**

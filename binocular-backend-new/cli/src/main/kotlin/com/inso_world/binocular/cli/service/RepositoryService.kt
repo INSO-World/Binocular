@@ -8,6 +8,7 @@ import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.nio.file.Paths
 
 /**
@@ -47,6 +48,11 @@ class RepositoryService {
 
     fun findBranch(repo: Repository, name: String): Branch? {
         return this.repositoryPort.findBranch(repo, name)
+    }
+
+    @Transactional
+    fun save(repository: Repository): Repository {
+        return this.repositoryPort.create(repository)
     }
 
     /**

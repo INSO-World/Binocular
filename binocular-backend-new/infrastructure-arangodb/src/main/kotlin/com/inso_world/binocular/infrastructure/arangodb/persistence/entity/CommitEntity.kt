@@ -143,6 +143,13 @@ data class CommitEntity(
         ).apply {
             this.id = this@CommitEntity.id
             this.webUrl = this@CommitEntity.webUrl
+            this.stats = this@CommitEntity.stats?.let {
+                com.inso_world.binocular.model.Stats(
+                    additions = it.additions,
+                    deletions = it.deletions,
+                    kind = it.kind ?: com.inso_world.binocular.model.Stats.StatsKind.MODIFICATION
+                )
+            }
         }
     }
 }
@@ -171,6 +178,13 @@ internal fun Commit.toEntity(
         repository = repository,
         author = author,
         committer = committer,
+        stats = this.stats?.let {
+            StatsEntity(
+                additions = it.additions.toLong(),
+                deletions = it.deletions.toLong(),
+                kind = it.kind
+            )
+        }
     ).apply {
         this.id = this@toEntity.id?.trim()
     }

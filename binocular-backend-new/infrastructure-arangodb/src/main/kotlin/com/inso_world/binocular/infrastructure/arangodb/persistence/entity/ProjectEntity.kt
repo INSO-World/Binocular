@@ -38,6 +38,14 @@ data class ProjectEntity(
     @Ref
     var repository: RepositoryEntity? = null
 
+    // TODO: issues should be added here right?
+    @Ref
+    var issues: List<IssueEntity> = emptyList()
+
+    // TODO: also MRs?
+    @Ref
+    var mergeRequests: List<MergeRequestEntity> = emptyList()
+
     /**
      * Converts this ProjectEntity to a Project domain object.
      *
