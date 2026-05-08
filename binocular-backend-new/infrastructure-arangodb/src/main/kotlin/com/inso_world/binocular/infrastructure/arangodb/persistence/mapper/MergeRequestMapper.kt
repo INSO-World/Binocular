@@ -67,7 +67,9 @@ internal class MergeRequestMapper
                 state = domain.state,
                 webUrl = domain.webUrl,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
-                // Relationships are handled by ArangoDB through edges
+                accounts = domain.accounts.map { accountMapper.toEntity(it) },
+                milestones = domain.milestones.map { milestoneMapper.toEntity(it) },
+                notes = domain.notes.map { noteMapper.toEntity(it) },
             )
 
         /**

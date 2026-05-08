@@ -76,6 +76,9 @@ internal class IssueMapper
                 state = domain.state,
                 webUrl = domain.webUrl,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
+                accounts = domain.accounts.map { accountMapper.toEntity(it) },
+                milestones = domain.milestones.map { milestoneMapper.toEntity(it) },
+                notes = domain.notes.map { noteMapper.toEntity(it) },
             )
 
         /**

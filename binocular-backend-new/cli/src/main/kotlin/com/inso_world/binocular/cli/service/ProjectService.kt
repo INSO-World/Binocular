@@ -20,6 +20,15 @@ class ProjectService(
         this.projectInfrastructurePort.deleteAll()
     }
 
+    /**
+     * Persists a new [Project] via the project infrastructure port.
+     *
+     * @param project The project to persist.
+     * @return The persisted project, as returned by the infrastructure port.
+     */
+    @Transactional
+    fun save(project: Project): Project = this.projectInfrastructurePort.create(project)
+
     @Transactional
     fun getOrCreateProject(name: String): Project {
         val find = this.findByName(name)

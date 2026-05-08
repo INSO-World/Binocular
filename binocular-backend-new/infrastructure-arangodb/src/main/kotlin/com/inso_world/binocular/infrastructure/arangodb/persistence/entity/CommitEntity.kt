@@ -149,7 +149,10 @@ data class CommitEntity(
             this.id = this@CommitEntity.id
             this.webUrl = this@CommitEntity.webUrl
             this.branch = this@CommitEntity.branch
-            this.stats = this@CommitEntity.stats?.let { Stats(additions = it.additions, deletions = it.deletions) }
+            this.stats =
+                this@CommitEntity.stats?.let {
+                    Stats(additions = it.additions, deletions = it.deletions, kind = it.kind)
+                }
         }
     }
 }
@@ -176,6 +179,10 @@ internal fun Commit.toEntity(
         message = this.message,
         webUrl = this.webUrl,
         branch = this.branch,
+        stats =
+            this.stats?.let {
+                StatsEntity(additions = it.additions, deletions = it.deletions, kind = it.kind)
+            },
     ).also {
         it.id = this.id?.trim()
         it.repository = repository

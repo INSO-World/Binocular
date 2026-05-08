@@ -30,15 +30,21 @@ data class Project(
     @field:NotBlank
     val name: String
 ) : AbstractDomainObject<Project.Id, Project.Key>(
-    Id(Uuid.random())
-) {
+        Id(Uuid.random())
+    ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
-    data class Key(val name: String) // value object for lookups
+    data class Key(
+        val name: String
+    ) // value object for lookups
 
     val issues: MutableSet<Issue> = mutableSetOf()
 //        object : NonRemovingMutableSetSet<Issue>() {}
+
+    val mergeRequests: MutableSet<MergeRequest> = mutableSetOf()
 
     var description: String? = null
 
@@ -90,5 +96,6 @@ data class Project(
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 }

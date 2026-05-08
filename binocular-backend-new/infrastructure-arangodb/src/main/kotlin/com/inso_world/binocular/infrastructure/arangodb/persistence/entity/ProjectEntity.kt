@@ -39,6 +39,18 @@ data class ProjectEntity(
     var repository: RepositoryEntity? = null
 
     /**
+     * Issues associated with this project.
+     */
+    @Ref
+    var issues: List<IssueEntity> = emptyList()
+
+    /**
+     * Merge requests associated with this project.
+     */
+    @Ref
+    var mergeRequests: List<MergeRequestEntity> = emptyList()
+
+    /**
      * Converts this ProjectEntity to a Project domain object.
      *
      * @param repo Optional repository to associate with the project
