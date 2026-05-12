@@ -6,9 +6,12 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.Proje
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
-import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.DeveloperMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.FileMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RemoteMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RevisionMapper
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -98,6 +101,15 @@ internal class RepositoryAssembler {
     private lateinit var projectMapper: ProjectMapper
 
     @Autowired
+    private lateinit var remoteMapper: RemoteMapper
+
+    @Autowired
+    private lateinit var revisionMapper: RevisionMapper
+
+    @Autowired
+    private lateinit var fileMapper: FileMapper
+
+    @Autowired
     private lateinit var ctx: MappingContext
 
     /**
@@ -152,7 +164,13 @@ internal class RepositoryAssembler {
         val entity = repositoryMapper.toEntity(domain)
         logger.trace("Mapped Repository structure: id=${entity.id}")
 
-        // Phase 2: Map Commits
+        // Phase 2: Map Remotes
+        logger.trace("Mapping ${domain.remotes.size} remotes")
+        domain.remotes.forEach { remote ->
+            remoteMapper.toEntity(remote)
+        }
+
+        // Phase 3: Map Commits
         // Note: In ArangoDB, commits are stored as separate documents
         // The mapper handles the conversion, and parent/child relationships
         // are managed through commit SHA references in the document store
@@ -166,7 +184,13 @@ internal class RepositoryAssembler {
             developerMapper.toEntity(commit.committer)
         }
 
-        // Phase 3: Map Branches
+        // Phase 4: Map Files and Revisions
+        logger.trace("Mapping files and revisions")
+        domain.commits.forEach { commit ->
+            // TODO from commits here
+        }
+
+        // Phase 4: Map Branches
         // Note: In ArangoDB, branches reference commits by SHA
         logger.trace("Mapping ${domain.branches.size} branches")
         domain.branches.forEach { branch ->

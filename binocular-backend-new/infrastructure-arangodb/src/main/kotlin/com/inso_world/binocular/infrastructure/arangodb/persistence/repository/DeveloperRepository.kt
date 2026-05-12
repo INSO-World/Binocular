@@ -1,10 +1,8 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.repository
 
 import com.arangodb.springframework.repository.ArangoRepository
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.FileEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.DeveloperEntity
 import org.springframework.stereotype.Repository
 
 @Repository
-interface FileRepository : ArangoRepository<FileEntity, String> {
-    fun findByPath(path: String): FileEntity?
-}
+interface DeveloperRepository : ArangoRepository<DeveloperEntity, String>

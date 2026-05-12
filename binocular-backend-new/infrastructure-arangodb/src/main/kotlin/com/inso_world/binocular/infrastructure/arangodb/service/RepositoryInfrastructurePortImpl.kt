@@ -1,8 +1,10 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
@@ -37,6 +39,9 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     @Autowired
     private lateinit var repositoryMapper: RepositoryMapper
 
+    @Autowired
+    private lateinit var repositoryAssembler: RepositoryAssembler
+
     override fun findByIid(iid: Repository.Id): Repository? {
         TODO("Not yet implemented")
     }
@@ -53,10 +58,12 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         return this.repositoryDao.findById(id)
     }
 
+    @MappingSession
     override fun create(value: Repository): Repository {
-        val mappedEntity = repositoryMapper.toEntity(value)
+        // TODO: use assembler here right?
+        val mappedEntity = repositoryAssembler.toEntity(value)
         val savedEntity = this.repositoryDao.create(mappedEntity)
-        return repositoryMapper.toDomain(savedEntity)
+        return repositoryAssembler.toDomain(savedEntity)
     }
 
     override fun saveAll(values: Collection<Repository>): Iterable<Repository> {
