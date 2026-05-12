@@ -18,7 +18,9 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.Profiles
 import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.test.context.ContextConfiguration
+import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
 
 @AutoConfigureGraphQlTester
 @AutoConfigureMockMvc
@@ -37,11 +39,17 @@ internal abstract class BaseGraphQlCompatibilityIT {
         private val adbContainer =
             ArangoContainer(
                 DockerImageName.parse("ghcr.io/inso-world/binocular-database:3.12.test-data")
+
                     .asCompatibleSubstituteFor("arangodb")
             )
                 .apply { withExposedPorts(8529) }
                 .apply { withoutAuth() }
-                .apply { withReuse(true) }
+                // .apply { withReuse(true) }
+                .waitingFor(
+                    // Wait for script success message
+                    Wait.forLogMessage(".*RECOVERY_COMPLETE_PROCEED_WITH_TESTS.*\\n", 1)
+                        .withStartupTimeout(Duration.ofSeconds(120))
+                )
 
         private const val DEFAULT_TARGET = "spring"
         private const val TARGET_LEGACY = "legacy"
@@ -52,13 +60,12 @@ internal abstract class BaseGraphQlCompatibilityIT {
 
     private class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(ctx: ConfigurableApplicationContext) {
-            if (!ctx.environment.acceptsProfiles(Profiles.of("arangodb"))) return
             adbContainer.start()
 
             TestPropertyValues.of(
-                "binocular.arangodb.database.name=binocular-binocular",
                 "binocular.arangodb.database.host=${adbContainer.host}",
-                "binocular.arangodb.database.port=${adbContainer.firstMappedPort}"
+                "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
+                "binocular.arangodb.database.name=binocular-binocular"
             ).applyTo(ctx.environment)
         }
     }

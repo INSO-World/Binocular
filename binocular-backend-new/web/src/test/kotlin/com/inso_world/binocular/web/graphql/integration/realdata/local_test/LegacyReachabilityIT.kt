@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import java.net.ConnectException
 import java.net.URL
 
-class LegacyReachabilityIT {
+internal class LegacyReachabilityIT {
 
     private val candidates = listOfNotNull(
         System.getProperty("graphql.legacy.url"), // explicit override

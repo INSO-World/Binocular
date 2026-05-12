@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.FileInfrastructurePort
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.FileDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -16,8 +18,9 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "File")
-class FileController(
+internal class FileController(
     @Autowired private val fileService: FileInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(FileController::class.java)
 
@@ -34,7 +37,7 @@ class FileController(
         @Argument page: Int?,
         @Argument perPage: Int?,
         @Argument sort: Sort?,
-    ): PageDto<File> {
+    ): PageDto<FileDto> {
         logger.info("Getting all files...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -52,7 +55,7 @@ class FileController(
         )
 
         val result = fileService.findAll(pageable)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -70,15 +73,15 @@ class FileController(
     fun findByIdOrPath(
         @Argument id: String?,
         @Argument path: String?,
-    ): File {
+    ): FileDto {
         if (id != null) {
             logger.info("Getting file by id: $id")
-            return GraphQLValidationUtils.requireEntityExists(fileService.findById(id), "File", id)
+            return mapper.toDto(GraphQLValidationUtils.requireEntityExists(fileService.findById(id), "File", id))
         }
         if (path != null) {
             logger.info("Getting file by path: $path")
             val match = fileService.findByPath(path)
-            return GraphQLValidationUtils.requireEntityExists(match, "File", path)
+            return mapper.toDto(GraphQLValidationUtils.requireEntityExists(match, "File", path))
         }
         throw IllegalArgumentException("Either id or path must be provided")
     }

@@ -10,7 +10,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
-class LegacyHttpGraphQlClient(private val baseUrl: String) : CompatibleGraphQlClient {
+internal class LegacyHttpGraphQlClient(private val baseUrl: String) : CompatibleGraphQlClient {
 
     companion object {
         init {

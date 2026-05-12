@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.MilestoneDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -16,8 +18,9 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Milestone")
-class MilestoneController(
+internal class MilestoneController(
     @Autowired private val milestoneService: MilestoneInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(MilestoneController::class.java)
 
@@ -34,7 +37,7 @@ class MilestoneController(
         @Argument page: Int?,
         @Argument perPage: Int?,
         @Argument sort: Sort?,
-    ): PageDto<Milestone> {
+    ): PageDto<MilestoneDto> {
         logger.info("Getting all milestones...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -52,7 +55,7 @@ class MilestoneController(
         )
 
         val result = milestoneService.findAll(pageable)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -68,9 +71,9 @@ class MilestoneController(
     @QueryMapping(name = "milestone")
     fun findById(
         @Argument id: String,
-    ): Milestone {
+    ): MilestoneDto {
         logger.info("Getting milestone by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(milestoneService.findById(id), "Milestone", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(milestoneService.findById(id), "Milestone", id))
     }
 
 }
