@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration
     ]
 )
 @ComponentScan(basePackages = ["com.inso_world.binocular.infrastructure.test", "com.inso_world.binocular.core"])
-internal abstract class BaseInfrastructureSpringTest {
+abstract class BaseInfrastructureSpringTest {
     @Autowired
     protected lateinit var infrastructureDataSetup: InfrastructureDataSetup
 

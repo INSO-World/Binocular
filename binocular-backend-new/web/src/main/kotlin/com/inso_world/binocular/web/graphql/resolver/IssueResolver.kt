@@ -1,21 +1,19 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.IssueInfrastructurePort
-import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.enums.IssueAccountRole
-import com.inso_world.binocular.model.Milestone
-import com.inso_world.binocular.model.Note
-import com.inso_world.binocular.model.User
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
 @Controller
 class IssueResolver(
     private val issueService: IssueInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(IssueResolver::class.java)
 
@@ -29,11 +27,11 @@ class IssueResolver(
      * @return A list of accounts associated with the issue, or an empty list if the issue ID is null
      */
     @SchemaMapping(typeName = "Issue", field = "accounts")
-    fun accounts(issue: Issue): List<Account> {
+    fun accounts(issue: IssueDto): List<AccountDto> {
         val id = issue.id ?: return emptyList()
         logger.info("Resolving accounts for issue: $id")
         // Get all connections for this issue and extract the accounts
-        return issueService.findAccountsByIssueId(id)
+        return issueService.findAccountsByIssueId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -46,11 +44,11 @@ class IssueResolver(
      * @return A list of commits associated with the issue, or an empty list if the issue ID is null
      */
     @SchemaMapping(typeName = "Issue", field = "commits")
-    fun commits(issue: Issue): List<Commit> {
+    fun commits(issue: IssueDto): List<CommitDto> {
         val id = issue.id ?: return emptyList()
         logger.info("Resolving commits for issue: $id")
         // Get all connections for this issue and extract the commits
-        return issueService.findCommitsByIssueId(id)
+        return issueService.findCommitsByIssueId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -63,11 +61,11 @@ class IssueResolver(
      * @return A list of milestones associated with the issue, or an empty list if the issue ID is null
      */
     @SchemaMapping(typeName = "Issue", field = "milestones")
-    fun milestones(issue: Issue): List<Milestone> {
+    fun milestones(issue: IssueDto): List<MilestoneDto> {
         val id = issue.id ?: return emptyList()
         logger.info("Resolving milestones for issue: $id")
         // Get all connections for this issue and extract the milestones
-        return issueService.findMilestonesByIssueId(id)
+        return issueService.findMilestonesByIssueId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -80,11 +78,11 @@ class IssueResolver(
      * @return A list of notes associated with the issue, or an empty list if the issue ID is null
      */
     @SchemaMapping(typeName = "Issue", field = "notes")
-    fun notes(issue: Issue): List<Note> {
+    fun notes(issue: IssueDto): List<NoteDto> {
         val id = issue.id ?: return emptyList()
         logger.info("Resolving notes for issue: $id")
         // Get all connections for this issue and extract the notes
-        return issueService.findNotesByIssueId(id)
+        return issueService.findNotesByIssueId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -97,11 +95,11 @@ class IssueResolver(
      * @return A list of users associated with the issue, or an empty list if the issue ID is null
      */
     @SchemaMapping(typeName = "Issue", field = "users")
-    fun users(issue: Issue): List<User> {
+    fun users(issue: IssueDto): List<UserDto> {
         val id = issue.id ?: return emptyList()
         logger.info("Resolving users for issue: $id")
         // Get all connections for this issue and extract the users
-        return issueService.findUsersByIssueId(id)
+        return issueService.findUsersByIssueId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -114,10 +112,10 @@ class IssueResolver(
      * @return The author account associated with the issue, or null if none exists
      */
     @SchemaMapping(typeName = "Issue", field = "author")
-    fun author(issue: Issue): Account? {
+    fun author(issue: IssueDto): AccountDto? {
         val id = issue.id ?: return null
         logger.info("Resolving author for issue: $id")
-        return issueService.findAccountsByIssueId(id, IssueAccountRole.AUTHOR).firstOrNull()
+        return issueService.findAccountsByIssueId(id, IssueAccountRole.AUTHOR).firstOrNull()?.let { mapper.toDto(it) }
     }
 
     /**
@@ -130,10 +128,10 @@ class IssueResolver(
      * @return The assignee account associated with the issue, or null if none exists
      */
     @SchemaMapping(typeName = "Issue", field = "assignee")
-    fun assignee(issue: Issue): Account? {
+    fun assignee(issue: IssueDto): AccountDto? {
         val id = issue.id ?: return null
         logger.info("Resolving assignee for issue: $id")
-        return issueService.findAccountsByIssueId(id, IssueAccountRole.ASSIGNEE).firstOrNull()
+        return issueService.findAccountsByIssueId(id, IssueAccountRole.ASSIGNEE).firstOrNull()?.let { mapper.toDto(it) }
     }
 
     /**
@@ -146,10 +144,10 @@ class IssueResolver(
      * @return A list of assignee accounts associated with the issue, or an empty list if the issue ID is null
      */
     @SchemaMapping(typeName = "Issue", field = "assignees")
-    fun assignees(issue: Issue): List<Account> {
+    fun assignees(issue: IssueDto): List<AccountDto> {
         val id = issue.id ?: return emptyList()
         logger.info("Resolving assignees for issue: $id")
-        return issueService.findAccountsByIssueId(id, IssueAccountRole.ASSIGNEES)
+        return issueService.findAccountsByIssueId(id, IssueAccountRole.ASSIGNEES).map { mapper.toDto(it) }
     }
 
 }

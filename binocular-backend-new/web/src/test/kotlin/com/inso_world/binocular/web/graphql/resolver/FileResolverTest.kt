@@ -2,18 +2,22 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.FileDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the File resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class FileResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var fileResolver: FileResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -280,6 +284,67 @@ internal class FileResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `branches should return empty list when file id is null`() {
+            // Arrange
+            val file = FileDto(id = null, path = "src/main/kotlin/com/example/Main.kt")
+
+            // Act
+            val result = fileResolver.branches(file)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Branches list should be empty when file ID is null")
+        }
+
+        @Test
+        fun `commits should return empty connection when file id is null`() {
+            // Arrange
+            val file = FileDto(id = null, path = "src/main/kotlin/com/example/Main.kt")
+
+            // Act
+            val result = fileResolver.commits(file, null, null, null)
+
+            // Assert
+            assertTrue(result.data.isEmpty(), "Commits data should be empty when file ID is null")
+            assertEquals(0, result.count, "Count should be 0")
+        }
+
+        @Test
+        fun `modules should return empty list when file id is null`() {
+            // Arrange
+            val file = FileDto(id = null, path = "src/main/kotlin/com/example/Main.kt")
+
+            // Act
+            val result = fileResolver.modules(file)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Modules list should be empty when file ID is null")
+        }
+
+        @Test
+        fun `relatedFiles should return empty list when file id is null`() {
+            // Arrange
+            val file = FileDto(id = null, path = "src/main/kotlin/com/example/Main.kt")
+
+            // Act
+            val result = fileResolver.relatedFiles(file)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Related files list should be empty when file ID is null")
+        }
+
+        @Test
+        fun `users should return empty list when file id is null`() {
+            // Arrange
+            val file = FileDto(id = null, path = "src/main/kotlin/com/example/Main.kt")
+
+            // Act
+            val result = fileResolver.users(file)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Users list should be empty when file ID is null")
+        }
+
         @Test
         fun `should handle non-existent file`() {
             // Create a test query for a file that doesn't exist in the test data

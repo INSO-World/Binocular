@@ -1,24 +1,20 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.FileInfrastructurePort
-import com.inso_world.binocular.model.Branch
-import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.File
-import com.inso_world.binocular.model.User
-import com.inso_world.binocular.web.graphql.model.CommitInFile
-import com.inso_world.binocular.web.graphql.model.PaginatedCommitInFileDto
-import com.inso_world.binocular.web.graphql.model.Sort
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.*
 import com.inso_world.binocular.web.util.PaginationUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.stereotype.Controller
-import java.time.LocalDateTime
 
 @Controller
 class FileResolver(
     private val fileService: FileInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(FileResolver::class.java)
 
@@ -32,11 +28,11 @@ class FileResolver(
      * @return A list of branches associated with the file, or an empty list if the file ID is null
      */
     @SchemaMapping(typeName = "File", field = "branches")
-    fun branches(file: File): List<Branch> {
+    fun branches(file: FileDto): List<BranchDto> {
         val id = file.id ?: return emptyList()
         logger.info("Resolving branches for file: $id")
         // Get all connections for this file and extract the branches
-        return fileService.findBranchesByFileId(id)
+        return fileService.findBranchesByFileId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -49,7 +45,7 @@ class FileResolver(
      * @return A list of commits associated with the file, or an empty list if the file ID is null
      */
     @SchemaMapping(typeName = "File", field = "commits")
-    fun commits(file: File, @Argument page: Int?, @Argument perPage: Int?, @Argument sort: Sort?): PaginatedCommitInFileDto {
+    fun commits(file: FileDto, @Argument page: Int?, @Argument perPage: Int?, @Argument sort: Sort?): PaginatedCommitInFileDto {
         val currentPage = (page ?: 1).coerceAtLeast(1)
         val pageSize = perPage ?: 1000
         val id = file.id ?: return PaginatedCommitInFileDto(
@@ -68,7 +64,7 @@ class FileResolver(
         )
         val commitsPage = fileService.findCommitsByFileId(id, pageable)
 
-        val data = commitsPage.content.map { c -> CommitInFile(commit = c) }
+        val data = commitsPage.content.map { c -> CommitInFile(commit = mapper.toDto(c)) }
         return PaginatedCommitInFileDto(
             count = commitsPage.totalElements.toInt(),
             page = currentPage,
@@ -87,11 +83,11 @@ class FileResolver(
      * @return A list of modules associated with the file, or an empty list if the file ID is null
      */
     @SchemaMapping(typeName = "File", field = "modules")
-    fun modules(file: File): List<com.inso_world.binocular.model.Module> {
+    fun modules(file: FileDto): List<ModuleDto> {
         val id = file.id ?: return emptyList()
         logger.info("Resolving modules for file: $id")
         // Get all connections for this file and extract the modules
-        return fileService.findModulesByFileId(id)
+        return fileService.findModulesByFileId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -104,11 +100,11 @@ class FileResolver(
      * @return A list of related files associated with the file, or an empty list if the file ID is null
      */
     @SchemaMapping(typeName = "File", field = "relatedFiles")
-    fun relatedFiles(file: File): List<File> {
+    fun relatedFiles(file: FileDto): List<FileDto> {
         val id = file.id ?: return emptyList()
         logger.info("Resolving related files for file: $id")
         // Get all connections for this file and extract the related files
-        return fileService.findRelatedFilesByFileId(id)
+        return fileService.findRelatedFilesByFileId(id).map { mapper.toDto(it) }
     }
 
     /**
@@ -121,11 +117,23 @@ class FileResolver(
      * @return A list of users associated with the file, or an empty list if the file ID is null
      */
     @SchemaMapping(typeName = "File", field = "users")
-    fun users(file: File): List<User> {
+    fun users(file: FileDto): List<UserDto> {
         val id = file.id ?: return emptyList()
         logger.info("Resolving users for file: $id")
         // Get all connections for this file and extract the users
-        return fileService.findUsersByFileId(id)
+        return fileService.findUsersByFileId(id).map { mapper.toDto(it) }
     }
 
+    /**
+     * Resolves the revisions field for a File in GraphQL.
+     *
+     * @param file The file for which to retrieve revisions
+     * @return A list of revisions associated with the file, or an empty list if the file ID is null
+     */
+    @SchemaMapping(typeName = "File", field = "revisions")
+    fun revisions(file: FileDto): List<RevisionDto> {
+        val id = file.id ?: return emptyList()
+        logger.info("Resolving revisions for file: $id")
+        return fileService.findById(id)?.revisions?.map { mapper.toDto(it) } ?: emptyList()
+    }
 }

@@ -2,7 +2,7 @@ package com.inso_world.binocular.web.graphql.integration.realdata.base
 
 import com.fasterxml.jackson.databind.JsonNode
 
-interface CompatibleGraphQlClient {
+internal interface CompatibleGraphQlClient {
 
     fun execute(query: String): JsonNode = execute(query, emptyMap())
 

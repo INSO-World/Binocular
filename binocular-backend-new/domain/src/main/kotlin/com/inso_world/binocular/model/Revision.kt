@@ -29,7 +29,7 @@ data class Revision(
 
     @OptIn(ExperimentalEncodingApi::class)
     override fun toString(): String =
-        "FileState(iid=$iid, id=$id, content=${
+        "Revision(iid=$iid, id=$id, content=${
             Base64.Default.encode(
                 content?.trim()?.encodeToByteArray() ?: ByteArray(0),
             )

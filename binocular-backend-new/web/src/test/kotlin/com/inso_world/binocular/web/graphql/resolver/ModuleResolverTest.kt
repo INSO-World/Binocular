@@ -2,17 +2,22 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
+import com.inso_world.binocular.web.graphql.model.ModuleDto
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Test class for verifying the Module resolver functionality.
  * This class extends GraphQlControllerTest to leverage the test data setup.
  */
 internal class ModuleResolverTest : GraphQlControllerTest() {
+    @Autowired
+    private lateinit var moduleResolver: ModuleResolver
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -210,6 +215,54 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
 
     @Nested
     inner class EdgeCases {
+        @Test
+        fun `commits should return empty list when module id is null`() {
+            // Arrange
+            val module = ModuleDto(id = null, path = "src/main")
+
+            // Act
+            val result = moduleResolver.commits(module)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Commits list should be empty when module ID is null")
+        }
+
+        @Test
+        fun `files should return empty list when module id is null`() {
+            // Arrange
+            val module = ModuleDto(id = null, path = "src/main")
+
+            // Act
+            val result = moduleResolver.files(module)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Files list should be empty when module ID is null")
+        }
+
+        @Test
+        fun `childModules should return empty list when module id is null`() {
+            // Arrange
+            val module = ModuleDto(id = null, path = "src/main")
+
+            // Act
+            val result = moduleResolver.childModules(module)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Child modules list should be empty when module ID is null")
+        }
+
+        @Test
+        fun `parentModules should return empty list when module id is null`() {
+            // Arrange
+            val module = ModuleDto(id = null, path = "src/main")
+
+            // Act
+            val result = moduleResolver.parentModules(module)
+
+            // Assert
+            assertTrue(result.isEmpty(), "Parent modules list should be empty when module ID is null")
+        }
+
         @Test
         fun `should handle non-existent module`() {
             // Create a test query for a module that doesn't exist in the test data

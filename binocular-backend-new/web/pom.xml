@@ -51,6 +51,13 @@
         </dependency>
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
+            <artifactId>domain</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.inso-world.binocular</groupId>
             <artifactId>infrastructure-arangodb</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -154,7 +161,7 @@
                             <includes>
                                 <!-- Run only tests located under the real-data integration package -->
                                 <include>**/graphql/integration/realdata/**/*Test.*</include>
-                                <include>**/graphql/integration/realdata/**/GraphQLSmokeTest.*</include>
+                                <include>**/graphql/integration/realdata/**/*IT.*</include>
                             </includes>
                         </configuration>
                     </plugin>

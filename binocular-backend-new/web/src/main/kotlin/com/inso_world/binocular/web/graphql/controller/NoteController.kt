@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.core.service.NoteInfrastructurePort
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.web.graphql.error.GraphQLValidationUtils
+import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
+import com.inso_world.binocular.web.graphql.model.NoteDto
 import com.inso_world.binocular.web.graphql.model.PageDto
 import com.inso_world.binocular.web.graphql.model.Sort
 import com.inso_world.binocular.web.util.PaginationUtils
@@ -16,8 +18,9 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @SchemaMapping(typeName = "Note")
-class NoteController(
+internal class NoteController(
     @Autowired private val noteService: NoteInfrastructurePort,
+    @Autowired private val mapper: GraphQlMapper,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(NoteController::class.java)
 
@@ -34,7 +37,7 @@ class NoteController(
         @Argument page: Int?,
         @Argument perPage: Int?,
         @Argument sort: Sort?,
-    ): PageDto<Note> {
+    ): PageDto<NoteDto> {
         logger.info("Getting all notes...")
 
         val pageable = PaginationUtils.createPageableWithValidation(
@@ -52,7 +55,7 @@ class NoteController(
         )
 
         val result = noteService.findAll(pageable)
-        return PageDto(result)
+        return PageDto(result).map { mapper.toDto(it) }
     }
 
     /**
@@ -68,9 +71,9 @@ class NoteController(
     @QueryMapping(name = "note")
     fun findById(
         @Argument id: String,
-    ): Note {
+    ): NoteDto {
         logger.info("Getting note by id: $id")
-        return GraphQLValidationUtils.requireEntityExists(noteService.findById(id), "Note", id)
+        return mapper.toDto(GraphQLValidationUtils.requireEntityExists(noteService.findById(id), "Note", id))
     }
 
 }
