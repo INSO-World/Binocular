@@ -40,6 +40,24 @@ data class RepositoryEntity(
         this.project.repository = this
     }
 
+    @Ref
+    var commits: List<CommitEntity> = emptyList()
+
+    @Ref
+    var branches: List<BranchEntity> = emptyList()
+
+    @Ref
+    var developers: List<DeveloperEntity> = emptyList()
+
+    @Ref
+    var remotes: List<RemoteEntity> = emptyList()
+
+    @Ref
+    var files: List<FileEntity> = emptyList()
+
+    @Ref
+    var revisions: List<RevisionEntity> = emptyList()
+
     /**
      * Converts this RepositoryEntity to a Repository domain object.
      *
