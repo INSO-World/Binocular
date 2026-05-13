@@ -5,6 +5,7 @@ import dataExportStyles from './dataExport/dataExport.module.scss';
 import ShowIcon from '../../assets/show_gray.svg?react';
 import DownloadIcon from '../../assets/download.svg?react';
 import type { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
+import ColorCodedPanel from '../colorCodedPanel/colorCodedPanel.tsx';
 import { useEffect, useState } from 'react';
 import DataPluginStorage from '../../utils/dataPluginStorage.ts';
 import type { JSONObject } from '../../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
@@ -60,7 +61,7 @@ function ExportDialog() {
   const exportDataType = useSelector((state: RootState) => state.export.exportDataType);
   const exportData = useSelector((state: RootState) => state.export.exportData);
 
-  const availableDataPlugins: DatabaseSettingsDataPluginType[] = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const [selectedDataPlugin, setSelectedDataPlugin] = useState<DatabaseSettingsDataPluginType | undefined>(undefined);
   const [previewTableHeader, setPreviewTableHeader] = useState<string[]>([]);
   const [previewTableData, setPreviewTableData] = useState<JSONObject[]>([]);
@@ -250,67 +251,52 @@ function ExportDialog() {
           <div className={dataExportStyles.chartContainer}>
             <div className={dataExportStyles.mg1}>
               {/* Step 1: Choose Database */}
-              <h1>1. Choose Database</h1>
-              <div className={'flex flex-wrap gap-3 mb-4'}>
-                {availableDataPlugins
-                  .filter((dP) => dP.name === 'PouchDb' || dP.name === 'Binocular Backend')
-                  .map((dP: DatabaseSettingsDataPluginType) => {
-                    const isSelected = selectedDataPlugin?.id === dP.id;
-                    return (
-                      <div key={`settingsDatabasePlugin${dP.id}`}>
-                        {dP.color && (
-                          <div
-                            className={`card w-52 min-h-20 bg-base-100 shadow-md border-2 cursor-pointer transition-all relative overflow-hidden
-                          ${isSelected ? 'border-primary ring-1 ring-primary ring-offset-1' : ''}`}
-                            style={{ borderColor: dP.color }}
-                            onClick={() => {
-                              // disable switching while data is loading to not overwhelm the website
-                              if (!loading) setSelectedDataPlugin(dP);
-                            }}>
-                            {dP.color && <div className="absolute left-0 inset-y-0 w-3" style={{ background: dP.color }} />}
-                            <div className="card-body py-3 px-4 justify-center">
-                              <div className="flex items-center gap-2">
-                                <h2 className="card-title text-sm justify-center w-full !mb-0">
-                                  {dP.name} #{dP.id}
-                                </h2>
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                {dP.id === 0 && <div className="badge badge-outline badge-sm">pre-loaded</div>}
-                              </div>
-                              {dP.parameters.endpoint && (
-                                <div className="text-xs">
-                                  <span className={'font-bold'}>Endpoint: </span>
-                                  <span>{dP.parameters.endpoint}</span>
-                                </div>
-                              )}
-                              {dP.parameters.fileName && (
-                                <div className="text-xs">
-                                  <span className={'font-bold'}>Database: </span>
-                                  <span>{dP.parameters.fileName}</span>
-                                </div>
-                              )}
-                            </div>
-                            {isSelected && !loading && (
-                              <span
-                                className="badge badge-sm absolute bottom-2 right-2 border-0 text-white"
-                                style={{ background: 'rgba(0,0,0,0.35)' }}>
-                                &#10003;
-                              </span>
-                            )}
-                            {isSelected && loading && (
-                              <span className="loading loading-spinner loading-md absolute bottom-2 right-2 text-primary"></span>
-                            )}
+              <p className="font-bold text-base">1. Choose Database</p>
+              <div className={'mb-4'}>
+                <div className="flex flex-wrap gap-3">
+                  {availableDataPlugins
+                    .filter((dP: DatabaseSettingsDataPluginType) => dP.name === 'PouchDb' || dP.name === 'Binocular Backend')
+                    .map((dP: DatabaseSettingsDataPluginType) => {
+                      const isSelected = selectedDataPlugin?.id === dP.id;
+                      return (
+                        <ColorCodedPanel
+                          key={`exportPlugin${dP.id}`}
+                          color={dP.color}
+                          isSelected={isSelected}
+                          onSelect={() => {
+                            if (!loading) setSelectedDataPlugin(dP);
+                          }}
+                          selectable
+                          loading={isSelected && loading}
+                          className="w-52">
+                          <p className="card-title text-sm justify-center w-full !mb-0">
+                            {dP.name} #{dP.id}
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {dP.id === 0 && <div className="badge badge-outline badge-sm">pre-loaded</div>}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          {dP.parameters?.endpoint && (
+                            <div className="text-xs">
+                              <span className="font-bold">Endpoint: </span>
+                              <span>{dP.parameters.endpoint}</span>
+                            </div>
+                          )}
+                          {dP.parameters?.fileName && (
+                            <div className="text-xs">
+                              <span className="font-bold">Database: </span>
+                              <span>{dP.parameters.fileName}</span>
+                            </div>
+                          )}
+                        </ColorCodedPanel>
+                      );
+                    })}
+                </div>
               </div>
               {loading && <p>Be patient, this might take a while</p>}
 
               <div className="divider my-1"></div>
               {/* Step 2: Choose Export Format */}
-              <h1>2. Choose Export Format</h1>
+              <p className="font-bold text-base">2. Choose Export Format</p>
               <div className="flex gap-2 mb-4">
                 <button
                   className={`btn btn-sm ${exportDataType === 'json' ? 'btn-primary' : 'btn-outline'}`}
@@ -326,7 +312,7 @@ function ExportDialog() {
 
               <div className="divider my-1"></div>
               {/* Step 3: View and Download Data */}
-              <h1>3. View and Download Data</h1>
+              <p className="font-bold text-base">3. View and Download Data</p>
               <div className="flex gap-2 mb-3">
                 <button className="btn btn-sm btn-outline" onClick={selectAll}>
                   Select All
