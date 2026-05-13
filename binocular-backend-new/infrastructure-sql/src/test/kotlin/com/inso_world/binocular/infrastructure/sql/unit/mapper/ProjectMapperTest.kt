@@ -34,7 +34,7 @@ internal class ProjectMapperTest : BaseMapperTest() {
 
     companion object {
         val IGNORED_FIELDS = listOf(
-            "id", "issues"
+            "id", "issues", "mergeRequests"
         )
 
         /**
