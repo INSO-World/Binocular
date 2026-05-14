@@ -25,12 +25,13 @@ class BranchModelTest {
         repository = Repository(localPath = "test repo", project = Project(name = "test project"))
         val developer = Developer(name = "Test Developer", email = "dev@test.com", repository = repository)
         val signature = Signature(developer = developer, timestamp = LocalDateTime.now().minusSeconds(1))
-        head = Commit(
-            sha = "a".repeat(40),
-            message = "msg1",
-            authorSignature = signature,
-            repository = repository,
-        )
+        head =
+            Commit(
+                sha = "a".repeat(40),
+                message = "msg1",
+                authorSignature = signature,
+                repository = repository,
+            )
     }
 
     @Test
@@ -46,33 +47,29 @@ class BranchModelTest {
         assertThrows<IllegalArgumentException> {
             Repository(
                 localPath = "test repo",
-                project = Project(name = "test project")
+                project = Project(name = "test project"),
             ).branches.add(dummyBranch)
         }
     }
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
-    fun `create branch with allowed names, should succeed`(
-        name: String,
-    ) {
+    fun `create branch with allowed names, should succeed`(name: String) {
         assertDoesNotThrow {
             branch(
                 name = name,
-                fullName = name
+                fullName = name,
             )
         }
     }
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `create branch with blank name, should fail`(
-        name: String,
-    ) {
+    fun `create branch with blank name, should fail`(name: String) {
         assertThrows<IllegalArgumentException> {
             branch(
                 name = name,
-                fullName = name
+                fullName = name,
             )
         }
     }
@@ -86,11 +83,12 @@ class BranchModelTest {
 
     @Test
     fun `create branch, stores provided metadata`() {
-        val branch = branch(
-            name = "main",
-            fullName = "refs/heads/main",
-            category = ReferenceCategory.LOCAL_BRANCH
-        )
+        val branch =
+            branch(
+                name = "main",
+                fullName = "refs/heads/main",
+                category = ReferenceCategory.LOCAL_BRANCH,
+            )
 
         assertThat(branch.fullName).isEqualTo("refs/heads/main")
         assertThat(branch.category).isEqualTo(ReferenceCategory.LOCAL_BRANCH)
@@ -98,9 +96,7 @@ class BranchModelTest {
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `create branch with blank fullName should fail`(
-        fullName: String,
-    ) {
+    fun `create branch with blank fullName should fail`(fullName: String) {
         assertThrows<IllegalArgumentException> {
             branch(name = "branch", fullName = fullName)
         }
@@ -196,20 +192,22 @@ class BranchModelTest {
         fun `create branch, add commit from different repository, should fail`() {
             val head = MockTestDataProvider(this@BranchModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-            val differentRepository = Repository(
-                localPath = "different-repository",
-                project = Project(name = "different-project"),
-            )
+            val differentRepository =
+                Repository(
+                    localPath = "different-repository",
+                    project = Project(name = "different-project"),
+                )
 
-            val branch = branch(
-                repository = this@BranchModelTest.repository,
-                head = head
-            )
+            val branch =
+                branch(
+                    repository = this@BranchModelTest.repository,
+                    head = head,
+                )
 
             setField(
                 head.javaClass.getDeclaredField("repository"),
                 head,
-                differentRepository
+                differentRepository,
             )
             assertAll(
                 { assertThat(branch.repository).isNotEqualTo(head.repository) },
@@ -217,7 +215,7 @@ class BranchModelTest {
                     assertThrows<IllegalArgumentException> {
                         branch.head = head
                     }
-                }
+                },
             )
         }
 
@@ -225,10 +223,11 @@ class BranchModelTest {
         fun `create branch, with commit, get head, should succeed`() {
             val mockCommit = MockTestDataProvider(this@BranchModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-            val branch = branch(
-                repository = this@BranchModelTest.repository,
-                head = mockCommit
-            )
+            val branch =
+                branch(
+                    repository = this@BranchModelTest.repository,
+                    head = mockCommit,
+                )
 
             assertThat(branch.head).isSameAs(mockCommit)
         }
@@ -237,15 +236,16 @@ class BranchModelTest {
         fun `create branch, with commit, get commits, should succeed`() {
             val mockCommits = MockTestDataProvider(this@BranchModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-            val branch = branch(
-                repository = this@BranchModelTest.repository,
-                head = mockCommits
-            )
+            val branch =
+                branch(
+                    repository = this@BranchModelTest.repository,
+                    head = mockCommits,
+                )
 
             assertAll(
                 { assertThat(branch.commits).hasSize(1) },
                 { assertThat(branch.commits).containsOnly(mockCommits) },
-                { assertThat(branch.commits.first()).isSameAs(mockCommits) }
+                { assertThat(branch.commits.first()).isSameAs(mockCommits) },
             )
         }
 
@@ -260,17 +260,18 @@ class BranchModelTest {
                 head.parents.add(mockCommitB)
             }
 
-            val branch = branch(
-                repository = this@BranchModelTest.repository,
-                head = head
-            )
+            val branch =
+                branch(
+                    repository = this@BranchModelTest.repository,
+                    head = head,
+                )
 
             with(branch.commits) {
                 assertAll(
                     { assertThat(this).hasSize(2) },
                     { assertThat(this).containsOnly(head, mockCommitB) },
                     { assertThat(this.first()).isSameAs(head) },
-                    { assertThat(this.last()).isSameAs(mockCommitB) }
+                    { assertThat(this.last()).isSameAs(mockCommitB) },
                 )
             }
         }
@@ -289,21 +290,21 @@ class BranchModelTest {
                 mockCommitB.parents.add(mockCommitC)
             }
 
-            val branch = branch(
-                repository = this@BranchModelTest.repository,
-                head = head
-            )
+            val branch =
+                branch(
+                    repository = this@BranchModelTest.repository,
+                    head = head,
+                )
 
             with(branch.commits) {
                 assertAll(
                     { assertThat(this).hasSize(3) },
                     { assertThat(this).containsOnly(head, mockCommitB, mockCommitC) },
                     { assertThat(this.first()).isSameAs(head) },
-                    { assertThat(this.last()).isSameAs(mockCommitC) }
+                    { assertThat(this.last()).isSameAs(mockCommitC) },
                 )
             }
         }
-
     }
 
     @Nested
@@ -316,10 +317,11 @@ class BranchModelTest {
         @Test
         fun `create branch, check that file relation is empty`() {
             val mockCommit = MockTestDataProvider(this@BranchModelTest.repository).commitBySha.getValue("a".repeat(40))
-            val branch = branch(
-                repository = repository,
-                head = mockCommit
-            )
+            val branch =
+                branch(
+                    repository = repository,
+                    head = mockCommit,
+                )
 
             assertThat(branch.files).isEmpty()
         }
@@ -330,13 +332,13 @@ class BranchModelTest {
         fullName: String = name,
         category: ReferenceCategory = ReferenceCategory.LOCAL_BRANCH,
         repository: Repository = this.repository,
-        head: Commit = this.head
+        head: Commit = this.head,
     ): Branch =
         Branch(
             name = name,
             fullName = fullName,
             category = category,
             repository = repository,
-            head = head
+            head = head,
         )
 }

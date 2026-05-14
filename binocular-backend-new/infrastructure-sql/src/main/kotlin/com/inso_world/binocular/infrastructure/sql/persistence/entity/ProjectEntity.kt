@@ -24,7 +24,6 @@ internal data class ProjectEntity(
     @Convert(KotlinUuidConverter::class)
     val iid: Project.Id
 ) : AbstractEntity<Long, ProjectEntity.Key>() {
-
     @Column(nullable = true, unique = false, length = MAX_DESCRIPTION_LENGTH)
     var description: String? = null
         set(value) {
@@ -34,7 +33,9 @@ internal data class ProjectEntity(
             field = value
         }
 
-    data class Key(val name: String) // value object for lookups
+    data class Key(
+        val name: String,
+    ) // value object for lookups
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -64,25 +65,28 @@ internal data class ProjectEntity(
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(repo: Repository? = null): Project = Project(
-        name = this.name,
-    ).apply {
-        this.id = this@ProjectEntity.id?.toString()
-        this.description = this@ProjectEntity.description
-        repo?.let { this.repo = it }
-    }
+    fun toDomain(repo: Repository? = null): Project =
+        Project(
+            name = this.name,
+        ).apply {
+            this.id = this@ProjectEntity.id?.toString()
+            this.description = this@ProjectEntity.description
+            repo?.let { this.repo = it }
+        }
 
     companion object {
         private const val MAX_DESCRIPTION_LENGTH = 255
     }
 }
 
-internal fun Project.toEntity(): ProjectEntity = ProjectEntity(
-    iid = this.iid,
-    name = this@toEntity.name,
-).apply {
-    id = this@toEntity.id?.trim()?.toLongOrNull()
-    description = this@toEntity.description
-}
+internal fun Project.toEntity(): ProjectEntity =
+    ProjectEntity(
+        iid = this.iid,
+        name = this@toEntity.name,
+    ).apply {
+        id = this@toEntity.id?.trim()?.toLongOrNull()
+        description = this@toEntity.description
+    }

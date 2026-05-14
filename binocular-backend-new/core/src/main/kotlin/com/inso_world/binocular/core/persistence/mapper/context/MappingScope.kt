@@ -1,7 +1,6 @@
 package com.inso_world.binocular.core.persistence.mapper.context
 
 import com.inso_world.binocular.core.delegates.logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectFactory
 import org.springframework.beans.factory.config.Scope
 import java.util.UUID

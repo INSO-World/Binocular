@@ -4,9 +4,9 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
-import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Revision
+import com.inso_world.binocular.model.User
 import org.springframework.data.domain.Pageable
 
 /**
@@ -41,7 +41,10 @@ interface FileInfrastructurePort : BinocularInfrastructurePort<File, File.Id> {
     /**
      * Find commits by file ID with pagination.
      */
-    fun findCommitsByFileId(fileId: String, pageable: Pageable): Page<Commit>
+    fun findCommitsByFileId(
+        fileId: String,
+        pageable: Pageable
+    ): Page<Commit>
 
     /**
      * Find a file by its path, if available.

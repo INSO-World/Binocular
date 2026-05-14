@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import kotlin.test.assertContains
 
 /**
  * Integration tests for User persistence via UserInfrastructurePort.
@@ -108,7 +107,7 @@ internal class UserTest : BaseInfrastructureSpringTest() {
         val all = userPort.findAll().toList()
         // at least 2 (could include other users if DB not fully isolated); ensure ours are present
         val ids = all.mapNotNull { it.id }.toSet()
-        assertContains(ids, u1.id, u2.id)
+        assertThat(ids).containsOnly(u1.id, u2.id)
 //        val iids = all.map { it.iid }.toSet()
 //        assertContains(iids, u1.iid, u2.iid)
     }

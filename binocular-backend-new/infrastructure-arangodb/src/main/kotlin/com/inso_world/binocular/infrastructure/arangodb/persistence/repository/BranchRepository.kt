@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BranchRepository : ArangoRepository<BranchEntity, String> {
-
     fun findByBranch(branch: String): BranchEntity?
 
     /**

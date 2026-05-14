@@ -19,7 +19,6 @@ import kotlin.uuid.ExperimentalUuidApi
  */
 @OptIn(ExperimentalUuidApi::class)
 class CommitSignatureModelTest {
-
     private lateinit var repository: Repository
     private lateinit var author: Developer
     private lateinit var committer: Developer
@@ -34,7 +33,6 @@ class CommitSignatureModelTest {
 
     @Nested
     inner class AuthorSignature {
-
         @Test
         fun `given valid authorSignature, when creating commit, then author should be set`() {
             // Given
@@ -42,17 +40,18 @@ class CommitSignatureModelTest {
             val authorSignature = Signature(developer = author, timestamp = authorTimestamp)
 
             // When
-            val commit = Commit(
-                sha = "a".repeat(40),
-                authorSignature = authorSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "a".repeat(40),
+                    authorSignature = authorSignature,
+                    repository = repository,
+                )
 
             // Then
             assertAll(
                 { assertThat(commit.authorSignature).isEqualTo(authorSignature) },
                 { assertThat(commit.authorSignature.developer).isSameAs(author) },
-                { assertThat(commit.authorSignature.timestamp).isEqualTo(authorTimestamp) }
+                { assertThat(commit.authorSignature.timestamp).isEqualTo(authorTimestamp) },
             )
         }
 
@@ -60,11 +59,12 @@ class CommitSignatureModelTest {
         fun `given commit with authorSignature, when author is accessed via convenience property, then it should return the developer`() {
             // Given
             val authorSignature = Signature(developer = author, timestamp = LocalDateTime.now().minusSeconds(1))
-            val commit = Commit(
-                sha = "b".repeat(40),
-                authorSignature = authorSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "b".repeat(40),
+                    authorSignature = authorSignature,
+                    repository = repository,
+                )
 
             // When
             val commitAuthor = commit.author
@@ -79,11 +79,12 @@ class CommitSignatureModelTest {
             val authorSignature = Signature(developer = author, timestamp = LocalDateTime.now().minusSeconds(1))
 
             // When
-            val commit = Commit(
-                sha = "c".repeat(40),
-                authorSignature = authorSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "c".repeat(40),
+                    authorSignature = authorSignature,
+                    repository = repository,
+                )
 
             // Then
             assertThat(author.authoredCommits).contains(commit)
@@ -92,24 +93,24 @@ class CommitSignatureModelTest {
 
     @Nested
     inner class CommitterSignature {
-
         @Test
         fun `given no committerSignature, when creating commit, then committer should default to author`() {
             // Given
             val authorSignature = Signature(developer = author, timestamp = LocalDateTime.now().minusSeconds(1))
 
             // When
-            val commit = Commit(
-                sha = "d".repeat(40),
-                authorSignature = authorSignature,
-                repository = repository
-                // committerSignature not provided
-            )
+            val commit =
+                Commit(
+                    sha = "d".repeat(40),
+                    authorSignature = authorSignature,
+                    repository = repository,
+                    // committerSignature not provided
+                )
 
             // Then
             assertAll(
                 { assertThat(commit.committerSignature).isEqualTo(authorSignature) },
-                { assertThat(commit.committer).isSameAs(author) }
+                { assertThat(commit.committer).isSameAs(author) },
             )
         }
 
@@ -122,12 +123,13 @@ class CommitSignatureModelTest {
             val committerSignature = Signature(developer = committer, timestamp = committerTimestamp)
 
             // When
-            val commit = Commit(
-                sha = "e".repeat(40),
-                authorSignature = authorSignature,
-                committerSignature = committerSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "e".repeat(40),
+                    authorSignature = authorSignature,
+                    committerSignature = committerSignature,
+                    repository = repository,
+                )
 
             // Then
             assertAll(
@@ -135,7 +137,7 @@ class CommitSignatureModelTest {
                 { assertThat(commit.committerSignature).isEqualTo(committerSignature) },
                 { assertThat(commit.author).isSameAs(author) },
                 { assertThat(commit.committer).isSameAs(committer) },
-                { assertThat(commit.author).isNotSameAs(commit.committer) }
+                { assertThat(commit.author).isNotSameAs(commit.committer) },
             )
         }
 
@@ -146,12 +148,13 @@ class CommitSignatureModelTest {
             val committerSignature = Signature(developer = committer, timestamp = LocalDateTime.now().minusSeconds(5))
 
             // When
-            val commit = Commit(
-                sha = "f".repeat(40),
-                authorSignature = authorSignature,
-                committerSignature = committerSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "f".repeat(40),
+                    authorSignature = authorSignature,
+                    committerSignature = committerSignature,
+                    repository = repository,
+                )
 
             // Then
             assertThat(committer.committedCommits).contains(commit)
@@ -166,24 +169,24 @@ class CommitSignatureModelTest {
             val committerSignature = Signature(developer = author, timestamp = committerTimestamp) // same developer
 
             // When
-            val commit = Commit(
-                sha = "1".repeat(40),
-                authorSignature = authorSignature,
-                committerSignature = committerSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "1".repeat(40),
+                    authorSignature = authorSignature,
+                    committerSignature = committerSignature,
+                    repository = repository,
+                )
 
             // Then
             assertAll(
                 { assertThat(commit.author).isSameAs(commit.committer) },
-                { assertThat(commit.authorSignature.timestamp).isNotEqualTo(commit.committerSignature!!.timestamp) }
+                { assertThat(commit.authorSignature.timestamp).isNotEqualTo(commit.committerSignature!!.timestamp) },
             )
         }
     }
 
     @Nested
     inner class RepositoryConsistency {
-
         @Test
         fun `given authorSignature with developer from different repository, when creating commit, then it should throw`() {
             // Given
@@ -197,7 +200,7 @@ class CommitSignatureModelTest {
                 Commit(
                     sha = "2".repeat(40),
                     authorSignature = authorSignature,
-                    repository = repository
+                    repository = repository,
                 )
             }
         }
@@ -217,7 +220,7 @@ class CommitSignatureModelTest {
                     sha = "3".repeat(40),
                     authorSignature = authorSignature,
                     committerSignature = committerSignature,
-                    repository = repository
+                    repository = repository,
                 )
             }
         }
@@ -225,7 +228,6 @@ class CommitSignatureModelTest {
 
     @Nested
     inner class CommitDateTime {
-
         @Test
         fun `given commit without explicit commitDateTime, when accessing commitDateTime, then it should use committerSignature timestamp`() {
             // Given
@@ -235,12 +237,13 @@ class CommitSignatureModelTest {
             val committerSignature = Signature(developer = committer, timestamp = committerTimestamp)
 
             // When
-            val commit = Commit(
-                sha = "4".repeat(40),
-                authorSignature = authorSignature,
-                committerSignature = committerSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "4".repeat(40),
+                    authorSignature = authorSignature,
+                    committerSignature = committerSignature,
+                    repository = repository,
+                )
 
             // Then
             assertThat(commit.commitDateTime).isEqualTo(committerTimestamp)
@@ -253,11 +256,12 @@ class CommitSignatureModelTest {
             val authorSignature = Signature(developer = author, timestamp = authorTimestamp)
 
             // When
-            val commit = Commit(
-                sha = "5".repeat(40),
-                authorSignature = authorSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "5".repeat(40),
+                    authorSignature = authorSignature,
+                    repository = repository,
+                )
 
             // Then
             assertThat(commit.commitDateTime).isEqualTo(authorTimestamp)
@@ -266,7 +270,6 @@ class CommitSignatureModelTest {
 
     @Nested
     inner class AuthorDateTime {
-
         @Test
         fun `given commit, when accessing authorDateTime, then it should return authorSignature timestamp`() {
             // Given
@@ -274,11 +277,12 @@ class CommitSignatureModelTest {
             val authorSignature = Signature(developer = author, timestamp = authorTimestamp)
 
             // When
-            val commit = Commit(
-                sha = "6".repeat(40),
-                authorSignature = authorSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "6".repeat(40),
+                    authorSignature = authorSignature,
+                    repository = repository,
+                )
 
             // Then
             assertThat(commit.authorDateTime).isEqualTo(authorTimestamp)
@@ -287,16 +291,16 @@ class CommitSignatureModelTest {
 
     @Nested
     inner class BackwardsCompatibility {
-
         @Test
         fun `given commit, when accessing deprecated author property, then it should return authorSignature developer`() {
             // Given
             val authorSignature = Signature(developer = author, timestamp = LocalDateTime.now().minusSeconds(1))
-            val commit = Commit(
-                sha = "7".repeat(40),
-                authorSignature = authorSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "7".repeat(40),
+                    authorSignature = authorSignature,
+                    repository = repository,
+                )
 
             // When & Then
             assertThat(commit.author).isSameAs(author)
@@ -307,12 +311,13 @@ class CommitSignatureModelTest {
             // Given
             val authorSignature = Signature(developer = author, timestamp = LocalDateTime.now().minusSeconds(10))
             val committerSignature = Signature(developer = committer, timestamp = LocalDateTime.now().minusSeconds(5))
-            val commit = Commit(
-                sha = "8".repeat(40),
-                authorSignature = authorSignature,
-                committerSignature = committerSignature,
-                repository = repository
-            )
+            val commit =
+                Commit(
+                    sha = "8".repeat(40),
+                    authorSignature = authorSignature,
+                    committerSignature = committerSignature,
+                    repository = repository,
+                )
 
             // When & Then
             assertThat(commit.committer).isSameAs(committer)

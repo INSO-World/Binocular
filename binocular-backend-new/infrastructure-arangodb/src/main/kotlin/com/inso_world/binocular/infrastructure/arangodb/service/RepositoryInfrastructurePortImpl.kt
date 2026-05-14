@@ -29,7 +29,6 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         val logger by logger()
     }
 
-
     @Autowired
     private lateinit var commitDao: CommitDao
 
@@ -42,21 +41,19 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
 
+    @MappingSession
     override fun findByIid(iid: Repository.Id): Repository? {
         TODO("Not yet implemented")
     }
 
-    override fun findAll(): Iterable<Repository> {
-        return this.repositoryDao.findAll()
-    }
+    @MappingSession
+    override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll()
 
-    override fun findAll(pageable: Pageable): Page<Repository> {
-        return this.repositoryDao.findAll(pageable)
-    }
+    @MappingSession
+    override fun findAll(pageable: Pageable): Page<Repository> = this.repositoryDao.findAll(pageable)
 
-    override fun findById(id: String): Repository? {
-        return this.repositoryDao.findById(id)
-    }
+    @MappingSession
+    override fun findById(id: String): Repository? = this.repositoryDao.findById(id)
 
     @MappingSession
     override fun create(value: Repository): Repository {
@@ -66,26 +63,27 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         return repositoryAssembler.toDomain(savedEntity)
     }
 
-    override fun saveAll(values: Collection<Repository>): Iterable<Repository> {
-        return this.repositoryDao.saveAll(values)
-    }
+    override fun saveAll(values: Collection<Repository>): Iterable<Repository> = this.repositoryDao.saveAll(values)
 
     override fun update(value: Repository): Repository {
         TODO("Not yet implemented")
     }
 
-    override fun findByName(name: String): Repository? {
-        return this.repositoryDao.findByName(name)?.let { this.repositoryMapper.toDomain(it) }
-    }
+    @MappingSession
+    override fun findByName(name: String): Repository? = this.repositoryDao.findByName(name)?.let { this.repositoryMapper.toDomain(it) }
 
-    override fun findExistingCommits(repo: Repository, shas: Set<String>): Sequence<Commit> {
+    @MappingSession
+    override fun findExistingCommits(
+        repo: Repository,
+        shas: Set<String>,
+    ): Sequence<Commit> {
         TODO("Not yet implemented")
     }
 
-
+    @MappingSession
     override fun findBranch(
         repository: Repository,
-        name: String
+        name: String,
     ): Branch? {
         TODO("Not yet implemented")
     }

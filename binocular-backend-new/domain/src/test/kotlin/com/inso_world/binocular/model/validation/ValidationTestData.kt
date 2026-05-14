@@ -21,23 +21,30 @@ internal object ValidationTestData {
     fun provideInvalidPastOrPresentDateTime(): Stream<Arguments> = DummyTestData.provideInvalidPastOrPresentDateTime()
 
     @JvmStatic
-    fun provideInvalidShaHex(): Stream<Arguments> = Stream.of(
+    fun provideInvalidShaHex(): Stream<Arguments> =
+        Stream.of(
             Arguments.of("a".repeat(38)),
             Arguments.of("a".repeat(39)),
             Arguments.of("a".repeat(41)),
-            *(('g'..'z') + ('G'..'Z')).map {
-                Arguments.of("$it".repeat(40))
-            }.toTypedArray(),
-            *(('g'..'z') + ('G'..'Z')).map {
-                Arguments.of(it + "0".repeat(39))
-            }.toTypedArray(),
+            *(('g'..'z') + ('G'..'Z'))
+                .map {
+                    Arguments.of("$it".repeat(40))
+                }.toTypedArray(),
+            *(('g'..'z') + ('G'..'Z'))
+                .map {
+                    Arguments.of(it + "0".repeat(39))
+                }.toTypedArray(),
         )
 
-    private fun createDeveloper(repository: Repository, email: String = "test@example.com"): Developer =
-        Developer(name = "Test Developer", email = email, repository = repository)
+    private fun createDeveloper(
+        repository: Repository,
+        email: String = "test@example.com",
+    ): Developer = Developer(name = "Test Developer", email = email, repository = repository)
 
-    private fun createSignature(developer: Developer, timestamp: LocalDateTime = LocalDateTime.now().minusSeconds(1)): Signature =
-        Signature(developer = developer, timestamp = timestamp)
+    private fun createSignature(
+        developer: Developer,
+        timestamp: LocalDateTime = LocalDateTime.now().minusSeconds(1),
+    ): Signature = Signature(developer = developer, timestamp = timestamp)
 
     @JvmStatic
     fun invalidCommitsModels(): Stream<Arguments> =
@@ -47,12 +54,13 @@ internal object ValidationTestData {
                     val repository = Repository(localPath = "test repo", project = Project(name = "test project"))
                     val developer = createDeveloper(repository)
                     val signature = createSignature(developer)
-                    val cmt = Commit(
-                        sha = "a".repeat(40),
-                        authorSignature = signature,
-                        message = "Valid message",
-                        repository = repository,
-                    )
+                    val cmt =
+                        Commit(
+                            sha = "a".repeat(40),
+                            authorSignature = signature,
+                            message = "Valid message",
+                            repository = repository,
+                        )
                     repository.commits.add(cmt)
 
                     // change field via reflection, otherwise constructor check fails
@@ -67,12 +75,13 @@ internal object ValidationTestData {
                     val repository = Repository(localPath = "2222222", project = Project(name = "test project"))
                     val developer = createDeveloper(repository, "test2@example.com")
                     val signature = createSignature(developer)
-                    val cmt = Commit(
-                        sha = "a".repeat(40),
-                        authorSignature = signature,
-                        message = "Valid message",
-                        repository = repository,
-                    )
+                    val cmt =
+                        Commit(
+                            sha = "a".repeat(40),
+                            authorSignature = signature,
+                            message = "Valid message",
+                            repository = repository,
+                        )
                     repository.commits.add(cmt)
                     // invalid: should be 40 chars
                     // change field via reflection, otherwise constructor check fails
@@ -87,12 +96,13 @@ internal object ValidationTestData {
                     val repository = Repository(localPath = "33333", project = Project(name = "test project"))
                     val developer = createDeveloper(repository, "test3@example.com")
                     val signature = createSignature(developer)
-                    val cmt = Commit(
-                        sha = "a".repeat(40),
-                        authorSignature = signature,
-                        message = "Valid message",
-                        repository = repository,
-                    )
+                    val cmt =
+                        Commit(
+                            sha = "a".repeat(40),
+                            authorSignature = signature,
+                            message = "Valid message",
+                            repository = repository,
+                        )
                     repository.commits.add(cmt)
 
                     // invalid: should be 40 chars
@@ -108,13 +118,17 @@ internal object ValidationTestData {
     fun mockCommitModels(): Stream<Arguments> {
         return run {
             val project = Project(name = "test-project")
-            val repository = Repository(
-                localPath = "test",
-                project = project,
-            )
-            return@run MockTestDataProvider(repository).commits.map {
-                Arguments.of(it)
-            }.asSequence().asStream()
+            val repository =
+                Repository(
+                    localPath = "test",
+                    project = project,
+                )
+            return@run MockTestDataProvider(repository)
+                .commits
+                .map {
+                    Arguments.of(it)
+                }.asSequence()
+                .asStream()
         }
     }
 }

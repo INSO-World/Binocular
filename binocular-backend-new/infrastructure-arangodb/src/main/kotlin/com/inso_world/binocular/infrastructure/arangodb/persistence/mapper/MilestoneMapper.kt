@@ -34,7 +34,6 @@ internal class MilestoneMapper
         @Lazy private val issueMapper: IssueMapper,
         @Lazy private val mergeRequestMapper: MergeRequestMapper,
     ) : EntityMapper<Milestone, MilestoneEntity> {
-
         @Autowired
         private lateinit var ctx: MappingContext
 

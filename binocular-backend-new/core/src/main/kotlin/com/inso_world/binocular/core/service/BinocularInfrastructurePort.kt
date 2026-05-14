@@ -155,9 +155,7 @@ interface BinocularInfrastructurePort<T : AbstractDomainObject<Iid, *>, Iid> {
      */
     fun delete(
         @Valid value: T,
-    ) {
-        throw UnsupportedOperationException("DELETE operations are not yet supported")
-    }
+    ): Unit = throw UnsupportedOperationException("DELETE operations are not yet supported")
 
     /**
      * Deletes an entity by its unique identifier.
@@ -167,9 +165,7 @@ interface BinocularInfrastructurePort<T : AbstractDomainObject<Iid, *>, Iid> {
      * @param id The unique identifier of the entity to delete
      * @throws UnsupportedOperationException Always thrown until DELETE operations are implemented
      */
-    fun deleteById(id: String) {
-        throw UnsupportedOperationException("DELETE operations are not yet supported")
-    }
+    fun deleteById(id: String): Unit = throw UnsupportedOperationException("DELETE operations are not yet supported")
 
     /**
      * Deletes all entities of type [T] from the database.
@@ -178,7 +174,5 @@ interface BinocularInfrastructurePort<T : AbstractDomainObject<Iid, *>, Iid> {
      *
      * @throws UnsupportedOperationException Always thrown until DELETE operations are implemented
      */
-    fun deleteAll() {
-        throw UnsupportedOperationException("DELETE operations are not yet supported")
-    }
+    fun deleteAll(): Unit = throw UnsupportedOperationException("DELETE operations are not yet supported")
 }
