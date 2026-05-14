@@ -4,27 +4,6 @@ import jakarta.validation.constraints.NotBlank
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-/**
- * Project — a named, top-level domain entity that may be associated with a [Repository].
- *
- * ### Identity & equality
- * - Technical identity: immutable [iid] of type [Id] (generated at construction).
- * - Business key: [uniqueKey] == validated [name].
- * - Equality is **identity-based** (same [iid]); `hashCode()` derives from [iid]. This intentionally
- *   overrides the default value-based semantics of a Kotlin `data class`.
- *
- * ### Construction & validation
- * - Requires a non-blank [name] (`@field:NotBlank` + runtime `require`).
- * - The constructor does **not** auto-wire repository relations; associate a repository via [repo] if needed.
- *
- * ### Relationships & mutability
- * - [repo] is optional and **set-once** (cannot be reassigned to a different repository; cannot be set to `null`).
- *
- * ### Thread-safety
- * - Instances are mutable and not thread-safe. Coordinate external synchronization for multi-step updates.
- *
- * @property name Human-readable project name; must be non-blank and forms the [uniqueKey].
- */
 @OptIn(ExperimentalUuidApi::class)
 data class Project(
     @field:NotBlank
@@ -35,50 +14,26 @@ data class Project(
     @JvmInline
     value class Id(val value: Uuid)
 
-    data class Key(val name: String) // value object for lookups
+    data class Key(val name: String)
 
     val issues: MutableSet<Issue> = mutableSetOf()
-//        object : NonRemovingMutableSetSet<Issue>() {}
 
-    // TODO: should MRs be included here?
     val mergeRequests: MutableSet<MergeRequest> = mutableSetOf()
 
     var description: String? = null
 
-    /**
-     * Optional owning [Repository].
-     *
-     * #### Semantics
-     * - A project can exist without a repository.
-     * - Assignment is **set-once** and **non-null**:
-     *   - Reassigning the **same** instance is a no-op.
-     *   - Reassigning to a **different** repository throws.
-     *
-     * #### Invariants enforced on set
-     * - Precondition:
-     *    - `value != null`
-     *    - `this.repo == null || this.repo === value`
-     *
-     * #### Exceptions
-     * - [IllegalArgumentException] if `value` is `null`.
-     * - [IllegalArgumentException] if a different repository is assigned after one was already set.
-     *
-     * #### Thread-safety
-     * - No internal synchronization; coordinate externally if multiple threads may mutate this property.
-     */
-    var repo: Repository? = null
+    var repoId: Repository.Id? = null
         set(value) {
-            requireNotNull(value) { "Cannot set repo to null" }
-            if (value == this.repo) {
+            requireNotNull(value) { "Cannot set repoId to null" }
+            if (value == this.repoId) {
                 return
             }
-            if (this.repo != null) {
-                throw IllegalArgumentException("Repository already set for Project $name: $repo")
+            if (this.repoId != null) {
+                throw IllegalArgumentException("Repository already set for Project $name: $repoId")
             }
             field = value
         }
 
-    // some database dependent id
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))
     var id: String? = null
 
@@ -91,7 +46,6 @@ data class Project(
     override val uniqueKey: Project.Key
         get() = Project.Key(this.name)
 
-    // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
     override fun hashCode(): Int = super.hashCode()
 }
