@@ -283,16 +283,15 @@ data class Repository(
      * # Semantics
      * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removal operations
      *   (`remove`, `retainAll`, `clear`, iterator `remove`) are not supported.
-     * - **Repository consistency:** A remote can be added only if `remote.repository == this@Repository`.
-     *   This method **does not** mutate `remote.repository`; callers must ensure the remote is created
-     *   for this repository.
+     * - **Repository consistency:** A remote can be added only if `remote.repositoryId == this@Repository.iid`.
+     *   This is an ID-based check (not a direct object reference).
      * - **No implicit graph wiring:** Adding a remote here does **not** touch any other relations.
      * - **Set semantics / de-duplication:** Membership is keyed by each remote's `uniqueKey`
      *   (business key). Re-adding an existing remote is a no-op (`false`). The first instance for a
      *   given key becomes the canonical stored element.
      *
      * # Invariants enforced on insert
-     * - Precondition: `element.repository == this@Repository`.
+     * - Precondition: `element.repositoryId == this@Repository.iid`.
      * - Postcondition (on success / no exception):
      *     - `element in remotes`
      * - **No back-links:** This operation does not modify other associations on the remote.
@@ -317,9 +316,10 @@ data class Repository(
     val remotes: MutableSet<Remote> =
         object : NonRemovingMutableSet<Remote>() {
             override fun add(element: Remote): Boolean {
-                // check if remote has no repository set
-                require(element.repository == this@Repository) {
-                    "$element cannot be added to a different repository."
+                // check if remote belongs to this repository (ID-based check)
+                require(element.repositoryId == this@Repository.iid) {
+                    "$element cannot be added to a different repository. " +
+                            "Expected repositoryId=${this@Repository.iid}, got ${element.repositoryId}"
                 }
 
                 val added = super.add(element)

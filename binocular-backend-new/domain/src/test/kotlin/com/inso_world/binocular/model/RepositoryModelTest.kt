@@ -666,13 +666,13 @@ class RepositoryModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
-            assertFalse(repository.remotes.add(remote)) // already added via constructor
+            assertTrue(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
-            // check if reference is set correctly
-            assertThat(repository).isSameAs(remote.repository)
+            // check if repositoryId is set correctly
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
@@ -680,11 +680,11 @@ class RepositoryModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
-                { assertFalse(repository.remotes.add(remote)) }, // already added via constructor
+                { assertTrue(repository.remotes.add(remote)) },
                 { assertFalse(repository.remotes.add(remote)) }
             )
             assertThat(repository.remotes).hasSize(1)
@@ -695,11 +695,11 @@ class RepositoryModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
-                { assertFalse(repository.remotes.addAll(listOf(remote))) }, // already added via constructor
+                { assertTrue(repository.remotes.addAll(listOf(remote))) },
                 { assertFalse(repository.remotes.addAll(listOf(remote))) }
             )
             assertThat(repository.remotes).hasSize(1)
@@ -707,26 +707,25 @@ class RepositoryModelTest {
 
         @Test
         fun `add multiple remotes at once, expect all to be added`() {
-            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
+            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid)
 
-            assertFalse(repository.remotes.addAll(listOf(remoteA, remoteB))) // already added via constructor
+            assertTrue(repository.remotes.addAll(listOf(remoteA, remoteB)))
             assertThat(repository.remotes).hasSize(2)
-            // check if references are set correctly
+            // check if repositoryId is set correctly
             assertAll(
-                { assertThat(repository).isSameAs(remoteA.repository) },
-                { assertThat(repository).isSameAs(remoteB.repository) }
+                { assertThat(remoteA.repositoryId).isEqualTo(repository.iid) },
+                { assertThat(remoteB.repositoryId).isEqualTo(repository.iid) }
             )
         }
 
         @Test
         fun `add multiple remotes at once with duplicates, expect unique to be added`() {
-            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
-            val remoteC = Remote(name = "origin", url = "https://different.com/repo.git", repository = repository) // same name as remoteA
+            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid)
+            val remoteC = Remote(name = "origin", url = "https://different.com/repo.git", repositoryId = repository.iid) // same name as remoteA
 
-            val list = listOf(remoteA, remoteB, remoteC)
-            assertThat(list).hasSize(3)
+            assertTrue(repository.remotes.addAll(listOf(remoteA, remoteB, remoteC)))
 
             assertThat(repository.remotes).hasSize(2) // remoteC not added due to same business key as remoteA
         }
@@ -736,13 +735,12 @@ class RepositoryModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
-            // assertFalse since remote is already added via constructor
-            assertFalse(repository.remotes.add(remote))
+            assertTrue(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
-            assertThat(repository).isSameAs(remote.repository)
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
@@ -763,50 +761,50 @@ class RepositoryModelTest {
         @Test
         fun `add remote with empty name should throw IllegalArgumentException`() {
             assertThrows<IllegalArgumentException> {
-                Remote(name = "", url = "https://github.com/user/repo.git", repository = repository)
+                Remote(name = "", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
             }
         }
 
         @Test
         fun `add remote with blank name should throw IllegalArgumentException`() {
             assertThrows<IllegalArgumentException> {
-                Remote(name = "   ", url = "https://github.com/user/repo.git", repository = repository)
+                Remote(name = "   ", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
             }
         }
 
         @Test
         fun `add remote with empty url should throw IllegalArgumentException`() {
             assertThrows<IllegalArgumentException> {
-                Remote(name = "origin", url = "", repository = repository)
+                Remote(name = "origin", url = "", repositoryId = repository.iid)
             }
         }
 
         @Test
         fun `add remote with blank url should throw IllegalArgumentException`() {
             assertThrows<IllegalArgumentException> {
-                Remote(name = "origin", url = "   ", repository = repository)
+                Remote(name = "origin", url = "   ", repositoryId = repository.iid)
             }
         }
 
         @Test
         fun `add remote with very long name should be added`() {
             val longName = "remote-" + "a".repeat(1000)
-            val remote = Remote(name = longName, url = "https://github.com/user/repo.git", repository = repository)
+            val remote = Remote(name = longName, url = "https://github.com/user/repo.git", repositoryId = repository.iid)
 
-            assertFalse(repository.remotes.add(remote))
+            assertTrue(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
-            assertThat(repository).isSameAs(remote.repository)
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
         fun `add remote with very long url should be added`() {
             val longPath = "path/".repeat(100)
             val longUrl = "https://github.com/user/$longPath/repo.git"
-            val remote = Remote(name = "origin", url = longUrl, repository = repository)
+            val remote = Remote(name = "origin", url = longUrl, repositoryId = repository.iid)
 
-            assertFalse(repository.remotes.add(remote))
+            assertTrue(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
-            assertThat(repository).isSameAs(remote.repository)
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
@@ -814,37 +812,38 @@ class RepositoryModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://user:password@github.com:443/user/repo-name_123.git?query=value#fragment",
-                repository = repository
+                repositoryId = repository.iid
             )
 
-            assertFalse(repository.remotes.add(remote))
+            assertTrue(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
-            assertThat(repository).isSameAs(remote.repository)
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
         fun `add remote with different protocols, expect all to be added`() {
-            val httpsRemote = Remote(name = "https", url = "https://github.com/user/repo.git", repository = repository)
-            val sshRemote = Remote(name = "ssh", url = "ssh://git@github.com/user/repo.git", repository = repository)
-            val gitRemote = Remote(name = "git", url = "git://github.com/user/repo.git", repository = repository)
-            val fileRemote = Remote(name = "file", url = "file:///path/to/repo.git", repository = repository)
+            val httpsRemote = Remote(name = "https", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val sshRemote = Remote(name = "ssh", url = "ssh://git@github.com/user/repo.git", repositoryId = repository.iid)
+            val gitRemote = Remote(name = "git", url = "git://github.com/user/repo.git", repositoryId = repository.iid)
+            val fileRemote = Remote(name = "file", url = "file:///path/to/repo.git", repositoryId = repository.iid)
 
+            assertTrue(repository.remotes.addAll(listOf(httpsRemote, sshRemote, gitRemote, fileRemote)))
             assertThat(repository.remotes).hasSize(4)
             assertAll(
-                { assertThat(repository).isSameAs(httpsRemote.repository) },
-                { assertThat(repository).isSameAs(sshRemote.repository) },
-                { assertThat(repository).isSameAs(gitRemote.repository) },
-                { assertThat(repository).isSameAs(fileRemote.repository) }
+                { assertThat(httpsRemote.repositoryId).isEqualTo(repository.iid) },
+                { assertThat(sshRemote.repositoryId).isEqualTo(repository.iid) },
+                { assertThat(gitRemote.repositoryId).isEqualTo(repository.iid) },
+                { assertThat(fileRemote.repositoryId).isEqualTo(repository.iid) }
             )
         }
 
         @Test
         fun `add remote that already exists in different repository should fail`() {
             val otherRepo = mockTestDataProvider.repositoriesByPath.getValue("repo-pg-1")
-            val remote = Remote(name = "origin", url = "https://github.com/shared/repo.git", repository = repository)
+            val remote = Remote(name = "origin", url = "https://github.com/shared/repo.git", repositoryId = repository.iid)
 
             // Add to first repository
-            assertFalse(repository.remotes.add(remote))
+            assertTrue(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
 
             // Try to add same remote to different repository
@@ -854,12 +853,13 @@ class RepositoryModelTest {
             assertThat(otherRepo.remotes).hasSize(0)
 
             // Remote should be unchanged
-            assertThat(repository).isSameAs(remote.repository)
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
         fun `remove remote from repository should throw UnsupportedOperationException`() {
-            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
+            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            repository.remotes.add(remote)
             assertThat(repository.remotes).hasSize(1)
 
             assertThrows<UnsupportedOperationException> {
@@ -870,22 +870,24 @@ class RepositoryModelTest {
 
         @Test
         fun `clear all remotes should throw UnsupportedOperationException`() {
-            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
+            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid)
+            repository.remotes.addAll(listOf(remoteA, remoteB))
             assertThat(repository.remotes).hasSize(2)
 
             assertThrows<UnsupportedOperationException> {
                 repository.remotes.clear()
             }
             assertThat(repository.remotes).hasSize(2) // Should still be there
-            assertThat(remoteA.repository).isSameAs(repository)
-            assertThat(remoteB.repository).isSameAs(repository)
+            assertThat(remoteA.repositoryId).isEqualTo(repository.iid)
+            assertThat(remoteB.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
         fun `remove remote by predicate should throw UnsupportedOperationException`() {
-            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
+            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid)
+            repository.remotes.addAll(listOf(remoteA, remoteB))
             assertThat(repository.remotes).hasSize(2)
 
             assertThrows<UnsupportedOperationException> {
@@ -896,9 +898,10 @@ class RepositoryModelTest {
 
         @Test
         fun `retain only specific remotes should throw UnsupportedOperationException`() {
-            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
-            val remoteC = Remote(name = "fork", url = "https://github.com/fork/repo.git", repository = repository)
+            val remoteA = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val remoteB = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid)
+            val remoteC = Remote(name = "fork", url = "https://github.com/fork/repo.git", repositoryId = repository.iid)
+            repository.remotes.addAll(listOf(remoteA, remoteB, remoteC))
             assertThat(repository.remotes).hasSize(3)
 
             assertThrows<UnsupportedOperationException> {
@@ -909,7 +912,8 @@ class RepositoryModelTest {
 
         @Test
         fun `add remote then modify its url, expect changes to persist`() {
-            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
+            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            repository.remotes.add(remote)
             assertThat(repository.remotes).hasSize(1)
 
             // Modify remote URL
@@ -925,24 +929,26 @@ class RepositoryModelTest {
             val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val remoteB = Remote(
                 name = "origin",
                 url = "https://gitlab.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
+            assertTrue(repository.remotes.add(remoteA))
+            assertFalse(repository.remotes.add(remoteB))
             assertThat(repository.remotes).hasSize(1)
             assertThat(repository.remotes.first().url).isEqualTo("https://github.com/user/repo.git")
         }
 
         @Test
         fun `add remote then try to remove and add again, expect removal to fail`() {
-            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
+            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
 
             // Add remote
-            assertFalse(repository.remotes.add(remote))
+            assertTrue(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
 
             // Try to remove remote - should throw exception
@@ -954,7 +960,7 @@ class RepositoryModelTest {
             // Try to add same remote again - should return false (already exists)
             assertFalse(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
-            assertThat(repository).isSameAs(remote.repository)
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
 
         @Test
@@ -963,46 +969,50 @@ class RepositoryModelTest {
             assertThat(otherRepo).isNotSameAs(repository)
 
             // Create remote with repository
-            val remote = Remote(name = "origin", url = "https://github.com/multi/repo.git", repository = repository)
+            val remote = Remote(name = "origin", url = "https://github.com/multi/repo.git", repositoryId = repository.iid)
 
             // Add to first repository
-            assertThat(remote.repository).isSameAs(repository)
+            assertTrue(repository.remotes.add(remote))
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
             assertThat(repository.remotes).hasSize(1)
 
             // Try to add to second repository - should not work since it's a different repository
             assertThrows<IllegalArgumentException> {
                 otherRepo.remotes.add(remote)
             }
-            assertThat(remote.repository).isSameAs(repository) // Should still reference the original repository
+            assertThat(remote.repositoryId).isEqualTo(repository.iid) // Should still reference the original repository
             assertThat(repository.remotes).hasSize(1)
             assertThat(otherRepo.remotes).hasSize(0)
         }
 
         @Test
         fun `add multiple standard Git remotes, expect all to be added`() {
-            val origin = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val upstream = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
-            val fork = Remote(name = "fork", url = "https://github.com/fork/repo.git", repository = repository)
+            val origin = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val upstream = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid)
+            val fork = Remote(name = "fork", url = "https://github.com/fork/repo.git", repositoryId = repository.iid)
 
+            assertTrue(repository.remotes.addAll(listOf(origin, upstream, fork)))
             assertThat(repository.remotes).hasSize(3)
             assertThat(repository.remotes).containsExactlyInAnyOrder(origin, upstream, fork)
         }
 
         @Test
         fun `add remote with hyphen and underscore in name, should be added`() {
-            val remoteA = Remote(name = "origin-https", url = "https://github.com/user/repo.git", repository = repository)
-            val remoteB = Remote(name = "origin_ssh", url = "ssh://git@github.com/user/repo.git", repository = repository)
+            val remoteA = Remote(name = "origin-https", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val remoteB = Remote(name = "origin_ssh", url = "ssh://git@github.com/user/repo.git", repositoryId = repository.iid)
 
+            assertTrue(repository.remotes.addAll(listOf(remoteA, remoteB)))
             assertThat(repository.remotes).hasSize(2)
             assertAll(
-                { assertThat(repository).isSameAs(remoteA.repository) },
-                { assertThat(repository).isSameAs(remoteB.repository) }
+                { assertThat(remoteA.repositoryId).isEqualTo(repository.iid) },
+                { assertThat(remoteB.repositoryId).isEqualTo(repository.iid) }
             )
         }
 
         @Test
         fun `contains check for existing remote should return true`() {
-            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
+            val remote = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            repository.remotes.add(remote)
 
             assertThat(repository.remotes.contains(remote)).isTrue()
         }
@@ -1010,16 +1020,18 @@ class RepositoryModelTest {
         @Test
         fun `contains check for non-existing remote should return false`() {
             val otherRepo = mockTestDataProvider.repositoriesByPath.getValue("repo-pg-1")
-            val remoteInOtherRepo = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = otherRepo)
+            val remoteInOtherRepo = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = otherRepo.iid)
 
             assertThat(repository.remotes.contains(remoteInOtherRepo)).isFalse()
         }
 
         @Test
         fun `iterate over remotes collection, expect all remotes returned`() {
-            val origin = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val upstream = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
-            val fork = Remote(name = "fork", url = "https://github.com/fork/repo.git", repository = repository)
+            val origin = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid)
+            val upstream = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid)
+            val fork = Remote(name = "fork", url = "https://github.com/fork/repo.git", repositoryId = repository.iid)
+
+            repository.remotes.addAll(listOf(origin, upstream, fork))
 
             val remoteNames = repository.remotes.map { it.name }.toSet()
 

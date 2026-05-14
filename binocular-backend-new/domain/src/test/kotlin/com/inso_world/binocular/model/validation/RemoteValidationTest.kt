@@ -57,7 +57,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             // Change field via reflection, otherwise constructor check fails
             setField(
@@ -119,7 +119,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
@@ -174,7 +174,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = validName,
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             // When
@@ -205,7 +205,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             setField(
                 remote.javaClass.getDeclaredField("url").apply { isAccessible = true },
@@ -250,7 +250,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = "https://example.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             // required, otherwise constructor will reject
             setField(
@@ -329,7 +329,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = validUrl,
-                repository = repository
+                repositoryId = repository.iid
             )
 
             // When
@@ -360,7 +360,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = "https://example.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             // When
@@ -368,9 +368,7 @@ internal class RemoteValidationTest : ValidationTest() {
 
             // Then
             assertThat(violations).isEmpty()
-            assertThat(remote.repository).isNotNull
-            assertThat(remote.repository).isSameAs(repository)
-            assertThat(repository.remotes).contains(remote)
+            assertThat(remote.repositoryId).isEqualTo(repository.iid)
         }
     }
 
@@ -394,7 +392,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote1 = Remote(
                 name = "origin",
                 url = "https://example.com/user/repo1.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             val anotherProject = Project(name = "another-project")
@@ -402,7 +400,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote2 = Remote(
                 name = "origin",
                 url = "https://example.com/user/repo2.git",
-                repository = anotherRepository
+                repositoryId = anotherRepository.iid
             )
 
             // When
@@ -423,13 +421,13 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote1 = Remote(
                 name = "origin",
                 url = "https://example.com/user/repo1.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             val remote2 = Remote(
                 name = "upstream",
                 url = "https://example.com/user/repo2.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             // Change name to match remote1
             setField(
@@ -464,7 +462,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = "https://example.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
@@ -493,7 +491,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = longName,
                 url = "https://example.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             // When
@@ -519,7 +517,7 @@ internal class RemoteValidationTest : ValidationTest() {
             val remote = Remote(
                 name = "origin",
                 url = longUrl,
-                repository = repository
+                repositoryId = repository.iid
             )
 
             // When

@@ -62,7 +62,7 @@ class RemoteModelTest {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/repo.git",
-                    repository = repository
+                    repositoryId = repository.iid
                 )
             }
         }
@@ -72,24 +72,31 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertThat(remote.iid).isNotNull()
         }
 
         @Test
-        fun `create remote, check it is automatically added to repository`() {
+        fun `create remote, check it must be explicitly added to repository`() {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
+            // Remote is NOT auto-added anymore; must be explicitly added
+            assertAll(
+                { assertThat(repository.remotes).isEmpty() },
+                { assertThat(remote.repositoryId).isEqualTo(repository.iid) }
+            )
+
+            // Explicit add works
+            assertTrue(repository.remotes.add(remote))
             assertAll(
                 { assertThat(repository.remotes).hasSize(1) },
-                { assertThat(repository.remotes).contains(remote) },
-                { assertThat(remote.repository).isSameAs(repository) }
+                { assertThat(repository.remotes).contains(remote) }
             )
         }
 
@@ -98,7 +105,7 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertThat(remote.id).isNull()
@@ -111,7 +118,7 @@ class RemoteModelTest {
                 Remote(
                     name = name,
                     url = "https://github.com/user/repo.git",
-                    repository = repository
+                    repositoryId = repository.iid
                 )
             }
         }
@@ -123,7 +130,7 @@ class RemoteModelTest {
                 Remote(
                     name = name,
                     url = "https://github.com/user/repo.git",
-                    repository = repository
+                    repositoryId = repository.iid
                 )
             }
         }
@@ -135,7 +142,7 @@ class RemoteModelTest {
                 Remote(
                     name = "origin",
                     url = url,
-                    repository = repository
+                    repositoryId = repository.iid
                 )
             }
         }
@@ -158,7 +165,7 @@ class RemoteModelTest {
                 Remote(
                     name = "origin",
                     url = url,
-                    repository = repository
+                    repositoryId = repository.iid
                 )
             }
         }
@@ -171,7 +178,7 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             @OptIn(ExperimentalUuidApi::class)
@@ -190,7 +197,7 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "  origin  ",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertThat(remote.uniqueKey.name).isEqualTo("origin")
@@ -201,7 +208,7 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertThat(remote.hashCode()).isEqualTo(remote.iid.hashCode())
@@ -212,12 +219,12 @@ class RemoteModelTest {
             val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val remoteB = Remote(
                 name = "upstream",
                 url = "https://github.com/other/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
@@ -232,23 +239,18 @@ class RemoteModelTest {
             val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val originIid = remoteA.iid
             val originUniqueKey = remoteA.uniqueKey
 
             val remoteB = remoteA.copy()
 
-            // Edit iid and repository to match remoteA
+            // Edit iid to match remoteA
             setField(
                 remoteB.javaClass.superclass.getDeclaredField("iid"),
                 remoteB,
                 originIid
-            )
-            setField(
-                remoteB.javaClass.getDeclaredField("repository"),
-                remoteB,
-                remoteA.repository
             )
 
             assertAll(
@@ -265,23 +267,18 @@ class RemoteModelTest {
             val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val originIid = remoteA.iid
             val originUniqueKey = remoteA.uniqueKey
 
             val remoteB = remoteA.copy(name = "upstream")
 
-            // Edit iid and repository to match remoteA
+            // Edit iid to match remoteA
             setField(
                 remoteB.javaClass.superclass.getDeclaredField("iid"),
                 remoteB,
                 originIid
-            )
-            setField(
-                remoteB.javaClass.getDeclaredField("repository"),
-                remoteB,
-                remoteA.repository
             )
 
             assertAll(
@@ -306,14 +303,15 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
-            // Remote is already added via constructor
+            // Remote is NOT auto-added; must be explicitly added
+            assertTrue(repository.remotes.add(remote))
             assertAll(
                 { assertThat(repository.remotes).hasSize(1) },
                 { assertThat(repository.remotes).contains(remote) },
-                { assertThat(remote.repository).isSameAs(repository) }
+                { assertThat(remote.repositoryId).isEqualTo(repository.iid) }
             )
         }
 
@@ -322,11 +320,11 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
-                // Already added via constructor
+                { assertTrue(repository.remotes.add(remote)) },
                 { assertFalse(repository.remotes.add(remote)) },
                 { assertThat(repository.remotes).hasSize(1) }
             )
@@ -337,18 +335,22 @@ class RemoteModelTest {
             val origin = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val upstream = Remote(
                 name = "upstream",
                 url = "https://github.com/upstream/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val fork = Remote(
                 name = "fork",
                 url = "https://github.com/fork/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
+
+            assertTrue(repository.remotes.add(origin))
+            assertTrue(repository.remotes.add(upstream))
+            assertTrue(repository.remotes.add(fork))
 
             assertAll(
                 { assertThat(repository.remotes).hasSize(3) },
@@ -361,16 +363,18 @@ class RemoteModelTest {
             val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val remoteB = Remote(
                 name = "origin",
                 url = "https://github.com/other/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
+            assertTrue(repository.remotes.add(remoteA))
+            assertFalse(repository.remotes.add(remoteB))
+
             assertAll(
-                // First one added via constructor
                 { assertThat(repository.remotes).hasSize(1) },
                 { assertThat(repository.remotes.first()).isSameAs(remoteA) },
                 { assertThat(repository.remotes.first().url).isEqualTo("https://github.com/user/repo.git") }
@@ -382,11 +386,10 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
-            // Already added via constructor
-            assertFalse(repository.remotes.addAll(listOf(remote)))
+            assertTrue(repository.remotes.addAll(listOf(remote)))
             assertThat(repository.remotes).hasSize(1)
         }
 
@@ -395,16 +398,15 @@ class RemoteModelTest {
             val origin = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val upstream = Remote(
                 name = "upstream",
                 url = "https://github.com/upstream/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
-            // Already added via constructor
-            assertFalse(repository.remotes.addAll(listOf(origin, upstream)))
+            assertTrue(repository.remotes.addAll(listOf(origin, upstream)))
             assertThat(repository.remotes).hasSize(2)
         }
 
@@ -413,12 +415,11 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
-                // Already added via constructor
-                { assertFalse(repository.remotes.addAll(listOf(remote))) },
+                { assertTrue(repository.remotes.addAll(listOf(remote))) },
                 { assertFalse(repository.remotes.addAll(listOf(remote))) },
                 { assertThat(repository.remotes).hasSize(1) }
             )
@@ -429,21 +430,22 @@ class RemoteModelTest {
             val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val remoteB = Remote(
                 name = "upstream",
                 url = "https://github.com/upstream/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val remoteC = Remote(
                 name = "origin", // Same name as remoteA
                 url = "https://github.com/other/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
+            assertTrue(repository.remotes.addAll(listOf(remoteA, remoteB, remoteC)))
+
             assertAll(
-                // All added via constructor, but remoteC has duplicate name
                 { assertThat(repository.remotes).hasSize(2) },
                 { assertThat(repository.remotes).contains(remoteA, remoteB) },
                 { assertThat(repository.remotes).doesNotContain(remoteC) }
@@ -455,11 +457,11 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val otherRepo = mockTestDataProvider.repositoriesByPath.getValue("repo-pg-1")
 
-            assertThat(remote.repository).isNotSameAs(otherRepo)
+            assertThat(remote.repositoryId).isNotEqualTo(otherRepo.iid)
 
             assertThrows<IllegalArgumentException> {
                 otherRepo.remotes.add(remote)
@@ -487,8 +489,9 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
+            repository.remotes.add(remote)
             assertThat(repository.remotes).hasSize(1)
 
             assertThrows<UnsupportedOperationException> {
@@ -499,16 +502,17 @@ class RemoteModelTest {
 
         @Test
         fun `clear all remotes should throw UnsupportedOperationException`() {
-            Remote(
+            val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
-            Remote(
+            val remoteB = Remote(
                 name = "upstream",
                 url = "https://github.com/upstream/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
+            repository.remotes.addAll(listOf(remoteA, remoteB))
             assertThat(repository.remotes).hasSize(2)
 
             assertThrows<UnsupportedOperationException> {
@@ -519,16 +523,17 @@ class RemoteModelTest {
 
         @Test
         fun `remove remote by predicate should throw UnsupportedOperationException`() {
-            Remote(
+            val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
-            Remote(
+            val remoteB = Remote(
                 name = "upstream",
                 url = "https://github.com/upstream/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
+            repository.remotes.addAll(listOf(remoteA, remoteB))
             assertThat(repository.remotes).hasSize(2)
 
             assertThrows<UnsupportedOperationException> {
@@ -542,18 +547,19 @@ class RemoteModelTest {
             val origin = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val upstream = Remote(
                 name = "upstream",
                 url = "https://github.com/upstream/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             val fork = Remote(
                 name = "fork",
                 url = "https://github.com/fork/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
+            repository.remotes.addAll(listOf(origin, upstream, fork))
             assertThat(repository.remotes).hasSize(3)
 
             assertThrows<UnsupportedOperationException> {
@@ -564,11 +570,12 @@ class RemoteModelTest {
 
         @Test
         fun `remove via iterator should throw UnsupportedOperationException`() {
-            Remote(
+            val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
+            repository.remotes.add(remote)
             assertThat(repository.remotes).hasSize(1)
 
             val iterator = repository.remotes.iterator()
@@ -594,8 +601,9 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
+            repository.remotes.add(remote)
             assertThat(repository.remotes).hasSize(1)
 
             // Modify URL
@@ -612,7 +620,7 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
             assertThat(remote.id).isNull()
 
@@ -636,12 +644,12 @@ class RemoteModelTest {
             val remote = Remote(
                 name = longName,
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
-                { assertThat(repository.remotes).hasSize(1) },
-                { assertThat(remote.name).isEqualTo(longName) }
+                { assertThat(remote.name).isEqualTo(longName) },
+                { assertTrue(repository.remotes.add(remote)) }
             )
         }
 
@@ -651,11 +659,11 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = longUrl,
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
-                { assertThat(repository.remotes).hasSize(1) },
+                { assertTrue(repository.remotes.add(remote)) },
                 { assertThat(remote.url).isEqualTo(longUrl) }
             )
         }
@@ -666,11 +674,11 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "origin",
                 url = specialUrl,
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
-                { assertThat(repository.remotes).hasSize(1) },
+                { assertTrue(repository.remotes.add(remote)) },
                 { assertThat(remote.url).isEqualTo(specialUrl) }
             )
         }
@@ -681,13 +689,16 @@ class RemoteModelTest {
             val origin = Remote(
                 name = "origin",
                 url = sameUrl,
-                repository = repository
+                repositoryId = repository.iid
             )
             val backup = Remote(
                 name = "backup",
                 url = sameUrl,
-                repository = repository
+                repositoryId = repository.iid
             )
+
+            assertTrue(repository.remotes.add(origin))
+            assertTrue(repository.remotes.add(backup))
 
             assertAll(
                 { assertThat(repository.remotes).hasSize(2) },
@@ -700,7 +711,7 @@ class RemoteModelTest {
             val remote = Remote(
                 name = "  origin  ",
                 url = "https://github.com/user/repo.git",
-                repository = repository
+                repositoryId = repository.iid
             )
 
             assertAll(
@@ -717,17 +728,17 @@ class RemoteModelTest {
             val remote1 = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo1.git",
-                repository = repo1
+                repositoryId = repo1.iid
             )
             val remote2 = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo2.git",
-                repository = repo2
+                repositoryId = repo2.iid
             )
 
             assertAll(
-                { assertThat(repo1.remotes).hasSize(1) },
-                { assertThat(repo2.remotes).hasSize(1) },
+                { assertThat(remote1.repositoryId).isEqualTo(repo1.iid) },
+                { assertThat(remote2.repositoryId).isEqualTo(repo2.iid) },
                 { assertThat(remote1.name).isEqualTo("origin") },
                 { assertThat(remote2.name).isEqualTo("origin") },
                 { assertThat(remote1.uniqueKey).isNotEqualTo(remote2.uniqueKey) }
