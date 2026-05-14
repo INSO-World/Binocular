@@ -104,18 +104,14 @@ data class User(
      */
     val committedCommits: MutableSet<Commit> = object : NonRemovingMutableSet<Commit>() {
         override fun add(element: Commit): Boolean {
-            require(element.repository == this@User.repository) {
-                "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
-            }
-            require(element.committer == this@User) {
-                "Cannot add Commit $element to committedCommits since user is not committer of Commit."
+            require(element.repositoryId == this@User.repository.iid) {
+                "Commit.repositoryId (${element.repositoryId}) doesn't match user.repository (${this@User.repository})"
             }
             val added = super.add(element)
             return added
         }
 
         override fun addAll(elements: Collection<Commit>): Boolean {
-            // for bulk-adds make sure each one gets the same treatment
             var anyAdded = false
             for (e in elements) {
                 if (add(e)) anyAdded = true
@@ -133,8 +129,8 @@ data class User(
     @Deprecated("Use Developer.authoredCommits instead")
     val authoredCommits: MutableSet<Commit> = object : NonRemovingMutableSet<Commit>() {
         override fun add(element: Commit): Boolean {
-            require(element.repository == this@User.repository) {
-                "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
+            require(element.repositoryId == this@User.repository.iid) {
+                "Commit.repositoryId (${element.repositoryId}) doesn't match user.repository (${this@User.repository})"
             }
             return super.add(element)
         }
