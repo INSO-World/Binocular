@@ -64,14 +64,14 @@ data class RepositoryEntity(
      * @param project The project domain object to associate with the repository
      * @return Repository domain object
      */
-    fun toDomain(project: com.inso_world.binocular.model.Project): com.inso_world.binocular.model.Repository {
-        return com.inso_world.binocular.model.Repository(
-            localPath = this.localPath.trim(),
-            project = project
-        ).apply {
-            this.id = this@RepositoryEntity.id
-        }
-    }
+    fun toDomain(project: com.inso_world.binocular.model.Project): com.inso_world.binocular.model.Repository =
+        com.inso_world.binocular.model
+            .Repository(
+                localPath = this.localPath.trim(),
+                project = project,
+            ).apply {
+                this.id = this@RepositoryEntity.id
+            }
 }
 
 /**

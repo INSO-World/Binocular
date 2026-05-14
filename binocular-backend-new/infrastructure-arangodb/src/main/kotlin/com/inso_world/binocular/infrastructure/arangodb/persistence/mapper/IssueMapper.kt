@@ -41,7 +41,6 @@ internal class IssueMapper
         @Lazy private val userMapper: UserMapper,
         private val mentionMapper: MentionMapper,
     ) : EntityMapper<Issue, IssueEntity> {
-
         @Autowired
         private lateinit var ctx: MappingContext
 

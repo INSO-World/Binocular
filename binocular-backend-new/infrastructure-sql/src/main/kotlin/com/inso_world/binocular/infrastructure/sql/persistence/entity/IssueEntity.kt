@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -13,7 +14,6 @@ import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import java.time.LocalDateTime
 import java.util.Objects
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 
 /**
  * SQL-specific Issue entity.

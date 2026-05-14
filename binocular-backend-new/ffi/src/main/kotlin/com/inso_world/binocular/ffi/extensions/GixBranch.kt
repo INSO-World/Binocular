@@ -28,7 +28,10 @@ import com.inso_world.binocular.model.Repository
  * @param head The commit to set as the branch head.
  * @return The canonical [Branch] instance for the given repository and name.
  */
-internal fun GixBranch.toDomain(repository: Repository, head: Commit): Branch {
+internal fun GixBranch.toDomain(
+    repository: Repository,
+    head: Commit,
+): Branch {
     // Try to reuse existing branch identity in this repository
     val existing = repository.branches.firstOrNull { it.uniqueKey.name == this.name }
     if (existing != null) {
@@ -42,6 +45,6 @@ internal fun GixBranch.toDomain(repository: Repository, head: Commit): Branch {
         fullName = this.fullName.toString(),
         category = this.category.toDomain(),
         repository = repository,
-        head = head
+        head = head,
     )
 }

@@ -37,7 +37,6 @@ internal class MergeRequestMapper
         @Lazy private val accountMapper: AccountMapper,
         private val mentionMapper: MentionMapper,
     ) : EntityMapper<MergeRequest, MergeRequestEntity> {
-
         @Autowired
         private lateinit var ctx: MappingContext
 

@@ -151,9 +151,9 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
                 )
 
             assertAll(
-                { assertThat(result.committer?.name).isNotEmpty() },
-                { assertThat(result.committer?.email).isNotEmpty() },
-                { assertThat(result.committer?.time).isNotNull() },
+                { assertThat(result.committer.name).isNotEmpty() },
+                { assertThat(result.committer.email).isNotEmpty() },
+                { assertThat(result.committer.time).isNotNull() },
             )
         }
 
@@ -422,8 +422,8 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
                 )
 
             assertAll(
-                { assertThat(result.oid.toString()).hasSize(40) },
-                { assertThat(result.oid.toString()).matches("[0-9a-f]{40}") },
+                { assertThat(result.oid).hasSize(40) },
+                { assertThat(result.oid).matches("[0-9a-f]{40}") },
             )
         }
 
@@ -441,8 +441,8 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
                 )
 
             assertAll(
-                { assertThat(result.author.time?.seconds).isGreaterThan(0) },
-                { assertThat(result.committer?.time?.seconds).isGreaterThan(0) },
+                { assertThat(result.author.time.seconds).isGreaterThan(0) },
+                { assertThat(result.committer.time.seconds).isGreaterThan(0) },
             )
         }
 
@@ -478,8 +478,8 @@ class CommitOperationsTest : BaseLibraryUnitTest() {
 
             result.parents.forEach { parentOid ->
                 assertAll(
-                    { assertThat(parentOid.toString()).hasSize(40) },
-                    { assertThat(parentOid.toString()).matches("[0-9a-f]{40}") },
+                    { assertThat(parentOid).hasSize(40) },
+                    { assertThat(parentOid).matches("[0-9a-f]{40}") },
                 )
             }
         }

@@ -61,20 +61,22 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
 
         // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
         // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-            ?: throw IllegalStateException(
-                "RepositoryEntity must be mapped before CommitEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity()."
-            )
+        val owner =
+            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+                ?: throw IllegalStateException(
+                    "RepositoryEntity must be mapped before CommitEntity. " +
+                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
+                )
 
         val authorEntity = developerMapper.toEntity(domain.author)
         val committerEntity = developerMapper.toEntity(domain.committer)
 
-        val entity = domain.toEntity(
-            repository = owner,
-            author = authorEntity,
-            committer = committerEntity,
-        )
+        val entity =
+            domain.toEntity(
+                repository = owner,
+                author = authorEntity,
+                committer = committerEntity,
+            )
         ctx.remember(domain, entity)
 
         return entity
@@ -99,11 +101,12 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
 
         // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
         // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner = ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before Commit. " +
-                        "Ensure Repository is in MappingContext before calling toDomain()."
-            )
+        val owner =
+            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
+                ?: throw IllegalStateException(
+                    "Repository must be mapped before Commit. " +
+                        "Ensure Repository is in MappingContext before calling toDomain().",
+                )
 
         val author = developerMapper.toDomain(entity.author)
         val committer = developerMapper.toDomain(entity.committer)
@@ -131,7 +134,10 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
      * @param entity The CommitEntity with updated data
      * @return The refreshed Commit domain object
      */
-    fun refreshDomain(target: Commit, entity: CommitEntity): Commit {
+    fun refreshDomain(
+        target: Commit,
+        entity: CommitEntity,
+    ): Commit {
         setField(
             target.javaClass.getDeclaredField("id"),
             target,

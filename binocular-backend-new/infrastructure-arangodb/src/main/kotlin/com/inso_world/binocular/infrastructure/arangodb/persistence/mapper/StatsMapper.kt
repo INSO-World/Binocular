@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class StatsMapper : EntityMapper<Stats, StatsEntity> {
-
     @Autowired
     private lateinit var ctx: MappingContext
 

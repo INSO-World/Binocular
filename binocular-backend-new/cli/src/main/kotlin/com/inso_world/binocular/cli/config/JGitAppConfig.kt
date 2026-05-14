@@ -7,4 +7,4 @@ import org.springframework.context.annotation.Profile
 @Configuration
 @Profile("jgit")
 @ComponentScan("com.inso_world.binocular.jgit")
-internal class JGitConfig
+internal class JGitAppConfig

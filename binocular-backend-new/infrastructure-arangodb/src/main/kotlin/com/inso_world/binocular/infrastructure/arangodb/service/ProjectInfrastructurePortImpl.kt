@@ -31,17 +31,14 @@ internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort,
     @Autowired
     private lateinit var projectAssembler: ProjectAssembler
 
-    override fun findAll(): Iterable<Project> {
-        return this.projectDao.findAll()
-    }
+    @MappingSession
+    override fun findAll(): Iterable<Project> = this.projectDao.findAll()
 
-    override fun findAll(pageable: Pageable): Page<Project> {
-        return this.projectDao.findAll(pageable)
-    }
+    @MappingSession
+    override fun findAll(pageable: Pageable): Page<Project> = this.projectDao.findAll(pageable)
 
-    override fun findById(id: String): Project? {
-        return this.projectDao.findById(id)
-    }
+    @MappingSession
+    override fun findById(id: String): Project? = this.projectDao.findById(id)
 
     @MappingSession
     override fun create(value: Project): Project {
@@ -51,19 +48,16 @@ internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort,
         return projectAssembler.toDomain(savedEntity)
     }
 
-    override fun saveAll(values: Collection<Project>): Iterable<Project> {
-        return this.projectDao.saveAll(values)
-    }
+    override fun saveAll(values: Collection<Project>): Iterable<Project> = this.projectDao.saveAll(values)
 
     @MappingSession
-    override fun findByName(name: String): Project? {
-        return this.projectDao.findByName(name)
-    }
+    override fun findByName(name: String): Project? = this.projectDao.findByName(name)
 
     override fun update(value: Project): Project {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findByIid(iid: Project.Id): Project? {
         TODO("Not yet implemented")
     }

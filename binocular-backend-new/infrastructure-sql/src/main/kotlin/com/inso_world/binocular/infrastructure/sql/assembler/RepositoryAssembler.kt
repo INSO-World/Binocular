@@ -4,10 +4,10 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RemoteMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.sql.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
@@ -166,12 +166,14 @@ internal class RepositoryAssembler {
         // Phase 2b: Wire parent/child commit relationships (second pass)
         logger.debug("Wiring parent/child relationships for ${domain.commits.size} commits")
         domain.commits.forEach { commit ->
-            val commitEntity = ctx.findEntity<Commit.Key, Commit, CommitEntity>(commit)
-                ?: throw IllegalStateException("CommitEntity for ${commit.sha} must be in context")
+            val commitEntity =
+                ctx.findEntity<Commit.Key, Commit, CommitEntity>(commit)
+                    ?: throw IllegalStateException("CommitEntity for ${commit.sha} must be in context")
 
             commit.parents.forEach { parentCommit ->
-                val parentEntity = ctx.findEntity<Commit.Key, Commit, CommitEntity>(parentCommit)
-                    ?: throw IllegalStateException("Parent CommitEntity for ${parentCommit.sha} must be in context")
+                val parentEntity =
+                    ctx.findEntity<Commit.Key, Commit, CommitEntity>(parentCommit)
+                        ?: throw IllegalStateException("Parent CommitEntity for ${parentCommit.sha} must be in context")
 
                 // Wire bidirectional relationship (only if not already present)
                 if (!commitEntity.parents.contains(parentEntity)) {
@@ -204,7 +206,7 @@ internal class RepositoryAssembler {
 
         logger.trace(
             "Assembled RepositoryEntity: id=${entity.id}, " +
-                    "commits=${entity.commits.size}, branches=${entity.branches.size}, remotes=${entity.remotes.size}, developers=${entity.developers.size}"
+                "commits=${entity.commits.size}, branches=${entity.branches.size}, remotes=${entity.remotes.size}, developers=${entity.developers.size}",
         )
 
         return entity
@@ -246,11 +248,12 @@ internal class RepositoryAssembler {
         }
 
         // Ensure Project reference exists in context (but don't assemble Repository child)
-        val project = ctx.findDomain<Project, ProjectEntity>(entity.project)
-            ?: run {
-                logger.debug("Project not in context, mapping minimal Project structure (no Repository child)")
-                projectMapper.toDomain(entity.project)
-            }
+        val project =
+            ctx.findDomain<Project, ProjectEntity>(entity.project)
+                ?: run {
+                    logger.debug("Project not in context, mapping minimal Project structure (no Repository child)")
+                    projectMapper.toDomain(entity.project)
+                }
 
         logger.debug("Project reference in context: ${project.name}")
 
@@ -277,12 +280,14 @@ internal class RepositoryAssembler {
         // Phase 4b: Wire parent/child commit relationships (second pass)
         logger.debug("Wiring parent/child relationships for ${entity.commits.size} commits")
         entity.commits.forEach { commitEntity ->
-            val commit = ctx.findDomain<Commit, CommitEntity>(commitEntity)
-                ?: throw IllegalStateException("Commit for ${commitEntity.sha} must be in context")
+            val commit =
+                ctx.findDomain<Commit, CommitEntity>(commitEntity)
+                    ?: throw IllegalStateException("Commit for ${commitEntity.sha} must be in context")
 
             commitEntity.parents.forEach { parentEntity ->
-                val parentCommit = ctx.findDomain<Commit, CommitEntity>(parentEntity)
-                    ?: throw IllegalStateException("Parent Commit for ${parentEntity.sha} must be in context")
+                val parentCommit =
+                    ctx.findDomain<Commit, CommitEntity>(parentEntity)
+                        ?: throw IllegalStateException("Parent Commit for ${parentEntity.sha} must be in context")
 
                 if (!commit.parents.contains(parentCommit)) {
                     commit.parents.add(parentCommit)
@@ -306,13 +311,16 @@ internal class RepositoryAssembler {
 
         logger.trace(
             "Assembled Repository domain: ${domain.localPath}, " +
-                    "commits=${domain.commits.size}, branches=${domain.branches.size}, remotes=${domain.remotes.size}"
+                "commits=${domain.commits.size}, branches=${domain.branches.size}, remotes=${domain.remotes.size}",
         )
 
         return domain
     }
 
-    fun refresh(domain: Repository, entity: RepositoryEntity) : Repository {
+    fun refresh(
+        domain: Repository,
+        entity: RepositoryEntity,
+    ): Repository {
         logger.trace("Refreshing Repository domain: ${domain.iid}")
         this.repositoryMapper.refreshDomain(domain, entity)
 

@@ -152,11 +152,12 @@ internal class RepositoryAssembler {
         }
 
         // Ensure Project reference exists in context (but don't assemble Repository child)
-        val projectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
-            ?: run {
-                logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
-                projectMapper.toEntity(domain.project)
-            }
+        val projectEntity =
+            ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+                ?: run {
+                    logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
+                    projectMapper.toEntity(domain.project)
+                }
 
         logger.trace("Project reference in context: id=${projectEntity.id}")
 
@@ -199,7 +200,7 @@ internal class RepositoryAssembler {
 
         logger.debug(
             "Assembled RepositoryEntity: id=${entity.id}, " +
-                    "commits=${domain.commits.size}, branches=${domain.branches.size}"
+                "commits=${domain.commits.size}, branches=${domain.branches.size}",
         )
 
         return entity
@@ -240,11 +241,12 @@ internal class RepositoryAssembler {
         }
 
         // Ensure Project reference exists in context (but don't assemble Repository child)
-        val project = ctx.findDomain<Project, ProjectEntity>(entity.project)
-            ?: run {
-                logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
-                projectMapper.toDomain(entity.project)
-            }
+        val project =
+            ctx.findDomain<Project, ProjectEntity>(entity.project)
+                ?: run {
+                    logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
+                    projectMapper.toDomain(entity.project)
+                }
 
         logger.trace("Project reference in context: ${project.name}")
 

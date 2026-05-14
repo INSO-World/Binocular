@@ -7,7 +7,11 @@ internal class ReflectionUtils {
         /**
          * Mimics [org.springframework.util.ReflectionUtils.setField]
          */
-        fun setField(field: Field, target: Any, value: Any?) {
+        fun setField(
+            field: Field,
+            target: Any,
+            value: Any?,
+        ) {
             field.isAccessible = true
             field.set(target, value)
         }

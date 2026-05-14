@@ -13,10 +13,8 @@ import kotlin.uuid.Uuid
  */
 @OptIn(ExperimentalUuidApi::class)
 class StakeholderModelTest {
-
     @Nested
     inner class Construction {
-
         @Test
         fun `given valid name and email, when creating a stakeholder subclass, then it should be created successfully`() {
             // Given
@@ -47,7 +45,6 @@ class StakeholderModelTest {
 
     @Nested
     inner class Equality {
-
         @Test
         fun `given two stakeholders with same iid and uniqueKey, when comparing, then they should be equal`() {
             // Given
@@ -74,18 +71,22 @@ class StakeholderModelTest {
      */
     private class TestStakeholder(
         override val name: String,
-        override val email: String
+        override val email: String,
     ) : Stakeholder<TestStakeholder.Id, TestStakeholder.Key>(Id(Uuid.random())) {
-
         @JvmInline
-        value class Id(val value: Uuid)
+        value class Id(
+            val value: Uuid,
+        )
 
-        data class Key(val email: String)
+        data class Key(
+            val email: String,
+        )
 
         override val uniqueKey: Key
             get() = Key(email)
 
         override fun equals(other: Any?) = super.equals(other)
+
         override fun hashCode(): Int = super.hashCode()
     }
 }

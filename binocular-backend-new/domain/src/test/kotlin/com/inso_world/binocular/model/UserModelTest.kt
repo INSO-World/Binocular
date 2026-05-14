@@ -14,16 +14,16 @@ import org.junit.jupiter.params.provider.MethodSource
 import kotlin.uuid.ExperimentalUuidApi
 
 class UserModelTest {
-
     private lateinit var repository: Repository
 
     @BeforeEach
     fun setUp() {
         val project = Project(name = "test-project")
-        repository = Repository(
-            localPath = "test",
-            project = project,
-        )
+        repository =
+            Repository(
+                localPath = "test",
+                project = project,
+            )
     }
 
     @Test
@@ -93,9 +93,7 @@ class UserModelTest {
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `create user, update email with invalid strings, should fail`(
-        email: String,
-    ) {
+    fun `create user, update email with invalid strings, should fail`(email: String) {
         val user = User(name = "test-user", repository)
 
         assertThrows<IllegalArgumentException> {
@@ -105,9 +103,7 @@ class UserModelTest {
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `create user with invalid name, should fail`(
-        name: String,
-    ) {
+    fun `create user with invalid name, should fail`(name: String) {
         assertThrows<IllegalArgumentException> {
             User(name, repository)
         }
@@ -138,10 +134,11 @@ class UserModelTest {
                 val mockCommit =
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-                val differentRepository = Repository(
-                    localPath = "different-repository",
-                    project = Project(name = "different-project"),
-                )
+                val differentRepository =
+                    Repository(
+                        localPath = "different-repository",
+                        project = Project(name = "different-project"),
+                    )
 
                 val user = User(name = "test-user", differentRepository)
 
@@ -151,7 +148,7 @@ class UserModelTest {
                         assertThrows<IllegalArgumentException> {
                             user.committedCommits.add(mockCommit)
                         }
-                    }
+                    },
                 )
             }
 
@@ -170,7 +167,6 @@ class UserModelTest {
 
         @Nested
         inner class AuthoredCommits {
-
             @BeforeEach
             fun setUp() {
                 this@CommitRelations.setUp()
@@ -187,10 +183,11 @@ class UserModelTest {
                 val mockCommit =
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-                val differentRepository = Repository(
-                    localPath = "different-repository",
-                    project = Project(name = "different-project"),
-                )
+                val differentRepository =
+                    Repository(
+                        localPath = "different-repository",
+                        project = Project(name = "different-project"),
+                    )
 
                 val user = User(name = "test-user", differentRepository)
 
@@ -200,7 +197,7 @@ class UserModelTest {
                         assertThrows<IllegalArgumentException> {
                             user.authoredCommits.add(mockCommit)
                         }
-                    }
+                    },
                 )
             }
 
@@ -209,10 +206,11 @@ class UserModelTest {
                 val mockCommit =
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-                val differentRepository = Repository(
-                    localPath = "different-repository",
-                    project = Project(name = "different-project"),
-                )
+                val differentRepository =
+                    Repository(
+                        localPath = "different-repository",
+                        project = Project(name = "different-project"),
+                    )
 
                 val user = User(name = "test-user", differentRepository)
 
@@ -231,7 +229,7 @@ class UserModelTest {
                 assertTrue(user.authoredCommits.add(mockCommit))
                 assertAll(
                     { assertThat(user.authoredCommits).containsOnly(mockCommit) },
-                    { assertThat(mockCommit.author).isNotEqualTo(user) }
+                    { assertThat(mockCommit.author).isNotEqualTo(user) },
                 )
             }
         }
@@ -264,5 +262,4 @@ class UserModelTest {
             assertThat(user.files).isEmpty()
         }
     }
-
 }
