@@ -1,6 +1,8 @@
 package com.inso_world.binocular.model
 
 import jakarta.validation.constraints.NotBlank
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -28,17 +30,56 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class Project(
     @field:NotBlank
-    val name: String
+    val name: String,
 ) : AbstractDomainObject<Project.Id, Project.Key>(
     Id(Uuid.random())
 ) {
     @JvmInline
     value class Id(val value: Uuid)
 
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
+    }
+
     data class Key(val name: String) // value object for lookups
 
-    val issues: MutableSet<Issue> = mutableSetOf()
-//        object : NonRemovingMutableSetSet<Issue>() {}
+    val accounts: MutableSet<Account> =
+        object : NonRemovingMutableSet<Account>() {
+
+            override fun add(element: Account): Boolean {
+                // TODO require that project is in projects of account
+
+                val added = super.add(element)
+                return added
+            }
+
+            override fun addAll(elements: Collection<Account>): Boolean {
+                // for bulk-adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
+
+    val issues: MutableSet<Issue> = object : NonRemovingMutableSet<Issue>() {
+        override fun add(element: Issue): Boolean {
+//            require(element.project == this@Project) {
+//                "Issue.project (${element.project}) doesn't match the project (${this@Project})."
+//            }
+            val added = super.add(element)
+            return added
+        }
+
+        override fun addAll(elements: Collection<Issue>): Boolean {
+            var anyAdded = false
+            for (element in elements) {
+                if (add(element)) anyAdded = true
+            }
+            return anyAdded
+        }
+    }
 
     // TODO: should MRs be included here?
     val mergeRequests: MutableSet<MergeRequest> = mutableSetOf()
@@ -87,6 +128,8 @@ data class Project(
     }
 
     override fun toString(): String = "Project(id=$id, iid=$iid, name='$name', description=$description)"
+
+    fun toStringDebug(): String = "Project(name='$name', accountCount=${accounts.size}, issueCount=${issues.size})"
 
     override val uniqueKey: Project.Key
         get() = Project.Key(this.name)

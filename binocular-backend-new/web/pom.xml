@@ -51,15 +51,15 @@
         </dependency>
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
+            <artifactId>github</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.inso-world.binocular</groupId>
             <artifactId>domain</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.inso-world.binocular</groupId>
-            <artifactId>infrastructure-arangodb</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
@@ -110,6 +110,42 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>arangodb</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.inso-world.binocular</groupId>
+                    <artifactId>infrastructure-arangodb</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.inso-world.binocular</groupId>
+                    <artifactId>infrastructure-arangodb</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>tests</classifier>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>sql</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.inso-world.binocular</groupId>
+                    <artifactId>infrastructure-sql</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.inso-world.binocular</groupId>
+                    <artifactId>infrastructure-sql</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>tests</classifier>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>

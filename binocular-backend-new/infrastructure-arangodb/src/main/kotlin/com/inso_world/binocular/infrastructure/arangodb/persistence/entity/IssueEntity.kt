@@ -20,6 +20,7 @@ data class IssueEntity(
     var id: String? = null,
     @Field("iid")
     var iid: Int? = null,
+    val gid: String,
     var title: String? = null,
     var description: String? = null,
     var createdAt: Date? = null,
@@ -35,7 +36,7 @@ data class IssueEntity(
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var accounts: List<AccountEntity> = emptyList(),
+    var accounts: Set<AccountEntity> = emptySet(),
     @Relations(
         edges = [IssueCommitConnectionEntity::class],
         lazy = true,

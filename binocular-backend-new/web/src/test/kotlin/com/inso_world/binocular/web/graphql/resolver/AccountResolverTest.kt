@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.AccountDto
 import org.junit.jupiter.api.Assertions.assertAll

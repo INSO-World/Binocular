@@ -20,6 +20,7 @@ import org.springframework.shell.command.annotation.CommandScan
 //        make sure the ones below match the ones in WebApplication (and vice versa)
         "com.inso_world.binocular.core.persistence",
         "com.inso_world.binocular.core.service",
+        "com.inso_world.binocular.github",
     ],
 )
 internal class BinocularCommandLineApplication {

@@ -4,7 +4,9 @@ import com.arangodb.springframework.annotation.Document
 import com.arangodb.springframework.annotation.Field
 import com.arangodb.springframework.annotation.PersistentIndexed
 import com.arangodb.springframework.annotation.Ref
+import com.arangodb.springframework.annotation.Relations
 import org.springframework.data.annotation.Id
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.ProjectAccountConnectionEntity
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -34,6 +36,13 @@ data class ProjectEntity(
     var iid: Uuid,
     var name: String,
     var description: String? = null,
+    @Relations(
+        edges = [ProjectAccountConnectionEntity::class],
+        direction = Relations.Direction.OUTBOUND,
+        lazy = true,
+        maxDepth = 1
+    )
+    var accounts: Set<AccountEntity> = emptySet()
 ) {
     @Ref
     var repository: RepositoryEntity? = null
