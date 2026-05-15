@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -203,6 +204,28 @@ class RepositoryService {
         require(repository.project.repo == repository) { "Mismatch in Repository and Project configuration" }
 
         return this.repositoryPort.create(repository)
+    }
+
+    // this is a leftover from older version, unsure if needed and correct
+    @Deprecated("Use create fun instead.")
+    fun getOrCreate(
+        gitDir: String,
+        p: Project,
+    ): Repository {
+        val find = this.findRepo(gitDir)
+        if (find == null) {
+            logger.info("Repository does not exist, creating new repository")
+            return this.repositoryPort.create(
+                Repository(
+                    //id = null,
+                    localPath = normalizePath(gitDir),
+                    project = p,
+                ),
+            )
+        } else {
+            logger.debug("Repository already exists, returning existing repository")
+            return find
+        }
     }
 
     /**

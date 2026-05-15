@@ -1,23 +1,58 @@
-// package com.inso_world.binocular.infrastructure.sql.persistence.dao
-//
-// import com.inso_world.binocular.core.persistence.dao.interfaces.IAccountDao
-// import com.inso_world.binocular.core.persistence.model.Page
-// import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
-// import com.inso_world.binocular.infrastructure.sql.persistence.mapper.AccountMapper
-// import com.inso_world.binocular.model.Account
-// import jakarta.persistence.EntityManager
-// import jakarta.persistence.PersistenceContext
-// import org.springframework.beans.factory.annotation.Autowired
-// import org.springframework.context.annotation.Profile
-// import org.springframework.data.domain.Pageable
-// import org.springframework.stereotype.Repository
-// import org.springframework.transaction.annotation.Transactional
-//
+package com.inso_world.binocular.infrastructure.sql.persistence.dao
+
+import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IAccountDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.repository.AccountRepository
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.MergeRequestEntity
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.jpa.domain.Specification
+import org.springframework.stereotype.Repository
+import java.util.stream.Stream
+
+@Repository
+internal class AccountDao(
+    @Autowired
+    private val repo: AccountRepository,
+) : SqlDao<AccountEntity, Long>(),
+    IAccountDao {
+    init {
+        this.setClazz(AccountEntity::class.java)
+        this.setRepository(repo)
+    }
+
+    private object AccountEntitySpecification {
+        fun hasGidIn(gids: List<String>): Specification<AccountEntity> =
+            Specification { root, _, cb ->
+                root.get<String>("gid").`in`(gids)
+            }
+    }
+
+    override fun findExistingGid(gids: List<String>): Iterable<AccountEntity> {
+        return this.repo.findAll(AccountEntitySpecification.hasGidIn(gids))
+    }
+
+    override fun findAllByIssue(issue: IssueEntity): Stream<AccountEntity> {
+        return repo.findAllByIssuesContaining(issue)
+    }
+
+    // TODO
+//    override fun findAllByMergeRequest(mergeRequest: MergeRequestEntity): Stream<AccountEntity> {
+//        return repo.findAllByMergeRequestsContaining(mergeRequest)
+//    }
+
+    // TODO uncomment when NoteEntity is implemented
+//    override fun findAllByNote(note: NoteEntity): Stream<AccountEntity> {
+//        return repo.findAllByNotesContaining(note)
+//    }
+}
+
+
 // @Repository
 // @Transactional
 // class AccountDao(
 //    @Autowired private val accountMapper: AccountMapper,
-// ) : IAccountDao {
+// ) {
 //    @PersistenceContext
 //    private lateinit var entityManager: EntityManager
 //

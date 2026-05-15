@@ -96,6 +96,10 @@ internal class AccountInfrastructurePortImpl :
     }
 
     @MappingSession
+    override fun findExistingGid(gids: List<String>): Iterable<Account> {
+        TODO("Not yet implemented")
+    }
+
     override fun findAll(): Iterable<Account> = accountDao.findAll()
 
     override fun create(entity: Account): Account = this.accountDao.save(entity)
