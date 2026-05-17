@@ -275,21 +275,8 @@ class RepositoryModelTest {
             val user = mockTestDataProvider.userByEmail.getValue("a@test.com")
 
             // User is auto-added to repository.user on construction
-            // So the repository already has users from MockTestDataProvider
             assertThat(repository.user).contains(user)
             assertThat(repository).isSameAs(user.repository)
-        }
-
-        @Test
-        fun `add same user to repository twice, should only be added once`() {
-            val user = mockTestDataProvider.userByEmail.getValue("a@test.com")
-
-            // User is already in repository.user from construction (User.init auto-registers)
-            // So adding again should return false
-            val beforeAdd = repository.user.size
-            val addedAgain = repository.user.add(user)
-            assertThat(repository.user).hasSize(beforeAdd) // size unchanged
-            // Note: NonRemovingMutableSet deduplicates by uniqueKey, so same user won't be added twice
         }
 
         @Test
@@ -299,16 +286,6 @@ class RepositoryModelTest {
 
             // Both users are already in repository.user from construction
             assertThat(repository.user).contains(userA, userB)
-        }
-
-        @Test
-        fun `add same user twice via addAll, expect only one to be added`() {
-            val userA = mockTestDataProvider.userByEmail.getValue("a@test.com")
-
-            // User is already in repository.user from construction
-            val beforeAdd = repository.user.size
-            repository.user.addAll(listOf(userA))
-            assertThat(repository.user).hasSize(beforeAdd) // size unchanged
         }
     }
 

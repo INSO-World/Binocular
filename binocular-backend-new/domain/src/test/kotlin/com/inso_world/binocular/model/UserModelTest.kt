@@ -156,15 +156,16 @@ class UserModelTest {
             }
 
             @Test
-            fun `create user, add committedCommit from same repository but developer committer, should fail`() {
+            fun `create user, add committedCommit from same repository, should succeed`() {
                 val mockCommit =
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
 
                 val user = User(name = "test-user", repository)
 
-                assertThrows<IllegalArgumentException> {
-                    user.committedCommits.add(mockCommit)
-                }
+                // With ID-based model, committedCommits only checks repository consistency
+                // Developer-based commits can be added to legacy User
+                assertTrue(user.committedCommits.add(mockCommit))
+                assertThat(user.committedCommits).containsOnly(mockCommit)
             }
         }
 
