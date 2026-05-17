@@ -1,18 +1,13 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import type { DefaultSettings } from '../../../../simpleVisualizationPlugin/src/settings/settings';
 
 export interface CollaborationSettings extends DefaultSettings {
-  data: {
-    nodes: { id: string; group: string; url: string }[];
-    links: { source: string; target: string; value: number }[];
-  };
-  from: string;
-  to: string;
   minEdgeValue: number;
   maxEdgeValue: number;
+  includeCommitMessageRefs: boolean;
 }
+
 const MIN_POSSIBLE = 1;
-const MAX_POSSIBLE = Infinity;
 
 interface SettingsProps {
   settings: CollaborationSettings;
@@ -20,15 +15,14 @@ interface SettingsProps {
 }
 
 export default function Settings({ settings, setSettings }: SettingsProps) {
-  const { minEdgeValue, maxEdgeValue } = settings;
-  const rootRef = useRef<HTMLDivElement>(null);
+  const { minEdgeValue, maxEdgeValue, includeCommitMessageRefs } = settings;
 
   const handleMinChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = Number(e.target.value);
       setSettings({
         ...settings,
-        minEdgeValue: Math.min(value, maxEdgeValue), //limit to maxEdgeValue
+        minEdgeValue: Math.min(value, maxEdgeValue),
       });
     },
     [maxEdgeValue, settings, setSettings],
@@ -39,15 +33,16 @@ export default function Settings({ settings, setSettings }: SettingsProps) {
       const value = Number(e.target.value);
       setSettings({
         ...settings,
-        maxEdgeValue: Math.max(value, minEdgeValue), //limit to minEdgeValue
+        maxEdgeValue: Math.max(value, minEdgeValue),
       });
     },
     [minEdgeValue, settings, setSettings],
   );
 
   return (
-    <div className="mt-6 space-y-4" ref={rootRef}>
-      <label className="block text-sm font-medium dark:text-white">Collaboration Strength Range</label>
+    <div className=" space-y-2">
+      <label className="block text-sm font-medium ">Collaboration Strength Range</label>
+
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
           <span className="text-sm w-12">Min</span>
@@ -65,13 +60,21 @@ export default function Settings({ settings, setSettings }: SettingsProps) {
           <input
             type="number"
             min={minEdgeValue}
-            max={MAX_POSSIBLE}
             value={maxEdgeValue}
             onChange={handleMaxChange}
             className="w-16 border rounded px-2 py-1"
           />
         </div>
       </div>
+      <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+        <span className="label-text">Include commit message references</span>
+        <input
+          type="checkbox"
+          className="toggle toggle-primary toggle-sm"
+          checked={includeCommitMessageRefs}
+          onChange={(e) => setSettings({ ...settings, includeCommitMessageRefs: e.target.checked })}
+        />
+      </label>
     </div>
   );
 }

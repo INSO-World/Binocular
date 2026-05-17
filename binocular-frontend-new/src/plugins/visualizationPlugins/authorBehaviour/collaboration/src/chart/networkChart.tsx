@@ -1,6 +1,9 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import * as d3 from 'd3';
 import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues.ts';
+import type { DataPluginMergeRequest } from '../../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests.ts';
+import InfoTooltip from '../../../../../../components/infoTooltip/infoTooltip.tsx';
+import { showInfoTooltip, hideInfoTooltip } from '../../../../../../components/infoTooltip/infoTooltipHelper.tsx';
 
 // Types
 export interface NodeType extends d3.SimulationNodeDatum {
@@ -16,6 +19,7 @@ export interface LinkType extends d3.SimulationLinkDatum<NodeType> {
   target: string | NodeType;
   value: number;
   issues: DataPluginIssue[];
+  mergeRequests: DataPluginMergeRequest[];
 }
 
 type NetworkData = {
@@ -31,7 +35,10 @@ type NetworkChartProps = {
 
 export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const tooltipElRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const tooltipVisibleFlagRef = useRef(false);
+  const simulationRef = useRef<d3.Simulation<NodeType, LinkType> | null>(null);
+  const prevDataRef = useRef<NetworkData | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const selectedLinkRef = useRef<LinkType | null>(null);
   const clipId = useId();
@@ -43,28 +50,6 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
   const HULL_RADIUS_OFFSET = NODE_IMAGE_SIZE / 2 + 5;
 
   const hasData = Boolean(data && data.nodes && data.links);
-
-  useEffect(() => {
-    const tooltip = d3
-      .select('#root')
-      .append('div')
-      .style('position', 'absolute')
-      .style('padding', '6px 10px')
-      .style('left', '10px') // set initial position, so tooltip is not rendered outside of the main view
-      .style('top', '6px') // set initial position, so tooltip is not rendered outside of the main view
-      .style('background', 'rgba(0, 0, 0, 0.75)')
-      .style('color', '#fff')
-      .style('border-radius', '4px')
-      .style('pointer-events', 'auto') // allow clicking
-      .style('z-index', '9999')
-      .style('font-size', '12px')
-      .style('visibility', 'hidden');
-
-    tooltipElRef.current = tooltip.node() as HTMLDivElement;
-    return () => {
-      tooltip.remove();
-    };
-  }, []);
 
   /** on data-change hide chart   */
   useEffect(() => {
@@ -80,6 +65,19 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
 
   //clip avatars to circles
   useEffect(() => {
+    const dataChanged = data !== prevDataRef.current;
+    prevDataRef.current = data;
+
+    if (!dataChanged && simulationRef.current) {
+      // Dimension-only change: update SVG size and center force without full teardown
+      d3.select(svgRef.current).attr('width', width).attr('height', height);
+      (simulationRef.current.force('center') as d3.ForceCenter<NodeType>)?.x(width / 2).y(height / 2);
+      if (simulationRef.current.alpha() < 0.001) {
+        simulationRef.current.alpha(0.3).restart();
+      }
+      return;
+    }
+
     if (!hasData) {
       // nothing to draw; canvas is cleared
       const svg = d3.select(svgRef.current);
@@ -111,6 +109,7 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
     svg.call(zoomBehavior);
 
     const simulation = initializeForceSimulation(data.nodes, data.links, width, height);
+    simulationRef.current = simulation;
 
     const linkSelection = container
       .append('g')
@@ -125,8 +124,8 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
       .style('cursor', 'pointer')
       .on('mousemove', (event, d) => {
         if (!selectedLinkRef.current) {
-          showLinkTooltip(d);
-          moveTooltip(...d3.pointer(event, document.body));
+          const [x, y] = d3.pointer(event, document.body);
+          showLinkTooltip(d, x, y);
         }
       })
       .on('mouseout', () => {
@@ -135,7 +134,8 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
       .on('click', (event, d) => {
         event.stopPropagation();
         selectedLinkRef.current = d;
-        showLinkTooltip(d);
+        const [x, y] = d3.pointer(event, document.body);
+        showLinkTooltip(d, x, y);
       });
 
     const bodyClick = () => {
@@ -146,9 +146,7 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
     };
 
     //remove tooltip when click on sth else
-    document.body.addEventListener('click', () => {
-      bodyClick();
-    });
+    document.body.addEventListener('click', bodyClick);
 
     //draw node groups
     const nodeSelection = container
@@ -195,8 +193,10 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
       .on('keydown', (e, d) => {
         if (e.key === 'Enter' || e.key === ' ') window.open(d.url, '_blank');
       })
-      .on('mouseover', (_event, d) => showNodeTooltip(d.name ? d.name : d.url))
-      .on('mousemove', (event) => moveTooltip(...d3.pointer(event, document.body)))
+      .on('mousemove', (event, d) => {
+        const [x, y] = d3.pointer(event, document.body);
+        showNodeTooltip(d, x, y);
+      })
       .on('mouseout', () => hideTooltip());
 
     const hullGroup = container.append('g').attr('class', 'hull-group');
@@ -233,6 +233,7 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
 
     return () => {
       simulation.stop();
+      simulationRef.current = null;
       svg.on('.zoom', null);
       document.body.removeEventListener('click', bodyClick);
     };
@@ -274,43 +275,92 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
       const lineGen = d3.line().curve(d3.curveBasisClosed);
       return lineGen(hull) ?? '';
     }
-  }, [data, width, height, colorScale, clipId, hasData, HULL_RADIUS_OFFSET]);
+  }, [data, width, height, colorScale, clipId, hasData]);
 
-  function showLinkTooltip(link: LinkType) {
-    if (!tooltipElRef.current) return;
-    const tooltip = d3.select(tooltipElRef.current);
-    const count = link.value;
-    const title = count > 1 ? 'Issues' : 'Issue';
-    const issueList = link.issues
-      .map(
-        (issue) =>
-          `<a href="${issue.webUrl}" target="_blank" style="color:lightblue; text-decoration:none;">
-             • ${issue.title}
-           </a>`,
-      )
-      .join('<br>');
-    tooltip.html(`<strong>${count} shared ${title}:</strong><br>${issueList}`).style('visibility', 'visible');
+  function showLinkTooltip(link: LinkType, x: number, y: number) {
+    const sectionLabel: CSSProperties = {
+      fontSize: '10px',
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: '0.07em',
+      opacity: 0.5,
+      marginBottom: '4px',
+      paddingLeft: '2px',
+    };
+    const item: CSSProperties = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '4px 6px',
+      borderRadius: '4px',
+      textDecoration: 'none',
+      color: 'inherit',
+      cursor: 'pointer',
+      fontSize: '13px',
+    };
+
+    const content = (
+      <div style={{ minWidth: '180px' }}>
+        {link.issues.length > 0 && (
+          <div style={{ marginBottom: link.mergeRequests.length > 0 ? '10px' : '0' }}>
+            <div style={sectionLabel}>
+              {link.issues.length} {link.issues.length > 1 ? 'Issues' : 'Issue'}
+            </div>
+            {link.issues.map((issue: DataPluginIssue, i: number) => (
+              <a
+                key={i}
+                href={issue.webUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={item}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(128,128,128,0.2)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                <span>{issue.title}</span>
+              </a>
+            ))}
+          </div>
+        )}
+        {link.mergeRequests.length > 0 && (
+          <div>
+            <div style={sectionLabel}>
+              {link.mergeRequests.length} {link.mergeRequests.length > 1 ? 'Merge Requests' : 'Merge Request'}
+            </div>
+            {link.mergeRequests.map((mr: DataPluginMergeRequest, i: number) => (
+              <a
+                key={i}
+                href={mr.webUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={item}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(128,128,128,0.2)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                <span>{mr.title}</span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+
+    showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, x, y, { headline: '', reactContent: content });
   }
 
-  function showNodeTooltip(name: string) {
-    if (!tooltipElRef.current) return;
-    d3.select(tooltipElRef.current).text(name).style('visibility', 'visible');
-  }
-
-  function moveTooltip(x: number, y: number) {
-    if (!tooltipElRef.current) return;
-    d3.select(tooltipElRef.current)
-      .style('left', `${x + 10}px`)
-      .style('top', `${y + 10}px`);
+  function showNodeTooltip(node: NodeType, x: number, y: number) {
+    const content = (
+      <div style={{ padding: '2px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 500 }}>{node.name || node.url}</div>
+      </div>
+    );
+    showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, x + 20, y + 20, { headline: '', reactContent: content });
   }
 
   function hideTooltip() {
-    if (!tooltipElRef.current) return;
-    d3.select(tooltipElRef.current).style('visibility', 'hidden');
+    hideInfoTooltip(tooltipRef, tooltipVisibleFlagRef);
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', width, height }}>
+      <InfoTooltip ref={tooltipRef} tooltipVisibleFlagRef={tooltipVisibleFlagRef} />
       {!isVisible && (
         <div
           style={{

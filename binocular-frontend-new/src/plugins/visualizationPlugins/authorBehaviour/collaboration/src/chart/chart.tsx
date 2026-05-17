@@ -1,15 +1,19 @@
 import { NetworkChart } from './networkChart.tsx';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { convertIssuesToGraphData } from '../utilities/dataConverter.ts';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { convertToGraphData } from '../utilities/dataConverter.ts';
 import { DataState, type DateRange, setDateRange } from '../reducer';
 import type { DataPluginAccountIssues } from '../../../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts';
+import type { DataPluginAccountMergeRequests } from '../../../../../interfaces/dataPluginInterfaces/dataPluginAccountsMergeRequests.ts';
+import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import type { CollaborationSettings } from '../settings/settings.tsx';
 import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 
 type RootState = {
   plugin: {
-    accounts: DataPluginAccountIssues[];
+    issueAccounts: DataPluginAccountIssues[];
+    mrAccounts: DataPluginAccountMergeRequests[];
+    commits: DataPluginCommit[];
     dataState: DataState;
     dateRange: DateRange;
   };
@@ -24,7 +28,9 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
     () => store.getState() as RootState,
     () => store.getState() as RootState,
   );
-  const accounts = state.plugin.accounts ?? [];
+  const issueAccounts = state.plugin.issueAccounts ?? [];
+  const mrAccounts = state.plugin.mrAccounts ?? [];
+  const commits = state.plugin.commits ?? [];
   const dataState = state.plugin.dataState;
   const [chartWidth, setChartWidth] = useState(chartContainerRef.current?.offsetWidth ?? 150);
   const [chartHeight, setChartHeight] = useState(chartContainerRef.current?.offsetHeight ?? 100);
@@ -35,11 +41,17 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
     if (el.offsetWidth !== chartWidth) setChartWidth(el.offsetWidth);
     if (el.offsetHeight !== chartHeight) setChartHeight(el.offsetHeight);
   }
+
+  const resizeFnRef = useRef<() => void>(() => {});
+  resizeFnRef.current = resize;
+
   useEffect(() => {
     resize();
-  }, [chartContainerRef, chartHeight, chartWidth]);
+  }, [chartContainerRef]);
 
-  handlePopoutResizing(store, () => resize());
+  useEffect(() => {
+    return handlePopoutResizing(store, () => resizeFnRef.current());
+  }, [store]);
 
   useEffect(() => {
     if (props.parameters?.parametersDateRange) {
@@ -57,9 +69,11 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
   }, [store]);
 
   const graphData = useMemo(() => {
-    if (!accounts || accounts.length === 0) return { nodes: [], links: [] };
-    return convertIssuesToGraphData(accounts, settings);
-  }, [accounts, settings]);
+    if (issueAccounts.length === 0 && mrAccounts.length === 0) return { nodes: [], links: [] };
+    return convertToGraphData(issueAccounts, mrAccounts, settings, commits, props.authorList);
+  }, [issueAccounts, mrAccounts, commits, props.authorList, settings]);
+
+  const networkData = useMemo(() => ({ nodes: graphData.nodes, links: graphData.links }), [graphData]);
 
   if (dataState === DataState.FETCHING) {
     return (
@@ -71,14 +85,7 @@ export default function Chart<SettingsType extends CollaborationSettings, DataTy
   return (
     <>
       <div className={'w-full h-full'} ref={chartContainerRef}>
-        <NetworkChart
-          data={{
-            nodes: graphData.nodes,
-            links: graphData.links,
-          }}
-          width={chartWidth}
-          height={chartHeight}
-        />
+        <NetworkChart data={networkData} width={chartWidth} height={chartHeight} />
       </div>
     </>
   );
