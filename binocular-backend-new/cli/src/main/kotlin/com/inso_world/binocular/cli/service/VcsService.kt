@@ -45,6 +45,9 @@ class VcsService(
     @Autowired
     private lateinit var gitIndexer: GitIndexer
 
+    @Autowired
+    private lateinit var commitService: CommitService
+
     /**
      * Indexes a Git repository, fetching commits for the specified branch.
      *
@@ -154,7 +157,9 @@ class VcsService(
         branch: Branch,
         existingHead: Commit,
     ): Pair<Branch, List<Commit>> {
-        val currentHead = branch.head
+        // Resolve current HEAD commit via CommitService
+        val currentHead = commitService.findById(branch.headCommitId)
+            ?: return Pair(branch, emptyList())
 
         // Quick check: if HEAD hasn't changed, no new commits
         if (currentHead.sha == existingHead.sha) {
@@ -189,9 +194,10 @@ class VcsService(
     /**
      * Logs commit statistics for debugging and monitoring.
      */
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     private fun logCommitStatistics(commits: List<Commit>, branchName: String) {
         val shas = commits.map { it.sha }
-        val parentShas = commits.flatMap { it.parents.map { p -> p.sha } }
+        val parentShas = commits.flatMap { it.parentIds.map { p -> p.value.toString() } }
 
         logger.debug(
             "Commits to process: ${shas.count()}+${parentShas.count()}=${

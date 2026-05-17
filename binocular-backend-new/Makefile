@@ -35,7 +35,7 @@ help:
 cli:
 	mvn clean verify --pl cli
 
-core:
+core: domain
 	mvn clean verify --pl core
 
 domain:

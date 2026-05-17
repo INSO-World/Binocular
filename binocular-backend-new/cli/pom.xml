@@ -74,11 +74,11 @@
             <artifactId>ffi</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.inso-world.binocular</groupId>
-            <artifactId>jgit</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.inso-world.binocular</groupId>-->
+<!--            <artifactId>jgit</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.inso-world.binocular</groupId>
             <artifactId>infrastructure-arangodb</artifactId>
@@ -165,6 +165,11 @@
             <!-- this one is required for testcontainers! -->
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

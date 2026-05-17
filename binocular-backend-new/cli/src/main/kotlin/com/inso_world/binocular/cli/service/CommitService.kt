@@ -78,4 +78,8 @@ class CommitService(
         logger.trace("Finding head for branch $branch in repository ${repo.localPath}...")
         return commitPort.findHeadForBranch(repo, branch)
     }
+
+    fun findById(commitId: Commit.Id): Commit? {
+        return commitPort.findByIid(commitId)
+    }
 }
