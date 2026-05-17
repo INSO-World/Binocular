@@ -49,9 +49,9 @@ data class BranchEntity(
     @Deprecated("Use head.sha instead")
     var latestCommit: String? = null,
     @Ref(lazy = false)
-    val repository: RepositoryEntity,
+    val repositoryId: String,
     @Ref(lazy = false)
-    val head: CommitEntity,
+    val headCommitId: String,
     @Relations(
         edges = [BranchFileConnectionEntity::class],
         lazy = true,
@@ -67,17 +67,17 @@ data class BranchEntity(
     /**
      * Converts this BranchEntity to a Branch domain object.
      *
-     * @param repository The repository domain object to associate with the branch
-     * @param head The head commit domain object
+     * @param repositoryId The repository ID to associate with the branch
+     * @param headCommitId The head commit ID
      * @return Branch domain object
      */
-    fun toDomain(repository: Repository, head: Commit): Branch {
+    fun toDomain(repositoryId: Repository.Id, headCommitId: Commit.Id): Branch {
         return Branch(
             name = this.name,
             fullName = this.fullName,
             category = ReferenceCategory.valueOf(this.category),
-            repository = repository,
-            head = head,
+            repositoryId = repositoryId,
+            headCommitId = headCommitId,
         ).apply {
             this.id = this@BranchEntity.id
             this.active = this@BranchEntity.active
@@ -89,12 +89,12 @@ data class BranchEntity(
 /**
  * Converts a Branch domain object to BranchEntity.
  *
- * @param repository The RepositoryEntity to associate with the branch
- * @param head The head CommitEntity
+ * @param repositoryEntity The RepositoryEntity to associate with the branch
+ * @param headCommitEntity The head CommitEntity
  * @return BranchEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
+internal fun Branch.toEntity(repositoryEntity: RepositoryEntity, headCommitEntity: CommitEntity): BranchEntity =
     BranchEntity(
         id = this.id,
         iid = this.iid.value,
@@ -103,7 +103,7 @@ internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): 
         category = this.category.name,
         active = this.active,
         tracksFileRenames = this.tracksFileRenames,
-        latestCommit = this.head.sha,
-        repository = repository,
-        head = head,
+        latestCommit = this.headCommitId.value.toString(),
+        repositoryId = repositoryEntity.id ?: throw IllegalStateException("RepositoryEntity must be saved"),
+        headCommitId = headCommitEntity.sha,
     )

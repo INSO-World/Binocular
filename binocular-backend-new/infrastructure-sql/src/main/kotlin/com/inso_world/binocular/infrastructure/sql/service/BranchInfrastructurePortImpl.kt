@@ -13,6 +13,7 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
+import kotlin.uuid.ExperimentalUuidApi
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +25,7 @@ import org.springframework.validation.annotation.Validated
 
 @Service
 @Validated
+@OptIn(ExperimentalUuidApi::class)
 internal class BranchInfrastructurePortImpl(
     @Autowired private val branchMapper: BranchMapper,
 ) : AbstractInfrastructurePort<Branch, BranchEntity, Long>(Long::class),
@@ -64,13 +66,15 @@ internal class BranchInfrastructurePortImpl(
 
     override fun findByIid(iid: Reference.Id): @Valid Branch? {
         val branch = this.branchDao.findByIid(iid)
+            ?: return null
 
-        requireNotNull(branch?.repository)
         return repositoryAssembler
             .toDomain(branch.repository)
-            .branches
-            .find { it.iid == iid }
-            ?.let { return it }
+            .branchIds
+            .find { it.value == iid.value }
+            ?.let { branchId ->
+                branchMapper.toDomain(branch)
+            }
     }
 
     override fun update(value: Branch): Branch {
@@ -94,11 +98,15 @@ internal class BranchInfrastructurePortImpl(
     override fun findAll(): Iterable<Branch> {
         val branches = super<AbstractInfrastructurePort>.findAllEntities()
 
-        // Group branches by repository to process related branches together
         return branches
             .groupBy { it.repository }
-            .flatMap { (repoEntity, _) ->
-                repositoryAssembler.toDomain(repoEntity).branches
+            .flatMap { (repoEntity, branchEntities) ->
+                val assembledRepo = repositoryAssembler.toDomain(repoEntity)
+                assembledRepo.branchIds.map { branchId ->
+                    val branchEntity = branchEntities.find { it.iid.value == branchId.value }
+                        ?: throw IllegalStateException("BranchEntity for ${branchId} not found")
+                    branchMapper.toDomain(branchEntity)
+                }
             }
     }
 

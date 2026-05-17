@@ -60,7 +60,7 @@ class MockTestDataProvider(
 
     // Legacy User support (deprecated)
     @Deprecated("Use developers instead")
-    val users: List<User> =
+    val users: List<User> by lazy {
         listOf(
             User(name = "User A", repository = repository).apply { this.email = "a@test.com" },
             User(name = "User B", repository = repository).apply { this.email = "b@test.com" },
@@ -68,9 +68,12 @@ class MockTestDataProvider(
             User(name = "User D", repository = repository).apply { this.email = "d@test.com" },
             User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" },
         )
+    }
 
     @Deprecated("Use developerByEmail instead")
-    val userByEmail = users.associateBy { requireNotNull(it.email) }
+    val userByEmail: Map<String, User> by lazy {
+        users.associateBy { requireNotNull(it.email) }
+    }
 
     // New Developer-based test data
     val developers: List<Developer> =

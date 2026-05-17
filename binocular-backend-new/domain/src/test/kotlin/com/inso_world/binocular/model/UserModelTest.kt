@@ -22,7 +22,7 @@ class UserModelTest {
         val project = Project(name = "test-project")
         repository = Repository(
             localPath = "test",
-            project = project,
+            projectId = project.iid,
         )
     }
 
@@ -140,13 +140,13 @@ class UserModelTest {
 
                 val differentRepository = Repository(
                     localPath = "different-repository",
-                    project = Project(name = "different-project"),
+                    projectId = Project(name = "different-project").iid,
                 )
 
                 val user = User(name = "test-user", differentRepository)
 
                 assertAll(
-                    { assertThat(user.repository).isNotEqualTo(mockCommit.repository) },
+                    { assertThat(user.repository.iid).isNotEqualTo(mockCommit.repositoryId) },
                     {
                         assertThrows<IllegalArgumentException> {
                             user.committedCommits.add(mockCommit)
@@ -189,13 +189,13 @@ class UserModelTest {
 
                 val differentRepository = Repository(
                     localPath = "different-repository",
-                    project = Project(name = "different-project"),
+                    projectId = Project(name = "different-project").iid,
                 )
 
                 val user = User(name = "test-user", differentRepository)
 
                 assertAll(
-                    { assertThat(user.repository).isNotEqualTo(mockCommit.repository) },
+                    { assertThat(user.repository.iid).isNotEqualTo(mockCommit.repositoryId) },
                     {
                         assertThrows<IllegalArgumentException> {
                             user.authoredCommits.add(mockCommit)
@@ -211,7 +211,7 @@ class UserModelTest {
 
                 val differentRepository = Repository(
                     localPath = "different-repository",
-                    project = Project(name = "different-project"),
+                    projectId = Project(name = "different-project").iid,
                 )
 
                 val user = User(name = "test-user", differentRepository)
@@ -231,7 +231,7 @@ class UserModelTest {
                 assertTrue(user.authoredCommits.add(mockCommit))
                 assertAll(
                     { assertThat(user.authoredCommits).containsOnly(mockCommit) },
-                    { assertThat(mockCommit.author).isNotEqualTo(user) }
+                    { assertThat(mockCommit.authorId).isNotEqualTo(user.iid) }
                 )
             }
         }

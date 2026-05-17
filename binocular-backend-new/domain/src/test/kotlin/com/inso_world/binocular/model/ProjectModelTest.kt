@@ -15,7 +15,7 @@ class ProjectModelTest {
         val project = Project(name = "test-project")
 
         assertThat(project.iid).isNotNull()
-        assertThat(project.repo).isNull()
+        assertThat(project.repoId).isNull()
     }
 
     @Test
@@ -61,18 +61,18 @@ class ProjectModelTest {
     }
 
     @Test
-    fun `create project with repository, should link correctly`() {
-        val project = Project(name = "test-project").apply {
-            this.repo = Repository(
-                localPath = "test",
-                project = this,
-            )
-        }
+    fun `create project with repository id, should link correctly`() {
+        val project = Project(name = "test-project")
+        val repo = Repository(
+            localPath = "test",
+            projectId = project.iid,
+        )
+
+        project.repoId = repo.iid
 
         // check reference
-        assertThat(project.repo).isNotNull()
-        assertThat(requireNotNull(project.repo).project).isSameAs(project)
-        assertThat(requireNotNull(project.repo).project.repo).isSameAs(project.repo)
+        assertThat(project.repoId).isNotNull()
+        assertThat(project.repoId).isEqualTo(repo.iid)
     }
 
     @ParameterizedTest
@@ -101,10 +101,10 @@ class ProjectModelTest {
     }
 
     @Test
-    fun `create project with explicit null repo`() {
+    fun `create project with explicit null repoId`() {
         assertThrows<IllegalArgumentException> {
             Project(name = "test-project").apply {
-                this.repo = null
+                this.repoId = null
             }
         }
     }

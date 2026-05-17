@@ -56,11 +56,10 @@ internal data class DeveloperEntity(
     override fun equals(other: Any?): Boolean = super.equals(other)
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(repository: Repository): Developer =
+    fun toDomain(): Developer =
         Developer(
             name = this.name,
             email = this.email,
-            repository = repository,
         ).apply {
             this.id = this@DeveloperEntity.id?.toString()
         }
@@ -75,6 +74,24 @@ internal fun Developer.toEntity(repository: RepositoryEntity): DeveloperEntity =
         email = this.email,
         name = this.name,
         repository = repository,
+    ).apply {
+        id = this@toEntity.id?.trim()?.toLongOrNull()
+    }
+
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+internal fun Developer.toEntity(): DeveloperEntity =
+    DeveloperEntity(
+        iid = this.iid,
+        email = this.email,
+        name = this.name,
+        repository = RepositoryEntity(
+            iid = com.inso_world.binocular.model.Repository.Id(kotlin.uuid.Uuid.random()),
+            localPath = "",
+            project = ProjectEntity(
+                iid = com.inso_world.binocular.model.Project.Id(kotlin.uuid.Uuid.random()),
+                name = ""
+            )
+        ),
     ).apply {
         id = this@toEntity.id?.trim()?.toLongOrNull()
     }

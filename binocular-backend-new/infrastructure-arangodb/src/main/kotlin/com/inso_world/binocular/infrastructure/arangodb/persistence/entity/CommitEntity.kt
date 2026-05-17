@@ -12,7 +12,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueCommitConnectionEntity
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
 import org.springframework.data.annotation.Id
@@ -21,26 +20,6 @@ import java.util.Date
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-/**
- * ArangoDB-specific Commit entity.
- *
- * Represents the persistence layer for the [Commit][com.inso_world.binocular.model.Commit] domain object.
- *
- * ### Identity Mapping
- * - [id]: ArangoDB internal document ID (_key)
- * - [iid]: Domain immutable identity (UUID)
- * - [sha]: Business key (unique SHA-1 hash)
- *
- * ### Relationships
- * - [repository]: Owning repository (required)
- * - [author]: The developer who authored the commit
- * - [committer]: The developer who committed the code
- * - [parents]: Parent commits via edge collection
- * - [children]: Child commits via edge collection
- *
- * ### Indexes
- * - [sha]: Unique persistent index for SHA-based lookups
- */
 @OptIn(ExperimentalUuidApi::class)
 @Document(collection = "commits")
 data class CommitEntity(
@@ -59,11 +38,11 @@ data class CommitEntity(
     var branch: String? = null,
     var stats: StatsEntity? = null,
     @Ref(lazy = false)
-    val author: DeveloperEntity,
+    val authorId: String,
     @Ref(lazy = false)
-    val committer: DeveloperEntity,
+    val committerId: String,
     @Ref(lazy = false)
-    val repository: RepositoryEntity,
+    val repositoryId: String,
     @Relations(
         edges = [CommitCommitConnectionEntity::class],
         lazy = true,
@@ -114,31 +93,16 @@ data class CommitEntity(
     )
     var issues: List<IssueEntity> = emptyList(),
 ) {
-    /**
-     * Converts this CommitEntity to a Commit domain object.
-     *
-     * @param repository The repository domain object
-     * @param author The author Developer domain object
-     * @param committer The committer Developer domain object
-     * @return Commit domain object
-     */
     fun toDomain(
-        repository: Repository,
-        author: Developer,
-        committer: Developer,
+        repositoryId: Repository.Id,
+        authorSignature: Signature,
+        committerSignature: Signature,
     ): Commit {
-        val authorSignature = Signature(developer = author, timestamp = authorDateTime)
-        val committerSignature =
-            if (committer == author && commitDateTime == authorDateTime) {
-                authorSignature
-            } else {
-                Signature(developer = committer, timestamp = commitDateTime)
-            }
         return Commit(
             sha = this.sha,
             authorSignature = authorSignature,
             committerSignature = committerSignature,
-            repository = repository,
+            repositoryId = repositoryId,
             message = this.message,
         ).apply {
             this.id = this@CommitEntity.id
@@ -154,19 +118,11 @@ data class CommitEntity(
     }
 }
 
-/**
- * Converts a Commit domain object to CommitEntity.
- *
- * @param repository The RepositoryEntity
- * @param author The author DeveloperEntity
- * @param committer The committer DeveloperEntity
- * @return CommitEntity for persistence
- */
 @OptIn(ExperimentalUuidApi::class)
 internal fun Commit.toEntity(
-    repository: RepositoryEntity,
-    author: DeveloperEntity,
-    committer: DeveloperEntity,
+    repositoryEntity: RepositoryEntity,
+    authorEntity: DeveloperEntity,
+    committerEntity: DeveloperEntity,
 ): CommitEntity =
     CommitEntity(
         iid = this.iid.value,
@@ -175,9 +131,9 @@ internal fun Commit.toEntity(
         commitDateTime = this.committerSignature.timestamp,
         message = this.message,
         webUrl = this.webUrl,
-        repository = repository,
-        author = author,
-        committer = committer,
+        repositoryId = repositoryEntity.id ?: throw IllegalStateException("RepositoryEntity must be saved"),
+        authorId = authorEntity.id ?: throw IllegalStateException("DeveloperEntity must be saved"),
+        committerId = committerEntity.id ?: throw IllegalStateException("DeveloperEntity must be saved"),
         stats = this.stats?.let {
             StatsEntity(
                 additions = it.additions.toLong(),

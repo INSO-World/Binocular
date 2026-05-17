@@ -55,23 +55,28 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
      * @throws IllegalStateException if Repository or head Commit is not in MappingContext
      */
     override fun toEntity(domain: Branch): BranchEntity {
-        // Fast-path: if this Branch was already mapped in the current context, return it.
         ctx.findEntity<Branch.Key, Branch, BranchEntity>(domain)?.let {
             return it
         }
-        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
-        // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+        val repo = ctx.findDomainByIid<Repository>(domain.repositoryId, RepositoryEntity::class)
+            ?: throw IllegalStateException(
+                "Repository must be mapped before Branch. " +
+                        "Ensure Repository is in MappingContext before calling toEntity()."
+            )
+        val owner = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(repo)
             ?: throw IllegalStateException(
                 "RepositoryEntity must be mapped before BranchEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toDomain()."
+                        "Ensure RepositoryEntity is in MappingContext before calling toEntity()."
             )
-        // IMPORTANT: Expect Commit already in context (cross-aggregate reference).
-        // Do NOT auto-map Commit here - that's a separate aggregate.
-        val head = ctx.findEntity<Commit.Key, Commit, CommitEntity>(domain.head)
+        val headCommit = ctx.findDomainByIid<Commit>(domain.headCommitId, CommitEntity::class)
+            ?: throw IllegalStateException(
+                "Commit must be mapped before Branch. " +
+                        "Ensure Commit is in MappingContext before calling toEntity()."
+            )
+        val head = ctx.findEntity<Commit.Key, Commit, CommitEntity>(headCommit)
             ?: throw IllegalStateException(
                 "CommitEntity must be mapped before BranchEntity. " +
-                        "Ensure CommitEntity is in MappingContext before calling toDomain()."
+                        "Ensure CommitEntity is in MappingContext before calling toEntity()."
             )
 
         val entity = domain.toEntity(owner, head)

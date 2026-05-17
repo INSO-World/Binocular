@@ -8,6 +8,7 @@ import com.inso_world.binocular.ffi.pojos.toModel
 import com.inso_world.binocular.ffi.util.Utils
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -61,11 +62,12 @@ class GixIndexer : GitIndexer {
                     useMailmap = cfg.vcs.useMailmap,
                 )
 
-        val commits: List<Commit> = branchTraversalResult.commits.toDomain(repo)
+        val developerRegistry = mutableMapOf<String, Developer>()
+        val commits: List<Commit> = branchTraversalResult.commits.toDomain(repo.iid, developerRegistry = developerRegistry)
         val branch: Branch =
             with(commits.associateBy { it.sha }.getValue(branchTraversalResult.branch.target)) {
                 branchTraversalResult.branch.toDomain(
-                    repo,
+                    repo.iid,
                     this,
                 )
             }
@@ -75,6 +77,8 @@ class GixIndexer : GitIndexer {
 
     override fun findAllBranches(repo: Repository): List<Branch> {
         val binocularRepo = repo.toFfi()
+        val developerRegistry = mutableMapOf<String, Developer>()
+        val branchRegistry = mutableMapOf<String, Branch>()
         return com.inso_world.binocular.ffi.internal
             .findAllBranches(binocularRepo)
             .map {
@@ -84,8 +88,8 @@ class GixIndexer : GitIndexer {
                             binocularRepo,
                             it.target,
                             useMailmap = cfg.vcs.useMailmap,
-                        ).toDomain(repo)
-                val branch = it.toDomain(repo, head)
+                        ).toDomain(repo.iid, developerRegistry = developerRegistry)
+                val branch = it.toDomain(repo.iid, head, branchRegistry)
                 branch
             }
     }
@@ -99,7 +103,7 @@ class GixIndexer : GitIndexer {
                 repo.toFfi(),
                 hash,
                 useMailmap = cfg.vcs.useMailmap,
-            ).toDomain(repo)
+            ).toDomain(repo.iid)
 
     override fun traverse(
         repo: Repository,
@@ -112,5 +116,5 @@ class GixIndexer : GitIndexer {
                 source.sha,
                 target?.sha,
                 useMailmap = cfg.vcs.useMailmap,
-            ).toDomain(repo)
+            ).toDomain(repo.iid)
 }

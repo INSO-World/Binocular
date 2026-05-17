@@ -1,6 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -9,8 +10,10 @@ import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadProjectEntities
 import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -38,6 +41,9 @@ internal class ProjectInfrastructurePortImpl(
     @Lazy
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
+
+    @Autowired
+    private lateinit var ctx: MappingContext
 
     /**
      * Self-reference to this bean's proxy instance.
@@ -128,29 +134,31 @@ internal class ProjectInfrastructurePortImpl(
         managedEntity.description = value.description
 
         run {
-            val domainRepo = value.repo
-            val entityRepo = managedEntity.repo
+            val domainRepoId = value.repoId
+            val entityRepoId = managedEntity.repoId
 
             when {
                 // Case 1: Both repos exist - check if they're the same and update
-                domainRepo != null && entityRepo != null -> {
-                    if (domainRepo.iid != entityRepo.iid) {
+                domainRepoId != null && entityRepoId != null -> {
+                    if (domainRepoId != entityRepoId) {
                         throw IllegalArgumentException(
-                            "Cannot update project with a different repository. Project '${managedEntity.uniqueKey}' already has repository '${entityRepo.localPath}'",
+                            "Cannot update project with a different repository. Project '${managedEntity.uniqueKey}' already has repository",
                         )
                     }
-                    // Don't create a new entity, just update the existing one's fields
-
+                    val domainRepo = ctx.findDomainByIid<Repository>(domainRepoId, RepositoryEntity::class)
+                        ?: throw IllegalStateException("Repository for ${domainRepoId} must be in context")
                     repositoryPort.update(domainRepo)
                 }
 
                 // Case 2: Adding a new repo where none existed
-                domainRepo != null && entityRepo == null -> {
-                    managedEntity.repo = repositoryAssembler.toEntity(domainRepo)
+                domainRepoId != null && entityRepoId == null -> {
+                    val domainRepo = ctx.findDomainByIid<Repository>(domainRepoId, RepositoryEntity::class)
+                        ?: throw IllegalStateException("Repository for ${domainRepoId} must be in context")
+                    managedEntity.repoId = repositoryAssembler.toEntity(domainRepo).iid
                 }
 
                 // Case 3: Removing existing repo
-                domainRepo == null && entityRepo != null -> {
+                domainRepoId == null && entityRepoId != null -> {
                     throw UnsupportedOperationException("Deleting repository from project is not yet allowed")
                 }
 

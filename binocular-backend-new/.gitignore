@@ -326,3 +326,8 @@ buildNumber.properties
 mvnw
 mvnw.cmd
 .mvn/*
+
+.pi/**
+.claude/**
+docs/plans/*.md
+docs/superpowers/*/*.md

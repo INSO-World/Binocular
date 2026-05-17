@@ -36,7 +36,7 @@ class RemoteIdRefTest {
         project = Project(name = "proj-remote-id-ref-test")
         repository = Repository(
             localPath = "repo-remote-id-ref-test",
-            project = project,
+            projectId = project.iid,
         )
     }
 
@@ -73,8 +73,8 @@ class RemoteIdRefTest {
                 repositoryId = repository.iid
             )
 
-            // Remote should NOT be auto-added to repository.remotes anymore
-            assertThat(repository.remotes).isEmpty()
+            // Remote should NOT be auto-added to repository.remoteIds anymore
+            assertThat(repository.remoteIds).isEmpty()
         }
 
         @Test
@@ -206,7 +206,7 @@ class RemoteIdRefTest {
         @Test
         fun `uniqueKey with different repos should differ even with same name`() {
             val otherProject = Project(name = "other-project")
-            val otherRepo = Repository(localPath = "/other/path", project = otherProject)
+            val otherRepo = Repository(localPath = "/other/path", projectId = otherProject.iid)
 
             val remoteA = Remote(
                 name = "origin",
@@ -269,10 +269,10 @@ class RemoteIdRefTest {
                 repositoryId = repository.iid
             )
 
-            // Remote is NOT auto-added, must be added explicitly
-            assertTrue(repository.remotes.add(remote))
-            assertThat(repository.remotes).hasSize(1)
-            assertThat(repository.remotes).contains(remote)
+            // Remote is NOT auto-added, must be added explicitly by ID
+            assertTrue(repository.remoteIds.add(remote.iid))
+            assertThat(repository.remoteIds).hasSize(1)
+            assertThat(repository.remoteIds).contains(remote.iid)
         }
 
         @Test
@@ -283,9 +283,9 @@ class RemoteIdRefTest {
                 repositoryId = repository.iid
             )
 
-            assertTrue(repository.remotes.add(remote))
-            assertFalse(repository.remotes.add(remote))
-            assertThat(repository.remotes).hasSize(1)
+            assertTrue(repository.remoteIds.add(remote.iid))
+            assertFalse(repository.remoteIds.add(remote.iid))
+            assertThat(repository.remoteIds).hasSize(1)
         }
 
         @Test
@@ -306,13 +306,13 @@ class RemoteIdRefTest {
                 repositoryId = repository.iid
             )
 
-            assertTrue(repository.remotes.add(origin))
-            assertTrue(repository.remotes.add(upstream))
-            assertTrue(repository.remotes.add(fork))
+            assertTrue(repository.remoteIds.add(origin.iid))
+            assertTrue(repository.remoteIds.add(upstream.iid))
+            assertTrue(repository.remoteIds.add(fork.iid))
 
             assertAll(
-                { assertThat(repository.remotes).hasSize(3) },
-                { assertThat(repository.remotes).contains(origin, upstream, fork) }
+                { assertThat(repository.remoteIds).hasSize(3) },
+                { assertThat(repository.remoteIds).contains(origin.iid, upstream.iid, fork.iid) }
             )
         }
 
@@ -329,20 +329,20 @@ class RemoteIdRefTest {
                 repositoryId = repository.iid
             )
 
-            assertTrue(repository.remotes.add(remoteA))
-            assertFalse(repository.remotes.add(remoteB))
+            // With ID-based collection, both IDs are different, so both are added
+            assertTrue(repository.remoteIds.add(remoteA.iid))
+            assertTrue(repository.remoteIds.add(remoteB.iid))
 
             assertAll(
-                { assertThat(repository.remotes).hasSize(1) },
-                { assertThat(repository.remotes.first()).isSameAs(remoteA) },
-                { assertThat(repository.remotes.first().url).isEqualTo("https://github.com/user/repo.git") }
+                { assertThat(repository.remoteIds).hasSize(2) },
+                { assertThat(repository.remoteIds).contains(remoteA.iid, remoteB.iid) }
             )
         }
 
         @Test
-        fun `add remote from different repositoryId should fail`() {
+        fun `add remote from different repositoryId should work with ID-based collection`() {
             val otherProject = Project(name = "other-project")
-            val otherRepo = Repository(localPath = "/other/path", project = otherProject)
+            val otherRepo = Repository(localPath = "/other/path", projectId = otherProject.iid)
 
             val remote = Remote(
                 name = "origin",
@@ -350,16 +350,15 @@ class RemoteIdRefTest {
                 repositoryId = repository.iid
             )
 
-            // Remote belongs to `repository`, not `otherRepo`
-            assertThrows<IllegalArgumentException> {
-                otherRepo.remotes.add(remote)
-            }
+            // With ID-based collection, there's no cross-repo check anymore
+            // (the ID itself is the reference, no object to validate)
+            assertTrue(otherRepo.remoteIds.add(remote.iid))
         }
 
         @Test
         fun `add empty collection should not add anything`() {
-            assertFalse(repository.remotes.addAll(emptyList<Remote>()))
-            assertThat(repository.remotes).isEmpty()
+            assertFalse(repository.remoteIds.addAll(emptyList<Remote.Id>()))
+            assertThat(repository.remoteIds).isEmpty()
         }
     }
 
@@ -373,29 +372,34 @@ class RemoteIdRefTest {
                 url = "https://github.com/user/repo.git",
                 repositoryId = repository.iid
             )
-            repository.remotes.add(remote)
-            assertThat(repository.remotes).hasSize(1)
+            repository.remoteIds.add(remote.iid)
+            assertThat(repository.remoteIds).hasSize(1)
 
             assertThrows<UnsupportedOperationException> {
-                repository.remotes.remove(remote)
+                repository.remoteIds.remove(remote.iid)
             }
-            assertThat(repository.remotes).hasSize(1)
+            assertThat(repository.remoteIds).hasSize(1)
         }
 
         @Test
         fun `clear all remotes should throw UnsupportedOperationException`() {
-            Remote(
+            val remoteA = Remote(
                 name = "origin",
                 url = "https://github.com/user/repo.git",
                 repositoryId = repository.iid
             )
-            Remote(
+            val remoteB = Remote(
                 name = "upstream",
                 url = "https://github.com/upstream/repo.git",
                 repositoryId = repository.iid
             )
+            repository.remoteIds.addAll(listOf(remoteA.iid, remoteB.iid))
+            assertThat(repository.remoteIds).hasSize(2)
 
-            assertThat(repository.remotes).isEmpty() // Not auto-added anymore
+            assertThrows<UnsupportedOperationException> {
+                repository.remoteIds.clear()
+            }
+            assertThat(repository.remoteIds).hasSize(2)
         }
     }
 
@@ -409,13 +413,13 @@ class RemoteIdRefTest {
                 url = "https://github.com/user/repo.git",
                 repositoryId = repository.iid
             )
-            repository.remotes.add(remote)
+            repository.remoteIds.add(remote.iid)
 
             remote.url = "git@github.com:user/repo.git"
 
             assertAll(
-                { assertThat(repository.remotes).hasSize(1) },
-                { assertThat(repository.remotes.first().url).isEqualTo("git@github.com:user/repo.git") }
+                { assertThat(repository.remoteIds).hasSize(1) },
+                { assertThat(remote.url).isEqualTo("git@github.com:user/repo.git") }
             )
         }
 
@@ -494,12 +498,12 @@ class RemoteIdRefTest {
                 repositoryId = repository.iid
             )
 
-            assertTrue(repository.remotes.add(origin))
-            assertTrue(repository.remotes.add(backup))
+            assertTrue(repository.remoteIds.add(origin.iid))
+            assertTrue(repository.remoteIds.add(backup.iid))
 
             assertAll(
-                { assertThat(repository.remotes).hasSize(2) },
-                { assertThat(repository.remotes).contains(origin, backup) }
+                { assertThat(repository.remoteIds).hasSize(2) },
+                { assertThat(repository.remoteIds).contains(origin.iid, backup.iid) }
             )
         }
 
@@ -507,7 +511,7 @@ class RemoteIdRefTest {
         fun `multiple repositories with same remote name should work independently`() {
             val repo1 = repository
             val otherProject = Project(name = "other-project")
-            val repo2 = Repository(localPath = "/other/path", project = otherProject)
+            val repo2 = Repository(localPath = "/other/path", projectId = otherProject.iid)
 
             val remote1 = Remote(
                 name = "origin",

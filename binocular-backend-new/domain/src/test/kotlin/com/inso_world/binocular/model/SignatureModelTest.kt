@@ -25,8 +25,8 @@ class SignatureModelTest {
     @BeforeEach
     fun setUp() {
         val project = Project(name = "test-project")
-        repository = Repository(localPath = "test-repo", project = project)
-        developer = Developer(name = "John Doe", email = "john@example.com", repository = repository)
+        repository = Repository(localPath = "test-repo", projectId = project.iid)
+        developer = Developer(name = "John Doe", email = "john@example.com")
     }
 
     @Nested
@@ -38,11 +38,12 @@ class SignatureModelTest {
             val timestamp = LocalDateTime.now().minusSeconds(1)
 
             // When
-            val signature = Signature(developer = developer, timestamp = timestamp)
+            val signature = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
 
             // Then
             assertAll(
-                { assertThat(signature.developer).isSameAs(developer) },
+                { assertThat(signature.developerId).isEqualTo(developer.iid) },
+                { assertThat(signature.gitSignature).isEqualTo(developer.gitSignature) },
                 { assertThat(signature.timestamp).isEqualTo(timestamp) }
             )
         }
@@ -51,7 +52,7 @@ class SignatureModelTest {
         @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedPastOrPresentDateTime")
         fun `given valid past or present timestamp, when creating signature, then it should succeed`(timestamp: LocalDateTime) {
             // When & Then
-            val signature = Signature(developer = developer, timestamp = timestamp)
+            val signature = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
             assertThat(signature.timestamp).isEqualTo(timestamp)
         }
 
@@ -60,7 +61,7 @@ class SignatureModelTest {
         fun `given future timestamp, when creating signature, then it should throw IllegalArgumentException`(timestamp: LocalDateTime) {
             // When & Then
             assertThrows<IllegalArgumentException> {
-                Signature(developer = developer, timestamp = timestamp)
+                Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
             }
         }
     }
@@ -72,8 +73,8 @@ class SignatureModelTest {
         fun `given two signatures with same developer and timestamp, when comparing, then they should be equal`() {
             // Given
             val timestamp = LocalDateTime.of(2024, 1, 1, 12, 0, 0)
-            val signature1 = Signature(developer = developer, timestamp = timestamp)
-            val signature2 = Signature(developer = developer, timestamp = timestamp)
+            val signature1 = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
+            val signature2 = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
 
             // Then
             assertThat(signature1).isEqualTo(signature2)
@@ -82,8 +83,8 @@ class SignatureModelTest {
         @Test
         fun `given two signatures with different timestamps, when comparing, then they should not be equal`() {
             // Given
-            val signature1 = Signature(developer = developer, timestamp = LocalDateTime.of(2024, 1, 1, 12, 0, 0))
-            val signature2 = Signature(developer = developer, timestamp = LocalDateTime.of(2024, 1, 1, 13, 0, 0))
+            val signature1 = Signature(developerId = developer.iid, gitSignature = developer.gitSignature,timestamp = LocalDateTime.of(2024, 1, 1, 12, 0, 0))
+            val signature2 = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = LocalDateTime.of(2024, 1, 1, 13, 0, 0))
 
             // Then
             assertThat(signature1).isNotEqualTo(signature2)
@@ -92,10 +93,10 @@ class SignatureModelTest {
         @Test
         fun `given two signatures with different developers, when comparing, then they should not be equal`() {
             // Given
-            val developer2 = Developer(name = "Jane", email = "jane@example.com", repository = repository)
+            val developer2 = Developer(name = "Jane", email = "jane@example.com")
             val timestamp = LocalDateTime.of(2024, 1, 1, 12, 0, 0)
-            val signature1 = Signature(developer = developer, timestamp = timestamp)
-            val signature2 = Signature(developer = developer2, timestamp = timestamp)
+            val signature1 = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
+            val signature2 = Signature(developerId = developer2.iid, gitSignature = developer2.gitSignature,timestamp = timestamp)
 
             // Then
             assertThat(signature1).isNotEqualTo(signature2)
@@ -105,8 +106,8 @@ class SignatureModelTest {
         fun `given same signature values, when getting hashCode, then they should be equal`() {
             // Given
             val timestamp = LocalDateTime.of(2024, 1, 1, 12, 0, 0)
-            val signature1 = Signature(developer = developer, timestamp = timestamp)
-            val signature2 = Signature(developer = developer, timestamp = timestamp)
+            val signature1 = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
+            val signature2 = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
 
             // Then
             assertThat(signature1.hashCode()).isEqualTo(signature2.hashCode())
@@ -120,13 +121,13 @@ class SignatureModelTest {
         fun `given signature, when getting gitSignature, then it should return formatted string`() {
             // Given
             val timestamp = LocalDateTime.of(2024, 6, 15, 14, 30, 0)
-            val signature = Signature(developer = developer, timestamp = timestamp)
+            val signature = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
 
             // When
             val gitSig = signature.gitSignature
 
             // Then - should contain developer's name and email
-            assertThat(gitSig).isEqualTo("John Doe <john@example.com>")
+            assertThat(gitSig).isEqualTo(developer.gitSignature)
         }
     }
 
@@ -137,11 +138,12 @@ class SignatureModelTest {
         fun `given signature, when accessing properties, then they should be immutable`() {
             // Given
             val timestamp = LocalDateTime.of(2024, 1, 1, 12, 0, 0)
-            val signature = Signature(developer = developer, timestamp = timestamp)
+            val signature = Signature(developerId = developer.iid, gitSignature = developer.gitSignature, timestamp = timestamp)
 
             // Then - Signature is a data class with val properties, proving immutability
             assertAll(
-                { assertThat(signature.developer).isSameAs(developer) },
+                { assertThat(signature.developerId).isEqualTo(developer.iid) },
+                { assertThat(signature.gitSignature).isEqualTo(developer.gitSignature) },
                 { assertThat(signature.timestamp).isEqualTo(timestamp) }
             )
         }

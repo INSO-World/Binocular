@@ -60,7 +60,6 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
 
     @MappingSession
     override fun create(value: Repository): Repository {
-        // TODO: use assembler here right?
         val mappedEntity = repositoryAssembler.toEntity(value)
         val savedEntity = this.repositoryDao.create(mappedEntity)
         return repositoryAssembler.toDomain(savedEntity)

@@ -59,22 +59,22 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
     override fun toEntity(
         domain: Repository,
     ): RepositoryEntity {
-        // Fast-path: if this Repository was already mapped in the current context, return it.
         ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)?.let { return it }
 
-        // IMPORTANT: Expect Project already in context (cross-aggregate reference).
-        // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+        val project = ctx.findDomainByIid<Project>(domain.projectId, ProjectEntity::class)
+            ?: throw IllegalStateException(
+                "Project must be mapped before Repository. " +
+                        "Ensure Project is in MappingContext before calling toEntity()."
+            )
+        val projectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(project)
             ?: throw IllegalStateException(
                 "ProjectEntity must be mapped before RepositoryEntity. " +
                         "Ensure ProjectEntity is in MappingContext before calling toEntity()."
             )
 
-        // Create entity and remember in context
-        val entity = domain.toEntity(owner)
+        val entity = domain.toEntity(projectEntity)
         ctx.remember(domain, entity)
 
-        // Delegate to overload with explicit owner
         return entity
     }
 
@@ -99,13 +99,13 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
+        val project = ctx.findDomain<Project, ProjectEntity>(entity.project)
             ?: throw IllegalStateException(
                 "Project must be mapped before Repository. " +
                         "Ensure Project is in MappingContext before calling toDomain()."
             )
 
-        val domain = entity.toDomain(owner)
+        val domain = entity.toDomain(project)
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,

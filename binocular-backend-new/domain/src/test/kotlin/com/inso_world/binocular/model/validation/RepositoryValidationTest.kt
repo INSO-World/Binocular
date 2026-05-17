@@ -20,7 +20,7 @@ internal class RepositoryValidationTest : ValidationTest() {
         val repository =
             Repository(
                 localPath = "localPath",
-                project = project
+                projectId = project.iid,
             )
         // change field via reflection, otherwise constructor check fails
         setField(

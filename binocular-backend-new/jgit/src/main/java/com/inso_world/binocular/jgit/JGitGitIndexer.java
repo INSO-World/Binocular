@@ -66,7 +66,7 @@ public class JGitGitIndexer implements GitIndexer {
     public Repository findRepo(@NotNull Path path, @NotNull Project project) {
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(path)) {
             String gitDir = jgitRepo.getDirectory().getAbsolutePath();
-            return new Repository(gitDir, project);
+            return new com.inso_world.binocular.model.Repository(gitDir, project.getIid());
         } catch (IOException e) {
             throw new JGitException.DiscoverException("Cannot open git repository at " + path, e);
         }
@@ -104,24 +104,10 @@ public class JGitGitIndexer implements GitIndexer {
             String fullName = normalizeFullName(jgitRepo, branchName);
             ReferenceCategory category = determineBranchCategory(branchName);
 
-            // Check if branch already exists in repository and update its head
-            Branch existingBranch = null;
-            for (Branch b : repo.getBranches()) {
-                if (b.getName().equals(normalizedName)) {
-                    existingBranch = b;
-                    break;
-                }
-            }
-
-            Branch branch;
-            if (existingBranch != null) {
-                // Update existing branch's head
-                existingBranch.setHead(headCommit);
-                branch = existingBranch;
-            } else {
-                // Create new branch - this registers with repository
-                branch = new Branch(normalizedName, fullName, category, repo, headCommit);
-            }
+            kotlin.uuid.Uuid repoIid = ((Repository.Id) repo.getIid()).getValue();
+            kotlin.uuid.Uuid headCommitIid = ((Commit.Id) headCommit.getIid()).getValue();
+            Branch branch = new Branch(normalizedName, fullName, category, repoIid, headCommitIid);
+            repo.getBranchIds().add((Branch.Id) branch.getIid());
 
             return new Pair<>(branch, domainCommits);
         } catch (IOException e) {
@@ -157,7 +143,9 @@ public class JGitGitIndexer implements GitIndexer {
                     // Find commit - need to get full commit info
                     Commit headCommit = findCommitInternal(repo, jgitRepo, headId.getName(), mailmap);
 
-                    Branch branch = new Branch(shortName, refName, category, repo, headCommit);
+                    kotlin.uuid.Uuid repoIid = ((Repository.Id) repo.getIid()).getValue();
+                    kotlin.uuid.Uuid headCommitIid = ((Commit.Id) headCommit.getIid()).getValue();
+                    Branch branch = new Branch(shortName, refName, category, repoIid, headCommitIid);
                     result.add(branch);
                 }
 
@@ -202,13 +190,6 @@ public class JGitGitIndexer implements GitIndexer {
 
             try (RevWalk walk = new RevWalk(jgitRepo)) {
                 RevCommit revCommit = walk.parseCommit(id);
-
-                // Check if already in repository
-                for (Commit existing : repo.getCommits()) {
-                    if (existing.getSha().equals(id.getName())) {
-                        return existing;
-                    }
-                }
 
                 // Create the commit with mailmap
                 return createCommit(repo, revCommit, mailmap);
@@ -433,14 +414,6 @@ public class JGitGitIndexer implements GitIndexer {
         // Track which commits are merge commits for parent filtering
         Set<String> mergeCommitShas = new HashSet<>();
 
-        // Seed from existing repository state
-        for (Commit c : repo.getCommits()) {
-            commitsBySha.putIfAbsent(c.getSha(), c);
-        }
-        for (Developer d : repo.getDevelopers()) {
-            developersByKey.putIfAbsent(d.getGitSignature(), d);
-        }
-
         // Pass 1: Create commits
         for (RevCommit rc : revCommits) {
             String sha = rc.getId().getName();
@@ -485,8 +458,8 @@ public class JGitGitIndexer implements GitIndexer {
                         continue;
                     }
                 }
-                if (parent != null && !commit.getParents().contains(parent)) {
-                    commit.getParents().add(parent);
+                if (parent != null && !commit.getParentIds().contains((Commit.Id) parent.getIid())) {
+                    commit.getParentIds().add((Commit.Id) parent.getIid());
                 }
             }
         }
@@ -518,9 +491,6 @@ public class JGitGitIndexer implements GitIndexer {
      */
     private Commit createCommit(Repository repo, RevCommit rc, Mailmap mailmap) {
         Map<String, Developer> developersByKey = new HashMap<>();
-        for (Developer d : repo.getDevelopers()) {
-            developersByKey.put(d.getGitSignature(), d);
-        }
         return createCommit(repo, rc, developersByKey, mailmap);
     }
 
@@ -553,12 +523,17 @@ public class JGitGitIndexer implements GitIndexer {
         Developer committer = getOrCreateDeveloper(repo, committerIdent, developersByKey);
         LocalDateTime commitTime = toLocalDateTime(rc.getCommitterIdent()); // Use original ident for time
 
-        // Create signatures
-        Signature authorSignature = new Signature(author, authorTime);
-        Signature committerSignature = new Signature(committer, commitTime);
+        // Create signatures - Signature now takes developerId: Developer.Id (Uuid), gitSignature: String, timestamp: LocalDateTime
+        String authorGitSig = authorIdent.getName() + " <" + authorIdent.getEmailAddress() + ">";
+        String committerGitSig = committerIdent.getName() + " <" + committerIdent.getEmailAddress() + ">";
+        kotlin.uuid.Uuid authorDevId = ((Developer.Id) author.getIid()).getValue();
+        kotlin.uuid.Uuid committerDevId = ((Developer.Id) committer.getIid()).getValue();
+        Signature authorSignature = new Signature(authorDevId, authorGitSig, authorTime);
+        Signature committerSignature = new Signature(committerDevId, committerGitSig, commitTime);
 
-        // Create commit
-        return new Commit(sha, authorSignature, committerSignature, rc.getFullMessage(), repo);
+        // Create commit - Commit now takes repositoryId: Repository.Id (kotlin.uuid.Uuid)
+        kotlin.uuid.Uuid repoIid = ((Repository.Id) repo.getIid()).getValue();
+        return new Commit(sha, authorSignature, committerSignature, rc.getFullMessage(), repoIid);
     }
 
     private Developer getOrCreateDeveloper(Repository repo, PersonIdent ident, Map<String, Developer> cache) {
@@ -574,7 +549,7 @@ public class JGitGitIndexer implements GitIndexer {
         String key = name.trim() + " <" + email.trim() + ">";
         Developer developer = cache.get(key);
         if (developer == null) {
-            developer = new Developer(name, email, repo);
+            developer = new Developer(name, email);
             cache.put(key, developer);
         }
         return developer;

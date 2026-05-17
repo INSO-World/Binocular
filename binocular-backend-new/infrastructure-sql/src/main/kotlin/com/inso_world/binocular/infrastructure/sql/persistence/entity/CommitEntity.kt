@@ -102,18 +102,18 @@ internal data class CommitEntity(
         author: Developer,
         committer: Developer,
     ): Commit {
-        val authorSignature = Signature(developer = author, timestamp = authorDateTime)
+        val authorSignature = Signature(developerId = author.iid, gitSignature = author.gitSignature, timestamp = authorDateTime)
         val committerSignature =
             if (committer == author && commitDateTime == authorDateTime) {
                 authorSignature
             } else {
-                Signature(developer = committer, timestamp = commitDateTime)
+                Signature(developerId = committer.iid, gitSignature = committer.gitSignature, timestamp = commitDateTime)
             }
         return Commit(
             sha = this.sha,
             authorSignature = authorSignature,
             committerSignature = committerSignature,
-            repository = repository,
+            repositoryId = repository.iid,
             message = this.message,
         ).apply {
             this.id = this@CommitEntity.id?.toString()
@@ -134,7 +134,7 @@ internal fun Commit.toEntity(
         iid = this.iid,
         sha = this.sha,
         authorDateTime = this.authorSignature.timestamp,
-        commitDateTime = (this.committerSignature ?: this.authorSignature).timestamp,
+        commitDateTime = this.committerSignature.timestamp,
         message = this.message,
         webUrl = this.webUrl,
         repository = repository,

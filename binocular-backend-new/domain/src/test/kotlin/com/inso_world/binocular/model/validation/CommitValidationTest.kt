@@ -15,18 +15,18 @@ internal class CommitValidationTest : ValidationTest() {
         invalidCommit: Commit,
         propertyPath: String,
     ) {
-        val repository = invalidCommit.repository
+        val repositoryId = invalidCommit.repositoryId
         val dummyBranch =
             Branch(
                 fullName = "refs/heads/branch",
                 name = "branch",
-                repository = repository,
-                head = invalidCommit,
+                repositoryId = repositoryId,
+                headCommitId = invalidCommit.iid,
                 category = ReferenceCategory.LOCAL_BRANCH
             )
 
-        repository.branches.add(dummyBranch)
-        repository.commits.add(invalidCommit)
+//        repository.branches.add(dummyBranch)
+//        repository.commits.add(invalidCommit)
 
         val violation =
             run {

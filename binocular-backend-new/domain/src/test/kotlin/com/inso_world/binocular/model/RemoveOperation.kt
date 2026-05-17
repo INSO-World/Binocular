@@ -1,7 +1,6 @@
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.domain.data.MockTestDataProvider
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -12,7 +11,7 @@ class RemoveOperation {
         private val mockTestDataProvider = MockTestDataProvider(
             Repository(
                 localPath = "mockTestDataProvider repo",
-                project = Project(name = "mockTestDataProvider project")
+                projectId = Project(name = "mockTestDataProvider project").iid
             )
         )
 
@@ -22,49 +21,28 @@ class RemoveOperation {
                 val repo = mockTestDataProvider.repository
 
                 return@run listOf(
-                    repo.commits,
+                    repo.commitIds,
                     repo.user,
-                    repo.branches,
+                    repo.branchIds,
                 ).map { Arguments.of(it) }.toTypedArray()
             },
             *run {
                 val cmt = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
 
                 return@run listOf(
-                    cmt.children,
-                    cmt.parents,
-//                    cmt.issues,
-//                    cmt.files,
-//                    cmt.builds,
-//                    cmt.modules,
+                    cmt.childIds,
+                    cmt.parentIds,
                 ).map { Arguments.of(it) }.toTypedArray()
             },
-            *run {
-                val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
-
-                return@run listOf(
-                    branch.files,
-                ).map { Arguments.of(it) }.toTypedArray()
-            },
-            *run {
-                val user = mockTestDataProvider.userByEmail.getValue("a@test.com")
-
-                return@run listOf(
-                    user.committedCommits,
-                    user.authoredCommits,
-                    user.files,
-//                    user.issues,
-                ).map { Arguments.of(it) }.toTypedArray()
-            }
         )
     }
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.model.RemoveOperation#provideModelCollections")
     fun `try removeAll, should fail`(
-        obj: NonRemovingMutableSet<*>
+        obj: MutableSet<*>
     ) {
-        assertThrows<UnsupportedOperationException> {
+        org.junit.jupiter.api.assertThrows<UnsupportedOperationException> {
             obj.removeAll(setOf())
         }
     }
@@ -72,17 +50,17 @@ class RemoveOperation {
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.model.RemoveOperation#provideModelCollections")
     fun `try retainAll branch, should fail`(
-        obj: NonRemovingMutableSet<*>
+        obj: MutableSet<*>
     ) {
-        assertThrows<UnsupportedOperationException> {
+        org.junit.jupiter.api.assertThrows<UnsupportedOperationException> {
             obj.retainAll(setOf())
         }
     }
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.model.RemoveOperation#provideModelCollections")
-    fun `try remove via iterator branch, should fail`(obj: NonRemovingMutableSet<*>) {
-        assertThrows<UnsupportedOperationException> {
+    fun `try remove via iterator branch, should fail`(obj: MutableSet<*>) {
+        org.junit.jupiter.api.assertThrows<UnsupportedOperationException> {
             obj.iterator().remove()
         }
     }

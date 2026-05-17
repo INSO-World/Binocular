@@ -4,7 +4,9 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -82,62 +84,58 @@ internal class ProjectAssembler {
         logger.trace("Mapped Project structure: id=${entity.id}")
 
         // Phase 2: Assemble owned Repository if present
-        domain.repo?.let { repository ->
+        domain.repoId?.let { repoId ->
             logger.trace("Assembling owned Repository for Project")
+            val repository = ctx.findDomainByIid<Repository>(repoId, RepositoryEntity::class)
+                ?: throw IllegalStateException("Repository for ${repoId} must be in context")
             val repoEntity = repositoryAssembler.toEntity(repository)
-            entity.repo = repoEntity
+            entity.repoId = repoEntity.iid
             logger.trace("Wired Repository to Project: repoId=${repoEntity.id}")
         }
 
-        logger.debug("Assembled ProjectEntity with id=${entity.id}, hasRepository=${entity.repo != null}")
+        logger.debug("Assembled ProjectEntity with id=${entity.id}, hasRepository=${entity.repoId != null}")
         return entity
     }
 
     /**
      * Assembles a complete Project domain aggregate from a ProjectEntity.
-     *
-     * This method assembles the entire Project aggregate including its owned Repository
-     * and all Repository children. The result is a fully identity-preserving object graph.
-     *
-     * ## Process
-     * 1. Check if Project already assembled (identity preservation)
-     * 2. Map Project structure using ProjectMapper (adds to context)
-     * 3. If RepositoryEntity exists, assemble it completely using RepositoryAssembler
-     * 4. Wire Repository to Project domain
-     *
-     * @param entity The ProjectEntity to convert
-     * @return The fully assembled Project domain aggregate
      */
     fun toDomain(entity: ProjectEntity): Project {
         logger.debug("Assembling Project domain for entity id=${entity.id}")
 
-        // Fast-path: Check if already assembled (identity preservation)
         ctx.findDomain<Project, ProjectEntity>(entity)?.let {
             logger.trace("Project already in context, returning cached domain")
             return it
         }
 
-        // Phase 1: Map Project structure (adds to context)
         val domain = projectMapper.toDomain(entity)
         logger.trace("Mapped Project structure: ${domain.name}")
 
-        // Phase 2: Assemble owned Repository if present
-        entity.repo?.let { repoEntity ->
+        entity.repoId?.let { repoId ->
             logger.trace("Assembling owned Repository from ProjectEntity")
-            val repository = repositoryAssembler.toDomain(repoEntity)
-            domain.repo = repository
-            logger.trace("Wired Repository to Project: ${repository.localPath}")
+            val repository = ctx.findDomainByIid<Repository>(repoId, RepositoryEntity::class)
+                ?: throw IllegalStateException("Repository for ${repoId} must be in context")
+            val repoEntity = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(repository)
+                ?: throw IllegalStateException("RepositoryEntity for ${repoId} must be in context")
+            val assembledRepo = repositoryAssembler.toDomain(repoEntity)
+            domain.repoId = assembledRepo.iid
+            logger.trace("Wired Repository to Project: ${assembledRepo.localPath}")
         }
 
-        logger.debug("Assembled Project domain: ${domain.name}, hasRepository=${domain.repo != null}")
+        logger.debug("Assembled Project domain: ${domain.name}, hasRepository=${domain.repoId != null}")
         return domain
     }
 
     fun refresh(domain: Project, entity: ProjectEntity) {
         logger.trace("Refreshing Repository domain: ${domain.iid}")
         this.projectMapper.refreshDomain(domain, entity)
-        if (domain.repo != null) {
-            this.repositoryAssembler.refresh(requireNotNull(domain.repo), requireNotNull(entity.repo))
+        val repoId = domain.repoId
+        if (repoId != null) {
+            val repository = ctx.findDomainByIid<Repository>(repoId, RepositoryEntity::class)
+                ?: throw IllegalStateException("Repository for ${domain.repoId} must be in context")
+            val repoEntity = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(repository)
+                ?: throw IllegalStateException("RepositoryEntity for ${domain.repoId} must be in context")
+            this.repositoryAssembler.refresh(repository, repoEntity)
         } else {
             logger.debug("No repository to refresh")
         }

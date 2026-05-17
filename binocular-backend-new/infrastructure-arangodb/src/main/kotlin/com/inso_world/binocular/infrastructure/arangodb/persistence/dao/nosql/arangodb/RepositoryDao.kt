@@ -38,13 +38,7 @@ internal class RepositoryDao @Autowired constructor(
     private lateinit var developerRepository: DeveloperRepository
 
     @Autowired
-    private lateinit var remoteRepository: RemoteRepository
-
-    @Autowired
     private lateinit var fileRepository: FileRepository
-
-    @Autowired
-    private lateinit var revisionRepository: RevisionRepository
 
     @MappingSession
     override fun findByName(name: String): RepositoryEntity? {
@@ -53,31 +47,12 @@ internal class RepositoryDao @Autowired constructor(
 
     @MappingSession
     fun create(entity: RepositoryEntity): RepositoryEntity {
-        // Save Developers first (referenced by Commits)
-        entity.developers.forEach { developerRepository.save(it) }
-
-        // Save Repository root
         val savedEntity = repositoryRepository.save(entity)
 
-        // Save Commits
         entity.commits.forEach { commitRepository.save(it) }
 
-        // Save Branches
-        entity.branches.forEach { branchRepository.save(it) }
-
-        // Save Remotes
-        entity.remotes.forEach { remoteRepository.save(it) }
-
-        // Save Files and Revisions
         entity.files.forEach { fileRepository.save(it) }
-        entity.revisions.forEach { revisionRepository.save(it) }
-
-        val existingProject = this.projectDao.findByName(entity.project.name)
-        if(existingProject == null) {
-            this.projectDao.create(entity.project)
-        }
 
         return savedEntity
     }
 }
-

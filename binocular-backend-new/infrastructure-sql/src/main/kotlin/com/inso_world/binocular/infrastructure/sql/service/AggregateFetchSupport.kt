@@ -1,7 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
-import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IProjectDao
+import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IRepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 
@@ -15,6 +15,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 internal object AggregateFetchSupport {
     fun loadProjectEntities(projectDao: IProjectDao): Iterable<ProjectEntity> = projectDao.findAll()
 
-    fun loadRepositoryEntities(projectDao: IProjectDao): List<RepositoryEntity> =
-        loadProjectEntities(projectDao).mapNotNull(ProjectEntity::repo)
+    fun loadRepositoryEntities(repositoryDao: IRepositoryDao): List<RepositoryEntity> =
+        repositoryDao.findAll().toList()
 }

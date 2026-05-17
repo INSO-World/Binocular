@@ -38,6 +38,10 @@ open class MappingContext {
     // Fallback for unpersisted entities
     private val e2dByObjectIdentity = ConcurrentHashMap<EntityObjectKey, Any>()
 
+    // ID-based caches for looking up by domain ID or entity iid
+    private val domainById = ConcurrentHashMap<Pair<KClass<*>, Any>, Any>()
+    private val entityByIid = ConcurrentHashMap<Pair<KClass<*>, Any>, Any>()
+
     // ====================== Domain -> Entity ======================
 
     /**
@@ -48,22 +52,34 @@ open class MappingContext {
     open fun <K : Any, D : AbstractDomainObject<*, K>, E : Any> findEntity(domain: D): E? =
         d2e[DomainKey(domain::class, domain.uniqueKey)] as? E
 
-    // ====================== Entity -> Domain ======================
+    /**
+     * Returns the previously remembered entity for this domain ID, if any.
+     * Uses (domain::class, iid) as the cache key.
+     */
+    @Suppress("UNCHECKED_CAST")
+    open fun <E : Any> findEntityByIid(iid: Any, domainClass: KClass<*>): E? =
+        domainById[Pair(domainClass, iid)] as? E
 
     /**
-     * Returns the previously remembered domain object for this entity, if any.
-     * Uses (entity::class, entity.id) as the cache key.
+     * Returns the previously remembered domain object for this entity ID (iid), if any.
+     * Uses (entity::class, iid) as the cache key.
+     */
+    @Suppress("UNCHECKED_CAST")
+    open fun <D : Any> findDomainByIid(iid: Any, entityClass: KClass<*>): D? =
+        entityByIid[Pair(entityClass, iid)] as? D
+
+    /**
+     * Returns the previously remembered domain object for this persistence entity, if any.
+     * Uses (entity::class, entity.id) as the cache key, falling back to object identity
+     * for unpersisted entities.
      */
     @Suppress("UNCHECKED_CAST")
     open fun <D : Any, E : Any> findDomain(entity: E): D? {
-        // 1. Try using database id first
         resolveEntityId(entity)?.let { id ->
-            return e2d[EntityKey(entity::class, id)] as? D
+            val found = e2d[EntityKey(entity::class, id)]
+            if (found != null) return found as? D
         }
-
-        // 2. Fallback to object identity for unpersisted entities
-        val objKey = EntityObjectKey(entity::class, System.identityHashCode(entity))
-        return e2dByObjectIdentity[objKey] as? D
+        return e2dByObjectIdentity[EntityObjectKey(entity::class, System.identityHashCode(entity))] as? D
     }
 
     // ========================= Remember ===========================
@@ -77,6 +93,12 @@ open class MappingContext {
     open fun <K : Any, D : AbstractDomainObject<*, K>, E : Any> remember(domain: D, entity: E) {
         // Always remember domain -> entity
         d2e.computeIfAbsent(DomainKey(domain::class, domain.uniqueKey)) { entity }
+        // Remember domain id -> entity
+        domainById.computeIfAbsent(Pair(domain::class, domain.uniqueKey)) { entity }
+        // Remember entity iid -> domain
+        resolveEntityIid(entity)?.let { iid ->
+            entityByIid.computeIfAbsent(Pair(entity::class, iid)) { domain }
+        }
         // Try to remember entity -> domain using database id
         resolveEntityId(entity)?.let { id ->
             e2d.computeIfAbsent(EntityKey(entity::class, id)) { domain }
@@ -88,6 +110,12 @@ open class MappingContext {
         require(d2e.size == (e2d.size + e2dByObjectIdentity.size)) {
             "Context sizes do not match: ${d2e.size} != (${e2d.size} + ${e2dByObjectIdentity.size})"
         }
+    }
+
+    private fun resolveEntityIid(e: Any): Any? {
+        readKProperty(e, "iid")?.let { return it }
+        readField(e, "iid")?.let { return it }
+        return null
     }
 
     // ====================== Id resolution =========================

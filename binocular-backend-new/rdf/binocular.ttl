@@ -1,0 +1,679 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix doap:    <http://usefulinc.com/ns/doap#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+
+# Binocular unified namespace
+@prefix bio:  <https://ontology.binocular.example.org/> .
+
+# VCS system-specific subontologies
+@prefix vcs-git:  <https://ontology.binocular.example.org/vcs/git#> .
+@prefix vcs-svn:  <https://ontology.binocular.example.org/vcs/svn#> .
+@prefix vcs-hg:   <https://ontology.binocular.example.org/vcs/hg#> .
+@prefix vcs-jj:   <https://ontology.binocular.example.org/vcs/jj#> .
+
+# ITS system-specific subontologies
+@prefix its-gh:     <https://ontology.binocular.example.org/its/github#> .
+@prefix its-gl:     <https://ontology.binocular.example.org/its/gitlab#> .
+@prefix its-bb:     <https://ontology.binocular.example.org/its/bitbucket#> .
+@prefix its-jira:   <https://ontology.binocular.example.org/its/jira#> .
+@prefix its-linear: <https://ontology.binocular.example.org/its/linear#> .
+
+# CI system-specific subontologies
+@prefix ci-gha:    <https://ontology.binocular.example.org/ci/github-actions#> .
+@prefix ci-glci:   <https://ontology.binocular.example.org/ci/gitlab-ci#> .
+@prefix ci-jenkins: <https://ontology.binocular.example.org/ci/jenkins#> .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  ONTOLOGY METADATA
+# ═════════════════════════════════════════════════════════════════════════════
+
+<https://ontology.binocular.example.org/>
+    a owl:Ontology ;
+    rdfs:label "Binocular MSR Ontology"@en ;
+    rdfs:comment """Unified schema for Mining Software Repositories (MSR) with Binocular.
+
+Covers three domains — Version Control (VCS), Issue Tracking (ITS), and
+Continuous Integration (CI) — under a shared abstract vocabulary, with
+system-specific subclasses at a second layer.
+
+Design principles:
+1. Small ontology, focused on what's queryable
+2. Three-layer architecture: abstract base → domain (VCS/ITS/CI) → system-specific
+3. Tool-agnostic in abstract layer; tool-specific at leaf level
+4. Emphasizes code structure and team dynamics alongside events
+
+Intended use: knowledge-graph schema for holistic project analysis.
+Enables queries across: commits, issues, PRs, builds, code ownership, modules, churn.
+
+Based on: MSR Ontology v0.2.0 (tool-integration layer) + OntoBinocular concepts
+(code structure, ownership). Builds on DOAP, FOAF, PROV-O, and SE-ON."""@en ;
+    dcterms:created "2026-04-05"^^xsd:date ;
+    dcterms:modified "2026-04-05"^^xsd:date ;
+    owl:versionInfo "1.0.0" .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  1. SHARED CONCEPTS — project, contributor, forge, code structure
+# ═════════════════════════════════════════════════════════════════════════════
+
+bio:Project
+    a owl:Class ;
+    rdfs:subClassOf doap:Project ;
+    rdfs:label "Project"@en ;
+    rdfs:comment "Top-level container. One project may span multiple repositories and trackers. Use bio:hasRepository, bio:hasIssueTracker, bio:hasPipeline." .
+
+bio:Contributor
+    a owl:Class ;
+    rdfs:subClassOf foaf:Agent ;
+    rdfs:label "Contributor"@en ;
+    rdfs:comment """A person or automated agent contributing to a project.
+Identity resolution across tools (git email vs. GitHub username vs. Jira account)
+uses email as primary matching key, supplemented by owl:sameAs triples.""" .
+
+bio:Forge
+    a owl:Class ;
+    rdfs:label "Forge"@en ;
+    rdfs:comment "Hosting platform (GitHub, GitLab, Bitbucket) bundling VCS, ITS, CI. A forge URI can target both Repository and IssueTracker on the same project." .
+
+#  Contributor properties
+bio:name             a owl:DatatypeProperty ; rdfs:domain bio:Contributor ; rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+bio:email            a owl:DatatypeProperty ; rdfs:domain bio:Contributor ; rdfs:range xsd:string ;
+    rdfs:label "email"@en ;
+    rdfs:comment "Primary cross-tool identity key for matching." .
+bio:accountId        a owl:DatatypeProperty ; rdfs:domain bio:Contributor ; rdfs:range xsd:string ;
+    rdfs:label "account ID"@en ;
+    rdfs:comment "Platform-specific account identifier (e.g., GitHub user id)." .
+bio:accountType      a owl:DatatypeProperty ; rdfs:domain bio:Contributor ; rdfs:range xsd:string ;
+    rdfs:label "account type"@en ;
+    rdfs:comment "human | bot | org" .
+
+#  Project ↔ domain properties
+bio:hasRepository    a owl:ObjectProperty ; rdfs:domain bio:Project ; rdfs:range bio:Repository ;
+    rdfs:label "has repository"@en .
+bio:hasIssueTracker  a owl:ObjectProperty ; rdfs:domain bio:Project ; rdfs:range bio:IssueTracker ;
+    rdfs:label "has issue tracker"@en .
+bio:hasPipeline      a owl:ObjectProperty ; rdfs:domain bio:Project ; rdfs:range bio:Pipeline ;
+    rdfs:label "has pipeline"@en .
+bio:hasContributor   a owl:ObjectProperty ; rdfs:domain bio:Project ; rdfs:range bio:Contributor ;
+    rdfs:label "has contributor"@en .
+bio:hasModule        a owl:ObjectProperty ; rdfs:domain bio:Project ; rdfs:range bio:Module ;
+    rdfs:label "has module"@en ;
+    rdfs:comment "Top-level modules/packages in the project." .
+bio:hostedAt         a owl:ObjectProperty ; rdfs:domain bio:Repository ; rdfs:range bio:Forge ;
+    rdfs:label "hosted at"@en .
+
+#  Code structure: Modules and files
+bio:Module
+    a owl:Class ;
+    rdfs:label "Module"@en ;
+    rdfs:comment "A logical code unit: package, library, service, or directory tree. Language-agnostic representation of code organization." .
+
+bio:containsModule   a owl:ObjectProperty ; rdfs:domain bio:Module ; rdfs:range bio:Module ;
+    rdfs:label "contains module"@en ;
+    rdfs:comment "Module hierarchy (nested packages/services)." .
+
+bio:File
+    a owl:Class ;
+    rdfs:label "File"@en ;
+    rdfs:comment "Source file or artifact." .
+
+bio:FileChange
+    a owl:Class ;
+    rdfs:label "File change"@en ;
+    rdfs:comment "One file's modification (add/update/delete) within a Revision." .
+
+bio:changedFile      a owl:ObjectProperty ; rdfs:domain bio:FileChange ; rdfs:range bio:File ;
+    rdfs:label "changed file"@en .
+
+bio:Hunk
+    a owl:Class ;
+    rdfs:label "Hunk"@en ;
+    rdfs:comment "A contiguous block of line changes within a file diff." .
+
+#  Code ownership
+bio:CodeOwnership
+    a owl:Class ;
+    rdfs:label "Code ownership"@en ;
+    rdfs:comment "Establishes who is responsible for/owns a code area (module, hunk, file)." .
+
+bio:owner           a owl:ObjectProperty ; rdfs:domain bio:CodeOwnership ; rdfs:range bio:Contributor ;
+    rdfs:label "owner"@en .
+
+bio:ownedModule     a owl:ObjectProperty ; rdfs:domain bio:CodeOwnership ; rdfs:range bio:Module ;
+    rdfs:label "owned module"@en .
+
+bio:ownsCode        a owl:ObjectProperty ; rdfs:domain bio:Contributor ; rdfs:range bio:CodeOwnership ;
+    rdfs:label "owns code"@en ;
+    owl:inverseOf bio:owner .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  2. VCS — VERSION CONTROL SYSTEMS
+# ═════════════════════════════════════════════════════════════════════════════
+
+bio:Repository
+    a owl:Class ;
+    rdfs:label "Repository"@en ;
+    rdfs:comment "Version control repository. Specialized per VCS: git, svn, hg, jj." .
+
+bio:Revision
+    a owl:Class ;
+    rdfs:label "Revision"@en ;
+    rdfs:comment """Unit of recorded change:
+    git:Commit — SHA content-addressed, DAG parents
+    svn:Revision — monotonic integer, no DAG
+    hg:Changeset — SHA, phase-aware
+    jj:Change — dual identity (stable changeId + ephemeral commitId)""" .
+
+bio:identifier       a owl:DatatypeProperty ; rdfs:domain bio:Revision ; rdfs:range xsd:string ;
+    rdfs:label "identifier"@en ;
+    rdfs:comment "Commit hash (SHA), revision number, or change ID. String to accommodate both hashes and integers." .
+
+bio:message          a owl:DatatypeProperty ; rdfs:domain bio:Revision ; rdfs:range xsd:string ;
+    rdfs:label "message"@en ;
+    rdfs:comment "Commit/revision message." .
+
+bio:createdAt        a owl:DatatypeProperty ; rdfs:domain bio:Revision ; rdfs:range xsd:dateTime ;
+    rdfs:label "created at"@en .
+
+bio:author           a owl:ObjectProperty ; rdfs:domain bio:Revision ; rdfs:range bio:Contributor ;
+    rdfs:label "author"@en ;
+    rdfs:comment "Person who authored the revision." .
+
+bio:committer        a owl:ObjectProperty ; rdfs:domain bio:Revision ; rdfs:range bio:Contributor ;
+    rdfs:label "committer"@en ;
+    rdfs:comment "Person who committed the revision (may differ from author in git)." .
+
+bio:hasParent        a owl:ObjectProperty ; rdfs:domain bio:Revision ; rdfs:range bio:Revision ;
+    rdfs:label "has parent"@en ;
+    rdfs:comment "Predecessor revision(s) in DAG. 0..* cardinality: 0 (initial), 1 (linear), 2+ (merge)." .
+
+bio:modifiedFile     a owl:ObjectProperty ; rdfs:domain bio:Revision ; rdfs:range bio:FileChange ;
+    rdfs:label "modified file"@en ;
+    rdfs:comment "Files modified by this revision." .
+
+bio:changedModule    a owl:ObjectProperty ; rdfs:domain bio:Revision ; rdfs:range bio:Module ;
+    rdfs:label "changed module"@en ;
+    rdfs:comment "Modules affected by changes in this revision." .
+
+#  Git-specific
+vcs-git:Commit
+    a owl:Class ;
+    rdfs:subClassOf bio:Revision ;
+    rdfs:label "Git Commit"@en ;
+    rdfs:comment "A commit in a git repository." .
+
+vcs-git:Repository
+    a owl:Class ;
+    rdfs:subClassOf bio:Repository ;
+    rdfs:label "Git Repository"@en ;
+    rdfs:comment "A git repository." .
+
+#  SVN-specific
+vcs-svn:Revision
+    a owl:Class ;
+    rdfs:subClassOf bio:Revision ;
+    rdfs:label "SVN Revision"@en ;
+    rdfs:comment "A Subversion revision (global monotonic number)." .
+
+vcs-svn:Repository
+    a owl:Class ;
+    rdfs:subClassOf bio:Repository ;
+    rdfs:label "SVN Repository"@en ;
+    rdfs:comment "An Apache Subversion repository." .
+
+#  Mercurial-specific
+vcs-hg:Changeset
+    a owl:Class ;
+    rdfs:subClassOf bio:Revision ;
+    rdfs:label "Mercurial Changeset"@en ;
+    rdfs:comment "A changeset in a Mercurial repository." .
+
+vcs-hg:Repository
+    a owl:Class ;
+    rdfs:subClassOf bio:Repository ;
+    rdfs:label "Mercurial Repository"@en ;
+    rdfs:comment "A Mercurial (hg) repository." .
+
+#  Jujutsu-specific
+vcs-jj:Change
+    a owl:Class ;
+    rdfs:subClassOf bio:Revision ;
+    rdfs:label "Jujutsu Change"@en ;
+    rdfs:comment "A change in jujutsu VCS. Has stable changeId and ephemeral commitId." .
+
+vcs-jj:Repository
+    a owl:Class ;
+    rdfs:subClassOf bio:Repository ;
+    rdfs:label "Jujutsu Repository"@en ;
+    rdfs:comment "A Jujutsu (jj) repository." .
+
+#  Labels (branches, tags)
+bio:Label
+    a owl:Class ;
+    rdfs:label "Label"@en ;
+    rdfs:comment "Named pointer to a revision (branch, bookmark, tag)." .
+
+bio:pointsTo         a owl:ObjectProperty ; rdfs:domain bio:Label ; rdfs:range bio:Revision ;
+    rdfs:label "points to"@en .
+
+bio:name             a owl:DatatypeProperty ; rdfs:domain bio:Label ; rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+bio:MutableLabel
+    a owl:Class ;
+    rdfs:subClassOf bio:Label ;
+    rdfs:label "Mutable label"@en ;
+    rdfs:comment "Movable pointer: git branch, hg bookmark, jj bookmark." .
+
+bio:ImmutableLabel
+    a owl:Class ;
+    rdfs:subClassOf bio:Label ;
+    rdfs:label "Immutable label"@en ;
+    rdfs:comment "Fixed pointer: git tag." .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  3. ITS — ISSUE TRACKING SYSTEMS
+# ═════════════════════════════════════════════════════════════════════════════
+
+bio:IssueTracker
+    a owl:Class ;
+    rdfs:label "Issue tracker"@en ;
+    rdfs:comment "Issue tracking system. Specialized per tool: github, gitlab, jira, etc." .
+
+bio:Issue
+    a owl:Class ;
+    rdfs:label "Issue"@en ;
+    rdfs:comment "Work item: bug, feature request, task. Tool-specific subclasses: its-gh:Issue, its-jira:Issue, etc." .
+
+bio:issueId          a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:string ;
+    rdfs:label "issue ID"@en ;
+    rdfs:comment "Unique ID within tracker (e.g., #123, PROJ-456)." .
+
+bio:title            a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:string ;
+    rdfs:label "title"@en .
+
+bio:description      a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:string ;
+    rdfs:label "description"@en .
+
+bio:issueStatus      a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:string ;
+    rdfs:label "status"@en ;
+    rdfs:comment "Current status: open, closed, resolved, in-progress, etc." .
+
+bio:priority         a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:string ;
+    rdfs:label "priority"@en ;
+    rdfs:comment "Priority level: critical, high, medium, low." .
+
+bio:severity         a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:string ;
+    rdfs:label "severity"@en ;
+    rdfs:comment "Severity level: critical, major, minor, trivial." .
+
+bio:createdAt        a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:dateTime ;
+    rdfs:label "created at"@en .
+
+bio:closedAt         a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:dateTime ;
+    rdfs:label "closed at"@en .
+
+bio:updatedAt        a owl:DatatypeProperty ; rdfs:domain bio:Issue ; rdfs:range xsd:dateTime ;
+    rdfs:label "updated at"@en .
+
+bio:reporter         a owl:ObjectProperty ; rdfs:domain bio:Issue ; rdfs:range bio:Contributor ;
+    rdfs:label "reporter"@en .
+
+bio:assignee         a owl:ObjectProperty ; rdfs:domain bio:Issue ; rdfs:range bio:Contributor ;
+    rdfs:label "assignee"@en .
+
+bio:hasContributor   a owl:ObjectProperty ; rdfs:domain bio:Issue ; rdfs:range bio:Contributor ;
+    rdfs:label "has contributor"@en ;
+    rdfs:comment "Any contributor involved in the issue (reporter, assignee, commenter, closer)." .
+
+bio:closedByRevision a owl:ObjectProperty ; rdfs:domain bio:Issue ; rdfs:range bio:Revision ;
+    rdfs:label "closed by revision"@en ;
+    rdfs:comment "Revision that closed/resolved the issue." .
+
+bio:containsCommit   a owl:ObjectProperty ; rdfs:domain bio:Issue ; rdfs:range bio:Revision ;
+    rdfs:label "contains commit"@en ;
+    rdfs:comment "Commits that mentioned/reference the issue." .
+
+bio:relatedModule    a owl:ObjectProperty ; rdfs:domain bio:Issue ; rdfs:range bio:Module ;
+    rdfs:label "related module"@en ;
+    rdfs:comment "Code modules mentioned or affected by the issue." .
+
+#  Pull Request / Merge Request (common abstraction)
+bio:PullRequest
+    a owl:Class ;
+    rdfs:label "Pull request"@en ;
+    rdfs:comment "Proposed change: GitHub PR, GitLab MR, Bitbucket PR. Links issues to revisions." .
+
+bio:prId             a owl:DatatypeProperty ; rdfs:domain bio:PullRequest ; rdfs:range xsd:string ;
+    rdfs:label "PR ID"@en .
+
+bio:source           a owl:ObjectProperty ; rdfs:domain bio:PullRequest ; rdfs:range bio:Label ;
+    rdfs:label "source branch"@en .
+
+bio:target           a owl:ObjectProperty ; rdfs:domain bio:PullRequest ; rdfs:range bio:Label ;
+    rdfs:label "target branch"@en .
+
+bio:prStatus         a owl:DatatypeProperty ; rdfs:domain bio:PullRequest ; rdfs:range xsd:string ;
+    rdfs:label "status"@en ;
+    rdfs:comment "open, merged, closed, draft." .
+
+bio:createdAt        a owl:DatatypeProperty ; rdfs:domain bio:PullRequest ; rdfs:range xsd:dateTime ;
+    rdfs:label "created at"@en .
+
+bio:mergedAt         a owl:DatatypeProperty ; rdfs:domain bio:PullRequest ; rdfs:range xsd:dateTime ;
+    rdfs:label "merged at"@en .
+
+bio:author           a owl:ObjectProperty ; rdfs:domain bio:PullRequest ; rdfs:range bio:Contributor ;
+    rdfs:label "author"@en .
+
+bio:reviewer         a owl:ObjectProperty ; rdfs:domain bio:PullRequest ; rdfs:range bio:Contributor ;
+    rdfs:label "reviewer"@en ;
+    rdfs:comment "Reviewers of the PR." .
+
+bio:closes           a owl:ObjectProperty ; rdfs:domain bio:PullRequest ; rdfs:range bio:Issue ;
+    rdfs:label "closes"@en ;
+    rdfs:comment "Issues closed by this PR." .
+
+#  Comments / Discussion
+bio:Comment
+    a owl:Class ;
+    rdfs:label "Comment"@en ;
+    rdfs:comment "Comment on an issue, PR, or commit." .
+
+bio:body             a owl:DatatypeProperty ; rdfs:domain bio:Comment ; rdfs:range xsd:string ;
+    rdfs:label "body"@en .
+
+bio:author           a owl:ObjectProperty ; rdfs:domain bio:Comment ; rdfs:range bio:Contributor ;
+    rdfs:label "author"@en .
+
+bio:createdAt        a owl:DatatypeProperty ; rdfs:domain bio:Comment ; rdfs:range xsd:dateTime ;
+    rdfs:label "created at"@en .
+
+bio:updatedAt        a owl:DatatypeProperty ; rdfs:domain bio:Comment ; rdfs:range xsd:dateTime ;
+    rdfs:label "updated at"@en .
+
+#  System-specific issue types
+its-gh:Issue
+    a owl:Class ;
+    rdfs:subClassOf bio:Issue ;
+    rdfs:label "GitHub Issue"@en ;
+    rdfs:comment "An issue tracked on GitHub." .
+
+its-gh:PullRequest
+    a owl:Class ;
+    rdfs:subClassOf bio:PullRequest ;
+    rdfs:label "GitHub Pull Request"@en ;
+    rdfs:comment "A pull request on GitHub." .
+
+its-gl:Issue
+    a owl:Class ;
+    rdfs:subClassOf bio:Issue ;
+    rdfs:label "GitLab Issue"@en ;
+    rdfs:comment "An issue tracked on GitLab." .
+
+its-gl:MergeRequest
+    a owl:Class ;
+    rdfs:subClassOf bio:PullRequest ;
+    rdfs:label "GitLab Merge Request"@en ;
+    rdfs:comment "A merge request on GitLab." .
+
+its-jira:Issue
+    a owl:Class ;
+    rdfs:subClassOf bio:Issue ;
+    rdfs:label "JIRA Issue"@en ;
+    rdfs:comment "An issue tracked in JIRA." .
+
+its-jira:Story
+    a owl:Class ;
+    rdfs:subClassOf its-jira:Issue ;
+    rdfs:label "JIRA Story"@en ;
+    rdfs:comment "A user story in JIRA." .
+
+its-jira:Epic
+    a owl:Class ;
+    rdfs:subClassOf its-jira:Issue ;
+    rdfs:label "JIRA Epic"@en ;
+    rdfs:comment "An epic in JIRA." .
+
+its-jira:Bug
+    a owl:Class ;
+    rdfs:subClassOf its-jira:Issue ;
+    rdfs:label "JIRA Bug"@en ;
+    rdfs:comment "A bug in JIRA." .
+
+its-jira:Task
+    a owl:Class ;
+    rdfs:subClassOf its-jira:Issue ;
+    rdfs:label "JIRA Task"@en ;
+    rdfs:comment "A task in JIRA." .
+
+its-bb:Issue
+    a owl:Class ;
+    rdfs:subClassOf bio:Issue ;
+    rdfs:label "Bitbucket Issue"@en ;
+    rdfs:comment "An issue tracked on Bitbucket." .
+
+its-bb:PullRequest
+    a owl:Class ;
+    rdfs:subClassOf bio:PullRequest ;
+    rdfs:label "Bitbucket Pull Request"@en ;
+    rdfs:comment "A pull request on Bitbucket." .
+
+its-linear:Issue
+    a owl:Class ;
+    rdfs:subClassOf bio:Issue ;
+    rdfs:label "Linear Issue"@en ;
+    rdfs:comment "An issue tracked in Linear." .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  4. CI — CONTINUOUS INTEGRATION
+# ═════════════════════════════════════════════════════════════════════════════
+
+bio:Pipeline
+    a owl:Class ;
+    rdfs:label "Pipeline"@en ;
+    rdfs:comment "CI/CD pipeline: GitHub Actions workflow, GitLab CI, Jenkins job, etc." .
+
+bio:pipelineId       a owl:DatatypeProperty ; rdfs:domain bio:Pipeline ; rdfs:range xsd:string ;
+    rdfs:label "pipeline ID"@en .
+
+bio:triggeredBy      a owl:ObjectProperty ; rdfs:domain bio:Pipeline ; rdfs:range bio:Revision ;
+    rdfs:label "triggered by"@en ;
+    rdfs:comment "Revision that triggered the pipeline (e.g., commit on branch)." .
+
+bio:Job
+    a owl:Class ;
+    rdfs:label "Job"@en ;
+    rdfs:comment "Individual job/stage in a pipeline." .
+
+bio:jobId            a owl:DatatypeProperty ; rdfs:domain bio:Job ; rdfs:range xsd:string ;
+    rdfs:label "job ID"@en .
+
+bio:jobName          a owl:DatatypeProperty ; rdfs:domain bio:Job ; rdfs:range xsd:string ;
+    rdfs:label "job name"@en .
+
+bio:status           a owl:DatatypeProperty ; rdfs:domain bio:Job ; rdfs:range xsd:string ;
+    rdfs:label "status"@en ;
+    rdfs:comment "success, failure, pending, running, skipped." .
+
+bio:startedAt        a owl:DatatypeProperty ; rdfs:domain bio:Job ; rdfs:range xsd:dateTime ;
+    rdfs:label "started at"@en .
+
+bio:finishedAt       a owl:DatatypeProperty ; rdfs:domain bio:Job ; rdfs:range xsd:dateTime ;
+    rdfs:label "finished at"@en .
+
+bio:duration         a owl:DatatypeProperty ; rdfs:domain bio:Job ; rdfs:range xsd:integer ;
+    rdfs:label "duration"@en ;
+    rdfs:comment "Execution time in seconds." .
+
+bio:hasJob           a owl:ObjectProperty ; rdfs:domain bio:Pipeline ; rdfs:range bio:Job ;
+    rdfs:label "has job"@en .
+
+#  Test results
+bio:TestResult
+    a owl:Class ;
+    rdfs:label "Test result"@en ;
+    rdfs:comment "Result of a test execution within a job." .
+
+bio:totalTests       a owl:DatatypeProperty ; rdfs:domain bio:TestResult ; rdfs:range xsd:integer ;
+    rdfs:label "total tests"@en .
+
+bio:passedTests      a owl:DatatypeProperty ; rdfs:domain bio:TestResult ; rdfs:range xsd:integer ;
+    rdfs:label "passed tests"@en .
+
+bio:failedTests      a owl:DatatypeProperty ; rdfs:domain bio:TestResult ; rdfs:range xsd:integer ;
+    rdfs:label "failed tests"@en .
+
+bio:skippedTests     a owl:DatatypeProperty ; rdfs:domain bio:TestResult ; rdfs:range xsd:integer ;
+    rdfs:label "skipped tests"@en .
+
+bio:coverage         a owl:DatatypeProperty ; rdfs:domain bio:TestResult ; rdfs:range xsd:decimal ;
+    rdfs:label "coverage"@en ;
+    rdfs:comment "Code coverage percentage (0-100)." .
+
+bio:hasTestResult    a owl:ObjectProperty ; rdfs:domain bio:Job ; rdfs:range bio:TestResult ;
+    rdfs:label "has test result"@en .
+
+#  System-specific pipelines
+ci-gha:WorkflowRun
+    a owl:Class ;
+    rdfs:subClassOf bio:Pipeline ;
+    rdfs:label "GitHub Actions Workflow Run"@en ;
+    rdfs:comment "A workflow run in GitHub Actions." .
+
+ci-gha:Job
+    a owl:Class ;
+    rdfs:subClassOf bio:Job ;
+    rdfs:label "GitHub Actions Job"@en ;
+    rdfs:comment "A job in a GitHub Actions workflow." .
+
+ci-gha:Step
+    a owl:Class ;
+    rdfs:label "GitHub Actions Step"@en ;
+    rdfs:comment "Individual step within a job." .
+
+ci-glci:Pipeline
+    a owl:Class ;
+    rdfs:subClassOf bio:Pipeline ;
+    rdfs:label "GitLab CI Pipeline"@en ;
+    rdfs:comment "A pipeline in GitLab CI." .
+
+ci-glci:Job
+    a owl:Class ;
+    rdfs:subClassOf bio:Job ;
+    rdfs:label "GitLab CI Job"@en ;
+    rdfs:comment "A job in GitLab CI." .
+
+ci-jenkins:Build
+    a owl:Class ;
+    rdfs:subClassOf bio:Pipeline ;
+    rdfs:label "Jenkins Build"@en ;
+    rdfs:comment "A build in Jenkins." .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  5. METRICS & QUALITY
+# ═════════════════════════════════════════════════════════════════════════════
+
+bio:Statistic
+    a owl:Class ;
+    rdfs:label "Statistic"@en ;
+    rdfs:comment "Metrics: churn, complexity, coverage, ownership distribution." .
+
+bio:name             a owl:DatatypeProperty ; rdfs:domain bio:Statistic ; rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+bio:value            a owl:DatatypeProperty ; rdfs:domain bio:Statistic ; rdfs:range xsd:decimal ;
+    rdfs:label "value"@en .
+
+bio:timestamp        a owl:DatatypeProperty ; rdfs:domain bio:Statistic ; rdfs:range xsd:dateTime ;
+    rdfs:label "timestamp"@en .
+
+bio:appliesTo        a owl:ObjectProperty ; rdfs:domain bio:Statistic ; rdfs:range [ owl:unionOf (bio:Module bio:Repository bio:Project) ] ;
+    rdfs:label "applies to"@en .
+
+#  Code churn / stability
+bio:FileChurn
+    a owl:Class ;
+    rdfs:subClassOf bio:Statistic ;
+    rdfs:label "File churn"@en ;
+    rdfs:comment "How often a file changes (commit frequency)." .
+
+bio:ModuleChurn
+    a owl:Class ;
+    rdfs:subClassOf bio:Statistic ;
+    rdfs:label "Module churn"@en ;
+    rdfs:comment "How often a module changes (sum of file changes)." .
+
+#  Complexity
+bio:Complexity
+    a owl:Class ;
+    rdfs:subClassOf bio:Statistic ;
+    rdfs:label "Complexity"@en ;
+    rdfs:comment "Cyclomatic complexity, lines of code, etc." .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  6. TRACEABILITY — issue → code → test
+# ═════════════════════════════════════════════════════════════════════════════
+
+#  Already covered by:
+#  - bio:closedByRevision (issue → revision)
+#  - bio:containsCommit (issue → revisions)
+#  - bio:changedModule (revision → modules)
+#  - bio:hasTestResult (job → test results)
+#
+#  For deeper traceability (e.g., requirement → issue → code), see requirements traceability below.
+
+#  Change set for more detailed diff tracking
+bio:ChangeSet
+    a owl:Class ;
+    rdfs:label "Change set"@en ;
+    rdfs:comment "Detailed diff info for a revision (hunks, files, modules)." .
+
+bio:hasHunk          a owl:ObjectProperty ; rdfs:domain bio:ChangeSet ; rdfs:range bio:Hunk ;
+    rdfs:label "has hunk"@en .
+
+bio:relatedTo        a owl:ObjectProperty ; rdfs:domain bio:ChangeSet ; rdfs:range bio:Revision ;
+    rdfs:label "related to"@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  7. FUTURE: PLACEHOLDER FOR EXTENSIONS
+# ═════════════════════════════════════════════════════════════════════════════
+
+#  Deployment & Runtime (Tier 2, Phase 2)
+#  - Environment (dev, staging, prod)
+#  - Deployment (version → environment → timestamp)
+#  - Incident / Outage
+
+#  Requirements Traceability (Tier 2, Phase 2)
+#  - Requirement / Feature
+#  - ADR / Design Decision
+#  - User Story
+
+#  Team & Knowledge (Tier 2, Phase 2)
+#  - Team definition
+#  - Expertise profile
+#  - Bus factor / knowledge distribution
+
+#  Quality & Testing (Tier 2, Phase 2)
+#  - Test hierarchy
+#  - Test coverage mapping
+#  - Test flakiness
+
+#  Architecture (future, Phase 1)
+#  - Dependency graph
+#  - Service boundary
+#  - Layer definition
+

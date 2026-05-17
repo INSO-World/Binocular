@@ -34,7 +34,7 @@ internal class RemoteValidationTest : ValidationTest() {
     @BeforeEach
     fun setup() {
         val project = Project(name = "test-project")
-        repository = Repository(localPath = "/path/to/repo", project = project)
+        repository = Repository(localPath = "/path/to/repo", projectId = project.iid)
     }
 
     @Nested
@@ -396,7 +396,7 @@ internal class RemoteValidationTest : ValidationTest() {
             )
 
             val anotherProject = Project(name = "another-project")
-            val anotherRepository = Repository(localPath = "/path/to/another", project = anotherProject)
+            val anotherRepository = Repository(localPath = "/path/to/another", projectId = anotherProject.iid)
             val remote2 = Remote(
                 name = "origin",
                 url = "https://example.com/user/repo2.git",

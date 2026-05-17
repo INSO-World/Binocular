@@ -40,24 +40,11 @@ internal data class ProjectEntity(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     override var id: Long? = null
 
-    @OneToOne(
-        cascade = [CascadeType.ALL],
-        optional = true,
-        mappedBy = "project",
-    )
-    var repo: RepositoryEntity? = null
-        set(value) {
-            requireNotNull(value) { "Cannot set repo to null" }
-            if (value == this.repo) {
-                return
-            }
-            if (this.repo != null) {
-                throw IllegalArgumentException("Repository already set for Project $repo")
-            }
-            field = value
-        }
+    @Column(name = "fk_repository_iid", nullable = true, unique = true)
+    @Convert(converter = KotlinUuidConverter::class)
+    var repoId: Repository.Id? = null
 
-    override fun toString(): String = "ProjectEntity(id=$id, iid=$iid, name=$name, description=$description, repo=$repo)"
+    override fun toString(): String = "ProjectEntity(id=$id, iid=$iid, name=$name, description=$description, repoId=$repoId)"
 
     override val uniqueKey: ProjectEntity.Key
         get() = ProjectEntity.Key(this.name)
@@ -66,12 +53,12 @@ internal data class ProjectEntity(
     override fun equals(other: Any?) = super.equals(other)
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(repo: Repository? = null): Project = Project(
+    fun toDomain(): Project = Project(
         name = this.name,
     ).apply {
         this.id = this@ProjectEntity.id?.toString()
         this.description = this@ProjectEntity.description
-        repo?.let { this.repo = it }
+        this.repoId = this@ProjectEntity.repoId
     }
 
     companion object {

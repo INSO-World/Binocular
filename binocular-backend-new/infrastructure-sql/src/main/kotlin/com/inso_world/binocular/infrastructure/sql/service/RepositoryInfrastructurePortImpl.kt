@@ -8,11 +8,13 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.BranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.CommitDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -86,11 +88,15 @@ internal class RepositoryInfrastructurePortImpl :
     @Autowired
     private lateinit var projectDao: ProjectDao
 
+    @Autowired
+    private lateinit var projectMapper: ProjectMapper
+
     @PostConstruct
     fun init() {
         super.dao = repositoryDao
     }
 
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     @MappingSession
     @Transactional(readOnly = true)
     override fun findByName(name: String): Repository? =
@@ -163,13 +169,14 @@ internal class RepositoryInfrastructurePortImpl :
     @Transactional
     override fun create(@Valid value: Repository): Repository {
         val projectEntity =
-            projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
+            projectDao.findByIid(value.projectId) ?: throw NotFoundException("Project ${value.projectId} not found")
 
-        if (projectEntity.repo != null) {
+        if (projectEntity.repoId != null) {
             throw IllegalArgumentException("Selected project $projectEntity has already a Repository set")
         }
 
-        ctx.remember(value.project, projectEntity)
+        val projectDomain = projectMapper.toDomain(projectEntity)
+        ctx.remember(projectDomain, projectEntity)
 
         val toPersist = this.repositoryAssembler.toEntity(value)
         val persisted = super.create(toPersist)
@@ -183,11 +190,13 @@ internal class RepositoryInfrastructurePortImpl :
     @MappingSession
     @Transactional
     override fun update(@Valid value: Repository): Repository {
-        val entity =
-            projectDao.findByIid(value.project.iid)
-                ?: throw NotFoundException("Project ${value.project.uniqueKey} not found")
+        val projectEntity =
+            projectDao.findByIid(value.projectId)
+                ?: throw NotFoundException("Project ${value.projectId} not found")
         logger.debug("Project Entity found")
-        ctx.remember(value.project, entity)
+
+        val projectDomain = projectMapper.toDomain(projectEntity)
+        ctx.remember(projectDomain, projectEntity)
 
         val mapped = repositoryAssembler.toEntity(value)
 
@@ -271,9 +280,14 @@ internal class RepositoryInfrastructurePortImpl :
         repository: Repository,
         name: String
     ): Branch? {
-        return this.repositoryDao.findByIid(repository.iid)?.let {
-            this.branchDao.findByName(it, name)
-            repositoryAssembler.toDomain(it).branches.find { branch -> branch.name == name }
+        return this.repositoryDao.findByIid(repository.iid)?.let { repoEntity ->
+            this.branchDao.findByName(repoEntity, name)
+            val assembledRepo = repositoryAssembler.toDomain(repoEntity)
+            val branchId = assembledRepo.branchIds.find { id ->
+                val branch = ctx.findDomainByIid<Branch>(id, BranchEntity::class)
+                branch?.name == name
+            }
+            branchId?.let { id -> ctx.findDomainByIid<Branch>(id, BranchEntity::class) }
         }
     }
 

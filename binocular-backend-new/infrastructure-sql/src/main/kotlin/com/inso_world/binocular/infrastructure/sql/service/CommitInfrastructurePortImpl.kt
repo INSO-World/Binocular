@@ -97,10 +97,13 @@ internal class CommitInfrastructurePortImpl
         @Transactional
         override fun create(value: Commit): Commit {
             val repositoryEntity =
-                repositoryDao.findByIid(value.repository.iid)
-                    ?: throw NotFoundException("Repository ${value.repository.iid} not found")
+                repositoryDao.findByIid(value.repositoryId)
+                    ?: throw NotFoundException("Repository ${value.repositoryId} not found")
 
-            ctx.remember(value.repository, repositoryEntity)
+            val project = projectMapper.toDomain(repositoryEntity.project)
+            ctx.remember(project, repositoryEntity.project)
+            val repoDomain = repositoryMapper.toDomain(repositoryEntity)
+            ctx.remember(repoDomain, repositoryEntity)
             val mapped = commitMapper.toEntity(value)
             return this.commitDao.create(mapped).let { commitEntity ->
                 commitMapper.refreshDomain(value, commitEntity)
@@ -128,16 +131,21 @@ internal class CommitInfrastructurePortImpl
                     }
 
                 commitMapper.toDomain(it)
+            } ?: run {
+                null
             }
 
         @MappingSession
         @Transactional
         override fun update(value: Commit): Commit {
             val repositoryEntity =
-                repositoryDao.findByIid(value.repository.iid)
-                    ?: throw NotFoundException("Repository ${value.repository} not found")
+                repositoryDao.findByIid(value.repositoryId)
+                    ?: throw NotFoundException("Repository ${value.repositoryId} not found")
 
-            ctx.remember(value.repository, repositoryEntity)
+            val project = projectMapper.toDomain(repositoryEntity.project)
+            ctx.remember(project, repositoryEntity.project)
+            val repoDomain = repositoryMapper.toDomain(repositoryEntity)
+            ctx.remember(repoDomain, repositoryEntity)
 
             val entity =
                 this.commitDao.findBySha(repositoryEntity, value.sha)
@@ -149,9 +157,9 @@ internal class CommitInfrastructurePortImpl
                 this.message = value.message
                 this.webUrl = value.webUrl
                 this.authorDateTime = value.authorSignature.timestamp
-                this.commitDateTime = (value.committerSignature ?: value.authorSignature).timestamp
-                this.committer = resolveDeveloperEntity(value.committer)
-                this.author = resolveDeveloperEntity(value.author)
+                this.commitDateTime = value.committerSignature.timestamp
+                this.committer = resolveDeveloperEntity(value.committerSignature.developerId)
+                this.author = resolveDeveloperEntity(value.authorSignature.developerId)
             }
 
             return this.commitDao.update(entity).let {
@@ -159,7 +167,9 @@ internal class CommitInfrastructurePortImpl
             }
         }
 
-        private fun resolveDeveloperEntity(developer: Developer): DeveloperEntity {
+        private fun resolveDeveloperEntity(developerId: Developer.Id): DeveloperEntity {
+            val developer = ctx.findDomainByIid<Developer>(developerId, DeveloperEntity::class)
+                ?: throw IllegalStateException("Developer for ${developerId} must be in context")
             ctx.findEntity<Developer.Key, Developer, DeveloperEntity>(developer)?.let { return it }
 
             developer.id?.trim()?.toLongOrNull()?.let { existingId ->
@@ -179,10 +189,10 @@ internal class CommitInfrastructurePortImpl
 
         override fun delete(value: Commit) {
             val repositoryId =
-                value.repository?.id?.toLong() ?: throw IllegalArgumentException("projectId of Repository must not be null")
+                value.id?.toLong() ?: throw IllegalArgumentException("id of Commit must not be null")
             val repository =
                 repositoryDao.findById(repositoryId)
-                    ?: throw NotFoundException("Repository ${value.repository?.id} not found")
+                    ?: throw NotFoundException("Repository ${value.id} not found")
 
             val mapped =
                 commitMapper.toEntity(value).also {
@@ -271,7 +281,12 @@ internal class CommitInfrastructurePortImpl
         override fun findAll(
             repo: Repository,
             pageable: Pageable,
-        ): Iterable<Commit> = repositoryInfrastructurePort.findByIid(repo.iid)?.commits ?: emptyList()
+        ): Iterable<Commit> = repositoryInfrastructurePort.findByIid(repo.iid)?.let { repo ->
+            repo.commitIds.map { commitId ->
+                ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
+                    ?: throw IllegalStateException("Commit for ${commitId} must be in context")
+            }
+        } ?: emptyList()
 
         @MappingSession
         @Transactional(readOnly = true)
@@ -280,7 +295,10 @@ internal class CommitInfrastructurePortImpl
 
             // Group commits by repository to process related commits together
             return commits.groupBy { it.repository }.flatMap { (repoEntity, _) ->
-                repositoryAssembler.toDomain(repoEntity).commits
+                repositoryAssembler.toDomain(repoEntity).commitIds.map { commitId ->
+                    ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
+                        ?: throw IllegalStateException("Commit for ${commitId} must be in context")
+                }
             }
         }
 
@@ -305,7 +323,14 @@ internal class CommitInfrastructurePortImpl
                     it
                 }?.let {
                     this.commitDao.findHeadForBranch(it, branch)
-                }?.let { head -> return@let repo.commits.associateBy(Commit::iid).getValue(head.iid) }
+                }?.let { head ->
+                    val commitsMap = repo.commitIds.associate { commitId ->
+                        val commit = ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
+                            ?: throw IllegalStateException("Commit for ${commitId} must be in context")
+                        commitId to commit
+                    }
+                    return@let commitsMap.getValue(head.iid)
+                }
         }
 
         @MappingSession

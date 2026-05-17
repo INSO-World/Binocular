@@ -21,4 +21,18 @@ data class Signature(
             "timestamp ($timestamp) must be past or present ($now)"
         }
     }
+
+    fun toDeveloper(): Developer = Developer(name = name, email = email)
+
+    private val name: String
+        get() {
+            val nameRegex = Regex("""^(.+?)\s*<""")
+            return nameRegex.find(gitSignature)?.groupValues?.get(1)?.trim() ?: "Unknown"
+        }
+
+    private val email: String
+        get() {
+            val emailRegex = Regex("""<([^>]+)>$""")
+            return emailRegex.find(gitSignature)?.groupValues?.get(1) ?: "unknown@example.com"
+        }
 }
