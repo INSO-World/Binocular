@@ -137,26 +137,22 @@ export default class Database {
     dbObjects: Record<string, JSONObject[]>,
     startTime?: number,
     setUploadInfo?: (message: string) => void | undefined,
-  ): Promise<undefined> {
+  ): Promise<void> {
     const keys = Object.keys(dbObjects);
     let imported = 0;
 
-    return new Promise((resolve) => {
-      keys.forEach(async (name) => {
-        if (name.includes('-')) {
-          await this.importEdge(name, dbObjects[name]);
-        } else {
-          await this.importDocument(name, dbObjects[name]);
-        }
+    for (const name of keys) {
+      if (name.includes('-')) {
+        await this.importEdge(name, dbObjects[name]);
+      } else {
+        await this.importDocument(name, dbObjects[name]);
+      }
 
-        if (setUploadInfo) setUploadInfo(`${imported}/${keys.length} ${name} imported`);
-        imported++;
-        const end = performance.now();
-        console.log(`${imported}/${keys.length} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
-
-        if (imported >= keys.length) resolve(undefined);
-      });
-    });
+      imported++;
+      const end = performance.now();
+      console.log(`${imported}/${keys.length} ${name} imported in ${Math.trunc(end - (startTime ?? end))} ms`);
+      if (setUploadInfo) setUploadInfo(`${imported}/${keys.length} ${name} imported`);
+    }
   }
 
   async export() {
