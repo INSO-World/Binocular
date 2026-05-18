@@ -1,7 +1,9 @@
 import { put, takeEvery, fork, call, select, throttle } from 'redux-saga/effects';
-import { DataState, type CollaborationState, setDataState, setDateRange, setAccounts } from '../reducer';
+import { DataState, type CollaborationState, setDataState, setDateRange, setIssueAccounts, setMrAccounts, setCommits } from '../reducer';
 import type { DataPlugin } from '../../../../../interfaces/dataPlugin.ts';
 import type { DataPluginAccountIssues } from '../../../../../interfaces/dataPluginInterfaces/dataPluginAccountsIssues.ts';
+import type { DataPluginAccountMergeRequests } from '../../../../../interfaces/dataPluginInterfaces/dataPluginAccountsMergeRequests.ts';
+import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 
 export default function* (dataConnection: DataPlugin) {
   yield fork(() => watchRefresh(dataConnection));
@@ -21,10 +23,18 @@ function* fetchCollaborationData(dataConnection: DataPlugin) {
 
   const state: CollaborationState = yield select((root: { plugin: CollaborationState }) => root.plugin);
 
-  const rawAccounts: DataPluginAccountIssues[] = yield call(() =>
+  const issueAccounts: DataPluginAccountIssues[] = yield call(() =>
     dataConnection.accountsIssues.getAll(state.dateRange.from, state.dateRange.to),
   );
 
-  yield put(setAccounts(rawAccounts));
+  const mrAccounts: DataPluginAccountMergeRequests[] = yield call(() =>
+    dataConnection.accountsMergeRequests.getAll(state.dateRange.from, state.dateRange.to),
+  );
+
+  const commits: DataPluginCommit[] = yield call(() => dataConnection.commits.getAll(state.dateRange.from, state.dateRange.to));
+
+  yield put(setIssueAccounts(issueAccounts));
+  yield put(setMrAccounts(mrAccounts));
+  yield put(setCommits(commits));
   yield put(setDataState(DataState.COMPLETE));
 }
