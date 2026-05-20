@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { useAppDispatch, type AppDispatch, type RootState } from '../../redux';
 import { ExportType, setExportData, setExportDataType, setExportLoading } from '../../redux/reducer/export/exportReducer.ts';
+import ImageExportPanel from './imageExportPanel/imageExportPanel.tsx';
 import dataExportStyles from './dataExport/dataExport.module.scss';
 import ShowIcon from '../../assets/show_gray.svg?react';
 import DownloadIcon from '../../assets/download.svg?react';
@@ -230,22 +231,7 @@ function ExportDialog() {
           </h3>
         )}
 
-        {exportType === ExportType.image && (
-          <div>
-            <h3>Preview:</h3>
-            <div
-              className={'w-full overflow-auto border-base-300 border mb-3'}
-              style={{ height: '30rem' }}
-              dangerouslySetInnerHTML={{ __html: exportSVGData }}></div>
-            <button
-              className={'btn btn-primary'}
-              onClick={() => {
-                download(exportName, new Blob([exportSVGData], { type: 'image/svg+xml;charset=utf-8' }));
-              }}>
-              Export SVG
-            </button>
-          </div>
-        )}
+        {exportType === ExportType.image && <ImageExportPanel svgData={exportSVGData} exportName={exportName} />}
 
         {exportType === ExportType.all && (
           <div className={dataExportStyles.chartContainer}>
