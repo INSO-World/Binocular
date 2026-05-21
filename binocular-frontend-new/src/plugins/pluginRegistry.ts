@@ -35,6 +35,7 @@ import type { MergeRequestsSettings } from './visualizationPlugins/mergeRequests
 import CollaborationVisualization from './visualizationPlugins/collaboration';
 import KnowledgeRadar from './visualizationPlugins/knowledge-radar';
 import CodeExpertise from './visualizationPlugins/code-expertise';
+import CollaborationDynamics from './visualizationPlugins/collaborationDynamics';
 
 // should currently work for commits, but fetching the data is still hardcoded to one or the other
 const changes = createVisualizationPlugin<ChangesSettings, DataPluginCommit>(Changes);
@@ -63,6 +64,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   KnowledgeRadar,
   CodeExpertise,
   Burndown,
+  CollaborationDynamics,
 ];
 
 //Order = priority used when nothing selected by the user.
