@@ -127,6 +127,8 @@ class VcsService(
 
         val lizardFileData = lizardService.readLizardFiles(repoPath,lizardIncludeCleaned)
 
+        val lizardProcessedFileData = lizardService.evaluateLizardData(lizardFileData)
+
     }
 
     /**
