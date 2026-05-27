@@ -205,7 +205,7 @@ function ExportDialog() {
             setPreviewTable(name);
             e.stopPropagation();
           }}>
-          <Icon name="show" size="w-5 h-5" />
+          <Icon name="show" size="w-5 h-5" colorClass="" />
         </button>
       </div>
     );
