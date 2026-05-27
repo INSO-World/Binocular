@@ -58,7 +58,7 @@ internal class ProjectDao @Autowired constructor(
         }
 
         savedEntity = mappedEntity.repository?.let { repository ->
-            val savedRepo = repositoryDao.create(repository)
+            val savedRepo = repositoryDao.create(repository, skipProjectCheck = true)
             savedEntity.repository = savedRepo
             // update so that @Ref gets updated
             return@let projectRepository.save(savedEntity)

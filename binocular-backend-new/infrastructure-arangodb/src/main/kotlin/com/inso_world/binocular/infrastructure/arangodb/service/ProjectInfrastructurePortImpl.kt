@@ -42,10 +42,7 @@ internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort,
 
     @MappingSession
     override fun create(value: Project): Project {
-        // TODO use assembler here right=
-        val entity = projectAssembler.toEntity(value)
-        val savedEntity = this.projectDao.create(entity)
-        return projectAssembler.toDomain(savedEntity)
+        return this.projectDao.create(value)
     }
 
     override fun saveAll(values: Collection<Project>): Iterable<Project> = this.projectDao.saveAll(values)
@@ -53,8 +50,9 @@ internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort,
     @MappingSession
     override fun findByName(name: String): Project? = this.projectDao.findByName(name)
 
+    @MappingSession
     override fun update(value: Project): Project {
-        TODO("Not yet implemented")
+        return this.projectDao.save(value)
     }
 
     @MappingSession

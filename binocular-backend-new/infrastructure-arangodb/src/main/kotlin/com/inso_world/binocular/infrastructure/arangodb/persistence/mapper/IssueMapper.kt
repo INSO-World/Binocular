@@ -5,12 +5,15 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.IssueEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.util.Date
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Issue domain objects.
@@ -77,7 +80,7 @@ internal class IssueMapper
                 webUrl = domain.webUrl,
                 gid = domain.gid,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
-                accounts = domain.accounts.map { accountMapper.toEntity(it) },
+                accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
                 milestones = domain.milestones.map { milestoneMapper.toEntity(it) },
                 notes = domain.notes.map { noteMapper.toEntity(it) },
             )
@@ -92,6 +95,7 @@ internal class IssueMapper
          * @param entity The IssueEntity to convert
          * @return The Issue domain object with eager mentions and lazy relationships
          */
+        @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: IssueEntity): Issue {
             // Fast-path: Check if already mapped
             ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
@@ -100,6 +104,7 @@ internal class IssueMapper
                 Issue(
                     id = entity.id,
                     platformIid = entity.iid,
+                    gid = entity.gid,
                     title = entity.title,
                     description = entity.description,
                     createdAt =
@@ -121,18 +126,16 @@ internal class IssueMapper
                     state = entity.state,
                     webUrl = entity.webUrl,
                     mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-                    accounts =
-                        proxyFactory.createLazyList {
-                            (entity.accounts ?: emptyList()).map { accountEntity ->
-                                accountMapper.toDomain(accountEntity)
-                            }
-                        },
+                    project =
+                        entity.project?.let { Project.Id(it.iid!!) }
+                            ?: ctx.findDomain<Project, IssueEntity>(entity)?.iid
+                            ?: error("Parent Project not found in entity or context for Issue ${entity.iid}"),
                     commits =
                         proxyFactory.createLazyList {
                             (entity.commits ?: emptyList()).map { commitEntity ->
                                 commitMapper.toDomain(commitEntity)
                             }
-                        },
+                        }.toMutableList(),
                     milestones =
                         proxyFactory.createLazyList {
                             (entity.milestones ?: emptyList()).map { milestoneEntity ->
@@ -152,6 +155,11 @@ internal class IssueMapper
                             }
                         },
                 )
+            
+            // Add accounts separately to the proxy-backed set if needed
+            entity.accounts.forEach { accountEntity ->
+                domain.accounts.add(accountMapper.toDomain(accountEntity))
+            }
 
             return domain
         }

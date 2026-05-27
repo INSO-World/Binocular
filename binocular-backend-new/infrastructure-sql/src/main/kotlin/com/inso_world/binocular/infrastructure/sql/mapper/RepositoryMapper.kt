@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -70,7 +70,7 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
                 )
 
         // Create entity and remember in context
-        val entity = domain.toEntity(owner)
+        val entity = domain.toSqlEntity(owner)
         ctx.remember(domain, entity)
 
         // Delegate to overload with explicit owner

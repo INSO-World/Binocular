@@ -7,7 +7,7 @@ package com.inso_world.binocular.infrastructure.sql.mapper
  import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
  import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
  import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
- import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+ import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
  import com.inso_world.binocular.model.Account
  import com.inso_world.binocular.model.Project
  import com.inso_world.binocular.model.Repository
@@ -34,7 +34,7 @@ package com.inso_world.binocular.infrastructure.sql.mapper
             // Fast-path: if this Repository was already mapped in the current context, return it.
             ctx.findEntity<Account.Key, Account, AccountEntity>(domain)?.let { return it }
 
-            val entity = domain.toEntity()
+            val entity = domain.toSqlEntity()
 
 //            // IMPORTANT: Expect Project already in context (cross-aggregate reference).
 //            // Do NOT auto-map Project here - that's a separate aggregate.

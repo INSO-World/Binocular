@@ -22,14 +22,23 @@ internal class NoteInfrastructurePortImpl(
     private val linkDao: NoteLinkDao,
 ) : NoteInfrastructurePort {
 
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun findAccountsByNoteId(noteId: String): List<Account> =
-        linkDao.findAccountIdsByNoteId(noteId).map { Account(id = it) }
+        linkDao.findAccountIdsByNoteId(noteId).map {
+            Account(gid = it, platform = com.inso_world.binocular.model.Platform.GitHub, login = "unknown")
+        }
 
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun findIssuesByNoteId(noteId: String): List<Issue> =
-        linkDao.findIssueIdsByNoteId(noteId).map { Issue(id = it) }
+        linkDao.findIssueIdsByNoteId(noteId).map {
+            Issue(gid = it, project = com.inso_world.binocular.model.Project.Id(kotlin.uuid.Uuid.random()))
+        }
 
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun findMergeRequestsByNoteId(noteId: String): List<MergeRequest> =
-        linkDao.findMergeRequestIdsByNoteId(noteId).map { MergeRequest(id = it) }
+        linkDao.findMergeRequestIdsByNoteId(noteId).map {
+            MergeRequest().apply { id = it }
+        }
 
     override fun findAll(pageable: Pageable): Page<Note> {
         val total = noteDao.count()

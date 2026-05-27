@@ -104,19 +104,19 @@ internal data class IssueEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id",updatable = false)
     var author: AccountEntity? = null
-
 ) : AbstractEntity<Long, IssueEntity.Key>() {
 
-        if (id != other.id) return false
-        if (iid != other.iid) return false
-        if (title != other.title) return false
-        if (description != other.description) return false
-        if (createdAt != other.createdAt) return false
-        if (closedAt != other.closedAt) return false
-        if (updatedAt != other.updatedAt) return false
-        if (state != other.state) return false
-        if (webUrl != other.webUrl) return false
-        if (developers != other.developers) return false
+    data class Key(val projectId: Project.Id, val gid: String)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is IssueEntity) return false
+        return iid == other.iid && gid == other.gid && project.iid == other.project.iid
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(iid, gid, project.iid)
+    }
 
     fun addAccount(account: AccountEntity) {
         if (accounts.contains(account)) return
@@ -189,7 +189,7 @@ internal data class IssueEntity(
 //        mentions = getDomainMentions(),
         // These relationships will be populated by the mapper
 //        accounts = emptyList(),
-        commits = emptyList(),
+        commits = mutableListOf(),
         milestones = emptyList(),
 //        notes = emptyList(),
 //        users = emptyList(),
@@ -203,7 +203,7 @@ internal data class IssueEntity(
     }
 }
 
-internal fun com.inso_world.binocular.model.Issue.toEntity(owner: ProjectEntity): IssueEntity {
+internal fun com.inso_world.binocular.model.Issue.toSqlEntity(owner: ProjectEntity): IssueEntity {
     val entity = IssueEntity(
         id = this.id?.toLong(),
         iid = this.iid,

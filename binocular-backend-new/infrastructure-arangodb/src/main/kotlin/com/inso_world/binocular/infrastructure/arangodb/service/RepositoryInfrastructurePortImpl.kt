@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.BranchDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
@@ -41,10 +42,11 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
 
+    @Autowired
+    private lateinit var branchDao: BranchDao
+
     @MappingSession
-    override fun findByIid(iid: Repository.Id): Repository? {
-        TODO("Not yet implemented")
-    }
+    override fun findByIid(iid: Repository.Id): Repository? = this.repositoryDao.findAll().find { it.iid == iid }
 
     @MappingSession
     override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll()
@@ -57,16 +59,15 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
 
     @MappingSession
     override fun create(value: Repository): Repository {
-        // TODO: use assembler here right?
-        val mappedEntity = repositoryAssembler.toEntity(value)
-        val savedEntity = this.repositoryDao.create(mappedEntity)
-        return repositoryAssembler.toDomain(savedEntity)
+        // DAO expects Repository domain model and handles mapping
+        return this.repositoryDao.create(value)
     }
 
     override fun saveAll(values: Collection<Repository>): Iterable<Repository> = this.repositoryDao.saveAll(values)
 
+    @MappingSession
     override fun update(value: Repository): Repository {
-        TODO("Not yet implemented")
+        return this.repositoryDao.save(value)
     }
 
     @MappingSession
@@ -77,7 +78,7 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         repo: Repository,
         shas: Set<String>,
     ): Sequence<Commit> {
-        TODO("Not yet implemented")
+        return commitDao.findByRepositoryAndShaIn(repo.localPath, shas).asSequence()
     }
 
     @MappingSession
@@ -85,6 +86,6 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         repository: Repository,
         name: String,
     ): Branch? {
-        TODO("Not yet implemented")
+        return branchDao.findByRepositoryAndName(repository.localPath, name)
     }
 }

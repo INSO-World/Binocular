@@ -4,7 +4,7 @@ import com.inso_world.binocular.core.persistence.exception.PersistenceException
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IIssueDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.IssueRepository
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.ProjectRepository
 import com.inso_world.binocular.model.Project
@@ -38,8 +38,8 @@ internal class IssueDao(
             }
     }
 
-    override fun findAllByUser(user: UserEntity): Stream<IssueEntity> {
-        return repo.findAllByUsersContaining(user)
+    override fun findAllByUser(user: DeveloperEntity): Stream<IssueEntity> {
+        return repo.findAllByDevelopersContaining(user)
     }
 
     override fun findExistingGid(

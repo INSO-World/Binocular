@@ -70,6 +70,13 @@ internal data class ProjectEntity(
         orphanRemoval = true,
     ) var issues: MutableSet<IssueEntity> = mutableSetOf()
 
+    @OneToMany(
+        fetch = FetchType.LAZY,
+        cascade = [CascadeType.ALL],
+        mappedBy = "project",
+        orphanRemoval = true,
+    ) var mergeRequests: MutableSet<MergeRequestEntity> = mutableSetOf()
+
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = [CascadeType.ALL])
     @JoinTable(
@@ -124,11 +131,11 @@ internal data class ProjectEntity(
     }
 }
 
-internal fun Project.toEntity(): ProjectEntity =
+internal fun Project.toSqlEntity(): ProjectEntity =
     ProjectEntity(
         iid = this.iid,
-        name = this@toEntity.name,
+        name = this@toSqlEntity.name,
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
-        description = this@toEntity.description
+        id = this@toSqlEntity.id?.trim()?.toLongOrNull()
+        description = this@toSqlEntity.description
     }

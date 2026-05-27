@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
@@ -29,7 +29,7 @@ internal class IssueMapper {
 
     @Autowired
     @Lazy
-    private lateinit var userMapper: UserMapper
+    private lateinit var developerMapper: DeveloperMapper
 
     /**
      * Converts a domain Issue to a SQL IssueEntity
@@ -45,7 +45,7 @@ internal class IssueMapper {
 //                        "Ensure ProjectEntity is in MappingContext before calling toEntity()."
 //            )
 
-        val entity = domain.toEntity(owner)
+        val entity = domain.toSqlEntity(owner)
 
         ctx.remember(domain, entity)
 

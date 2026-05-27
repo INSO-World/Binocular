@@ -29,9 +29,35 @@ data class Account(
     var avatarUrl: String? = null
     var url: String? = null
 
-    // TODO MRs and notes (those are still like in the old implementation)
-    var mergeRequests: Set<MergeRequest> = emptySet()
-    var notes: Set<Note> = emptySet()
+    val mergeRequests: MutableSet<MergeRequest> = object : NonRemovingMutableSet<MergeRequest>() {
+        override fun add(element: MergeRequest): Boolean {
+            val added = super.add(element)
+            return added
+        }
+
+        override fun addAll(elements: Collection<MergeRequest>): Boolean {
+            var anyAdded = false
+            for (element in elements) {
+                if (add(element)) anyAdded = true
+            }
+            return anyAdded
+        }
+    }
+
+    val notes: MutableSet<Note> = object : NonRemovingMutableSet<Note>() {
+        override fun add(element: Note): Boolean {
+            val added = super.add(element)
+            return added
+        }
+
+        override fun addAll(elements: Collection<Note>): Boolean {
+            var anyAdded = false
+            for (element in elements) {
+                if (add(element)) anyAdded = true
+            }
+            return anyAdded
+        }
+    }
 
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null

@@ -4,7 +4,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RemoteEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.vcs.Remote
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,7 +26,7 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
                         "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
                 )
 
-        val entity = domain.toEntity(repository)
+        val entity = domain.toSqlEntity(repository)
         ctx.remember(domain, entity)
 
         return entity

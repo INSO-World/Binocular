@@ -136,9 +136,9 @@ internal data class RepositoryEntity(
     }
 }
 
-internal fun Repository.toEntity(project: ProjectEntity): RepositoryEntity =
+internal fun Repository.toSqlEntity(project: ProjectEntity): RepositoryEntity =
     RepositoryEntity(
         iid = this.iid,
         localPath = this.localPath.trim(),
         project = project,
-    ).apply { id = this@toEntity.id?.trim()?.toLongOrNull() }
+    ).apply { id = this@toSqlEntity.id?.trim()?.toLongOrNull() }

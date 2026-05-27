@@ -72,12 +72,12 @@ internal data class RemoteEntity(
             )
 }
 
-internal fun Remote.toEntity(repository: RepositoryEntity): RemoteEntity =
+internal fun Remote.toSqlEntity(repository: RepositoryEntity): RemoteEntity =
     RemoteEntity(
         iid = this.iid,
         name = this.name,
         url = this.url,
         repository = repository,
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
+        id = this@toSqlEntity.id?.trim()?.toLongOrNull()
     }

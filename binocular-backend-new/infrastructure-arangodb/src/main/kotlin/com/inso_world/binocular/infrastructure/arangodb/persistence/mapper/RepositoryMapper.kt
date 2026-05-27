@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -82,7 +82,7 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
                 )
 
         // Create entity and remember in context
-        val entity = domain.toEntity(owner).apply {
+        val entity = domain.toArangoEntity(owner).apply {
             commits = domain.commits.map { commitMapper.toEntity(it) }
             branches = domain.branches.map { branchMapper.toEntity(it) }
             developers = domain.developers.map { developerMapper.toEntity(it) }
