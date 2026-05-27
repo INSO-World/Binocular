@@ -21,7 +21,8 @@ data class MergeRequest(
     var webUrl: String? = null,
     var mentions: List<Mention> = emptyList(),
     // Relationships
-    var accounts: List<Account> = emptyList(),
+    val project: Project.Id,
+    var accounts: MutableList<Account> = mutableListOf(),
     var milestones: List<Milestone> = emptyList(),
     var notes: List<Note> = emptyList(),
 ): AbstractDomainObject<MergeRequest.Id, MergeRequest.Key>(
@@ -30,9 +31,8 @@ data class MergeRequest(
     @JvmInline
     value class Id(val value: Uuid)
 
-    // TODO work in progress, just for compatibility
-    data class Key(val key: String) // value object for lookups
+    data class Key(val projectId: Project.Id, val platformIid: Int?) // value object for lookups
 
     override val uniqueKey: Key
-        get() = TODO("Not yet implemented")
+        get() = Key(project, platformIid)
 }

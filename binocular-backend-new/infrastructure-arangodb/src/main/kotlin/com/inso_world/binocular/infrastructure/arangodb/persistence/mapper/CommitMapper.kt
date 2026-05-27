@@ -6,7 +6,7 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
@@ -72,7 +72,7 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
         val committerEntity = developerMapper.toEntity(domain.committer)
 
         val entity =
-            domain.toEntity(
+            domain.toArangoEntity(
                 repository = owner,
                 author = authorEntity,
                 committer = committerEntity,

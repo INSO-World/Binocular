@@ -78,7 +78,7 @@ data class ProjectEntity(
  * @return ProjectEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun com.inso_world.binocular.model.Project.toEntity(): ProjectEntity = ProjectEntity(
+internal fun com.inso_world.binocular.model.Project.toArangoEntity(): ProjectEntity = ProjectEntity(
     id = this.id,
     iid = this.iid.value,
     name = this.name,

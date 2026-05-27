@@ -81,8 +81,20 @@ data class Project(
         }
     }
 
-    // TODO: should MRs be included here?
-    val mergeRequests: MutableSet<MergeRequest> = mutableSetOf()
+    val mergeRequests: MutableSet<MergeRequest> = object : NonRemovingMutableSet<MergeRequest>() {
+        override fun add(element: MergeRequest): Boolean {
+            val added = super.add(element)
+            return added
+        }
+
+        override fun addAll(elements: Collection<MergeRequest>): Boolean {
+            var anyAdded = false
+            for (element in elements) {
+                if (add(element)) anyAdded = true
+            }
+            return anyAdded
+        }
+    }
 
     var description: String? = null
 

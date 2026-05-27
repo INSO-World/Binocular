@@ -52,7 +52,7 @@ internal class RepositoryDao @Autowired constructor(
     }
 
     @MappingSession
-    fun create(entity: RepositoryEntity): RepositoryEntity {
+    fun create(entity: RepositoryEntity, skipProjectCheck: Boolean = false): RepositoryEntity {
         // Save Developers first (referenced by Commits)
         entity.developers.forEach { developerRepository.save(it) }
 
@@ -72,9 +72,12 @@ internal class RepositoryDao @Autowired constructor(
         entity.files.forEach { fileRepository.save(it) }
         entity.revisions.forEach { revisionRepository.save(it) }
 
-        val existingProject = this.projectDao.findByName(entity.project.name)
-        if(existingProject == null) {
-            this.projectDao.create(entity.project)
+        if (!skipProjectCheck) {
+            val existingProject = this.projectDao.findByName(entity.project.name)
+            if (existingProject == null) {
+                // repositoryMapper.toDomain(entity) might be too much, but we need a Project domain object
+                this.projectDao.create(repositoryMapper.toDomain(entity).project)
+            }
         }
 
         return savedEntity

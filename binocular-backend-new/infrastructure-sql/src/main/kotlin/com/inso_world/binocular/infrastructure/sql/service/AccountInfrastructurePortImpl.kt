@@ -11,6 +11,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.AccountDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
 import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
@@ -64,6 +65,19 @@ import org.springframework.validation.annotation.Validated
 
     override fun update(value: Account): @Valid Account {
         TODO("Not yet implemented")
+    }
+
+    override fun findUsersByAccountId(accountId: String): List<User> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findAccountsByUserId(userId: String): List<Account> {
+        TODO("Not yet implemented")
+    }
+
+    @MappingSession
+    override fun findByIid(iid: Account.Id): Account? {
+        return null // TODO
     }
 
     @Deprecated("Save accounts via project instead.")

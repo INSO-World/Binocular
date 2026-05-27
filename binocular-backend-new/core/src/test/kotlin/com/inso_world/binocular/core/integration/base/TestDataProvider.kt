@@ -3,7 +3,6 @@ package com.inso_world.binocular.core.integration.base
 import com.inso_world.binocular.domain.data.MockTestDataProvider
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Build
-import com.inso_world.binocular.model.Job
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Job
@@ -255,6 +254,7 @@ object TestDataProvider {
                         false,
                     ),
                 ),
+                project = project.iid
             ),
             MergeRequest(
                 "2",
@@ -274,6 +274,7 @@ object TestDataProvider {
                         true,
                     ),
                 ),
+                project = project.iid
             ),
         )
 

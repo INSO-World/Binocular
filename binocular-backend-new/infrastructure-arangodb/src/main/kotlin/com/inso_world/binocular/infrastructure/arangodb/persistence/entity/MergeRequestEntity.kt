@@ -1,6 +1,8 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.entity
 
 import com.arangodb.springframework.annotation.Document
+import com.arangodb.springframework.annotation.Field
+import com.arangodb.springframework.annotation.Ref
 import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestMilestoneConnectionEntity
@@ -25,6 +27,10 @@ data class MergeRequestEntity(
     var state: String? = null,
     var webUrl: String? = null,
     var mentions: List<MentionEntity> = emptyList(),
+
+    @Ref
+    var project: ProjectEntity? = null,
+
     @Relations(
         edges = [MergeRequestAccountConnectionEntity::class],
         lazy = true,

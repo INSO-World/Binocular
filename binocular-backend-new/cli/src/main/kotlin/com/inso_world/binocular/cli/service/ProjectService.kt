@@ -4,6 +4,7 @@ import com.inso_world.binocular.cli.service.its.AccountService
 import com.inso_world.binocular.cli.service.its.IssueService
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.github.dto.issue.ItsGitHubIssue
+import com.inso_world.binocular.github.dto.issue.ItsReferencedEvent
 import com.inso_world.binocular.github.service.GitHubService
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
@@ -107,9 +108,8 @@ class ProjectService(
         project.accounts.addAll(checkedAccounts.first)
         project.accounts.addAll(checkedAccounts.second)
 
-        // TODO connect to commits if repo and commits are not null
-//        val commitCache =
-//            project.repo.commits.associateBy { it.sha }.toMutableMap()
+        // connect to commits if repo and commits are not null
+        val commitCache = project.repo?.commits?.associateBy { it.sha } ?: emptyMap()
 
         // create a map of GitHub IDs to Issues for lookups
         val issueMap =
@@ -169,6 +169,17 @@ class ProjectService(
                     }
                 } else {
                     logger.warn("No account found for login '$authorLogin', skipping author")
+                }
+            }
+
+            // Link issues to commits via ReferencedEvents
+            itsIssue?.timelineItems?.nodes?.filterIsInstance<ItsReferencedEvent>()?.forEach { event ->
+                event.commit?.oid?.let { sha ->
+                    commitCache[sha]?.let { commit ->
+                        if (!issue.commits.contains(commit)) {
+                            issue.commits.add(commit)
+                        }
+                    }
                 }
             }
 

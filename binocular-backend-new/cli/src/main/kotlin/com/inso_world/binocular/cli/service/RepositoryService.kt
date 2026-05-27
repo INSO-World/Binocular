@@ -135,13 +135,38 @@ class RepositoryService {
         }
 
         // --- Pass 1: Ensure every incoming commit has a canonical instance ---
-        // Commits from GitIndexer already have their signatures set, so we just
-        // ensure they're tracked in our index
-        val canonicalInOrder = commits.map { canonicalizeCommit(it) }
+        // We recreate commits if they use non-canonical developers to ensure deduplication.
+        val canonicalInOrder = commits.map { incoming ->
+            val key = incoming.uniqueKey
+            val existing = commitsByKey[key]
+            if (existing != null) return@map existing
+
+            // Commit is new - check if developers are canonical
+            val canonicalAuthor = canonicalizeDeveloper(incoming.author)
+            val canonicalCommitter = canonicalizeDeveloper(incoming.committer)
+
+            val finalCommit = if (canonicalAuthor != incoming.author || canonicalCommitter != incoming.committer) {
+                // Recreate commit with canonical developers because Signature is immutable
+                Commit(
+                    sha = incoming.sha,
+                    authorSignature = incoming.authorSignature.copy(developer = canonicalAuthor),
+                    committerSignature = incoming.committerSignature.copy(developer = canonicalCommitter),
+                    message = incoming.message,
+                    repository = repo,
+                ).apply {
+                    this.id = incoming.id
+                    this.webUrl = incoming.webUrl
+                }
+            } else {
+                incoming
+            }
+
+            commitsByKey[key] = finalCommit
+            finalCommit
+        }
 
         // --- Pass 2: Canonicalize developers ---
-        // While we can't change the developer on an existing commit (immutable signature),
-        // we ensure the developer instances are properly indexed for future lookups
+        // (Handled in Pass 1 for new commits)
         commits.forEach { incoming ->
             canonicalizeDeveloper(incoming.author)
             canonicalizeDeveloper(incoming.committer)

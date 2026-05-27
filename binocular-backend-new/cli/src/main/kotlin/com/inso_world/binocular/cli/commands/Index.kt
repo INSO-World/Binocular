@@ -4,7 +4,7 @@ import com.inso_world.binocular.cli.service.ProjectService
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.cli.service.VcsService
 import com.inso_world.binocular.cli.service.its.ItsService
-import com.inso_world.binocular.ffi.BinocularFfi
+import com.inso_world.binocular.ffi.GixIndexer
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import org.slf4j.Logger
@@ -24,6 +24,7 @@ open class Index(
     @Autowired private val repositoryService: RepositoryService,
     @Autowired private val projectService: ProjectService,
     @Autowired private val itsService: ItsService,
+    @Autowired private val gixIndexer: GixIndexer,
 ) {
     companion object {
         private var logger: Logger = LoggerFactory.getLogger(Index::class.java)

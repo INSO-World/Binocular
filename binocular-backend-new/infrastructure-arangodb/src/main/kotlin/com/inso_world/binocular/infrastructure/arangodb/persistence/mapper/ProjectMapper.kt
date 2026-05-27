@@ -4,7 +4,7 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
@@ -54,10 +54,10 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         // Fast-path: if this Project was already mapped in the current context, return it.
         ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)?.let { return it }
 
-        val entity = domain.toEntity().apply {
-            issues = domain.issues.map { issueMapper.toEntity(it) }
-            mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }
-        }
+        val entity = domain.toArangoEntity()
+        
+        entity.issues = domain.issues.map { issueMapper.toEntity(it).apply { project = entity } }
+        entity.mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it).apply { project = entity } }
 
         ctx.remember(domain, entity)
         return entity

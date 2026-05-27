@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +37,7 @@ internal class DeveloperMapper : EntityMapper<Developer, DeveloperEntity> {
                         "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
                 )
 
-        val entity = domain.toEntity(owner)
+        val entity = domain.toSqlEntity(owner)
         ctx.remember(domain, entity)
         return entity
     }

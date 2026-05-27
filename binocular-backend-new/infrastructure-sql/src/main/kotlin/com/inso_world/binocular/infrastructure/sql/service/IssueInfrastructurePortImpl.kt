@@ -8,9 +8,11 @@ import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.IssueDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.IssueLinkDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.NoteDao
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Issue
@@ -20,7 +22,6 @@ import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.model.Project
 import jakarta.validation.Valid
 import org.springframework.context.annotation.Profile
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,6 +44,9 @@ internal class IssueInfrastructurePortImpl
     ) :
     AbstractInfrastructurePort<Issue, IssueEntity, Long>(Long::class),
     IssueInfrastructurePort {
+
+    @Autowired
+    private lateinit var ctx: MappingContext
 
     override fun findAccountsByIssueId(issueId: String): List<Account> {
         TODO("Not yet implemented")
@@ -84,6 +88,18 @@ internal class IssueInfrastructurePortImpl
     }
 //        linkDao.findUserIdsByIssueId(issueId).map { User(id = it) }
 
+    @MappingSession
+    override fun findAll(): Iterable<Issue> {
+        return super.findAllEntities().map {
+            issueMapper.toDomain(it, it.project.toDomain())
+        }
+    }
+
+    @MappingSession
+    override fun findByIid(iid: Issue.Id): Issue? {
+        return null // TODO
+    }
+
     @Transactional(readOnly = true)
     @MappingSession
     override fun findExistingGid(
@@ -98,10 +114,14 @@ internal class IssueInfrastructurePortImpl
     }
 
     override fun findById(id: String): Issue? {
-        TODO("Not yet implemented")
+        return null // TODO
     }
 
-    override fun update(value: Issue): Issue = issueDao.update(value)
+    override fun update(value: Issue): Issue {
+        val owner = projectDao.findByIid(value.project)
+            ?: throw IllegalStateException("Project not found")
+        return issueMapper.toDomain(issueDao.update(value.toSqlEntity(owner)), owner.toDomain())
+    }
 
     override fun create(value: Issue): Issue {
         TODO("Not yet implemented")
@@ -116,9 +136,10 @@ internal class IssueInfrastructurePortImpl
     }
 
     override fun findAll(pageable: Pageable): Page<Issue> {
-        val total = issueDao.count()
+        val page = super.findAllEntities(pageable)
+        val total = page.totalElements
         if (total == 0L) return Page(emptyList(), 0, pageable)
-        val content = issueDao.findAll(pageable)
+        val content = page.content.map { issueMapper.toDomain(it, it.project.toDomain()) }
         return Page(content, total, pageable)
     }
 
@@ -128,7 +149,7 @@ internal class IssueInfrastructurePortImpl
 
     override fun deleteById(id: String) {
         linkDao.deleteLinksByIssueId(id)
-        issueDao.deleteById(id)
+        issueDao.deleteById(id.toLong())
     }
 
     override fun deleteAll() {

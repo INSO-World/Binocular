@@ -112,7 +112,7 @@ internal data class AccountEntity(
 
 }
 
-internal fun Account.toEntity( ): AccountEntity =
+internal fun Account.toSqlEntity( ): AccountEntity =
     AccountEntity(
         iid = this.iid,
         gid = this.gid,
@@ -124,5 +124,5 @@ internal fun Account.toEntity( ): AccountEntity =
 //        project = project,
         // Note: Relationships are not directly mapped in SQL entity
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
+        id = this@toSqlEntity.id?.trim()?.toLongOrNull()
     }

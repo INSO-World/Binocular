@@ -5,10 +5,13 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MergeRequestEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for MergeRequest domain objects.
@@ -27,6 +30,7 @@ import org.springframework.stereotype.Component
  * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
  * mentions but uses lazy loading for accounts, milestones, and notes to optimize performance.
  */
+@OptIn(ExperimentalUuidApi::class)
 @Component
 internal class MergeRequestMapper
     @Autowired
@@ -97,12 +101,16 @@ internal class MergeRequestMapper
                 state = entity.state,
                 webUrl = entity.webUrl,
                 mentions = entity.mentions.map { mentionMapper.toDomain(it) },
+                project =
+                    entity.project?.let { Project.Id(it.iid!!) }
+                        ?: ctx.findDomain<Project, MergeRequestEntity>(entity)?.iid
+                        ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
                 accounts =
                     proxyFactory.createLazyList {
                         (entity.accounts ?: emptyList()).map { accountEntity ->
                             accountMapper.toDomain(accountEntity)
                         }
-                    },
+                    }.toMutableList(),
                 milestones =
                     proxyFactory.createLazyList {
                         (entity.milestones ?: emptyList()).map { milestoneEntity ->

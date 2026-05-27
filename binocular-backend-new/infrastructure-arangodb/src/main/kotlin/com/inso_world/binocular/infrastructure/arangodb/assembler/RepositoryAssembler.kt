@@ -188,7 +188,14 @@ internal class RepositoryAssembler {
         // Phase 4: Map Files and Revisions
         logger.trace("Mapping files and revisions")
         domain.commits.forEach { commit ->
-            // TODO from commits here
+            commit.files.forEach { file ->
+                fileMapper.toEntity(file)
+            }
+            // Revisions are usually part of the file or commit mapping depending on mapper implementation
+            // But let's ensure they are processed
+            commit.files.flatMap { it.revisions }.filter { it.commit == commit }.forEach { revision ->
+                revisionMapper.toEntity(revision)
+            }
         }
 
         // Phase 4: Map Branches

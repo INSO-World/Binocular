@@ -6,7 +6,7 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
@@ -74,7 +74,7 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
                         "Ensure CommitEntity is in MappingContext before calling toEntity().",
                 )
 
-        val entity = domain.toEntity(owner, head)
+        val entity = domain.toArangoEntity(owner, head)
         ctx.remember(domain, entity)
 
         return entity

@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.UserEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,7 +64,7 @@ internal class UserMapper : EntityMapper<User, UserEntity> {
                         "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
                 )
 
-        val entity = domain.toEntity(owner)
+        val entity = domain.toArangoEntity(owner)
         ctx.remember(domain, entity)
         return entity
     }

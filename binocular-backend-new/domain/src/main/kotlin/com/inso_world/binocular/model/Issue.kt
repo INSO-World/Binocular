@@ -26,7 +26,7 @@ data class Issue(
     var mentions: List<Mention> = emptyList(),
     // Relationships
     val project: Project.Id,
-    var commits: List<Commit> = emptyList(),
+    var commits: MutableList<Commit> = mutableListOf(),
     var milestones: List<Milestone> = emptyList(),
     var notes: List<Note> = emptyList(),
     var users: List<User> = emptyList(),

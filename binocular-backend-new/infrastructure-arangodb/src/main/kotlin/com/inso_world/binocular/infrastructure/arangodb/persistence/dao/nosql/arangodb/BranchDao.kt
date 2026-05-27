@@ -26,8 +26,10 @@ internal class BranchDao(
 ) : MappedArangoDbDao<Branch, BranchEntity, String>(branchRepository, branchMapper),
     IBranchDao {
 
-    override fun findByName(name: String): Branch? =
-        branchRepository.findByBranch(name)?.let { branchMapper.toDomain(it) }
+    override fun findByName(name: String): Branch? = null
+
+    fun findByRepositoryAndName(repoPath: String, name: String): Branch? =
+        branchRepository.findByRepositoryAndName(repoPath, name)?.let { branchMapper.toDomain(it) }
 
     override fun findAll(pageable: Pageable): Page<Branch> {
         val offset = pageable.offset.toInt()

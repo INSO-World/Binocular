@@ -8,7 +8,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BranchRepository : ArangoRepository<BranchEntity, String> {
-    fun findByBranch(branch: String): BranchEntity?
+    @Query("FOR b IN branches FILTER b.repository.localPath == @repoPath AND b.branch == @name RETURN b")
+    fun findByRepositoryAndName(@Param("repoPath") repoPath: String, @Param("name") name: String): BranchEntity?
 
     /**
      * Returns branches sorted in ascending order using a deterministic,

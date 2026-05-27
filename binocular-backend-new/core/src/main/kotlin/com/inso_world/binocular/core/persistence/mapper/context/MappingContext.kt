@@ -82,12 +82,21 @@ open class MappingContext {
 
         // 1. Try using database id first
         resolveEntityId(entity)?.let { id ->
-            (e2d[EntityKey(entity::class, id)] as? D)?.let { return it }
+            (e2d[EntityKey(entityClass, id)] as? D)?.let { return it }
         }
 
         // 2. Fallback to object identity (entity may have been remembered before it had an id)
         val objKey = EntityObjectKey(entityClass, System.identityHashCode(entity))
         return e2dByObjectIdentity[objKey] as? D
+    }
+
+    /**
+     * Special findDomain that doesn't care about the entity type if searching by ID,
+     * or uses a fallback object if provided.
+     */
+    @Suppress("UNCHECKED_CAST")
+    open fun <D : Any> findDomainById(type: KClass<D>, id: Any): D? {
+        return e2d[EntityKey(type, id)] as? D
     }
 
     // ========================= Remember ===========================

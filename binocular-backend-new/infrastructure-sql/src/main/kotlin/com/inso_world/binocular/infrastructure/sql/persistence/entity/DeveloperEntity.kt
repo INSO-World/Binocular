@@ -72,12 +72,12 @@ internal data class DeveloperEntity(
     override fun toString(): String = "DeveloperEntity(id=$id, iid=$iid, name='$name', email='$email', repositoryId=${repository.id})"
 }
 
-internal fun Developer.toEntity(repository: RepositoryEntity): DeveloperEntity =
+internal fun Developer.toSqlEntity(repository: RepositoryEntity): DeveloperEntity =
     DeveloperEntity(
         iid = this.iid,
         email = this.email,
         name = this.name,
         repository = repository,
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
+        id = this@toSqlEntity.id?.trim()?.toLongOrNull()
     }

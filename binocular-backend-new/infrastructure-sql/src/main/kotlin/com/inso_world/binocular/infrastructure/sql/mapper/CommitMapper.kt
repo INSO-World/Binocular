@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +70,7 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
         val committerEntity = developerMapper.toEntity(domain.committer)
 
         val entity =
-            domain.toEntity(
+            domain.toSqlEntity(
                 repository = owner,
                 author = authorEntity,
                 committer = committerEntity,

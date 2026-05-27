@@ -81,7 +81,7 @@ data class RepositoryEntity(
  * @return RepositoryEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun com.inso_world.binocular.model.Repository.toEntity(project: ProjectEntity): RepositoryEntity =
+internal fun com.inso_world.binocular.model.Repository.toArangoEntity(project: ProjectEntity): RepositoryEntity =
     RepositoryEntity(
         id = this.id,
         iid = this.iid.value,
