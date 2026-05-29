@@ -21,17 +21,17 @@ data class Milestone(
     var expired: Boolean? = null,
     var webUrl: String? = null,
     // Relationships
-    var issues: List<Issue> = emptyList(),
-    var mergeRequests: List<MergeRequest> = emptyList(),
+    val project: Project.Id,
+    val issues: MutableSet<Issue> = NonRemovingMutableSet(),
+    val mergeRequests: MutableSet<MergeRequest> = NonRemovingMutableSet(),
 ) : AbstractDomainObject<Milestone.Id, Milestone.Key>(
     Id(Uuid.random())
 ) {
     @JvmInline
     value class Id(val value: Uuid)
 
-    // TODO work in progress, just for compatibility
-    data class Key(val key: String) // value object for lookups
+    data class Key(val projectId: Project.Id, val platformIid: Int?) // value object for lookups
 
     override val uniqueKey: Key
-        get() = TODO("Not yet implemented")
+        get() = Key(project, platformIid)
 }

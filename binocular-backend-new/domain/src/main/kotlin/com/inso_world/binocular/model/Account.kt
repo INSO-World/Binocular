@@ -32,6 +32,9 @@ data class Account(
     val mergeRequests: MutableSet<MergeRequest> = object : NonRemovingMutableSet<MergeRequest>() {
         override fun add(element: MergeRequest): Boolean {
             val added = super.add(element)
+            if (added) {
+                element.accounts.add(this@Account)
+            }
             return added
         }
 
@@ -47,6 +50,9 @@ data class Account(
     val notes: MutableSet<Note> = object : NonRemovingMutableSet<Note>() {
         override fun add(element: Note): Boolean {
             val added = super.add(element)
+            if (added) {
+                element.accounts.add(this@Account)
+            }
             return added
         }
 
@@ -73,6 +79,9 @@ data class Account(
 //                "Issue.project (${element.project}) doesn't match any of the account's projects (${this@Account.projects})."
 //            }
             val added = super.add(element)
+            if (added) {
+                element.accounts.add(this@Account)
+            }
             return added
         }
 

@@ -37,7 +37,9 @@ internal class NoteInfrastructurePortImpl(
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun findMergeRequestsByNoteId(noteId: String): List<MergeRequest> =
         linkDao.findMergeRequestIdsByNoteId(noteId).map {
-            MergeRequest().apply { id = it }
+            MergeRequest(
+                project = com.inso_world.binocular.model.Project.Id(kotlin.uuid.Uuid.parse("00000000-0000-0000-0000-000000000000"))
+            ).apply { id = it }
         }
 
     override fun findAll(pageable: Pageable): Page<Note> {

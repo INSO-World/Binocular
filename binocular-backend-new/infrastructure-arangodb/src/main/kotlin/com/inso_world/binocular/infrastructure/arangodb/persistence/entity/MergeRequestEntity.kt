@@ -37,19 +37,19 @@ data class MergeRequestEntity(
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var accounts: List<AccountEntity> = emptyList(),
+    var accounts: Set<AccountEntity> = emptySet(),
     @Relations(
         edges = [MergeRequestMilestoneConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var milestones: List<MilestoneEntity> = emptyList(),
+    var milestones: Set<MilestoneEntity> = emptySet(),
     @Relations(
         edges = [MergeRequestNoteConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var notes: List<NoteEntity> = emptyList(),
+    var notes: Set<NoteEntity> = emptySet(),
 )

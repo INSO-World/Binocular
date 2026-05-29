@@ -6,7 +6,10 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MilestoneEntity
 import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import org.springframework.beans.factory.annotation.Autowired
+import kotlin.uuid.ExperimentalUuidApi
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
@@ -51,8 +54,8 @@ internal class MilestoneMapper
          * @param domain The Milestone domain object to convert
          * @return The MilestoneEntity with milestone metadata
          */
-        override fun toEntity(domain: Milestone): MilestoneEntity =
-            MilestoneEntity(
+        override fun toEntity(domain: Milestone): MilestoneEntity {
+            val entity = MilestoneEntity(
                 id = domain.id,
                 iid = domain.platformIid,
                 title = domain.title,
@@ -64,22 +67,19 @@ internal class MilestoneMapper
                 state = domain.state,
                 expired = domain.expired,
                 webUrl = domain.webUrl,
+                project = ctx.findEntity<Project.Key, Project, ProjectEntity>(Project(domain.project.toString())),
+                issues = domain.issues.map { issueMapper.toEntity(it) }.toSet(),
+                mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }.toSet(),
             )
+            return entity
+        }
 
-        /**
-         * Converts a MilestoneEntity to Milestone domain object.
-         *
-         * Creates lazy-loaded proxies for issues and merge requests to avoid loading
-         * unnecessary data when only milestone metadata is needed.
-         *
-         * @param entity The MilestoneEntity to convert
-         * @return The Milestone domain object with lazy issues and merge requests
-         */
+        @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: MilestoneEntity): Milestone {
             // Fast-path: Check if already mapped
             ctx.findDomain<Milestone, MilestoneEntity>(entity)?.let { return it }
 
-            return Milestone(
+            val domain = Milestone(
                 id = entity.id,
                 platformIid = entity.iid,
                 title = entity.title,
@@ -91,19 +91,29 @@ internal class MilestoneMapper
                 state = entity.state,
                 expired = entity.expired,
                 webUrl = entity.webUrl,
-                issues =
-                    proxyFactory.createLazyList {
-                        (entity.issues ?: emptyList()).map { issueEntity ->
-                            issueMapper.toDomain(issueEntity)
-                        }
-                    },
-                mergeRequests =
-                    proxyFactory.createLazyList {
-                        (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
-                            mergeRequestMapper.toDomain(mergeRequestEntity)
-                        }
-                    },
+                project =
+                    entity.project?.let { Project.Id(it.iid!!) }
+                        ?: ctx.findDomain<Project, MilestoneEntity>(entity)?.iid
+                        ?: error("Parent Project not found in entity or context for Milestone ${entity.iid}"),
             )
+
+            domain.issues.addAll(
+                proxyFactory.createLazyList {
+                    (entity.issues ?: emptyList()).map { issueEntity ->
+                        issueMapper.toDomain(issueEntity)
+                    }
+                }
+            )
+
+            domain.mergeRequests.addAll(
+                proxyFactory.createLazyList {
+                    (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
+                        mergeRequestMapper.toDomain(mergeRequestEntity)
+                    }
+                }
+            )
+
+            return domain
         }
 
         override fun toDomainList(entities: Iterable<MilestoneEntity>): List<Milestone> = entities.map { toDomain(it) }

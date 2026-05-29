@@ -20,18 +20,37 @@ data class Note(
     var imported: Boolean = false,
     var importedFrom: String,
     // Relationships
-    var accounts: List<Account> = emptyList(),
-    var issues: List<Issue> = emptyList(),
-    var mergeRequests: List<MergeRequest> = emptyList(),
-): AbstractDomainObject<Note.Id, Note.Key>(
+    val issues: MutableSet<Issue> = NonRemovingMutableSet(),
+    val mergeRequests: MutableSet<MergeRequest> = NonRemovingMutableSet(),
+) : AbstractDomainObject<Note.Id, Note.Key>(
     Id(Uuid.random())
-){
+) {
     @JvmInline
     value class Id(val value: Uuid)
 
-    // TODO work in progress, just for compatibility
-    data class Key(val key: String) // value object for lookups
+    private val _accounts: MutableSet<Account> = mutableSetOf()
+
+    val accounts: MutableSet<Account> =
+        object : MutableSet<Account> by _accounts {
+            override fun add(element: Account): Boolean {
+                val added = _accounts.add(element)
+                if (added) {
+                    element.notes.add(this@Note)
+                }
+                return added
+            }
+
+            override fun addAll(elements: Collection<Account>): Boolean {
+                var anyAdded = false
+                for (element in elements) {
+                    if (add(element)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
+
+    data class Key(val body: String, val createdAt: String) // value object for lookups
 
     override val uniqueKey: Key
-        get() = TODO("Not yet implemented")
+        get() = Key(body ?: "", createdAt ?: "")
 }
