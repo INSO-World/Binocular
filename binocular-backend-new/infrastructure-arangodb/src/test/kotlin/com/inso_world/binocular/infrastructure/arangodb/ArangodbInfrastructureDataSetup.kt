@@ -1,11 +1,13 @@
 package com.inso_world.binocular.infrastructure.arangodb
 
+import com.arangodb.ArangoDB
 import com.inso_world.binocular.core.data.MockTestDataProvider
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.core.service.FileInfrastructurePort
 import com.inso_world.binocular.core.service.IssueInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.BranchFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitBuildConnection
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitCommitConnection
@@ -75,6 +77,7 @@ internal class ArangodbInfrastructureDataSetup(
     @Autowired private val milestoneRepository: MilestoneInfrastructurePortImpl,
     @Autowired private val projectRepository: ProjectInfrastructurePortImpl,
     @Autowired private val repositoryRepository: RepositoryInfrastructurePortImpl,
+    @Autowired private val infraConfig: InfrastructureConfig,
 ) : InfrastructureDataSetup {
     companion object {
         private val logger by logger()
@@ -200,6 +203,20 @@ internal class ArangodbInfrastructureDataSetup(
         userRepository.deleteAllEntities()
         repositoryRepository.deleteAllEntities()
         projectRepository.deleteAllEntities()
+        val arango =
+            com.arangodb.ArangoDB
+                .Builder()
+                .host(
+                    infraConfig.arangodb.database.host,
+                    infraConfig.arangodb.database.port
+                        .toInt(),
+                ).build()
+        val db = arango.db(infraConfig.arangodb.database.name)
+        db.query(
+            "FOR m IN binocular_migrations REMOVE m IN binocular_migrations",
+            Void::class.java,
+            emptyMap(),
+        )
         logger.info("<<< ArangodbInfrastructureDataSetup teardown")
     }
 
