@@ -9,6 +9,7 @@ import kotlin.uuid.Uuid
  */
 @OptIn(ExperimentalUuidApi::class)
 data class MergeRequest(
+    val project: Project.Id,
     var id: String? = null,
     var platformIid: Int? = null,
     var title: String? = null,
@@ -21,17 +22,36 @@ data class MergeRequest(
     var webUrl: String? = null,
     var mentions: List<Mention> = emptyList(),
     // Relationships
-    val project: Project.Id,
-    var accounts: MutableList<Account> = mutableListOf(),
-    var milestones: List<Milestone> = emptyList(),
-    var notes: List<Note> = emptyList(),
-): AbstractDomainObject<MergeRequest.Id, MergeRequest.Key>(
+    val milestones: MutableSet<Milestone> = NonRemovingMutableSet(),
+    val notes: MutableSet<Note> = NonRemovingMutableSet(),
+) : AbstractDomainObject<MergeRequest.Id, MergeRequest.Key>(
     Id(Uuid.random())
-){
+) {
     @JvmInline
     value class Id(val value: Uuid)
 
     data class Key(val projectId: Project.Id, val platformIid: Int?) // value object for lookups
+
+    private val _accounts: MutableSet<Account> = mutableSetOf()
+
+    val accounts: MutableSet<Account> =
+        object : MutableSet<Account> by _accounts {
+            override fun add(element: Account): Boolean {
+                val added = _accounts.add(element)
+                if (added) {
+                    element.mergeRequests.add(this@MergeRequest)
+                }
+                return added
+            }
+
+            override fun addAll(elements: Collection<Account>): Boolean {
+                var anyAdded = false
+                for (element in elements) {
+                    if (add(element)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
 
     override val uniqueKey: Key
         get() = Key(project, platformIid)

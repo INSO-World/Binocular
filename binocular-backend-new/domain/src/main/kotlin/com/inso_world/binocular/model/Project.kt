@@ -65,9 +65,9 @@ data class Project(
 
     val issues: MutableSet<Issue> = object : NonRemovingMutableSet<Issue>() {
         override fun add(element: Issue): Boolean {
-//            require(element.project == this@Project) {
-//                "Issue.project (${element.project}) doesn't match the project (${this@Project})."
-//            }
+            require(element.project == this@Project.iid) {
+                "Issue.project (${element.project}) doesn't match the project (${this@Project.iid})."
+            }
             val added = super.add(element)
             return added
         }
@@ -83,11 +83,32 @@ data class Project(
 
     val mergeRequests: MutableSet<MergeRequest> = object : NonRemovingMutableSet<MergeRequest>() {
         override fun add(element: MergeRequest): Boolean {
+            require(element.project == this@Project.iid) {
+                "MergeRequest.project (${element.project}) doesn't match the project (${this@Project.iid})."
+            }
             val added = super.add(element)
             return added
         }
 
         override fun addAll(elements: Collection<MergeRequest>): Boolean {
+            var anyAdded = false
+            for (element in elements) {
+                if (add(element)) anyAdded = true
+            }
+            return anyAdded
+        }
+    }
+
+    val milestones: MutableSet<Milestone> = object : NonRemovingMutableSet<Milestone>() {
+        override fun add(element: Milestone): Boolean {
+            require(element.project == this@Project.iid) {
+                "Milestone.project (${element.project}) doesn't match the project (${this@Project.iid})."
+            }
+            val added = super.add(element)
+            return added
+        }
+
+        override fun addAll(elements: Collection<Milestone>): Boolean {
             var anyAdded = false
             for (element in elements) {
                 if (add(element)) anyAdded = true

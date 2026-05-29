@@ -1,6 +1,7 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.entity
 
 import com.arangodb.springframework.annotation.Document
+import com.arangodb.springframework.annotation.Ref
 import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueMilestoneConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestMilestoneConnectionEntity
@@ -23,18 +24,20 @@ data class MilestoneEntity(
     var state: String? = null,
     var expired: Boolean? = null,
     var webUrl: String? = null,
+    @Ref
+    var project: ProjectEntity? = null,
     @Relations(
         edges = [IssueMilestoneConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var issues: List<IssueEntity> = emptyList(),
+    var issues: Set<IssueEntity> = emptySet(),
     @Relations(
         edges = [MergeRequestMilestoneConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var mergeRequests: List<MergeRequestEntity> = emptyList(),
+    var mergeRequests: Set<MergeRequestEntity> = emptySet(),
 )

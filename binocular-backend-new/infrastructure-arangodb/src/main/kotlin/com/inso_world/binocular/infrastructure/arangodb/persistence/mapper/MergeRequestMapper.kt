@@ -71,9 +71,9 @@ internal class MergeRequestMapper
                 state = domain.state,
                 webUrl = domain.webUrl,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
-                accounts = domain.accounts.map { accountMapper.toEntity(it) },
-                milestones = domain.milestones.map { milestoneMapper.toEntity(it) },
-                notes = domain.notes.map { noteMapper.toEntity(it) },
+                accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
+                milestones = domain.milestones.map { milestoneMapper.toEntity(it) }.toSet(),
+                notes = domain.notes.map { noteMapper.toEntity(it) }.toSet(),
             )
 
         /**
@@ -89,7 +89,11 @@ internal class MergeRequestMapper
             // Fast-path: Check if already mapped
             ctx.findDomain<MergeRequest, MergeRequestEntity>(entity)?.let { return it }
 
-            return MergeRequest(
+            val domain = MergeRequest(
+                project =
+                    entity.project?.let { Project.Id(it.iid!!) }
+                        ?: ctx.findDomain<Project, MergeRequestEntity>(entity)?.iid
+                        ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
                 id = entity.id,
                 platformIid = entity.iid,
                 title = entity.title,
@@ -101,29 +105,33 @@ internal class MergeRequestMapper
                 state = entity.state,
                 webUrl = entity.webUrl,
                 mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-                project =
-                    entity.project?.let { Project.Id(it.iid!!) }
-                        ?: ctx.findDomain<Project, MergeRequestEntity>(entity)?.iid
-                        ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
-                accounts =
-                    proxyFactory.createLazyList {
-                        (entity.accounts ?: emptyList()).map { accountEntity ->
-                            accountMapper.toDomain(accountEntity)
-                        }
-                    }.toMutableList(),
-                milestones =
-                    proxyFactory.createLazyList {
-                        (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                            milestoneMapper.toDomain(milestoneEntity)
-                        }
-                    },
-                notes =
-                    proxyFactory.createLazyList {
-                        (entity.notes ?: emptyList()).map { noteEntity ->
-                            noteMapper.toDomain(noteEntity)
-                        }
-                    },
             )
+
+            domain.milestones.addAll(
+                proxyFactory.createLazyList {
+                    (entity.milestones ?: emptyList()).map { milestoneEntity ->
+                        milestoneMapper.toDomain(milestoneEntity)
+                    }
+                }
+            )
+
+            domain.notes.addAll(
+                proxyFactory.createLazyList {
+                    (entity.notes ?: emptyList()).map { noteEntity ->
+                        noteMapper.toDomain(noteEntity)
+                    }
+                }
+            )
+
+            domain.accounts.addAll(
+                proxyFactory.createLazyList {
+                    (entity.accounts ?: emptyList()).map { accountEntity ->
+                        accountMapper.toDomain(accountEntity)
+                    }
+                }
+            )
+
+            return domain
         }
 
         /**

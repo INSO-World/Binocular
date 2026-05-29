@@ -81,8 +81,9 @@ internal class IssueMapper
                 gid = domain.gid,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
                 accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
-                milestones = domain.milestones.map { milestoneMapper.toEntity(it) },
-                notes = domain.notes.map { noteMapper.toEntity(it) },
+                commits = domain.commits.map { commitMapper.toEntity(it) }.toSet(),
+                milestones = domain.milestones.map { milestoneMapper.toEntity(it) }.toSet(),
+                notes = domain.notes.map { noteMapper.toEntity(it) }.toSet(),
             )
 
         /**
@@ -130,31 +131,38 @@ internal class IssueMapper
                         entity.project?.let { Project.Id(it.iid!!) }
                             ?: ctx.findDomain<Project, IssueEntity>(entity)?.iid
                             ?: error("Parent Project not found in entity or context for Issue ${entity.iid}"),
-                    commits =
-                        proxyFactory.createLazyList {
-                            (entity.commits ?: emptyList()).map { commitEntity ->
-                                commitMapper.toDomain(commitEntity)
-                            }
-                        }.toMutableList(),
-                    milestones =
-                        proxyFactory.createLazyList {
-                            (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                                milestoneMapper.toDomain(milestoneEntity)
-                            }
-                        },
-                    notes =
-                        proxyFactory.createLazyList {
-                            (entity.notes ?: emptyList()).map { noteEntity ->
-                                noteMapper.toDomain(noteEntity)
-                            }
-                        },
-                    users =
-                        proxyFactory.createLazyList {
-                            (entity.users ?: emptyList()).map { userEntity ->
-                                userMapper.toDomain(userEntity)
-                            }
-                        },
                 )
+
+            domain.milestones.addAll(
+                proxyFactory.createLazyList {
+                    (entity.milestones ?: emptyList()).map { milestoneEntity ->
+                        milestoneMapper.toDomain(milestoneEntity)
+                    }
+                }
+            )
+
+            domain.notes.addAll(
+                proxyFactory.createLazyList {
+                    (entity.notes ?: emptyList()).map { noteEntity ->
+                        noteMapper.toDomain(noteEntity)
+                    }
+                }
+            )
+
+            domain.users =
+                proxyFactory.createLazyList {
+                    (entity.users ?: emptyList()).map { userEntity ->
+                        userMapper.toDomain(userEntity)
+                    }
+                }
+
+            domain.commits.addAll(
+                proxyFactory.createLazyList {
+                    (entity.commits ?: emptyList()).map { commitEntity ->
+                        commitMapper.toDomain(commitEntity)
+                    }
+                }
+            )
             
             // Add accounts separately to the proxy-backed set if needed
             entity.accounts.forEach { accountEntity ->

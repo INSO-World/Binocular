@@ -187,10 +187,6 @@ internal data class IssueEntity(
         webUrl = this.webUrl,
 //        labels = getDomainLabels(),
 //        mentions = getDomainMentions(),
-        // These relationships will be populated by the mapper
-//        accounts = emptyList(),
-        commits = mutableListOf(),
-        milestones = emptyList(),
 //        notes = emptyList(),
 //        users = emptyList(),
     )

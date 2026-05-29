@@ -55,6 +55,9 @@ data class ProjectEntity(
     @Ref
     var mergeRequests: List<MergeRequestEntity> = emptyList()
 
+    @Ref
+    var milestones: List<MilestoneEntity> = emptyList()
+
     /**
      * Converts this ProjectEntity to a Project domain object.
      *

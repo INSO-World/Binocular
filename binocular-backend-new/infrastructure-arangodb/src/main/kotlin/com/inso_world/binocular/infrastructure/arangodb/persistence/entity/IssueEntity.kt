@@ -48,21 +48,21 @@ data class IssueEntity(
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var commits: List<CommitEntity> = emptyList(),
+    var commits: Set<CommitEntity> = emptySet(),
     @Relations(
         edges = [IssueMilestoneConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var milestones: List<MilestoneEntity> = emptyList(),
+    var milestones: Set<MilestoneEntity> = emptySet(),
     @Relations(
         edges = [IssueNoteConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var notes: List<NoteEntity> = emptyList(),
+    var notes: Set<NoteEntity> = emptySet(),
     @Relations(
         edges = [IssueUserConnectionEntity::class],
         lazy = true,

@@ -176,9 +176,7 @@ class ProjectService(
             itsIssue?.timelineItems?.nodes?.filterIsInstance<ItsReferencedEvent>()?.forEach { event ->
                 event.commit?.oid?.let { sha ->
                     commitCache[sha]?.let { commit ->
-                        if (!issue.commits.contains(commit)) {
-                            issue.commits.add(commit)
-                        }
+                        issue.commits.add(commit)
                     }
                 }
             }
