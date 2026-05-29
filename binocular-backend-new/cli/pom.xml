@@ -91,6 +91,12 @@
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk-jvm</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!--Non binocular below -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

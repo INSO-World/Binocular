@@ -1,6 +1,7 @@
 package com.inso_world.binocular.cli.service
 
 import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -8,6 +9,7 @@ import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.nio.file.Paths
 
 /**
@@ -34,20 +36,21 @@ import java.nio.file.Paths
  * establishing back-links.
  */
 @Service
-class RepositoryService {
+class RepositoryService(
+    @Autowired private val repositoryPort: RepositoryInfrastructurePort,
+    @Autowired private val commitService: CommitService,
+    @Autowired private val commitPort: CommitInfrastructurePort,
+) {
     companion object {
         private val logger by logger()
     }
 
-    @Autowired
-    private lateinit var repositoryPort: RepositoryInfrastructurePort
-
-    @Autowired
-    private lateinit var commitService: CommitService
-
     fun findBranch(repo: Repository, name: String): Branch? {
         return this.repositoryPort.findBranch(repo, name)
     }
+
+    @Transactional
+    fun save(repository: Repository): Repository = this.repositoryPort.create(repository)
 
     /**
      * Canonicalizes incoming commits against the repository's existing state.

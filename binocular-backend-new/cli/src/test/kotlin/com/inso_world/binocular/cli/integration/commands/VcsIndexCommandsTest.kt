@@ -127,7 +127,7 @@ internal class VcsIndexCommandsTest : BaseFixturesIntegrationTest() {
 
             val repo = repoService.findRepo(BINOCULAR_REPO_PATH.absolutePathString())
             assertNotNull(repo)
-            assertThat(repo.commits).hasSize(2456)
+            assertThat(repo.commits).hasSize(2580)
         }
 
         @Test
@@ -141,7 +141,7 @@ internal class VcsIndexCommandsTest : BaseFixturesIntegrationTest() {
             val repo = repoService.findRepo(BINOCULAR_REPO_PATH.absolutePathString())
             assertNotNull(repo)
             // git rev-list --count origin/develop
-            assertThat(repo.commits).hasSize(2519)
+            assertThat(repo.commits).hasSize(2700)
         }
 
         @Test
