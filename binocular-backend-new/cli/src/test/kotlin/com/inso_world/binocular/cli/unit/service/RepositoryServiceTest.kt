@@ -1,5 +1,9 @@
 package com.inso_world.binocular.cli.unit.service
 
+import com.inso_world.binocular.cli.service.CommitService
+import com.inso_world.binocular.cli.service.RepositoryService
+import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.core.unit.base.BaseUnitTest
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -8,12 +12,15 @@ import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.vcs.ReferenceCategory
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.springframework.data.util.ReflectionUtils.setField
+import org.springframework.test.util.ReflectionTestUtils.setField
 import java.time.LocalDateTime
 
 /**
@@ -435,6 +442,109 @@ internal class RepositoryServiceTest : BaseUnitTest() {
                 { assertThat(validRepo.project).isNotNull() },
                 { assertThat(validRepo.project.repo).isSameAs(validRepo) },
             )
+        }
+    }
+
+    @Nested
+    @DisplayName("Given transformCommits Pass 2 relationship wiring")
+    inner class TransformCommitsPassTwo {
+        private lateinit var service: RepositoryService
+        private lateinit var developer: Developer
+        private lateinit var timestamp: LocalDateTime
+
+        private val repositoryPort = mockk<RepositoryInfrastructurePort>(relaxed = true)
+        private val commitService = mockk<CommitService>(relaxed = true)
+        private val commitPort = mockk<CommitInfrastructurePort>(relaxed = true)
+
+        @BeforeEach
+        fun setUp() {
+            service = RepositoryService(repositoryPort, commitService, commitPort)
+            developer = Developer(name = "Dev", email = "dev@example.com", repository = repository)
+            timestamp = LocalDateTime.now().minusHours(1)
+            project = Project(name = "test-project")
+        }
+
+        private fun makeCommit(
+            sha: String,
+            repo: Repository,
+        ): Commit =
+            Commit(
+                sha = sha,
+                authorSignature =
+                    Signature(
+                        developer = developer,
+                        timestamp = timestamp,
+                    ),
+                message = "commit $sha",
+                repository = repo,
+            )
+
+        @Test
+        @DisplayName("When a commit lists a parentId, then Pass 2 adds a back-reference to that parent's childIds")
+        fun `parent wiring adds back-reference to canonical parent's childIds`() {
+            // Given - two commits: A is parent of B (B.parentIds contains A.iid)
+            val repo = Repository(localPath = "/test/pass2", project = project)
+            setField(
+                Developer::class.java.getDeclaredField("repository"),
+                developer,
+                repo
+            )
+            val commitA = makeCommit("a".repeat(40), repo)
+            val commitB = makeCommit("b".repeat(40), repo)
+            commitB.parents.add(commitA)
+
+            // When
+            val result = service.transformCommits(repo, listOf(commitA, commitB))
+
+            // Then - A must have B in its childIds
+            val transformedA = result.find { it.sha == commitA.sha }!!
+            assertThat(transformedA.children).contains(commitB)
+        }
+
+        @Test
+        @DisplayName("When transformCommits is called twice, then duplicate childId entries are not added")
+        fun `parent wiring is idempotent - calling twice does not duplicate entries`() {
+            // Given - two commits: A is parent of B
+            val repo = Repository(localPath = "/test/pass2-idem", project = project)
+            setField(
+                Developer::class.java.getDeclaredField("repository"),
+                developer,
+                repo
+            )
+            val commitA = makeCommit("a".repeat(40), repo)
+            val commitB = makeCommit("b".repeat(40), repo)
+            commitB.parents.add(commitA)
+
+            // When - transform twice (simulates incremental indexing on same data)
+            val firstPass = service.transformCommits(repo, listOf(commitA, commitB))
+            service.transformCommits(repo, firstPass)
+
+            // Then - B appears exactly once in A's childIds
+            val transformedA = firstPass.find { it.sha == commitA.sha }!!
+            val childIdCount = transformedA.children.count { it == commitB }
+            assertThat(childIdCount).isEqualTo(1)
+        }
+
+        @Test
+        @DisplayName("When a commit lists a childId, then Pass 2 adds a back-reference to that child's parentIds")
+        fun `child wiring adds back-reference to canonical child's parentIds`() {
+            // Given - two commits: B lists A as a child (B.childIds contains A.iid)
+            val repo = Repository(localPath = "/test/pass2-child", project = project)
+            setField(
+                Developer::class.java.getDeclaredField("repository"),
+                developer,
+                repo
+            )
+            val commitA = makeCommit("a".repeat(40), repo)
+            val commitB = makeCommit("b".repeat(40), repo)
+            commitB.children.add(commitA)
+
+            // When
+            val result = service.transformCommits(repo, listOf(commitA, commitB))
+
+            // Then - A must have B in its parentIds
+            val transformedA = result.find { it.sha == commitA.sha }!!
+            assertThat(transformedA.parents).contains(commitB)
         }
     }
 }

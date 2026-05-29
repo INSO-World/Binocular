@@ -84,4 +84,8 @@ internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
         logger.trace("Getting branch by name: $name")
         return branchDao.findByName(name)
     }
+
+    override fun deleteAll() {
+        this.branchDao.deleteAll()
+    }
 }

@@ -489,7 +489,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
 
             val (branch, branchCommits) = indexer.traverseBranch(repo, "origin/main")
             assertAll(
-                { assertThat(branchCommits).hasSize(2456) },
+                { assertThat(branchCommits).hasSize(2580) },
             )
         }
 
