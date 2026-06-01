@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitBuildConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BuildEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitBuildConnectionEntity
@@ -32,11 +33,13 @@ internal class CommitBuildConnectionDao
         private val buildMapper: BuildMapper,
     ) : ICommitBuildConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
 
         /**
          * Find all builds connected to a commit
          */
         override fun findBuildsByCommit(commitId: String): List<Build> {
+            seeder.seed()
             val buildEntities = repository.findBuildsByCommit(commitId) as List<Any>
             return buildEntities.map { buildMapper.toDomain(it as BuildEntity) }
         }
@@ -45,6 +48,7 @@ internal class CommitBuildConnectionDao
          * Find all commits connected to a build
          */
         override fun findCommitsByBuild(buildId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findCommitsByBuild(buildId) as List<Any>
             return commitEntities.map { commitMapper.toDomain(it as CommitEntity) }
         }
