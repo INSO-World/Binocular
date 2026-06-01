@@ -68,7 +68,7 @@ function ConnectedDataPlugins(props: { interactable: boolean }) {
                 <p className="card-title text-sm !mb-0">
                   {settingsDatabaseDataPlugin.name} #{settingsDatabaseDataPlugin.id}
                   {settingsDatabaseDataPlugin.id === 0 && <span className="badge badge-outline badge-sm">pre-loaded</span>}
-                  {settingsDatabaseDataPlugin.isDefault && <span className="badge badge-accent badge-sm">Default</span>}
+                  {settingsDatabaseDataPlugin.isDefault && <span className="badge badge-primary badge-sm">Default</span>}
                 </p>
               </div>
               {settingsDatabaseDataPlugin.parameters.apiKey && (

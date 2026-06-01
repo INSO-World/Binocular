@@ -48,16 +48,19 @@ function FileList(props: { orientation?: string; search: string }) {
     if (filesDataPluginId && !fileTrees[filesDataPluginId]) refreshFileTree(dataPlugin);
   }, [currentDataPlugins, filesDataPluginId]);
 
-  globalStore.subscribe(() => {
-    if (filesDataPluginId !== undefined) {
-      if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
-        if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === filesDataPluginId) {
-          const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
-          refreshFileTree(dataPlugin);
+  useEffect(() => {
+    const unsubscribe = globalStore.subscribe(() => {
+      if (filesDataPluginId !== undefined) {
+        if (globalStore.getState().actions.lastAction === 'REFRESH_PLUGIN') {
+          if ((globalStore.getState().actions.payload as { pluginId: number }).pluginId === filesDataPluginId) {
+            const dataPlugin = currentDataPlugins.filter((p: DatabaseSettingsDataPluginType) => p.id === filesDataPluginId)[0];
+            refreshFileTree(dataPlugin);
+          }
         }
       }
-    }
-  });
+    });
+    return unsubscribe;
+  }, [filesDataPluginId, currentDataPlugins]);
 
   return (
     <>
@@ -102,7 +105,7 @@ function FileList(props: { orientation?: string; search: string }) {
                   dispatch(updateFileListElement({ ...element, foldedOut: foldOutState }));
                 }
                 if (element.type === FileTreeElementTypeType.File) {
-                  showFileTreeElementInfo(element);
+                  dispatch(showFileTreeElementInfo(element));
                 }
               }}
               onShowContextMenu={(e, element) => {
@@ -141,7 +144,7 @@ function FileList(props: { orientation?: string; search: string }) {
                 dispatch(updateFileListElement({ ...element, checked: selectionState, update: true }));
               }}></FileTreeFolder>
           ) : (
-            <span className="loading loading-spinner loading-xs text-accent"></span>
+            <span className="loading loading-spinner loading-xs text-primary"></span>
           )}
         </div>
       </div>
