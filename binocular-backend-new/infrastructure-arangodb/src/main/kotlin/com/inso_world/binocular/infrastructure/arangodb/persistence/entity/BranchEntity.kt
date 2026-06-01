@@ -12,6 +12,7 @@ import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -62,7 +63,8 @@ data class BranchEntity(
 ) {
 
     @Deprecated("Legacy", replaceWith = ReplaceWith("fullName"))
-    val branch = fullName
+    @Transient
+    val branch = name
 
     /**
      * Converts this BranchEntity to a Branch domain object.
