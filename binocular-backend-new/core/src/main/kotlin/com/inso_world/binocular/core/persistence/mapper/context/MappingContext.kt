@@ -74,7 +74,7 @@ open class MappingContext {
 
     /**
      * Returns the previously remembered domain object for this entity, if any.
-     * Uses (entity::class, entity.id) as the cache key.
+     * Uses (entityClass, entity.id) as the cache key.
      */
     @Suppress("UNCHECKED_CAST")
     open fun <D : Any, E : Any> findDomain(entity: E): D? {
@@ -82,7 +82,7 @@ open class MappingContext {
 
         // 1. Try using database id first
         resolveEntityId(entity)?.let { id ->
-            (e2d[EntityKey(entity::class, id)] as? D)?.let { return it }
+            (e2d[EntityKey(entityClass, id)] as? D)?.let { return it }
         }
 
         // 2. Fallback to object identity (entity may have been remembered before it had an id)
@@ -111,7 +111,7 @@ open class MappingContext {
             e2d.computeIfAbsent(EntityKey(entityClass, id)) { domain }
             // Entity may have been stored by identity before it had an id (pre-persistence);
             // promote it to the id-based map and clean up the stale identity entry.
-            val objKey = EntityObjectKey(entity::class, System.identityHashCode(entity))
+            val objKey = EntityObjectKey(entityClass, System.identityHashCode(entity))
             e2dByObjectIdentity.remove(objKey)
         } ?: {
             // Fallback: use object identity for unpersisted entities
