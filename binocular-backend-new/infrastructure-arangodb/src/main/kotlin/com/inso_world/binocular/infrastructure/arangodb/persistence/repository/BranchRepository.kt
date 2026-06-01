@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BranchRepository : ArangoRepository<BranchEntity, String> {
-    fun findByBranch(branch: String): BranchEntity?
+    fun findByName(branch: String): BranchEntity?
 
     /**
      * Returns branches sorted in ascending order using a deterministic,
