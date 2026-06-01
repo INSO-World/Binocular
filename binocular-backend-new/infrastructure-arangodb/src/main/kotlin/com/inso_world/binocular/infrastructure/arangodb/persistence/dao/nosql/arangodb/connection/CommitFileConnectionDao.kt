@@ -3,6 +3,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitFileConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.FileMapper
@@ -40,8 +41,10 @@ internal class CommitFileConnectionDao
         private val userMapper: UserMapper,
     ) : ICommitFileConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
 
         override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
+            seeder.seed()
             val rows = repository.findOwnershipByCommitAndFile(commitId, fileId)
             if (rows.isEmpty()) return emptyList()
 
@@ -80,6 +83,7 @@ internal class CommitFileConnectionDao
          * Find all files connected to a commit
          */
         override fun findFilesByCommit(commitId: String): List<File> {
+            seeder.seed()
             val fileEntities = repository.findFilesByCommit(commitId)
             return fileEntities.map { fileMapper.toDomain(it) }
         }
@@ -88,6 +92,7 @@ internal class CommitFileConnectionDao
         * Find all files connected to a commit with pagination support.
         */
         override fun findFilesByCommitPaged(commitId: String, pageable: Pageable): Page<File> {
+            seeder.seed()
             val offset = pageable.offset.toInt()
             val limit = pageable.pageSize
             val total = repository.countFilesByCommit(commitId).firstOrNull() ?: 0L
@@ -100,6 +105,7 @@ internal class CommitFileConnectionDao
          * Find all commits connected to a file
          */
         override fun findCommitsByFile(fileId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findCommitsByFile(fileId)
             return commitEntities.map { commitMapper.toDomain(it) }
         }
@@ -108,6 +114,7 @@ internal class CommitFileConnectionDao
         * Find all commits connected to a file with pagination support.
         */
         override fun findCommitsByFilePaged(fileId: String, pageable: Pageable): Page<Commit> {
+            seeder.seed()
             val offset = pageable.offset.toInt()
             val limit = pageable.pageSize
             val total = repository.countCommitsByFile(fileId).firstOrNull() ?: 0L
@@ -120,6 +127,7 @@ internal class CommitFileConnectionDao
         * Find aggregated stats for a commit
         */
         override fun findCommitStatsByCommit(commitId: String): Stats {
+            seeder.seed()
             val row = repository.findCommitStats(commitId).firstOrNull()
                 ?: return Stats(additions = 0, deletions = 0)
 
@@ -133,6 +141,7 @@ internal class CommitFileConnectionDao
         * Find stats per file for a commit
         */
         override fun findFileStatsByCommit(commitId: String): Map<String, Stats> {
+            seeder.seed()
             val rows = repository.findFileStatsByCommit(commitId)
 
             return rows.associate { row ->
@@ -147,6 +156,7 @@ internal class CommitFileConnectionDao
         }
 
         override fun findFileActionsByCommit(commitId: String): Map<String, String?> {
+            seeder.seed()
             val rows = repository.findFileActionsByCommit(commitId)
             return rows.associate { row ->
                 val fileId = row["fileId"]?.toString()

@@ -7,6 +7,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.Proje
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
 import jakarta.annotation.PostConstruct
+import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
 
 /**
@@ -19,11 +20,19 @@ import org.springframework.stereotype.Component
  * This component loads the default entities once at startup and provides a [seed] method that
  * maps them into the current MappingContext session.
  *
+ * ### Initialisation order
+ * [init] runs as `@PostConstruct`. It looks up the default repository which is created by
+ * `V000_AddProject` and `V000_AddRepository` migrations. The `@DependsOn("migrationRunner")`
+ * annotation ensures [com.inso_world.binocular.infrastructure.arangodb.migration.MigrationRunner]
+ * completes its own `@PostConstruct` (and therefore all migrations) before this seeder
+ * initialises. Without it, Spring may initialise the seeder first and the lookup throws.
+ *
  * ### Migration note
  * This is an ArangoDB-specific workaround. When migrating to PostgreSQL, delete this file
  * and remove the `seeder.seed()` calls from [MappedArangoDbDao].
  */
 @Component
+@DependsOn("migrationRunner")
 internal class DefaultMappingContextSeeder(
     private val repositoryRepository: RepositoryRepository,
     private val infraConfig: InfrastructureConfig,
