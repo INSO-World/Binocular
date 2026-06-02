@@ -100,6 +100,7 @@ internal class AccountInfrastructurePortImpl :
 
     override fun create(entity: Account): Account = this.accountDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<Account>): Iterable<Account> = this.accountDao.saveAll(entities)
 
     override fun delete(entity: Account) {

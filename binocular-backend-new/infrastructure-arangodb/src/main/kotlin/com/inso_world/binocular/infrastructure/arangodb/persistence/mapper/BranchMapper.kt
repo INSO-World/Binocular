@@ -88,6 +88,8 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
      * This enforces aggregate boundaries - Repository and Commit are separate aggregates.
      *
      * **Note**: This method does NOT map child entities or traverse relationships deeply.
+     * When the cached domain has `id=null` (pre-persistence) and the entity has a DB-assigned id,
+     * the id is back-propagated to the cached domain via [refreshDomain].
      *
      * @param entity The BranchEntity to convert
      * @return The Branch domain object (structure only)
@@ -96,7 +98,11 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: BranchEntity): Branch {
         // Fast-path: if this Branch was already mapped in the current context, return it.
-        ctx.findDomain<Branch, BranchEntity>(entity)?.let { return it }
+        // Back-propagate the DB-assigned id when the cached domain was created pre-persistence.
+        ctx.findDomain<Branch, BranchEntity>(entity)?.let { found ->
+            if (found.id == null && entity.id != null) refreshDomain(found, entity)
+            return found
+        }
 
         // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
         // Do NOT auto-map Repository here - that's a separate aggregate.

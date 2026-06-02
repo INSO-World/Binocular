@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
 import com.inso_world.binocular.model.Branch
@@ -13,20 +14,26 @@ import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
-    AbstractInfrastructurePort<Branch, String>() {
-
+internal class BranchInfrastructurePortImpl :
+    AbstractInfrastructurePort<Branch, String>(),
+    BranchInfrastructurePort {
     @PostConstruct
     fun init() {
         super.dao = branchDao
     }
+
     @Autowired private lateinit var branchDao: IBranchDao
 
     @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
+
+    @Autowired
+    @Lazy
+    private lateinit var repositoryAssembler: RepositoryAssembler
 
     companion object {
         private val logger by logger()
@@ -67,9 +74,16 @@ internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
     @MappingSession
     override fun findAll(): Iterable<Branch> = this.branchDao.findAll()
 
-    override fun create(entity: Branch): Branch = this.branchDao.save(entity)
+    override fun create(entity: Branch): Branch {
+        repositoryAssembler.toEntity(entity.repository)
+        return this.branchDao.save(entity)
+    }
 
-    override fun saveAll(entities: Collection<Branch>): Iterable<Branch> = this.branchDao.saveAll(entities)
+    @MappingSession
+    override fun saveAll(entities: Collection<Branch>): Iterable<Branch> {
+        entities.forEach { create(it) }
+        return entities
+    }
 
     override fun update(entity: Branch): Branch {
         TODO("Not yet implemented")

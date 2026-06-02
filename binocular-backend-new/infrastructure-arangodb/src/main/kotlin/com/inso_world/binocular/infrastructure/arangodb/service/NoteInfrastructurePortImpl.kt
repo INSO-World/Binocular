@@ -80,6 +80,7 @@ internal class NoteInfrastructurePortImpl : NoteInfrastructurePort,
 
     override fun create(entity: Note): Note = noteDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<Note>): Iterable<Note> = noteDao.saveAll(entities)
 
     override fun delete(entity: Note) = noteDao.delete(entity)

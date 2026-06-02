@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitCommitConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileConnectionDao
@@ -24,19 +25,25 @@ import com.inso_world.binocular.model.User
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 
 @Service
-internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
-    AbstractInfrastructurePort<Commit, String>() {
-
+internal class CommitInfrastructurePortImpl :
+    AbstractInfrastructurePort<Commit, String>(),
+    CommitInfrastructurePort {
     @PostConstruct
     fun init() {
         super.dao = commitDao
     }
+
     @Autowired private lateinit var commitDao: ICommitDao
+
+    @Autowired
+    @Lazy
+    private lateinit var repositoryAssembler: RepositoryAssembler
 
     @Autowired private lateinit var commitBuildConnectionRepository: ICommitBuildConnectionDao
 
@@ -177,9 +184,16 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
     @MappingSession
     override fun findAll(): Iterable<Commit> = this.commitDao.findAll()
 
-    override fun create(entity: Commit): Commit = this.commitDao.save(entity)
+    override fun create(entity: Commit): Commit {
+        repositoryAssembler.toEntity(entity.repository)
+        return commitDao.save(entity)
+    }
 
-    override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = this.commitDao.saveAll(entities)
+    @MappingSession
+    override fun saveAll(entities: Collection<Commit>): Iterable<Commit> {
+        entities.forEach { create(it) }
+        return entities
+    }
 
     override fun update(entity: Commit): Commit {
         TODO("Not yet implemented")
@@ -220,9 +234,7 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
         since: Long?,
         until: Long?,
     ): Page<Commit> {
-
-        fun Commit.commitMillis() =
-            commitDateTime?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
+        fun Commit.commitMillis() = commitDateTime?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
 
         val comparatorAsc: Comparator<Commit> =
             compareBy(
@@ -231,20 +243,22 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
             )
 
         val filteredAndSorted =
-            commitDao.findAll()
+            commitDao
+                .findAll()
                 .asSequence()
                 .filter { commit ->
                     val ts = commit.commitMillis() ?: return@filter true
                     (since == null || ts >= since) &&
-                            (until == null || ts <= until)
-                }
-                .sortedWith(comparatorAsc)
+                        (until == null || ts <= until)
+                }.sortedWith(comparatorAsc)
                 .toList()
 
-        val from = (pageable.pageNumber * pageable.pageSize)
-            .coerceAtMost(filteredAndSorted.size)
-        val to = (from + pageable.pageSize)
-            .coerceAtMost(filteredAndSorted.size)
+        val from =
+            (pageable.pageNumber * pageable.pageSize)
+                .coerceAtMost(filteredAndSorted.size)
+        val to =
+            (from + pageable.pageSize)
+                .coerceAtMost(filteredAndSorted.size)
 
         return Page(
             content = filteredAndSorted.subList(from, to),
@@ -252,5 +266,4 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
             pageable = pageable
         )
     }
-
 }

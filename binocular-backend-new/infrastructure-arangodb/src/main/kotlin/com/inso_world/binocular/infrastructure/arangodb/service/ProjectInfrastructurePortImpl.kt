@@ -41,6 +41,7 @@ internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort,
         return project
     }
 
+    @MappingSession
     override fun saveAll(values: Collection<Project>): Iterable<Project> = this.projectDao.saveAll(values)
 
     @MappingSession

@@ -90,6 +90,8 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
      *
      * **Note**: This method does NOT map parent/child commit relationships or branches.
      * Use assemblers for complete commit graph assembly.
+     * When the cached domain has `id=null` (pre-persistence) and the entity has a DB-assigned id,
+     * the id is back-propagated to the cached domain via [refreshDomain].
      *
      * @param entity The CommitEntity to convert
      * @return The Commit domain object (structure only, without relationships)
@@ -97,7 +99,11 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
      */
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: CommitEntity): Commit {
-        ctx.findDomain<Commit, CommitEntity>(entity)?.let { return it }
+        // Back-propagate the DB-assigned id when the cached domain was created pre-persistence.
+        ctx.findDomain<Commit, CommitEntity>(entity)?.let { found ->
+            if (found.id == null && entity.id != null) refreshDomain(found, entity)
+            return found
+        }
 
         // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
         // Do NOT auto-map Repository here - that's a separate aggregate.

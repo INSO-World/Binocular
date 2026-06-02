@@ -111,6 +111,7 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
 
     override fun create(entity: File): File = this.fileDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<File>): Iterable<File> = this.fileDao.saveAll(entities)
 
     override fun delete(entity: File) {
