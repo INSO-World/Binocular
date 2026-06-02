@@ -27,8 +27,9 @@ import kotlin.uuid.Uuid
  * - [name]: Branch name (business key component with repository)
  *
  * ### Relationships
- * - [repository]: Owning repository (required)
- * - [head]: Head commit reference (required)
+ * - [repository]: Owning repository (required). Declared as `lateinit var` — Spring Data ArangoDB
+ *   injects `@Ref` fields after construction; constructor params receive `null` from cursor results.
+ * - [head]: Head commit reference (same constraint as [repository]).
  * - [files]: Related files via edge collection
  *
  * ### Indexes
@@ -49,10 +50,6 @@ data class BranchEntity(
     var tracksFileRenames: Boolean = false,
     @Deprecated("Use head.sha instead")
     var latestCommit: String? = null,
-    @Ref(lazy = false)
-    val repository: RepositoryEntity,
-    @Ref(lazy = false)
-    val head: CommitEntity,
     @Relations(
         edges = [BranchFileConnectionEntity::class],
         lazy = true,
@@ -61,6 +58,11 @@ data class BranchEntity(
     )
     var files: Set<FileEntity> = emptySet(),
 ) {
+    @Ref(lazy = false)
+    lateinit var repository: RepositoryEntity
+
+    @Ref(lazy = false)
+    lateinit var head: CommitEntity
 
     @Deprecated("Legacy", replaceWith = ReplaceWith("fullName"))
     @Transient
@@ -73,8 +75,11 @@ data class BranchEntity(
      * @param head The head commit domain object
      * @return Branch domain object
      */
-    fun toDomain(repository: Repository, head: Commit): Branch {
-        return Branch(
+    fun toDomain(
+        repository: Repository,
+        head: Commit
+    ): Branch =
+        Branch(
             name = this.name,
             fullName = this.fullName,
             category = ReferenceCategory.valueOf(this.category),
@@ -85,7 +90,6 @@ data class BranchEntity(
             this.active = this@BranchEntity.active
             this.tracksFileRenames = this@BranchEntity.tracksFileRenames
         }
-    }
 }
 
 /**
@@ -96,7 +100,10 @@ data class BranchEntity(
  * @return BranchEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
+internal fun Branch.toEntity(
+    repository: RepositoryEntity,
+    head: CommitEntity
+): BranchEntity =
     BranchEntity(
         id = this.id,
         iid = this.iid.value,
@@ -106,6 +113,7 @@ internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): 
         active = this.active,
         tracksFileRenames = this.tracksFileRenames,
         latestCommit = this.head.sha,
-        repository = repository,
-        head = head,
-    )
+    ).also {
+        it.repository = repository
+        it.head = head
+    }

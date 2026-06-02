@@ -25,7 +25,9 @@ import kotlin.uuid.Uuid
  * - [gitSignature]: Combined "Name <email>" format
  *
  * ### Relationships
- * - [repository]: Owning repository (required)
+ * - [repository]: Owning repository (required). Declared as a `lateinit var` body property rather than
+ *   a constructor parameter — Spring Data ArangoDB injects lazy `@Ref` fields after construction.
+ *   Always set via the [toEntity] factory before use.
  *
  * ### Indexes
  * - [iid]: Unique persistent index for UUID-based lookups
@@ -39,8 +41,6 @@ data class UserEntity(
     @PersistentIndexed(unique = true)
     var iid: Uuid,
     var gitSignature: String,
-    @Ref(lazy = true)
-    var repository: RepositoryEntity,
     @Relations(
         edges = [CommitUserConnectionEntity::class],
         lazy = true,
@@ -63,6 +63,9 @@ data class UserEntity(
     )
     var files: Set<FileEntity> = emptySet(),
 ) {
+    @Ref(lazy = true)
+    lateinit var repository: RepositoryEntity
+
     /**
      * Extracts the name portion from the git signature.
      * Format expected: "Name <email@example.com>"
@@ -119,5 +122,4 @@ internal fun User.toEntity(repository: RepositoryEntity): UserEntity =
         id = this.id,
         iid = this.iid.value,
         gitSignature = this.gitSignature,
-        repository = repository,
-    )
+    ).also { it.repository = repository }
