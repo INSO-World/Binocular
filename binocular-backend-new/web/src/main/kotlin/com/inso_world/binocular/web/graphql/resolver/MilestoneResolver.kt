@@ -48,4 +48,7 @@ class MilestoneResolver(
         // Get all connections for this milestone and extract the merge requests
         return milestoneService.findMergeRequestsByMilestoneId(id)
     }
+
+    @SchemaMapping(typeName = "Milestone", field = "iid")
+    fun iid(milestone: Milestone): Int? = milestone.platformIid
 }
