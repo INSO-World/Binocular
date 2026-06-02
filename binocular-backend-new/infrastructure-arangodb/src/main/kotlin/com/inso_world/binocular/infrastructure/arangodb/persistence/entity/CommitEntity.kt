@@ -15,6 +15,7 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
+import com.inso_world.binocular.model.Stats
 import org.springframework.data.annotation.Id
 import java.time.LocalDateTime
 import java.util.Date
@@ -143,6 +144,8 @@ data class CommitEntity(
         ).apply {
             this.id = this@CommitEntity.id
             this.webUrl = this@CommitEntity.webUrl
+            this.branch = this@CommitEntity.branch
+            this.stats = this@CommitEntity.stats?.let { Stats(additions = it.additions, deletions = it.deletions) }
         }
     }
 }
