@@ -99,4 +99,6 @@ class MergeRequestResolver(
     @SchemaMapping(typeName = "mergeRequest", field = "targetBranch")
     fun targetBranch(@Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequest): String? = null
 
+    @SchemaMapping(typeName = "mergeRequest", field = "iid")
+    fun iid(mergeRequest: MergeRequest): Int? = mergeRequest.platformIid
 }

@@ -152,4 +152,16 @@ class IssueResolver(
         return issueService.findAccountsByIssueId(id, IssueAccountRole.ASSIGNEES)
     }
 
+    /**
+     * Resolves the iid field for an Issue in GraphQL.
+     *
+     * The domain's [AbstractDomainObject.iid] is a UUID-based value class, not an Int.
+     * The platform integer IID lives on [Issue.platformIid], so this resolver bridges
+     * the naming gap introduced by the inherited iid property.
+     */
+    @SchemaMapping(typeName = "Issue", field = "iid")
+    fun iid(issue: Issue): Int? = issue.platformIid
+
+    @SchemaMapping(typeName = "milestone", field = "iid")
+    fun iid(milestone: Milestone): Int? = milestone.platformIid
 }
