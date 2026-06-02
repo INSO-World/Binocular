@@ -47,10 +47,12 @@ internal class MergeRequestAccountConnectionDao
         }
 
         /**
-         * Save a merge request-account connection
+         * Save a merge request-account connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: MergeRequestAccountConnection): MergeRequestAccountConnection {
-            // Get the merge request and account entities from their repositories
             val mergeRequestEntity =
                 mergeRequestRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("MergeRequest with ID ${connection.from.id} not found")
@@ -60,7 +62,6 @@ internal class MergeRequestAccountConnectionDao
                     IllegalArgumentException("Account with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 MergeRequestAccountConnectionEntity(
                     id = connection.id,
@@ -68,14 +69,12 @@ internal class MergeRequestAccountConnectionDao
                     to = accountEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return MergeRequestAccountConnection(
                 id = savedEntity.id,
-                from = mergeRequestMapper.toDomain(savedEntity.from),
-                to = accountMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

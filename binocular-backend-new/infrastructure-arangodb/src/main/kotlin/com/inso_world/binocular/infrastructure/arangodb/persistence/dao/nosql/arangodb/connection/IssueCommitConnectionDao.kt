@@ -48,10 +48,12 @@ internal class IssueCommitConnectionDao
         }
 
         /**
-         * Save an issue-commit connection
+         * Save an issue-commit connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: IssueCommitConnection): IssueCommitConnection {
-            // Get the issue and commit entities from their repositories
             val issueEntity =
                 issueRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Issue with ID ${connection.from.id} not found")
@@ -61,7 +63,6 @@ internal class IssueCommitConnectionDao
                     IllegalArgumentException("Commit with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 IssueCommitConnectionEntity(
                     id = connection.id,
@@ -69,14 +70,12 @@ internal class IssueCommitConnectionDao
                     to = commitEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return IssueCommitConnection(
                 id = savedEntity.id,
-                from = issueMapper.toDomain(savedEntity.from),
-                to = commitMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

@@ -47,10 +47,12 @@ internal class MergeRequestNoteConnectionDao
         }
 
         /**
-         * Save a merge request-note connection
+         * Save a merge request-note connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: MergeRequestNoteConnection): MergeRequestNoteConnection {
-            // Get the merge request and note entities from their repositories
             val mergeRequestEntity =
                 mergeRequestRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("MergeRequest with ID ${connection.from.id} not found")
@@ -60,7 +62,6 @@ internal class MergeRequestNoteConnectionDao
                     IllegalArgumentException("Note with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 MergeRequestNoteConnectionEntity(
                     id = connection.id,
@@ -68,14 +69,12 @@ internal class MergeRequestNoteConnectionDao
                     to = noteEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return MergeRequestNoteConnection(
                 id = savedEntity.id,
-                from = mergeRequestMapper.toDomain(savedEntity.from),
-                to = noteMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

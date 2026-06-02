@@ -47,10 +47,12 @@ internal class IssueMilestoneConnectionDao
         }
 
         /**
-         * Save an issue-milestone connection
+         * Save an issue-milestone connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: IssueMilestoneConnection): IssueMilestoneConnection {
-            // Get the issue and milestone entities from their repositories
             val issueEntity =
                 issueRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Issue with ID ${connection.from.id} not found")
@@ -60,7 +62,6 @@ internal class IssueMilestoneConnectionDao
                     IllegalArgumentException("Milestone with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 IssueMilestoneConnectionEntity(
                     id = connection.id,
@@ -68,14 +69,12 @@ internal class IssueMilestoneConnectionDao
                     to = milestoneEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return IssueMilestoneConnection(
                 id = savedEntity.id,
-                from = issueMapper.toDomain(savedEntity.from),
-                to = milestoneMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

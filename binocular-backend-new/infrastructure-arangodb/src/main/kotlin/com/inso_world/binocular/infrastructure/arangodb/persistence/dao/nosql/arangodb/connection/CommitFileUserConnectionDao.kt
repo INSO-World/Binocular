@@ -47,10 +47,12 @@ internal class CommitFileUserConnectionDao
         }
 
         /**
-         * Save a commit-file-user connection
+         * Save a commit-file-user connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitFileUserConnection): CommitFileUserConnection {
-            // Get the file and user entities from their repositories
             val fileEntity =
                 fileRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("File with ID ${connection.from.id} not found")
@@ -60,7 +62,6 @@ internal class CommitFileUserConnectionDao
                     IllegalArgumentException("User with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 CommitFileUserConnectionEntity(
                     id = connection.id,
@@ -68,14 +69,12 @@ internal class CommitFileUserConnectionDao
                     to = userEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitFileUserConnection(
                 id = savedEntity.id,
-                from = fileMapper.toDomain(savedEntity.from),
-                to = userMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

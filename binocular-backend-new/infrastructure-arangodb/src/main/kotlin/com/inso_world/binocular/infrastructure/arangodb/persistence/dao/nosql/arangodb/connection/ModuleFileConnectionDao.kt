@@ -46,10 +46,12 @@ internal class ModuleFileConnectionDao
         }
 
         /**
-         * Save a module-file connection
+         * Save a module-file connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: ModuleFileConnection): ModuleFileConnection {
-            // Get the module and file entities from their repositories
             val moduleEntity =
                 moduleRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Module with ID ${connection.from.id} not found")
@@ -59,7 +61,6 @@ internal class ModuleFileConnectionDao
                     IllegalArgumentException("File with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 ModuleFileConnectionEntity(
                     id = connection.id,
@@ -67,14 +68,12 @@ internal class ModuleFileConnectionDao
                     to = fileEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return ModuleFileConnection(
                 id = savedEntity.id,
-                from = moduleMapper.toDomain(savedEntity.from),
-                to = fileMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

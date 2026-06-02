@@ -26,6 +26,7 @@ class CommitCommitConnectionDao
         private val commitRepository: CommitRepository,
     ) : ICommitCommitConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
+
         @Autowired private lateinit var seeder: DefaultMappingContextSeeder
 
         /**
@@ -47,10 +48,12 @@ class CommitCommitConnectionDao
         }
 
         /**
-         * Save a commit-commit connection
+         * Save a commit-commit connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitCommitConnection): CommitCommitConnection {
-            // Get the parent and child commit entities from the repository
             val fromCommitEntity =
                 commitRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Parent Commit with ID ${connection.from.id} not found")
@@ -60,7 +63,6 @@ class CommitCommitConnectionDao
                     IllegalArgumentException("Child Commit with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 CommitCommitConnectionEntity(
                     id = connection.id,
@@ -68,14 +70,12 @@ class CommitCommitConnectionDao
                     to = toCommitEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitCommitConnection(
                 id = savedEntity.id,
-                from = commitMapper.toDomain(savedEntity.from),
-                to = commitMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

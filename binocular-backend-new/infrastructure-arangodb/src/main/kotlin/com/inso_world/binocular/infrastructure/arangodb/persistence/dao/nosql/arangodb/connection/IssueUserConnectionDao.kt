@@ -47,10 +47,12 @@ internal class IssueUserConnectionDao
         }
 
         /**
-         * Save an issue-user connection
+         * Save an issue-user connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: IssueUserConnection): IssueUserConnection {
-            // Get the issue and user entities from their repositories
             val issueEntity =
                 issueRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Issue with ID ${connection.from.id} not found")
@@ -60,7 +62,6 @@ internal class IssueUserConnectionDao
                     IllegalArgumentException("User with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 IssueUserConnectionEntity(
                     id = connection.id,
@@ -68,14 +69,12 @@ internal class IssueUserConnectionDao
                     to = userEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return IssueUserConnection(
                 id = savedEntity.id,
-                from = issueMapper.toDomain(savedEntity.from),
-                to = userMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

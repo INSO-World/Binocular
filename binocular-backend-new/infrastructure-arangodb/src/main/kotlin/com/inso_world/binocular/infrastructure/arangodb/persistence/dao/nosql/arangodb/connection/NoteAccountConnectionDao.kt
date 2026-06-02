@@ -47,10 +47,12 @@ internal class NoteAccountConnectionDao
         }
 
         /**
-         * Save a note-account connection
+         * Save a note-account connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: NoteAccountConnection): NoteAccountConnection {
-            // Get the note and account entities from their repositories
             val noteEntity =
                 noteRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Note with ID ${connection.from.id} not found")
@@ -60,7 +62,6 @@ internal class NoteAccountConnectionDao
                     IllegalArgumentException("Account with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 NoteAccountConnectionEntity(
                     id = connection.id,
@@ -68,14 +69,12 @@ internal class NoteAccountConnectionDao
                     to = accountEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return NoteAccountConnection(
                 id = savedEntity.id,
-                from = noteMapper.toDomain(savedEntity.from),
-                to = accountMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 
