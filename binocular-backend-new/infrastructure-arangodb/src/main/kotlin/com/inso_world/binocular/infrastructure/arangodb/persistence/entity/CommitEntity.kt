@@ -33,9 +33,10 @@ import kotlin.uuid.Uuid
  * - [sha]: Business key (unique SHA-1 hash)
  *
  * ### Relationships
- * - [repository]: Owning repository (required)
- * - [author]: The developer who authored the commit
- * - [committer]: The developer who committed the code
+ * - [repository]: Owning repository (required). Declared as `lateinit var` — Spring Data ArangoDB
+ *   injects `@Ref` fields after construction; constructor params receive `null` from cursor results.
+ * - [author]: The developer who authored the commit (same constraint as [repository]).
+ * - [committer]: The developer who committed the code (same constraint as [repository]).
  * - [parents]: Parent commits via edge collection
  * - [children]: Child commits via edge collection
  *
@@ -59,12 +60,6 @@ data class CommitEntity(
     @Deprecated("do not use")
     var branch: String? = null,
     var stats: StatsEntity? = null,
-    @Ref(lazy = false)
-    val author: DeveloperEntity,
-    @Ref(lazy = false)
-    val committer: DeveloperEntity,
-    @Ref(lazy = false)
-    val repository: RepositoryEntity,
     @Relations(
         edges = [CommitCommitConnectionEntity::class],
         lazy = true,
@@ -115,6 +110,15 @@ data class CommitEntity(
     )
     var issues: List<IssueEntity> = emptyList(),
 ) {
+    @Ref(lazy = false)
+    lateinit var author: DeveloperEntity
+
+    @Ref(lazy = false)
+    lateinit var committer: DeveloperEntity
+
+    @Ref(lazy = false)
+    lateinit var repository: RepositoryEntity
+
     /**
      * Converts this CommitEntity to a Commit domain object.
      *
@@ -171,9 +175,9 @@ internal fun Commit.toEntity(
         commitDateTime = this.committerSignature.timestamp,
         message = this.message,
         webUrl = this.webUrl,
-        repository = repository,
-        author = author,
-        committer = committer,
-    ).apply {
-        this.id = this@toEntity.id?.trim()
+    ).also {
+        it.id = this.id?.trim()
+        it.repository = repository
+        it.author = author
+        it.committer = committer
     }

@@ -21,7 +21,9 @@ import org.springframework.data.annotation.Id
  * @property id ArangoDB document ID
  * @property gitSignature Combined "Name <email>" git signature format
  * @property iid Domain-level unique identifier (UUID-based)
- * @property repository Reference to the owning repository
+ * @property repository Reference to the owning repository. Declared as a `lateinit var` body property
+ *   rather than a constructor parameter — Spring Data ArangoDB injects lazy `@Ref` fields after
+ *   construction. Always set via the [toEntity] factory before use.
  */
 @Document("developers")
 data class DeveloperEntity(
@@ -29,8 +31,6 @@ data class DeveloperEntity(
     var id: String? = null,
     var gitSignature: String,
     val iid: Developer.Id,
-    @Ref(lazy = true)
-    var repository: RepositoryEntity,
     @Relations(
         edges = [CommitUserConnectionEntity::class],
         lazy = true,
@@ -53,10 +53,16 @@ data class DeveloperEntity(
     )
     var files: Set<FileEntity> = emptySet(),
 ) {
+    @Ref(lazy = true)
+    lateinit var repository: RepositoryEntity
+
     /**
      * Business key combining repository ID and email for uniqueness.
      */
-    data class Key(val repositoryId: String?, val email: String)
+    data class Key(
+        val repositoryId: String?,
+        val email: String
+    )
 
     /**
      * Extracts the name portion from the git signature.
@@ -65,7 +71,11 @@ data class DeveloperEntity(
     val name: String
         get() {
             val nameRegex = Regex("""^(.+?)\s*<""")
-            return nameRegex.find(gitSignature)?.groupValues?.get(1)?.trim()
+            return nameRegex
+                .find(gitSignature)
+                ?.groupValues
+                ?.get(1)
+                ?.trim()
                 ?: throw IllegalArgumentException("Could not extract name from gitSignature: $gitSignature")
         }
 
@@ -113,5 +123,4 @@ internal fun Developer.toEntity(repository: RepositoryEntity): DeveloperEntity =
         id = this.id,
         gitSignature = this.gitSignature,
         iid = this.iid,
-        repository = repository,
-    )
+    ).also { it.repository = repository }
