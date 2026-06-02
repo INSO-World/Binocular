@@ -86,6 +86,7 @@ internal class ModuleInfrastructurePortImpl : ModuleInfrastructurePort,
 
     override fun create(entity: Module): Module = moduleDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<Module>): Iterable<Module> = moduleDao.saveAll(entities)
 
     override fun delete(entity: Module): Unit = moduleDao.delete(entity)

@@ -96,6 +96,7 @@ internal class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePo
 
     override fun create(entity: MergeRequest): MergeRequest = this.mergeRequestDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<MergeRequest>): Iterable<MergeRequest> = this.mergeRequestDao.saveAll(entities)
 
     override fun delete(entity: MergeRequest) = this.mergeRequestDao.delete(entity)

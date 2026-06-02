@@ -4,6 +4,7 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
@@ -13,17 +14,19 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
-    AbstractInfrastructurePort<Repository, String>() {
-
+internal class RepositoryInfrastructurePortImpl :
+    AbstractInfrastructurePort<Repository, String>(),
+    RepositoryInfrastructurePort {
     @PostConstruct
     fun init() {
         super.dao = repositoryDao
     }
+
     companion object {
         val logger by logger()
     }
@@ -36,6 +39,10 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
 
     @Autowired
     private lateinit var repositoryMapper: RepositoryMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var repositoryAssembler: RepositoryAssembler
 
     @MappingSession
     override fun findByIid(iid: Repository.Id): Repository? {
@@ -52,12 +59,17 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     override fun findById(id: String): Repository? = this.repositoryDao.findById(id)
 
     override fun create(value: Repository): Repository {
-        val mappedEntity = repositoryMapper.toEntity(value)
-        val savedEntity = this.repositoryDao.create(mappedEntity)
-        return repositoryMapper.toDomain(savedEntity)
+        // Ensure parent references are in context via assembler
+        repositoryAssembler.toEntity(value)
+        // Pass domain object to DAO (DAO handles conversion internally)
+        return repositoryDao.create(value)
     }
 
-    override fun saveAll(values: Collection<Repository>): Iterable<Repository> = this.repositoryDao.saveAll(values)
+    @MappingSession
+    override fun saveAll(values: Collection<Repository>): Iterable<Repository> {
+        values.forEach { create(it) }
+        return values
+    }
 
     override fun update(value: Repository): Repository {
         TODO("Not yet implemented")

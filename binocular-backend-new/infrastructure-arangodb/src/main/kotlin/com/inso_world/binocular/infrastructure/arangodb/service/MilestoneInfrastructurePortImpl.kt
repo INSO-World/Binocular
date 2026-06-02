@@ -71,6 +71,7 @@ internal class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort,
 
     override fun create(entity: Milestone): Milestone = this.milestoneDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<Milestone>): Iterable<Milestone> = this.milestoneDao.saveAll(entities)
 
     override fun delete(entity: Milestone) = this.milestoneDao.delete(entity)

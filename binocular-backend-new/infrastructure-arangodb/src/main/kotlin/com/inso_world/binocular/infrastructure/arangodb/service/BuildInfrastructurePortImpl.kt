@@ -69,6 +69,7 @@ internal class BuildInfrastructurePortImpl : BuildInfrastructurePort,
 
     override fun create(entity: Build): Build = this.buildDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<Build>): Iterable<Build> = this.buildDao.saveAll(entities)
 
     override fun delete(entity: Build) = this.buildDao.delete(entity)

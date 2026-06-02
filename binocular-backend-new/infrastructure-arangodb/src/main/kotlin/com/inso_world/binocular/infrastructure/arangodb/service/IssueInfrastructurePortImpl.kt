@@ -121,6 +121,7 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
 
     override fun create(entity: Issue): Issue = this.issueDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<Issue>): Iterable<Issue> = this.issueDao.saveAll(entities)
 
     override fun delete(entity: Issue) = this.issueDao.delete(entity)

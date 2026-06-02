@@ -3,6 +3,7 @@ package com.inso_world.binocular.infrastructure.arangodb.service
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.UserInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueUserConnectionDao
@@ -18,6 +19,7 @@ import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
@@ -26,13 +28,14 @@ import org.springframework.stereotype.Service
  * This service is database-agnostic and works with both ArangoDB and SQL implementations.
  */
 @Service
-internal class UserInfrastructurePortImpl : UserInfrastructurePort,
-    AbstractInfrastructurePort<User, String>() {
-
+internal class UserInfrastructurePortImpl :
+    AbstractInfrastructurePort<User, String>(),
+    UserInfrastructurePort {
     @PostConstruct
     fun init() {
         super.dao = userDao
     }
+
     @Autowired
     private lateinit var userDao: UserDao
 
@@ -44,6 +47,11 @@ internal class UserInfrastructurePortImpl : UserInfrastructurePort,
 
     @Autowired
     private lateinit var issueUserConnectionRepository: IIssueUserConnectionDao
+
+    @Autowired
+    @Lazy
+    private lateinit var repositoryAssembler: RepositoryAssembler
+
     var logger: Logger = LoggerFactory.getLogger(UserInfrastructurePortImpl::class.java)
 
     @MappingSession
@@ -89,15 +97,25 @@ internal class UserInfrastructurePortImpl : UserInfrastructurePort,
     @MappingSession
     override fun findAll(): Iterable<User> = this.userDao.findAll()
 
-    override fun create(value: User): User {
+    private fun persist(value: User): User {
         val repo = requireNotNull(value.repository)
-        val newUser = userDao.create(value)
+        repositoryAssembler.toEntity(repo)
+        return userDao.create(value)
+    }
+
+    override fun create(value: User): User {
+        val newUser = persist(value)
+        val repo = requireNotNull(value.repository)
         repo.user.removeIf { it.email == value.email }
         repo.user.add(newUser)
         return newUser
     }
 
-    override fun saveAll(values: Collection<User>): Iterable<User> = userDao.saveAll(values)
+    @MappingSession
+    override fun saveAll(values: Collection<User>): Iterable<User> {
+        values.forEach { persist(it) }
+        return values
+    }
 
     override fun update(value: User): User {
         TODO("Not yet implemented")
