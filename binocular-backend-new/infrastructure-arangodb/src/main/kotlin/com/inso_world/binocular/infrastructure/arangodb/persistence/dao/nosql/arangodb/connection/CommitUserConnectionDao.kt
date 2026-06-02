@@ -48,10 +48,12 @@ internal class CommitUserConnectionDao
         }
 
         /**
-         * Save a commit-user connection
+         * Save a commit-user connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitUserConnection): CommitUserConnection {
-            // Get the commit and user entities from their repositories
             val commitEntity =
                 commitRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Commit with ID ${connection.from.id} not found")
@@ -61,7 +63,6 @@ internal class CommitUserConnectionDao
                     IllegalArgumentException("User with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 CommitUserConnectionEntity(
                     id = connection.id,
@@ -69,14 +70,12 @@ internal class CommitUserConnectionDao
                     to = userEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitUserConnection(
                 id = savedEntity.id,
-                from = commitMapper.toDomain(savedEntity.from),
-                to = userMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

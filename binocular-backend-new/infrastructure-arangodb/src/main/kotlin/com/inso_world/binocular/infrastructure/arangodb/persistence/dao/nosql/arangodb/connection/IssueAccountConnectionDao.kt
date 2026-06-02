@@ -40,9 +40,12 @@ internal class IssueAccountConnectionDao
         }
 
         /**
-        * Finds all accounts connected to the given issue with the specified role.
-        */
-        override fun findAccountsByIssue(issueId: String, role: IssueAccountRole): List<Account> {
+         * Finds all accounts connected to the given issue with the specified role.
+         */
+        override fun findAccountsByIssue(
+            issueId: String,
+            role: IssueAccountRole
+        ): List<Account> {
             val accountEntities = repository.findAccountsByIssueAndRole(issueId, role.value)
             return accountEntities.map { accountMapper.toDomain(it) }
         }
@@ -56,10 +59,12 @@ internal class IssueAccountConnectionDao
         }
 
         /**
-         * Save an issue-account connection
+         * Save an issue-account connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: IssueAccountConnection): IssueAccountConnection {
-            // Get the issue and account entities from their repositories
             val issueEntity =
                 issueRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Issue with ID ${connection.from.id} not found")
@@ -69,7 +74,6 @@ internal class IssueAccountConnectionDao
                     IllegalArgumentException("Account with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 IssueAccountConnectionEntity(
                     id = connection.id,
@@ -78,14 +82,12 @@ internal class IssueAccountConnectionDao
                     role = connection.role?.value,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return IssueAccountConnection(
                 id = savedEntity.id,
-                from = issueMapper.toDomain(savedEntity.from),
-                to = accountMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 
