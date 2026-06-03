@@ -175,6 +175,7 @@ internal fun Commit.toEntity(
         commitDateTime = this.committerSignature.timestamp,
         message = this.message,
         webUrl = this.webUrl,
+        branch = this.branch,
     ).also {
         it.id = this.id?.trim()
         it.repository = repository

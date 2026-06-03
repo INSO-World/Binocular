@@ -38,6 +38,9 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
     @Autowired
     private lateinit var developerMapper: DeveloperMapper
 
+    @Autowired
+    private lateinit var statsMapper: StatsMapper
+
     companion object {
         private val logger by logger()
     }
@@ -117,7 +120,12 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
         val author = developerMapper.toDomain(entity.author)
         val committer = developerMapper.toDomain(entity.committer)
 
-        val domain = entity.toDomain(owner, author, committer)
+        val domain =
+            entity.toDomain(owner, author, committer).apply {
+                entity.stats?.let { stats ->
+                    this.stats = statsMapper.toDomain(stats)
+                }
+            }
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,

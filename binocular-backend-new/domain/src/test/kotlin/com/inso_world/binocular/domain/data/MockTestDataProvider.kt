@@ -6,6 +6,7 @@ import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
+import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import java.time.LocalDateTime
@@ -86,44 +87,62 @@ class MockTestDataProvider(
     val commits: List<Commit> =
         listOf(
             run {
+                val sha = "a".repeat(40)
                 val dev = developerByEmail.getValue("a@test.com")
                 val timestamp = LocalDateTime.now().minusSeconds(1)
                 Commit(
-                    sha = "a".repeat(40),
+                    sha = sha,
                     message = "msg1",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                ).apply { this.id = "1" }
+                ).apply {
+                    this.id = "1"
+                    this.webUrl = "https://example.com/commit/$sha"
+                    this.stats = Stats(10, 5)
+                }
             },
             run {
                 val dev = developerByEmail.getValue("b@test.com")
                 val timestamp = LocalDateTime.now().minusSeconds(1)
+                val sha = "b".repeat(40)
                 Commit(
-                    sha = "b".repeat(40),
+                    sha = sha,
                     message = "msg2",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                ).apply { this.id = "2" }
+                ).apply {
+                    this.id = "2"
+                    this.webUrl = "https://example.com/commit/$sha"
+                    this.stats = Stats(7, 3)
+                }
             },
             run {
                 val dev = developerByEmail.getValue("c@test.com")
                 val timestamp = LocalDateTime.now().minusSeconds(1)
+                val sha = "c".repeat(40)
                 Commit(
-                    sha = "c".repeat(40),
+                    sha = sha,
                     message = "msg1",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                ).apply { this.id = "3" }
+                ).apply {
+                    this.id = "3"
+                    this.webUrl = "https://example.com/commit/$sha"
+                }
             },
             run {
                 val dev = developerByEmail.getValue("d@test.com")
                 val timestamp = LocalDateTime.now().minusSeconds(1)
+                val sha = "d".repeat(40)
                 Commit(
-                    sha = "d".repeat(40),
+                    sha = sha,
                     message = "msg-d",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                ).apply { this.id = "4" }
+                ).apply {
+                    this.id = "4"
+                    this.webUrl = "https://example.com/commit/$sha"
+                }
             },
         )
     val commitBySha = commits.associateBy(Commit::sha)
@@ -142,6 +161,10 @@ class MockTestDataProvider(
                 this.active = true
                 @Suppress("DEPRECATION")
                 this.tracksFileRenames = true
+                with(this.head) {
+                    // this is a hacky solution but back propagates the branch name on creation to the legacy field
+                    this.branch = this@apply.name
+                }
             },
             Branch(
                 fullName = "refs/heads/feature/new-feature",
@@ -155,6 +178,10 @@ class MockTestDataProvider(
                 this.active = true
                 @Suppress("DEPRECATION")
                 this.tracksFileRenames = false
+                with(this.head) {
+                    // this is a hacky solution but back propagates the branch name on creation to the legacy field
+                    this.branch = this@apply.name
+                }
             },
         )
 
