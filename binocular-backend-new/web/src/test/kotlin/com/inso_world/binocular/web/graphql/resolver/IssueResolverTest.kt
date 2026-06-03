@@ -147,18 +147,18 @@ internal class IssueResolverTest : GraphQlControllerTest() {
             // Verify commits
             val commits = result.get("commits")
             assertNotNull(commits, "Commits should not be null")
-            assertEquals(1, commits.size(), "Should have 1 commit")
+            assertEquals(1L, commits.size().toLong(), "Should have 1 related commit")
 
             val commit = commits.get(0)
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
                 {
                     assertTrue(
-                        commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"),
+                        commit.get("sha").asText() == TestDataProvider.testCommits[0].sha,
                         "Commit SHA should start with short hash prefix"
                     )
                 },
-                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
+                { assertEquals(TestDataProvider.testCommits[0].message, commit.get("message").asText(), "Commit message mismatch") },
             )
         }
 

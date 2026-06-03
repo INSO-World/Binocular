@@ -169,7 +169,7 @@ object TestDataProvider {
             ),
             Build(
                 "2",
-                "def456",
+                "def4560000000000000000000000000000000000",
                 "feature/new-feature",
                 "failed",
                 "v1.0.0",
@@ -256,7 +256,7 @@ object TestDataProvider {
                 "https://example.com/issues/102",
                 listOf(
                     Mention(
-                        "def456",
+                        "def4560000000000000000000000000000000000",
                         LocalDateTime.now(),
                         true,
                     ),
@@ -298,7 +298,7 @@ object TestDataProvider {
                 "https://example.com/merge_requests/202",
                 listOf(
                     Mention(
-                        "def456",
+                        "def4560000000000000000000000000000000000",
                         LocalDateTime.now(),
                         true,
                     ),
