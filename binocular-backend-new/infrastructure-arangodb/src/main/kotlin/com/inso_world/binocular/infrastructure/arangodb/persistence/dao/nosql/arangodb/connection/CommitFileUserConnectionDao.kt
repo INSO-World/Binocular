@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileUserConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitFileUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.FileMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
@@ -30,12 +32,22 @@ internal class CommitFileUserConnectionDao
         private val fileMapper: FileMapper,
         private val userMapper: UserMapper,
     ) : ICommitFileUserConnectionDao {
+        @Autowired
+        private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all users connected to a file
          */
         override fun findUsersByFile(fileId: String): List<User> {
             val userEntities = repository.findUsersByCommitFile(fileId)
-            return userEntities.map { userMapper.toDomain(it) }
+            return userEntities.map {
+                seeder.seed()
+                repositoryAssembler.toDomain(it.repository)
+                userMapper.toDomain(it)
+            }
         }
 
         /**
