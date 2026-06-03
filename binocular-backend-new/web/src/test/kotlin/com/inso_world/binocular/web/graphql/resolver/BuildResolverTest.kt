@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,7 +24,7 @@ internal class BuildResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    build(id: "1") {
+                    build(id: "${TestDataProvider.testBuilds[0].id}") {
                         id
                         sha
                         ref
@@ -51,7 +52,12 @@ internal class BuildResolverTest : GraphQlControllerTest() {
             // Verify build data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Build ID mismatch") },
-                { assertTrue(result.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Build SHA should start with short hash") },
+                {
+                    assertTrue(
+                        result.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"),
+                        "Build SHA should start with short hash"
+                    )
+                },
                 { assertEquals("main", result.get("ref").asText(), "Build ref mismatch") },
                 { assertEquals("success", result.get("status").asText(), "Build status mismatch") },
                 { assertEquals("v0.0.1-rc", result.get("tag").asText(), "Build tag mismatch") },
@@ -87,7 +93,7 @@ internal class BuildResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    build(id: "1") {
+                    build(id: "${TestDataProvider.testBuilds[0].id}") {
                         id
                         sha
                         ref
@@ -110,7 +116,12 @@ internal class BuildResolverTest : GraphQlControllerTest() {
             // Verify build data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "Build ID mismatch") },
-                { assertTrue(result.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Build SHA should start with short hash") },
+                {
+                    assertTrue(
+                        result.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"),
+                        "Build SHA should start with short hash"
+                    )
+                },
                 { assertEquals("main", result.get("ref").asText(), "Build ref mismatch") },
                 { assertEquals("success", result.get("status").asText(), "Build status mismatch") },
                 { assertEquals("User One", result.get("userFullName").asText(), "Build userFullName mismatch") },
@@ -126,7 +137,12 @@ internal class BuildResolverTest : GraphQlControllerTest() {
             val commit = commits.get(0)
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertTrue(commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Commit SHA should start with short hash") },
+                {
+                    assertTrue(
+                        commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"),
+                        "Commit SHA should start with short hash"
+                    )
+                },
                 { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
@@ -138,7 +154,7 @@ internal class BuildResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    build(id: "2") {
+                    build(id: "${TestDataProvider.testBuilds[1].id}") {
                         id
                         sha
                         ref

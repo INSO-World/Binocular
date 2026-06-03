@@ -127,7 +127,7 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                issue(id: "1") {
+                issue(id: "${TestDataProvider.testIssues[0].id}") {
                     id
                     iid
                     title

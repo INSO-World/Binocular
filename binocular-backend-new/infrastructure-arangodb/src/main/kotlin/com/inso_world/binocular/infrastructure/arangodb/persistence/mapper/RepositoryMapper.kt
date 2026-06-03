@@ -91,7 +91,9 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
         val owner =
-            ctx.findDomain<Project, ProjectEntity>(entity.project)
+            ctx.findDomain<Project, ProjectEntity>(
+                entity.project ?: throw IllegalStateException("RepositoryEntity.project not loaded from ArangoDB — @Ref field was null.")
+            )
                 ?: throw IllegalStateException(
                     "Project must be mapped before Repository. " +
                         "Ensure Project is in MappingContext before calling toDomain().",

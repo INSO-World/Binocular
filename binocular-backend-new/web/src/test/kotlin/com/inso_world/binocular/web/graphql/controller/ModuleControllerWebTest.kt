@@ -81,7 +81,7 @@ internal class ModuleControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                module(id: "1") {
+                module(id: "${TestDataProvider.testModules[0].id}") {
                     id
                     path
                 }

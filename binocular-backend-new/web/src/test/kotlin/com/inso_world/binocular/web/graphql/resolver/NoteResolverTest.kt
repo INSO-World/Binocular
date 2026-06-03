@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,7 +24,7 @@ internal class NoteResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    note(id: "1") {
+                    note(id: "${TestDataProvider.testNotes[0].id}") {
                         id
                         body
                         createdAt
@@ -75,7 +76,7 @@ internal class NoteResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    note(id: "1") {
+                    note(id: "${TestDataProvider.testNotes[0].id}") {
                         id
                         body
                         accounts {
@@ -119,7 +120,7 @@ internal class NoteResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    note(id: "1") {
+                    note(id: "${TestDataProvider.testNotes[0].id}") {
                         id
                         body
                         issues {
@@ -161,7 +162,7 @@ internal class NoteResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    note(id: "1") {
+                    note(id: "${TestDataProvider.testNotes[0].id}") {
                         id
                         body
                         mergeRequests {

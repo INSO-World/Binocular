@@ -118,7 +118,7 @@ internal class AccountControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                account(id: "1") {
+                account(id: "${TestDataProvider.testAccounts[0].id}") {
                     id
                     platform
                     login

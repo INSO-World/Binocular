@@ -27,8 +27,44 @@ import java.time.LocalDateTime
     replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider"),
 )
 object TestDataProvider {
-    private val project = Project(name = "proj-pg-0")
-    private val repository = Repository(localPath = "repo-pg-0", project = project)
+    val testProjects =
+        listOf(
+            Project(name = "proj-pg-0").apply { this.id = "1" },
+            Project(name = "proj-pg-1").apply { this.id = "2" },
+            Project(name = "proj-pg-2").apply { this.id = "3" },
+            Project(name = "proj-pg-3").apply { this.id = "4" },
+            Project(name = "proj-pg-4").apply { this.id = "5" },
+            Project(name = "proj-pg-7").apply { this.id = "7" },
+            Project(name = "proj-for-repos").apply { this.id = "6" },
+        )
+    private val testProjectsByName = testProjects.associateBy { it.name }
+
+    val testRepositories =
+        listOf(
+            Repository(localPath = "repo-pg-0", project = testProjectsByName.getValue("proj-for-repos")).apply {
+                this.id = "r1"
+            },
+            Repository(localPath = "repo-pg-1", project = testProjectsByName.getValue("proj-pg-4")).apply {
+                this.id = "r2"
+            },
+            Repository(localPath = "repo-pg-2", project = testProjectsByName.getValue("proj-pg-3")).apply {
+                this.id = "r3"
+            },
+            Repository(localPath = "repo-pg-3", project = testProjectsByName.getValue("proj-pg-2")).apply {
+                this.id = "r4"
+            },
+            Repository(localPath = "repo-pg-4", project = testProjectsByName.getValue("proj-pg-1")).apply {
+                this.id = "r5"
+            },
+            Repository(localPath = "repo-pg-5", project = testProjectsByName.getValue("proj-pg-0")).apply {
+                this.id = "r6"
+            },
+            Repository(localPath = "repo-pg-6", project = testProjectsByName.getValue("proj-pg-7")).apply {
+                this.id = "r7"
+            },
+        )
+
+    private val repository = testRepositories.first()
 
     private val mockTestDataProvider = MockTestDataProvider(repository)
 
@@ -65,6 +101,8 @@ object TestDataProvider {
 //        listOf(mainBranch, newFeatureBranch)
 
     val testCommits = mockTestDataProvider.commits
+
+    val testDevelopers = mockTestDataProvider.developers
 //        listOf(
 //            run {
 //                val cmt =
@@ -272,43 +310,6 @@ object TestDataProvider {
         listOf(
             Module("1", "src/main/kotlin/com/example/core"),
             Module("2", "src/main/kotlin/com/example/api"),
-        )
-
-    val testProjects =
-        listOf(
-            Project(name = "proj-pg-0").apply { this.id = "1" },
-            Project(name = "proj-pg-1").apply { this.id = "2" },
-            Project(name = "proj-pg-2").apply { this.id = "3" },
-            Project(name = "proj-pg-3").apply { this.id = "4" },
-            Project(name = "proj-pg-4").apply { this.id = "5" },
-            Project(name = "proj-pg-7").apply { this.id = "7" },
-            Project(name = "proj-for-repos").apply { this.id = "6" },
-        )
-    private val testProjectsByName = testProjects.associateBy { it.name }
-
-    val testRepositories =
-        listOf(
-            Repository(localPath = "repo-pg-0", project = testProjectsByName.getValue("proj-for-repos")).apply {
-                this.id = "r1"
-            },
-            Repository(localPath = "repo-pg-1", project = testProjectsByName.getValue("proj-pg-4")).apply {
-                this.id = "r2"
-            },
-            Repository(localPath = "repo-pg-2", project = testProjectsByName.getValue("proj-pg-3")).apply {
-                this.id = "r3"
-            },
-            Repository(localPath = "repo-pg-3", project = testProjectsByName.getValue("proj-pg-2")).apply {
-                this.id = "r4"
-            },
-            Repository(localPath = "repo-pg-4", project = testProjectsByName.getValue("proj-pg-1")).apply {
-                this.id = "r5"
-            },
-            Repository(localPath = "repo-pg-5", project = testProjectsByName.getValue("proj-pg-0")).apply {
-                this.id = "r6"
-            },
-            Repository(localPath = "repo-pg-6", project = testProjectsByName.getValue("proj-pg-7")).apply {
-                this.id = "r7"
-            },
         )
 
     val testNotes =

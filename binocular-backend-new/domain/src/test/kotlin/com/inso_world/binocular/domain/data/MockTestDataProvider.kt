@@ -75,11 +75,11 @@ class MockTestDataProvider(
     // New Developer-based test data
     val developers: List<Developer> =
         listOf(
-            Developer(name = "User A", email = "a@test.com", repository = repository),
-            Developer(name = "User B", email = "b@test.com", repository = repository),
-            Developer(name = "User C", email = "c@test.com", repository = repository),
-            Developer(name = "User D", email = "d@test.com", repository = repository),
-            Developer(name = "Author Only", email = "author@test.com", repository = repository),
+            Developer(name = "User A", email = "a@test.com", repository = repository).apply { this.id = "d1" },
+            Developer(name = "User B", email = "b@test.com", repository = repository).apply { this.id = "d2" },
+            Developer(name = "User C", email = "c@test.com", repository = repository).apply { this.id = "d3" },
+            Developer(name = "User D", email = "d@test.com", repository = repository).apply { this.id = "d4" },
+            Developer(name = "Author Only", email = "author@test.com", repository = repository).apply { this.id = "d5" },
         )
     val developerByEmail = developers.associateBy { it.email }
 
@@ -93,7 +93,7 @@ class MockTestDataProvider(
                     message = "msg1",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                )
+                ).apply { this.id = "1" }
             },
             run {
                 val dev = developerByEmail.getValue("b@test.com")
@@ -103,7 +103,7 @@ class MockTestDataProvider(
                     message = "msg2",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                )
+                ).apply { this.id = "2" }
             },
             run {
                 val dev = developerByEmail.getValue("c@test.com")
@@ -113,7 +113,7 @@ class MockTestDataProvider(
                     message = "msg1",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                )
+                ).apply { this.id = "3" }
             },
             run {
                 val dev = developerByEmail.getValue("d@test.com")
@@ -123,7 +123,7 @@ class MockTestDataProvider(
                     message = "msg-d",
                     authorSignature = Signature(developer = dev, timestamp = timestamp),
                     repository = repository,
-                )
+                ).apply { this.id = "4" }
             },
         )
     val commitBySha = commits.associateBy(Commit::sha)
@@ -131,19 +131,31 @@ class MockTestDataProvider(
     val branches =
         listOf(
             Branch(
-                fullName = "refs/remotes/origin/feature/test",
-                name = "origin/feature/test",
+                fullName = "refs/heads/main",
+                name = "main",
                 repository = repository,
                 head = commitBySha.getValue("a".repeat(40)),
-                category = ReferenceCategory.REMOTE_BRANCH,
-            ),
+                category = ReferenceCategory.LOCAL_BRANCH,
+            ).apply {
+                this.id = "1"
+                @Suppress("DEPRECATION")
+                this.active = true
+                @Suppress("DEPRECATION")
+                this.tracksFileRenames = true
+            },
             Branch(
-                fullName = "refs/remotes/origin/fixme/123",
-                name = "origin/fixme/123",
+                fullName = "refs/heads/feature/new-feature",
+                name = "feature/new-feature",
                 repository = repository,
-                head = commitBySha.getValue("a".repeat(40)),
-                category = ReferenceCategory.REMOTE_BRANCH,
-            ),
+                head = commitBySha.getValue("b".repeat(40)),
+                category = ReferenceCategory.LOCAL_BRANCH,
+            ).apply {
+                this.id = "2"
+                @Suppress("DEPRECATION")
+                this.active = true
+                @Suppress("DEPRECATION")
+                this.tracksFileRenames = false
+            },
         )
 
     val branchByName = branches.associateBy(Branch::name)
