@@ -1,10 +1,13 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
 import com.inso_world.binocular.core.persistence.model.Page
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.BranchFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.BranchFileConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.BranchMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.FileMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BranchRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.FileRepository
@@ -32,7 +35,12 @@ internal class BranchFileConnectionDao
         private val fileRepository: FileRepository,
         private val branchMapper: BranchMapper,
         private val fileMapper: FileMapper,
+        private val commitMapper: CommitMapper,
     ) : IBranchFileConnectionDao {
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all files connected to a branch
          */
@@ -46,7 +54,12 @@ internal class BranchFileConnectionDao
          */
         override fun findBranchesByFile(fileId: String): List<Branch> {
             val branchEntities = repository.findBranchesByFile(fileId)
-            return branchEntities.map { branchMapper.toDomain(it) }
+            return branchEntities.map {
+                seeder.seed()
+                repositoryAssembler.toDomain(it.repository)
+                commitMapper.toDomain(it.head)
+                branchMapper.toDomain(it)
+            }
         }
 
         /**
