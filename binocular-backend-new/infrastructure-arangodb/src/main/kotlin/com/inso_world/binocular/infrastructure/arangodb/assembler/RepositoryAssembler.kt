@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.Commi
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.StatsMapper
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -87,6 +88,9 @@ internal class RepositoryAssembler {
     private lateinit var commitMapper: CommitMapper
 
     @Autowired
+    private lateinit var statsMapper: StatsMapper
+
+    @Autowired
     @Lazy
     private lateinit var branchMapper: BranchMapper
 
@@ -160,7 +164,11 @@ internal class RepositoryAssembler {
         logger.trace("Mapping ${domain.commits.size} commits")
         domain.commits.forEach { commit ->
             // Map commit structure - this adds it to the MappingContext
-            commitMapper.toEntity(commit)
+            commitMapper.toEntity(commit).apply {
+                commit.stats?.let { stats ->
+                    this.stats = statsMapper.toEntity(stats)
+                }
+            }
 
             // Map commit authors and committers
             developerMapper.toEntity(commit.author)
