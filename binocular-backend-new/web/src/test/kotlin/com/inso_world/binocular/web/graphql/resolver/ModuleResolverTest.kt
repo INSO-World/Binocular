@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -22,7 +23,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "1") {
+                    module(id: "${TestDataProvider.testModules[0].id}") {
                         id
                         path
                     }
@@ -50,7 +51,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "1") {
+                    module(id: "${TestDataProvider.testModules[0].id}") {
                         id
                         path
                         commits {
@@ -92,7 +93,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "1") {
+                    module(id: "${TestDataProvider.testModules[0].id}") {
                         id
                         path
                         files {
@@ -134,7 +135,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "1") {
+                    module(id: "${TestDataProvider.testModules[0].id}") {
                         id
                         path
                         childModules {
@@ -174,7 +175,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "2") {
+                    module(id: "${TestDataProvider.testModules[1].id}") {
                         id
                         path
                         parentModules {

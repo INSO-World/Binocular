@@ -48,7 +48,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             { assertThat(entity.id).isEqualTo(domain.id) },
             { assertThat(entity.localPath).isEqualTo(domain.localPath) },
             { assertThat(entity.project).isNotNull() },
-            { assertThat(entity.project.repository).isSameAs(entity) }
+            { assertThat(entity.project?.repository).isSameAs(entity) }
         )
 
         assertThat(ctx.findEntity<Project.Key, Project, ProjectEntity>(requireNotNull(domain.project))).isEqualTo(entity.project)

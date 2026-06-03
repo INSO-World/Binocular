@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -22,7 +23,7 @@ internal class UserResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    user(id: "1") {
+                    user(id: "${TestDataProvider.testUsers[0].id}") {
                         id
                         gitSignature
                     }
@@ -35,7 +36,13 @@ internal class UserResolverTest : GraphQlControllerTest() {
 
             // Verify user data
             assertAll(
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
+                {
+                    assertEquals(
+                        "John Doe <john.doe@example.com>",
+                        result.get("gitSignature").asText(),
+                        "User gitSignature mismatch"
+                    )
+                },
             )
         }
     }
@@ -49,7 +56,7 @@ internal class UserResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    user(id: "1") {
+                    user(id: "${TestDataProvider.testUsers[0].id}") {
                         id
                         gitSignature
                         commits {
@@ -67,7 +74,13 @@ internal class UserResolverTest : GraphQlControllerTest() {
 
             // Verify user data
             assertAll(
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
+                {
+                    assertEquals(
+                        "John Doe <john.doe@example.com>",
+                        result.get("gitSignature").asText(),
+                        "User gitSignature mismatch"
+                    )
+                },
             )
 
             // Verify commits
@@ -78,7 +91,13 @@ internal class UserResolverTest : GraphQlControllerTest() {
             val commit = commits.get(0)
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("abc1230000000000000000000000000000000000", commit.get("sha").asText(), "Commit SHA mismatch") },
+                {
+                    assertEquals(
+                        "abc1230000000000000000000000000000000000",
+                        commit.get("sha").asText(),
+                        "Commit SHA mismatch"
+                    )
+                },
                 { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
@@ -90,7 +109,7 @@ internal class UserResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    user(id: "1") {
+                    user(id: "${TestDataProvider.testUsers[0].id}") {
                         id
                         gitSignature
                         issues {
@@ -108,7 +127,13 @@ internal class UserResolverTest : GraphQlControllerTest() {
 
             // Verify user data
             assertAll(
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
+                {
+                    assertEquals(
+                        "John Doe <john.doe@example.com>",
+                        result.get("gitSignature").asText(),
+                        "User gitSignature mismatch"
+                    )
+                },
             )
 
             // Verify issues
@@ -131,7 +156,7 @@ internal class UserResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    user(id: "1") {
+                    user(id: "${TestDataProvider.testUsers[0].id}") {
                         id
                         gitSignature
                         files {
@@ -149,7 +174,13 @@ internal class UserResolverTest : GraphQlControllerTest() {
 
             // Verify user data (ID may be null depending on resolver behavior)
             assertAll(
-                { assertEquals("John Doe <john.doe@example.com>", result.get("gitSignature").asText(), "User gitSignature mismatch") },
+                {
+                    assertEquals(
+                        "John Doe <john.doe@example.com>",
+                        result.get("gitSignature").asText(),
+                        "User gitSignature mismatch"
+                    )
+                },
             )
 
             // Verify files
@@ -160,8 +191,20 @@ internal class UserResolverTest : GraphQlControllerTest() {
             val file = files.get(0)
             assertAll(
                 { assertEquals("1", file.get("id").asText(), "File ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/Main.kt", file.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", file.get("webUrl").asText(), "File webUrl mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/Main.kt",
+                        file.get("path").asText(),
+                        "File path mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        "https://example.com/files/Main.kt",
+                        file.get("webUrl").asText(),
+                        "File webUrl mismatch"
+                    )
+                },
             )
         }
     }

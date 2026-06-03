@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,7 +24,7 @@ internal class IssueResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    issue(id: "1") {
+                    issue(id: "${TestDataProvider.testIssues[0].id}") {
                         id
                         iid
                         title
@@ -63,7 +64,7 @@ internal class IssueResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    issue(id: "1") {
+                    issue(id: "${TestDataProvider.testIssues[0].id}") {
                         id
                         iid
                         title
@@ -115,7 +116,7 @@ internal class IssueResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    issue(id: "1") {
+                    issue(id: "${TestDataProvider.testIssues[0].id}") {
                         id
                         iid
                         title
@@ -147,7 +148,12 @@ internal class IssueResolverTest : GraphQlControllerTest() {
             val commit = commits.get(0)
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertTrue(commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Commit SHA should start with short hash prefix") },
+                {
+                    assertTrue(
+                        commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"),
+                        "Commit SHA should start with short hash prefix"
+                    )
+                },
                 { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
@@ -159,7 +165,7 @@ internal class IssueResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    issue(id: "1") {
+                    issue(id: "${TestDataProvider.testIssues[0].id}") {
                         id
                         iid
                         title
@@ -205,7 +211,7 @@ internal class IssueResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    issue(id: "1") {
+                    issue(id: "${TestDataProvider.testIssues[0].id}") {
                         id
                         iid
                         title
@@ -247,7 +253,7 @@ internal class IssueResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    issue(id: "1") {
+                    issue(id: "${TestDataProvider.testIssues[0].id}") {
                         id
                         iid
                         title

@@ -97,7 +97,7 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                file(id: "1") {
+                file(id: "${TestDataProvider.testFiles[0].id}") {
                     id
                     path
                     webUrl
@@ -288,10 +288,11 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, filesData.size(), "Expected 1 file, but got ${filesData.size()}")
 
             // With new default sort (path DESC), compute expected second item accordingly
-            val expectedFile = TestDataProvider.testFiles
-                .sortedByDescending { it.path ?: "" }
-                .drop(1)
-                .first()
+            val expectedFile =
+                TestDataProvider.testFiles
+                    .sortedByDescending { it.path ?: "" }
+                    .drop(1)
+                    .first()
             val actualFile = filesData.get(0)
 
             assertAll(

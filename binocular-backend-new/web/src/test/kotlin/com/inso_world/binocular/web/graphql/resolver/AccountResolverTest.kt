@@ -30,7 +30,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    account(id: "1") {
+                    account(id: "${TestDataProvider.testAccounts[0].id}") {
                         id
                         platform
                         login
@@ -68,7 +68,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    account(id: "1") {
+                    account(id: "${TestDataProvider.testAccounts[0].id}") {
                         id
                         platform
                         login
@@ -114,7 +114,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    account(id: "1") {
+                    account(id: "${TestDataProvider.testAccounts[0].id}") {
                         id
                         platform
                         login
@@ -160,7 +160,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    account(id: "1") {
+                    account(id: "${TestDataProvider.testAccounts[0].id}") {
                         id
                         platform
                         login

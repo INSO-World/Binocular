@@ -11,21 +11,19 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Repository as SpringRepository
 
 @SpringRepository
-internal class RepositoryDao @Autowired constructor(
-    private val repositoryRepository: RepositoryRepository,
-    private val repositoryMapper: RepositoryMapper,
-)
-    :
-    MappedArangoDbDao<Repository, RepositoryEntity, String>(repositoryRepository, repositoryMapper),
-    IRepositoryDao
-{
+internal class RepositoryDao
+    @Autowired
+    constructor(
+        private val repositoryRepository: RepositoryRepository,
+        private val repositoryMapper: RepositoryMapper,
+    ) : MappedArangoDbDao<Repository, RepositoryEntity, String>(repositoryRepository, repositoryMapper),
+        IRepositoryDao {
+        companion object {
+            val logger by logger()
+        }
 
-    companion object {
-        val logger by logger()
-    }
-
-    @Autowired @Lazy
-    private lateinit var projectDao: ProjectDao
+        @Autowired @Lazy
+        private lateinit var projectDao: ProjectDao
 
 //    fun findAll(): Iterable<Repository> {
 //        return this.repositoryRepository.findAll()
@@ -34,19 +32,18 @@ internal class RepositoryDao @Autowired constructor(
 //    @Autowired
 //    private lateinit var projectMapper: ProjectMapper
 
-    override fun findByName(name: String): RepositoryEntity? {
-        return this.repositoryRepository.findByLocalPath(name)
-    }
+        override fun findByName(name: String): RepositoryEntity? = this.repositoryRepository.findByLocalPath(name)
 
-    fun create(entity: RepositoryEntity): RepositoryEntity {
-        val savedEntity = repositoryRepository.save(entity)
+        fun create(entity: RepositoryEntity): RepositoryEntity {
+            val savedEntity = repositoryRepository.save(entity)
 
-        val existingProject = this.projectDao.findByName(entity.project.name)
-        if(existingProject == null) {
-            this.projectDao.create(entity.project)
+            val project =
+                entity.project ?: throw IllegalStateException("RepositoryEntity.project not loaded from ArangoDB — @Ref field was null.")
+            val existingProject = this.projectDao.findByName(project.name)
+            if (existingProject == null) {
+                this.projectDao.create(project)
+            }
+
+            return savedEntity
         }
-
-        return savedEntity
     }
-}
-

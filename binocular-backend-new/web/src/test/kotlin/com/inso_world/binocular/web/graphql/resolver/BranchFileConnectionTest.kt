@@ -24,7 +24,7 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    branch(id: "1") {
+                    branch(id: "${TestDataProvider.testBranches[0].id}") {
                         id
                         branch
                         active
@@ -86,7 +86,14 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
             assertEquals(2, files.size(), "Should have 2 files")
 
             // Create a list of file IDs from the result
-            val fileIds = (0 until files.size()).map { files.get(it).get("file").get("id").asText() }
+            val fileIds =
+                (0 until files.size()).map {
+                    files
+                        .get(it)
+                        .get("file")
+                        .get("id")
+                        .asText()
+                }
 
             // Verify that the file IDs match the expected file IDs
             assertAll(
@@ -102,7 +109,7 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    branch(id: "2") {
+                    branch(id: "${TestDataProvider.testBranches[1].id}") {
                         id
                         branch
                         files {
@@ -152,7 +159,7 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -195,7 +202,7 @@ internal class BranchFileConnectionTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "2") {
+                    file(id: "${TestDataProvider.testFiles[1].id}") {
                         id
                         path
                         webUrl

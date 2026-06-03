@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,7 +24,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -55,7 +56,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -101,7 +102,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "2") {
+                    file(id: "${TestDataProvider.testFiles[1].id}") {
                         id
                         path
                         webUrl
@@ -146,7 +147,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -189,7 +190,12 @@ internal class FileResolverTest : GraphQlControllerTest() {
             assertNotNull(commit, "Commit payload should not be null in CommitInFile")
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertTrue(commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Commit SHA should start with short hash prefix") },
+                {
+                    assertTrue(
+                        commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"),
+                        "Commit SHA should start with short hash prefix"
+                    )
+                },
                 { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
@@ -201,7 +207,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -243,7 +249,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl

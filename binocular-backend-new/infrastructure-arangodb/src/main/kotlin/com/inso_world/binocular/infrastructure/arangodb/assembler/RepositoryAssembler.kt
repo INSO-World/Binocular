@@ -217,11 +217,13 @@ internal class RepositoryAssembler {
         }
 
         // Ensure Project reference exists in context (but don't assemble Repository child)
+        val projectEntity =
+            entity.project ?: throw IllegalStateException("RepositoryEntity.project not loaded from ArangoDB — @Ref field was null.")
         val project =
-            ctx.findDomain<Project, ProjectEntity>(entity.project)
+            ctx.findDomain<Project, ProjectEntity>(projectEntity)
                 ?: run {
                     logger.trace("Project not in context, mapping minimal Project structure (no Repository child)")
-                    projectMapper.toDomain(entity.project)
+                    projectMapper.toDomain(projectEntity)
                 }
 
         logger.trace("Project reference in context: ${project.name}")

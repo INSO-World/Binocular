@@ -2,6 +2,7 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
 import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
@@ -93,11 +94,15 @@ class MergeRequestResolver(
 
     // TODO: this is missing in the db idk
     @SchemaMapping(typeName = "mergeRequest", field = "sourceBranch")
-    fun sourceBranch(@Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequest): String? = null
+    fun sourceBranch(
+        @Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequest
+    ): String? = null
 
     // TODO: same here?
     @SchemaMapping(typeName = "mergeRequest", field = "targetBranch")
-    fun targetBranch(@Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequest): String? = null
+    fun targetBranch(
+        @Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequest
+    ): String? = null
 
     @SchemaMapping(typeName = "mergeRequest", field = "iid")
     fun iid(mergeRequest: MergeRequest): Int? = mergeRequest.platformIid

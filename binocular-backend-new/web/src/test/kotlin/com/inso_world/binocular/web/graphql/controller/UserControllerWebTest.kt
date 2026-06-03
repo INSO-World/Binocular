@@ -78,7 +78,7 @@ internal class UserControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                user(id: "1") {
+                user(id: "${TestDataProvider.testUsers[0].id}") {
                     id
                     gitSignature
                 }
@@ -221,10 +221,11 @@ internal class UserControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, usersData.size(), "Expected 1 user, but got ${usersData.size()}")
 
             // With new default sort (gitSignature ASC), compute expected second item accordingly
-            val expectedUser = TestDataProvider.testUsers
-                .sortedBy { it.gitSignature ?: "" }
-                .drop(1)
-                .first()
+            val expectedUser =
+                TestDataProvider.testUsers
+                    .sortedBy { it.gitSignature ?: "" }
+                    .drop(1)
+                    .first()
             val actualUser = usersData.get(0)
 
             assertAll(
