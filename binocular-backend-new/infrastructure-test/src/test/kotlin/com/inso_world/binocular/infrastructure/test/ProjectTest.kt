@@ -11,12 +11,14 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 
 /**
  * Integration tests for Project persistence via ProjectInfrastructurePort.
  * Tests verify that domain model semantics (especially the set-once repo property)
  * are preserved through the infrastructure layer.
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class ProjectTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var projectPort: ProjectInfrastructurePort

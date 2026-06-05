@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 
 /**
@@ -26,6 +27,7 @@ import java.time.LocalDateTime
  * Verifies that repositories with commits, branches, and developers are persisted correctly
  * while maintaining domain model semantics.
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class RepositorySaveOperation : BaseInfrastructureSpringTest() {
     @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort

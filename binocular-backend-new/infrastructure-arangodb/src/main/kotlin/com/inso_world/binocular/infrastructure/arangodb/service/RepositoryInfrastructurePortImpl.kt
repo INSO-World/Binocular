@@ -58,6 +58,7 @@ internal class RepositoryInfrastructurePortImpl :
     @MappingSession
     override fun findById(id: String): Repository? = this.repositoryDao.findById(id)
 
+    @MappingSession
     override fun create(value: Repository): Repository {
         // Ensure parent references are in context via assembler
         repositoryAssembler.toEntity(value)

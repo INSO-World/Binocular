@@ -22,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
+import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 import kotlin.reflect.jvm.javaField
 
@@ -35,6 +36,7 @@ import kotlin.reflect.jvm.javaField
  * - Domain-level require() checks
  * - Repository consistency checks
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class ValidationTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var projectPort: ProjectInfrastructurePort

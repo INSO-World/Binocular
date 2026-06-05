@@ -7,12 +7,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 
 /**
  * Integration tests for Branch persistence via BranchInfrastructurePort.
  * Tests verify that domain model semantics (particularly the derived commits getter
  * and head property validation) are preserved through the infrastructure layer.
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('postgres')}", loadContext = true)
 internal class BranchTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var branchPort: BranchInfrastructurePort

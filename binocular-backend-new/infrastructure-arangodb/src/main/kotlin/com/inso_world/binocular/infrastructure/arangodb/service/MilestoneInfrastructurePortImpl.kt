@@ -69,6 +69,7 @@ internal class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort,
     @MappingSession
     override fun findAll(): Iterable<Milestone> = this.milestoneDao.findAll()
 
+    @MappingSession
     override fun create(entity: Milestone): Milestone = this.milestoneDao.save(entity)
 
     @MappingSession
