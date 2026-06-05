@@ -291,7 +291,7 @@ class RepositoryModelTest {
 
         @Test
         fun `add branch to repository once, should be added once`() {
-            val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
+            val branch = mockTestDataProvider.branchByName.getValue("feature/new-feature")
 
             assertTrue(repository.branches.add(branch))
             assertThat(repository.branches).hasSize(1)
@@ -301,7 +301,7 @@ class RepositoryModelTest {
 
         @Test
         fun `add same branch to repository twice, should only be added once`() {
-            val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
+            val branch = mockTestDataProvider.branchByName.getValue("feature/new-feature")
 
             assertAll(
                 { assertTrue(repository.branches.add(branch)) },
@@ -312,7 +312,7 @@ class RepositoryModelTest {
 
         @Test
         fun `add same branch to repository twice via addAll, should only be added once`() {
-            val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
+            val branch = mockTestDataProvider.branchByName.getValue("feature/new-feature")
 
             assertAll(
                 { assertTrue(repository.branches.addAll(listOf(branch))) },
