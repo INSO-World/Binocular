@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.IssueUserConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueUserConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
@@ -30,12 +32,19 @@ internal class IssueUserConnectionDao
         private val issueMapper: IssueMapper,
         private val userMapper: UserMapper,
     ) : IIssueUserConnectionDao {
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+        @Autowired private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all users connected to an issue
          */
         override fun findUsersByIssue(issueId: String): List<User> {
             val userEntities = repository.findUsersByIssue(issueId)
-            return userEntities.map { userMapper.toDomain(it) }
+            return userEntities.map {
+                seeder.seed()
+                repositoryAssembler.toDomain(it.repository)
+                userMapper.toDomain(it)
+            }
         }
 
         /**

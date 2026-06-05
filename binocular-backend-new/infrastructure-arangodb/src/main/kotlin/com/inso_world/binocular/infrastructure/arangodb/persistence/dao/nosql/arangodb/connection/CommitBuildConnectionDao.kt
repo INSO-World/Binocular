@@ -12,6 +12,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.B
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.CommitRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.edges.CommitBuildConnectionRepository
 import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.model.Commit
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -36,6 +37,9 @@ internal class CommitBuildConnectionDao
 
         @Autowired private lateinit var seeder: DefaultMappingContextSeeder
 
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all builds connected to a commit
          */
@@ -51,7 +55,10 @@ internal class CommitBuildConnectionDao
         override fun findCommitsByBuild(buildId: String): List<Commit> {
             seeder.seed()
             val commitEntities = repository.findCommitsByBuild(buildId) as List<Any>
-            return commitEntities.map { commitMapper.toDomain(it as CommitEntity) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain((entity as CommitEntity).repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
