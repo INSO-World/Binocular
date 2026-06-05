@@ -128,6 +128,7 @@ class MockTestDataProvider(
                 ).apply {
                     this.id = "3"
                     this.webUrl = "https://example.com/commit/$sha"
+                    this.stats = Stats(7, 3)
                 }
             },
             run {
@@ -142,6 +143,7 @@ class MockTestDataProvider(
                 ).apply {
                     this.id = "4"
                     this.webUrl = "https://example.com/commit/$sha"
+                    this.stats = Stats(7, 3)
                 }
             },
         )

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 internal class UserResolverTest : GraphQlControllerTest() {
     @Autowired
     private lateinit var userResolver: UserResolver
+
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -98,12 +99,12 @@ internal class UserResolverTest : GraphQlControllerTest() {
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
                 {
                     assertEquals(
-                        "abc1230000000000000000000000000000000000",
+                        "a".repeat(40),
                         commit.get("sha").asText(),
                         "Commit SHA mismatch"
                     )
                 },
-                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
+                { assertEquals("msg1", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
 
