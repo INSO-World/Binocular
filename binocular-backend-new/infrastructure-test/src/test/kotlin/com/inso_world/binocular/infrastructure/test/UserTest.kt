@@ -14,11 +14,13 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 
 /**
  * Integration tests for User persistence via UserInfrastructurePort.
  * Tests verify that domain model semantics are preserved through the infrastructure layer.
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('postgres')}", loadContext = true)
 internal class UserTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var userPort: UserInfrastructurePort

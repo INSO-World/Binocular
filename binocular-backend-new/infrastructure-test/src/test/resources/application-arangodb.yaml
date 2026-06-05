@@ -1,5 +1,7 @@
 binocular:
   arangodb:
+    migration:
+      default_project_name: "INSO-World/Binocular"
     database:
       host: "localhost"
       port: 8529

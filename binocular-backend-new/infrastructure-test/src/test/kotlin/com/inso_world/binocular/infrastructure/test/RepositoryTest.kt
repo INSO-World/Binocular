@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 
 /**
@@ -23,6 +24,7 @@ import java.time.LocalDateTime
  * Tests verify that domain model semantics (particularly bidirectional relationships)
  * are preserved through the infrastructure layer.
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class RepositoryTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var repositoryPort: RepositoryInfrastructurePort

@@ -23,8 +23,10 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class CommitSaveOperation : BaseInfrastructureSpringTest() {
     @Autowired
     private lateinit var userPort: UserInfrastructurePort

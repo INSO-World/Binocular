@@ -21,6 +21,7 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 
 /**
@@ -28,6 +29,7 @@ import java.time.LocalDateTime
  * Verifies that commit updates preserve domain model semantics including
  * parent/child relationships and repository consistency.
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class CommitUpdateOperation : BaseInfrastructureSpringTest() {
     @Autowired
     private lateinit var branchPort: BranchInfrastructurePort

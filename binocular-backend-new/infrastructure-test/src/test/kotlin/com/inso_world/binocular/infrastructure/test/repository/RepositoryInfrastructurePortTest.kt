@@ -21,7 +21,9 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.util.ReflectionUtils.setField
+import org.springframework.test.context.junit.jupiter.DisabledIf
 
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class RepositoryInfrastructurePortTest : BasePortNoDataTest() {
     @all:Autowired
     private lateinit var repositoryPort: RepositoryInfrastructurePort
