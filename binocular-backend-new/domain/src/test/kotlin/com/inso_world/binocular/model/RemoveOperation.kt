@@ -42,7 +42,7 @@ class RemoveOperation {
                     ).map { Arguments.of(it) }.toTypedArray()
                 },
                 *run {
-                    val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
+                    val branch = mockTestDataProvider.branchByName.getValue("feature/new-feature")
 
                     return@run listOf(
                         branch.files,

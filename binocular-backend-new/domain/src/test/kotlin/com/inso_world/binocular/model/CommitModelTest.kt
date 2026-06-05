@@ -544,7 +544,7 @@ class CommitModelTest {
         @Test
         fun `create commit, add to branch, should succeed`() {
             val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
+            val branch = mockTestDataProvider.branchByName.getValue("feature/new-feature")
 
             branch.head = commit
 
@@ -559,7 +559,7 @@ class CommitModelTest {
         @Test
         fun `create commit, add to branch from different repository, should fail`() {
             val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
+            val branch = mockTestDataProvider.branchByName.getValue("feature/new-feature")
 
             val differentRepository =
                 Repository(
