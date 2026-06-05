@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.IssueCommitConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueCommitConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueCommitConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.IssueMapper
@@ -11,6 +13,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.e
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Issue
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Repository
 
 /**
@@ -30,13 +33,21 @@ internal class IssueCommitConnectionDao
         private val issueMapper: IssueMapper,
     ) : IIssueCommitConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+        @Autowired
+        @Lazy
+        private lateinit var repositoryAssembler: RepositoryAssembler
 
         /**
          * Find all commits connected to an issue
          */
         override fun findCommitsByIssue(issueId: String): List<Commit> {
             val commitEntities = repository.findCommitsByIssue(issueId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                seeder.seed()
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**

@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitCommitConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitCommitConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
@@ -29,13 +30,19 @@ class CommitCommitConnectionDao
 
         @Autowired private lateinit var seeder: DefaultMappingContextSeeder
 
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all child commits connected to a parent commit
          */
         override fun findChildCommits(parentCommitId: String): List<Commit> {
             seeder.seed()
             val commitEntities = repository.findChildCommitsByParentCommit(parentCommitId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
@@ -44,7 +51,10 @@ class CommitCommitConnectionDao
         override fun findParentCommits(childCommitId: String): List<Commit> {
             seeder.seed()
             val commitEntities = repository.findParentCommitsByChildCommit(childCommitId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**

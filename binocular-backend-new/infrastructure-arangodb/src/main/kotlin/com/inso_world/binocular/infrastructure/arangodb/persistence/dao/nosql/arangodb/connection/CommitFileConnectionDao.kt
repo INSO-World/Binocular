@@ -1,6 +1,7 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
 import com.inso_world.binocular.core.persistence.model.Page
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
@@ -43,6 +44,9 @@ internal class CommitFileConnectionDao
         @Autowired private lateinit var commitMapper: CommitMapper
 
         @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
 
         override fun findFileOwnershipByCommitAndFile(
             commitId: String,
@@ -116,7 +120,10 @@ internal class CommitFileConnectionDao
         override fun findCommitsByFile(fileId: String): List<Commit> {
             seeder.seed()
             val commitEntities = repository.findCommitsByFile(fileId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
@@ -131,7 +138,10 @@ internal class CommitFileConnectionDao
             val limit = pageable.pageSize
             val total = repository.countCommitsByFile(fileId).firstOrNull() ?: 0L
             val commitEntities = if (limit > 0) repository.findCommitsByFileOrdered(fileId, offset, limit) else emptyList()
-            val content = commitEntities.map { commitMapper.toDomain(it) }
+            val content = commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
             return Page(content, total, pageable)
         }
 
