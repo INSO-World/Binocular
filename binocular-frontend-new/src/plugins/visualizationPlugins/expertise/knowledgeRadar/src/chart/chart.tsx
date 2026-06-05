@@ -217,9 +217,12 @@ function RadarChart(properties: VisualizationPluginProperties<SettingsType, Data
    */
   function updateSelectedDevelopers(authorList: AuthorType[]) {
     const available = authorList.filter((a) => a.selected && a.parent === -1);
-    setSelectedDevelopers((prev) =>
-      prev.filter((developer) => available.some((author) => author.user.gitSignature === developer.user.gitSignature)),
-    );
+    setSelectedDevelopers((prev) => {
+      // On first load (empty selection), auto-select all available authors
+      // so the chart renders immediately without manual interaction.
+      if (prev.length === 0) return available;
+      return prev.filter((developer) => available.some((author) => author.user.gitSignature === developer.user.gitSignature));
+    });
   }
 
   /**

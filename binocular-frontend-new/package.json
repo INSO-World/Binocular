@@ -17,7 +17,13 @@
     "test:integration": "vitest run src/test/integration",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui --coverage"
+    "test:ui": "vitest --ui --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "screenshots": "playwright test --project=screenshots --reporter=list",
+    "screenshots:setup": "tsx scripts/capture-screenshot-state.ts"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
@@ -54,11 +60,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "^1.49.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/chroma-js": "^3.1.1",
     "@types/lodash": "^4.17.20",
+    "@types/node": "^25.9.1",
     "@types/pouchdb-adapter-memory": "^6.1.6",
     "@types/pouchdb-browser": "^6.1.5",
     "@types/pouchdb-find": "^7.3.3",

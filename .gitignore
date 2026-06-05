@@ -16,3 +16,5 @@ pkg
 *.tsbuildinfo
 docker/arangodb/data
 !docker/arangodb/data/.gitkeep
+/binocular-frontend-new/playwright-report/*
+/binocular-frontend-new/test-results/*

@@ -229,7 +229,23 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
       );
     });
 
-    simulation.on('end', () => setIsVisible(true));
+    simulation.on('end', () => {
+      // Auto-fit: scale + translate so all nodes fill the viewport with padding.
+      const pad = NODE_IMAGE_SIZE;
+      const xs = data.nodes.map((n) => n.x ?? 0);
+      const ys = data.nodes.map((n) => n.y ?? 0);
+      const minX = Math.min(...xs) - pad;
+      const maxX = Math.max(...xs) + pad;
+      const minY = Math.min(...ys) - pad;
+      const maxY = Math.max(...ys) + pad;
+      const graphW = maxX - minX || 1;
+      const graphH = maxY - minY || 1;
+      const scale = Math.min(width / graphW, height / graphH, 4); // cap at 4× to avoid giant single-node
+      const tx = (width - graphW * scale) / 2 - minX * scale;
+      const ty = (height - graphH * scale) / 2 - minY * scale;
+      svg.call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+      setIsVisible(true);
+    });
 
     return () => {
       simulation.stop();
