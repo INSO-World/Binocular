@@ -15,6 +15,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
@@ -279,4 +280,16 @@ internal class RepositoryInfrastructurePortImpl :
             this.branchDao.findByName(it, name)
             repositoryAssembler.toDomain(it).branches.find { branch -> branch.name == name }
         }
+
+    override fun findAllCommits(
+        repository: Repository?
+    ): Sequence<Commit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findAllBuilds(repository: Repository?): Sequence<Build> {
+        TODO("Not yet implemented")
+    }
+
+
 }

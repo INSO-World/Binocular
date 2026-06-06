@@ -4,11 +4,12 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.BuildDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
-import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
@@ -30,6 +31,9 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
 
     @Autowired
     private lateinit var commitDao: CommitDao
+
+    @Autowired
+    private lateinit var buildDao: BuildDao
 
     @Autowired
     private lateinit var repositoryDao: RepositoryDao
@@ -80,5 +84,17 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         name: String,
     ): Branch? {
         TODO("Not yet implemented")
+    }
+
+    override fun findAllCommits(
+        repository: Repository?
+    ): Sequence<Commit> {
+        return this.commitDao.findAll().asSequence()
+    }
+
+    override fun findAllBuilds(
+        repository: Repository?
+    ): Sequence<Build> {
+        return this.buildDao.findAll().asSequence()
     }
 }

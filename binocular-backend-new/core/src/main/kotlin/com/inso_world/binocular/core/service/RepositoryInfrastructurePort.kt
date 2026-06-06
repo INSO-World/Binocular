@@ -1,6 +1,7 @@
 package com.inso_world.binocular.core.service
 
 import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 
@@ -16,4 +17,12 @@ interface RepositoryInfrastructurePort : BinocularInfrastructurePort<Repository,
         repository: Repository,
         name: String
     ): Branch?
+
+    fun findAllCommits(
+        repository: Repository?,
+    ): Sequence<Commit>
+
+    fun findAllBuilds(
+        repository: Repository?,
+    ): Sequence<Build>
 }

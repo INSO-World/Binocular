@@ -24,6 +24,14 @@ scalar Sort
   notes(page: Int, perPage: Int, sort: Sort): PaginatedNote!
   users(page: Int, perPage: Int, sort: Sort): PaginatedUser!
 
+   # Cross Cutting Metrics
+       busFactor(
+           repoPath: String!
+           since: Timestamp!
+           until: Timestamp!
+           granularity: Granularity!
+       ): [BusFactorCIErrorRate!]!
+
   # Single item queries
   commit(sha: String!): Commit
   account(id: ID!): Account
@@ -104,6 +112,11 @@ type Account {
 enum Platform {
   GitHub
   GitLab
+}
+
+enum Granularity {
+  YEAR
+  MONTH
 }
 
 type Branch {
@@ -425,4 +438,16 @@ type PaginatedNote {
   page: Int!
   perPage: Int!
   data: [Note]!
+}
+
+type AuthorContribution {
+  gitSignature: String!
+  percentage: Float!
+}
+
+type BusFactorCIErrorRate {
+  id: String!
+  busFactor: Int!
+  ciErrorRate: Float!
+  topAuthors: [AuthorContribution!]!
 }
