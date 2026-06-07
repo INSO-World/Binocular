@@ -11,7 +11,7 @@ binocular:
     migration:
       default_project_name: "INSO-World/Binocular"
     database:
-      name: "binocular-infrastructure-test"
+      name: "binocular-infrastructure-arangodb"
       host: localhost
       port: ${ARANGODB_PORT:5432}
       user: TODO

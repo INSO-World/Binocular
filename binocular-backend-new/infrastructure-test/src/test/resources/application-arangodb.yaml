@@ -7,7 +7,7 @@ binocular:
       port: 8529
       user: TODO
       password: TODO
-      name: "binocular-1234"
+      name: "binocular-infrastructure-test"
 
 spring:
   # Prevent Spring Boot from trying to configure SQL/JPA when running ArangoDB tests
