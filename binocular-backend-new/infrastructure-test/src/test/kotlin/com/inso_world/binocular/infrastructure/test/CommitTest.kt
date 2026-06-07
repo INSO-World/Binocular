@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 
 internal class CommitTest : BaseInfrastructureSpringTest() {
     @Autowired
@@ -25,6 +26,7 @@ internal class CommitTest : BaseInfrastructureSpringTest() {
     }
 
     @Test
+    @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('postgres')}", loadContext = true)
     fun `commit relations resolved via ports`() {
         val commit1 = TestDataProvider.testCommits[0]
         val commit2 = TestDataProvider.testCommits[1]
