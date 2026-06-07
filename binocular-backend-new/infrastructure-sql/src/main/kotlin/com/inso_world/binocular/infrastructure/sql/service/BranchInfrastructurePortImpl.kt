@@ -42,6 +42,10 @@ internal class BranchInfrastructurePortImpl(
     @Lazy
     private lateinit var projectMapper: ProjectMapper
 
+    @Autowired
+    @Lazy
+    private lateinit var self: BranchInfrastructurePortImpl
+
     @PostConstruct
     fun init() {
         super.dao = branchDao
@@ -78,7 +82,11 @@ internal class BranchInfrastructurePortImpl(
             .find { it.id == id }
     }
 
-    override fun findByIid(iid: Reference.Id): @Valid Branch? {
+    override fun findByIid(iid: Reference.Id): @Valid Branch? = self.findByIidInternal(iid)
+
+    @MappingSession
+    @Transactional(readOnly = true)
+    protected fun findByIidInternal(iid: Reference.Id): Branch? {
         val branch = this.branchDao.findByIid(iid)
 
         requireNotNull(branch?.repository)

@@ -8,11 +8,13 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.Branc
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BranchRepository
 import com.inso_world.binocular.model.Branch
+import com.inso_world.binocular.model.Reference
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * ArangoDB implementation of [IBranchDao] using the [MappedArangoDbDao] approach.
@@ -41,6 +43,15 @@ internal class BranchDao(
     override fun findById(id: String): Branch? {
         seeder.seed()
         val entity = branchRepository.findById(id).orElse(null) ?: return null
+        repositoryAssembler.toDomain(entity.repository)
+        commitMapper.toDomain(entity.head)
+        return branchMapper.toDomain(entity)
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    override fun findByIid(id: Reference.Id): Branch? {
+        seeder.seed()
+        val entity = branchRepository.findByIid(id.value) ?: return null
         repositoryAssembler.toDomain(entity.repository)
         commitMapper.toDomain(entity.head)
         return branchMapper.toDomain(entity)
