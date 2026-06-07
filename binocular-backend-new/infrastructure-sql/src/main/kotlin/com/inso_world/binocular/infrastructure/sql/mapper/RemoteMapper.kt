@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.vcs.Remote
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 @Component
 internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
@@ -32,6 +33,7 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
         return entity
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: RemoteEntity): Remote {
         ctx.findDomain<Remote, RemoteEntity>(entity)?.let { return it }
 
@@ -46,7 +48,7 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Remote.Id(entity.iid.value)
         )
 
         ctx.remember(domain, entity)

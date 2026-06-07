@@ -129,7 +129,7 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Commit.Id(entity.iid)
         )
         ctx.remember(domain, entity)
 

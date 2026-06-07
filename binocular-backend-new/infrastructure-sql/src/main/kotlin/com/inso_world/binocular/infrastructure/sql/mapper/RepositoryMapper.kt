@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Repository aggregate root.
@@ -90,6 +91,7 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
      * @return The Repository domain object (structure only, without children)
      * @throws IllegalStateException if Project is not in MappingContext
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: RepositoryEntity): Repository {
         // Fast-path: Check if already mapped
         ctx.findDomain<Repository, RepositoryEntity>(entity)?.let { return it }
@@ -107,7 +109,7 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Repository.Id(entity.iid.value)
         )
 
         ctx.remember(domain, entity)

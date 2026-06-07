@@ -9,12 +9,14 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Branch domain objects.
@@ -95,6 +97,7 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
      * @return The Branch domain object (structure only)
      * @throws IllegalStateException if Repository or head Commit is not in MappingContext
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: BranchEntity): @Valid Branch {
         // Fast-path: if this Branch was already mapped in the current context, return it.
         ctx.findDomain<Branch, BranchEntity>(entity)?.let { return it }
@@ -121,7 +124,7 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
             domain.javaClass.superclass.superclass
                 .getDeclaredField("iid"),
             domain,
-            entity.iid,
+            Reference.Id(entity.iid.value),
         )
         ctx.remember(domain, entity)
 

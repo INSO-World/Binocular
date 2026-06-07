@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.Repos
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
@@ -126,7 +127,7 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
             domain.javaClass.superclass.superclass
                 .getDeclaredField("iid"),
             domain,
-            entity.iid
+            Reference.Id(entity.iid)
         )
         ctx.remember(domain, entity)
 
