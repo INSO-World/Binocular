@@ -115,8 +115,10 @@ internal class CommitInfrastructurePortImpl
         @OptIn(ExperimentalUuidApi::class)
         @MappingSession
         @Transactional(readOnly = true)
-        override fun findById(id: String): Commit? =
-            this.commitDao.findByIid(Commit.Id(Uuid.parse(id)))?.let {
+        override fun findById(id: String): Commit? {
+            val idL = requireNotNull(id.toLongOrNull(), { "Id must be provided and a Long value" })
+
+            return this.commitDao.findById(idL)?.let {
                 val repository =
                     it.repository.let { r ->
                         val project =
@@ -129,6 +131,7 @@ internal class CommitInfrastructurePortImpl
 
                 commitMapper.toDomain(it)
             }
+        }
 
         @MappingSession
         @Transactional
