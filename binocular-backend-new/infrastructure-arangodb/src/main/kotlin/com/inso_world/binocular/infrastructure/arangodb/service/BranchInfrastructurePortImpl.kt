@@ -9,6 +9,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
@@ -17,23 +18,27 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
-internal class BranchInfrastructurePortImpl :
-    AbstractInfrastructurePort<Branch, String>(),
+internal class BranchInfrastructurePortImpl(
+    @Autowired private val branchDao: IBranchDao
+) : AbstractInfrastructurePort<Branch, String>(),
     BranchInfrastructurePort {
     @PostConstruct
     fun init() {
         super.dao = branchDao
     }
 
-    @Autowired private lateinit var branchDao: IBranchDao
-
     @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
 
     @Autowired
     @Lazy
     private lateinit var repositoryAssembler: RepositoryAssembler
+
+    @Autowired
+    @Lazy
+    private lateinit var self: BranchInfrastructurePortImpl
 
     companion object {
         private val logger by logger()
@@ -51,9 +56,13 @@ internal class BranchInfrastructurePortImpl :
         return branchDao.findById(id)
     }
 
+    override fun findByIid(iid: Reference.Id): @Valid Branch? = self.findByIidInternal(iid)
+
     @MappingSession
-    override fun findByIid(iid: Reference.Id): @Valid Branch? {
-        TODO("Not yet implemented")
+    @Transactional(readOnly = true)
+    protected fun findByIidInternal(iid: Reference.Id): Branch? {
+        logger.trace("Getting branch by iid: $iid")
+        return this.branchDao.findByIid(iid)
     }
 
     @MappingSession

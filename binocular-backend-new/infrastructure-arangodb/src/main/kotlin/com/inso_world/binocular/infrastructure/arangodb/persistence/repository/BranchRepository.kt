@@ -5,6 +5,8 @@ import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BranchEntity
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Repository
 interface BranchRepository : ArangoRepository<BranchEntity, String> {
@@ -123,4 +125,6 @@ interface BranchRepository : ArangoRepository<BranchEntity, String> {
         @Param("size") size: Int
     ): List<BranchEntity>
 
+    @OptIn(ExperimentalUuidApi::class)
+    fun findByIid(iid: Uuid): BranchEntity?
 }
