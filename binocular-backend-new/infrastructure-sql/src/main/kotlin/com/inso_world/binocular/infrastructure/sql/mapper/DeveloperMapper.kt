@@ -11,6 +11,7 @@ import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Developer domain objects.
@@ -42,6 +43,7 @@ internal class DeveloperMapper : EntityMapper<Developer, DeveloperEntity> {
         return entity
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: DeveloperEntity): Developer {
         ctx.findDomain<Developer, DeveloperEntity>(entity)?.let { return it }
 
@@ -57,7 +59,7 @@ internal class DeveloperMapper : EntityMapper<Developer, DeveloperEntity> {
             domain.javaClass.superclass.superclass
                 .getDeclaredField("iid"),
             domain,
-            entity.iid
+            Developer.Id(entity.iid.value)
         )
         ctx.remember(domain, entity)
         return domain

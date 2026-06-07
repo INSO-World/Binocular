@@ -97,7 +97,7 @@ internal class UserMapper : EntityMapper<User, UserEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            User.Id(entity.iid)
         )
         ctx.remember(domain, entity)
         return domain

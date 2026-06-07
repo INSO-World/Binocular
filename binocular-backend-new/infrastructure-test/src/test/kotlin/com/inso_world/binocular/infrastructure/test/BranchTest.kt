@@ -20,14 +20,14 @@ internal class BranchTest : BaseInfrastructureSpringTest() {
     lateinit var branchPort: BranchInfrastructurePort
 
     @Test
+    @OptIn(ExperimentalUuidApi::class)
     fun `load branch by provider id`() {
         val expected = TestDataProvider.testBranches.first()
         val loaded = branchPort.findById(requireNotNull(expected.id))
         assertNotNull(loaded)
         loaded!!
         assertEquals(expected.id, loaded.id)
-        @OptIn(ExperimentalUuidApi::class)
-        assertEquals(expected.iid.value, loaded.iid.value)
+        assertEquals(expected.iid, loaded.iid)
         assertEquals(expected.name, loaded.name)
         assertEquals(expected.active, loaded.active)
         assertEquals(expected.tracksFileRenames, loaded.tracksFileRenames)
@@ -42,7 +42,7 @@ internal class BranchTest : BaseInfrastructureSpringTest() {
         loaded!!
         assertEquals(expected.id, loaded.id)
         @OptIn(ExperimentalUuidApi::class)
-        assertEquals(expected.iid.value, loaded.iid.value)
+        assertEquals(expected.iid, loaded.iid)
         assertEquals(expected.name, loaded.name)
         assertEquals(expected.active, loaded.active)
         assertEquals(expected.tracksFileRenames, loaded.tracksFileRenames)

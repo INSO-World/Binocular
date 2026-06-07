@@ -11,6 +11,7 @@ import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Commit domain objects.
@@ -93,6 +94,7 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
      * @return The Commit domain object (structure only, without relationships)
      * @throws IllegalStateException if Repository is not in MappingContext
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: CommitEntity): Commit {
         ctx.findDomain<Commit, CommitEntity>(entity)?.let { return it }
 
@@ -112,7 +114,7 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid,
+            Commit.Id(entity.iid.value),
         )
         ctx.remember(domain, entity)
 
