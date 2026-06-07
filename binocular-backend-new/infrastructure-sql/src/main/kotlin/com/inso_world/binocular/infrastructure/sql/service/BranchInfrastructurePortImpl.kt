@@ -58,8 +58,24 @@ internal class BranchInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    /**
+     * Finds a branch by its JPA-assigned surrogate [id].
+     *
+     * Assembles the owning repository aggregate so the returned [Branch] is fully wired (head commit,
+     * repository, active/tracksFileRenames flags). Returns null when no entity with [id] exists.
+     *
+     * @throws IllegalArgumentException if [id] cannot be parsed as a Long
+     */
+    @MappingSession
+    @Transactional(readOnly = true)
     override fun findById(id: String): Branch? {
-        TODO("Not yet implemented")
+        val idL = id.toLongOrNull() ?: throw IllegalArgumentException("id must be convertable to Long")
+        val branchEntity = this.branchDao.findById(idL) ?: return null
+
+        return repositoryAssembler
+            .toDomain(branchEntity.repository)
+            .branches
+            .find { it.id == id }
     }
 
     override fun findByIid(iid: Reference.Id): @Valid Branch? {

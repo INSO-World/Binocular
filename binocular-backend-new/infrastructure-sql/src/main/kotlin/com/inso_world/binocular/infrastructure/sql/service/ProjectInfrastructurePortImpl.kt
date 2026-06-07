@@ -89,9 +89,7 @@ internal class ProjectInfrastructurePortImpl(
      * @see self
      * @see findByIidInternal
      */
-    override fun findByIid(iid: Project.Id): Project? {
-        return self.findByIidInternal(iid)
-    }
+    override fun findByIid(iid: Project.Id): Project? = self.findByIidInternal(iid)
 
     /**
      * Internal implementation of project lookup by iid.
@@ -112,11 +110,10 @@ internal class ProjectInfrastructurePortImpl(
      */
     @MappingSession
     @Transactional(readOnly = true)
-    protected fun findByIidInternal(iid: Project.Id): Project? {
-        return this.projectDao.findByIid(iid)?.let {
+    protected fun findByIidInternal(iid: Project.Id): Project? =
+        this.projectDao.findByIid(iid)?.let {
             projectAssembler.toDomain(it)
         }
-    }
 
     @MappingSession
     @Transactional
@@ -177,27 +174,28 @@ internal class ProjectInfrastructurePortImpl(
         return value
     }
 
+    /**
+     * Persists a batch of [Project] aggregates and back-propagates all JPA-generated IDs.
+     *
+     * [ProjectAssembler.refresh] is used (rather than [ProjectMapper.refreshDomain] alone) so that
+     * cascade-saved children — repositories, commits, branches — also receive their generated IDs via
+     * [RepositoryAssembler.refresh]. This ensures callers can immediately use [Branch.id],
+     * [Commit.id], etc. on the domain objects they passed in.
+     */
     @MappingSession
     @Transactional
     override fun saveAll(values: Collection<Project>): Iterable<Project> {
-        // Create entity-domain pairs to maintain association
         val pairs = values.map { domain -> domain to this.projectAssembler.toEntity(domain) }
-
-        // Save all entities
         val savedEntities = this.projectDao.saveAll(pairs.map { it.second })
-
-        // Refresh each domain object with its persisted entity and return the original collection
         pairs.zip(savedEntities).forEach { (pair, savedEntity) ->
-            this.projectMapper.refreshDomain(pair.first, savedEntity)
+            this.projectAssembler.refresh(pair.first, savedEntity)
         }
-
         return values
     }
 
     @MappingSession
     @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Project> =
-        loadProjectEntities(projectDao).map(projectAssembler::toDomain)
+    override fun findAll(): Iterable<Project> = loadProjectEntities(projectDao).map(projectAssembler::toDomain)
 
     @MappingSession
     @Transactional(readOnly = true)
