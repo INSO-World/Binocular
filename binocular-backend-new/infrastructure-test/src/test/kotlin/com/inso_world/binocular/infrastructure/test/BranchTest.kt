@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.junit.jupiter.DisabledIf
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Integration tests for Branch persistence via BranchInfrastructurePort.
  * Tests verify that domain model semantics (particularly the derived commits getter
  * and head property validation) are preserved through the infrastructure layer.
  */
-@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('postgres')}", loadContext = true)
 internal class BranchTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var branchPort: BranchInfrastructurePort
@@ -22,10 +22,27 @@ internal class BranchTest : BaseInfrastructureSpringTest() {
     @Test
     fun `load branch by provider id`() {
         val expected = TestDataProvider.testBranches.first()
+        val loaded = branchPort.findById(requireNotNull(expected.id))
+        assertNotNull(loaded)
+        loaded!!
+        assertEquals(expected.id, loaded.id)
+        @OptIn(ExperimentalUuidApi::class)
+        assertEquals(expected.iid.value, loaded.iid.value)
+        assertEquals(expected.name, loaded.name)
+        assertEquals(expected.active, loaded.active)
+        assertEquals(expected.tracksFileRenames, loaded.tracksFileRenames)
+        assertEquals(expected.latestCommit, loaded.latestCommit)
+    }
+
+    @Test
+    fun `load branch by provider iid`() {
+        val expected = TestDataProvider.testBranches.first()
         val loaded = branchPort.findByIid(requireNotNull(expected.iid))
         assertNotNull(loaded)
         loaded!!
         assertEquals(expected.id, loaded.id)
+        @OptIn(ExperimentalUuidApi::class)
+        assertEquals(expected.iid.value, loaded.iid.value)
         assertEquals(expected.name, loaded.name)
         assertEquals(expected.active, loaded.active)
         assertEquals(expected.tracksFileRenames, loaded.tracksFileRenames)
