@@ -5,11 +5,13 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.ID
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.DeveloperRepository
-import com.inso_world.binocular.model.Repository as DomainRepository
+import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
 import java.util.stream.Stream
+import kotlin.uuid.ExperimentalUuidApi
+import com.inso_world.binocular.model.Repository as DomainRepository
 
 @Repository
 internal class DeveloperDao(
@@ -32,8 +34,7 @@ internal class DeveloperDao(
             }
     }
 
-    override fun findAllByGitSignatureIn(emails: Collection<String>): Stream<DeveloperEntity> =
-        repo.findAllByEmailIn(emails)
+    override fun findAllByGitSignatureIn(emails: Collection<String>): Stream<DeveloperEntity> = repo.findAllByEmailIn(emails)
 
     override fun findAll(repository: RepositoryEntity): Iterable<DeveloperEntity> =
         this.repo.findAll(
@@ -45,4 +46,7 @@ internal class DeveloperDao(
         if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
         return this.repo.findAllByRepository_Id(rid.toLong())
     }
+
+    @OptIn(ExperimentalUuidApi::class)
+    override fun findByIid(iid: User.Id): DeveloperEntity? = repo.findByIid(iid.value)
 }
