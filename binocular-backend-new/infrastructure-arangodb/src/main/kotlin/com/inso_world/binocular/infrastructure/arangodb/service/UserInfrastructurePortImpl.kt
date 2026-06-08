@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.UserInfrastructurePort
@@ -52,7 +53,9 @@ internal class UserInfrastructurePortImpl :
     @Lazy
     private lateinit var repositoryAssembler: RepositoryAssembler
 
-    var logger: Logger = LoggerFactory.getLogger(UserInfrastructurePortImpl::class.java)
+    companion object {
+        private val logger by logger()
+    }
 
     @MappingSession
     override fun findAll(pageable: Pageable): Page<User> {
@@ -68,7 +71,8 @@ internal class UserInfrastructurePortImpl :
 
     @MappingSession
     override fun findByIid(iid: User.Id): @Valid User? {
-        TODO("Not yet implemented")
+        logger.trace("Finding user by iid: $iid")
+        return userDao.findByIid(iid)
     }
 
     @MappingSession

@@ -3,4 +3,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfa
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
 import com.inso_world.binocular.model.User
 
-internal interface IUserDao : IDao<User, String>
+internal interface IUserDao : IDao<User, String> {
+    fun findByIid(iid: User.Id): User?
+}

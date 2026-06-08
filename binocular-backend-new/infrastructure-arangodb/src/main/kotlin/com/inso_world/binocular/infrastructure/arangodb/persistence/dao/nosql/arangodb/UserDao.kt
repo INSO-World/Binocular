@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import kotlin.uuid.ExperimentalUuidApi
 
 @Repository
 internal class UserDao
@@ -47,5 +48,13 @@ internal class UserDao
                     userMapper.toDomain(entity)
                 }
             return Page(content, result.totalElements, pageable)
+        }
+
+        @OptIn(ExperimentalUuidApi::class)
+        override fun findByIid(iid: User.Id): User? {
+            seeder.seed()
+            val entity = userRepository.findByIid(iid.value).orElse(null) ?: return null
+            repositoryAssembler.toDomain(entity.repository)
+            return userMapper.toDomain(entity)
         }
     }

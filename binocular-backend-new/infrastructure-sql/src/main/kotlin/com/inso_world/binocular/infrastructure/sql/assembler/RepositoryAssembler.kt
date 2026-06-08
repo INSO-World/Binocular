@@ -18,9 +18,11 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Assembler for the Repository aggregate.
@@ -131,6 +133,7 @@ internal class RepositoryAssembler {
      * @param domain The Repository domain aggregate to assemble
      * @return The fully assembled RepositoryEntity with all children and identity preservation
      */
+    @OptIn(ExperimentalUuidApi::class)
     fun toEntity(domain: Repository): RepositoryEntity {
         logger.trace("Assembling RepositoryEntity for repository: ${domain.localPath}")
 
@@ -197,7 +200,25 @@ internal class RepositoryAssembler {
             entity.remotes.add(remoteEntity)
         }
 
-        // Phase 5: Map and wire Developers
+        // Phase 5: Map and wire Legacy Users (deprecated, converted to DeveloperEntity)
+        logger.debug("Mapping ${domain.user.size} legacy users")
+        domain.user.forEach { legacyUser ->
+            // Create DeveloperEntity directly to avoid Developer constructor adding to domain.developers
+            // with a mismatched iid (Developer generates its own iid at construction)
+            val developerEntity =
+                DeveloperEntity(
+                    name = legacyUser.name,
+                    email =
+                        requireNotNull(legacyUser.email) {
+                            "Legacy user ${legacyUser.name} has no email, cannot persist"
+                        },
+                    repository = entity,
+                    iid = Developer.Id(legacyUser.iid.value),
+                )
+            entity.developers.add(developerEntity)
+        }
+
+        // Phase 6: Map and wire Developers
         logger.debug("Mapping ${domain.developers.size} developers")
         domain.developers.forEach { developer ->
             val developerEntity = developerMapper.toEntity(developer)
@@ -317,6 +338,7 @@ internal class RepositoryAssembler {
         return domain
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     fun refresh(
         domain: Repository,
         entity: RepositoryEntity,
@@ -344,7 +366,14 @@ internal class RepositoryAssembler {
 
         with(entity.developers.associateBy(DeveloperEntity::iid)) {
             domain.developers.forEach { developer ->
-                this@RepositoryAssembler.developerMapper.refreshDomain(developer, this.getValue(developer.iid))
+                this@RepositoryAssembler.developerMapper.refreshDomain(developer, this[developer.iid] ?: return@forEach)
+            }
+        }
+
+        // Update legacy User.id from persisted DeveloperEntity
+        domain.user.forEach { legacyUser ->
+            entity.developers.find { it.iid.value == legacyUser.iid.value }?.let { entity ->
+                legacyUser.id = entity.id?.toString()
             }
         }
 
