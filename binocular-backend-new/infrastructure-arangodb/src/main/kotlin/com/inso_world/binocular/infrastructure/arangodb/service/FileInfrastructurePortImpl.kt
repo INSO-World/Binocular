@@ -58,7 +58,14 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: File.Id): @Valid File? {
-        TODO("Not yet implemented")
+        logger.trace("Getting file by iid: $iid")
+        return fileDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<File.Id>): List<@Valid File> {
+        logger.trace("Getting files by iids: $iids")
+        return fileDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

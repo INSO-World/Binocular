@@ -5,13 +5,12 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MilestoneEntity
-import com.inso_world.binocular.model.Milestone
-import com.inso_world.binocular.model.Project
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
+import com.inso_world.binocular.model.*
 import org.springframework.beans.factory.annotation.Autowired
-import kotlin.uuid.ExperimentalUuidApi
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Mapper for Milestone domain objects.
@@ -30,91 +29,66 @@ import org.springframework.stereotype.Component
  * for issues and merge requests to optimize performance when accessing milestone metadata.
  */
 @Component
-internal class MilestoneMapper
+internal class MilestoneMapper : EntityMapper<Milestone, MilestoneEntity> {
     @Autowired
-    constructor(
-        private val proxyFactory: RelationshipProxyFactory,
-        @Lazy private val issueMapper: IssueMapper,
-        @Lazy private val mergeRequestMapper: MergeRequestMapper,
-    ) : EntityMapper<Milestone, MilestoneEntity> {
-        @Autowired
-        private lateinit var ctx: MappingContext
+    private lateinit var ctx: MappingContext
 
-        companion object {
-            private val logger by logger()
-        }
+    companion object {
+        private val logger by logger()
+    }
 
-        /**
-         * Converts a Milestone domain object to MilestoneEntity.
-         *
-         * Maps all milestone properties including metadata, dates, and state. Relationships
-         * to issues and merge requests are not persisted in the entity - they are only
-         * restored during toDomain through lazy loading.
-         *
-         * @param domain The Milestone domain object to convert
-         * @return The MilestoneEntity with milestone metadata
-         */
-        override fun toEntity(domain: Milestone): MilestoneEntity {
-            val entity = MilestoneEntity(
-                id = domain.id,
-                iid = domain.platformIid,
-                title = domain.title,
-                description = domain.description,
-                createdAt = domain.createdAt,
-                updatedAt = domain.updatedAt,
-                startDate = domain.startDate,
-                dueDate = domain.dueDate,
-                state = domain.state,
-                expired = domain.expired,
-                webUrl = domain.webUrl,
-                project = ctx.findEntity<Project.Key, Project, ProjectEntity>(Project(domain.project.toString())),
-                issues = domain.issues.map { issueMapper.toEntity(it) }.toSet(),
-                mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }.toSet(),
-            )
-            return entity
-        }
+    /**
+     * Converts a Milestone domain object to MilestoneEntity.
+     *
+     * Maps all milestone properties including metadata, dates, and state.
+     *
+     * @param domain The Milestone domain object to convert
+     * @return The MilestoneEntity with milestone metadata
+     */
+    override fun toEntity(domain: Milestone): MilestoneEntity {
+        val entity = MilestoneEntity(
+            id = domain.id,
+            iid = domain.platformIid,
+            title = domain.title,
+            description = domain.description,
+            createdAt = domain.createdAt,
+            updatedAt = domain.updatedAt,
+            startDate = domain.startDate,
+            dueDate = domain.dueDate,
+            state = domain.state,
+            expired = domain.expired,
+            webUrl = domain.webUrl,
+        )
+        return entity
+    }
 
-        @OptIn(ExperimentalUuidApi::class)
-        override fun toDomain(entity: MilestoneEntity): Milestone {
-            // Fast-path: Check if already mapped
-            ctx.findDomain<Milestone, MilestoneEntity>(entity)?.let { return it }
+    @OptIn(ExperimentalUuidApi::class)
+    override fun toDomain(entity: MilestoneEntity): Milestone {
+        // Fast-path: Check if already mapped
+        ctx.findDomain<Milestone, MilestoneEntity>(entity)?.let { return it }
 
-            val domain = Milestone(
-                id = entity.id,
-                platformIid = entity.iid,
-                title = entity.title,
-                description = entity.description,
-                createdAt = entity.createdAt,
-                updatedAt = entity.updatedAt,
-                startDate = entity.startDate,
-                dueDate = entity.dueDate,
-                state = entity.state,
-                expired = entity.expired,
-                webUrl = entity.webUrl,
-                project =
-                    entity.project?.let { Project.Id(it.iid!!) }
-                        ?: ctx.findDomain<Project, MilestoneEntity>(entity)?.iid
-                        ?: error("Parent Project not found in entity or context for Milestone ${entity.iid}"),
-            )
+        val domain = Milestone(
+            id = entity.id,
+            platformIid = entity.iid,
+            title = entity.title,
+            description = entity.description,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt,
+            startDate = entity.startDate,
+            dueDate = entity.dueDate,
+            state = entity.state,
+            expired = entity.expired,
+            webUrl = entity.webUrl,
+            project =
+                entity.project?.let { Project.Id(it.iid!!) }
+                    ?: ctx.findDomain<Project, MilestoneEntity>(entity)?.iid
+                    ?: error("Parent Project not found in entity or context for Milestone ${entity.iid}"),
+            issueIds = entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } }.toMutableSet(),
+            mergeRequestIds = entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } }.toMutableSet(),
+        )
 
-            domain.issues.addAll(
-                proxyFactory.createLazyList {
-                    (entity.issues ?: emptyList()).map { issueEntity ->
-                        issueMapper.toDomain(issueEntity)
-                    }
-                }
-            )
-
-            domain.mergeRequests.addAll(
-                proxyFactory.createLazyList {
-                    (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
-                        mergeRequestMapper.toDomain(mergeRequestEntity)
-                    }
-                }
-            )
-
-            return domain
-        }
+        return domain
+    }
 
         override fun toDomainList(entities: Iterable<MilestoneEntity>): List<Milestone> = entities.map { toDomain(it) }
     }

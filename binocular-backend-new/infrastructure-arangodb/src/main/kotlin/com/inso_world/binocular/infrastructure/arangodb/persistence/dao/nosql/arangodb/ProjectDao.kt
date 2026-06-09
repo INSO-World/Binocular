@@ -47,15 +47,7 @@ internal class ProjectDao @Autowired constructor(
         val mappedEntity = mapper.toEntity(entity)
         var savedEntity = projectRepository.save(mappedEntity)
 
-        // Save Issues
-        entity.issues.forEach { issue ->
-            issueDao.save(issue)
-        }
-
-        // Save Merge Requests
-        entity.mergeRequests.forEach { mr ->
-            mergeRequestDao.save(mr)
-        }
+        // Recursive saving skipped as create/update is ignored for now
 
         savedEntity = mappedEntity.repository?.let { repository ->
             val savedRepo = repositoryDao.create(repository, skipProjectCheck = true)

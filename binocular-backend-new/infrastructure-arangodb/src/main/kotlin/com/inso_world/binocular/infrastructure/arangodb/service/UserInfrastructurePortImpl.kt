@@ -60,7 +60,14 @@ internal class UserInfrastructurePortImpl : UserInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: User.Id): @Valid User? {
-        TODO("Not yet implemented")
+        logger.trace("Getting user by iid: $iid")
+        return userDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<User.Id>): List<@Valid User> {
+        logger.trace("Getting users by iids: $iids")
+        return userDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

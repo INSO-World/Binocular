@@ -3,11 +3,14 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MentionEntity
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Mention
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.util.Date
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Mapper for Mention value objects.
@@ -51,6 +54,7 @@ internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
      * @param entity The MentionEntity to convert
      * @return The Mention value object with commit reference and metadata
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: MentionEntity): Mention {
         // Fast-path: Check if already mapped
         ctx.findDomain<Mention, MentionEntity>(entity)?.let { return it }
@@ -62,7 +66,8 @@ internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
                     ?.toInstant()
                     ?.atZone(ZoneOffset.UTC)
                     ?.toLocalDateTime(),
-            closes = entity.closes
+            closes = entity.closes,
+            actorId = entity.actor?.id?.let { Account.Id(Uuid.parse(it)) }
         )
     }
 }

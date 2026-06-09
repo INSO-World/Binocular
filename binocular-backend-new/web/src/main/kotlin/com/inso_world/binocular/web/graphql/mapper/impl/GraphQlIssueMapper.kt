@@ -3,7 +3,9 @@ package com.inso_world.binocular.web.graphql.mapper.impl
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.web.graphql.model.IssueDto
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 @Component
 class GraphQlIssueMapper(
     private val mentionMapper: GraphQlMentionMapper
@@ -20,7 +22,12 @@ class GraphQlIssueMapper(
             labels = issue.labels,
             state = issue.state,
             webUrl = issue.webUrl,
-            mentions = issue.mentions.map { mentionMapper.toDto(it) }
+            mentions = issue.mentions.map { mentionMapper.toDto(it) },
+            authorId = issue.authorId?.value?.toString(),
+            accountIds = issue.accountIds.map { it.value.toString() }.toSet(),
+            commitIds = issue.commitIds.map { it.value.toString() }.toSet(),
+            milestoneIds = issue.milestoneIds.map { it.value.toString() }.toSet(),
+            noteIds = issue.noteIds.map { it.value.toString() }.toSet(),
         )
     }
 }

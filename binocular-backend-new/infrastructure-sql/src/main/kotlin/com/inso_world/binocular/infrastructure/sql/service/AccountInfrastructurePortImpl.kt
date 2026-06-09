@@ -75,9 +75,20 @@ import org.springframework.validation.annotation.Validated
         TODO("Not yet implemented")
     }
 
+    @Transactional(readOnly = true)
     @MappingSession
     override fun findByIid(iid: Account.Id): Account? {
-        return null // TODO
+        logger.trace("Getting account by iid: $iid")
+        val entity = accountDao.findByIid(iid) ?: return null
+        return accountMapper.toDomain(entity)
+    }
+
+    @Transactional(readOnly = true)
+    @MappingSession
+    override fun findByIids(iids: Collection<Account.Id>): List<Account> {
+        logger.trace("Getting accounts by iids: $iids")
+        val entities = accountDao.findAllByIidIn(iids)
+        return accountMapper.toDomainList(entities)
     }
 
     @Deprecated("Save accounts via project instead.")

@@ -57,6 +57,13 @@ internal class ProjectInfrastructurePortImpl : ProjectInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: Project.Id): Project? {
-        TODO("Not yet implemented")
+        logger.trace("Getting project by iid: $iid")
+        return projectDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Project.Id>): List<Project> {
+        logger.trace("Getting projects by iids: $iids")
+        return projectDao.findAll().filter { it.iid in iids }
     }
 }

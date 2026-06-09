@@ -88,9 +88,9 @@ internal class ProjectAssembler {
         logger.trace("Mapped Project structure: id=${entity.id}")
 
         // Phase 2: Map Issues and MergeRequests to context
-        logger.trace("Mapping ${domain.issues.size} issues and ${domain.mergeRequests.size} merge requests")
-        domain.issues.forEach { issueMapper.toEntity(it).apply { project = entity } }
-        domain.mergeRequests.forEach { mergeRequestMapper.toEntity(it).apply { project = entity } }
+        // logger.trace("Mapping ${domain.issueIds.size} issues and ${domain.mergeRequestIds.size} merge requests")
+        // domain.issueIds.forEach { ... }
+        // domain.mergeRequestIds.forEach { ... }
 
         // Phase 3: Assemble owned Repository if present
         domain.repo?.let { repository ->

@@ -36,6 +36,11 @@ internal interface IDao<T, I : Serializable> {
     fun save(entity: T): T
 
     /**
+     * Finds multiple entities by their IDs
+     */
+    fun findAllById(ids: Iterable<I>): Iterable<T>
+
+    /**
      * Save multiple entities
      */
     fun saveAll(entities: Collection<T>): Iterable<T>

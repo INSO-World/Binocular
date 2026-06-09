@@ -74,7 +74,7 @@ abstract class BaseGraphQlCompatibilityIT {
     @Autowired
     protected lateinit var tester: GraphQlTester
 
-    protected val client: CompatibleGraphQlClient by lazy {
+    internal val client: CompatibleGraphQlClient by lazy {
         val target = graphqlTarget()
         log("Running GraphQL tests in mode: $target")
 

@@ -46,7 +46,14 @@ internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: Reference.Id): @Valid Branch? {
-        TODO("Not yet implemented")
+        logger.trace("Getting branch by iid: $iid")
+        return branchDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Reference.Id>): List<@Valid Branch> {
+        logger.trace("Getting branches by iids: $iids")
+        return branchDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

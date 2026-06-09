@@ -22,8 +22,8 @@ data class Milestone(
     var webUrl: String? = null,
     // Relationships
     val project: Project.Id,
-    val issues: MutableSet<Issue> = NonRemovingMutableSet(),
-    val mergeRequests: MutableSet<MergeRequest> = NonRemovingMutableSet(),
+    val issueIds: MutableSet<Issue.Id> = mutableSetOf(),
+    val mergeRequestIds: MutableSet<MergeRequest.Id> = mutableSetOf(),
 ) : AbstractDomainObject<Milestone.Id, Milestone.Key>(
     Id(Uuid.random())
 ) {

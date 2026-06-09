@@ -173,9 +173,8 @@ internal data class IssueEntity(
 //    }
 
     // TODO map labels and mentions
-    fun toDomain(project: Project) = Issue(
+    fun toDomain(project: Project): Issue = Issue(
         project = project.iid,
-        id = this.id?.toString(),
         gid = this.gid,
         platformIid = this.platformIid,
         title = this.title,
@@ -185,11 +184,11 @@ internal data class IssueEntity(
         updatedAt = this.updatedAt,
         state = this.state,
         webUrl = this.webUrl,
-//        labels = getDomainLabels(),
-//        mentions = getDomainMentions(),
-//        notes = emptyList(),
-//        users = emptyList(),
-    )
+        authorId = this.author?.iid,
+        accountIds = this.accounts.map { it.iid }.toSet()
+    ).apply {
+        id = this@IssueEntity.id?.toString()
+    }
 
     override val uniqueKey: Key
         get() = Key(project.iid, gid)
@@ -214,11 +213,6 @@ internal fun com.inso_world.binocular.model.Issue.toSqlEntity(owner: ProjectEnti
         platformIid = this.platformIid,
         project = owner,
     )
-
-    // Set labels and mentions
-//    entity.setDomainLabels(this.labels)
-//    entity.setDomainMentions(this.mentions)
-
     return entity
 }
 

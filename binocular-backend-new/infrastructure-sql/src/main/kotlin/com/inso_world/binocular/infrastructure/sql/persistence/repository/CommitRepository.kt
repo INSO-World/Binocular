@@ -62,6 +62,9 @@ internal interface CommitRepository :
     @OptIn(ExperimentalUuidApi::class)
     fun findByIid(iid: Uuid): CommitEntity?
 
+    @OptIn(ExperimentalUuidApi::class)
+    fun findAllByIidIn(iids: Collection<Uuid>): List<CommitEntity>
+
     @Query(
         """
             select ch from CommitEntity c 

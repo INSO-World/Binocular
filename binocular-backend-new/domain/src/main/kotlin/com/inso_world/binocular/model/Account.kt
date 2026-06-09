@@ -20,7 +20,7 @@ data class Account(
     @field:NotBlank
     val login: String,
     @field:NotNull
-    val projects: MutableSet<Project> = mutableSetOf(),
+    val projectIds: MutableSet<Project.Id> = mutableSetOf(),
 
 ) : AbstractDomainObject<Account.Id, Account.Key>(
     Id(Uuid.random())
@@ -29,41 +29,9 @@ data class Account(
     var avatarUrl: String? = null
     var url: String? = null
 
-    val mergeRequests: MutableSet<MergeRequest> = object : NonRemovingMutableSet<MergeRequest>() {
-        override fun add(element: MergeRequest): Boolean {
-            val added = super.add(element)
-            if (added) {
-                element.accounts.add(this@Account)
-            }
-            return added
-        }
+    val mergeRequestIds: MutableSet<MergeRequest.Id> = mutableSetOf()
 
-        override fun addAll(elements: Collection<MergeRequest>): Boolean {
-            var anyAdded = false
-            for (element in elements) {
-                if (add(element)) anyAdded = true
-            }
-            return anyAdded
-        }
-    }
-
-    val notes: MutableSet<Note> = object : NonRemovingMutableSet<Note>() {
-        override fun add(element: Note): Boolean {
-            val added = super.add(element)
-            if (added) {
-                element.accounts.add(this@Account)
-            }
-            return added
-        }
-
-        override fun addAll(elements: Collection<Note>): Boolean {
-            var anyAdded = false
-            for (element in elements) {
-                if (add(element)) anyAdded = true
-            }
-            return anyAdded
-        }
-    }
+    val noteIds: MutableSet<Note.Id> = mutableSetOf()
 
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
@@ -73,26 +41,7 @@ data class Account(
 
     data class Key(val platform: Platform, val gid: String) // value object for lookups
 
-    val issues: MutableSet<Issue> = object : NonRemovingMutableSet<Issue>() {
-        override fun add(element: Issue): Boolean {
-//            require(element.project in this@Account.projects) {
-//                "Issue.project (${element.project}) doesn't match any of the account's projects (${this@Account.projects})."
-//            }
-            val added = super.add(element)
-            if (added) {
-                element.accounts.add(this@Account)
-            }
-            return added
-        }
-
-        override fun addAll(elements: Collection<Issue>): Boolean {
-            var anyAdded = false
-            for (element in elements) {
-                if (add(element)) anyAdded = true
-            }
-            return anyAdded
-        }
-    }
+    val issueIds: MutableSet<Issue.Id> = mutableSetOf()
 
 //    private val _issues: MutableSet<Issue> = mutableSetOf()
 //    val issues: MutableSet<Issue> =
@@ -115,5 +64,4 @@ data class Account(
     fun format(): String {
         return "Account(id=$gid, login=$login, name=$name)"
     }
-
 }

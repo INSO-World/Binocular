@@ -70,7 +70,14 @@ internal class MergeRequestInfrastructurePortImpl : MergeRequestInfrastructurePo
 
     @MappingSession
     override fun findByIid(iid: MergeRequest.Id): @Valid MergeRequest? {
-        TODO("Not yet implemented")
+        logger.trace("Getting merge request by iid: $iid")
+        return mergeRequestDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<MergeRequest.Id>): List<@Valid MergeRequest> {
+        logger.trace("Getting merge requests by iids: $iids")
+        return mergeRequestDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

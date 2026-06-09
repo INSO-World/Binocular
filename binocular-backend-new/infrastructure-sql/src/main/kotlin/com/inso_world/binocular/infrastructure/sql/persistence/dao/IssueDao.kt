@@ -7,6 +7,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEnt
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.IssueRepository
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.ProjectRepository
+import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
@@ -41,6 +42,10 @@ internal class IssueDao(
     override fun findAllByUser(user: DeveloperEntity): Stream<IssueEntity> {
         return repo.findAllByDevelopersContaining(user)
     }
+
+    override fun findByIid(iid: Issue.Id): IssueEntity? = repo.findByIid(iid)
+
+    override fun findAllByIidIn(iids: Collection<Issue.Id>): List<IssueEntity> = repo.findAllByIidIn(iids)
 
     override fun findExistingGid(
         project: com.inso_world.binocular.model.Project,

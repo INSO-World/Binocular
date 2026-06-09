@@ -3,12 +3,16 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.NoteEntity
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Mapper for Note domain objects.
@@ -27,16 +31,9 @@ import org.springframework.stereotype.Component
  * for accounts, issues, and merge requests to optimize performance.
  */
 @Component
-internal class NoteMapper
+internal class NoteMapper : EntityMapper<Note, NoteEntity> {
     @Autowired
-    constructor(
-        private val proxyFactory: RelationshipProxyFactory,
-        @Lazy private val accountMapper: AccountMapper,
-        @Lazy private val issueMapper: IssueMapper,
-        @Lazy private val mergeRequestMapper: MergeRequestMapper,
-    ) : EntityMapper<Note, NoteEntity> {
-        @Autowired
-        private lateinit var ctx: MappingContext
+    private lateinit var ctx: MappingContext
 
         companion object {
             private val logger by logger()
@@ -46,8 +43,7 @@ internal class NoteMapper
          * Converts a Note domain object to NoteEntity.
          *
          * Maps all note properties including body, timestamps, flags (system, resolvable, etc.),
-         * and import metadata. Relationships to accounts, issues, and merge requests are not
-         * persisted in the entity - they are only restored during toDomain through lazy loading.
+         * and import metadata.
          *
          * @param domain The Note domain object to convert
          * @return The NoteEntity with note metadata
@@ -64,20 +60,18 @@ internal class NoteMapper
                 internal = domain.internal,
                 imported = domain.imported,
                 importedFrom = domain.importedFrom,
-                accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
-                issues = domain.issues.map { issueMapper.toEntity(it) }.toSet(),
-                mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }.toSet(),
             )
 
         /**
          * Converts a NoteEntity to Note domain object.
          *
-         * Creates lazy-loaded proxies for accounts, issues, and merge requests to avoid loading
+         * Extracts IDs for accounts, issues, and merge requests to avoid loading
          * unnecessary data when only note metadata is needed.
          *
          * @param entity The NoteEntity to convert
-         * @return The Note domain object with lazy relationships
+         * @return The Note domain object with IDs for relationships
          */
+        @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: NoteEntity): Note {
             // Fast-path: Check if already mapped
             ctx.findDomain<Note, NoteEntity>(entity)?.let { return it }
@@ -93,30 +87,12 @@ internal class NoteMapper
                 internal = entity.internal,
                 imported = entity.imported,
                 importedFrom = entity.importedFrom,
+                issueIds = entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } }.toMutableSet(),
+                mergeRequestIds = entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } }.toMutableSet(),
             )
 
-            domain.issues.addAll(
-                proxyFactory.createLazyList {
-                    (entity.issues ?: emptyList()).map { issueEntity ->
-                        issueMapper.toDomain(issueEntity)
-                    }
-                }
-            )
-
-            domain.mergeRequests.addAll(
-                proxyFactory.createLazyList {
-                    (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
-                        mergeRequestMapper.toDomain(mergeRequestEntity)
-                    }
-                }
-            )
-
-            domain.accounts.addAll(
-                proxyFactory.createLazyList {
-                    (entity.accounts ?: emptyList()).map { accountEntity ->
-                        accountMapper.toDomain(accountEntity)
-                    }
-                }
+            domain.accountIds.addAll(
+                entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } }
             )
 
             return domain

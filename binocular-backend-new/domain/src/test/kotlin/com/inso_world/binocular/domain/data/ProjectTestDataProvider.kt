@@ -22,20 +22,20 @@ class ProjectTestDataProvider {
     val accounts: List<Account> = listOf(
         run {
             val account = Account(gid = "gid1", platform = Platform.GitHub, login = "account1").apply {
-                this.projects.add(projectsByName.getValue("proj-pg-0"))
-                this.projects.add(projectsByName.getValue("proj-pg-4"))
+                this.projectIds.add(projectsByName.getValue("proj-pg-0").iid)
+                this.projectIds.add(projectsByName.getValue("proj-pg-4").iid)
             }
             account
         }, run {
             val account = Account(gid = "gid2", platform = Platform.GitHub, login = "account2").apply {
-                this.projects.add(projectsByName.getValue("proj-pg-0"))
-                this.projects.add(projectsByName.getValue("proj-pg-4"))
+                this.projectIds.add(projectsByName.getValue("proj-pg-0").iid)
+                this.projectIds.add(projectsByName.getValue("proj-pg-4").iid)
             }
             account
         }, run {
             val account = Account(gid = "gid3", platform = Platform.GitHub, login = "account3").apply {
-                this.projects.add(projectsByName.getValue("proj-pg-0"))
-                this.projects.add(projectsByName.getValue("proj-pg-4"))
+                this.projectIds.add(projectsByName.getValue("proj-pg-0").iid)
+                this.projectIds.add(projectsByName.getValue("proj-pg-4").iid)
             }
             account
         }, run {
@@ -82,38 +82,36 @@ class ProjectTestDataProvider {
         val project4 = projectsByName.getValue("proj-pg-4")
 
         // --- link accounts to project
-        accountByLogin.getValue("account1").projects.add(project)
-        accountByLogin.getValue("account1").projects.add(project4)
-        accountByLogin.getValue("account2").projects.add(project)
-        accountByLogin.getValue("account2").projects.add(project4)
-        accountByLogin.getValue("account3").projects.add(project)
-        accountByLogin.getValue("account3").projects.add(project4)
+        accountByLogin.getValue("account1").projectIds.add(project.iid)
+        accountByLogin.getValue("account1").projectIds.add(project4.iid)
+        accountByLogin.getValue("account2").projectIds.add(project.iid)
+        accountByLogin.getValue("account2").projectIds.add(project4.iid)
+        accountByLogin.getValue("account3").projectIds.add(project.iid)
+        accountByLogin.getValue("account3").projectIds.add(project4.iid)
 
         // --- issue 1
         issueByGid.getValue("1abc").apply {
-            author = accountByLogin.getValue("account1")
-            accounts.add(accountByLogin.getValue("account1"))
-            accounts.add(accountByLogin.getValue("account2"))
+            authorId = accountByLogin.getValue("account1").iid
+            accountIds = setOf(accountByLogin.getValue("account1").iid, accountByLogin.getValue("account2").iid)
         }
 
         // --- issue 2
         issueByGid.getValue("2abc").apply {
-            author = accountByLogin.getValue("account2")
-            accounts.add(accountByLogin.getValue("account1"))
-            accounts.add(accountByLogin.getValue("account2"))
+            authorId = accountByLogin.getValue("account2").iid
+            accountIds = setOf(accountByLogin.getValue("account1").iid, accountByLogin.getValue("account2").iid)
         }
 
         // --- issue 3
         issueByGid.getValue("3abc").apply {
-            author = accountByLogin.getValue("account3")
-            accounts.add(accountByLogin.getValue("account3"))
+            authorId = accountByLogin.getValue("account3").iid
+            accountIds = setOf(accountByLogin.getValue("account3").iid)
         }
 
         // --- reverse linking
-        accountByLogin.getValue("account1").issues.add(issueByGid.getValue("1abc"))
-        accountByLogin.getValue("account2").issues.add(issueByGid.getValue("1abc"))
-        accountByLogin.getValue("account2").issues.add(issueByGid.getValue("2abc"))
-        accountByLogin.getValue("account1").issues.add(issueByGid.getValue("2abc"))
-        accountByLogin.getValue("account3").issues.add(issueByGid.getValue("3abc"))
+        accountByLogin.getValue("account1").issueIds.add(issueByGid.getValue("1abc").iid)
+        accountByLogin.getValue("account2").issueIds.add(issueByGid.getValue("1abc").iid)
+        accountByLogin.getValue("account2").issueIds.add(issueByGid.getValue("2abc").iid)
+        accountByLogin.getValue("account1").issueIds.add(issueByGid.getValue("2abc").iid)
+        accountByLogin.getValue("account3").issueIds.add(issueByGid.getValue("3abc").iid)
     }
 }

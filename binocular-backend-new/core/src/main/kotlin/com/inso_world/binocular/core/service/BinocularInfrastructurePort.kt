@@ -98,6 +98,14 @@ interface BinocularInfrastructurePort<T : AbstractDomainObject<Iid, *>, Iid> {
     fun findByIid(iid: Iid): @Valid T?
 
     /**
+     * Finds multiple entities by their technical/aggregate identifiers [AbstractDomainObject.iid].
+     *
+     * @param iids Collection of technical identifiers
+     * @return A list of validated entities found for the given IDs
+     */
+    fun findByIids(iids: Collection<Iid>): List<@Valid T>
+
+    /**
      * Persists a new entity to the database.
      *
      * ## Semantics

@@ -54,7 +54,14 @@ internal class ModuleInfrastructurePortImpl : ModuleInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: Module.Id): @Valid Module? {
-        TODO("Not yet implemented")
+        logger.trace("Getting module by iid: $iid")
+        return moduleDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Module.Id>): List<@Valid Module> {
+        logger.trace("Getting modules by iids: $iids")
+        return moduleDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

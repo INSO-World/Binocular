@@ -48,11 +48,17 @@ internal class IssueInfrastructurePortImpl
     @Autowired
     private lateinit var ctx: MappingContext
 
+    @Transactional(readOnly = true)
+    @MappingSession
     override fun findAccountsByIssueId(issueId: String): List<Account> {
-        TODO("Not yet implemented")
+        logger.trace("Getting accounts for issue: $issueId")
+        val accountIds = linkDao.findAccountIdsByIssueId(issueId).map { it.toLong() }
+        val entities = accountDao.findAllById(accountIds)
+        return entities.map { accountMapper.toDomain(it) }
     }
-//        linkDao.findAccountIdsByIssueId(issueId).map { Account(id = it) }
 
+    @Transactional(readOnly = true)
+    @MappingSession
     override fun findCommitsByIssueId(issueId: String): List<Commit> {
         TODO("Not yet implemented")
     }
@@ -95,9 +101,18 @@ internal class IssueInfrastructurePortImpl
         }
     }
 
+    @Transactional(readOnly = true)
     @MappingSession
     override fun findByIid(iid: Issue.Id): Issue? {
-        return null // TODO
+        val entity = issueDao.findByIid(iid) ?: return null
+        return issueMapper.toDomain(entity, entity.project.toDomain())
+    }
+
+    @Transactional(readOnly = true)
+    @MappingSession
+    override fun findByIids(iids: Collection<Issue.Id>): List<Issue> {
+        val entities = issueDao.findAllByIidIn(iids)
+        return entities.map { issueMapper.toDomain(it, it.project.toDomain()) }
     }
 
     @Transactional(readOnly = true)

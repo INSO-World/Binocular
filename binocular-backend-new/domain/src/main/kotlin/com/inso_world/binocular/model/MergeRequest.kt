@@ -22,8 +22,8 @@ data class MergeRequest(
     var webUrl: String? = null,
     var mentions: List<Mention> = emptyList(),
     // Relationships
-    val milestones: MutableSet<Milestone> = NonRemovingMutableSet(),
-    val notes: MutableSet<Note> = NonRemovingMutableSet(),
+    val milestoneIds: MutableSet<Milestone.Id> = mutableSetOf(),
+    val noteIds: MutableSet<Note.Id> = mutableSetOf(),
 ) : AbstractDomainObject<MergeRequest.Id, MergeRequest.Key>(
     Id(Uuid.random())
 ) {
@@ -32,26 +32,7 @@ data class MergeRequest(
 
     data class Key(val projectId: Project.Id, val platformIid: Int?) // value object for lookups
 
-    private val _accounts: MutableSet<Account> = mutableSetOf()
-
-    val accounts: MutableSet<Account> =
-        object : MutableSet<Account> by _accounts {
-            override fun add(element: Account): Boolean {
-                val added = _accounts.add(element)
-                if (added) {
-                    element.mergeRequests.add(this@MergeRequest)
-                }
-                return added
-            }
-
-            override fun addAll(elements: Collection<Account>): Boolean {
-                var anyAdded = false
-                for (element in elements) {
-                    if (add(element)) anyAdded = true
-                }
-                return anyAdded
-            }
-        }
+    val accountIds: MutableSet<Account.Id> = mutableSetOf()
 
     override val uniqueKey: Key
         get() = Key(project, platformIid)

@@ -20,34 +20,15 @@ data class Note(
     var imported: Boolean = false,
     var importedFrom: String,
     // Relationships
-    val issues: MutableSet<Issue> = NonRemovingMutableSet(),
-    val mergeRequests: MutableSet<MergeRequest> = NonRemovingMutableSet(),
+    val issueIds: MutableSet<Issue.Id> = mutableSetOf(),
+    val mergeRequestIds: MutableSet<MergeRequest.Id> = mutableSetOf(),
 ) : AbstractDomainObject<Note.Id, Note.Key>(
     Id(Uuid.random())
 ) {
     @JvmInline
     value class Id(val value: Uuid)
 
-    private val _accounts: MutableSet<Account> = mutableSetOf()
-
-    val accounts: MutableSet<Account> =
-        object : MutableSet<Account> by _accounts {
-            override fun add(element: Account): Boolean {
-                val added = _accounts.add(element)
-                if (added) {
-                    element.notes.add(this@Note)
-                }
-                return added
-            }
-
-            override fun addAll(elements: Collection<Account>): Boolean {
-                var anyAdded = false
-                for (element in elements) {
-                    if (add(element)) anyAdded = true
-                }
-                return anyAdded
-            }
-        }
+    val accountIds: MutableSet<Account.Id> = mutableSetOf()
 
     data class Key(val body: String, val createdAt: String) // value object for lookups
 

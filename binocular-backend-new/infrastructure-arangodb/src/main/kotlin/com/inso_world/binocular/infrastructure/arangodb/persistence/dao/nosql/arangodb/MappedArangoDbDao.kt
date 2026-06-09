@@ -63,6 +63,16 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     }
 
     /**
+     * Finds multiple entities by their IDs and converts them to domain models
+     */
+    @MappingSession
+    override fun findAllById(ids: Iterable<I>): Iterable<D> {
+        seeder.seed()
+        val entities = repository.findAllById(ids)
+        return toDomainList(entities)
+    }
+
+    /**
      * Finds all entities and converts them to domain models
      */
     @MappingSession

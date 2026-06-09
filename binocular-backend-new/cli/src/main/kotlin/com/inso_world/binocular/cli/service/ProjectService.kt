@@ -100,13 +100,13 @@ class ProjectService(
 
         // mapped via login, may cause problems once GitLab is introduced
         val accountCache =
-            project.accounts.associateBy { it.login }.toMutableMap()
+            checkedAccounts.first.associateBy { it.login }.toMutableMap()
         // cache for new accounts loaded via GitHub API
         val newAccountCache = checkedAccounts.second.associateBy { it.login }
 
         // Add all new accounts to project
-        project.accounts.addAll(checkedAccounts.first)
-        project.accounts.addAll(checkedAccounts.second)
+        project.accountIds.addAll(checkedAccounts.first.map { it.iid })
+        project.accountIds.addAll(checkedAccounts.second.map { it.iid })
 
         // connect to commits if repo and commits are not null
         val commitCache = project.repo?.commits?.associateBy { it.sha } ?: emptyMap()
@@ -123,6 +123,7 @@ class ProjectService(
             val itsIssue = issues.find { it.id == id }
 
             // get the assignees from the itsIssue
+            val updatedAccountIds = issue.accountIds.toMutableSet()
             itsIssue?.assignees?.nodes?.forEach { node ->
                 val login = node.login
 
@@ -130,7 +131,7 @@ class ProjectService(
                 // case 1: account already exists in database (is in cache)
                 if (login in accountCache.keys) {
                     val account = accountCache[login]
-                    issue.accounts.add(account!!)
+                    updatedAccountIds.add(account!!.iid)
                 }
                 // case 2: account exists in new accounts taken from GitHub
                 else if (login in newAccountCache.keys) {
@@ -139,7 +140,7 @@ class ProjectService(
                     if (newAccount != null) {
                         // add account to cache for other issues to find
                         accountCache[login] = newAccount
-                        issue.accounts.add(newAccount)
+                        updatedAccountIds.add(newAccount.iid)
                     } else {
                         logger.warn("Expected account for login '$login', but got null in newAccountCache")
                     }
@@ -150,6 +151,7 @@ class ProjectService(
                 }
 
             }
+            issue.accountIds = updatedAccountIds
 
             // get the author login from the itsIssue
             val authorLogin = itsIssue?.author?.login
@@ -159,13 +161,13 @@ class ProjectService(
                 // author handling
                 if (authorLogin in accountCache.keys) {
                     val account = accountCache[authorLogin]
-                    issue.author = account
+                    issue.authorId = account?.iid
                 } else if (authorLogin in newAccountCache.keys) {
                     val newAccount = newAccountCache[authorLogin]
                     if (newAccount != null) {
                         // add account to cache for other issues to find
                         accountCache[authorLogin] = newAccount
-                        issue.author = newAccount
+                        issue.authorId = newAccount.iid
                     }
                 } else {
                     logger.warn("No account found for login '$authorLogin', skipping author")
@@ -173,16 +175,18 @@ class ProjectService(
             }
 
             // Link issues to commits via ReferencedEvents
+            val updatedCommitIds = issue.commitIds.toMutableSet()
             itsIssue?.timelineItems?.nodes?.filterIsInstance<ItsReferencedEvent>()?.forEach { event ->
                 event.commit?.oid?.let { sha ->
                     commitCache[sha]?.let { commit ->
-                        issue.commits.add(commit)
+                        updatedCommitIds.add(commit.iid)
                     }
                 }
             }
+            issue.commitIds = updatedCommitIds
 
             // add issue with accounts to project
-            project.issues.add(issue)
+            project.issueIds.add(issue.iid)
         }
 
         logger.debug("Issues updated: " + project.toStringDebug())

@@ -81,16 +81,17 @@ internal data class AccountEntity(
 
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain( ): Account = Account(
+    fun toDomain(): Account = Account(
         gid = this.gid,
         platform = this.platform,
         login = this.login,
-//        projects = mutableSetOf(project)
+        projectIds = this.projects.map { it.iid }.toMutableSet()
     ).apply {
         this.id = this@AccountEntity.id?.toString()
         this.name = this@AccountEntity.name
         this.avatarUrl = this@AccountEntity.avatarUrl
         this.url = this@AccountEntity.url
+        this.issueIds.addAll(this@AccountEntity.issues.map { it.iid })
     }
 
         // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method

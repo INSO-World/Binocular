@@ -3,10 +3,13 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.util.Date
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Mapper for Issue domain objects.
@@ -37,19 +41,10 @@ import kotlin.uuid.ExperimentalUuidApi
 internal class IssueMapper
     @Autowired
     constructor(
-        private val proxyFactory: RelationshipProxyFactory,
-        @Lazy private val accountMapper: AccountMapper,
-        @Lazy private val milestoneMapper: MilestoneMapper,
-        @Lazy private val noteMapper: NoteMapper,
-        @Lazy private val userMapper: UserMapper,
         private val mentionMapper: MentionMapper,
     ) : EntityMapper<Issue, IssueEntity> {
         @Autowired
         private lateinit var ctx: MappingContext
-
-        @Lazy
-        @Autowired
-        private lateinit var commitMapper: CommitMapper
 
         companion object {
             private val logger by logger()
@@ -60,8 +55,6 @@ internal class IssueMapper
          *
          * Converts timestamp fields from LocalDateTime to Date for ArangoDB storage.
          * Eagerly maps all mentions as they are typically accessed together with the issue.
-         * Relationships to accounts, commits, milestones, notes, and users are not persisted
-         * in the entity - they are only restored during toDomain through lazy loading.
          *
          * @param domain The Issue domain object to convert
          * @return The IssueEntity with issue metadata, labels, and mentions
@@ -80,21 +73,16 @@ internal class IssueMapper
                 webUrl = domain.webUrl,
                 gid = domain.gid,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
-                accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
-                commits = domain.commits.map { commitMapper.toEntity(it) }.toSet(),
-                milestones = domain.milestones.map { milestoneMapper.toEntity(it) }.toSet(),
-                notes = domain.notes.map { noteMapper.toEntity(it) }.toSet(),
             )
 
         /**
          * Converts an IssueEntity to Issue domain object.
          *
          * Converts timestamp fields from Date to LocalDateTime. Eagerly maps mentions
-         * and creates lazy-loaded proxies for accounts, commits, milestones, notes, and users
-         * to avoid loading unnecessary data.
+         * and extracts IDs for relationships to avoid loading unnecessary data.
          *
          * @param entity The IssueEntity to convert
-         * @return The Issue domain object with eager mentions and lazy relationships
+         * @return The Issue domain object with eager mentions and ID-based relationships
          */
         @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: IssueEntity): Issue {
@@ -131,43 +119,11 @@ internal class IssueMapper
                         entity.project?.let { Project.Id(it.iid!!) }
                             ?: ctx.findDomain<Project, IssueEntity>(entity)?.iid
                             ?: error("Parent Project not found in entity or context for Issue ${entity.iid}"),
+                    accountIds = entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } }.toSet(),
+                    commitIds = entity.commits.mapNotNull { it.iid?.let { iid -> Commit.Id(iid) } }.toSet(),
+                    milestoneIds = entity.milestones.mapNotNull { it.id?.let { id -> Milestone.Id(Uuid.parse(id)) } }.toSet(),
+                    noteIds = entity.notes.mapNotNull { it.id?.let { id -> Note.Id(Uuid.parse(id)) } }.toSet(),
                 )
-
-            domain.milestones.addAll(
-                proxyFactory.createLazyList {
-                    (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                        milestoneMapper.toDomain(milestoneEntity)
-                    }
-                }
-            )
-
-            domain.notes.addAll(
-                proxyFactory.createLazyList {
-                    (entity.notes ?: emptyList()).map { noteEntity ->
-                        noteMapper.toDomain(noteEntity)
-                    }
-                }
-            )
-
-            domain.users =
-                proxyFactory.createLazyList {
-                    (entity.users ?: emptyList()).map { userEntity ->
-                        userMapper.toDomain(userEntity)
-                    }
-                }
-
-            domain.commits.addAll(
-                proxyFactory.createLazyList {
-                    (entity.commits ?: emptyList()).map { commitEntity ->
-                        commitMapper.toDomain(commitEntity)
-                    }
-                }
-            )
-            
-            // Add accounts separately to the proxy-backed set if needed
-            entity.accounts.forEach { accountEntity ->
-                domain.accounts.add(accountMapper.toDomain(accountEntity))
-            }
 
             return domain
         }

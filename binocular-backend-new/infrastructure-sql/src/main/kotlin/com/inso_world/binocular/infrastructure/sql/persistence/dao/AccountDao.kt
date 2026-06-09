@@ -4,7 +4,7 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IA
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.repository.AccountRepository
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.MergeRequestEntity
+import com.inso_world.binocular.model.Account
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Repository
@@ -31,6 +31,10 @@ internal class AccountDao(
     override fun findExistingGid(gids: List<String>): Iterable<AccountEntity> {
         return this.repo.findAll(AccountEntitySpecification.hasGidIn(gids))
     }
+
+    override fun findByIid(iid: Account.Id): AccountEntity? = repo.findByIid(iid)
+
+    override fun findAllByIidIn(iids: Collection<Account.Id>): List<AccountEntity> = repo.findAllByIidIn(iids)
 
     override fun findAllByIssue(issue: IssueEntity): Stream<AccountEntity> {
         return repo.findAllByIssuesContaining(issue)

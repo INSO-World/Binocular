@@ -26,9 +26,11 @@ data class Issue(
     var mentions: List<Mention> = emptyList(),
     // Relationships
     val project: Project.Id,
-    val commits: MutableSet<Commit> = NonRemovingMutableSet(),
-    val milestones: MutableSet<Milestone> = NonRemovingMutableSet(),
-    val notes: MutableSet<Note> = NonRemovingMutableSet(),
+    var authorId: Account.Id? = null,
+    var accountIds: Set<Account.Id> = emptySet(),
+    var commitIds: Set<Commit.Id> = emptySet(),
+    var milestoneIds: Set<Milestone.Id> = emptySet(),
+    var noteIds: Set<Note.Id> = emptySet(),
     var users: List<User> = emptyList(),
 ) : AbstractDomainObject<Issue.Id, Issue.Key>(
     Id(Uuid.random())
@@ -38,37 +40,8 @@ data class Issue(
 
     data class Key(val projectId: Project.Id, val gid: String) // value object for lookups
 
-    var author: Account? = null
-        set(value) {
-            requireNotNull(value) { "Author must not be null" }
-            if (value == this.author) {
-                return
-            }
-            if (this.author != null) {
-                throw IllegalArgumentException("Author already set for Issue $platformIid: $author")
-            }
-//            if (this.project !in value.projects) {
-//                throw IllegalArgumentException("Author ${value.login} is not in Issues Project: ${this.project.name}")
-//            }
-            field = value
-            value.issues.add(this)
-        }
-
-    private val _accounts: MutableSet<Account> = mutableSetOf()
-
-    val accounts: MutableSet<Account> =
-        object: MutableSet<Account> by _accounts {
-            override fun add(element: Account): Boolean {
-                val added = _accounts.add(element)
-                if (added) {
-                    element.issues.add(this@Issue)
-                }
-                return added
-            }
-        }
-
     override fun toString(): String {
-        return "Issue(no=${iid.toString()}, title=$title, accounts=${accounts.map { it.format() }}"
+        return "Issue(no=${iid.toString()}, title=$title, accountIds=$accountIds)"
     }
 
     override val uniqueKey: Key

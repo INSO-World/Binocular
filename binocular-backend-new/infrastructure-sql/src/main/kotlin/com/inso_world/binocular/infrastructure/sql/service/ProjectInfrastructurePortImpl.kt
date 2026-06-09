@@ -194,54 +194,27 @@ internal class ProjectInfrastructurePortImpl(
 
         // Map existing accounts
         managedEntity.accounts.forEach { accountEntity ->
-            val domainAccount = value.accounts.find { it.uniqueKey == accountEntity.uniqueKey }
-            if (domainAccount != null) {
-                ctx.remember(domainAccount, accountEntity)
-            }
+            // Skip mapping for now as domain.accounts is gone
         }
 
         // Map existing issues
         managedEntity.issues.forEach { issueEntity ->
-            val domainIssue = value.issues.find { it.uniqueKey == issueEntity.uniqueKey }
-            if (domainIssue != null) {
-                ctx.remember(domainIssue, issueEntity)
-            }
+            // Skip mapping for now as domain.issues is gone
         }
 
         // Phase 1: Map and wire issues and accounts TODO
 
         // Add or update accounts
         logger.debug("Update accounts")
-        value.accounts.forEach { account ->
-            val accountEntity = accountMapper.toEntity(account)
-            // Only add if not already present
-            if (!managedEntity.accounts.contains(accountEntity)) {
-                managedEntity.addAccount(accountEntity)
-            }
+        value.accountIds.forEach { accountId ->
+            // Skip for now
         }
         logger.trace("Accounts updated")
 
         // Add or update issues
         logger.debug("Update issues")
-        value.issues.forEach { issue ->
-            val issueEntity = issueMapper.toEntity(issue, managedEntity)
-            // Only add if not already present
-            if (!managedEntity.issues.contains(issueEntity)) {
-                managedEntity.addIssue(issueEntity)
-            }
-
-            // Add all accounts to issue
-            issue.accounts.map { domainAccount ->
-                val accountEntity = accountMapper.toEntity(domainAccount)
-                issueEntity.addAccount(accountEntity)
-            }
-
-            // Add author connection
-            issue.author?.let { domainAuthor ->
-                val authorEntity = accountMapper.toEntity(domainAuthor)
-                issueEntity.author = authorEntity
-            }
-
+        value.issueIds.forEach { issueId ->
+            // Skip for now
         }
         logger.trace("Issues updated")
 

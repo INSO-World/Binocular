@@ -5,10 +5,11 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
-import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.Uuid
 
 /**
  * Mapper for Project aggregate root.
@@ -59,9 +60,9 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
 
         val entity = domain.toArangoEntity()
         
-        entity.issues = domain.issues.map { issueMapper.toEntity(it).apply { project = entity } }
-        entity.mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it).apply { project = entity } }
-        entity.milestones = domain.milestones.map { milestoneMapper.toEntity(it).apply { project = entity } }
+        // These are now handled differently since domain only has IDs
+        // entity.issues = domain.issueIds.map { ... } 
+        // For simple mapping, we skip these as entities should be populated via aggregators/repositories
 
         ctx.remember(domain, entity)
         return entity
@@ -87,6 +88,11 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
             domain,
             Project.Id(entity.iid),
         )
+
+        domain.issueIds.addAll(entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } })
+        domain.mergeRequestIds.addAll(entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } })
+        domain.milestoneIds.addAll(entity.milestones.mapNotNull { it.id?.let { id -> Milestone.Id(Uuid.parse(id)) } })
+        domain.accountIds.addAll(entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } })
 
         ctx.remember(domain, entity)
         return domain

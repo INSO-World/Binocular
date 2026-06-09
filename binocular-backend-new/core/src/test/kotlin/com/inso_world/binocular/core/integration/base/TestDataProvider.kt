@@ -38,7 +38,7 @@ object TestDataProvider {
                 "MDQ9JXMlcjY5MoB7Nah4",
                 Platform.GitHub,
                 "user1",
-                projects = mutableSetOf(project)
+                projectIds = mutableSetOf(project.iid)
             ).apply {
                 this.name = "User One"
                 this.avatarUrl = "https://example.com/avatars/user1.png"
@@ -48,7 +48,7 @@ object TestDataProvider {
                 "MDQ9JXjIMjY5MoB7Nah4",
                 Platform.GitLab,
                 "user2",
-                projects = mutableSetOf(project)
+                projectIds = mutableSetOf(project.iid)
             ).apply {
                 this.name = "User Two"
                 this.avatarUrl = "https://example.com/avatars/user2.png"

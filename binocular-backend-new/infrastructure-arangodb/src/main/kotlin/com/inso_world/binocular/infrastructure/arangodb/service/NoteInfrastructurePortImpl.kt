@@ -54,7 +54,14 @@ internal class NoteInfrastructurePortImpl : NoteInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: Note.Id): @Valid Note? {
-        TODO("Not yet implemented")
+        logger.trace("Getting note by iid: $iid")
+        return noteDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Note.Id>): List<@Valid Note> {
+        logger.trace("Getting notes by iids: $iids")
+        return noteDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

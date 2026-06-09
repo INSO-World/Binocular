@@ -3,14 +3,14 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.AccountEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.PlatformEntity
-import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Mapper for Account domain objects.
@@ -29,14 +29,7 @@ import org.springframework.stereotype.Component
  * lazy loading of related entities through proxy patterns.
  */
 @Component
-internal class AccountMapper
-@Autowired
-constructor(
-    private val proxyFactory: RelationshipProxyFactory,
-    @Lazy private val issueMapper: IssueMapper,
-    @Lazy private val mergeRequestMapper: MergeRequestMapper,
-    @Lazy private val noteMapper: NoteMapper,
-) : EntityMapper<Account, AccountEntity> {
+internal class AccountMapper : EntityMapper<Account, AccountEntity> {
 
     @Autowired
     private lateinit var ctx: MappingContext
@@ -76,11 +69,23 @@ constructor(
      * @param entity The AccountEntity to convert
      * @return The Account domain object with lazy-loaded relationships
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: AccountEntity): Account {
-        // Fast-path: Check if already mapped
-        ctx.findDomain<Account, AccountEntity>(entity)?.let { return it }
+        val domain = ctx.findDomain<Account, AccountEntity>(entity) ?: error("Account mapping requires existing domain Account.")
 
-        throw IllegalStateException("Account mapping requires existing domain Account.")
+        domain.issueIds.addAll(
+            entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } }
+        )
+
+        domain.mergeRequestIds.addAll(
+            entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } }
+        )
+
+        domain.noteIds.addAll(
+            entity.notes.mapNotNull { it.id?.let { id -> Note.Id(Uuid.parse(id)) } }
+        )
+
+        return domain
     }
 
     private fun toPlatformEntity(platform: Platform): PlatformEntity =

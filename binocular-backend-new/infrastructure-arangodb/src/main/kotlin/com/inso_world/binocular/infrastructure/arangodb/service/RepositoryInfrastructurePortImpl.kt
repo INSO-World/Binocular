@@ -46,7 +46,16 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     private lateinit var branchDao: BranchDao
 
     @MappingSession
-    override fun findByIid(iid: Repository.Id): Repository? = this.repositoryDao.findAll().find { it.iid == iid }
+    override fun findByIid(iid: Repository.Id): Repository? {
+        logger.trace("Getting repository by iid: $iid")
+        return this.repositoryDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Repository.Id>): List<Repository> {
+        logger.trace("Getting repositories by iids: $iids")
+        return repositoryDao.findAll().filter { it.iid in iids }
+    }
 
     @MappingSession
     override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll()

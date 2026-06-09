@@ -75,7 +75,14 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
 
     @MappingSession
     override fun findByIid(iid: Issue.Id): @Valid Issue? {
-        TODO("Not yet implemented")
+        logger.trace("Getting issue by iid: $iid")
+        return issueDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Issue.Id>): List<@Valid Issue> {
+        logger.trace("Getting issues by iids: $iids")
+        return issueDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

@@ -55,7 +55,14 @@ internal class BuildInfrastructurePortImpl : BuildInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: Build.Id): @Valid Build? {
-        TODO("Not yet implemented")
+        logger.trace("Getting build by iid: $iid")
+        return buildDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Build.Id>): List<@Valid Build> {
+        logger.trace("Getting builds by iids: $iids")
+        return buildDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

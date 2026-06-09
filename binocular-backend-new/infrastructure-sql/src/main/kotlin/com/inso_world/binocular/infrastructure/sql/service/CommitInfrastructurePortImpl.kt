@@ -89,9 +89,17 @@ internal class CommitInfrastructurePortImpl
             super.dao = commitDao
         }
 
-        override fun findByIid(iid: Commit.Id): @Valid Commit? {
-            TODO("Not yet implemented")
-        }
+    @MappingSession
+    override fun findByIid(iid: Commit.Id): @Valid Commit? {
+        val entity = commitDao.findByIid(iid) ?: return null
+        return commitMapper.toDomain(entity)
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Commit.Id>): List<@Valid Commit> {
+        val entities = commitDao.findAllByIidIn(iids)
+        return commitMapper.toDomainList(entities)
+    }
 
         @MappingSession
         @Transactional

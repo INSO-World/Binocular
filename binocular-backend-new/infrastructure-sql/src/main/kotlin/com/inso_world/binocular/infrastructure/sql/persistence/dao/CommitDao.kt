@@ -30,6 +30,10 @@ internal class CommitDao(
     @OptIn(ExperimentalUuidApi::class)
     override fun findByIid(iid: com.inso_world.binocular.model.Commit.Id): CommitEntity? = repo.findByIid(iid.value)
 
+    @OptIn(ExperimentalUuidApi::class)
+    override fun findAllByIidIn(iids: Collection<com.inso_world.binocular.model.Commit.Id>): List<CommitEntity> =
+        repo.findAllByIidIn(iids.map { it.value })
+
     private object CommitEntitySpecification {
         @OptIn(ExperimentalUuidApi::class)
         fun hasRepositoryIid(iid: com.inso_world.binocular.model.Repository.Id): Specification<CommitEntity> =

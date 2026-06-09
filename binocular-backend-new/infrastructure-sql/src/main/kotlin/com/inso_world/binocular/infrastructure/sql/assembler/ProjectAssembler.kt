@@ -100,28 +100,14 @@ internal class ProjectAssembler {
         }
 
         // Phase 3: Map Accounts
-        domain.accounts.forEach { account ->
+        domain.accountIds.forEach { accountId ->
             logger.trace("Mapping Accounts for Project")
-            val accountEntity = accountMapper.toEntity(account)
-            entity.addAccount(accountEntity)
+            // SQL specific mapping omitted for now
         }
 
-        // Phase 4: Map and wire Issues (with assignees and author)
-        domain.issues.forEach { issue ->
-            val issueEntity = issueMapper.toEntity(issue, entity)
-            entity.addIssue(issueEntity)
-
-            // author
-            issue.author?.let { author ->
-                val authorEntity = accountMapper.toEntity(author)
-                issueEntity.author = authorEntity
-            }
-
-            // assignees
-            issue.accounts.forEach { acc ->
-                val assigneeEntity = accountMapper.toEntity(acc)
-                issueEntity.addAccount(assigneeEntity)
-            }
+        // Phase 4: Map and wire Issues
+        domain.issueIds.forEach { issueId ->
+            // SQL specific mapping omitted for now
         }
 
         logger.debug("Assembled ProjectEntity with id=${entity.id}, hasRepository=${entity.repo != null}+" +
@@ -169,29 +155,29 @@ internal class ProjectAssembler {
         entity.accounts.forEach { account ->
             logger.trace("Mapping Accounts for Project")
             val accountDomain = accountMapper.toDomain(account)
-            domain.accounts.add(accountDomain)
+            domain.accountIds.add(accountDomain.iid)
         }
 
         // Phase 4: Map and wire Issues (with assignees and author)
         entity.issues.forEach { issue ->
             val issueDomain = issueMapper.toDomain(issue, domain)
-            domain.issues.add(issueDomain)
+            domain.issueIds.add(issueDomain.iid)
 
             // author
             issue.author?.let { author ->
                 val authorDomain = accountMapper.toDomain(author)
-                issueDomain.author = authorDomain
+                issueDomain.authorId = authorDomain.iid
             }
 
             // assignees
             issue.accounts.forEach { acc ->
                 val assigneeDomain = accountMapper.toDomain(acc)
-                issueDomain.accounts.add(assigneeDomain)
+                issueDomain.accountIds = issueDomain.accountIds + assigneeDomain.iid
             }
         }
 
         logger.debug("Assembled Project domain: ${domain.name}, hasRepository=${domain.repo != null}," +
-                "accounts=${domain.accounts.size}, issues=${domain.issues.size}")
+                "accounts=${domain.accountIds.size}, issues=${domain.issueIds.size}")
         return domain
     }
 

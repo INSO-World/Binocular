@@ -36,6 +36,8 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
 
     override fun findById(id: I): T? = entityManager.find(clazz, id)
 
+    override fun findAllById(ids: Iterable<I>): Iterable<T> = repository.findAllById(ids)
+
     override fun findAll(): List<T> = entityManager.createQuery("FROM ${clazz.name}", clazz).resultList
 
     override fun findAll(pageable: Pageable): Page<T> {

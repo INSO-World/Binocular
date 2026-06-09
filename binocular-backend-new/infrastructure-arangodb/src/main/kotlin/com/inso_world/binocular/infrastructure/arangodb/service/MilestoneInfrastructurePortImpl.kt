@@ -51,7 +51,14 @@ internal class MilestoneInfrastructurePortImpl : MilestoneInfrastructurePort,
 
     @MappingSession
     override fun findByIid(iid: Milestone.Id): @Valid Milestone? {
-        TODO("Not yet implemented")
+        logger.trace("Getting milestone by iid: $iid")
+        return milestoneDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Milestone.Id>): List<@Valid Milestone> {
+        logger.trace("Getting milestones by iids: $iids")
+        return milestoneDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

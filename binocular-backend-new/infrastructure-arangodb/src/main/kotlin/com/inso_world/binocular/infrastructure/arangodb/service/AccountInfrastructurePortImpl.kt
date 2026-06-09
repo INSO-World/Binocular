@@ -62,7 +62,19 @@ internal class AccountInfrastructurePortImpl :
 
     @MappingSession
     override fun findByIid(iid: Account.Id): @Valid Account? {
-        TODO("Not yet implemented")
+        logger.trace("Getting account by iid: $iid")
+        // Since we don't have a direct lookup by iid yet, and iid is a business UUID,
+        // we might need to find by iid in the DAO.
+        // For now, let's assume we can only find by technical ID if it was stored.
+        // But the domain model now prefers iid.
+        return accountDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Account.Id>): List<@Valid Account> {
+        logger.trace("Getting accounts by iids: $iids")
+        // Bulk lookup by iid
+        return accountDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

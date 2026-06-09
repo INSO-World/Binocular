@@ -93,7 +93,14 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
 
     @MappingSession
     override fun findByIid(iid: Commit.Id): @Valid Commit? {
-        TODO("Not yet implemented")
+        logger.trace("Getting commit by iid: $iid")
+        return commitDao.findAll().find { it.iid == iid }
+    }
+
+    @MappingSession
+    override fun findByIids(iids: Collection<Commit.Id>): List<@Valid Commit> {
+        logger.trace("Getting commits by iids: $iids")
+        return commitDao.findAll().filter { it.iid in iids }
     }
 
     @MappingSession

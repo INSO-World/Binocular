@@ -54,30 +54,19 @@ internal class IssueMapper {
 
     /**
      * Converts a SQL IssueEntity to a domain Issue
-     *
-     * Uses lazy loading proxies for relationships, which will only be loaded
-     * when accessed. This provides a consistent API regardless of the database
-     * implementation and avoids the N+1 query problem.
      */
-    fun toDomain(entity: IssueEntity, owner: Project): Issue {
+    fun toDomain(entity: IssueEntity): Issue {
         // Fast-path: Check if already mapped
         ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
-        // Do NOT auto-map Project here - that's a separate aggregate.
-//        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
-//            ?: throw IllegalStateException(
-//                "Project must be mapped before Repository. " +
-//                        "Ensure Project is in MappingContext before calling toDomain()."
-//            )
+        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
+            ?: throw IllegalStateException(
+                "Project must be mapped before Issue. " +
+                        "Ensure Project is in MappingContext before calling toDomain()."
+            )
 
         val domain = entity.toDomain(owner)
-        setField(
-            domain.javaClass.superclass.getDeclaredField("iid"),
-            domain,
-            entity.iid
-        )
-
         ctx.remember(domain, entity)
 
         return domain
@@ -96,7 +85,7 @@ internal class IssueMapper {
     /**
      * Converts a list of SQL IssueEntity objects to a list of domain Issue objects
      */
-    fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it, TODO()) }
+    fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it) }
 }
 
 
