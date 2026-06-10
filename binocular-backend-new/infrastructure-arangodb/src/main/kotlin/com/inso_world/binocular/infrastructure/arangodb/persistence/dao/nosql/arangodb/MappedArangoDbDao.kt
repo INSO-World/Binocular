@@ -143,7 +143,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * Save an entity (create or update)
      * For ArangoDB, this is the same as create or update
      */
-    @Deprecated("should be replaced with create")
+    @Deprecated("should be replaced with create", ReplaceWith("create(entity)"))
     override fun save(entity: D): D = create(entity)
 
     /**
