@@ -6,4 +6,10 @@ import com.inso_world.binocular.model.Repository
 
 internal interface IRepositoryDao : IDao<Repository, String> {
     fun findByName(name: String): RepositoryEntity?
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    fun findByIid(iid: kotlin.uuid.Uuid): RepositoryEntity?
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    fun findEntityByIid(iid: kotlin.uuid.Uuid): RepositoryEntity?
 }

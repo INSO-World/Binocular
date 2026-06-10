@@ -1,6 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
+import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -38,6 +39,9 @@ internal class ProjectInfrastructurePortImpl(
     @Lazy
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
+
+    @Autowired
+    private lateinit var ctx: MappingContext
 
     /**
      * Self-reference to this bean's proxy instance.
@@ -124,6 +128,9 @@ internal class ProjectInfrastructurePortImpl(
         // update project properties
         managedEntity.description = value.description
 
+        // Seed identity-map so child assemblers (e.g. RepositoryMapper) can locate this Project's entity
+        ctx.remember(value, managedEntity)
+
         run {
             val domainRepo = value.repo
             val entityRepo = managedEntity.repo
@@ -136,7 +143,9 @@ internal class ProjectInfrastructurePortImpl(
                             "Cannot update project with a different repository. Project '${managedEntity.uniqueKey}' already has repository '${entityRepo.localPath}'",
                         )
                     }
-                    // Don't create a new entity, just update the existing one's fields
+                    // Seed identity-map so RepositoryMapper/Assembler short-circuit to the
+                    // already-managed RepositoryEntity instead of constructing a new (id=null) one.
+                    ctx.remember(domainRepo, entityRepo)
 
                     repositoryPort.update(domainRepo)
                 }

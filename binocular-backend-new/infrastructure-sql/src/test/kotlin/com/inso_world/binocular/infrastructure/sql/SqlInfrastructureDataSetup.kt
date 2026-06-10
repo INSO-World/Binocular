@@ -52,6 +52,10 @@ internal class SqlInfrastructureDataSetup(
             entityManager.flush()
         }
 
+        // Clear persistence context so stale entity references don't cause
+        // constraint violations when JPA assigns recycled IDs to new entities
+        entityManager.clear()
+
         logger.info("<<< SqlInfrastructureDataSetup teardown")
     }
 }

@@ -19,12 +19,16 @@ import kotlin.uuid.ExperimentalUuidApi
 /**
  * ArangoDB implementation of [IBranchDao] using the [MappedArangoDbDao] approach.
  *
- * All read methods pre-seed the [com.inso_world.binocular.core.mapping.context.MappingContext]
+ * All read methods pre-seed the [com.inso_world.binocular.core.persistence.mapper.context.MappingContext]
  * with the branch's owning repository (via [RepositoryAssembler]) and its head commit
- * (via [CommitMapper]) before delegating to [BranchMapper].  This satisfies [BranchMapper]'s
+ * (via [CommitMapper]) before delegating to [BranchMapper]. This satisfies [BranchMapper]'s
  * invariant that both a [com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity]
  * and a [com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity] are
  * registered in context prior to mapping the branch.
+ *
+ * ## Invariants
+ * - [seeder] must be called before any read to populate the shared context with project/repository data.
+ * - [BranchEntity.repository] and [BranchEntity.head] are `@Ref(lazy = false)` — eagerly loaded.
  */
 @Repository
 internal class BranchDao(
@@ -65,6 +69,30 @@ internal class BranchDao(
             )
             commitMapper.toDomain(
                 entity.head
+            )
+            branchMapper.toDomain(entity)
+        }
+    }
+
+    /**
+     * Returns all branches, pre-seeding the mapping context with repository and head-commit data.
+     *
+     * Overrides [MappedArangoDbDao.findAll] to ensure [BranchMapper] invariants are met:
+     * both the owning repository and the head commit must be registered in context before
+     * each branch entity is mapped.
+     *
+     * @return all persisted [Branch] domain objects
+     */
+    override fun findAll(): Iterable<Branch> {
+        seeder.seed()
+        return branchRepository.findAll().map { entity ->
+            repositoryAssembler.toDomain(
+                entity.repository
+                    ?: throw IllegalStateException("BranchEntity.repository not loaded from ArangoDB — @Ref field was null."),
+            )
+            commitMapper.toDomain(
+                entity.head
+                    ?: throw IllegalStateException("BranchEntity.head not loaded from ArangoDB — @Ref field was null."),
             )
             branchMapper.toDomain(entity)
         }
