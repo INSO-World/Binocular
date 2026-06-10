@@ -129,6 +129,8 @@ class VcsService(
 
         val lizardProcessedFileData = lizardService.evaluateLizardData(lizardFileData)
 
+        lizardService.saveLizardData(lizardProcessedFileData)
+
     }
 
     /**
