@@ -44,15 +44,15 @@ data class ProjectEntity(
      * @param repo Optional repository to associate with the project
      * @return Project domain object
      */
-    fun toDomain(repo: com.inso_world.binocular.model.Repository? = null): com.inso_world.binocular.model.Project {
-        return com.inso_world.binocular.model.Project(
-            name = this.name
-        ).apply {
-            this.id = this@ProjectEntity.id
-            this.description = this@ProjectEntity.description
-            repo?.let { this.repo = it }
-        }
-    }
+    fun toDomain(repo: com.inso_world.binocular.model.Repository? = null): com.inso_world.binocular.model.Project =
+        com.inso_world.binocular.model
+            .Project(
+                name = this.name
+            ).apply {
+                this.id = this@ProjectEntity.id
+                this.description = this@ProjectEntity.description
+                repo?.let { this.repo = it }
+            }
 }
 
 /**
@@ -61,9 +61,10 @@ data class ProjectEntity(
  * @return ProjectEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun com.inso_world.binocular.model.Project.toEntity(): ProjectEntity = ProjectEntity(
-    id = this.id,
-    iid = this.iid.value,
-    name = this.name,
-    description = this.description
-)
+internal fun com.inso_world.binocular.model.Project.toEntity(): ProjectEntity =
+    ProjectEntity(
+        id = this.id,
+        iid = this.iid.value,
+        name = this.name,
+        description = this.description
+    )

@@ -8,10 +8,14 @@ import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.assembler.ProjectAssembler
 import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ProjectDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.DeveloperRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
 import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.toLegacyUser
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -58,6 +62,25 @@ internal class ProjectInfrastructurePortImpl :
     private lateinit var repositoryRepository: RepositoryRepository
 
     @Autowired
+    private lateinit var developerRepository: DeveloperRepository
+
+    @Autowired
+    @Lazy
+    private lateinit var developerMapper: DeveloperMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var commitPort: CommitInfrastructurePortImpl
+
+    @Autowired
+    @Lazy
+    private lateinit var branchPort: BranchInfrastructurePortImpl
+
+    @Autowired
+    @Lazy
+    private lateinit var userPort: UserInfrastructurePortImpl
+
+    @Autowired
     @Lazy
     private lateinit var self: ProjectInfrastructurePortImpl
 
@@ -88,9 +111,10 @@ internal class ProjectInfrastructurePortImpl :
      * (and the repository id via [RepositoryMapper.refreshDomain]) and [value] itself is returned
      * (mirroring `RepositoryInfrastructurePortImpl.update`).
      *
-     * Note: repository children (commits, branches, developers) are NOT persisted on this path yet —
-     * they are only persisted via [update] (pre-existing limitation, see contract test
-     * `save project with repository and commits, expecting in database`).
+     * Repository children (developers, commits, branches) are persisted explicitly via
+     * [persistRepositoryChildren] in `@Ref(lazy=false)` dependency order, since ArangoDB has no
+     * cascade-persist. One legacy user document is also written per developer so that
+     * [UserInfrastructurePort.findAll] reflects the developers, matching the SQL adapter.
      *
      * @param value the project to persist; must not yet have an [Project.id].
      * @return [value], refreshed with persisted values such as the generated [Project.id].
@@ -107,6 +131,7 @@ internal class ProjectInfrastructurePortImpl :
         val repoEntity = persisted.repository
         if (repo != null && repoEntity != null) {
             repositoryMapper.refreshDomain(repo, repoEntity)
+            persistRepositoryChildren(repo)
         }
         return value
     }
@@ -172,6 +197,32 @@ internal class ProjectInfrastructurePortImpl :
         // Refresh the input domain object with persisted values and return it
         this.projectMapper.refreshDomain(value, updated)
         return value
+    }
+
+    /**
+     * Explicitly persists the repository's owned children, in `@Ref(lazy=false)` dependency order.
+     *
+     * ArangoDB has no cascade-persist, so [ProjectDao.create] only writes the project and
+     * repository documents. This method saves the remaining child documents reusing the
+     * per-type ports/mappers:
+     * 1. **Developers** → `developers` collection (commit `author`/`committer` `@Ref` targets).
+     * 2. **Commits** → `commits` (require their author/committer developers to already exist).
+     * 3. **Branches** → `branches` (require their `head` commit to already exist).
+     * 4. **Legacy users** → `users` collection, one per developer via [Developer.toLegacyUser],
+     *    so [UserInfrastructurePort.findAll] (which reads `users`) reflects the developers —
+     *    matching the SQL adapter where `DeveloperEntity` is the `users` table.
+     *
+     * All child mapper `toEntity` calls resolve their `@Ref`s from the current
+     * [MappingContext], which [ProjectAssembler.toEntity] already populated; the saves run in
+     * the [create] `@MappingSession`, so no new session is opened.
+     *
+     * @param repo the persisted repository whose children must be written.
+     */
+    private fun persistRepositoryChildren(repo: Repository) {
+        repo.developers.forEach { developerRepository.save(developerMapper.toEntity(it)) }
+        repo.commits.forEach { commitPort.create(it) }
+        repo.branches.forEach { branchPort.create(it) }
+        repo.developers.forEach { userPort.create(it.toLegacyUser()) }
     }
 
     /**

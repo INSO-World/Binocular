@@ -2,9 +2,9 @@ package com.inso_world.binocular.infrastructure.test.project
 
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
-import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
+import com.inso_world.binocular.core.service.UserInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -15,6 +15,7 @@ import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +25,7 @@ import java.time.LocalDateTime
  * Tests for saving projects through ProjectInfrastructurePort.
  * Verifies that projects with and without repositories are persisted correctly.
  */
+@Tag("project")
 internal class ProjectSaveOperationTest : BaseInfrastructureSpringTest() {
     @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
@@ -71,10 +73,11 @@ internal class ProjectSaveOperationTest : BaseInfrastructureSpringTest() {
     @Test
     fun `save project with repository, check identities`() {
         val project = Project(name = "test project")
-        val repository = Repository(
-            localPath = "test repository",
-            project = project,
-        )
+        val repository =
+            Repository(
+                localPath = "test repository",
+                project = project,
+            )
 
         val createdProject = projectPort.create(project)
 
@@ -88,10 +91,11 @@ internal class ProjectSaveOperationTest : BaseInfrastructureSpringTest() {
     @Test
     fun `save project with repository, expecting in database`() {
         val project = Project(name = "test project")
-        val repository = Repository(
-            localPath = "test repository",
-            project = project,
-        )
+        val repository =
+            Repository(
+                localPath = "test repository",
+                project = project,
+            )
 
         val createdProject = projectPort.create(project)
 
@@ -122,24 +126,27 @@ internal class ProjectSaveOperationTest : BaseInfrastructureSpringTest() {
     @Test
     fun `save project with repository and commits, expecting in database`() {
         val project = Project(name = "test project")
-        val repository = Repository(
-            localPath = "test repository",
-            project = project,
-        )
+        val repository =
+            Repository(
+                localPath = "test repository",
+                project = project,
+            )
         val developer = Developer(name = "test", email = "test@example.com", repository = repository)
-        val cmt = Commit(
-            sha = "1234567890123456789012345678901234567890",
-            message = "test commit",
-            authorSignature = Signature(developer = developer, timestamp = LocalDateTime.of(2025, 7, 13, 1, 1)),
-            repository = repository,
-        )
-        val branch = Branch(
-            name = "test branch",
-            fullName = "refs/heads/test-branch",
-            category = ReferenceCategory.LOCAL_BRANCH,
-            repository = repository,
-            head = cmt,
-        )
+        val cmt =
+            Commit(
+                sha = "1234567890123456789012345678901234567890",
+                message = "test commit",
+                authorSignature = Signature(developer = developer, timestamp = LocalDateTime.of(2025, 7, 13, 1, 1)),
+                repository = repository,
+            )
+        val branch =
+            Branch(
+                name = "test branch",
+                fullName = "refs/heads/test-branch",
+                category = ReferenceCategory.LOCAL_BRANCH,
+                repository = repository,
+                head = cmt,
+            )
 
         val repositoryProject = projectPort.create(project)
 
@@ -165,7 +172,12 @@ internal class ProjectSaveOperationTest : BaseInfrastructureSpringTest() {
             ).usingRecursiveComparison()
                 .ignoringCollectionOrder()
                 .ignoringFieldsMatchingRegexes(".*id", ".*repositoryId", ".*project")
-                .isEqualTo(repositoryProject.repo?.commits?.toList()?.get(0))
+                .isEqualTo(
+                    repositoryProject.repo
+                        ?.commits
+                        ?.toList()
+                        ?.get(0)
+                )
         }
         val allCommits = commitPort.findAll()
         assertThat(allCommits).hasSize(1)
