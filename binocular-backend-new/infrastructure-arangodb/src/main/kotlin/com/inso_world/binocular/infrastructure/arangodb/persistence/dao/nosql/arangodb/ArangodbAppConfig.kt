@@ -13,7 +13,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.converter.Uu
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.DependsOn
 
 @Configuration
 @EnableArangoRepositories(
@@ -56,17 +55,4 @@ class ArangodbAppConfig(
             LocalDateTimeToStringConverter(),
             StringToLocalDateTimeConverter(),
         )
-
-    /**
-     * Overrides the default [ArangoOperations] bean to ensure migrations
-     * complete before Spring Data ArangoDB initializes repositories and
-     * creates collection indexes.
-     *
-     * Without this, `@PersistentIndexed(unique = true)` on entity fields
-     * like `iid` triggers index creation during repository bean setup,
-     * which fails if existing documents haven't been backfilled yet.
-     */
-    @Bean
-    @DependsOn("migrationRunner")
-    override fun arangoTemplate(): ArangoTemplate = super.arangoTemplate()
 }

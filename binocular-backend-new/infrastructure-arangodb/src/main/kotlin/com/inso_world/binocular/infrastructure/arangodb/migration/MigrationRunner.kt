@@ -4,6 +4,7 @@ import com.arangodb.ArangoDatabase
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
 import jakarta.annotation.PostConstruct
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
@@ -31,6 +32,11 @@ import java.time.Instant
 @Component
 @Order(2) // Run after ArangoCollectionInitializer
 @DependsOn("arangoCollectionInitializer")
+@ConditionalOnProperty(
+    name = ["binocular.arangodb.migration.enabled"],
+    havingValue = "true",
+    matchIfMissing = true,
+)
 class MigrationRunner(
     private val arangodbAppConfig: ArangodbAppConfig,
     private val migrations: List<Migration>,
