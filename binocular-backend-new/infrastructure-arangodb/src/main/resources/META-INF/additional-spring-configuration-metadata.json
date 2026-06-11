@@ -50,6 +50,12 @@
       "type": "java.lang.String",
       "description": "Name of the default project used by ArangoDB migrations and startup seeding. Must match the existing project name in the database for legacy deployments.",
       "defaultValue": "Binocular"
+    },
+    {
+      "name": "binocular.arangodb.migration.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to run ArangoDB schema migrations on application startup. When disabled, migrations are skipped entirely. Useful for tests that need a clean database.",
+      "defaultValue": true
     }
   ],
   "hints": []

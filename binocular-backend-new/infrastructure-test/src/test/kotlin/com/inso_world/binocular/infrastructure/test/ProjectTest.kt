@@ -9,8 +9,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.DisabledIf
 
 /**
@@ -18,7 +20,8 @@ import org.springframework.test.context.junit.jupiter.DisabledIf
  * Tests verify that domain model semantics (especially the set-once repo property)
  * are preserved through the infrastructure layer.
  */
-@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
+@TestPropertySource(properties = ["binocular.arangodb.migration.enabled=false"])
+@Tag("project")
 internal class ProjectTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var projectPort: ProjectInfrastructurePort

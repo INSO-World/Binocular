@@ -223,11 +223,14 @@ internal class ArangodbInfrastructureDataSetup(
                         .toInt(),
                 ).build()
         val db = arango.db(infraConfig.arangodb.database.name)
-        db.query(
-            "FOR m IN binocular_migrations REMOVE m IN binocular_migrations",
-            Void::class.java,
-            emptyMap(),
-        )
+        val migrationsCollection = db.collection("binocular_migrations")
+        if (migrationsCollection.exists()) {
+            db.query(
+                "FOR m IN binocular_migrations REMOVE m IN binocular_migrations",
+                Void::class.java,
+                emptyMap(),
+            )
+        }
         logger.info("<<< ArangodbInfrastructureDataSetup teardown")
     }
 

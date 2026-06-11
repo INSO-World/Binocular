@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
@@ -8,7 +9,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.Repos
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.ProjectRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
 import jakarta.annotation.PostConstruct
-import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
 
 /**
@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component
  * and remove the `seeder.seed()` calls from [MappedArangoDbDao].
  */
 @Component
-@DependsOn("migrationRunner")
 internal class DefaultMappingContextSeeder(
     private val projectRepository: ProjectRepository,
     private val repositoryRepository: RepositoryRepository,
@@ -46,14 +45,20 @@ internal class DefaultMappingContextSeeder(
     private val projectMapper: ProjectMapper,
     private val repositoryMapper: RepositoryMapper,
 ) {
+    companion object {
+        private val logger by logger()
+    }
+
     @PostConstruct
     fun init() {
-        repositoryRepository.findByProject_Name(infraConfig.arangodb.migration.defaultProjectName)
-            ?: error(
-                "Default repository not found for project '${infraConfig.arangodb.migration.defaultProjectName}'. " +
-                        "Set binocular.arangodb.migration.defaultProjectName to the existing project name in this database. " +
-                        "Ensure V000_AddProject migration has run for fresh deployments.",
-            )
+        val repository =
+            repositoryRepository.findByProject_Name(infraConfig.arangodb.migration.defaultProjectName)
+                ?: run {
+                    logger.info(
+                        "Default repository not found for project '${infraConfig.arangodb.migration.defaultProjectName}' — skipping init (migrations may be disabled)"
+                    )
+                    return
+                }
     }
 
     /**
