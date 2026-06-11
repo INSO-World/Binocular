@@ -5,15 +5,11 @@ import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSprin
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit.jupiter.DisabledIf
 
 /**
  * Integration tests for Project persistence via ProjectInfrastructurePort.
@@ -21,7 +17,6 @@ import org.springframework.test.context.junit.jupiter.DisabledIf
  * are preserved through the infrastructure layer.
  */
 @TestPropertySource(properties = ["binocular.arangodb.migration.enabled=false"])
-@Tag("project")
 internal class ProjectTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var projectPort: ProjectInfrastructurePort

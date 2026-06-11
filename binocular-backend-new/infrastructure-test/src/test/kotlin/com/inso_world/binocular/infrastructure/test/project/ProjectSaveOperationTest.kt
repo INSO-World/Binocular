@@ -24,7 +24,7 @@ import java.time.LocalDateTime
  * Tests for saving projects through ProjectInfrastructurePort.
  * Verifies that projects with and without repositories are persisted correctly.
  */
-internal class ProjectSaveOperation : BaseInfrastructureSpringTest() {
+internal class ProjectSaveOperationTest : BaseInfrastructureSpringTest() {
     @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
 
