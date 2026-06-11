@@ -12,7 +12,8 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueCommitConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.ICommitDao
-import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.infrastructure.arangodb.service.BranchInfrastructurePortImpl
+import com.inso_world.binocular.infrastructure.arangodb.service.UserInfrastructurePortImpl
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
@@ -57,6 +58,14 @@ internal class CommitInfrastructurePortImpl :
 
     @Autowired private lateinit var commitUserConnectionRepository: ICommitUserConnectionDao
 
+    @Autowired
+    @Lazy
+    private lateinit var branchPort: BranchInfrastructurePortImpl
+
+    @Autowired
+    @Lazy
+    private lateinit var userPort: UserInfrastructurePortImpl
+
     companion object {
         private val logger by logger()
     }
@@ -64,7 +73,34 @@ internal class CommitInfrastructurePortImpl :
     @MappingSession
     override fun findAll(pageable: Pageable): Page<Commit> {
         logger.trace("Getting all commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
-        return commitDao.findAll(pageable)
+        val result = commitDao.findAll(pageable)
+        populateDeveloperRepositoryChain(result.content)
+        return result
+    }
+
+    /**
+     * Populates the nested developer.repository chain for each commit's author and committer.
+     *
+     * ArangoDB's @Ref(lazy=true) on DeveloperEntity.repository means the repository reference
+     * is not loaded when the developer is loaded via @Ref from CommitEntity. This method
+     * ensures the developer's repository has its branches and legacy users populated, matching
+     * the PostgreSQL adapter's cascading behavior.
+     */
+    private fun populateDeveloperRepositoryChain(commits: List<Commit>) {
+        val allBranches = branchPort.findAll().toList()
+        val allUsers = userPort.findAll().toList()
+
+        val repoBranchesMap = allBranches.groupBy { it.repository.id }
+        val repoUsersMap = allUsers.groupBy { it.repository.id }
+
+        for (commit in commits) {
+            for (sig in listOf(commit.authorSignature, commit.committerSignature)) {
+                val dev = sig.developer
+                val repoId = dev.repository.id
+                repoBranchesMap[repoId]?.let { dev.repository.branches.addAll(it) }
+                repoUsersMap[repoId]?.let { dev.repository.user.addAll(it) }
+            }
+        }
     }
 
     @MappingSession
@@ -182,8 +218,13 @@ internal class CommitInfrastructurePortImpl :
     }
 
     @MappingSession
-    override fun findAll(): Iterable<Commit> = this.commitDao.findAll()
+    override fun findAll(): Iterable<Commit> {
+        val result = this.commitDao.findAll()
+        populateDeveloperRepositoryChain(result.toList())
+        return result
+    }
 
+    @MappingSession
     override fun create(entity: Commit): Commit {
         repositoryAssembler.toEntity(entity.repository)
         return commitDao.save(entity)
