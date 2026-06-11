@@ -9,10 +9,8 @@ import com.inso_world.binocular.infrastructure.arangodb.assembler.ProjectAssembl
 import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ProjectDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
-import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BranchRepository
-import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.DeveloperRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
-import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Project
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,6 +39,9 @@ internal class ProjectInfrastructurePortImpl :
     private lateinit var projectMapper: ProjectMapper
 
     @Autowired
+    private lateinit var repositoryMapper: RepositoryMapper
+
+    @Autowired
     private lateinit var ctx: MappingContext
 
     @Autowired
@@ -61,7 +62,10 @@ internal class ProjectInfrastructurePortImpl :
     private lateinit var self: ProjectInfrastructurePortImpl
 
     @MappingSession
-    override fun findAll(): Iterable<Project> = this.projectDao.findAll()
+    override fun findAll(): Iterable<Project> {
+        val p = this.projectDao.findAllEntities()
+        return p.map(projectAssembler::toDomain)
+    }
 
     @MappingSession
     override fun findAll(pageable: Pageable): Page<Project> = this.projectDao.findAll(pageable)
@@ -70,13 +74,23 @@ internal class ProjectInfrastructurePortImpl :
     override fun findById(id: String): Project? = this.projectDao.findById(id)
 
     /**
-     * Persists a new [Project].
+     * Persists a new [Project] including its owned [com.inso_world.binocular.model.Repository] child.
+     *
+     * The aggregate is assembled via [ProjectAssembler.toEntity] (not [ProjectMapper.toEntity], which
+     * is structure-only and skips children) so that [ProjectEntity.repository][com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity.repository]
+     * is wired and [ProjectDao.create]'s repository cascade persists the repository document and
+     * updates the `@Ref`.
      *
      * The mapper's `toDomain` fast-path returns the cached pre-persistence domain object when
-     * [ProjectEntity.iid] (a stable identity present before persistence) resolves to an existing
+     * the entity's `iid` (a stable identity present before persistence) resolves to an existing
      * identity-map entry, which would leave [Project.id] `null` on the returned object. To avoid
      * that, the persisted entity is mapped back onto [value] in place via [ProjectMapper.refreshDomain]
-     * and [value] itself is returned (mirroring `RepositoryInfrastructurePortImpl.update`).
+     * (and the repository id via [RepositoryMapper.refreshDomain]) and [value] itself is returned
+     * (mirroring `RepositoryInfrastructurePortImpl.update`).
+     *
+     * Note: repository children (commits, branches, developers) are NOT persisted on this path yet —
+     * they are only persisted via [update] (pre-existing limitation, see contract test
+     * `save project with repository and commits, expecting in database`).
      *
      * @param value the project to persist; must not yet have an [Project.id].
      * @return [value], refreshed with persisted values such as the generated [Project.id].
@@ -85,10 +99,15 @@ internal class ProjectInfrastructurePortImpl :
     override fun create(value: Project): Project {
         logger.debug("Creating new project: {}", value)
 
-        val toPersist = projectMapper.toEntity(value)
+        val toPersist = projectAssembler.toEntity(value)
         val persisted = projectDao.create(toPersist)
 
         projectMapper.refreshDomain(value, persisted)
+        val repo = value.repo
+        val repoEntity = persisted.repository
+        if (repo != null && repoEntity != null) {
+            repositoryMapper.refreshDomain(repo, repoEntity)
+        }
         return value
     }
 
