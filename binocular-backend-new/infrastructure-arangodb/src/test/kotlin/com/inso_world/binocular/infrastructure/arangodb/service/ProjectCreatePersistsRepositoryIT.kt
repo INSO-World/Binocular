@@ -81,4 +81,32 @@ internal class ProjectCreatePersistsRepositoryIT : BaseIntegrationTest() {
             { assertNotNull(projectEntity?.repository, "@Ref repository must be wired on the project document") },
         )
     }
+
+    /**
+     * Same as above but with preset document keys (as used by the contract-test mock data,
+     * e.g. `p6`/`r6`): the project document must not be repserted with a dangling `@Ref`
+     * to a repository document that has not been saved yet — Spring Data ArangoDB eagerly
+     * resolves refs when deserializing the repsert result and fails on dangling references.
+     */
+    @Test
+    fun `create project with preset ids persists repository without dangling ref`() {
+        val suffix = Uuid.random()
+        val project = Project(name = "create-cascade-preset-$suffix")
+        project.id = "it-p-$suffix"
+        val repository = Repository(localPath = "/probe/create-cascade-preset-$suffix", project = project)
+        repository.id = "it-r-$suffix"
+        projectIds += "it-p-$suffix"
+        repositoryIds += "it-r-$suffix"
+
+        val created = projectPort.create(project)
+
+        val projectEntity = projectRepository.findByName(project.name)
+        val repoEntity = repositoryRepository.findByLocalPath(repository.localPath)
+
+        assertAll(
+            { assertNotNull(created.repo?.id, "domain repository id must be set after create") },
+            { assertNotNull(repoEntity, "repository document must be persisted") },
+            { assertNotNull(projectEntity?.repository, "@Ref repository must be wired on the project document") },
+        )
+    }
 }
