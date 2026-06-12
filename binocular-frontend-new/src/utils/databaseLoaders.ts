@@ -2,10 +2,14 @@
 import {
   addDataPlugin,
   LocalDatabaseLoadingState,
-  setLocalDatabaseLoadingState
+  setLocalDatabaseLoadingMessage,
+  setLocalDatabaseLoadingState,
 } from '../redux/reducer/settings/settingsReducer.ts';
-import { AppDispatch } from '../redux';
+import type { AppDispatch } from '../redux';
 import { PouchDB } from '../plugins/pluginRegistry.ts';
+import Config from '../config.ts';
+import type { DatabaseSettingsDataPluginType } from '../types/settings/databaseSettingsType.ts';
+import type { SettingsInitialState } from '../redux/reducer/settings/settingsReducer.ts';
 
 /**
  * Imports when Frontends gets build with arangodb preloaded.
@@ -24,7 +28,6 @@ import commitsUsers from '../db_export/commits-users.json';
 import commits from '../db_export/commits.json';
 import files from '../db_export/files.json';
 import issuesCommits from '../db_export/issues-commits.json';
-import issuesUsers from '../db_export/issues-users.json';
 import issues from '../db_export/issues.json';
 import modulesFiles from '../db_export/modules-files.json';
 import modulesModules from '../db_export/modules-modules.json';
@@ -41,7 +44,12 @@ import notes from '../db_export/notes.json';
 import issuesNotes from '../db_export/issues-notes.json';
 import mergeRequestsNotes from '../db_export/mergeRequests-notes.json';
 import notesAccounts from '../db_export/notes-accounts.json';
-import { JSONObject } from '../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import accountsUsers from '../db_export/accounts-users.json';
+import metadataJson from '../db_export/metadata.json';
+import type { JSONObject } from '../plugins/interfaces/dataPluginInterfaces/dataPluginFiles.ts';
+import type { MetadataType } from '../types/data/MetadataType.ts';
+
+const metadata: MetadataType = metadataJson;
 
 const dbObjects: { [key: string]: JSONObject[] } = {
   branches: branches,
@@ -61,7 +69,6 @@ const dbObjects: { [key: string]: JSONObject[] } = {
   commits: commits,
   files: files,
   'issues-commits': issuesCommits,
-  'issues-users': issuesUsers,
   issues: issues,
   'modules-files': modulesFiles,
   'modules-modules': modulesModules,
@@ -78,29 +85,66 @@ const dbObjects: { [key: string]: JSONObject[] } = {
   'issues-notes': issuesNotes,
   'mergeRequests-notes': mergeRequestsNotes,
   'notes-accounts': notesAccounts,
+  'accounts-users': accountsUsers,
 };
 
 export default abstract class DatabaseLoaders {
   public static async loadJsonFilesToPouchDB(dispatch: AppDispatch): Promise<void> {
+    // Check for existing plugin with same namespace
+    const storedState = localStorage.getItem(`settingsStateV${Config.localStorageVersion}`);
+    const settings: SettingsInitialState | null = storedState ? JSON.parse(storedState) : null;
+    const existingPlugin = settings?.database.dataPlugins.find(
+      (dp: DatabaseSettingsDataPluginType) => dp.name === 'PouchDb' && dp.parameters.fileName === metadata.namespace,
+    );
+
+    // Skip if existing is same or newer
+    if (existingPlugin?.metadata?.createdAt && new Date(existingPlugin.metadata.createdAt) >= new Date(metadata.createdAt)) {
+      console.log(`Skipping preloaded PouchDB: existing is same or newer than preloaded (${metadata.createdAt})`);
+      dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.none));
+      return;
+    }
+
+    // Clear old data only if updating an existing plugin
+    if (existingPlugin) {
+      console.log(`Updating PouchDB: preloaded (${metadata.createdAt}) is newer than existing`);
+      await PouchDB.clearRemains();
+    } else {
+      console.log(`Loading preconfigured PouchDB from ${metadata.namespace} created at ${metadata.createdAt}`);
+    }
+
     dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.loading));
-    return PouchDB.init(undefined, undefined, { name: 'binocularDbExport', file: undefined, dbObjects: dbObjects }).then(() => {
+    try {
+      await PouchDB.init(
+        undefined,
+        undefined,
+        { name: metadata.namespace, file: undefined, dbObjects: dbObjects },
+        undefined,
+        (message) => {
+          dispatch(setLocalDatabaseLoadingMessage(message));
+        },
+      );
+
       dispatch(
         addDataPlugin({
           name: 'PouchDb',
-          color: '#b2c8fd',
-          id: 0,
-          isDefault: true,
+          color: existingPlugin?.color ?? '#8cadfc',
+          id: existingPlugin?.id ?? 0,
+          isDefault: existingPlugin?.isDefault ?? true,
           parameters: {
             apiKey: undefined,
             endpoint: undefined,
-            fileName: 'binocularDbExport',
+            fileName: metadata.namespace,
             progressUpdate: undefined,
           },
+          metadata: metadata,
         }),
       );
       dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.none));
-      dispatch({ type: 'REFRESH_PLUGIN', payload: { pluginId: 0 } });
-    });
+      dispatch({ type: 'REFRESH_PLUGIN', payload: { pluginId: existingPlugin?.id ?? 0 } });
+    } catch (e) {
+      console.error('Failed to load preloaded PouchDB:', e);
+      dispatch(setLocalDatabaseLoadingState(LocalDatabaseLoadingState.none));
+    }
   }
 }
 // #v-endif

@@ -1,7 +1,62 @@
 import { addDataPlugin } from '../../../redux/reducer/settings/settingsReducer.ts';
-import { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
-import { createRef, useState } from 'react';
-import { AppDispatch, useAppDispatch } from '../../../redux';
+import type { DataPlugin } from '../../../plugins/interfaces/dataPlugin.ts';
+import { createRef, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { type AppDispatch, useAppDispatch } from '../../../redux';
+import type { MetadataType } from '../../../types/data/MetadataType.ts';
+import { capabilityDescriptions } from '../../../plugins/capabilityDescriptions.ts';
+import type { VisualizationPluginMetadataCategory } from '../../../plugins/interfaces/visualizationPluginInterfaces/visualizationPluginMetadata.ts';
+
+function CapabilityBadge({ capability }: { capability: VisualizationPluginMetadataCategory }) {
+  const [visible, setVisible] = useState(false);
+  const [style, setStyle] = useState<React.CSSProperties>({ visibility: 'hidden' });
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const description = capabilityDescriptions[capability];
+
+  useLayoutEffect(() => {
+    if (!visible || !badgeRef.current || !tooltipRef.current) return;
+
+    const badge = badgeRef.current.getBoundingClientRect();
+    const tip = tooltipRef.current.getBoundingClientRect();
+    const vw = window.innerWidth;
+
+    let left = badge.left + badge.width / 2;
+    left = Math.max(tip.width / 2 + 8, Math.min(left, vw - tip.width / 2 - 8));
+
+    const fitsAbove = badge.top - tip.height - 6 >= 8;
+    const top = fitsAbove ? badge.top - 6 : badge.bottom + 6;
+    const translateY = fitsAbove ? '-100%' : '0%';
+
+    setStyle({ left, top, transform: `translate(-50%, ${translateY})`, visibility: 'visible' });
+  }, [visible]);
+
+  return (
+    <>
+      <span
+        ref={badgeRef}
+        className="badge badge-outline cursor-default"
+        onMouseEnter={() => {
+          setStyle({ visibility: 'hidden' });
+          setVisible(true);
+        }}
+        onMouseLeave={() => setVisible(false)}>
+        {capability}
+      </span>
+      {visible &&
+        description &&
+        createPortal(
+          <div
+            ref={tooltipRef}
+            className="fixed z-[9999] px-2 py-1 text-xs bg-neutral text-neutral-content rounded whitespace-nowrap pointer-events-none"
+            style={style}>
+            {description}
+          </div>,
+          document.getElementById('settingsDialog') ?? document.body,
+        )}
+    </>
+  );
+}
 
 enum State {
   unconfigured,
@@ -23,24 +78,27 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
   const progressUpdateUseRef = createRef<HTMLInputElement>();
   const progressUpdateEndpointRef = createRef<HTMLInputElement>();
 
+  const [uploadInfo, setUploadInfo] = useState<string>('');
+
   const [fileName, setFileName] = useState<string | undefined>(undefined);
+  const [metadata, setMetadata] = useState<MetadataType | undefined>(undefined);
 
   const [state, setState] = useState(State.unconfigured);
 
   return (
-    <div className={'card w-96 bg-base-100 shadow-xl mb-3 mr-3 border-2 border-base-300'} key={props.dataPlugin.name}>
+    <div className={'card w-96 bg-base-100 shadow-md mb-3 mr-3 border border-base-300 min-w-96'} key={props.dataPlugin.name}>
       <div className="card-body">
         <h2 className="card-title">
           {props.dataPlugin.name}
           {props.dataPlugin.experimental && <div className="badge badge-warning">Experimental</div>}
         </h2>
         <div>{props.dataPlugin.description}</div>
-        <h3 className="font-bold">Capabilities:</h3>
-        <ul className={'list-disc ml-6'}>
+        <div className="font-bold ">Capabilities:</div>
+        <div className={'flex flex-wrap gap-1'}>
           {props.dataPlugin.capabilities.map((capability) => (
-            <li key={`plugin${props.dataPlugin.name}Capability${capability}`}>{capability}</li>
+            <CapabilityBadge key={`plugin${props.dataPlugin.name}Capability${capability}`} capability={capability} />
           ))}
-        </ul>
+        </div>
         {props.dataPlugin.requirements.apiKey && (
           <label className="form-control w-full max-w-xs">
             <div className="label">
@@ -102,9 +160,11 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                           undefined,
                           { name: fileNameInput.value.replace(' ', '_'), file: file, dbObjects: undefined },
                           undefined,
+                          setUploadInfo,
                         )
-                        .then(() => {
+                        .then((meta) => {
                           setFileName(fileNameInput.value.replace(' ', '_'));
+                          setMetadata(meta);
                           setState(State.configured);
                         })
                         .catch(() => {
@@ -128,11 +188,11 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
               <div className="label">
                 <span className="font-bold">Use Progress Update:</span>
               </div>
-              <input type="checkbox" className="toggle" ref={progressUpdateUseRef} />
+              <input type="checkbox" className="toggle toggle-primary" ref={progressUpdateUseRef} />
             </label>
             <label className="form-control w-full max-w-xs">
               <div className="label">
-                <span className="font-bold">
+                <span className="font-bold text-wrap">
                   Progress Update Endpoint URL (only necessary if progress update is used, leave empty for default):
                 </span>
               </div>
@@ -149,6 +209,13 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
           <div>
             <span>Uploading Database</span>
             <span className="loading loading-spinner loading-xs"></span>
+            <br />
+            <progress
+              className="progress progress-primary w-56"
+              value={uploadInfo.split('/')[0]}
+              max={uploadInfo.includes('/') ? parseInt(uploadInfo.split('/')[1]) : 0}></progress>
+            <br />
+            <span>{uploadInfo}</span>
           </div>
         )}
         {props.dataPlugin.requirements.file && state === State.configured && (
@@ -194,9 +261,11 @@ function AddDataPluginCard(props: { dataPlugin: DataPlugin }) {
                         }
                       : undefined,
                   },
+                  metadata: metadata,
                 }),
               );
               setState(State.unconfigured);
+              setMetadata(undefined);
             }}>
             Add
           </button>

@@ -1,5 +1,6 @@
-@import '../../../variables.scss';
-@import '../tabControllerVariables.module';
+@use '../../../variables.scss' as *;
+@use '../tabControllerVariables.module' as *;
+@reference "../../../index.scss";
 
 :export {
   tabBarThickness : $tab-bar-thickness;
@@ -11,6 +12,7 @@
   width: 100%;
   height: 100%;
   position: relative;
+  @apply bg-base-100;
 }
 
 .appName{

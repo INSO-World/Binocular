@@ -1,17 +1,17 @@
 # check if NODE_VERSION same as in .nvmrc!
-ARG NODE_VERSION=${NODE_VERSION:-22.13.1}
+ARG NODE_VERSION=${NODE_VERSION:-22.21.1}
 ARG BUILDPLATFORM=${BUILDPLATFORM:-amd64}
 # ARG APP_PATH_ARG=/app/binocular
 
 ######################################################################
 # INSTALL image...
 ######################################################################
-FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.20 AS install
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.22 AS install
 # ENV APP_PATH=${APP_PATH_ARG}
 
 WORKDIR /app/binocular
 
-RUN mkdir -p /app/binocular/binocular-frontend
+RUN mkdir -p /app/binocular/binocular-frontend-new
 RUN mkdir -p /app/binocular/binocular-backend
 
 RUN ls -l .
@@ -26,7 +26,7 @@ RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
 ######################################################################
 # Final lean image...
 ######################################################################
-FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.20 AS builder
+FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.22 AS builder
 
 ENV APP_PATH=${APP_PATH_ARG}
 ENV NODE_ENV=production
@@ -58,8 +58,9 @@ COPY --chown=node:node ./LICENSE ./LICENSE
 RUN npm install -g tsx mocha ts-node
 RUN npm link --ignore-scripts
 
-RUN mkdir -p /app/binocular/binocular-frontend/db_export
-RUN mkdir -p /app/binocular/binocular-frontend/config
+# TODO
+RUN mkdir -p /app/binocular/binocular-frontend-new/src/db_export
+RUN mkdir -p /app/binocular/binocular-frontend-new/config
 
 # RUN chown node:node -R /app/binocular/binocular-frontend
 
@@ -67,7 +68,7 @@ RUN mkdir -p /app/binocular/repo
 RUN chown node:node /app/binocular/repo
 RUN chown node:node $(npm root -g)
 
-RUN git config --global --add safe.directory /app/binocular/repo/*
+RUN git config --global --add safe.directory /app/binocular/repo
 
 RUN chown node:node -R /app/binocular
 USER node

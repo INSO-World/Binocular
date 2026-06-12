@@ -1,0 +1,282 @@
+import * as d3 from 'd3';
+import moment, { type Moment } from 'moment';
+import * as React from 'react';
+import type { AuthorType } from '../../../../../../types/data/authorType';
+import type { SprintType } from '../../../../../../types/data/sprintType';
+import { SprintAreas, type MappedSprint } from '../../../../../../components/sprintAreas/SprintAreas';
+import type { DataPluginIssue } from '../../../../../interfaces/dataPluginInterfaces/dataPluginIssues';
+import type { DataPluginMergeRequest } from '../../../../../interfaces/dataPluginInterfaces/dataPluginMergeRequests';
+import type { IssuesTimelineSettings } from '../settings/settings';
+import { DetailDialogIssue, DetailDialogMergeRequestGroup, DetailDialogSprintArea } from './components/DetailDialog';
+import { IssuesTimelineChartIssue } from './components/IssuesTimelineChartIssue';
+import { IssuesTimelineChartLegend } from './components/IssuesTimelineChartLegend';
+import { IssuesTimelineChartMergeRequest } from './components/IssuesTimelineChartMergeRequest';
+import { groupIntoTracks } from './helper/groupIntoTracks';
+import { groupMergeRequests } from './helper/groupMergeRequests';
+import { groupSimilarLabels } from './helper/groupSimilarLabels';
+import classes from './sprintChart.module.css';
+import type { MappedDataPluginIssue, MappedDataPluginMergeRequest } from './types';
+
+export const margin = 20;
+
+type DetailDialogState = {
+  anchor: SVGElement;
+} & ({ variant: 'merge-request' | 'issue'; iid: number } | ({ variant: 'sprint-area' } & MappedSprint));
+
+const stringToColor = (string: string) => {
+  // Remove all non hex characters from the string.
+  let stringWithInvalidCharsReplaced = string
+    .split('')
+    .map((c) => (/[0-9A-F]/gi.test(c) ? c : 0))
+    .join('');
+
+  // Pad the string with '0', so the length of it is a multiple of 3.
+  while (stringWithInvalidCharsReplaced.length % 3 !== 0) {
+    stringWithInvalidCharsReplaced += '0';
+  }
+
+  const partLength = stringWithInvalidCharsReplaced.length / 3;
+  const subStringLength = partLength === 1 ? 1 : 2;
+
+  // Split up string into the three color channels.
+  // Only take the first two chars of each part.
+  const red = stringWithInvalidCharsReplaced.substring(0, subStringLength);
+  const green = stringWithInvalidCharsReplaced.substring(partLength, partLength + subStringLength);
+  const blue = stringWithInvalidCharsReplaced.substring(partLength * 2, partLength * 2 + subStringLength);
+
+  return `#${red}${green}${blue}`;
+};
+
+const mapIssue = (groupedLabels: Map<number, string[]>, colorsForLabelGroups: Map<number, string>) => {
+  const keyValueGroupedLabels = [...groupedLabels];
+
+  return (i: DataPluginIssue): MappedDataPluginIssue => {
+    const closedAt = i.closedAt ? moment(i.closedAt) : undefined;
+
+    return {
+      ...i,
+
+      createdAt: moment(i.createdAt),
+      closedAt,
+
+      labels: i.labels.map((l) => {
+        const [groupId] = keyValueGroupedLabels.find(([, values]) => values.includes(l)) ?? [];
+
+        return {
+          name: l,
+          color: colorsForLabelGroups.get(groupId ?? Number.POSITIVE_INFINITY) ?? 'lightgrey',
+        };
+      }),
+    };
+  };
+};
+
+const mapMergeRequest =
+  (maxDate: Moment) =>
+  (mr: DataPluginMergeRequest): MappedDataPluginMergeRequest => ({
+    ...mr,
+
+    createdAt: moment(mr.createdAt),
+    closedAt: mr.closedAt ? moment(mr.closedAt) : maxDate,
+  });
+
+export const IssuesTimelineChart: React.FC<
+  {
+    authors: AuthorType[];
+    issues: DataPluginIssue[];
+    mergeRequests: DataPluginMergeRequest[];
+    sprints: SprintType[];
+    fromDate: Moment;
+    toDate: Moment;
+    showSprints: boolean;
+    width: number;
+    height: number;
+    maxNumberOfDifferencesBetweenLabels?: number;
+    minNumberOfLabelsPerGroup?: number;
+  } & Pick<IssuesTimelineSettings, 'coloringMode'>
+> = ({
+  authors,
+  coloringMode,
+  issues,
+  mergeRequests,
+  sprints,
+  fromDate,
+  toDate,
+  showSprints,
+  height,
+  width,
+  maxNumberOfDifferencesBetweenLabels,
+  minNumberOfLabelsPerGroup,
+}) => {
+  const [zoom, setZoom] = React.useState(1);
+  const [offset, setOffset] = React.useState(0);
+
+  const [detailDialogState, setDetailDialogState] = React.useState<DetailDialogState>();
+
+  const svgChartRef = React.useRef<SVGSVGElement>(null);
+
+  const groupedLabels = groupSimilarLabels(
+    [...new Set(issues.flatMap((i) => i.labels))],
+    maxNumberOfDifferencesBetweenLabels,
+    minNumberOfLabelsPerGroup,
+  );
+  const colorsForLabelGroups = new Map([...groupedLabels].map(([key, values]) => [key, stringToColor(values.join(''))] as const));
+
+  const mappedIssues = issues.map(mapIssue(groupedLabels, colorsForLabelGroups));
+  const mappedMergeRequests = mergeRequests.map(mapMergeRequest(toDate));
+  React.useEffect(() => {
+    const { current: svg } = svgChartRef;
+    if (!svg) {
+      return;
+    }
+
+    const zoom = d3.zoom<SVGSVGElement, unknown>().on('zoom', (e: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+      setZoom(e.transform.k);
+      setOffset(e.transform.y);
+
+      setDetailDialogState(undefined);
+    });
+    d3.select(svg).call(zoom);
+  }, []);
+
+  const minDate = mappedIssues.reduce((acc, { createdAt }) => (createdAt.isBefore(acc) ? createdAt : acc), toDate);
+  const maxDate = mappedIssues.reduce((acc, { closedAt }) => (closedAt?.isAfter(acc) ? closedAt : acc), fromDate);
+
+  const xScale = d3
+    .scaleUtc()
+    .range([margin, Math.abs(width - margin)])
+    .domain([minDate, maxDate]);
+
+  const personColorMap = new Map(authors.map((a) => [a.user.gitSignature, a.color] as const));
+
+  const groupedMergeRequests =
+    toDate.diff(fromDate, 'years') >= 1 ? groupMergeRequests(mappedMergeRequests) : mappedMergeRequests.map((mr) => [mr]);
+
+  const groupedIssues = groupIntoTracks(mappedIssues, maxDate);
+
+  return (
+    <div style={{ height, width, position: 'relative' }}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        ref={svgChartRef}
+        width={'100%'}
+        height={'100%'}
+        viewBox={`0, 0, ${width}, ${height}`}
+        className={classes.container}
+        onClick={() => setDetailDialogState(undefined)}>
+        {height > 0 && width > 0 && (
+          <>
+            {groupedIssues.flatMap((group, trackNmbr) =>
+              group.map((issue) => (
+                <IssuesTimelineChartIssue
+                  key={issue.iid}
+                  {...issue}
+                  trackNmbr={trackNmbr}
+                  availableTracks={groupedIssues.length}
+                  height={height}
+                  zoom={zoom}
+                  width={width}
+                  offset={offset}
+                  maxDate={maxDate}
+                  xScale={xScale}
+                  personColorMap={personColorMap}
+                  coloringMode={coloringMode}
+                  onClick={(e) => {
+                    // Stop propagation, otherwise the tooltip isn't placed
+                    e.stopPropagation();
+
+                    setDetailDialogState({
+                      variant: 'issue',
+                      iid: issue.iid,
+                      anchor: e.currentTarget,
+                    });
+                  }}
+                />
+              )),
+            )}
+
+            <IssuesTimelineChartLegend height={height} width={width} xScale={xScale} />
+
+            {groupedMergeRequests.map((group) => (
+              <IssuesTimelineChartMergeRequest
+                key={group[0].iid}
+                height={height}
+                xScale={xScale}
+                mergeRequestGroup={group}
+                personColorMap={personColorMap}
+                coloringMode={coloringMode}
+                onClick={(e) => {
+                  // Stop propagation, otherwise the tooltip isn't placed
+                  e.stopPropagation();
+
+                  setDetailDialogState({
+                    variant: 'merge-request',
+                    iid: group[0].iid,
+                    anchor: e.currentTarget,
+                  });
+                }}
+              />
+            ))}
+
+            {showSprints && (
+              <SprintAreas
+                sprints={sprints}
+                xScale={xScale}
+                height={height}
+                bottomMargin={margin}
+                onClick={(sprint) => (e) => {
+                  e.stopPropagation();
+
+                  setDetailDialogState({
+                    variant: 'sprint-area',
+                    anchor: e.currentTarget,
+                    ...sprint,
+                  });
+                }}
+              />
+            )}
+          </>
+        )}
+      </svg>
+
+      {detailDialogState?.variant === 'issue' ? (
+        <DetailDialogIssue
+          {...detailDialogState}
+          issues={mappedIssues}
+          personColorMap={personColorMap}
+          onClickClose={() => setDetailDialogState(undefined)}
+        />
+      ) : detailDialogState?.variant === 'merge-request' ? (
+        <DetailDialogMergeRequestGroup
+          {...detailDialogState}
+          mergeRequests={
+            groupedMergeRequests.find((group) => group.some((mr: MappedDataPluginMergeRequest) => mr.iid === detailDialogState.iid)) ?? []
+          }
+          onClickClose={() => setDetailDialogState(undefined)}
+          onChangeMergeRequest={({ target: { value } }) =>
+            // Cast value type so the type is correct.
+            // There seems to be a mismatch between the type of iid and the value of the actual iid property.
+            setDetailDialogState((prev) => (prev ? { ...prev, iid: value as unknown as number } : prev))
+          }
+        />
+      ) : detailDialogState?.variant === 'sprint-area' ? (
+        <DetailDialogSprintArea
+          {...detailDialogState}
+          startDate={detailDialogState.startDate}
+          endDate={detailDialogState.endDate}
+          issues={mappedIssues.filter(({ createdAt, closedAt = maxDate }) => {
+            const { startDate, endDate } = detailDialogState;
+
+            // Only select issues, that are either fully or partially overlap with the selected sprint.
+            return (
+              (createdAt.isBefore(startDate) && closedAt.isAfter(endDate)) ||
+              createdAt.isBetween(detailDialogState.startDate, detailDialogState.endDate) ||
+              closedAt.isBetween(detailDialogState.startDate, detailDialogState.endDate)
+            );
+          })}
+          onClickClose={() => setDetailDialogState(undefined)}
+        />
+      ) : null}
+    </div>
+  );
+};

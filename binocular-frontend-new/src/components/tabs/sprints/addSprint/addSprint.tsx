@@ -1,5 +1,5 @@
 import AddSprintDialog from '../addSprintDialog/addSprintDialog.tsx';
-import { AppDispatch, useAppDispatch } from '../../../../redux';
+import { type AppDispatch, useAppDispatch } from '../../../../redux';
 import { sprintToEdit } from '../../../../redux/reducer/data/sprintsReducer.ts';
 
 function AddSprint() {
@@ -8,7 +8,7 @@ function AddSprint() {
   return (
     <div className={'text-xs'}>
       <button
-        className={'button btn btn-accent w-full'}
+        className={'button btn btn-primary w-full'}
         onClick={() => {
           dispatch(sprintToEdit(null));
           (document.getElementById('addSprintDialog') as HTMLDialogElement).showModal();

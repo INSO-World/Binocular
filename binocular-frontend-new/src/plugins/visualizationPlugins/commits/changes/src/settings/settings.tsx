@@ -1,0 +1,63 @@
+import type { DefaultSettings } from '../../../../simpleVisualizationPlugin/src/settings/settings';
+
+export interface ChangesSettings extends DefaultSettings {
+  splitAdditionsDeletions: boolean;
+}
+
+function Settings(props: { settings: ChangesSettings; setSettings: (newSettings: ChangesSettings) => void }) {
+  return (
+    <>
+      <div>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Split Additions and Deletions:</span>
+          <input
+            type="checkbox"
+            className="toggle toggle-primary toggle-sm"
+            defaultChecked={props.settings.splitAdditionsDeletions}
+            onChange={(event) =>
+              props.setSettings({
+                splitAdditionsDeletions: event.target.checked,
+                visualizationStyle: props.settings.visualizationStyle,
+                showSprints: props.settings.showSprints,
+              })
+            }
+          />
+        </label>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Visualization Style:</span>
+          <select
+            className={'select select-bordered select-xs w-24'}
+            defaultValue={props.settings.visualizationStyle}
+            onChange={(e) =>
+              props.setSettings({
+                splitAdditionsDeletions: props.settings.splitAdditionsDeletions,
+                visualizationStyle: e.target.value,
+                showSprints: props.settings.showSprints,
+              })
+            }>
+            <option value={'curved'}>curved</option>
+            <option value={'stepped'}>stepped</option>
+            <option value={'linear'}>linear</option>
+          </select>
+        </label>
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Show Sprints:</span>
+          <input
+            type="checkbox"
+            className="toggle toggle-primary toggle-sm"
+            defaultChecked={props.settings.showSprints}
+            onChange={(event) =>
+              props.setSettings({
+                splitAdditionsDeletions: props.settings.splitAdditionsDeletions,
+                visualizationStyle: props.settings.visualizationStyle,
+                showSprints: event.target.checked,
+              })
+            }
+          />
+        </label>
+      </div>
+    </>
+  );
+}
+
+export default Settings;
