@@ -64,7 +64,7 @@ function FileList(props: { orientation?: string; search: string }) {
     return unsubscribe;
   }, [filesDataPluginId, currentDataPlugins]);
 
-  const { isOpen, containerRef, overlayRef, overlayStyle, toggle, close } = useExpandOverlay(props.orientation);
+  const { isOpen, containerRef, overlayRef, overlayStyle, toggle } = useExpandOverlay(props.orientation);
 
   const refreshButton = (
     <button
@@ -79,17 +79,12 @@ function FileList(props: { orientation?: string; search: string }) {
   );
 
   const showButton = (
-    <button className="btn btn-xs join-item" onClick={toggle} title={isOpen ? 'Collapse file tree' : 'Expand file tree'}>
+    <button className="btn" onClick={toggle} title={isOpen ? 'Collapse file tree' : 'Expand file tree'}>
       <Icon name={isOpen ? 'hide' : 'show'} size="w-4 h-4" />
     </button>
   );
-  const hideButton = (
-    <button className="btn btn-xs join-item" onClick={close} title="Close">
-      <Icon name="hide" size="w-4 h-4" />
-    </button>
-  );
 
-  const renderContent = (eff: string, overlay?: boolean) => (
+  const renderContent = (eff: string) => (
     <div
       className={
         'text-xs ' +
@@ -114,10 +109,7 @@ function FileList(props: { orientation?: string; search: string }) {
             <Icon name="flip" size="w-4 h-4" />
           </button>
         </div>
-        <div className="join">
-          {eff === 'vertical' && refreshButton}
-          {eff === 'vertical' && overlay && hideButton}
-        </div>
+        {eff === 'vertical' && refreshButton}
       </div>
       <div className={eff === 'horizontal' ? 'flex-1 overflow-x-auto min-w-0 h-full' : ''}>
         {eff !== 'horizontal' && <div>{fileCounts[filesDataPluginId !== undefined ? filesDataPluginId : -1]} Files indexed</div>}
@@ -176,10 +168,7 @@ function FileList(props: { orientation?: string; search: string }) {
           )}
         </div>
       </div>
-      <div className="join join-vertical">
-        {eff === 'horizontal' && refreshButton}
-        {eff === 'horizontal' && showButton}
-      </div>
+      {eff === 'horizontal' && showButton}
     </div>
   );
 
@@ -199,7 +188,7 @@ function FileList(props: { orientation?: string; search: string }) {
               width: overlayStyle.width,
               maxHeight: '60vh',
             }}>
-            <div className="overflow-y-auto flex-1 p-2">{renderContent('vertical', true)}</div>
+            <div className="overflow-y-auto flex-1 p-2">{renderContent('vertical')}</div>
           </div>,
           document.body,
         )}
