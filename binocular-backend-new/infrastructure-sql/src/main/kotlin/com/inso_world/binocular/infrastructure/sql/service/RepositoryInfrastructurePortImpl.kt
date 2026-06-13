@@ -8,6 +8,7 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.BranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.CommitDao
@@ -85,6 +86,9 @@ internal class RepositoryInfrastructurePortImpl :
 
     @Autowired
     private lateinit var projectDao: ProjectDao
+
+    @Autowired
+    private lateinit var projectMapper: ProjectMapper
 
     @PostConstruct
     fun init() {
@@ -176,6 +180,37 @@ internal class RepositoryInfrastructurePortImpl :
         return value
     }
 
+    /**
+     * Updates an existing [Repository] aggregate, persisting all owned children (commits, branches,
+     * developers, remotes) and upserting the parent [com.inso_world.binocular.model.Project] reference if it does not yet exist.
+     *
+     * ## Semantics
+     * 1. Resolve the parent `ProjectEntity` by `value.project.iid`. If absent, persist it first
+     *    (upsert) so the repository can reference a valid `fk_project_id`. Either way,
+     *    `value.project.id` is then refreshed from the resolved entity (a no-op when it was
+     *    already correct).
+     * 2. Assemble the full `RepositoryEntity` graph via [RepositoryAssembler.toEntity].
+     * 3. **Phase 1** — persist commits (parent/child links and branches temporarily detached).
+     * 4. **Phase 2** — re-wire commit parent/child relationships now that commits have ids.
+     * 5. **Phase 3** — re-attach branches (pointing at persisted commit heads) and flush.
+     * 6. Refresh `value` from the persisted state via [RepositoryAssembler.refresh].
+     *
+     * ## Invariants & Requirements
+     * - **New repository (`mapped.id == null`)**: must be persisted via `entityManager.persist(mapped)`,
+     *   never via [RepositoryDao.update] (= `entityManager.merge`). `RepositoryEntity`'s
+     *   `init { project.repo = this }` side effect sets the already-managed parent `ProjectEntity.repo`
+     *   to `mapped`. Since `ProjectEntity.repo` is declared `cascade = [CascadeType.ALL]`, merging
+     *   `mapped` would persist a *separate* managed copy while leaving the original (still-transient)
+     *   `mapped` reachable from `project.repo` — Hibernate then cascade-persists that stale instance
+     *   too, producing a second `repositories` row for the same `fk_project_id` and violating
+     *   `uc_repositories_fk_project_id`. Using `persist()` makes `mapped` itself the managed instance,
+     *   so `project.repo` and the persisted entity are identical and no duplicate insert occurs.
+     * - **Existing repository (`mapped.id != null`)**: persisted via [RepositoryDao.update]
+     *   (`entityManager.merge`), unchanged from prior behavior.
+     *
+     * @param value The repository aggregate to update (refreshed in place with persisted ids).
+     * @return The same [value] instance, refreshed with persisted identifiers.
+     */
     @MappingSession
     @Transactional
     override fun update(
@@ -183,9 +218,13 @@ internal class RepositoryInfrastructurePortImpl :
     ): Repository {
         val entity =
             projectDao.findByIid(value.project.iid)
-                ?: throw NotFoundException("Project ${value.project.uniqueKey} not found")
+                ?: run {
+                    logger.debug("Project {} not found on update — persisting it (upsert)", value.project.uniqueKey)
+                    projectDao.create(projectMapper.toEntity(value.project))
+                }
         logger.debug("Project Entity found")
         ctx.remember(value.project, entity)
+        projectMapper.refreshDomain(value.project, entity)
 
         val mapped = repositoryAssembler.toEntity(value)
 
@@ -201,8 +240,16 @@ internal class RepositoryInfrastructurePortImpl :
             it.children.clear()
         }
 
-        // Persist commits
-        val intermediateRepo = repositoryDao.update(mapped)
+        // Persist commits.
+        // New repositories (mapped.id == null) must use entityManager.persist(mapped) directly
+        // rather than repositoryDao.update (= entityManager.merge): see KDoc on this method for why.
+        val intermediateRepo =
+            if (mapped.id == null) {
+                entityManager.persist(mapped)
+                mapped
+            } else {
+                repositoryDao.update(mapped)
+            }
         entityManager.flush()
         logger.trace("Phase 1: Commits persisted")
 
