@@ -26,7 +26,7 @@ import kotlin.uuid.Uuid
  *
  * ### Relationships
  * - [repository]: Owning repository (required). Declared as a `lateinit var` body property rather than
- *   a constructor parameter — Spring Data ArangoDB injects lazy `@Ref` fields after construction.
+ *   a constructor parameter — Spring Data ArangoDB injects `@Ref` fields after construction.
  *   Always set via the [toEntity] factory before use.
  *
  * ### Indexes
@@ -63,7 +63,7 @@ data class UserEntity(
     )
     var files: Set<FileEntity> = emptySet(),
 ) {
-    @Ref(lazy = true)
+    @Ref(lazy = false)
     lateinit var repository: RepositoryEntity
 
     /**
