@@ -36,8 +36,10 @@ internal data class RemoteEntity(
     @Convert(KotlinUuidConverter::class)
     val iid: Remote.Id
 ) : AbstractEntity<Long, RemoteEntity.Key>() {
-
-    data class Key(val repositoryIid: Repository.Id, val name: String)
+    data class Key(
+        val repositoryIid: Repository.Id,
+        val name: String,
+    )
 
     init {
         repository.remotes.add(this)
@@ -63,18 +65,19 @@ internal data class RemoteEntity(
     override fun toString(): String = "RemoteEntity(id=$id, name='$name', url='$url')"
 
     override val uniqueKey: Key
-        get() = Key(
-            repository.iid,
-            name
-        )
+        get() =
+            Key(
+                repository.iid,
+                name,
+            )
 }
 
-internal fun Remote.toEntity(repository: RepositoryEntity): RemoteEntity =
+internal fun Remote.toSqlEntity(repository: RepositoryEntity): RemoteEntity =
     RemoteEntity(
         iid = this.iid,
         name = this.name,
         url = this.url,
         repository = repository,
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
+        id = this@toSqlEntity.id?.trim()?.toLongOrNull()
     }

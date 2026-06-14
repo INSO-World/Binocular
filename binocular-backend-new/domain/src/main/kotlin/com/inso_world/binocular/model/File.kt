@@ -12,12 +12,16 @@ data class File(
     var path: String,
     val revisions: MutableSet<Revision> = mutableSetOf(),
 ) : AbstractDomainObject<File.Id, File.Key>(
-    Id(Uuid.random())
-) {
+        Id(Uuid.random()),
+    ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid,
+    )
 
-    data class Key(val path: String) // value object for lookups
+    data class Key(
+        val path: String,
+    ) // value object for lookups
 
     // some database dependent id
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))

@@ -1,5 +1,7 @@
 binocular:
   arangodb:
+    migration:
+      default-project-name: Binocular
     database:
       database: "binocular-1234"
       host: "localhost"

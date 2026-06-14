@@ -41,7 +41,6 @@ import java.util.stream.Stream
 internal class CommitDaoTest(
     @Autowired private val commitPort: CommitInfrastructurePort,
 ) : BasePersistenceTest() {
-
     @Autowired
     private lateinit var indexer: GitIndexer
 
@@ -75,11 +74,12 @@ internal class CommitDaoTest(
         developerEmail: String = "test@example.com",
         timestamp: LocalDateTime = LocalDateTime.now().minusHours(1)
     ): Commit {
-        val developer = Developer(
-            name = developerName,
-            email = developerEmail,
-            repository = repository
-        )
+        val developer =
+            Developer(
+                name = developerName,
+                email = developerEmail,
+                repository = repository,
+            )
         val signature = Signature(developer = developer, timestamp = timestamp)
         return Commit(
             sha = sha,
@@ -101,29 +101,36 @@ internal class CommitDaoTest(
                         name = "test",
                     ),
                 )
-            repository = repositoryPort.create(
-                Repository(
-                    localPath = "testRepository",
-                    project = project
+            repository =
+                repositoryPort.create(
+                    Repository(
+                        localPath = "testRepository",
+                        project = project,
+                    ),
                 )
-            )
         }
 
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.model.validation.ValidationTestData#provideInvalidShaHex")
         fun `commit with invalid sha value should fail`(invalidSha: String) {
-            val cmt = createTestCommit(
-                sha = "a".repeat(40),
-                message = "msg",
-                repository = repository,
-            )
+            val cmt =
+                createTestCommit(
+                    sha = "a".repeat(40),
+                    message = "msg",
+                    repository = repository,
+                )
             setField(Commit::class.java.getDeclaredField("sha"), cmt, invalidSha)
             val exception =
                 assertThrows<jakarta.validation.ConstraintViolationException> {
                     commitPort.create(cmt)
                 }
             assertThat(exception.constraintViolations).hasSize(1)
-            assertThat(exception.constraintViolations.first().propertyPath.toString()).contains("create.value.sha")
+            assertThat(
+                exception.constraintViolations
+                    .first()
+                    .propertyPath
+                    .toString(),
+            ).contains("create.value.sha")
             entityManager.clear()
         }
 
@@ -150,12 +157,13 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.domain.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid commitDateTime should not fail`(validCommitTime: LocalDateTime) {
-            val cmt = createTestCommit(
-                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                message = "msg",
-                repository = repository,
-                timestamp = validCommitTime,
-            )
+            val cmt =
+                createTestCommit(
+                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                    message = "msg",
+                    repository = repository,
+                    timestamp = validCommitTime,
+                )
 
             assertDoesNotThrow {
                 repositoryPort.update(repository)
@@ -167,12 +175,13 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.domain.data.DummyTestData#provideAllowedPastOrPresentDateTime",
         )
         fun `commit with valid authorDateTime should not fail`(validAuthorTime: LocalDateTime) {
-            val cmt = createTestCommit(
-                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                message = "msg",
-                repository = repository,
-                timestamp = validAuthorTime,
-            )
+            val cmt =
+                createTestCommit(
+                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                    message = "msg",
+                    repository = repository,
+                    timestamp = validAuthorTime,
+                )
 
             assertDoesNotThrow {
                 repositoryPort.update(repository)
@@ -184,11 +193,12 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.cli.integration.persistence.dao.sql.CommitDaoTest#invalidCommitTime",
         )
         fun `commit with invalid commitDateTime should fail`(invalidCommitTime: LocalDateTime?) {
-            val commit = createTestCommit(
-                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                message = "msg",
-                repository = repository,
-            )
+            val commit =
+                createTestCommit(
+                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                    message = "msg",
+                    repository = repository,
+                )
             run {
                 val sigField = Commit::class.java.getDeclaredField("committerSignature")
                 sigField.isAccessible = true
@@ -210,11 +220,12 @@ internal class CommitDaoTest(
             "com.inso_world.binocular.domain.data.DummyTestData#provideInvalidPastOrPresentDateTime",
         )
         fun `commit with invalid authorDateTime should fail`(invalidAuthorTime: LocalDateTime?) {
-            val commit = createTestCommit(
-                sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
-                message = "msg",
-                repository = repository,
-            )
+            val commit =
+                createTestCommit(
+                    sha = "091618c311d7c539c0ec316d0a86a6dbee6a3943",
+                    message = "msg",
+                    repository = repository,
+                )
             // Note: With the new model, timestamp is in the Signature
             if (invalidAuthorTime != null) {
                 val sigField = Commit::class.java.getDeclaredField("authorSignature")
@@ -241,28 +252,32 @@ internal class CommitDaoTest(
 
             @Test
             fun `index repo, expect all commits in database`() {
-                val repo = run {
-                    val cfg = setupRepoConfig(
-                        indexer,
-                        "${FIXTURES_PATH}/${SIMPLE_REPO}",
-                        "HEAD",
-                        branchName = "master",
-                        projectName = SIMPLE_PROJECT_NAME,
-                    )
-                    requireNotNull(projectPort.create(cfg.project).repo) {
-                        "Repository could not be created"
+                val repo =
+                    run {
+                        val cfg =
+                            setupRepoConfig(
+                                indexer,
+                                "${FIXTURES_PATH}/${SIMPLE_REPO}",
+                                "HEAD",
+                                branchName = "master",
+                                projectName = SIMPLE_PROJECT_NAME,
+                            )
+                        requireNotNull(projectPort.create(cfg.project).repo) {
+                            "Repository could not be created"
+                        }
                     }
-                }
 
                 repoService.addCommits(repo, repo.commits)
 
                 val allCommits = commitPort.findAll()
                 assertThat(allCommits).hasSize(14)
                 run {
-                    val cmt = allCommits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
-                        ?: throw IllegalStateException("must find commit here")
-                    val child = allCommits.find { it.sha == "3d28b65c324cc8ee0bb7229fb6ac5d7f64129e90" }
-                        ?: throw IllegalStateException("must find commit here")
+                    val cmt =
+                        allCommits.find { it.sha == "b51199ab8b83e31f64b631e42b2ee0b1c7e3259a" }
+                            ?: throw IllegalStateException("must find commit here")
+                    val child =
+                        allCommits.find { it.sha == "3d28b65c324cc8ee0bb7229fb6ac5d7f64129e90" }
+                            ?: throw IllegalStateException("must find commit here")
                     assertThat(cmt.children).isEmpty()
                     assertThat(cmt.parents).hasSize(1)
                     assertThat(cmt.parents.toList()[0]).isSameAs(child)
@@ -270,45 +285,50 @@ internal class CommitDaoTest(
                     assertThat(child.children.toList()[0]).isSameAs(cmt)
                 }
                 run {
-                    val suspect = allCommits.find { it.sha == "97babe02ece29439d6f71201067b2c71d3352a81" }
-                        ?: throw IllegalStateException("must find commit here")
-                    val child = allCommits.find { it.sha == "2403472fd3b2c4487f66961929f1e5895c5013e1" }
-                        ?: throw IllegalStateException("must find commit here")
-                    val parent = allCommits.find { it.sha == "f56209474698e776112b442b5426d37f36b6c41d" }
-                        ?: throw IllegalStateException("must find commit here")
+                    val suspect =
+                        allCommits.find { it.sha == "97babe02ece29439d6f71201067b2c71d3352a81" }
+                            ?: throw IllegalStateException("must find commit here")
+                    val child =
+                        allCommits.find { it.sha == "2403472fd3b2c4487f66961929f1e5895c5013e1" }
+                            ?: throw IllegalStateException("must find commit here")
+                    val parent =
+                        allCommits.find { it.sha == "f56209474698e776112b442b5426d37f36b6c41d" }
+                            ?: throw IllegalStateException("must find commit here")
                     assertAll(
                         "check suspect",
                         { assertThat(suspect.children).hasSize(1) },
                         { assertThat(suspect.parents).hasSize(1) },
                         { assertThat(suspect.parents.toList()[0]).isSameAs(parent) },
-                        { assertThat(suspect.children.toList()[0]).isSameAs(child) }
+                        { assertThat(suspect.children.toList()[0]).isSameAs(child) },
                     )
                     assertAll(
                         "check child",
                         { assertThat(child.parents).hasSize(1) },
-                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) }
+                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) },
                     )
                     assertAll(
                         "check parent",
                         { assertThat(parent.children).hasSize(1) },
-                        { assertThat(parent.children.toList()[0]).isSameAs(suspect) }
+                        { assertThat(parent.children.toList()[0]).isSameAs(suspect) },
                     )
                 }
                 run {
-                    val suspect = allCommits.find { it.sha == "48a384a6a9188f376835005cd10fd97542e69bf7" }
-                        ?: throw IllegalStateException("must find commit here")
-                    val child = allCommits.find { it.sha == "8f34ebee8f593193048f8bcbf848501bf2465865" }
-                        ?: throw IllegalStateException("must find commit here")
+                    val suspect =
+                        allCommits.find { it.sha == "48a384a6a9188f376835005cd10fd97542e69bf7" }
+                            ?: throw IllegalStateException("must find commit here")
+                    val child =
+                        allCommits.find { it.sha == "8f34ebee8f593193048f8bcbf848501bf2465865" }
+                            ?: throw IllegalStateException("must find commit here")
                     assertAll(
                         "check suspect",
                         { assertThat(suspect.children).hasSize(1) },
                         { assertThat(suspect.parents).isEmpty() },
-                        { assertThat(suspect.children.toList()[0]).isSameAs(child) }
+                        { assertThat(suspect.children.toList()[0]).isSameAs(child) },
                     )
                     assertAll(
                         "check child",
                         { assertThat(child.parents).hasSize(1) },
-                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) }
+                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) },
                     )
                 }
             }
@@ -323,109 +343,122 @@ internal class CommitDaoTest(
 
             @Test
             fun `index repo, expect all commits in database`() {
-                val repo = run {
-                    val cfg = setupRepoConfig(
-                        indexer,
-                        "${FIXTURES_PATH}/${OCTO_REPO}",
-                        "HEAD",
-                        branchName = "master",
-                        projectName = OCTO_PROJECT_NAME,
-                    )
-                    requireNotNull(projectPort.create(cfg.project).repo) {
-                        "Repository could not be created"
+                val repo =
+                    run {
+                        val cfg =
+                            setupRepoConfig(
+                                indexer,
+                                "${FIXTURES_PATH}/${OCTO_REPO}",
+                                "HEAD",
+                                branchName = "master",
+                                projectName = OCTO_PROJECT_NAME,
+                            )
+                        requireNotNull(projectPort.create(cfg.project).repo) {
+                            "Repository could not be created"
+                        }
                     }
-                }
 
                 repoService.addCommits(repo, repo.commits)
 
                 val allCommits = commitPort.findAll()
                 assertThat(allCommits).hasSize(19)
                 run {
-                    val suspect = allCommits.find { it.sha == "4dedc3c738eee6b69c43cde7d89f146912532cff" }
-                        ?: throw IllegalStateException("must find suspect commit here")
-                    val parents = run {
-                        val mapped = allCommits.associateBy { it.sha }
+                    val suspect =
+                        allCommits.find { it.sha == "4dedc3c738eee6b69c43cde7d89f146912532cff" }
+                            ?: throw IllegalStateException("must find suspect commit here")
+                    val parents =
+                        run {
+                            val mapped = allCommits.associateBy { it.sha }
 
-                        val cmtBeforeBranching = mapped["f556329d268afeb5e5298e37fd8bfb5ef2058a9d"]
-                            ?: throw IllegalStateException("must find master commit here")
-                        val octo3 = mapped["bf51258d6da9aaca9b75e2580251539026b6246a"]
-                            ?: throw IllegalStateException("must find octo3 commit here")
-                        val octo2 = mapped["d5d38cc858bd78498efbe0005052f5cb1fd38cb9"]
-                            ?: throw IllegalStateException("must find octo2 commit here")
-                        val octo1 = mapped["42fbbe93509ed894cbbd61e4dbc07a440720c491"]
-                            ?: throw IllegalStateException("must find octo1 commit here")
+                            val cmtBeforeBranching =
+                                mapped["f556329d268afeb5e5298e37fd8bfb5ef2058a9d"]
+                                    ?: throw IllegalStateException("must find master commit here")
+                            val octo3 =
+                                mapped["bf51258d6da9aaca9b75e2580251539026b6246a"]
+                                    ?: throw IllegalStateException("must find octo3 commit here")
+                            val octo2 =
+                                mapped["d5d38cc858bd78498efbe0005052f5cb1fd38cb9"]
+                                    ?: throw IllegalStateException("must find octo2 commit here")
+                            val octo1 =
+                                mapped["42fbbe93509ed894cbbd61e4dbc07a440720c491"]
+                                    ?: throw IllegalStateException("must find octo1 commit here")
 
-                        assertAll(
-                            "check parent cmtBeforeBranching",
-                            { assertThat(cmtBeforeBranching.children).hasSize(4) },
-                            { assertThat(cmtBeforeBranching.children).contains(suspect) }
-                        )
-                        assertAll(
-                            "check parent octo1",
-                            { assertThat(octo1.children).hasSize(1) },
-                            { assertThat(octo1.children.toList()[0]).isSameAs(suspect) }
-                        )
-                        assertAll(
-                            "check parent octo2",
-                            { assertThat(octo2.children).hasSize(1) },
-                            { assertThat(octo2.children.toList()[0]).isSameAs(suspect) }
-                        )
-                        assertAll(
-                            "check parent octo3",
-                            { assertThat(octo3.children).hasSize(1) },
-                            { assertThat(octo3.children.toList()[0]).isSameAs(suspect) }
-                        )
+                            assertAll(
+                                "check parent cmtBeforeBranching",
+                                { assertThat(cmtBeforeBranching.children).hasSize(4) },
+                                { assertThat(cmtBeforeBranching.children).contains(suspect) },
+                            )
+                            assertAll(
+                                "check parent octo1",
+                                { assertThat(octo1.children).hasSize(1) },
+                                { assertThat(octo1.children.toList()[0]).isSameAs(suspect) },
+                            )
+                            assertAll(
+                                "check parent octo2",
+                                { assertThat(octo2.children).hasSize(1) },
+                                { assertThat(octo2.children.toList()[0]).isSameAs(suspect) },
+                            )
+                            assertAll(
+                                "check parent octo3",
+                                { assertThat(octo3.children).hasSize(1) },
+                                { assertThat(octo3.children.toList()[0]).isSameAs(suspect) },
+                            )
 
-                        setOf(cmtBeforeBranching, octo3, octo2, octo1)
-                    }
+                            setOf(cmtBeforeBranching, octo3, octo2, octo1)
+                        }
 
                     assertAll(
                         "check suspect",
                         { assertThat(suspect.children).isEmpty() },
                         { assertThat(suspect.parents).hasSize(4) },
-                        { assertThat(suspect.parents).containsAll(parents) }
+                        { assertThat(suspect.parents).containsAll(parents) },
                     )
                 }
                 run {
-                    val suspect = allCommits.find { it.sha == "e236fdb066254a9a6acfbc5517b3865c09586831" }
-                        ?: throw IllegalStateException("must find commit here")
-                    val child = allCommits.find { it.sha == "abe9605d4e1fe269089f615aee4736103b5318ca" }
-                        ?: throw IllegalStateException("must find commit here")
-                    val parent = allCommits.find { it.sha == "69f39f7e4a8d201333e5125a5e27381bc2b874d4" }
-                        ?: throw IllegalStateException("must find commit here")
+                    val suspect =
+                        allCommits.find { it.sha == "e236fdb066254a9a6acfbc5517b3865c09586831" }
+                            ?: throw IllegalStateException("must find commit here")
+                    val child =
+                        allCommits.find { it.sha == "abe9605d4e1fe269089f615aee4736103b5318ca" }
+                            ?: throw IllegalStateException("must find commit here")
+                    val parent =
+                        allCommits.find { it.sha == "69f39f7e4a8d201333e5125a5e27381bc2b874d4" }
+                            ?: throw IllegalStateException("must find commit here")
                     assertAll(
                         "check suspect",
                         { assertThat(suspect.children).hasSize(1) },
                         { assertThat(suspect.parents).hasSize(1) },
                         { assertThat(suspect.parents.toList()[0]).isSameAs(parent) },
-                        { assertThat(suspect.children.toList()[0]).isSameAs(child) }
+                        { assertThat(suspect.children.toList()[0]).isSameAs(child) },
                     )
                     assertAll(
                         "check child",
                         { assertThat(child.parents).hasSize(1) },
-                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) }
+                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) },
                     )
                     assertAll(
                         "check parent",
                         { assertThat(parent.children).hasSize(1) },
-                        { assertThat(parent.children.toList()[0]).isSameAs(suspect) }
+                        { assertThat(parent.children.toList()[0]).isSameAs(suspect) },
                     )
                 }
                 run {
-                    val suspect = allCommits.find { it.sha == "8bf17bb514dd0fb3d763d19e2e0d67ba3129a61e" }
-                        ?: throw IllegalStateException("must find commit here")
-                    val child = allCommits.find { it.sha == "6b1155bb139e8c984f9b5343bf4595d1c98e516d" }
-                        ?: throw IllegalStateException("must find commit here")
+                    val suspect =
+                        allCommits.find { it.sha == "8bf17bb514dd0fb3d763d19e2e0d67ba3129a61e" }
+                            ?: throw IllegalStateException("must find commit here")
+                    val child =
+                        allCommits.find { it.sha == "6b1155bb139e8c984f9b5343bf4595d1c98e516d" }
+                            ?: throw IllegalStateException("must find commit here")
                     assertAll(
                         "check suspect",
                         { assertThat(suspect.children).hasSize(1) },
                         { assertThat(suspect.parents).isEmpty() },
-                        { assertThat(suspect.children.toList()[0]).isSameAs(child) }
+                        { assertThat(suspect.children.toList()[0]).isSameAs(child) },
                     )
                     assertAll(
                         "check child",
                         { assertThat(child.parents).hasSize(1) },
-                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) }
+                        { assertThat(child.parents.toList()[0]).isSameAs(suspect) },
                     )
                 }
             }
@@ -434,10 +467,8 @@ internal class CommitDaoTest(
 
     @Nested
     inner class FilledDatabase : BasePersistenceWithDataTest() {
-
         @Nested
         inner class SimpleRepo {
-
             @Test
             fun `simpleRepo, check master branch leaf node`() {
                 val masterLeaf =
@@ -520,16 +551,15 @@ internal class CommitDaoTest(
                     { assertThat(commitPort.findAll()).isEmpty() },
                 )
 
-                val localRepo = run {
-                    val project = Project(name = "octo-2")
-                    Repository("${FIXTURES_PATH}/${OCTO_REPO}", project)
+                val localRepo =
+                    run {
+                        val project = Project(name = "octo-2")
+                        Repository("${FIXTURES_PATH}/${OCTO_REPO}", project)
 
-                    return@run requireNotNull(projectPort.create(project).repo)
-                }
+                        return@run requireNotNull(projectPort.create(project).repo)
+                    }
 
-                fun genBranchCommits(
-                    branch: String,
-                ): Repository {
+                fun genBranchCommits(branch: String): Repository {
                     indexer.traverseBranch(localRepo, branch)
 
                     repositoryPort.update(localRepo)

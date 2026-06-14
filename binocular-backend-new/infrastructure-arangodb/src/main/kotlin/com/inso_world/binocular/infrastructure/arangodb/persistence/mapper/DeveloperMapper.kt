@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,13 +53,14 @@ internal class DeveloperMapper : EntityMapper<Developer, DeveloperEntity> {
     override fun toEntity(domain: Developer): DeveloperEntity {
         ctx.findEntity<Developer.Key, Developer, DeveloperEntity>(domain)?.let { return it }
 
-        val owner = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-            ?: throw IllegalStateException(
-                "RepositoryEntity must be mapped before DeveloperEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity()."
-            )
+        val owner =
+            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+                ?: throw IllegalStateException(
+                    "RepositoryEntity must be mapped before DeveloperEntity. " +
+                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
+                )
 
-        val entity = domain.toEntity(owner)
+        val entity = domain.toArangoEntity(owner)
         ctx.remember(domain, entity)
         return entity
     }
@@ -80,15 +81,17 @@ internal class DeveloperMapper : EntityMapper<Developer, DeveloperEntity> {
     override fun toDomain(entity: DeveloperEntity): Developer {
         ctx.findDomain<Developer, DeveloperEntity>(entity)?.let { return it }
 
-        val owner = ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before Developer. " +
-                        "Ensure Repository is in MappingContext before calling toDomain()."
-            )
+        val owner =
+            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
+                ?: throw IllegalStateException(
+                    "Repository must be mapped before Developer. " +
+                        "Ensure Repository is in MappingContext before calling toDomain().",
+                )
 
         val domain = entity.toDomain(owner)
         setField(
-            domain.javaClass.superclass.superclass.getDeclaredField("iid"),
+            domain.javaClass.superclass.superclass
+                .getDeclaredField("iid"),
             domain,
             entity.iid
         )
@@ -106,7 +109,10 @@ internal class DeveloperMapper : EntityMapper<Developer, DeveloperEntity> {
      * @param entity The DeveloperEntity with updated data
      * @return The refreshed Developer domain object
      */
-    fun refreshDomain(target: Developer, entity: DeveloperEntity): Developer {
+    fun refreshDomain(
+        target: Developer,
+        entity: DeveloperEntity,
+    ): Developer {
         if (target.id.equals(entity.id)) {
             return target
         }

@@ -2,66 +2,127 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
 import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Project
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
+/**
+ * SQL-specific Account entity.
+ */
 @Entity
 @Table(
     name = "accounts",
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["platform", "login"]),
+        UniqueConstraint(columnNames = ["gid", "platform"]),
     ],
 )
 internal data class AccountEntity(
-    @Column(nullable = false)
-    var login: String,
-    @Column(nullable = true)
-    var name: String? = null,
-    @Column(nullable = true)
-    var email: String? = null,
-    @Column(nullable = true)
-    var url: String? = null,
-    @Column(name = "avatar_url", nullable = true)
-    var avatarUrl: String? = null,
-    @Column(nullable = false)
-    var platform: String,
-    @Column(nullable = false, updatable = false, unique = true)
-    @Convert(converter = KotlinUuidConverter::class)
-    val iid: Account.Id,
-) : AbstractEntity<Long, AccountEntity.Key>() {
-
-    data class Key(val platform: String, val login: String)
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    override var id: Long? = null
+    override var id: Long? = null,
+    @Column(nullable = false, updatable = false, unique = true)
+    @Convert(KotlinUuidConverter::class)
+    val iid: Account.Id,
+    //@Column(nullable = false, updatable = false, unique = true)
+    val gid: String,
+    @Enumerated(EnumType.STRING)
+    val platform: Platform,
+    val login: String,
+    var name: String?,
+    @Column(name = "avatar_url")
+    var avatarUrl: String? = null,
+    var url: String? = null,
 
+    @ManyToMany(mappedBy = "accounts")
+    var issues: MutableList<IssueEntity> = mutableListOf(),
+
+    //    @ManyToMany
+    //    @JoinTable(
+    //        name = "merge_request_account_connections",
+    //        joinColumns = [JoinColumn(name = "account_id")],
+    //        inverseJoinColumns = [JoinColumn(name = "merge_request_id")],
+    //    )
+    //    var mergeRequests: MutableList<MergeRequestEntity> = mutableListOf(),
+    //    @ManyToMany
+    //    @JoinTable(
+    //        name = "note_account_connections",
+    //        joinColumns = [JoinColumn(name = "account_id")],
+    //        inverseJoinColumns = [JoinColumn(name = "note_id")],
+    //    )
+    //    var notes: MutableList<NoteEntity> = mutableListOf(),
+
+    @ManyToMany(mappedBy = "accounts", fetch = FetchType.LAZY)
+    var projects: MutableSet<ProjectEntity> = mutableSetOf()
+) : AbstractEntity<Long, AccountEntity.Key>() {
+
+    data class Key(val platform: Platform, val gid: String) // value object for lookups
+
+    //    override fun uniqueKey(): String {
+//        return "${this.platform}:${this.gid}"
+//    }
     override val uniqueKey: Key
-        get() = Key(platform = platform, login = login)
+        get() = Key(platform, gid)
 
-    override fun equals(other: Any?): Boolean = super.equals(other)
+    override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
+
+    fun toDomain( ): Account = Account(
+        gid = this.gid,
+        platform = this.platform,
+        login = this.login,
+//        projects = mutableSetOf(project)
+    ).apply {
+        this.id = this@AccountEntity.id?.toString()
+        this.name = this@AccountEntity.name
+        this.avatarUrl = this@AccountEntity.avatarUrl
+        this.url = this@AccountEntity.url
+    }
+
+        // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
+//                issues =
+//                    proxyFactory.createLazyMappedList(
+//                        { entity.issues },
+//                        { issueMapper.toDomain(it) },
+//                    ),
+//                mergeRequests =
+//                    proxyFactory.createLazyMappedList(
+//                        { entity.mergeRequests },
+//                        { mergeRequestMapper.toDomain(it) },
+//                    ),
+//                notes =
+//                    proxyFactory.createLazyMappedList(
+//                        { entity.notes },
+//                        { noteMapper.toDomain(it) },
+//                    ),
+
 }
 
-@OptIn(ExperimentalUuidApi::class)
-internal fun Account.toEntity(): AccountEntity =
+internal fun Account.toSqlEntity( ): AccountEntity =
     AccountEntity(
         iid = this.iid,
-        login = this.login ?: "",
+        gid = this.gid,
+        platform = this.platform,
+        login = this.login,
         name = this.name,
-        email = this.email,
-        url = this.url,
         avatarUrl = this.avatarUrl,
-        platform = this.platform?.name ?: "GITHUB",
+        url = this.url,
+//        project = project,
+        // Note: Relationships are not directly mapped in SQL entity
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
+        id = this@toSqlEntity.id?.trim()?.toLongOrNull()
     }

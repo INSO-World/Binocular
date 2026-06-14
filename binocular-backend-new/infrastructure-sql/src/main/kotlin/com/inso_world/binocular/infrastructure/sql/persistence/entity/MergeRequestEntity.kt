@@ -3,9 +3,12 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 import com.inso_world.binocular.model.Mention
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.util.Objects
 
@@ -14,7 +17,7 @@ import java.util.Objects
  */
 @Entity
 @Table(name = "merge_requests")
-data class MergeRequestEntity(
+internal data class MergeRequestEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
@@ -35,6 +38,9 @@ data class MergeRequestEntity(
     var state: String? = null,
     @Column(name = "web_url")
     var webUrl: String? = null,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    var project: ProjectEntity? = null,
 //    @OneToMany(mappedBy = "mergeRequest", cascade = [CascadeType.ALL], orphanRemoval = true)
 //    var mentions: MutableList<MentionEntity> = mutableListOf(),
 //    @ManyToMany(mappedBy = "mergeRequests")

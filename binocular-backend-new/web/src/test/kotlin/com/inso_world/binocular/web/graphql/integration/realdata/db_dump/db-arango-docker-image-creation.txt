@@ -1,0 +1,53 @@
+# 0. Backup
+docker exec -it c609067d802c arangodump \
+  --server.endpoint tcp://127.0.0.1:8529 \
+  --server.username root \
+  --server.password changeme \
+  --server.database binocular-binocular \
+  --output-directory /dump
+
+docker cp c609067d802c:/dump /Users/markus/Desktop/binocular-db-backup
+
+
+# 1. Create a volume-less Arango image
+docker create --name temp-arango arangodb:3.12
+
+docker export temp-arango | docker import \
+  --change 'ENTRYPOINT ["/entrypoint.sh"]' \
+  --change 'CMD ["arangod"]' \
+  --change 'EXPOSE 8529' \
+  - arangodb-novolume:3.12
+
+docker rm temp-arango
+
+
+# 2. Start restore container
+docker run -d \
+  --name bino-restore \
+  -p 8529:8529 \
+  -e ARANGO_ROOT_PASSWORD=changeme \
+  arangodb-novolume:3.12
+
+
+# 3. Copy dump into container (absolute path)
+docker cp /Users/markus/Desktop/binocular-db-backup/. bino-restore:/dump
+
+
+# 4. Restore database
+docker exec -it bino-restore arangorestore \
+  --server.endpoint tcp://127.0.0.1:8529 \
+  --server.username root \
+  --server.password changeme \
+  --server.database binocular-binocular \
+  --input-directory /dump \
+  --create-database true
+
+
+# 5. Freeze container → image
+docker stop bino-restore
+
+docker commit bino-restore binocular-db:testdata
+
+
+# 6. Test the image
+docker run -it -p 8529:8529 binocular-db:testdata

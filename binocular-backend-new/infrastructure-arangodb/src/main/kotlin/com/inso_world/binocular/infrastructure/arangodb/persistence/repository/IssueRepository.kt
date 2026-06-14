@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface IssueRepository : ArangoRepository<IssueEntity, String> {
-
     @Query(
         """
         FOR i IN issues

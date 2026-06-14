@@ -80,12 +80,13 @@ internal fun GixRemote.toModel(repository: Repository): Remote {
         Remote(
             name = this.name,
             url = this.url,
-            repository = repository
+            repository = repository,
         )
     }
 }
 
-internal fun Remote.toFfi(): GixRemote = GixRemote(
-    name = this.name,
-    url = this.url,
-)
+internal fun Remote.toFfi(): GixRemote =
+    GixRemote(
+        name = this.name,
+        url = this.url,
+    )

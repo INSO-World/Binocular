@@ -80,7 +80,9 @@ internal data class CommitEntity(
     @OnDelete(action = OnDeleteAction.CASCADE)
     val repository: RepositoryEntity,
 ) : AbstractEntity<Long, CommitEntity.Key>() {
-    data class Key(val sha: String)
+    data class Key(
+        val sha: String,
+    )
 
     init {
         this.repository.commits.add(this)
@@ -125,7 +127,7 @@ internal data class CommitEntity(
         "CommitEntity(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, repository=${repository.localPath})"
 }
 
-internal fun Commit.toEntity(
+internal fun Commit.toSqlEntity(
     repository: RepositoryEntity,
     author: DeveloperEntity,
     committer: DeveloperEntity,
@@ -143,5 +145,5 @@ internal fun Commit.toEntity(
         author = author,
         committer = committer,
     ).apply {
-        this.id = this@toEntity.id?.trim()?.toLongOrNull()
+        this.id = this@toSqlEntity.id?.trim()?.toLongOrNull()
     }

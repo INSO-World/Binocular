@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 
 @Repository
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 internal class MergeRequestDao {
 
     @PersistenceContext
@@ -21,9 +22,10 @@ internal class MergeRequestDao {
                 ?.let { row ->
                     val arr = row as Array<*>
                     MergeRequest(
+                        project = com.inso_world.binocular.model.Project.Id(kotlin.uuid.Uuid.parse("00000000-0000-0000-0000-000000000000")),
                         id = arr[0]?.toString(),
                         title = arr[1]?.toString(),
-                        state = arr[2]?.toString()
+                        state = arr[2]?.toString(),
                     )
                 }
         } catch (ex: Exception) {
@@ -36,9 +38,10 @@ internal class MergeRequestDao {
             .map { row ->
                 val arr = row as Array<*>
                 MergeRequest(
+                    project = com.inso_world.binocular.model.Project.Id(kotlin.uuid.Uuid.parse("00000000-0000-0000-0000-000000000000")),
                     id = arr[0]?.toString(),
                     title = arr[1]?.toString(),
-                    state = arr[2]?.toString()
+                    state = arr[2]?.toString(),
                 )
             }
 
@@ -53,9 +56,10 @@ internal class MergeRequestDao {
             .map { row ->
                 val arr = row as Array<*>
                 MergeRequest(
+                    project = com.inso_world.binocular.model.Project.Id(kotlin.uuid.Uuid.parse("00000000-0000-0000-0000-000000000000")),
                     id = arr[0]?.toString(),
                     title = arr[1]?.toString(),
-                    state = arr[2]?.toString()
+                    state = arr[2]?.toString(),
                 )
             }
 

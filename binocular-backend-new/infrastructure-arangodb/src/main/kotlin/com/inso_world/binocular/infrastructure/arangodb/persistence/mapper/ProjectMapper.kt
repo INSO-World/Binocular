@@ -4,7 +4,7 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
@@ -37,6 +37,9 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
     @Autowired
     private lateinit var mergeRequestMapper: MergeRequestMapper
 
+    @Autowired
+    private lateinit var milestoneMapper: MilestoneMapper
+
     companion object {
         private val logger by logger()
     }
@@ -54,10 +57,11 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         // Fast-path: if this Project was already mapped in the current context, return it.
         ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)?.let { return it }
 
-        val entity = domain.toEntity().apply {
-            issues = domain.issues.map { issueMapper.toEntity(it) }
-            mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }
-        }
+        val entity = domain.toArangoEntity()
+        
+        entity.issues = domain.issues.map { issueMapper.toEntity(it).apply { project = entity } }
+        entity.mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it).apply { project = entity } }
+        entity.milestones = domain.milestones.map { milestoneMapper.toEntity(it).apply { project = entity } }
 
         ctx.remember(domain, entity)
         return entity
@@ -81,7 +85,7 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Project.Id(entity.iid),
         )
 
         ctx.remember(domain, entity)
@@ -97,7 +101,10 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
      * @param target The Project domain object to refresh
      * @param entity The ProjectEntity with updated data
      */
-    fun refreshDomain(target: Project, entity: ProjectEntity) {
+    fun refreshDomain(
+        target: Project,
+        entity: ProjectEntity,
+    ) {
         target.id = entity.id
     }
 }

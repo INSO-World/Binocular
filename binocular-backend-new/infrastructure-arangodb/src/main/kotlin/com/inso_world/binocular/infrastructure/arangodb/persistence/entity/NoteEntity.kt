@@ -29,19 +29,19 @@ data class NoteEntity(
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var accounts: List<AccountEntity> = emptyList(),
+    var accounts: Set<AccountEntity> = emptySet(),
     @Relations(
         edges = [IssueNoteConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var issues: List<IssueEntity> = emptyList(),
+    var issues: Set<IssueEntity> = emptySet(),
     @Relations(
         edges = [MergeRequestNoteConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.INBOUND,
     )
-    var mergeRequests: List<MergeRequestEntity> = emptyList(),
+    var mergeRequests: Set<MergeRequestEntity> = emptySet(),
 )

@@ -114,7 +114,7 @@ data class UserEntity(
  */
 @Suppress("DEPRECATION")
 @OptIn(ExperimentalUuidApi::class)
-internal fun User.toEntity(repository: RepositoryEntity): UserEntity =
+internal fun User.toArangoEntity(repository: RepositoryEntity): UserEntity =
     UserEntity(
         id = this.id,
         iid = this.iid.value,

@@ -31,7 +31,7 @@ class ProjectModelTest {
 
         assertAll(
             { assertThat(project.uniqueKey).isEqualTo(Project.Key("test-project")) },
-            { assertThat(project.uniqueKey.name).isSameAs(project.name) }
+            { assertThat(project.uniqueKey.name).isSameAs(project.name) },
         )
     }
 
@@ -49,9 +49,11 @@ class ProjectModelTest {
         val originIid = projectA.iid
         val projectB = projectA.copy()
         setField(
-            projectB.javaClass.superclass.getDeclaredField("iid").apply { isAccessible = true },
+            projectB.javaClass.superclass
+                .getDeclaredField("iid")
+                .apply { isAccessible = true },
             projectB,
-            originIid
+            originIid,
         )
 
         assertThat(projectA).isNotSameAs(projectB)
@@ -62,12 +64,14 @@ class ProjectModelTest {
 
     @Test
     fun `create project with repository, should link correctly`() {
-        val project = Project(name = "test-project").apply {
-            this.repo = Repository(
-                localPath = "test",
-                project = this,
-            )
-        }
+        val project =
+            Project(name = "test-project").apply {
+                this.repo =
+                    Repository(
+                        localPath = "test",
+                        project = this,
+                    )
+            }
 
         // check reference
         assertThat(project.repo).isNotNull()
@@ -77,25 +81,22 @@ class ProjectModelTest {
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `create project with blank name, should fail`(
-        name: String,
-    ) {
+    fun `create project with blank name, should fail`(name: String) {
         assertThrows<IllegalArgumentException> { Project(name) }
     }
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
-    fun `create project with allowed names, should pass`(
-        name: String,
-    ) {
+    fun `create project with allowed names, should pass`(name: String) {
         assertDoesNotThrow { Project(name) }
     }
 
     @Test
     fun `create project with description`() {
-        val project = Project(name = "test-project").apply {
-            description = "test-description"
-        }
+        val project =
+            Project(name = "test-project").apply {
+                description = "test-description"
+            }
 
         assertThat(project.description).isEqualTo("test-description")
     }

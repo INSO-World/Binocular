@@ -7,8 +7,7 @@ import kotlin.io.path.Path
 
 internal class RealDataProvider(
     private val idx: GitIndexer,
-
-    ) {
+) {
     private lateinit var repo: Repository
     lateinit var project: Project
 
@@ -17,9 +16,10 @@ internal class RealDataProvider(
         repoPath: String,
         branchName: String,
     ) {
-        project = Project(
-            name = projectName,
-        )
+        project =
+            Project(
+                name = projectName,
+            )
         repo = idx.findRepo(Path(repoPath).toRealPath(), project)
         project.repo = repo
 

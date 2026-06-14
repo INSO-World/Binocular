@@ -25,7 +25,6 @@ import java.util.Date
  */
 @Component
 internal class JobMapper : EntityMapper<Job, JobEntity> {
-
     @Autowired
     private lateinit var ctx: MappingContext
 
@@ -66,11 +65,13 @@ internal class JobMapper : EntityMapper<Job, JobEntity> {
             status = entity.status,
             stage = entity.stage,
             createdAt =
-                entity.createdAt?.toInstant()
+                entity.createdAt
+                    ?.toInstant()
                     ?.atZone(ZoneOffset.UTC)
                     ?.toLocalDateTime(),
             finishedAt =
-                entity.finishedAt?.toInstant()
+                entity.finishedAt
+                    ?.toInstant()
                     ?.atZone(ZoneOffset.UTC)
                     ?.toLocalDateTime(),
             webUrl = entity.webUrl

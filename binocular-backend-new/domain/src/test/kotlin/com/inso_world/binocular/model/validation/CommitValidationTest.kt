@@ -22,7 +22,7 @@ internal class CommitValidationTest : ValidationTest() {
                 name = "branch",
                 repository = repository,
                 head = invalidCommit,
-                category = ReferenceCategory.LOCAL_BRANCH
+                category = ReferenceCategory.LOCAL_BRANCH,
             )
 
         repository.branches.add(dummyBranch)
@@ -37,5 +37,4 @@ internal class CommitValidationTest : ValidationTest() {
             }
         assertThat(violation.propertyPath.toString()).isEqualTo(propertyPath)
     }
-
 }

@@ -4,10 +4,11 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.enums.IssueAccountRole
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.enums.IssueAccountRole
 import org.springframework.data.domain.Pageable
 
 /**
@@ -26,7 +27,11 @@ interface IssueInfrastructurePort : BinocularInfrastructurePort<Issue, Issue.Id>
     /**
      * Find all issues with pagination and optional timestamp filters.
      */
-    fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Issue>
+    fun findAll(
+        pageable: Pageable,
+        since: Long?,
+        until: Long?
+    ): Page<Issue>
 
     /**
      * Find accounts by issue ID.
@@ -39,7 +44,10 @@ interface IssueInfrastructurePort : BinocularInfrastructurePort<Issue, Issue.Id>
     /**
      * Find accounts by issue ID and role on the edge (e.g., IssueAccountRole.AUTHOR).
      */
-    fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account>
+    fun findAccountsByIssueId(
+        issueId: String,
+        role: IssueAccountRole
+    ): List<Account>
 
     /**
      * Find commits by issue ID.
@@ -72,4 +80,15 @@ interface IssueInfrastructurePort : BinocularInfrastructurePort<Issue, Issue.Id>
      * @return List of users associated with the issue
      */
     fun findUsersByIssueId(issueId: String): List<User>
+
+    /**
+     * Find existing GitHub issues via id.
+     *
+     * @param ids The list of GitHub issue IDs
+     * @return the Issues associated with the IDs
+     */
+    fun findExistingGid(
+        ids: List<String>,
+        project: Project
+    ): Iterable<Issue>
 }

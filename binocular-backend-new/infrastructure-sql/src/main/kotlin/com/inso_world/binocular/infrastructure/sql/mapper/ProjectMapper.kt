@@ -4,7 +4,7 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
@@ -22,13 +22,12 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
     override fun toEntity(domain: Project): ProjectEntity {
         ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)?.let { return it }
 
-        val entity = domain.toEntity()
+        val entity = domain.toSqlEntity()
 
         ctx.remember(domain, entity)
 
         return entity
     }
-
 
     override fun toDomain(entity: ProjectEntity): Project {
         ctx.findDomain<Project, ProjectEntity>(entity)?.let { return it }
@@ -45,7 +44,12 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         return domain
     }
 
-    fun refreshDomain(target: Project, entity: ProjectEntity) {
-        target.id = entity.id?.toString()
+    fun refreshDomain(target: Project, entity: ProjectEntity) : Project {
+        setField(
+            target.javaClass.getDeclaredField("id"),
+            target,
+            entity.id?.toString()
+        )
+        return target
     }
 }

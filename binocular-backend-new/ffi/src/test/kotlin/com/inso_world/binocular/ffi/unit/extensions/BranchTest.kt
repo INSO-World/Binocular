@@ -33,7 +33,6 @@ import java.time.LocalDateTime
  * - All decision paths and edge cases
  */
 class BranchTest : BaseUnitTest() {
-
     private lateinit var project: Project
     private lateinit var repository: Repository
     private lateinit var headCommit: Commit
@@ -42,23 +41,26 @@ class BranchTest : BaseUnitTest() {
     @BeforeEach
     fun setUp() {
         project = Project(name = "test-project")
-        repository = Repository(
-            localPath = "/path/to/repo",
-            project = project
-        )
+        repository =
+            Repository(
+                localPath = "/path/to/repo",
+                project = project,
+            )
         val developer = Developer(name = "Test Committer", email = "committer@test.com", repository = repository)
         val signatureA = Signature(developer = developer, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0))
         val signatureB = Signature(developer = developer, timestamp = LocalDateTime.of(2024, 1, 2, 0, 0))
-        headCommit = Commit(
-            sha = "a".repeat(40),
-            authorSignature = signatureA,
-            repository = repository,
-        )
-        anotherCommit = Commit(
-            sha = "b".repeat(40),
-            authorSignature = signatureB,
-            repository = repository,
-        )
+        headCommit =
+            Commit(
+                sha = "a".repeat(40),
+                authorSignature = signatureA,
+                repository = repository,
+            )
+        anotherCommit =
+            Commit(
+                sha = "b".repeat(40),
+                authorSignature = signatureB,
+                repository = repository,
+            )
     }
 
     // ========== Creating New Branches ==========
@@ -99,11 +101,12 @@ class BranchTest : BaseUnitTest() {
 
     @Test
     fun `toDomain copies full name and category metadata`() {
-        val ffiBranch = gixBranch(
-            name = "feature",
-            fullName = "refs/heads/feature",
-            category = GixReferenceCategory.LOCAL_BRANCH
-        )
+        val ffiBranch =
+            gixBranch(
+                name = "feature",
+                fullName = "refs/heads/feature",
+                category = GixReferenceCategory.LOCAL_BRANCH,
+            )
 
         val result = ffiBranch.toDomain(repository, headCommit)
 
@@ -115,7 +118,6 @@ class BranchTest : BaseUnitTest() {
 
     @Nested
     inner class IdentityPreservation {
-
         @Test
         fun `toDomain returns existing branch when name matches exactly`() {
             val existingBranch = branch(name = "main")
@@ -183,7 +185,6 @@ class BranchTest : BaseUnitTest() {
 
     @Nested
     inner class HeadUpdate {
-
         @Test
         fun `toDomain updates head when existing branch has different head`() {
             val existingBranch = branch(name = "main")
@@ -213,11 +214,12 @@ class BranchTest : BaseUnitTest() {
         @Test
         fun `toDomain updates head multiple times on repeated calls with different commits`() {
             val committer = Developer(name = "Test Committer", email = "committer@test.com", repository = repository)
-            val thirdCommit = Commit(
-                sha = "c".repeat(40),
-                authorSignature = Signature(developer = committer, timestamp = LocalDateTime.of(2024, 1, 3, 0, 0)),
-                repository = repository,
-            )
+            val thirdCommit =
+                Commit(
+                    sha = "c".repeat(40),
+                    authorSignature = Signature(developer = committer, timestamp = LocalDateTime.of(2024, 1, 3, 0, 0)),
+                    repository = repository,
+                )
 
             val existingBranch = branch(name = "main")
 
@@ -240,23 +242,24 @@ class BranchTest : BaseUnitTest() {
 
     @Nested
     inner class RepositoryConsistency {
-
         @Test
         fun `toDomain throws exception when head commit belongs to different repository`() {
             val project2 = Project(name = "another-project")
             val repository2 = Repository(localPath = "/path/to/repo2", project = project2)
             val testCommitter2 = Developer(name = "Test Committer", email = "commit2@test.com", repository = repository2)
-            val commitFromDifferentRepo = Commit(
-                sha = "d".repeat(40),
-                authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
-                repository = repository2,
-            )
+            val commitFromDifferentRepo =
+                Commit(
+                    sha = "d".repeat(40),
+                    authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
+                    repository = repository2,
+                )
 
             val ffiBranch = gixBranch(name = "main")
 
-            val exception = assertThrows<IllegalArgumentException> {
-                ffiBranch.toDomain(repository, commitFromDifferentRepo)
-            }
+            val exception =
+                assertThrows<IllegalArgumentException> {
+                    ffiBranch.toDomain(repository, commitFromDifferentRepo)
+                }
 
             assertThat(exception.message).contains("Head is from different repository")
         }
@@ -268,17 +271,19 @@ class BranchTest : BaseUnitTest() {
             val project2 = Project(name = "another-project")
             val repository2 = Repository(localPath = "/path/to/repo2", project = project2)
             val testCommitter2 = Developer(name = "Test Committer", email = "commit2@test.com", repository = repository2)
-            val commitFromDifferentRepo = Commit(
-                sha = "d".repeat(40),
-                authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
-                repository = repository2,
-            )
+            val commitFromDifferentRepo =
+                Commit(
+                    sha = "d".repeat(40),
+                    authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
+                    repository = repository2,
+                )
 
             val ffiBranch = gixBranch(name = "main")
 
-            val exception = assertThrows<IllegalArgumentException> {
-                ffiBranch.toDomain(repository, commitFromDifferentRepo)
-            }
+            val exception =
+                assertThrows<IllegalArgumentException> {
+                    ffiBranch.toDomain(repository, commitFromDifferentRepo)
+                }
 
             assertThat(exception.message).contains("Head is from different repository")
             // Original branch head should remain unchanged
@@ -300,7 +305,6 @@ class BranchTest : BaseUnitTest() {
 
     @Nested
     inner class EdgeCases {
-
         @Test
         fun `toDomain handles minimal valid branch name`() {
             val ffiBranch = gixBranch(name = "x")
@@ -365,8 +369,8 @@ class BranchTest : BaseUnitTest() {
                 "hotfix/urgent-fix",
                 "release/v1.0.0",
                 "bugfix/fix-bug-123",
-                "experiment/try-something"
-            ]
+                "experiment/try-something",
+            ],
         )
         fun `toDomain handles common Git branch naming patterns`(branchName: String) {
             val ffiBranch = gixBranch(name = branchName)
@@ -384,11 +388,12 @@ class BranchTest : BaseUnitTest() {
         val project2 = Project(name = "another-project")
         val repository2 = Repository(localPath = "/path/to/repo2", project = project2)
         val testCommitter2 = Developer(name = "Test Committer", email = "commit2@test.com", repository = repository2)
-        val commit2 = Commit(
-            sha = "e".repeat(40),
-            authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
-            repository = repository2,
-        )
+        val commit2 =
+            Commit(
+                sha = "e".repeat(40),
+                authorSignature = Signature(developer = testCommitter2, timestamp = LocalDateTime.of(2024, 1, 1, 0, 0)),
+                repository = repository2,
+            )
 
         val ffiBranch = gixBranch(name = "main")
 
@@ -412,13 +417,13 @@ class BranchTest : BaseUnitTest() {
         "'develop','refs/heads/develop', 'develop', false",
         "'origin/feature','refs/remotes/origin/feature', 'origin/feature', false",
         "'main','refs/heads/main', 'main', true",
-        "'main','refs/heads/main', 'main', true"
+        "'main','refs/heads/main', 'main', true",
     )
     fun `toDomain handles various branch scenarios`(
         name: String,
         fullName: String,
         expectedName: String,
-        createExisting: Boolean
+        createExisting: Boolean,
     ) {
         if (createExisting) {
             branch(name = expectedName)
@@ -513,14 +518,15 @@ class BranchTest : BaseUnitTest() {
         fullName: String = name,
         category: ReferenceCategory = ReferenceCategory.LOCAL_BRANCH,
         repository: Repository = this.repository,
-        head: Commit = this.headCommit
-    ): Branch = Branch(
-        name = name,
-        fullName = fullName,
-        category = category,
-        repository = repository,
-        head = head
-    )
+        head: Commit = this.headCommit,
+    ): Branch =
+        Branch(
+            name = name,
+            fullName = fullName,
+            category = category,
+            repository = repository,
+            head = head,
+        )
 
     companion object {
         private const val DEFAULT_TARGET = "0000000000000000000000000000000000000000"
@@ -529,12 +535,12 @@ class BranchTest : BaseUnitTest() {
             name: String,
             fullName: String = name,
             target: String = DEFAULT_TARGET,
-            category: GixReferenceCategory = GixReferenceCategory.LOCAL_BRANCH
+            category: GixReferenceCategory = GixReferenceCategory.LOCAL_BRANCH,
         ) = GixBranch(
             fullName = fullName,
             name = name,
             target = target,
-            category = category
+            category = category,
         )
     }
 }

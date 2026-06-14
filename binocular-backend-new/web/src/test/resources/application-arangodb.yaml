@@ -1,5 +1,7 @@
 binocular:
   arangodb:
+    migration:
+      default_project_name: "INSO-World/Binocular"
     database:
       name: "binocular-web-test"
       host: ${ARANGODB_HOST:localhost}

@@ -19,6 +19,7 @@ classDiagram
         +MutableSet~Branch~ branches
         +MutableSet~Developer~ developers
         +MutableSet~Remote~ remotes
+        +MutableSet~User~ user
     }
 
     class Commit {
@@ -45,6 +46,7 @@ classDiagram
         +Repository repository
         +Commit head
         +Set~File~ files
+        +Set~Commit~ commits
     }
 
     class Developer {
@@ -64,6 +66,13 @@ classDiagram
         NOTE
         PSEUDO_REF
         UNKNOWN
+        MAIN_PSEUDO_REF
+        MAIN_REF
+        LINKED_PSEUDO_REF
+        LINKED_REF
+        BISECT
+        REWRITTEN
+        WORKTREE_PRIVATE
     }
 
     class Stats {
@@ -95,6 +104,7 @@ classDiagram
     Repository "1" -- "*" Branch : owns
     Repository "1" -- "*" Developer : involves
     Repository "1" -- "*" Remote : references
+    Repository "1" -- "*" User : legacy
 
     Stakeholder <|-- Developer
     Reference <|-- Branch

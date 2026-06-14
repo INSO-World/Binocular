@@ -7,4 +7,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface RepositoryRepository : ArangoRepository<RepositoryEntity, String> {
     fun findByLocalPath(localPath: String): RepositoryEntity?
+
+    @Suppress("ktlint:standard:function-naming")
+    fun findByProject_Name(projectName: String): RepositoryEntity?
 }

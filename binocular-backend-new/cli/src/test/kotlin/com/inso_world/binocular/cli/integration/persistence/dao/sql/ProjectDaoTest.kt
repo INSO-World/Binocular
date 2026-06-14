@@ -78,14 +78,15 @@ internal class ProjectDaoTest(
                 projectInfrastructurePort.create(
                     Project(
                         name = "To Be Deleted",
-                    ).apply { description = "Will be deleted with repo" }
+                    ).apply { description = "Will be deleted with repo" },
                 )
             savedProject.repo =
                 repositoryInfrastructurePort.create(
                     Repository(
                         localPath = "cascading-repo",
-                        project = savedProject
-                    ))
+                        project = savedProject,
+                    ),
+                )
             // updated dependencies, as not managed by JPA
             projectInfrastructurePort.update(savedProject)
 
@@ -107,8 +108,9 @@ internal class ProjectDaoTest(
                 repositoryInfrastructurePort.create(
                     Repository(
                         localPath = "null-desc-repo",
-                        project = savedProject
-                    ))
+                        project = savedProject,
+                    ),
+                )
             savedProject.repo = savedRepo
 
             // Then
@@ -129,7 +131,7 @@ internal class ProjectDaoTest(
             setField(
                 Project::class.java.getDeclaredField("name"),
                 project,
-                invalidName
+                invalidName,
             )
 
             // When & Then - This should fail due to validation constraint
@@ -150,8 +152,9 @@ internal class ProjectDaoTest(
                 repositoryInfrastructurePort.create(
                     Repository(
                         localPath = "long-name-repo",
-                        project = savedProject
-                    ))
+                        project = savedProject,
+                    ),
+                )
             savedProject.repo = savedRepo
 
             // Then
@@ -170,7 +173,6 @@ internal class ProjectDaoTest(
 
         @Test
         fun `duplicate project names should fail`() {
-
             assertDoesNotThrow {
                 projectInfrastructurePort.create(
                     Project(

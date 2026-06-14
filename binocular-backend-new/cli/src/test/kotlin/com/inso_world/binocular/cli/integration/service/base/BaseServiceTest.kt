@@ -68,19 +68,21 @@ internal class BaseServiceTest : BaseFixturesIntegrationTest() {
 
     @BeforeEach
     fun setupBase() {
-        val simpleProject = run {
-            val data = RealDataProvider(idx)
-            data.setUp(
-                projectName = SIMPLE_PROJECT_NAME,
-                repoPath = "${FIXTURES_PATH}/${SIMPLE_REPO}",
-                branchName =  "master"
-            )
-            data.project
-        }
+        val simpleProject =
+            run {
+                val data = RealDataProvider(idx)
+                data.setUp(
+                    projectName = SIMPLE_PROJECT_NAME,
+                    repoPath = "${FIXTURES_PATH}/${SIMPLE_REPO}",
+                    branchName = "master",
+                )
+                data.project
+            }
         this.simpleProject = projectPort.create(simpleProject)
-        this.simpleRepo = requireNotNull(this.simpleProject.repo) {
-            "Repository could not be created with Project"
-        }
+        this.simpleRepo =
+            requireNotNull(this.simpleProject.repo) {
+                "Repository could not be created with Project"
+            }
         this.simpleProject.repo = this.simpleRepo
     }
 

@@ -38,7 +38,7 @@ private fun String.validateSha(): String {
  */
 internal fun GixCommit.toDomain(
     repository: Repository,
-    shaIndex: Map<String, Commit>? = null
+    shaIndex: Map<String, Commit>? = null,
 ): Commit {
     // Validate SHA format early at boundary
     this.oid.validateSha()
@@ -47,8 +47,9 @@ internal fun GixCommit.toDomain(
     val committerSignature = this.committer.toSignature(repository)
 
     // Use index if provided (O(1)), otherwise fall back to linear search (O(n))
-    val existing = shaIndex?.get(this.oid)
-        ?: repository.commits.firstOrNull { it.sha == this.oid }
+    val existing =
+        shaIndex?.get(this.oid)
+            ?: repository.commits.firstOrNull { it.sha == this.oid }
 
     val commit =
         existing ?: Commit(
@@ -89,11 +90,12 @@ internal fun Collection<GixCommit>.toDomain(repository: Repository): List<Commit
     val bySha = repository.commits.associateBy { it.uniqueKey.sha }.toMutableMap()
 
     // ---- Pass 1: materialize commits using the single-item mapper with index ----
-    val mappedInOrder: List<Commit> = this.map { vec ->
-        val c = vec.toDomain(repository, bySha) // <— reuse single-item logic with O(1) lookup
-        bySha.putIfAbsent(c.sha, c)
-        c
-    }
+    val mappedInOrder: List<Commit> =
+        this.map { vec ->
+            val c = vec.toDomain(repository, bySha) // <— reuse single-item logic with O(1) lookup
+            bySha.putIfAbsent(c.sha, c)
+            c
+        }
 
     // ---- Pass 2: wire parent edges (and implicit child back-links by domain invariants) ----
     this.forEach { vec ->

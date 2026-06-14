@@ -5,7 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -56,22 +56,21 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
      * @return The RepositoryEntity (structure only, without children)
      * @throws IllegalStateException if Project is not in MappingContext
      */
-    override fun toEntity(
-        domain: Repository,
-    ): RepositoryEntity {
+    override fun toEntity(domain: Repository): RepositoryEntity {
         // Fast-path: if this Repository was already mapped in the current context, return it.
         ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain)?.let { return it }
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
-            ?: throw IllegalStateException(
-                "ProjectEntity must be mapped before RepositoryEntity. " +
-                        "Ensure ProjectEntity is in MappingContext before calling toEntity()."
-            )
+        val owner: ProjectEntity =
+            ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
+                ?: throw IllegalStateException(
+                    "ProjectEntity must be mapped before RepositoryEntity. " +
+                        "Ensure ProjectEntity is in MappingContext before calling toEntity().",
+                )
 
         // Create entity and remember in context
-        val entity = domain.toEntity(owner)
+        val entity = domain.toSqlEntity(owner)
         ctx.remember(domain, entity)
 
         // Delegate to overload with explicit owner
@@ -91,19 +90,18 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
      * @return The Repository domain object (structure only, without children)
      * @throws IllegalStateException if Project is not in MappingContext
      */
-    override fun toDomain(
-        entity: RepositoryEntity,
-    ): Repository {
+    override fun toDomain(entity: RepositoryEntity): Repository {
         // Fast-path: Check if already mapped
         ctx.findDomain<Repository, RepositoryEntity>(entity)?.let { return it }
 
         // IMPORTANT: Expect Project already in context (cross-aggregate reference).
         // Do NOT auto-map Project here - that's a separate aggregate.
-        val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
-            ?: throw IllegalStateException(
-                "Project must be mapped before Repository. " +
-                        "Ensure Project is in MappingContext before calling toDomain()."
-            )
+        val owner =
+            ctx.findDomain<Project, ProjectEntity>(entity.project)
+                ?: throw IllegalStateException(
+                    "Project must be mapped before Repository. " +
+                        "Ensure Project is in MappingContext before calling toDomain().",
+                )
 
         val domain = entity.toDomain(owner)
         setField(
@@ -117,7 +115,10 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
         return domain
     }
 
-    fun refreshDomain(target: Repository, entity: RepositoryEntity): Repository {
+    fun refreshDomain(
+        target: Repository,
+        entity: RepositoryEntity,
+    ): Repository {
         setField(
             target.javaClass.getDeclaredField("id"),
             target,

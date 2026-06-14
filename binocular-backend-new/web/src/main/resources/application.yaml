@@ -7,8 +7,8 @@ logging:
 server:
   port: 48763
 spring:
-  #profiles:
-    #active: nosql, arangodb
+  profiles:
+    active: nosql, arangodb
     # active: sql, postgresql
   application:
     name: binocular

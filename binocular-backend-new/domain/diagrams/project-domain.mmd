@@ -6,7 +6,9 @@ classDiagram
         +String name
         +String description
         +Repository repo
-        +Set~Issue~ issues
+        +MutableSet~Issue~ issues
+        +MutableSet~Account~ accounts
+        +MutableSet~MergeRequest~ mergeRequests
     }
 
     class Repository {
@@ -19,8 +21,9 @@ classDiagram
         +Id iid
         +String title
         +String description
-        +List~Account~ accounts
-        +List~Commit~ commits
+        +Account author
+        +MutableSet~Account~ accounts
+        +MutableList~Commit~ commits
         +List~Milestone~ milestones
         +List~Note~ notes
         +List~Mention~ mentions
@@ -34,7 +37,8 @@ classDiagram
         +String createdAt
         +String closedAt
         +String updatedAt
-        +List~Account~ accounts
+        +Project project
+        +MutableList~Account~ accounts
         +List~Milestone~ milestones
         +List~Note~ notes
         +List~Mention~ mentions
@@ -55,18 +59,24 @@ classDiagram
         +String name
         +String email
         +Repository repository
+        +MutableSet~Issue~ issues
     }
 
     class Mention {
         +String commit
         +LocalDateTime createdAt
         +Boolean closes
+        +Account actor
     }
 
     Project "1" -- "0..1" Repository : scopes
     Project "1" -- "*" Issue : contains
+    Project "1" -- "*" MergeRequest : contains
+    Project "1" -- "*" Account : contains
+    Issue "1" -- "1" Account : authored by
     Issue "1" -- "*" Note : has
     Issue "1" -- "*" Mention : has
+    Issue "*" -- "*" Account : involves
     MergeRequest "1" -- "*" Note : has
     MergeRequest "1" -- "*" Mention : has
     Repository "1" -- "*" User : legacy

@@ -24,7 +24,7 @@ import java.time.LocalDateTime
  */
 @Deprecated(
     "Objects are singletons, every change is propagated over tests. Instead, use the MockTestDataProvider class and create a new object before each test rung to have a clean state",
-    replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider")
+    replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider"),
 )
 object TestDataProvider {
     private val project = Project(name = "proj-pg-0")
@@ -35,21 +35,25 @@ object TestDataProvider {
     val testAccounts =
         listOf(
             Account(
-                "1",
+                "MDQ9JXMlcjY5MoB7Nah4",
                 Platform.GitHub,
                 "user1",
-                "User One",
-                "https://example.com/avatars/user1.png",
-                "https://github.com/user1",
-            ),
+                projects = mutableSetOf(project)
+            ).apply {
+                this.name = "User One"
+                this.avatarUrl = "https://example.com/avatars/user1.png"
+                this.url = "https://github.com/user1"
+            },
             Account(
-                "2",
+                "MDQ9JXjIMjY5MoB7Nah4",
                 Platform.GitLab,
                 "user2",
-                "User Two",
-                "https://example.com/avatars/user2.png",
-                "https://gitlab.com/user2",
-            ),
+                projects = mutableSetOf(project)
+            ).apply {
+                this.name = "User Two"
+                this.avatarUrl = "https://example.com/avatars/user2.png"
+                this.url = "https://github.com/user2"
+            },
         )
 
 //    private val mainBranch = Branch("main","abc123", repository = repository).apply {
@@ -189,6 +193,7 @@ object TestDataProvider {
             Issue(
                 "1",
                 101,
+                "asdfasdf293487",
                 "Fix bug in login flow",
                 "Users are unable to log in...",
                 LocalDateTime.now(),
@@ -204,10 +209,12 @@ object TestDataProvider {
                         false,
                     ),
                 ),
+                project = project.iid
             ),
             Issue(
                 "2",
                 102,
+                "ölkjo342",
                 "Add new feature",
                 "Implement profile customization",
                 LocalDateTime.now(),
@@ -223,23 +230,25 @@ object TestDataProvider {
                         true,
                     ),
                 ),
+                project = project.iid
             ),
         )
 
     val testMergeRequests =
         listOf(
             MergeRequest(
-                "1",
-                201,
-                "Implement user authentication",
-                "Add JWT auth",
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                null,
-                listOf("feature", "security"),
-                "open",
-                "https://example.com/merge_requests/201",
-                listOf(
+                project = project.iid,
+                id = "1",
+                platformIid = 201,
+                title = "Implement user authentication",
+                description = "Add JWT auth",
+                createdAt = LocalDateTime.now().toString(),
+                closedAt = LocalDateTime.now().toString(),
+                updatedAt = null,
+                labels = listOf("feature", "security"),
+                state = "open",
+                webUrl = "https://example.com/merge_requests/201",
+                mentions = listOf(
                     Mention(
                         "abc123",
                         LocalDateTime.now(),
@@ -248,17 +257,18 @@ object TestDataProvider {
                 ),
             ),
             MergeRequest(
-                "2",
-                202,
-                "Fix CSS",
-                "Fix responsive design",
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                listOf("bug", "ui"),
-                "merged",
-                "https://example.com/merge_requests/202",
-                listOf(
+                project = project.iid,
+                id = "2",
+                platformIid = 202,
+                title = "Fix CSS",
+                description = "Fix responsive design",
+                createdAt = LocalDateTime.now().toString(),
+                closedAt = LocalDateTime.now().toString(),
+                updatedAt = LocalDateTime.now().toString(),
+                labels = listOf("bug", "ui"),
+                state = "merged",
+                webUrl = "https://example.com/merge_requests/202",
+                mentions = listOf(
                     Mention(
                         "def456",
                         LocalDateTime.now(),
@@ -282,7 +292,7 @@ object TestDataProvider {
             Project(name = "proj-pg-3").apply { this.id = "4" },
             Project(name = "proj-pg-4").apply { this.id = "5" },
             Project(name = "proj-pg-7").apply { this.id = "7" },
-            Project(name = "proj-for-repos").apply {this.id = "6" },
+            Project(name = "proj-for-repos").apply { this.id = "6" },
         )
     private val testProjectsByName = testProjects.associateBy { it.name }
 
@@ -354,6 +364,7 @@ object TestDataProvider {
     val testMilestones =
         listOf(
             Milestone(
+                project = project.iid,
                 id = "1",
                 platformIid = 201,
                 title = "Release 1.0",
@@ -367,6 +378,7 @@ object TestDataProvider {
                 webUrl = "https://example.com/milestones/1",
             ),
             Milestone(
+                project = project.iid,
                 id = "2",
                 platformIid = 202,
                 title = "Release 2.0",

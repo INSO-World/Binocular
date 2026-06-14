@@ -30,7 +30,8 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         val domain = requireNotNull(mockTestDataProvider.repositoriesByPath["repo-pg-0"])
         with(domain.project) {
             ctx.remember(
-                this, ProjectEntity(
+                this,
+                ProjectEntity(
                     iid = this.iid.value,
                     id = this.id,
                     name = this.name,

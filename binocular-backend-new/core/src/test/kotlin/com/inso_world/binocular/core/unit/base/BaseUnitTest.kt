@@ -1,6 +1,5 @@
 package com.inso_world.binocular.core.unit.base
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import java.time.Clock
 import java.time.Instant

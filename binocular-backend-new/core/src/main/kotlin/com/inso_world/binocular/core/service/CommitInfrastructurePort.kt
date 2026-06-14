@@ -58,7 +58,10 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit, Commit.
     /**
      * Find files by commit ID with pagination.
      */
-    fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File>
+    fun findFilesByCommitId(
+        commitId: String,
+        pageable: Pageable
+    ): Page<File>
 
     /**
      * Return commit-level stats for a given commit.
@@ -73,7 +76,10 @@ interface CommitInfrastructurePort : BinocularInfrastructurePort<Commit, Commit.
     /**
      * Return ownership entries for a commit-file pair.
      */
-    fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership>
+    fun findFileOwnershipByCommitAndFile(
+        commitId: String,
+        fileId: String
+    ): List<FileOwnership>
 
     /**
      * Return per-file action for a given commit, keyed by file.id

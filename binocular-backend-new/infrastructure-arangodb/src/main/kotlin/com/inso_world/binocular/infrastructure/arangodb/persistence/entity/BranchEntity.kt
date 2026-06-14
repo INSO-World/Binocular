@@ -94,7 +94,7 @@ data class BranchEntity(
  * @return BranchEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
+internal fun Branch.toArangoEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
     BranchEntity(
         id = this.id,
         iid = this.iid.value,

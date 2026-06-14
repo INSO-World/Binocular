@@ -66,9 +66,8 @@ abstract class AbstractDomainObject<Iid, Key>(
      * Technical/aggregate identifier (stable, immutable).
      * Typical sources: aggregate-generated id or deterministic value id.
      */
-    val iid: Iid
+    val iid: Iid,
 ) {
-
     /**
      * Business/natural key that uniquely identifies this object **in domain terms**.
      *
@@ -102,5 +101,4 @@ abstract class AbstractDomainObject<Iid, Key>(
 
         return true
     }
-
 }

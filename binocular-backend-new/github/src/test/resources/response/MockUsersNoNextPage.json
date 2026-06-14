@@ -1,0 +1,414 @@
+{
+  "data": {
+    "repository": {
+      "assignableUsers": {
+        "nodes": [
+          {
+            "id": "MOCKUSERID101",
+            "login": "user101",
+            "email": "user101@example.com",
+            "name": "User 101",
+            "url": "https://github.com/user101",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000101?v=4"
+          },
+          {
+            "id": "MOCKUSERID102",
+            "login": "user102",
+            "email": "user102@example.com",
+            "name": "User 102",
+            "url": "https://github.com/user102",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000102?v=4"
+          },
+          {
+            "id": "MOCKUSERID103",
+            "login": "user103",
+            "email": "user103@example.com",
+            "name": "User 103",
+            "url": "https://github.com/user103",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000103?v=4"
+          },
+          {
+            "id": "MOCKUSERID104",
+            "login": "user104",
+            "email": "user104@example.com",
+            "name": "User 104",
+            "url": "https://github.com/user104",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000104?v=4"
+          },
+          {
+            "id": "MOCKUSERID105",
+            "login": "user105",
+            "email": "",
+            "name": "User 105",
+            "url": "https://github.com/user105",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000105?v=4"
+          },
+          {
+            "id": "MOCKUSERID106",
+            "login": "user106",
+            "email": "",
+            "name": null,
+            "url": "https://github.com/user106",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000106?v=4"
+          },
+          {
+            "id": "MOCKUSERID107",
+            "login": "user107",
+            "email": "user107@example.com",
+            "name": "User 107",
+            "url": "https://github.com/user107",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000107?v=4"
+          },
+          {
+            "id": "MOCKUSERID108",
+            "login": "user108",
+            "email": "user108@example.com",
+            "name": "User 108",
+            "url": "https://github.com/user108",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000108?v=4"
+          },
+          {
+            "id": "MOCKUSERID109",
+            "login": "user109",
+            "email": "user109@example.com",
+            "name": "User 109",
+            "url": "https://github.com/user109",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000109?v=4"
+          },
+          {
+            "id": "MOCKUSERID110",
+            "login": "user110",
+            "email": "user110@example.com",
+            "name": "User 110",
+            "url": "https://github.com/user110",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000110?v=4"
+          },
+          {
+            "id": "MOCKUSERID111",
+            "login": "user111",
+            "email": "user111@example.com",
+            "name": "User 111",
+            "url": "https://github.com/user111",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000111?v=4"
+          },
+          {
+            "id": "MOCKUSERID112",
+            "login": "user112",
+            "email": "user112@example.com",
+            "name": null,
+            "url": "https://github.com/user112",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000112?v=4"
+          },
+          {
+            "id": "MOCKUSERID113",
+            "login": "user113",
+            "email": "user113@example.com",
+            "name": "User 113",
+            "url": "https://github.com/user113",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000113?v=4"
+          },
+          {
+            "id": "MOCKUSERID114",
+            "login": "user114",
+            "email": "user114@example.com",
+            "name": "User 114",
+            "url": "https://github.com/user114",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000114?v=4"
+          },
+          {
+            "id": "MOCKUSERID115",
+            "login": "user115",
+            "email": "user115@example.com",
+            "name": "User 115",
+            "url": "https://github.com/user115",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000115?v=4"
+          },
+          {
+            "id": "MOCKUSERID116",
+            "login": "user116",
+            "email": "user116@example.com",
+            "name": "User 116",
+            "url": "https://github.com/user116",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000116?v=4"
+          },
+          {
+            "id": "MOCKUSERID117",
+            "login": "user117",
+            "email": "user117@example.com",
+            "name": "User 117",
+            "url": "https://github.com/user117",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000117?v=4"
+          },
+          {
+            "id": "MOCKUSERID118",
+            "login": "user118",
+            "email": "user118@example.com",
+            "name": "User 118",
+            "url": "https://github.com/user118",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000118?v=4"
+          },
+          {
+            "id": "MOCKUSERID119",
+            "login": "user119",
+            "email": "user119@example.com",
+            "name": "User 119",
+            "url": "https://github.com/user119",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000119?v=4"
+          },
+          {
+            "id": "MOCKUSERID120",
+            "login": "user120",
+            "email": "user120@example.com",
+            "name": "User 120",
+            "url": "https://github.com/user120",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000120?v=4"
+          },
+          {
+            "id": "MOCKUSERID121",
+            "login": "user121",
+            "email": "user121@example.com",
+            "name": "User 121",
+            "url": "https://github.com/user121",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000121?v=4"
+          },
+          {
+            "id": "MOCKUSERID122",
+            "login": "user122",
+            "email": "user122@example.com",
+            "name": "User 122",
+            "url": "https://github.com/user122",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000122?v=4"
+          },
+          {
+            "id": "MOCKUSERID123",
+            "login": "user123",
+            "email": "user123@example.com",
+            "name": "User 123",
+            "url": "https://github.com/user123",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000123?v=4"
+          },
+          {
+            "id": "MOCKUSERID124",
+            "login": "user124",
+            "email": "user124@example.com",
+            "name": "User 124",
+            "url": "https://github.com/user124",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000124?v=4"
+          },
+          {
+            "id": "MOCKUSERID125",
+            "login": "user125",
+            "email": "user125@example.com",
+            "name": "User 125",
+            "url": "https://github.com/user125",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000125?v=4"
+          },
+          {
+            "id": "MOCKUSERID126",
+            "login": "user126",
+            "email": "user126@example.com",
+            "name": "User 126",
+            "url": "https://github.com/user126",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000126?v=4"
+          },
+          {
+            "id": "MOCKUSERID127",
+            "login": "user127",
+            "email": "user127@example.com",
+            "name": "User 127",
+            "url": "https://github.com/user127",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000127?v=4"
+          },
+          {
+            "id": "MOCKUSERID128",
+            "login": "user128",
+            "email": "user128@example.com",
+            "name": "User 128",
+            "url": "https://github.com/user128",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000128?v=4"
+          },
+          {
+            "id": "MOCKUSERID129",
+            "login": "user129",
+            "email": "user129@example.com",
+            "name": "User 129",
+            "url": "https://github.com/user129",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000129?v=4"
+          },
+          {
+            "id": "MOCKUSERID130",
+            "login": "user130",
+            "email": "user130@example.com",
+            "name": "User 130",
+            "url": "https://github.com/user130",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000130?v=4"
+          },
+          {
+            "id": "MOCKUSERID131",
+            "login": "user131",
+            "email": "user131@example.com",
+            "name": "User 131",
+            "url": "https://github.com/user131",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000131?v=4"
+          },
+          {
+            "id": "MOCKUSERID132",
+            "login": "user132",
+            "email": "user132@example.com",
+            "name": "User 132",
+            "url": "https://github.com/user132",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000132?v=4"
+          },
+          {
+            "id": "MOCKUSERID133",
+            "login": "user133",
+            "email": "user133@example.com",
+            "name": "User 133",
+            "url": "https://github.com/user133",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000133?v=4"
+          },
+          {
+            "id": "MOCKUSERID134",
+            "login": "user134",
+            "email": "user134@example.com",
+            "name": "User 134",
+            "url": "https://github.com/user134",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000134?v=4"
+          },
+          {
+            "id": "MOCKUSERID135",
+            "login": "user135",
+            "email": "user135@example.com",
+            "name": "User 135",
+            "url": "https://github.com/user135",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000135?v=4"
+          },
+          {
+            "id": "MOCKUSERID136",
+            "login": "user136",
+            "email": "user136@example.com",
+            "name": "User 136",
+            "url": "https://github.com/user136",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000136?v=4"
+          },
+          {
+            "id": "MOCKUSERID137",
+            "login": "user137",
+            "email": "user137@example.com",
+            "name": "User 137",
+            "url": "https://github.com/user137",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000137?v=4"
+          },
+          {
+            "id": "MOCKUSERID138",
+            "login": "user138",
+            "email": "user138@example.com",
+            "name": "User 138",
+            "url": "https://github.com/user138",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000138?v=4"
+          },
+          {
+            "id": "MOCKUSERID139",
+            "login": "user139",
+            "email": "user139@example.com",
+            "name": "User 139",
+            "url": "https://github.com/user139",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000139?v=4"
+          },
+          {
+            "id": "MOCKUSERID140",
+            "login": "user140",
+            "email": "user140@example.com",
+            "name": "User 140",
+            "url": "https://github.com/user140",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000140?v=4"
+          },
+          {
+            "id": "MOCKUSERID141",
+            "login": "user141",
+            "email": "user141@example.com",
+            "name": "User 141",
+            "url": "https://github.com/user141",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000141?v=4"
+          },
+          {
+            "id": "MOCKUSERID142",
+            "login": "user142",
+            "email": "user142@example.com",
+            "name": "User 142",
+            "url": "https://github.com/user142",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000142?v=4"
+          },
+          {
+            "id": "MOCKUSERID143",
+            "login": "user143",
+            "email": "user143@example.com",
+            "name": "User 143",
+            "url": "https://github.com/user143",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000143?v=4"
+          },
+          {
+            "id": "MOCKUSERID144",
+            "login": "user144",
+            "email": "user144@example.com",
+            "name": "User 144",
+            "url": "https://github.com/user144",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000144?v=4"
+          },
+          {
+            "id": "MOCKUSERID145",
+            "login": "user145",
+            "email": "user145@example.com",
+            "name": "User 145",
+            "url": "https://github.com/user145",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000145?v=4"
+          },
+          {
+            "id": "MOCKUSERID146",
+            "login": "user146",
+            "email": "user146@example.com",
+            "name": "User 146",
+            "url": "https://github.com/user146",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000146?v=4"
+          },
+          {
+            "id": "MOCKUSERID147",
+            "login": "user147",
+            "email": "user147@example.com",
+            "name": "User 147",
+            "url": "https://github.com/user147",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000147?v=4"
+          },
+          {
+            "id": "MOCKUSERID148",
+            "login": "user148",
+            "email": "user148@example.com",
+            "name": "User 148",
+            "url": "https://github.com/user148",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000148?v=4"
+          },
+          {
+            "id": "MOCKUSERID149",
+            "login": "user149",
+            "email": "user149@example.com",
+            "name": "User 149",
+            "url": "https://github.com/user149",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000149?v=4"
+          },
+          {
+            "id": "MOCKUSERID150",
+            "login": "user150",
+            "email": "user150@example.com",
+            "name": "User 150",
+            "url": "https://github.com/user150",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/10000150?v=4"
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y4Axc29yOm1wU8s="
+        }
+      }
+    }
+  }
+}

@@ -79,7 +79,7 @@ interface EntityMapper<D, E> {
      * @throws jakarta.validation.ValidationException if domain validation fails
      */
     fun toEntity(
-        @Valid domain: D
+        @Valid domain: D,
     ): @Valid E
 
     /**

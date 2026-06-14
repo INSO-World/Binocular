@@ -5,7 +5,7 @@ import com.arangodb.model.CollectionCreateOptions
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ArangodbAppConfig
 import jakarta.annotation.PostConstruct
-import org.springframework.context.annotation.Profile
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 /**
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component
  * by proactively creating missing collections used by queries/entities.
  */
 @Component
+@Order(1) // Run before MigrationRunner
 class ArangoCollectionInitializer(
     private val arangodbAppConfig: ArangodbAppConfig,
 ) {
@@ -28,6 +29,12 @@ class ArangoCollectionInitializer(
         val arango = arangodbAppConfig.arango().build()
         val dbName = arangodbAppConfig.database()
         val db = arango.db(dbName)
+
+        if (!db.exists()) {
+            logger.info("Arango database ${db.name()} does not exist, creating it")
+            require(db.create()) { "Arango Database creation failed" }
+        }
+
         logger.info("Ensuring required ArangoDB collections exist in database: {}", dbName)
 
         // Document collections
@@ -37,6 +44,7 @@ class ArangoCollectionInitializer(
         ensureDocumentCollection(dbName, "projects")
         ensureDocumentCollection(dbName, "commits")
         ensureDocumentCollection(dbName, "users")
+        ensureDocumentCollection(dbName, "developers")
         ensureDocumentCollection(dbName, "issues")
         ensureDocumentCollection(dbName, "mergeRequests")
         ensureDocumentCollection(dbName, "milestones")

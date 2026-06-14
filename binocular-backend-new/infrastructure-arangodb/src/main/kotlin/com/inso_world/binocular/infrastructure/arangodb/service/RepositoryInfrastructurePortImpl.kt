@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.BranchDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
@@ -29,7 +30,6 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         val logger by logger()
     }
 
-
     @Autowired
     private lateinit var commitDao: CommitDao
 
@@ -42,51 +42,50 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
 
-    override fun findByIid(iid: Repository.Id): Repository? {
-        TODO("Not yet implemented")
-    }
+    @Autowired
+    private lateinit var branchDao: BranchDao
 
-    override fun findAll(): Iterable<Repository> {
-        return this.repositoryDao.findAll()
-    }
+    @MappingSession
+    override fun findByIid(iid: Repository.Id): Repository? = this.repositoryDao.findAll().find { it.iid == iid }
 
-    override fun findAll(pageable: Pageable): Page<Repository> {
-        return this.repositoryDao.findAll(pageable)
-    }
+    @MappingSession
+    override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll()
 
-    override fun findById(id: String): Repository? {
-        return this.repositoryDao.findById(id)
-    }
+    @MappingSession
+    override fun findAll(pageable: Pageable): Page<Repository> = this.repositoryDao.findAll(pageable)
+
+    @MappingSession
+    override fun findById(id: String): Repository? = this.repositoryDao.findById(id)
 
     @MappingSession
     override fun create(value: Repository): Repository {
-        // TODO: use assembler here right?
-        val mappedEntity = repositoryAssembler.toEntity(value)
-        val savedEntity = this.repositoryDao.create(mappedEntity)
-        return repositoryAssembler.toDomain(savedEntity)
+        // DAO expects Repository domain model and handles mapping
+        return this.repositoryDao.create(value)
     }
 
-    override fun saveAll(values: Collection<Repository>): Iterable<Repository> {
-        return this.repositoryDao.saveAll(values)
-    }
+    override fun saveAll(values: Collection<Repository>): Iterable<Repository> = this.repositoryDao.saveAll(values)
 
+    @MappingSession
     override fun update(value: Repository): Repository {
-        TODO("Not yet implemented")
+        return this.repositoryDao.save(value)
     }
 
-    override fun findByName(name: String): Repository? {
-        return this.repositoryDao.findByName(name)?.let { this.repositoryMapper.toDomain(it) }
+    @MappingSession
+    override fun findByName(name: String): Repository? = this.repositoryDao.findByName(name)?.let { this.repositoryMapper.toDomain(it) }
+
+    @MappingSession
+    override fun findExistingCommits(
+        repo: Repository,
+        shas: Set<String>,
+    ): Sequence<Commit> {
+        return commitDao.findByRepositoryAndShaIn(repo.localPath, shas).asSequence()
     }
 
-    override fun findExistingCommits(repo: Repository, shas: Set<String>): Sequence<Commit> {
-        TODO("Not yet implemented")
-    }
-
-
+    @MappingSession
     override fun findBranch(
         repository: Repository,
-        name: String
+        name: String,
     ): Branch? {
-        TODO("Not yet implemented")
+        return branchDao.findByRepositoryAndName(repository.localPath, name)
     }
 }

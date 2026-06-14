@@ -313,8 +313,6 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
             assertAll(
                 { assertThat(result.commits).allMatch { it.oid.length == 40 } },
                 { assertThat(result.commits).allMatch { it.message.isNotBlank() } },
-                { assertThat(result.commits).allMatch { it.author != null } },
-                { assertThat(result.commits).allMatch { it.committer != null } },
             )
         }
 
@@ -1146,9 +1144,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
                     remotes.forEach { remote ->
                         assertThat(remote.name).isNotBlank()
                         // URL might be null for some remotes
-                        if (remote.url != null) {
-                            assertThat(remote.url).isNotBlank()
-                        }
+                        assertThat(remote.url).isNotBlank()
                     }
                 },
             )

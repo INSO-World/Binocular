@@ -69,18 +69,12 @@ internal class UserInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
-    override fun update(value: User): User {
-        throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
-    }
+    override fun update(value: User): User = throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
 
+    override fun create(value: User): User = throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
 
-    override fun create(value: User): User {
+    override fun saveAll(values: Collection<User>): Iterable<User> =
         throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
-    }
-
-    override fun saveAll(values: Collection<User>): Iterable<User> {
-        throw UnsupportedOperationException("User API is deprecated; use Repository aggregate")
-    }
 
     @MappingSession
     @Transactional(readOnly = true)
@@ -90,9 +84,7 @@ internal class UserInfrastructurePortImpl(
     }
 
     @MappingSession
-    override fun findAll(repository: Repository): Iterable<User> {
-        return emptyList()
-    }
+    override fun findAll(repository: Repository): Iterable<User> = emptyList()
 
     override fun findAll(pageable: Pageable): Page<User> {
         TODO("Not yet implemented")

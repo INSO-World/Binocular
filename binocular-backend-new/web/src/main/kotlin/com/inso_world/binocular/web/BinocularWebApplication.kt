@@ -9,6 +9,7 @@ import org.springframework.boot.runApplication
 //        make sure the ones below match the ones in CliApplication (and vice versa)
         "com.inso_world.binocular.core.persistence",
         "com.inso_world.binocular.core.service",
+        "com.inso_world.binocular.github",
     ],
 )
 class BinocularWebApplication

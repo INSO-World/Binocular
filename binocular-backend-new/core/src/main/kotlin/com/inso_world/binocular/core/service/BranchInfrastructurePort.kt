@@ -31,7 +31,10 @@ interface BranchInfrastructurePort : BinocularInfrastructurePort<Branch, Referen
     /**
      * Find files by branch ID with pagination.
      */
-    fun findFilesByBranchId(branchId: String, pageable: Pageable): Page<File>
+    fun findFilesByBranchId(
+        branchId: String,
+        pageable: Pageable
+    ): Page<File>
 
     fun findAll(repository: Repository): Iterable<Branch>
 

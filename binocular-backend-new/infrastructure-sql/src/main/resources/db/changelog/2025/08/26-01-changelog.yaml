@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1756219693935-4
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: gid
+                  type: VARCHAR(255)
+            tableName: accounts
+

@@ -28,7 +28,7 @@ internal fun GixSignature.toDeveloper(repository: Repository): Developer {
     require(nameTrimmed.isNotBlank()) { "Signature name must not be blank" }
     require(emailTrimmed.isNotBlank()) { "Signature email must not be blank" }
 
-    val gitSignature = "${nameTrimmed} <${emailTrimmed}>"
+    val gitSignature = "$nameTrimmed <$emailTrimmed>"
     val existing = repository.developers.firstOrNull { it.gitSignature == gitSignature }
     if (existing != null) {
         return existing
@@ -48,5 +48,5 @@ internal fun GixSignature.toDeveloper(repository: Repository): Developer {
 internal fun GixSignature.toSignature(repository: Repository): Signature =
     Signature(
         developer = this.toDeveloper(repository),
-        timestamp = this.time.toLocalDateTime()
+        timestamp = this.time.toLocalDateTime(),
     )

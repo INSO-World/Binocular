@@ -84,7 +84,7 @@ internal data class BranchEntity(
         )
 }
 
-internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
+internal fun Branch.toSqlEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
     BranchEntity(
         iid = this.iid,
         name = this.name,
@@ -93,5 +93,5 @@ internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): 
         repository = repository,
         head = head,
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
+        id = this@toSqlEntity.id?.trim()?.toLongOrNull()
     }

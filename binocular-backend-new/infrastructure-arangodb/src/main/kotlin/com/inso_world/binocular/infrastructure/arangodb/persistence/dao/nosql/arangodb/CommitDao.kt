@@ -17,7 +17,12 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 internal class CommitDao(
-    @Autowired commitRepository: CommitRepository,
-    @Autowired commitMapper: CommitMapper,
+    @Autowired private val commitRepository: CommitRepository,
+    @Autowired private val commitMapper: CommitMapper,
 ) : MappedArangoDbDao<Commit, CommitEntity, String>(commitRepository, commitMapper),
-    ICommitDao
+    ICommitDao {
+
+    fun findByRepositoryAndShaIn(repoPath: String, shas: Collection<String>): Iterable<Commit> {
+        return commitRepository.findByRepositoryAndShaIn(repoPath, shas).map { commitMapper.toDomain(it) }
+    }
+}

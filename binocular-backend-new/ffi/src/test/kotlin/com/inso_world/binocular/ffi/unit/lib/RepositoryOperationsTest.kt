@@ -32,11 +32,9 @@ import kotlin.io.path.createTempDirectory
  */
 @DisplayName("Repository Operations")
 class RepositoryOperationsTest : BaseLibraryUnitTest() {
-
     @Nested
     @DisplayName("findRepo operation")
     inner class FindRepoOperation {
-
         @Test
         fun `finds repository at valid git directory path`() {
             // Verifies that findRepo successfully discovers a valid Git repository
@@ -48,7 +46,7 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
             assertAll(
                 { assertThat(result).isNotNull },
                 { assertThat(result.gitDir).isNotEmpty() },
-                { assertThat(result.gitDir).contains(".git") }
+                { assertThat(result.gitDir).contains(".git") },
             )
         }
 
@@ -61,7 +59,7 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
 
             assertAll(
                 { assertThat(result.workTree).isNotNull() },
-                { assertThat(result.workTree).isNotEmpty() }
+                { assertThat(result.workTree).isNotEmpty() },
             )
         }
 
@@ -86,7 +84,6 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
             assertAll(
                 { assertThat(Path.of(result.gitDir)).isAbsolute() },
             )
-
         }
 
         @ParameterizedTest
@@ -95,8 +92,8 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
                 ".",
                 "..",
                 "./",
-                "../"
-            ]
+                "../",
+            ],
         )
         fun `handles relative paths correctly`(relativePath: String) {
             // Tests that relative paths are resolved and repositories are discovered
@@ -115,7 +112,7 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
 
             assertAll(
                 { assertThat(result.gitDir).isNotEmpty() },
-                { assertThat(result.gitDir).contains(".git") }
+                { assertThat(result.gitDir).contains(".git") },
             )
         }
 
@@ -129,7 +126,7 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
             result.remotes.forEach { remote ->
                 assertAll(
                     { assertThat(remote.name).isNotEmpty() },
-                    { assertThat(remote.url).isNotEmpty() }
+                    { assertThat(remote.url).isNotEmpty() },
                 )
             }
         }
@@ -138,7 +135,6 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("findAllBranches operation")
     inner class FindAllBranchesOperation {
-
         @Test
         fun `returns list of branches from repository`() {
             // Verifies that branch enumeration returns a non-null list
@@ -206,15 +202,15 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("Error Handling")
     inner class ErrorHandling {
-
         @Test
         fun `throws GixDiscoverException for non-existent path`() {
             // Verifies proper exception is thrown when path doesn't exist
             val invalidPath = "/tmp/non_existent_path_" + System.currentTimeMillis()
 
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo(invalidPath)
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo(invalidPath)
+                }
 
             assertThat(exception.v1).isNotEmpty()
         }
@@ -224,13 +220,14 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
             // Ensures exception is thrown for valid paths that aren't Git repositories
             val tempDir = createTempDirectory("test_non_git").toString()
 
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo(tempDir)
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo(tempDir)
+                }
 
             assertAll(
                 { assertThat(exception.v1).isNotEmpty() },
-                { assertThat(exception.v1).containsAnyOf("not a git", "repository") }
+                { assertThat(exception.v1).containsAnyOf("not a git", "repository") },
             )
 
             // Cleanup
@@ -240,9 +237,10 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
         @Test
         fun `throws GixDiscoverException for empty string path`() {
             // Tests error handling for empty path input
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo("")
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo("")
+                }
 
             assertThat(exception.v1).isNotEmpty()
         }
@@ -252,8 +250,8 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
             strings = [
                 "/invalid/path/to/repo",
                 "/tmp/does/not/exist",
-                "/root/inaccessible/path"
-            ]
+                "/root/inaccessible/path",
+            ],
         )
         fun `throws GixDiscoverException for various invalid paths`(invalidPath: String) {
             // Verifies consistent error handling across different invalid path types
@@ -267,14 +265,15 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
             // Ensures exception messages provide useful debugging information
             val invalidPath = "/tmp/not_a_repo"
 
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findRepo(invalidPath)
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findRepo(invalidPath)
+                }
 
             assertAll(
                 { assertThat(exception.v1).isNotEmpty() },
                 { assertThat(exception.v1).hasSizeGreaterThan(10) },
-                { assertThat(exception.message).isNotEmpty() }
+                { assertThat(exception.message).isNotEmpty() },
             )
         }
 
@@ -286,9 +285,10 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
             // Corrupt the git_dir to simulate invalid repository
             val corruptedRepo = repo.copy(gitDir = "/invalid/git/dir")
 
-            val exception = assertThrows<UniffiException.GixDiscoverException> {
-                findAllBranches(corruptedRepo)
-            }
+            val exception =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    findAllBranches(corruptedRepo)
+                }
 
             assertThat(exception).isNotNull()
         }
@@ -297,7 +297,6 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
     @Nested
     @DisplayName("Repository Remotes")
     inner class RepositoryRemotes {
-
         @Test
         fun `remote URLs are valid git URLs`() {
             // Validates that remote URLs follow Git URL conventions
@@ -306,7 +305,7 @@ class RepositoryOperationsTest : BaseLibraryUnitTest() {
 
             repo.remotes.forEach { remote ->
                 assertThat(remote.url).matches(
-                    "(https?://.*)|(git@.*:.*\\.git)|(.*@.*:.*)|(/.*)"
+                    "(https?://.*)|(git@.*:.*\\.git)|(.*@.*:.*)|(/.*)",
                 )
             }
         }

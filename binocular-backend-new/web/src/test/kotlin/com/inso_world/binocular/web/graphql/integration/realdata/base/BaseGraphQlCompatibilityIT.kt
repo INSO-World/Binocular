@@ -33,7 +33,7 @@ import java.time.Duration
         BaseGraphQlCompatibilityIT.Initializer::class,
     ]
 )
-internal abstract class BaseGraphQlCompatibilityIT {
+abstract class BaseGraphQlCompatibilityIT {
 
     companion object {
         private val adbContainer =
@@ -62,11 +62,12 @@ internal abstract class BaseGraphQlCompatibilityIT {
         override fun initialize(ctx: ConfigurableApplicationContext) {
             adbContainer.start()
 
-            TestPropertyValues.of(
-                "binocular.arangodb.database.host=${adbContainer.host}",
-                "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
-                "binocular.arangodb.database.name=binocular-binocular"
-            ).applyTo(ctx.environment)
+            TestPropertyValues
+                .of(
+                    "binocular.arangodb.database.host=${adbContainer.host}",
+                    "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
+                    "binocular.arangodb.database.name=binocular-binocular",
+                ).applyTo(ctx.environment)
         }
     }
 

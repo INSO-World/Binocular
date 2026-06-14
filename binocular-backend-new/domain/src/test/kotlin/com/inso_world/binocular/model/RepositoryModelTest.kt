@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.uuid.ExperimentalUuidApi
 
 class RepositoryModelTest {
-
     private lateinit var mockTestDataProvider: MockTestDataProvider
 
     private lateinit var repository: Repository
@@ -28,18 +27,21 @@ class RepositoryModelTest {
     @BeforeEach
     fun setup() {
         val project = Project(name = "proj-repository-model-test")
-        repository = Repository(
-            localPath = "repo-repository-model-test",
-            project = project,
-        )
+        repository =
+            Repository(
+                localPath = "repo-repository-model-test",
+                project = project,
+            )
         mockTestDataProvider = MockTestDataProvider(repository)
 
         // clear field via reflection
         for (fieldName in listOf("_legacyUsers", "developers", "branches", "commits", "remotes")) {
             val base = NonRemovingMutableSet::class.java
 
-            val field = repository.javaClass.getDeclaredField(fieldName)
-                .apply { this.isAccessible = true }
+            val field =
+                repository.javaClass
+                    .getDeclaredField(fieldName)
+                    .apply { this.isAccessible = true }
             val obj = field.get(repository) ?: return
 
             val backingField = base.getDeclaredField("backing").apply { isAccessible = true }
@@ -51,10 +53,11 @@ class RepositoryModelTest {
     @Test
     fun `create empty repository, checks that iid is created automatically`() {
         val project = Project(name = "test-project")
-        val repo = Repository(
-            localPath = "test",
-            project = project,
-        )
+        val repo =
+            Repository(
+                localPath = "test",
+                project = project,
+            )
 
         assertThat(repo.iid).isNotNull()
         // check reference
@@ -65,10 +68,11 @@ class RepositoryModelTest {
     @Test
     fun `create repository, validate uniqueKey`() {
         val project = Project(name = "test-project")
-        val repo = Repository(
-            localPath = "test",
-            project = project,
-        )
+        val repo =
+            Repository(
+                localPath = "test",
+                project = project,
+            )
 
         @OptIn(ExperimentalUuidApi::class)
         assertAll(
@@ -84,20 +88,22 @@ class RepositoryModelTest {
 
     @Test
     fun `create repository, validate hashCode is same based on iid`() {
-        val repo = Repository(
-            localPath = "test",
-            project = Project(name = "test-project"),
-        )
+        val repo =
+            Repository(
+                localPath = "test",
+                project = Project(name = "test-project"),
+            )
 
         assertThat(repo.hashCode()).isEqualTo(repo.iid.hashCode())
     }
 
     @Test
     fun `create repository, copy, check that equals uses iid only`() {
-        val repoA = Repository(
-            localPath = "test a",
-            project = Project(name = "test-project"),
-        )
+        val repoA =
+            Repository(
+                localPath = "test a",
+                project = Project(name = "test-project"),
+            )
         val repoB = repoA.copy(project = Project(name = "test-project-2"))
 
         assertThat(repoA).isNotSameAs(repoB)
@@ -107,10 +113,11 @@ class RepositoryModelTest {
 
     @Test
     fun `create repository, edit iid, check that both are equal`() {
-        val repoA = Repository(
-            localPath = "test a",
-            project = Project(name = "test-project"),
-        )
+        val repoA =
+            Repository(
+                localPath = "test a",
+                project = Project(name = "test-project"),
+            )
         val originIid = repoA.iid
         val originUniqueKey = repoA.uniqueKey
         val repoB = repoA.copy(project = Project(name = "test-project-2"))
@@ -118,13 +125,13 @@ class RepositoryModelTest {
         setField(
             repoB.javaClass.superclass.getDeclaredField("iid"),
             repoB,
-            originIid
+            originIid,
         )
         // edit project as required for equals
         setField(
             repoB.javaClass.getDeclaredField("project"),
             repoB,
-            repoA.project
+            repoA.project,
         )
 
         assertThat(repoA).isNotSameAs(repoB)
@@ -136,9 +143,7 @@ class RepositoryModelTest {
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `create repository with blank paths, should fail`(
-        path: String,
-    ) {
+    fun `create repository with blank paths, should fail`(path: String) {
         assertThrows<IllegalArgumentException> {
             Repository(
                 localPath = path,
@@ -149,9 +154,7 @@ class RepositoryModelTest {
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
-    fun `create repository with allowed paths, should not fail`(
-        path: String,
-    ) {
+    fun `create repository with allowed paths, should not fail`(path: String) {
         assertDoesNotThrow {
             Repository(
                 localPath = path,
@@ -159,7 +162,6 @@ class RepositoryModelTest {
             )
         }
     }
-
 
     @Nested
     inner class CommitsRelation {
@@ -183,11 +185,11 @@ class RepositoryModelTest {
 
             assertAll(
                 { assertTrue(repository.commits.add(commit)) },
-                { assertFalse(repository.commits.add(commit)) }
+                { assertFalse(repository.commits.add(commit)) },
             )
             assertAll(
                 { assertThat(repository.commits).hasSize(1) },
-                { assertThat(repository.commits.toList()[0].repository).isSameAs(repository) }
+                { assertThat(repository.commits.toList()[0].repository).isSameAs(repository) },
             )
         }
 
@@ -198,7 +200,7 @@ class RepositoryModelTest {
 
             assertAll(
                 { assertTrue(repository.commits.add(commitA)) },
-                { assertFalse(repository.commits.add(commitB)) }
+                { assertFalse(repository.commits.add(commitB)) },
             )
             assertThat(repository.commits).hasSize(1)
         }
@@ -236,9 +238,10 @@ class RepositoryModelTest {
 
         @Test
         fun `add one commits with parent, expect only child to be added`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40)).apply {
-                this.parents.add(mockTestDataProvider.commitBySha.getValue("b".repeat(40)))
-            }
+            val commit =
+                mockTestDataProvider.commitBySha.getValue("a".repeat(40)).apply {
+                    this.parents.add(mockTestDataProvider.commitBySha.getValue("b".repeat(40)))
+                }
 
             assertTrue(repository.commits.add(commit))
             assertThat(repository.commits).hasSize(1)
@@ -246,9 +249,10 @@ class RepositoryModelTest {
 
         @Test
         fun `add one commits with children, expect only parent to be added`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40)).apply {
-                this.children.add(mockTestDataProvider.commitBySha.getValue("b".repeat(40)))
-            }
+            val commit =
+                mockTestDataProvider.commitBySha.getValue("a".repeat(40)).apply {
+                    this.children.add(mockTestDataProvider.commitBySha.getValue("b".repeat(40)))
+                }
 
             assertTrue(repository.commits.add(commit))
             assertThat(repository.commits).hasSize(1)
@@ -301,7 +305,7 @@ class RepositoryModelTest {
 
             assertAll(
                 { assertTrue(repository.branches.add(branch)) },
-                { assertFalse(repository.branches.add(branch)) }
+                { assertFalse(repository.branches.add(branch)) },
             )
             assertThat(repository.branches).hasSize(1)
         }
@@ -312,7 +316,7 @@ class RepositoryModelTest {
 
             assertAll(
                 { assertTrue(repository.branches.addAll(listOf(branch))) },
-                { assertFalse(repository.branches.addAll(listOf(branch))) }
+                { assertFalse(repository.branches.addAll(listOf(branch))) },
             )
             assertThat(repository.branches).hasSize(1)
         }
@@ -328,7 +332,7 @@ class RepositoryModelTest {
             // check if references are set correctly
             assertAll(
                 { assertThat(repository).isSameAs(branchA.repository) },
-                { assertThat(repository).isSameAs(branchB.repository) }
+                { assertThat(repository).isSameAs(branchB.repository) },
             )
         }
 
@@ -349,13 +353,14 @@ class RepositoryModelTest {
         @Test
         fun `add branch with different properties, expect to be added`() {
             val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val branch = branch(
-                name = "feature/test-branch",
-                head = commit
-            ).apply {
-                active = true
-                tracksFileRenames = true
-            }
+            val branch =
+                branch(
+                    name = "feature/test-branch",
+                    head = commit,
+                ).apply {
+                    active = true
+                    tracksFileRenames = true
+                }
 
             // assertFalse since branch is already added via constructor
             assertFalse(repository.branches.add(branch))
@@ -508,12 +513,14 @@ class RepositoryModelTest {
         @Test
         fun `add branch with same name but different properties, expect only one added`() {
             val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val branchA = branch(name = "feature/same-name", head = commit).apply {
-                active = true
-            }
-            val branchB = branch(name = "feature/same-name", head = commit).apply {
-                active = false
-            }
+            val branchA =
+                branch(name = "feature/same-name", head = commit).apply {
+                    active = true
+                }
+            val branchB =
+                branch(name = "feature/same-name", head = commit).apply {
+                    active = false
+                }
 
             assertThat(repository.branches).hasSize(1)
             assertThat(repository.branches.first().active).isTrue()
@@ -605,7 +612,7 @@ class RepositoryModelTest {
 
             assertAll(
                 { assertTrue(repository.user.add(user)) },
-                { assertFalse(repository.user.add(user)) }
+                { assertFalse(repository.user.add(user)) },
             )
             assertThat(repository.user).hasSize(1)
         }
@@ -663,11 +670,12 @@ class RepositoryModelTest {
 
         @Test
         fun `add remote to repository once, should be added once`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repository = repository
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
 
             assertFalse(repository.remotes.add(remote)) // already added via constructor
             assertThat(repository.remotes).hasSize(1)
@@ -677,30 +685,32 @@ class RepositoryModelTest {
 
         @Test
         fun `add same remote to repository twice, should only be added once`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repository = repository
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
 
             assertAll(
                 { assertFalse(repository.remotes.add(remote)) }, // already added via constructor
-                { assertFalse(repository.remotes.add(remote)) }
+                { assertFalse(repository.remotes.add(remote)) },
             )
             assertThat(repository.remotes).hasSize(1)
         }
 
         @Test
         fun `add same remote to repository twice via addAll, should only be added once`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repository = repository
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
 
             assertAll(
                 { assertFalse(repository.remotes.addAll(listOf(remote))) }, // already added via constructor
-                { assertFalse(repository.remotes.addAll(listOf(remote))) }
+                { assertFalse(repository.remotes.addAll(listOf(remote))) },
             )
             assertThat(repository.remotes).hasSize(1)
         }
@@ -715,7 +725,7 @@ class RepositoryModelTest {
             // check if references are set correctly
             assertAll(
                 { assertThat(repository).isSameAs(remoteA.repository) },
-                { assertThat(repository).isSameAs(remoteB.repository) }
+                { assertThat(repository).isSameAs(remoteB.repository) },
             )
         }
 
@@ -733,11 +743,12 @@ class RepositoryModelTest {
 
         @Test
         fun `add remote with different URL, expect to be added`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repository = repository
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
 
             // assertFalse since remote is already added via constructor
             assertFalse(repository.remotes.add(remote))
@@ -811,11 +822,12 @@ class RepositoryModelTest {
 
         @Test
         fun `add remote with special characters in url should be added`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://user:password@github.com:443/user/repo-name_123.git?query=value#fragment",
-                repository = repository
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://user:password@github.com:443/user/repo-name_123.git?query=value#fragment",
+                    repository = repository,
+                )
 
             assertFalse(repository.remotes.add(remote))
             assertThat(repository.remotes).hasSize(1)
@@ -834,7 +846,7 @@ class RepositoryModelTest {
                 { assertThat(repository).isSameAs(httpsRemote.repository) },
                 { assertThat(repository).isSameAs(sshRemote.repository) },
                 { assertThat(repository).isSameAs(gitRemote.repository) },
-                { assertThat(repository).isSameAs(fileRemote.repository) }
+                { assertThat(repository).isSameAs(fileRemote.repository) },
             )
         }
 
@@ -922,16 +934,18 @@ class RepositoryModelTest {
 
         @Test
         fun `add remote with same name but different url, expect only one added`() {
-            val remoteA = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repository = repository
-            )
-            val remoteB = Remote(
-                name = "origin",
-                url = "https://gitlab.com/user/repo.git",
-                repository = repository
-            )
+            val remoteA =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
+            val remoteB =
+                Remote(
+                    name = "origin",
+                    url = "https://gitlab.com/user/repo.git",
+                    repository = repository,
+                )
 
             assertThat(repository.remotes).hasSize(1)
             assertThat(repository.remotes.first().url).isEqualTo("https://github.com/user/repo.git")
@@ -996,7 +1010,7 @@ class RepositoryModelTest {
             assertThat(repository.remotes).hasSize(2)
             assertAll(
                 { assertThat(repository).isSameAs(remoteA.repository) },
-                { assertThat(repository).isSameAs(remoteB.repository) }
+                { assertThat(repository).isSameAs(remoteB.repository) },
             )
         }
 
@@ -1032,13 +1046,13 @@ class RepositoryModelTest {
         head: Commit,
         repository: Repository = this.repository,
         fullName: String = name,
-        category: ReferenceCategory = ReferenceCategory.LOCAL_BRANCH
+        category: ReferenceCategory = ReferenceCategory.LOCAL_BRANCH,
     ): Branch =
         Branch(
             name = name,
             fullName = fullName,
             category = category,
             repository = repository,
-            head = head
+            head = head,
         )
 }

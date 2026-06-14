@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BuildRepository : ArangoRepository<BuildEntity, String> {
-
     @com.arangodb.springframework.annotation.Query(
         """
         FOR b IN builds

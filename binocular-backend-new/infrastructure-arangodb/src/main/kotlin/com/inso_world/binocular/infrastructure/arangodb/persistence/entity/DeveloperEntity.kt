@@ -108,7 +108,7 @@ data class DeveloperEntity(
  * @param repository The repository entity (must be the owner)
  * @return The DeveloperEntity
  */
-internal fun Developer.toEntity(repository: RepositoryEntity): DeveloperEntity =
+internal fun Developer.toArangoEntity(repository: RepositoryEntity): DeveloperEntity =
     DeveloperEntity(
         id = this.id,
         gitSignature = this.gitSignature,

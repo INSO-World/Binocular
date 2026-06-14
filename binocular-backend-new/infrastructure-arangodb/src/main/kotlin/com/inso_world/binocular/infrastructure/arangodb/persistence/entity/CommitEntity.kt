@@ -163,7 +163,7 @@ data class CommitEntity(
  * @return CommitEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun Commit.toEntity(
+internal fun Commit.toArangoEntity(
     repository: RepositoryEntity,
     author: DeveloperEntity,
     committer: DeveloperEntity,
@@ -186,5 +186,5 @@ internal fun Commit.toEntity(
             )
         }
     ).apply {
-        this.id = this@toEntity.id?.trim()
+        this.id = this@toArangoEntity.id?.trim()
     }

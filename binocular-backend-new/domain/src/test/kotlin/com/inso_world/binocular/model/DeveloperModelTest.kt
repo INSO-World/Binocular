@@ -16,7 +16,6 @@ import kotlin.uuid.ExperimentalUuidApi
  */
 @OptIn(ExperimentalUuidApi::class)
 class DeveloperModelTest {
-
     private lateinit var repository: Repository
 
     @BeforeEach
@@ -27,7 +26,6 @@ class DeveloperModelTest {
 
     @Nested
     inner class Construction {
-
         @Test
         fun `given valid name and email, when creating developer, then it should be created with iid`() {
             // Given
@@ -42,7 +40,7 @@ class DeveloperModelTest {
                 { assertThat(developer.name).isEqualTo(name) },
                 { assertThat(developer.email).isEqualTo(email) },
                 { assertThat(developer.repository).isSameAs(repository) },
-                { assertThat(developer.iid).isNotNull() }
+                { assertThat(developer.iid).isNotNull() },
             )
         }
 
@@ -76,7 +74,6 @@ class DeveloperModelTest {
 
     @Nested
     inner class UniqueKey {
-
         @Test
         fun `given developer, when accessing uniqueKey, then it should contain repositoryId and gitSignature`() {
             // Given
@@ -88,14 +85,13 @@ class DeveloperModelTest {
             // Then
             assertAll(
                 { assertThat(key.repositoryId).isEqualTo(repository.iid) },
-                { assertThat(key.gitSignature).isEqualTo("Test User <test@example.com>") }
+                { assertThat(key.gitSignature).isEqualTo("Test User <test@example.com>") },
             )
         }
     }
 
     @Nested
     inner class GitSignature {
-
         @Test
         fun `given developer with name and email, when getting gitSignature, then it should return formatted signature`() {
             // Given
@@ -123,7 +119,6 @@ class DeveloperModelTest {
 
     @Nested
     inner class Equality {
-
         @Test
         fun `given same developer instance, when comparing with equals, then it should be equal`() {
             // Given
@@ -155,7 +150,6 @@ class DeveloperModelTest {
 
     @Nested
     inner class InheritanceFromStakeholder {
-
         @Test
         fun `given developer, when checking inheritance, then it should be instance of Stakeholder`() {
             // Given
@@ -168,10 +162,8 @@ class DeveloperModelTest {
 
     @Nested
     inner class CommitRelations {
-
         @Nested
         inner class AuthoredCommits {
-
             @Test
             fun `given new developer, when checking authoredCommits, then it should be empty`() {
                 // Given
@@ -184,7 +176,6 @@ class DeveloperModelTest {
 
         @Nested
         inner class CommittedCommits {
-
             @Test
             fun `given new developer, when checking committedCommits, then it should be empty`() {
                 // Given
@@ -198,7 +189,6 @@ class DeveloperModelTest {
 
     @Nested
     inner class FileAndIssueRelations {
-
         @Test
         fun `given new developer, when checking files, then it should be empty`() {
             // Given

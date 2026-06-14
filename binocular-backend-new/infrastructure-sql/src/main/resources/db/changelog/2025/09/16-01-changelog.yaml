@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1758033852735-1
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: account_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: issue_id
+                  type: BIGINT
+            tableName: issue_account_connections
+  - changeSet:
+      id: 1758033852735-2
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: gid
+                  type: VARCHAR(255)
+              - column:
+                  name: project_id
+                  type: BIGINT
+            tableName: issues
+  - changeSet:
+      id: 1758033852735-3
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addNotNullConstraint:
+            columnName: project_id
+            tableName: issues
+  - changeSet:
+      id: 1758033852735-4
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: project_id
+            baseTableName: issues
+            constraintName: FK_ISSUES_ON_PROJECT
+            referencedColumnNames: id
+            referencedTableName: projects
+
+

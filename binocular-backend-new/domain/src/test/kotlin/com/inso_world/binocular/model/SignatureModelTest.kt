@@ -18,7 +18,6 @@ import kotlin.uuid.ExperimentalUuidApi
  */
 @OptIn(ExperimentalUuidApi::class)
 class SignatureModelTest {
-
     private lateinit var repository: Repository
     private lateinit var developer: Developer
 
@@ -31,7 +30,6 @@ class SignatureModelTest {
 
     @Nested
     inner class Construction {
-
         @Test
         fun `given valid developer and timestamp, when creating signature, then it should be created successfully`() {
             // Given
@@ -43,7 +41,7 @@ class SignatureModelTest {
             // Then
             assertAll(
                 { assertThat(signature.developer).isSameAs(developer) },
-                { assertThat(signature.timestamp).isEqualTo(timestamp) }
+                { assertThat(signature.timestamp).isEqualTo(timestamp) },
             )
         }
 
@@ -67,7 +65,6 @@ class SignatureModelTest {
 
     @Nested
     inner class ValueSemantics {
-
         @Test
         fun `given two signatures with same developer and timestamp, when comparing, then they should be equal`() {
             // Given
@@ -115,7 +112,6 @@ class SignatureModelTest {
 
     @Nested
     inner class GitSignatureFormat {
-
         @Test
         fun `given signature, when getting gitSignature, then it should return formatted string`() {
             // Given
@@ -132,7 +128,6 @@ class SignatureModelTest {
 
     @Nested
     inner class Immutability {
-
         @Test
         fun `given signature, when accessing properties, then they should be immutable`() {
             // Given
@@ -142,7 +137,7 @@ class SignatureModelTest {
             // Then - Signature is a data class with val properties, proving immutability
             assertAll(
                 { assertThat(signature.developer).isSameAs(developer) },
-                { assertThat(signature.timestamp).isEqualTo(timestamp) }
+                { assertThat(signature.timestamp).isEqualTo(timestamp) },
             )
         }
     }

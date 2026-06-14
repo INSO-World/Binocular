@@ -23,7 +23,11 @@ interface MergeRequestInfrastructurePort : BinocularInfrastructurePort<MergeRequ
     /**
      * Find all merge requests with pagination and optional timestamp filters.
      */
-    fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<MergeRequest>
+    fun findAll(
+        pageable: Pageable,
+        since: Long?,
+        until: Long?
+    ): Page<MergeRequest>
 
     /**
      * Find accounts by merge request ID.

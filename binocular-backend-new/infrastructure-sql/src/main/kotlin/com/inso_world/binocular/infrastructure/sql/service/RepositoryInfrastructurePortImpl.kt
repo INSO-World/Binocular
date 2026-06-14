@@ -100,9 +100,7 @@ internal class RepositoryInfrastructurePortImpl :
 
     @MappingSession
     @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Repository> {
-        return this.repositoryDao.findAll().map(repositoryAssembler::toDomain)
-    }
+    override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll().map(repositoryAssembler::toDomain)
 
     @MappingSession
     @Transactional(readOnly = true)
@@ -130,9 +128,7 @@ internal class RepositoryInfrastructurePortImpl :
      * @see self
      * @see findByIidInternal
      */
-    override fun findByIid(iid: Repository.Id): Repository? {
-        return self.findByIidInternal(iid)
-    }
+    override fun findByIid(iid: Repository.Id): Repository? = self.findByIidInternal(iid)
 
     /**
      * Internal implementation of repository lookup by iid.
@@ -153,15 +149,16 @@ internal class RepositoryInfrastructurePortImpl :
      */
     @MappingSession
     @Transactional(readOnly = true)
-    protected fun findByIidInternal(iid: Repository.Id): Repository? {
-        return this.repositoryDao.findByIid(iid)?.let {
+    protected fun findByIidInternal(iid: Repository.Id): Repository? =
+        this.repositoryDao.findByIid(iid)?.let {
             repositoryAssembler.toDomain(it)
         }
-    }
 
     @MappingSession
     @Transactional
-    override fun create(@Valid value: Repository): Repository {
+    override fun create(
+        @Valid value: Repository,
+    ): Repository {
         val projectEntity =
             projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
 
@@ -179,10 +176,11 @@ internal class RepositoryInfrastructurePortImpl :
         return value
     }
 
-
     @MappingSession
     @Transactional
-    override fun update(@Valid value: Repository): Repository {
+    override fun update(
+        @Valid value: Repository,
+    ): Repository {
         val entity =
             projectDao.findByIid(value.project.iid)
                 ?: throw NotFoundException("Project ${value.project.uniqueKey} not found")
@@ -228,8 +226,9 @@ internal class RepositoryInfrastructurePortImpl :
 
         // Phase 3: Add branches (commits are now persisted with IDs)
         branches.forEach { branch ->
-            val persistedHead = commitsBySha[branch.head.sha]
-                ?: throw IllegalStateException("Head commit ${branch.head.sha} not found for branch ${branch.name}")
+            val persistedHead =
+                commitsBySha[branch.head.sha]
+                    ?: throw IllegalStateException("Head commit ${branch.head.sha} not found for branch ${branch.name}")
 
             // Create new branch entity pointing to persisted commit
             val newBranch = branch.copy(head = persistedHead)
@@ -253,28 +252,31 @@ internal class RepositoryInfrastructurePortImpl :
 
     @Transactional(readOnly = true)
     @MappingSession
-    override fun findExistingCommits(repo: Repository, shas: Set<String>): Sequence<Commit> {
+    override fun findExistingCommits(
+        repo: Repository,
+        shas: Set<String>,
+    ): Sequence<Commit> {
         val entity =
             repositoryDao.findByIid(repo.iid)
                 ?: throw NotFoundException("Repository ${repo.uniqueKey} not found")
         logger.debug("Repository Entity found")
         ctx.remember(repo, entity)
 
-        return this.commitDao.findExistingSha(repo, shas).map { commitEntity ->
-            commitMapper.toDomain(commitEntity)
-        }.asSequence()
+        return this.commitDao
+            .findExistingSha(repo, shas)
+            .map { commitEntity ->
+                commitMapper.toDomain(commitEntity)
+            }.asSequence()
     }
 
     @Transactional(readOnly = true)
     @MappingSession
     override fun findBranch(
         repository: Repository,
-        name: String
-    ): Branch? {
-        return this.repositoryDao.findByIid(repository.iid)?.let {
+        name: String,
+    ): Branch? =
+        this.repositoryDao.findByIid(repository.iid)?.let {
             this.branchDao.findByName(it, name)
             repositoryAssembler.toDomain(it).branches.find { branch -> branch.name == name }
         }
-    }
-
 }

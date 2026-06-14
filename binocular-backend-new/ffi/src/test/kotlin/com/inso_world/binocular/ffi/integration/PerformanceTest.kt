@@ -22,13 +22,17 @@ class PerformanceTest {
         "origin/feature/32,658,15",
         "origin/main,1881,65",
         "origin/develop,2282,65",
-        "feature/363,2350,65"
+        "feature/363,2350,65",
     )
-    fun `test branch`(branch: String, expectedCommits: Int, timeout: Long) {
+    fun `test branch`(
+        branch: String,
+        expectedCommits: Int,
+        timeout: Long,
+    ) {
         val results =
             assertTimeout(
-                Duration.ofMillis(timeout)
-            ) { this.ffi.traverseBranch(repo,branch) }
+                Duration.ofMillis(timeout),
+            ) { this.ffi.traverseBranch(repo, branch) }
 
         assertThat(results.second).hasSize(expectedCommits)
     }

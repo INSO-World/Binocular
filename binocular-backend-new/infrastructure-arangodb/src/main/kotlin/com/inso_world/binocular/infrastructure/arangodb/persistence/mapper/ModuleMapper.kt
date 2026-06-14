@@ -34,7 +34,6 @@ internal class ModuleMapper
         private val proxyFactory: RelationshipProxyFactory,
         @Lazy private val fileMapper: FileMapper,
     ) : EntityMapper<Module, ModuleEntity> {
-
         @Autowired
         private lateinit var ctx: MappingContext
 
@@ -106,6 +105,5 @@ internal class ModuleMapper
             )
         }
 
-        override fun toDomainList(entities: Iterable<ModuleEntity>): List<Module> =
-            entities.map { toDomain(it) }
+        override fun toDomainList(entities: Iterable<ModuleEntity>): List<Module> = entities.map { toDomain(it) }
     }

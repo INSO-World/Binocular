@@ -31,7 +31,6 @@ import kotlin.uuid.Uuid
  */
 @Tag("unit")
 class NonRemovingMutableSetTest {
-
     /**
      * Simple test entity for testing [NonRemovingMutableSet].
      * Uses `name` as the uniqueKey for deduplication.
@@ -40,7 +39,7 @@ class NonRemovingMutableSetTest {
     private data class TestEntity(
         val id: String?,
         val name: String,
-        val data: String = "test"
+        val data: String = "test",
     ) : AbstractDomainObject<Uuid, String>(Uuid.random()) {
         override val uniqueKey: String get() = name
     }
@@ -48,7 +47,6 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("Add operations")
     inner class AddOperations {
-
         @Test
         fun `add should return true for new element`() {
             val set = NonRemovingMutableSet<TestEntity>()
@@ -86,11 +84,12 @@ class NonRemovingMutableSetTest {
         @Test
         fun `add should handle multiple distinct elements`() {
             val set = NonRemovingMutableSet<TestEntity>()
-            val entities = listOf(
-                TestEntity(null, "A"),
-                TestEntity(null, "B"),
-                TestEntity(null, "C")
-            )
+            val entities =
+                listOf(
+                    TestEntity(null, "A"),
+                    TestEntity(null, "B"),
+                    TestEntity(null, "C"),
+                )
 
             val results = entities.map { set.add(it) }
 
@@ -127,7 +126,6 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("Contains operations")
     inner class ContainsOperations {
-
         @Test
         fun `contains should return true for added element`() {
             val set = NonRemovingMutableSet<TestEntity>()
@@ -160,11 +158,12 @@ class NonRemovingMutableSetTest {
         @Test
         fun `containsAll should return true when all elements present`() {
             val set = NonRemovingMutableSet<TestEntity>()
-            val entities = listOf(
-                TestEntity(null, "A"),
-                TestEntity(null, "B"),
-                TestEntity(null, "C")
-            )
+            val entities =
+                listOf(
+                    TestEntity(null, "A"),
+                    TestEntity(null, "B"),
+                    TestEntity(null, "C"),
+                )
             entities.forEach { set.add(it) }
 
             assertThat(set.containsAll(entities)).isTrue()
@@ -175,10 +174,11 @@ class NonRemovingMutableSetTest {
             val set = NonRemovingMutableSet<TestEntity>()
             set.add(TestEntity(null, "A"))
 
-            val entities = listOf(
-                TestEntity(null, "A"),
-                TestEntity(null, "B")
-            )
+            val entities =
+                listOf(
+                    TestEntity(null, "A"),
+                    TestEntity(null, "B"),
+                )
 
             assertThat(set.containsAll(entities)).isFalse()
         }
@@ -189,10 +189,11 @@ class NonRemovingMutableSetTest {
             set.add(TestEntity(null, "A", "original-A"))
             set.add(TestEntity(null, "B", "original-B"))
 
-            val probes = listOf(
-                TestEntity(null, "A", "probe-A"),
-                TestEntity(null, "B", "probe-B")
-            )
+            val probes =
+                listOf(
+                    TestEntity(null, "A", "probe-A"),
+                    TestEntity(null, "B", "probe-B"),
+                )
 
             assertThat(set.containsAll(probes)).isTrue()
         }
@@ -209,7 +210,6 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("Size and empty operations")
     inner class SizeOperations {
-
         @Test
         fun `isEmpty should return true for new set`() {
             val set = NonRemovingMutableSet<TestEntity>()
@@ -267,7 +267,6 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("Removal operations (should all fail)")
     inner class RemovalOperations {
-
         @Test
         fun `remove should throw UnsupportedOperationException`() {
             val set = NonRemovingMutableSet<TestEntity>()
@@ -322,7 +321,7 @@ class NonRemovingMutableSetTest {
             // Verify set unchanged
             assertAll(
                 { assertThat(set.size).isEqualTo(1) },
-                { assertThat(set.contains(entity)).isTrue() }
+                { assertThat(set.contains(entity)).isTrue() },
             )
         }
 
@@ -338,15 +337,15 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("Iterator operations")
     inner class IteratorOperations {
-
         @Test
         fun `iterator should iterate over all elements`() {
             val set = NonRemovingMutableSet<TestEntity>()
-            val entities = listOf(
-                TestEntity(null, "A"),
-                TestEntity(null, "B"),
-                TestEntity(null, "C")
-            )
+            val entities =
+                listOf(
+                    TestEntity(null, "A"),
+                    TestEntity(null, "B"),
+                    TestEntity(null, "C"),
+                )
             entities.forEach { set.add(it) }
 
             val iterated = set.iterator().asSequence().toList()
@@ -428,7 +427,6 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("Concurrent operations")
     inner class ConcurrentOperations {
-
         @Test
         fun `concurrent adds should be thread-safe`() {
             val set = NonRemovingMutableSet<TestEntity>()
@@ -539,7 +537,6 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("String representation and equality")
     inner class StringAndEquality {
-
         @Test
         fun `toString should return string representation of values`() {
             val set = NonRemovingMutableSet<TestEntity>()
@@ -593,7 +590,6 @@ class NonRemovingMutableSetTest {
     @Nested
     @DisplayName("Edge cases and boundary conditions")
     inner class EdgeCases {
-
         @Test
         fun `should handle large number of elements`() {
             val set = NonRemovingMutableSet<TestEntity>()
