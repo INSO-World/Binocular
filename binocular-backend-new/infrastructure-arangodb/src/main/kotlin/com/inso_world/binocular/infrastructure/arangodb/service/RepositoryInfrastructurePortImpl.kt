@@ -16,11 +16,12 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.Commi
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BranchRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.CommitRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.DeveloperRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
-import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.UserRepository
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -88,6 +89,12 @@ internal class RepositoryInfrastructurePortImpl :
     @Autowired
     private lateinit var branchMapper: BranchMapper
 
+    @Autowired
+    private lateinit var userMapper: UserMapper
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
     @MappingSession
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun findByIid(iid: Repository.Id): Repository? =
@@ -118,6 +125,29 @@ internal class RepositoryInfrastructurePortImpl :
         return values
     }
 
+    /**
+     * Persists changes to an existing [Repository] aggregate, cascading to its owned children.
+     *
+     * ### Semantics
+     * Loads the persisted [RepositoryEntity] by [Repository.iid], reuses it as the mapping target
+     * (ArangoDB has no cascade-persist), and explicitly saves each child collection:
+     * 1. **Developers** → `developers` (commits reference them via [Signature]).
+     * 2. **Commits** → `commits`.
+     * 3. **Branches** → `branches`.
+     * 4. **Legacy `User`s** → `users`, refreshing each `User.id` from the saved
+     *    `UserEntity` so callers observe a non-null id afterwards (contract: `UserTest`).
+     * 5. The repository document itself, in case its own fields changed.
+     *
+     * ### Invariants & requirements
+     * - [value.project][Repository.project] and `value` itself are seeded into the
+     *   [MappingContext] before any child mapper runs, so [UserMapper.toEntity] and the other
+     *   child mappers can resolve their owning [RepositoryEntity]/`ProjectEntity` `@Ref`s.
+     * - Runs inside a single [MappingSession]; child saves do not open new sessions.
+     *
+     * @param value the repository (with its in-memory children) to persist.
+     * @return the same [Repository] instance, refreshed with generated ids.
+     * @throws IllegalStateException if no [RepositoryEntity] exists for `value.iid`.
+     */
     @MappingSession
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun update(value: Repository): Repository {
@@ -150,6 +180,15 @@ internal class RepositoryInfrastructurePortImpl :
         value.branches.forEach { branch ->
             val branchEntity = branchMapper.toEntity(branch)
             branchRepository.save(branchEntity)
+        }
+
+        // Legacy User children: persist and write generated ids back so callers
+        // observe non-null User.id after update (contract: UserTest).
+        value.user.forEach { user ->
+            val userEntity = userMapper.toEntity(user)
+            userEntity.repository = existingEntity
+            val savedUser = userRepository.save(userEntity)
+            userMapper.refreshDomain(user, savedUser)
         }
 
         // Persist repository entity itself in case its fields changed
