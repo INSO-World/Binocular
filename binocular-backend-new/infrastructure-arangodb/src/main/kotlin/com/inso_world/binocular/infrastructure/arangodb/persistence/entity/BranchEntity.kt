@@ -8,11 +8,9 @@ import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.BranchFileConnectionEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.Transient
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -34,6 +32,13 @@ import kotlin.uuid.Uuid
  *
  * ### Indexes
  * - [iid]: Unique persistent index for UUID-based lookups
+ *
+ * ### Legacy fields
+ * - [branch]: deprecated alias for [name], defaulting to [name] at construction. Declared as a
+ *   constructor parameter (not a body `val`) so Spring Data ArangoDB can both persist it on write
+ *   and repopulate it via the persistence constructor on read-back (e.g. during `repsert`). This
+ *   makes it appear in raw ArangoDB document exports ([com.inso_world.binocular.infrastructure.arangodb.service.DbExportPortImpl])
+ *   for backward-compatibility with the `db-export` JSON contract.
  */
 @OptIn(ExperimentalUuidApi::class)
 @Document("branches")
@@ -57,16 +62,14 @@ data class BranchEntity(
         direction = Relations.Direction.OUTBOUND,
     )
     var files: Set<FileEntity> = emptySet(),
+    @Deprecated("Legacy", replaceWith = ReplaceWith("name"))
+    val branch: String = name,
 ) {
     @Ref(lazy = false)
     lateinit var repository: RepositoryEntity
 
     @Ref(lazy = false)
     lateinit var head: CommitEntity
-
-    @Deprecated("Legacy", replaceWith = ReplaceWith("fullName"))
-    @Transient
-    val branch = name
 
     /**
      * Converts this BranchEntity to a Branch domain object.
