@@ -136,8 +136,29 @@ internal class ProjectInfrastructurePortImpl :
         return value
     }
 
+    /**
+     * Bulk-persists projects **shallowly**: only the project document and its owned repository
+     * document are written. Repository children (developers, commits, branches) and derived
+     * legacy users are intentionally NOT cascaded — bulk seeding callers
+     * (e.g. `ArangodbInfrastructureDataSetup`, web `TestDataSetupService`) persist children
+     * explicitly in dependency order. Use [create] for full single-aggregate cascade semantics.
+     *
+     * @param values the projects to persist.
+     * @return the same instances, refreshed with generated ids.
+     */
     @MappingSession
-    override fun saveAll(values: Collection<Project>): Iterable<Project> = values.map { this.create(it) }
+    override fun saveAll(values: Collection<Project>): Iterable<Project> =
+        values.map { value ->
+            val toPersist = projectAssembler.toEntity(value)
+            val persisted = projectDao.create(toPersist)
+            projectMapper.refreshDomain(value, persisted)
+            val repo = value.repo
+            val repoEntity = persisted.repository
+            if (repo != null && repoEntity != null) {
+                repositoryMapper.refreshDomain(repo, repoEntity)
+            }
+            value
+        }
 
     @MappingSession
     override fun findByName(name: String): Project? = this.projectDao.findByName(name)

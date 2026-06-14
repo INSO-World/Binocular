@@ -4,9 +4,10 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.model.Project
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 internal interface IProjectDao : IDao<Project, String> {
+    fun findAllEntities(): Iterable<ProjectEntity>
+
     fun findByName(name: String): Project?
 
     @OptIn(ExperimentalUuidApi::class)
