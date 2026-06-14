@@ -19,10 +19,12 @@ import kotlin.uuid.Uuid
  * - [localPath]: Business key component along with project
  *
  * ### Relationships
- * - [project]: Owning project (required). Declared as a `lateinit var` body property rather than a
- *   constructor parameter because Spring Data ArangoDB deserializes lazy `@Ref` fields via property
- *   injection after construction — passing a lazy reference as a constructor argument would receive
- *   `null` and violate the non-null type. Always set via the [toEntity] factory before use.
+ * - [project]: Owning project. Declared as a nullable body property rather than a constructor
+ *   parameter because Spring Data ArangoDB deserializes lazy `@Ref` fields via property injection
+ *   after construction — a lazy reference passed as a constructor argument would not yet be
+ *   resolved at that point. Nullable also accommodates bulk-seeding flows (e.g. shallow
+ *   `ProjectInfrastructurePortImpl.saveAll`) that assemble a [RepositoryEntity] before its owning
+ *   [ProjectEntity] is persisted. Set via the [toEntity] factory before use.
  *
  * ### Indexes
  * - [iid]: Unique persistent index for UUID-based lookups
@@ -35,10 +37,10 @@ data class RepositoryEntity(
     @Field("iid")
     @PersistentIndexed(unique = true)
     var iid: Uuid,
-    var localPath: String,
+    var localPath: String
 ) {
     @Ref(lazy = true)
-    lateinit var project: ProjectEntity
+    var project: ProjectEntity? = null
 
     /**
      * Converts this RepositoryEntity to a Repository domain object.
