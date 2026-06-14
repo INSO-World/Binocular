@@ -3,6 +3,7 @@ package com.inso_world.binocular.cli.commands
 import com.inso_world.binocular.cli.service.ProjectService
 import com.inso_world.binocular.cli.service.RepositoryService
 import com.inso_world.binocular.cli.service.VcsService
+import com.inso_world.binocular.core.service.IdentityResolutionPort
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import org.slf4j.Logger
@@ -21,32 +22,36 @@ open class Index(
     @Autowired private val vcsService: VcsService,
     @Autowired private val repositoryService: RepositoryService,
     @Autowired private val projectService: ProjectService,
+    @Autowired private val identityResolutionPort: IdentityResolutionPort,
 ) {
     companion object {
         private var logger: Logger = LoggerFactory.getLogger(Index::class.java)
     }
 
-
     @Command(command = ["commits"])
     open fun commits(
         repoPath: String,
-        @Option(
-            longNames = ["branch"],
-            shortNames = ['b'],
-            required = true,
-        ) @NotNull @NotEmpty branchName: String,
-        @Option(
-            longNames = ["project_name"],
-            shortNames = ['n'],
-            required = true,
-            description = "Custom name of the project.",
-        ) @NotNull @NotEmpty projectName: String,
+        @Option(longNames = ["branch"], shortNames = ['b'], required = true)
+        @NotNull @NotEmpty branchName: String,
+        @Option(longNames = ["project_name"], shortNames = ['n'], required = true,
+            description = "Custom name of the project.")
+        @NotNull @NotEmpty projectName: String,
     ) {
         val path = repoPath.let { Paths.get(it).toRealPath() }
         logger.trace(">>> index($path, $branchName)")
         logger.debug("Project '$projectName'")
         val project = this.projectService.getOrCreateProject(projectName)
         vcsService.indexRepository(path.toString(), branchName, project)
+
+        // Run identity resolution after VCS indexing completes
+        val repo = repositoryService.findRepo(path.toString())
+        val repoId = repo?.id?.trim()?.toLongOrNull()
+        if (repoId != null) {
+            identityResolutionPort.resolveIdentities(repoId)
+        } else {
+            logger.warn("Could not determine repository ID — skipping identity resolution")
+        }
+
         logger.trace("<<< index($path, $branchName)")
     }
 }

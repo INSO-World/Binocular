@@ -1,5 +1,5 @@
 x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest} #:${TAG:-latest-dev}
-x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
+x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:26390266856 #:${TAG:-latest-dev}
 x-binocular-frontend-image: &binocular-frontend-image ghcr.io/inso-world/binocular-frontend:${TAG:-latest}
 x-binocular-volumes-backend: &binocular-volumes-backend
   - "${REPO_PATH:-./}:/app/binocular/${REPO_NAME:-repo}"

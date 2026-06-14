@@ -92,7 +92,7 @@
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@types/react": "^18.2.37",
+    "@types/react": "^18.3.28",
     "@types/react-dom": "^18.2.15",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",

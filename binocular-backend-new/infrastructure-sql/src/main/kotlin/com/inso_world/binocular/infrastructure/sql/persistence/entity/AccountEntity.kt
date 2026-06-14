@@ -1,47 +1,67 @@
-// package com.inso_world.binocular.infrastructure.sql.persistence.entity
-//
-// import com.inso_world.binocular.model.Platform
-// import jakarta.persistence.Column
-// import jakarta.persistence.Entity
-// import jakarta.persistence.EnumType
-// import jakarta.persistence.Enumerated
-// import jakarta.persistence.Id
-// import jakarta.persistence.Table
-//
-// /**
-// * SQL-specific Account entity.
-// */
-// @Entity
-// @Table(name = "accounts")
-// data class AccountEntity(
-//    @Id
-//    var id: Long? = null,
-//    @Enumerated(EnumType.STRING)
-//    var platform: Platform? = null,
-//    var login: String? = null,
-//    var name: String? = null,
-//    @Column(name = "avatar_url")
-//    var avatarUrl: String? = null,
-//    var url: String? = null,
-// //    @ManyToMany
-// //    @JoinTable(
-// //        name = "issue_account_connections",
-// //        joinColumns = [JoinColumn(name = "account_id")],
-// //        inverseJoinColumns = [JoinColumn(name = "issue_id")],
-// //    )
-// //    var issues: MutableList<IssueEntity> = mutableListOf(),
-// //    @ManyToMany
-// //    @JoinTable(
-// //        name = "merge_request_account_connections",
-// //        joinColumns = [JoinColumn(name = "account_id")],
-// //        inverseJoinColumns = [JoinColumn(name = "merge_request_id")],
-// //    )
-// //    var mergeRequests: MutableList<MergeRequestEntity> = mutableListOf(),
-// //    @ManyToMany
-// //    @JoinTable(
-// //        name = "note_account_connections",
-// //        joinColumns = [JoinColumn(name = "account_id")],
-// //        inverseJoinColumns = [JoinColumn(name = "note_id")],
-// //    )
-// //    var notes: MutableList<NoteEntity> = mutableListOf(),
-// )
+package com.inso_world.binocular.infrastructure.sql.persistence.entity
+
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
+import com.inso_world.binocular.model.Account
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+@OptIn(ExperimentalUuidApi::class)
+@Entity
+@Table(
+    name = "accounts",
+    uniqueConstraints = [
+        UniqueConstraint(columnNames = ["platform", "login"]),
+    ],
+)
+internal data class AccountEntity(
+    @Column(nullable = false)
+    var login: String,
+    @Column(nullable = true)
+    var name: String? = null,
+    @Column(nullable = true)
+    var email: String? = null,
+    @Column(nullable = true)
+    var url: String? = null,
+    @Column(name = "avatar_url", nullable = true)
+    var avatarUrl: String? = null,
+    @Column(nullable = false)
+    var platform: String,
+    @Column(nullable = false, updatable = false, unique = true)
+    @Convert(converter = KotlinUuidConverter::class)
+    val iid: Account.Id,
+) : AbstractEntity<Long, AccountEntity.Key>() {
+
+    data class Key(val platform: String, val login: String)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    override var id: Long? = null
+
+    override val uniqueKey: Key
+        get() = Key(platform = platform, login = login)
+
+    override fun equals(other: Any?): Boolean = super.equals(other)
+    override fun hashCode(): Int = super.hashCode()
+}
+
+@OptIn(ExperimentalUuidApi::class)
+internal fun Account.toEntity(): AccountEntity =
+    AccountEntity(
+        iid = this.iid,
+        login = this.login ?: "",
+        name = this.name,
+        email = this.email,
+        url = this.url,
+        avatarUrl = this.avatarUrl,
+        platform = this.platform?.name ?: "GITHUB",
+    ).apply {
+        id = this@toEntity.id?.trim()?.toLongOrNull()
+    }

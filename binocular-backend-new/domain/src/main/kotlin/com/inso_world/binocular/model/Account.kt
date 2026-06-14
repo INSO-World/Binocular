@@ -14,9 +14,9 @@ data class Account(
     var platform: Platform? = null,
     var login: String? = null,
     var name: String? = null,
+    var email: String? = null,
     var avatarUrl: String? = null,
     var url: String? = null,
-    // Relationships
     var issues: List<Issue> = emptyList(),
     var mergeRequests: List<MergeRequest> = emptyList(),
     var notes: List<Note> = emptyList(),
@@ -26,9 +26,8 @@ data class Account(
     @JvmInline
     value class Id(val value: Uuid)
 
-    // TODO work in progress, just for compatibility
-    data class Key(val login: String) // value object for lookups
+    data class Key(val login: String)
 
     override val uniqueKey: Key
-        get() = TODO("Not yet implemented")
+        get() = Key(login ?: "")
 }
