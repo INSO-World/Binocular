@@ -167,7 +167,8 @@ data class User(
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "User(id=$id, iid=$iid, name=$name, gitSignature=$gitSignature, repositoryId=${repository.id}, committedCommits=${committedCommits.map {
-            it.sha
-        }}, authoredCommits=${authoredCommits.map { it.sha }})"
+        "User(id=$id, iid=$iid, name=$name, gitSignature=$gitSignature, " +
+            "repositoryId=${repository.id}, " +
+            "committedCommits=${committedCommits.map { it.sha }}, " +
+            "authoredCommits=${authoredCommits.map { it.sha }})"
 }
