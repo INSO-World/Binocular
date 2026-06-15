@@ -130,6 +130,20 @@ internal class RepositoryAssembler {
      *    - Wire bidirectional parent/child graph
      * 6. Map all Branches and wire to RepositoryEntity
      *
+     * ## Legacy User Mapping (Phase 5)
+     * Each [User][com.inso_world.binocular.model.User] in `domain.user` is converted into a
+     * [DeveloperEntity] directly (bypassing `Developer.toEntity` since `User` is not a `Developer`).
+     * The resulting entity's `id` is seeded from [User.id] only when the assembled `RepositoryEntity`
+     * itself already has a non-null `id` (i.e. an existing repository row is being re-mapped, e.g. on
+     * a second `RepositoryInfrastructurePortImpl.update` call where a prior `refresh()` populated
+     * [User.id]). Without this, re-mapping an already-persisted legacy `User` on a subsequent
+     * `update()` would produce a transient entity (`id == null`), causing Hibernate to insert a
+     * duplicate `users` row and violate the `users_iid_key` unique constraint.
+     * When the `RepositoryEntity` is a fresh insert (`entity.id == null`, e.g. initial test fixture
+     * setup), `id` is forced to `null` even if [User.id] carries a stale value from a previously
+     * persisted (and since-deleted) row, since Hibernate would otherwise reject the cascaded insert
+     * as a "detached entity passed to persist".
+     *
      * @param domain The Repository domain aggregate to assemble
      * @return The fully assembled RepositoryEntity with all children and identity preservation
      */
@@ -214,7 +228,7 @@ internal class RepositoryAssembler {
                         },
                     repository = entity,
                     iid = Developer.Id(legacyUser.iid.value),
-                )
+                ).apply { id = entity.id?.let { legacyUser.id?.trim()?.toLongOrNull() } }
             entity.developers.add(developerEntity)
         }
 

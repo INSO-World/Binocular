@@ -72,12 +72,26 @@ internal data class DeveloperEntity(
     override fun toString(): String = "DeveloperEntity(id=$id, iid=$iid, name='$name', email='$email', repositoryId=${repository.id})"
 }
 
+/**
+ * Converts this [Developer] to a [DeveloperEntity] owned by [repository].
+ *
+ * Preserves [Developer.id] on the resulting entity, but only when [repository] itself already has
+ * a non-null `id` (i.e. an existing repository row is being re-mapped), mirroring
+ * [Repository.toEntity]. Without this, re-mapping an already-persisted [Developer] during a
+ * subsequent [com.inso_world.binocular.infrastructure.sql.service.RepositoryInfrastructurePortImpl.update]
+ * call would produce a transient entity (`id == null`), causing Hibernate to insert a duplicate
+ * `users` row and violate the `users_iid_key` unique constraint. Conversely, when [repository] is a
+ * fresh insert (`repository.id == null`), `id` is forced to `null` even if [Developer.id] carries a
+ * stale value from a previously persisted (and since-deleted) row, since Hibernate would otherwise
+ * reject the cascaded insert as a "detached entity passed to persist".
+ *
+ * @param repository The owning [RepositoryEntity].
+ * @return A [DeveloperEntity] with `id` carried over from [Developer.id] when present and [repository] is not new.
+ */
 internal fun Developer.toEntity(repository: RepositoryEntity): DeveloperEntity =
     DeveloperEntity(
         iid = this.iid,
         email = this.email,
         name = this.name,
         repository = repository,
-    ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
-    }
+    ).apply { id = repository.id?.let { this@toEntity.id?.trim()?.toLongOrNull() } }
