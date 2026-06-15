@@ -53,7 +53,7 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
             assertEquals(2, branchesData.size(), "Expected 2 branches, but got ${branchesData.size()}")
 
             // Check that the branches match the test data
-            TestDataProvider.testBranches.forEachIndexed { index, expectedBranch ->
+            TestDataProvider.testBranches.sortedBy { it.name }.forEachIndexed { index, expectedBranch ->
                 val actualBranch = branchesData.get(index)
 
                 assertAll(
@@ -209,7 +209,7 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
                     // this is hacky but works
                     // sorting in tests is probably not clever.
                     // idk who did this first
-                    .sortedBy { it.id ?: "" }
+                    .sortedBy { it.name }
                     .first()
             val actualBranch = branchesData.get(0)
 
@@ -322,7 +322,7 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
                     // this is hacky but works
                     // sorting in tests is probably not clever.
                     // idk who did this first
-                    .sortedBy { it.id ?: "" }
+                    .sortedBy { it.name }
                     .drop(1)
                     .first()
             val actualBranch = branchesData.get(0)

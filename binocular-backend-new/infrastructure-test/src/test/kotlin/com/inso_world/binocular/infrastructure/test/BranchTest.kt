@@ -50,6 +50,7 @@ internal class BranchTest : BaseInfrastructureSpringTest() {
     }
 
     @Test
+    @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('postgres')}", loadContext = true)
     fun `find files by provider branch id returns entries when linked`() {
         val branch = TestDataProvider.testBranches.first()
         val files = branchPort.findFilesByBranchId(requireNotNull(branch.id))

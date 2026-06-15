@@ -3,8 +3,8 @@ spring:
     name: infrastructure-test
   profiles:
     # if you add a required profile here, also change the ../.github/workflows/backend-fast.yml!
-#    active: test,gix,postgres
-    active: test,gix,arangodb
+    active: test,gix,postgres
+#    active: test,gix,arangodb
   liquibase:
     enabled: false
 

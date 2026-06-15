@@ -35,12 +35,17 @@ data class User(
     @field:NotBlank val name: String,
     @field:NotNull val repository: Repository,
 ) : AbstractDomainObject<User.Id, User.Key>(
-    Id(Uuid.random()),
-) {
-    data class Key(val repositoryId: Repository.Id, val gitSignature: String) // value object for lookups
+        Id(Uuid.random()),
+    ) {
+    data class Key(
+        val repositoryId: Repository.Id,
+        val name: String
+    ) // value object for lookups
 
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
@@ -102,27 +107,28 @@ data class User(
      *   However, multi-step workflows (e.g., “add then do X”) are **not atomic**; coordinate externally to
      *   avoid torn updates between set membership and the `author` back-link.
      */
-    val committedCommits: MutableSet<Commit> = object : NonRemovingMutableSet<Commit>() {
-        override fun add(element: Commit): Boolean {
-            require(element.repository == this@User.repository) {
-                "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
+    val committedCommits: MutableSet<Commit> =
+        object : NonRemovingMutableSet<Commit>() {
+            override fun add(element: Commit): Boolean {
+                require(element.repository == this@User.repository) {
+                    "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
+                }
+                require(element.committer == this@User) {
+                    "Cannot add Commit $element to committedCommits since user is not committer of Commit."
+                }
+                val added = super.add(element)
+                return added
             }
-            require(element.committer == this@User) {
-                "Cannot add Commit $element to committedCommits since user is not committer of Commit."
-            }
-            val added = super.add(element)
-            return added
-        }
 
-        override fun addAll(elements: Collection<Commit>): Boolean {
-            // for bulk-adds make sure each one gets the same treatment
-            var anyAdded = false
-            for (e in elements) {
-                if (add(e)) anyAdded = true
+            override fun addAll(elements: Collection<Commit>): Boolean {
+                // for bulk-adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
             }
-            return anyAdded
         }
-    }
 
     /**
      * Commits authored by this [User].
@@ -131,33 +137,37 @@ data class User(
      * Note: This collection no longer back-links to commits as the new [Commit] model uses [Signature].
      */
     @Deprecated("Use Developer.authoredCommits instead")
-    val authoredCommits: MutableSet<Commit> = object : NonRemovingMutableSet<Commit>() {
-        override fun add(element: Commit): Boolean {
-            require(element.repository == this@User.repository) {
-                "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
+    val authoredCommits: MutableSet<Commit> =
+        object : NonRemovingMutableSet<Commit>() {
+            override fun add(element: Commit): Boolean {
+                require(element.repository == this@User.repository) {
+                    "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
+                }
+                return super.add(element)
             }
-            return super.add(element)
-        }
 
-        override fun addAll(elements: Collection<Commit>): Boolean {
-            var anyAdded = false
-            for (e in elements) {
-                if (add(e)) anyAdded = true
+            override fun addAll(elements: Collection<Commit>): Boolean {
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
             }
-            return anyAdded
         }
-    }
 
     val gitSignature: String
         get() = "${name.trim()} <${email?.trim()}>"
 
     override val uniqueKey: Key
-        get() = Key(repository.iid, gitSignature)
+        get() = Key(repository.iid, this.name)
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "User(id=$id, iid=$iid, name=$name, gitSignature=$gitSignature, repositoryId=${repository.id}, committedCommits=${committedCommits.map { it.sha }}, authoredCommits=${authoredCommits.map { it.sha }})"
+        "User(id=$id, iid=$iid, name=$name, gitSignature=$gitSignature, repositoryId=${repository.id}, committedCommits=${committedCommits.map {
+            it.sha
+        }}, authoredCommits=${authoredCommits.map { it.sha }})"
 }

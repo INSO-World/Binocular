@@ -144,6 +144,4 @@ internal fun Commit.toEntity(
         children = mutableSetOf(),
         author = author,
         committer = committer,
-    ).apply {
-        this.id = this@toEntity.id?.trim()?.toLongOrNull()
-    }
+    )

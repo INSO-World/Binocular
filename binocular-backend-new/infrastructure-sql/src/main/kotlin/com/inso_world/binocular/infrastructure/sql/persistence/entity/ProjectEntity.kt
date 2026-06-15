@@ -10,7 +10,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
@@ -87,6 +86,5 @@ internal fun Project.toEntity(): ProjectEntity =
         iid = this.iid,
         name = this@toEntity.name,
     ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
         description = this@toEntity.description
     }

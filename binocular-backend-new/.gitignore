@@ -326,3 +326,13 @@ buildNumber.properties
 mvnw
 mvnw.cmd
 .mvn/*
+**/CLAUDE.md
+.context
+.pi
+docs
+rdf
+/.mcp.json
+
+# Codebase wiki — compiled artifact, regenerated from source
+.codebase-wiki/
+/context-build/
