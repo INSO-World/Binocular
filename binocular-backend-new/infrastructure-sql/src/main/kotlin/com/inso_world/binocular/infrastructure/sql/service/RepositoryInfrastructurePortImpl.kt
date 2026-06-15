@@ -190,10 +190,13 @@ internal class RepositoryInfrastructurePortImpl :
      *    `value.project.id` is then refreshed from the resolved entity (a no-op when it was
      *    already correct).
      * 2. Assemble the full `RepositoryEntity` graph via [RepositoryAssembler.toEntity].
-     * 3. **Phase 1** — persist commits (parent/child links and branches temporarily detached).
-     * 4. **Phase 2** — re-wire commit parent/child relationships now that commits have ids.
-     * 5. **Phase 3** — re-attach branches (pointing at persisted commit heads) and flush.
-     * 6. Refresh `value` from the persisted state via [RepositoryAssembler.refresh].
+     * 3. If the project row was missing in step 1, the previously persisted `RepositoryEntity` row
+     *    (owned by that project via `cascade = [CascadeType.ALL]`) was cascade-deleted along with
+     *    it — reset `mapped.id` to `null` so the repository is treated as new (upsert).
+     * 4. **Phase 1** — persist commits (parent/child links and branches temporarily detached).
+     * 5. **Phase 2** — re-wire commit parent/child relationships now that commits have ids.
+     * 6. **Phase 3** — re-attach branches (pointing at persisted commit heads) and flush.
+     * 7. Refresh `value` from the persisted state via [RepositoryAssembler.refresh].
      *
      * ## Invariants & Requirements
      * - **New repository (`mapped.id == null`)**: must be persisted via `entityManager.persist(mapped)`,
@@ -207,6 +210,11 @@ internal class RepositoryInfrastructurePortImpl :
      *   so `project.repo` and the persisted entity are identical and no duplicate insert occurs.
      * - **Existing repository (`mapped.id != null`)**: persisted via [RepositoryDao.update]
      *   (`entityManager.merge`), unchanged from prior behavior.
+     * - **Stale repository id (`value.id` refers to a row already deleted via project cascade)**:
+     *   `mapped.id` is reset to `null` before the branch above is evaluated, so the repository row
+     *   is re-inserted (persist) rather than merged onto a non-existent row — which would otherwise
+     *   throw `ObjectOptimisticLockingFailureException`. `value.id` is refreshed with the new id via
+     *   [RepositoryAssembler.refresh] → [RepositoryMapper.refreshDomain].
      *
      * @param value The repository aggregate to update (refreshed in place with persisted ids).
      * @return The same [value] instance, refreshed with persisted identifiers.
@@ -216,8 +224,10 @@ internal class RepositoryInfrastructurePortImpl :
     override fun update(
         @Valid value: Repository,
     ): Repository {
+        val existingProject = projectDao.findByIid(value.project.iid)
+        val projectWasMissing = existingProject == null
         val entity =
-            projectDao.findByIid(value.project.iid)
+            existingProject
                 ?: run {
                     logger.debug("Project {} not found on update — persisting it (upsert)", value.project.uniqueKey)
                     projectDao.create(projectMapper.toEntity(value.project))
@@ -227,6 +237,14 @@ internal class RepositoryInfrastructurePortImpl :
         projectMapper.refreshDomain(value.project, entity)
 
         val mapped = repositoryAssembler.toEntity(value)
+
+        // The project row was missing (just re-created above via upsert), so any previously
+        // persisted RepositoryEntity row was cascade-deleted along with it. `mapped.id` still
+        // carries the stale id from `value.id` — reset it so the repository is re-inserted
+        // (persist) instead of merged onto a non-existent row (see KDoc on this method for why).
+        if (projectWasMissing) {
+            mapped.id = null
+        }
 
         // Phase 1: Save commits first (without branches and without parent/child relationships)
         // This ensures commits have database IDs before branches reference them
