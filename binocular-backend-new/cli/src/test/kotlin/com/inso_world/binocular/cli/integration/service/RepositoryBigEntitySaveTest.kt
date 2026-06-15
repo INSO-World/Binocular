@@ -1,8 +1,8 @@
 package com.inso_world.binocular.cli.integration.service
 
+import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.ProjectService
 import com.inso_world.binocular.cli.service.RepositoryService
-import com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
@@ -14,28 +14,17 @@ import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import java.time.LocalDateTime
 
-@Tag("integration")
-@ActiveProfiles("arangodb", "test")
-@SpringBootTest(
-    classes = [ArangodbTestConfig::class, ProjectService::class],
-    webEnvironment = SpringBootTest.WebEnvironment.NONE
-)
-@ContextConfiguration(initializers = [ArangodbTestConfig.Initializer::class])
 internal class RepositoryBigEntitySaveTest
     @Autowired
     constructor(
         private val repositoryService: RepositoryService,
         private val projectService: ProjectService
-    ) {
+    ) : BaseServiceTest() {
         @Test
         fun `save repository with full graph of commits and developers`() {
             // 1. Setup: Ensure a Project exists
