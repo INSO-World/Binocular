@@ -16,6 +16,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,6 +27,7 @@ import java.time.LocalDateTime
  * Tests verify that the project adapter correctly handles repository association changes
  * while respecting the domain model's set-once repo invariant.
  */
+@Tag("project")
 internal class ProjectUpdateOperationTest : BasePortNoDataTest() {
     @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort

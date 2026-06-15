@@ -113,6 +113,8 @@ internal class UserTest : BaseInfrastructureSpringTest() {
     @Test
     @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
     fun `findAll returns created users`() {
+        super.baseTearDown()
+
         val u1 =
             run {
                 val u1 = User(name = "A", repository = repository).apply { email = "a@example.com" }
@@ -137,8 +139,6 @@ internal class UserTest : BaseInfrastructureSpringTest() {
         // at least 2 (could include other users if DB not fully isolated); ensure ours are present
         val ids = all.mapNotNull { it.id }.toSet()
         assertThat(ids).containsOnly(u1.id, u2.id)
-//        val iids = all.map { it.iid }.toSet()
-//        assertContains(iids, u1.iid, u2.iid)
     }
 
     @Test

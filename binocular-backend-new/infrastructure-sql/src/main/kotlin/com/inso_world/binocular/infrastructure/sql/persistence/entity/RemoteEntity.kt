@@ -78,6 +78,4 @@ internal fun Remote.toEntity(repository: RepositoryEntity): RemoteEntity =
         name = this.name,
         url = this.url,
         repository = repository,
-    ).apply {
-        id = this@toEntity.id?.trim()?.toLongOrNull()
-    }
+    )
