@@ -11,6 +11,7 @@ import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import java.time.LocalDateTime
 
+@Tag("integration")
 @ActiveProfiles("arangodb", "test")
 @SpringBootTest(
     classes = [ArangodbTestConfig::class, ProjectService::class],
