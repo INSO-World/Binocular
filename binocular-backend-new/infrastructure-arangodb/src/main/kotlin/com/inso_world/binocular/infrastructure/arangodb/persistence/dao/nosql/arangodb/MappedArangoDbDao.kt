@@ -90,6 +90,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * @param entity The domain model to create an entity from
      * @return The created domain model
      */
+    @Deprecated("legacy from initial implementation", ReplaceWith("create(entity)"))
     override fun create(entity: D): D {
         val mappedEntity = mapper.toEntity(entity)
         val savedEntity = repository.save(mappedEntity)
@@ -107,6 +108,12 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
         val savedEntity = repository.save(mappedEntity)
         return mapper.toDomain(savedEntity)
     }
+
+    /**
+     * Saves an entity directly to the database without domain mapping.
+     * Use this when you already have an entity and want to bypass the mapper.
+     */
+    open fun createEntity(entity: E): E = repository.save(entity)
 
     /**
      * Updates an existing entity from a domain model and flushes changes

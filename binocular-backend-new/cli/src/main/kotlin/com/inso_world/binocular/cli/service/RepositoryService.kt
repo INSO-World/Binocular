@@ -6,6 +6,7 @@ import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
+import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -139,13 +140,40 @@ class RepositoryService(
         }
 
         // --- Pass 1: Ensure every incoming commit has a canonical instance ---
-        // Commits from GitIndexer already have their signatures set, so we just
-        // ensure they're tracked in our index
-        val canonicalInOrder = commits.map { canonicalizeCommit(it) }
+        // We recreate commits if they use non-canonical developers to ensure deduplication.
+        val canonicalInOrder =
+            commits.map { incoming ->
+                val key = incoming.uniqueKey
+                val existing = commitsByKey[key]
+                if (existing != null) return@map existing
+
+                // Commit is new - check if developers are canonical
+                val canonicalAuthor = canonicalizeDeveloper(incoming.author)
+                val canonicalCommitter = canonicalizeDeveloper(incoming.committer)
+
+                val finalCommit =
+                    if (canonicalAuthor != incoming.author || canonicalCommitter != incoming.committer) {
+                        // Recreate commit with canonical developers because Signature is immutable
+                        Commit(
+                            sha = incoming.sha,
+                            authorSignature = incoming.authorSignature.copy(developer = canonicalAuthor),
+                            committerSignature = incoming.committerSignature.copy(developer = canonicalCommitter),
+                            message = incoming.message,
+                            repository = repo,
+                        ).apply {
+                            this.id = incoming.id
+                            this.webUrl = incoming.webUrl
+                        }
+                    } else {
+                        incoming
+                    }
+
+                commitsByKey[key] = finalCommit
+                finalCommit
+            }
 
         // --- Pass 2: Canonicalize developers ---
-        // While we can't change the developer on an existing commit (immutable signature),
-        // we ensure the developer instances are properly indexed for future lookups
+        // (Handled in Pass 1 for new commits)
         commits.forEach { incoming ->
             canonicalizeDeveloper(incoming.author)
             canonicalizeDeveloper(incoming.committer)
@@ -211,6 +239,28 @@ class RepositoryService(
         require(repository.project.repo == repository) { "Mismatch in Repository and Project configuration" }
 
         return this.repositoryPort.create(repository)
+    }
+
+    // this is a leftover from older version, unsure if needed and correct
+    @Deprecated("Use create fun instead.")
+    fun getOrCreate(
+        gitDir: String,
+        p: Project,
+    ): Repository {
+        val find = this.findRepo(gitDir)
+        if (find == null) {
+            logger.info("Repository does not exist, creating new repository")
+            return this.repositoryPort.create(
+                Repository(
+                    // id = null,
+                    localPath = normalizePath(gitDir),
+                    project = p,
+                ),
+            )
+        } else {
+            logger.debug("Repository already exists, returning existing repository")
+            return find
+        }
     }
 
     /**

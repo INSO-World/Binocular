@@ -3,4 +3,9 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfa
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
 import com.inso_world.binocular.model.Commit
 
-internal interface ICommitDao : IDao<Commit, String>
+internal interface ICommitDao : IDao<Commit, String> {
+    fun findByRepositoryAndShaIn(
+        repoPath: String,
+        shas: Collection<String>
+    ): Iterable<Commit>
+}

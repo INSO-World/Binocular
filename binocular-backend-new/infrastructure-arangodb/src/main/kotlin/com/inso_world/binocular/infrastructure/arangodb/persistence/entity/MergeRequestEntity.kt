@@ -1,11 +1,11 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.entity
 
 import com.arangodb.springframework.annotation.Document
+import com.arangodb.springframework.annotation.Ref
 import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestAccountConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestMilestoneConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.MergeRequestNoteConnectionEntity
-import com.inso_world.binocular.model.Mention
 import org.springframework.data.annotation.Id
 
 /**
@@ -25,25 +25,27 @@ data class MergeRequestEntity(
     var state: String? = null,
     var webUrl: String? = null,
     var mentions: List<MentionEntity> = emptyList(),
+    @Ref
+    var project: ProjectEntity? = null,
     @Relations(
         edges = [MergeRequestAccountConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var accounts: List<AccountEntity> = emptyList(),
+    var accounts: Set<AccountEntity> = emptySet(),
     @Relations(
         edges = [MergeRequestMilestoneConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var milestones: List<MilestoneEntity> = emptyList(),
+    var milestones: Set<MilestoneEntity> = emptySet(),
     @Relations(
         edges = [MergeRequestNoteConnectionEntity::class],
         lazy = true,
         maxDepth = 1,
         direction = Relations.Direction.OUTBOUND,
     )
-    var notes: List<NoteEntity> = emptyList(),
+    var notes: Set<NoteEntity> = emptySet(),
 )

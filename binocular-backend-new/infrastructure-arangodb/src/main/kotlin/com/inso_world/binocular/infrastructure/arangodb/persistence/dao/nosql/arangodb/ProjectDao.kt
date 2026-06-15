@@ -27,6 +27,12 @@ internal class ProjectDao
         @Autowired
         private lateinit var repositoryDao: RepositoryDao
 
+        @Autowired
+        private lateinit var issueDao: IssueDao
+
+        @Autowired
+        private lateinit var mergeRequestDao: MergeRequestDao
+
         override fun findAllEntities(): Iterable<ProjectEntity> = this.projectRepository.findAll()
 
         @Deprecated("legacy", replaceWith = ReplaceWith("findAllEntities()"))
@@ -62,12 +68,19 @@ internal class ProjectDao
         fun create(entity: ProjectEntity): ProjectEntity {
             logger.debug("Creating new project: {}", entity)
 
-            val repository = entity.repository
-            entity.repository = null
             var savedEntity = projectRepository.save(entity)
-            entity.repository = repository
 
-            savedEntity = repository?.let {
+            // Save Issues
+            entity.issues.forEach { issue ->
+                issueDao.createEntity(issue)
+            }
+
+            // Save Merge Requests
+            entity.mergeRequests.forEach { mr ->
+                mergeRequestDao.createEntity(mr)
+            }
+
+            savedEntity = savedEntity.repository?.let {
                 val savedRepo = repositoryDao.create(it)
                 savedEntity.repository = savedRepo
                 // update so that @Ref gets updated

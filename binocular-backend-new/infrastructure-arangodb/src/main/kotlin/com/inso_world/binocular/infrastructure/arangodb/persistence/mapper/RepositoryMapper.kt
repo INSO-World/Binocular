@@ -33,6 +33,24 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
     @Autowired
     private lateinit var ctx: MappingContext
 
+    @Autowired
+    private lateinit var commitMapper: CommitMapper
+
+    @Autowired
+    private lateinit var branchMapper: BranchMapper
+
+    @Autowired
+    private lateinit var developerMapper: DeveloperMapper
+
+    @Autowired
+    private lateinit var remoteMapper: RemoteMapper
+
+    @Autowired
+    private lateinit var fileMapper: FileMapper
+
+    @Autowired
+    private lateinit var revisionMapper: RevisionMapper
+
     companion object {
         private val logger by logger()
     }
@@ -64,7 +82,8 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
                 )
 
         // Create entity and remember in context
-        val entity = domain.toEntity(owner)
+        val entity =
+            domain.toEntity(owner)
         ctx.remember(domain, entity)
 
         return entity

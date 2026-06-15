@@ -53,7 +53,8 @@ internal class BuiltinCommands
                     { ShellAssertions.assertThat(session.screen()).containsText("Index Commands") },
                     { ShellAssertions.assertThat(session.screen()).containsText("index commits") },
                     { ShellAssertions.assertThat(session.screen()).containsText("index blames") },
-                    { ShellAssertions.assertThat(session.screen()).containsText("index diffs") },
+                    // { ShellAssertions.assertThat(session.screen()).containsText("index diffs") },
+                    { ShellAssertions.assertThat(session.screen()).containsText("index issues") },
                 )
             }
         }

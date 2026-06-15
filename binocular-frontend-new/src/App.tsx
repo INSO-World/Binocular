@@ -13,7 +13,7 @@ import OtherAuthors from './components/tabs/authors/otherAuthors/otherAuthors.ts
 import TabControllerButton from './components/tabMenu/tabControllerButton/tabControllerButton.tsx';
 import SettingsGray from './assets/settings_gray.svg';
 import ExportGray from './assets/export_gray.svg';
-import { AppDispatch, RootState, useAppDispatch } from './redux';
+import { type AppDispatch, type RootState, useAppDispatch } from './redux';
 import { useSelector } from 'react-redux';
 import { setParametersDateRange, setParametersGeneral } from './redux/reducer/parameters/parametersReducer.ts';
 import SprintView from './components/tabs/sprints/sprintView/sprintView.tsx';
@@ -23,7 +23,7 @@ import FileList from './components/tabs/fileTree/fileList/fileList.tsx';
 import HelpGeneral from './components/tabs/help/helpGeneral/helpGeneral.tsx';
 import HelpComponents from './components/tabs/help/helpComponents/helpComponents.tsx';
 import DataPluginQuickSelect from './components/dataPluginQuickSelect/dataPluginQuickSelect.tsx';
-import { DatabaseSettingsDataPluginType } from './types/settings/databaseSettingsType.ts';
+import type { DatabaseSettingsDataPluginType } from './types/settings/databaseSettingsType.ts';
 import { setAuthorsDataPluginId } from './redux/reducer/data/authorsReducer.ts';
 import { setFilesDataPluginId } from './redux/reducer/data/filesReducer.ts';
 import TabControllerButtonThemeSwitch from './components/tabMenu/tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx';
@@ -32,6 +32,7 @@ import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
 import FileSearch from './components/tabs/fileTree/fileSearch/fileSearch.tsx';
 import { TabAlignment } from './types/general/tabType.ts';
+import LayoutSelector from './components/tabs/layouts/layoutSelector/layoutSelector.tsx';
 
 function App() {
   // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -41,22 +42,25 @@ function App() {
   const dispatch: AppDispatch = useAppDispatch();
   const parametersGeneral = useSelector((state: RootState) => state.parameters.parametersGeneral);
   const parametersDateRange = useSelector((state: RootState) => state.parameters.parametersDateRange);
-  const avaliableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
+  const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
   const [authorsDataPlugin, setAuthorsDataPlugin] = useState();
+
+  const settingsInitialized = useSelector((state: RootState) => state.settings.initialized);
+  const dashboardInitialized = useSelector((state: RootState) => state.dashboard.initialized);
 
   useEffect(() => {
     setAuthorsDataPlugin(
       authorsDataPluginId !== undefined
-        ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === authorsDataPluginId)
+        ? availableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === authorsDataPluginId)
         : undefined,
     );
-  }, [authorsDataPluginId, avaliableDataPlugins]);
+  }, [authorsDataPluginId, availableDataPlugins]);
 
   const filesDataPluginId = useSelector((state: RootState) => state.files.dataPluginId);
   const filesDataPlugin =
     filesDataPluginId !== undefined
-      ? avaliableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)
+      ? availableDataPlugins.find((dP: DatabaseSettingsDataPluginType) => dP.id === filesDataPluginId)
       : undefined;
   const [fileSearch, setFileSearch] = useState('');
 
@@ -67,7 +71,7 @@ function App() {
     // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
     DatabaseLoaders.loadJsonFilesToPouchDB(dispatch)
       .then(() => {
-        console.log('PUCHDB LOADED');
+        console.log('POUCHDB LOADED');
       })
       .catch((error) => {
         console.log('ERROR LOADING POUCHDB');
@@ -75,6 +79,13 @@ function App() {
       });
     // #v-endif
   }, []);
+
+  useEffect(() => {
+    const setupDialog: HTMLDialogElement = document.getElementById('setupDialog') as HTMLDialogElement;
+    if (!setupDialog.open && (!settingsInitialized || !dashboardInitialized)) {
+      setupDialog.showModal();
+    }
+  }, [settingsInitialized, dashboardInitialized]);
 
   return (
     <>
@@ -126,6 +137,11 @@ function App() {
             </TabSection>
             <TabSection name={'Add Sprint'}>
               <AddSprint></AddSprint>
+            </TabSection>
+          </Tab>
+          <Tab displayName={'Layouts'} alignment={TabAlignment.top}>
+            <TabSection name={'Layouts Selector'}>
+              <LayoutSelector></LayoutSelector>
             </TabSection>
           </Tab>
           <Tab displayName={'Authors'} alignment={TabAlignment.right}>

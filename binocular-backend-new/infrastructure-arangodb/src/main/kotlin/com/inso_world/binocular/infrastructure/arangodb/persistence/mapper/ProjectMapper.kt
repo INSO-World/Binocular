@@ -37,6 +37,9 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
     @Autowired
     private lateinit var mergeRequestMapper: MergeRequestMapper
 
+    @Autowired
+    private lateinit var milestoneMapper: MilestoneMapper
+
     companion object {
         private val logger by logger()
     }
@@ -59,6 +62,10 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
                 issues = domain.issues.map { issueMapper.toEntity(it) }
                 mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }
             }
+
+        entity.issues = domain.issues.map { issueMapper.toEntity(it).apply { project = entity } }
+        entity.mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it).apply { project = entity } }
+        entity.milestones = domain.milestones.map { milestoneMapper.toEntity(it).apply { project = entity } }
 
         ctx.remember(domain, entity)
         return entity

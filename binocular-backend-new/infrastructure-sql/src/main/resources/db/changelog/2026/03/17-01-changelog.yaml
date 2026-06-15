@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1773770859668-10
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: platform_iid
+                  type: INT
+            tableName: issues
+  - changeSet:
+      id: 1773770859668-3
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropColumn:
+            columnName: iid
+            tableName: issues
+  - changeSet:
+      id: 1773770859668-4
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+            tableName: issues
+

@@ -41,10 +41,81 @@ data class Project(
         val name: String
     ) // value object for lookups
 
-    val issues: MutableSet<Issue> = mutableSetOf()
-//        object : NonRemovingMutableSetSet<Issue>() {}
+    val accounts: MutableSet<Account> =
+        object : NonRemovingMutableSet<Account>() {
+            override fun add(element: Account): Boolean {
+                // TODO require that project is in projects of account
 
-    val mergeRequests: MutableSet<MergeRequest> = mutableSetOf()
+                val added = super.add(element)
+                return added
+            }
+
+            override fun addAll(elements: Collection<Account>): Boolean {
+                // for bulk-adds make sure each one gets the same treatment
+                var anyAdded = false
+                for (e in elements) {
+                    if (add(e)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
+
+    val issues: MutableSet<Issue> =
+        object : NonRemovingMutableSet<Issue>() {
+            override fun add(element: Issue): Boolean {
+                require(element.project == this@Project.iid) {
+                    "Issue.project (${element.project}) doesn't match the project (${this@Project.iid})."
+                }
+                val added = super.add(element)
+                return added
+            }
+
+            override fun addAll(elements: Collection<Issue>): Boolean {
+                var anyAdded = false
+                for (element in elements) {
+                    if (add(element)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
+
+    val mergeRequests: MutableSet<MergeRequest> =
+        object : NonRemovingMutableSet<MergeRequest>() {
+            override fun add(element: MergeRequest): Boolean {
+                require(element.project == this@Project.iid) {
+                    "MergeRequest.project (${element.project}) doesn't match the project (${this@Project.iid})."
+                }
+                val added = super.add(element)
+                return added
+            }
+
+            override fun addAll(elements: Collection<MergeRequest>): Boolean {
+                var anyAdded = false
+                for (element in elements) {
+                    if (add(element)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
+
+    val milestones: MutableSet<Milestone> =
+        object : NonRemovingMutableSet<Milestone>() {
+            override fun add(element: Milestone): Boolean {
+                require(element.project == this@Project.iid) {
+                    "Milestone.project (${element.project}) doesn't match the project (${this@Project.iid})."
+                }
+                val added = super.add(element)
+                return added
+            }
+
+            override fun addAll(elements: Collection<Milestone>): Boolean {
+                var anyAdded = false
+                for (element in elements) {
+                    if (add(element)) anyAdded = true
+                }
+                return anyAdded
+            }
+        }
 
     var description: String? = null
 

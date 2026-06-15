@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
       - "develop"
-      #- "feature/281" #For testing
+      #- "feature/343" #For testing
   schedule:
     - cron: '30 3 * * 1' # At 03:30 on Monday, https://crontab.guru/#30_3_*_*_1
   workflow_dispatch:
@@ -98,7 +98,7 @@ jobs:
         run: npm i tsx -g
 
       - name: Run binocular
-        run: DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --no-frontend --export .
+        run: DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --export .
 
       - name: Build
         env:

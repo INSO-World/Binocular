@@ -99,7 +99,7 @@
   border: 2px dashed;
   @apply border-accent;
   margin: 0.5rem 0;
-  @apply rounded-btn;
+  @apply btn;
   display: flex;
   align-items: center;
   justify-content: center;

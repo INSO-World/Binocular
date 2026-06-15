@@ -48,8 +48,13 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
 
     fun refreshDomain(
         target: Project,
-        entity: ProjectEntity,
-    ) {
-        target.id = entity.id?.toString()
+        entity: ProjectEntity
+    ): Project {
+        setField(
+            target.javaClass.getDeclaredField("id"),
+            target,
+            entity.id?.toString()
+        )
+        return target
     }
 }

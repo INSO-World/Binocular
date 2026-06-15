@@ -37,6 +37,7 @@ class GitHub {
           name,
           assignableUsers(first: 100, after:$cursor) {
             nodes {
+              id
               login
               email
               name
@@ -96,7 +97,7 @@ class GitHub {
       .paginate(
         `query paginate($cursor: String) {
            repository(owner: "${repositoryOwner}", name: "${repositoryName}") {
-              issues(first: 100, after:$cursor) {
+              issues(first: 50, after:$cursor) {
                   totalCount
                   nodes {
                       id
@@ -178,7 +179,7 @@ class GitHub {
       .paginate(
         `query paginate($cursor: String) {
            repository(owner: "${repositoryOwner}", name: "${repositoryName}") {
-              pullRequests(first: 100, after:$cursor) {
+              pullRequests(first: 50, after:$cursor) {
                   totalCount
                   nodes {
                       id

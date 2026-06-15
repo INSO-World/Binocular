@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AppDispatch, RootState, useAppDispatch } from '../../../../../redux';
+import { type AppDispatch, type RootState, useAppDispatch } from '../../../../../redux';
 import { addSprint, saveSprint } from '../../../../../redux/reducer/data/sprintsReducer.ts';
 import { addNotification } from '../../../../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../../../../types/general/alertType.ts';
@@ -55,7 +55,7 @@ function AddSprintDialogSingleTab() {
       <div className={'modal-action'}>
         {sprintToEdit ? (
           <button
-            className={'btn btn-sm btn-success text-base-100 mr-4'}
+            className={'btn btn-sm btn-primary text-base-100 mr-4'}
             onClick={() => {
               if (name.length > 0) {
                 dispatch(addNotification({ text: `Edited Sprint: ${name}`, type: AlertType.success }));
@@ -69,7 +69,7 @@ function AddSprintDialogSingleTab() {
           </button>
         ) : (
           <button
-            className={'btn btn-sm btn-success text-base-100 mr-4'}
+            className={'btn btn-sm btn-primary text-base-100 mr-4'}
             onClick={() => {
               if (name.length > 0) {
                 dispatch(addNotification({ text: `Added Sprint: ${name}`, type: AlertType.success }));
@@ -83,7 +83,7 @@ function AddSprintDialogSingleTab() {
           </button>
         )}
         <form method={'dialog'}>
-          <button className={'btn btn-sm btn-accent'}>Close</button>
+          <button className={'btn btn-sm btn-ghost'}>Close</button>
         </form>
       </div>
     </>

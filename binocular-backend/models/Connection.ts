@@ -155,12 +155,15 @@ export default class Connection<ConnectionDataType, FromDataType, ToDataType> {
   ) {
     if (this.collection === undefined) {
       throw Error('Collection undefined!');
+    } else {
+      this.log('connect %o %o', { from: fromTo.from._id, to: fromTo.to._id }, data);
+      const doc = {
+        ...data,
+        _from: fromTo.from._id,
+        _to: fromTo.to._id,
+      };
+      return this.collection.save(doc);
     }
-    this.log('connect %o %o', { from: fromTo.from._id, to: fromTo.to._id }, data);
-    data = data || {};
-    data._from = fromTo.from._id;
-    data._to = fromTo.to._id;
-    return Promise.resolve(this.collection.save(data));
   }
 
   parse(data: (ConnectionDataType & { _id: string; _key: string; _from: string; _to: string }) | null): Entry<ConnectionDataType> | null {

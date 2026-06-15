@@ -3,17 +3,19 @@ import { createRef, useEffect, useRef, useState } from 'react';
 import DashboardItem from './dashboardItem/dashboardItem.tsx';
 import { DragResizeMode } from './resizeMode.ts';
 import { useSelector } from 'react-redux';
-import { AppDispatch, RootState, store, useAppDispatch } from '../../redux';
+import { type AppDispatch, type RootState, store, useAppDispatch } from '../../redux';
 import {
   addDashboardItem,
+  clearDashboard,
   deleteDashboardItem,
   moveDashboardItem,
   placeDashboardItem,
+  setDashboardState,
   updateDashboardItem,
 } from '../../redux/reducer/general/dashboardReducer.ts';
 import { SettingsGeneralGridSize } from '../../types/settings/generalSettingsType.ts';
-import { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
-import { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
+import type { DashboardItemDTO, DashboardItemType } from '../../types/general/dashboardItemType.ts';
+import type { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
 import { addNotification } from '../../redux/reducer/general/notificationsReducer.ts';
 import { AlertType } from '../../types/general/alertType.ts';
 import {
@@ -26,6 +28,7 @@ import {
 } from './dashboardHelper.ts';
 import _ from 'lodash';
 import { DragDropElementType } from '../../types/general/dragDropElementType.ts';
+import { debounce } from 'throttle-debounce';
 
 function Dashboard() {
   const dispatch: AppDispatch = useAppDispatch();
@@ -70,8 +73,12 @@ function Dashboard() {
 
   // eslint-disable-next-line prefer-const
   let [dashboardItems, setDashboardItems] = useState(store.getState().dashboard.dashboardItems);
+  // naming due to duplicate function setDashboardState in reducer
   // eslint-disable-next-line prefer-const
-  let [dashboardState, setDashboardState] = useState(store.getState().dashboard.dashboardState);
+  let [dashboardState1, setDashboardState1] = useState(store.getState().dashboard.dashboardState);
+
+  const [dashboardHeight, setDashboardHeight] = useState(dashboardRef.current?.offsetHeight);
+  const [dashboardWidth, setDashboardWidth] = useState(dashboardRef.current?.offsetWidth);
 
   const placeableItem: DashboardItemType = useSelector((state: RootState) => state.dashboard.placeableItem);
 
@@ -84,16 +91,18 @@ function Dashboard() {
       case moveDashboardItem.type:
         newDashboardItems.forEach((dashboardItem: DashboardItemType) => {
           moveResizeDashboardItem(dashboardItem, rowCount, gridMultiplier, columnCount);
-          dashboardItems = newDashboardItems;
-          dashboardState = newDashboardState;
         });
+        setDashboardItems(newDashboardItems);
+        setDashboardState1(newDashboardState);
         break;
+      case setDashboardState.type:
+      case clearDashboard.type:
       case placeDashboardItem.type:
       case addDashboardItem.type:
       case updateDashboardItem.type:
       case deleteDashboardItem.type:
         setDashboardItems(newDashboardItems);
-        setDashboardState(newDashboardState);
+        setDashboardState1(newDashboardState);
         break;
     }
   });
@@ -112,12 +121,6 @@ function Dashboard() {
       setDragResizeMode(dragResizeZoneRef, dragResizeMode, DragResizeMode.none);
     }
   }, [placeableItem]);
-
-  useEffect(() => {
-    if (dashboardRef.current !== null) {
-      setCellSize(dashboardRef.current.offsetWidth / columnCount);
-    }
-  }, [columnCount, gridSize]);
 
   function positionDashboardItem() {
     if (movingItem.current.x !== undefined && movingItem.current.y !== undefined) {
@@ -158,7 +161,7 @@ function Dashboard() {
           if (
             highlightDropArea(
               movingItem,
-              dashboardState,
+              dashboardState1,
               rowCount,
               columnCount,
               gridMultiplier,
@@ -197,7 +200,7 @@ function Dashboard() {
           if (
             highlightDropArea(
               movingItem,
-              dashboardState,
+              dashboardState1,
               rowCount,
               columnCount,
               gridMultiplier,
@@ -217,6 +220,7 @@ function Dashboard() {
                 dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
               }),
             );
+            dispatch({ type: 'RESIZE_DASHBOARD_ITEM', payload: { dashboardItemId: movingItem.current.id } });
           } else {
             dispatch(
               addNotification({
@@ -234,16 +238,54 @@ function Dashboard() {
     clearHighlightDropArea(dragIndicatorRef, columnCount, rowCount);
   }
 
+  // Dashboard Resizing
+  useEffect(() => {
+    if (dashboardRef.current !== null) {
+      setCellSize(dashboardRef.current.offsetWidth / columnCount);
+    }
+  }, [columnCount, gridSize]);
+
+  const resizeObserver = new ResizeObserver(
+    /**
+     * Throttle the resize of the dashboard to every 100ms to not overwhelm the renderer.
+     * As a general resize action triggers a resize action for every single visualization as well, this can be quite intensive.
+     */
+    debounce(100, () => {
+      requestAnimationFrame(() => {
+        if (dashboardRef.current) {
+          setCellSize(dashboardRef.current.offsetWidth / columnCount);
+          if (dashboardHeight != dashboardRef.current.offsetHeight || dashboardWidth != dashboardRef.current.offsetWidth) {
+            dispatch({ type: 'RESIZE' });
+            setDashboardHeight(dashboardRef.current.offsetHeight);
+            setDashboardWidth(dashboardRef.current.offsetWidth);
+          }
+        }
+      });
+    }),
+  );
+
+  useEffect(() => {
+    if (dashboardRef.current) {
+      resizeObserver.observe(dashboardRef.current);
+      return () => {
+        if (dashboardRef.current) {
+          resizeObserver.unobserve(dashboardRef.current);
+          resizeObserver.disconnect();
+        }
+      };
+    }
+  }, [dashboardRef, resizeObserver]);
+
   return (
     <>
       <div className={dashboardStyles.dashboard} ref={dashboardRef}>
         <div className={dashboardStyles.dashboardContent}>
           <table className={dashboardStyles.dashboardBackground}>
             <tbody>
-              {[...Array(rowCount).keys()].map((row) => {
+              {Array.from({ length: rowCount }, (_, i) => i).map((row) => {
                 return (
                   <tr key={'dashboardBackgroundRow' + row}>
-                    {[...Array(columnCount).keys()].map((col) => {
+                    {Array.from({ length: columnCount }, (_, i) => i).map((col) => {
                       return (
                         <td
                           key={'dashboardBackgroundCol' + col}
@@ -337,7 +379,7 @@ function Dashboard() {
                   gridMultiplier,
                   targetHeight,
                   placeableItem,
-                  dashboardState,
+                  dashboardState1,
                   rowCount,
                   columnCount,
                 );
@@ -360,7 +402,7 @@ function Dashboard() {
                   gridMultiplier,
                   targetHeight,
                   placeableItem,
-                  dashboardState,
+                  dashboardState1,
                   rowCount,
                   columnCount,
                 );

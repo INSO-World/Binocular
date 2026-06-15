@@ -1,11 +1,6 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
-import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.MergeRequest
-import com.inso_world.binocular.model.Milestone
-import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
 import com.inso_world.binocular.web.graphql.model.*
 import org.slf4j.Logger
@@ -107,7 +102,4 @@ class MergeRequestResolver(
     fun targetBranch(
         @Suppress("UNUSED_PARAMETER") mergeRequest: MergeRequestDto
     ): String? = null
-
-    @SchemaMapping(typeName = "mergeRequest", field = "iid")
-    fun iid(mergeRequest: MergeRequestDto): Int? = mergeRequest.iid
 }

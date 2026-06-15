@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.test.commit
 
-import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -104,7 +103,7 @@ internal class CommitUpdateOperation : BaseInfrastructureSpringTest() {
         val parentDeveloper = Developer(name = "parent author", email = "parent@example.com", repository = repository)
         val parentCommit =
             Commit(
-                sha = "0".repeat(40),
+                sha = "3F8A".repeat(10),
                 message = "parent commit",
                 authorSignature = Signature(developer = parentDeveloper, timestamp = LocalDateTime.of(2019, 12, 31, 23, 59, 59)),
                 repository = repository,

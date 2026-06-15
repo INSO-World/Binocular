@@ -2,6 +2,9 @@ package com.inso_world.binocular.infrastructure.sql.unit.mapper.base
 
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.unit.base.BaseUnitTest
+import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RemoteMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
@@ -13,15 +16,20 @@ internal open class BaseMapperTest : BaseUnitTest() {
     lateinit var ctx: MappingContext
     lateinit var projectMapper: ProjectMapper
     lateinit var repositoryMapper: RepositoryMapper
+    lateinit var branchMapper: BranchMapper
     lateinit var remoteMapper: RemoteMapper
+    lateinit var commitMapper: CommitMapper
+    lateinit var accountMapper: AccountMapper
 
     @BeforeEach
     fun setUp() {
         ctx = spyk(MappingContext())
 
+        accountMapper = spyk(AccountMapper())
+        commitMapper = spyk(CommitMapper())
+        branchMapper = spyk(BranchMapper())
         remoteMapper = spyk(RemoteMapper())
         repositoryMapper = spyk(RepositoryMapper())
-
 
         projectMapper = spyk(ProjectMapper())
 
@@ -48,8 +56,35 @@ internal open class BaseMapperTest : BaseUnitTest() {
 //            )
         }
 
+        // wire up commitMapper
+        with(commitMapper) {
+            setField(
+                this.javaClass.getDeclaredField("ctx"),
+                this,
+                ctx
+            )
+        }
+
+        // wire up branchMapper
+        with(branchMapper) {
+            setField(
+                this.javaClass.getDeclaredField("ctx"),
+                this,
+                ctx
+            )
+        }
+
         // wire up remoteMapper
         with(remoteMapper) {
+            setField(
+                this.javaClass.getDeclaredField("ctx"),
+                this,
+                ctx
+            )
+        }
+
+        // wire up accountMapper
+        with(accountMapper) {
             setField(
                 this.javaClass.getDeclaredField("ctx"),
                 this,

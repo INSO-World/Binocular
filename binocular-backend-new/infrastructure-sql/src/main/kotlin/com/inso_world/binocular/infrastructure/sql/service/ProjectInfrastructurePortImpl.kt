@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
@@ -7,6 +8,8 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.assembler.ProjectAssembler
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
+import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
@@ -28,9 +31,16 @@ internal class ProjectInfrastructurePortImpl(
     @Autowired private val projectDao: IProjectDao,
 ) : AbstractInfrastructurePort<Project, ProjectEntity, Long>(Long::class),
     ProjectInfrastructurePort {
+    companion object {
+        private val logger by logger()
+    }
+
     @Lazy
     @Autowired
     private lateinit var projectAssembler: ProjectAssembler
+
+    @Autowired
+    private lateinit var ctx: MappingContext
 
     @Lazy
     @Autowired
@@ -40,8 +50,11 @@ internal class ProjectInfrastructurePortImpl(
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
 
-    @Autowired
-    private lateinit var ctx: MappingContext
+    @Lazy
+    @Autowired lateinit var accountMapper: AccountMapper
+
+    @Lazy
+    @Autowired lateinit var issueMapper: IssueMapper
 
     /**
      * Self-reference to this bean's proxy instance.
@@ -165,7 +178,64 @@ internal class ProjectInfrastructurePortImpl(
             }
         }
 
+        // Phase 0: Map existing entities to context
+        // Prevents creating duplicate entities for existing accounts/issues
+        logger.trace("Mapping existing entities to context")
+
+        // Map existing accounts
+        managedEntity.accounts.forEach { accountEntity ->
+            val domainAccount = value.accounts.find { it.uniqueKey == accountEntity.uniqueKey }
+            if (domainAccount != null) {
+                ctx.remember(domainAccount, accountEntity)
+            }
+        }
+
+        // Map existing issues
+        managedEntity.issues.forEach { issueEntity ->
+            val domainIssue = value.issues.find { it.uniqueKey == issueEntity.uniqueKey }
+            if (domainIssue != null) {
+                ctx.remember(domainIssue, issueEntity)
+            }
+        }
+
+        // Phase 1: Map and wire issues and accounts TODO
+
+        // Add or update accounts
+        logger.debug("Update accounts")
+        value.accounts.forEach { account ->
+            val accountEntity = accountMapper.toEntity(account)
+            // Only add if not already present
+            if (!managedEntity.accounts.contains(accountEntity)) {
+                managedEntity.addAccount(accountEntity)
+            }
+        }
+        logger.trace("Accounts updated")
+
+        // Add or update issues
+        logger.debug("Update issues")
+        value.issues.forEach { issue ->
+            val issueEntity = issueMapper.toEntity(issue, managedEntity)
+            // Only add if not already present
+            if (!managedEntity.issues.contains(issueEntity)) {
+                managedEntity.addIssue(issueEntity)
+            }
+
+            // Add all accounts to issue
+            issue.accounts.map { domainAccount ->
+                val accountEntity = accountMapper.toEntity(domainAccount)
+                issueEntity.addAccount(accountEntity)
+            }
+
+            // Add author connection
+            issue.author?.let { domainAuthor ->
+                val authorEntity = accountMapper.toEntity(domainAuthor)
+                issueEntity.author = authorEntity
+            }
+        }
+        logger.trace("Issues updated")
+
         val updated = super.updateEntity(managedEntity)
+        logger.trace("Update executed")
 
         // Refresh the input domain object with persisted values and return it
         this.projectMapper.refreshDomain(value, updated)
@@ -194,8 +264,13 @@ internal class ProjectInfrastructurePortImpl(
     @MappingSession
     @Transactional
     override fun saveAll(values: Collection<Project>): Iterable<Project> {
+        // Create entity-domain pairs to maintain association
         val pairs = values.map { domain -> domain to this.projectAssembler.toEntity(domain) }
+
+        // Save all entities
         val savedEntities = this.projectDao.saveAll(pairs.map { it.second })
+
+        // Refresh each domain object with its persisted entity and return the original collection
         pairs.zip(savedEntities).forEach { (pair, savedEntity) ->
             this.projectAssembler.refresh(pair.first, savedEntity)
         }
