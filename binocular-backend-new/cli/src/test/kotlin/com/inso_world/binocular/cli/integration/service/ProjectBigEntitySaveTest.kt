@@ -1,7 +1,7 @@
 package com.inso_world.binocular.cli.integration.service
 
+import com.inso_world.binocular.cli.integration.service.base.BaseServiceTest
 import com.inso_world.binocular.cli.service.ProjectService
-import com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Mention
@@ -11,27 +11,16 @@ import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import java.time.LocalDateTime
 
-@Tag("integration")
-@ActiveProfiles("arangodb", "test")
-@SpringBootTest(
-    classes = [ArangodbTestConfig::class, ProjectService::class],
-    webEnvironment = SpringBootTest.WebEnvironment.NONE
-)
-@ContextConfiguration(initializers = [ArangodbTestConfig.Initializer::class])
 internal class ProjectBigEntitySaveTest
     @Autowired
     constructor(
         private val projectService: ProjectService
-    ) {
+    ) : BaseServiceTest() {
         @Test
         fun `save project with full graph including repository and issues`() {
             // 1. Setup: Build the "Big Entity" in memory
