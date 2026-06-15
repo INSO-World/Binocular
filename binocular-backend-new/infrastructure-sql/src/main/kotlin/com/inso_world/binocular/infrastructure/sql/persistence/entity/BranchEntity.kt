@@ -125,4 +125,6 @@ internal fun Branch.toEntity(
         head = head,
         active = this.active,
         tracksFileRenames = this.tracksFileRenames,
-    )
+    ).apply {
+        id = this@toEntity.id?.trim()?.toLongOrNull()
+    }

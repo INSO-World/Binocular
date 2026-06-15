@@ -1,14 +1,19 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Project
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
@@ -23,8 +28,11 @@ import java.util.Objects
 internal data class IssueEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    var id: Long? = null,
-    var iid: Int? = null,
+    override var id: Long? = null,
+    val gid: String, // external GitHub id
+    val platformIid: Int? = null, // issue number from e.g. GitHub
+    @Convert(KotlinUuidConverter::class)
+    var iid: Issue.Id,
     var title: String? = null,
     @Column(columnDefinition = "TEXT")
     var description: String? = null,
@@ -40,12 +48,21 @@ internal data class IssueEntity(
     var state: String? = null,
     @Column(name = "web_url")
     var webUrl: String? = null,
-// @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
-// var labels: MutableList<LabelEntity> = mutableListOf()
+    // project connection
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false, updatable = false)
+    var project: ProjectEntity,
+//    @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
+//    var labels: MutableList<LabelEntity> = mutableListOf()
 // @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
 // var mentions: MutableList<MentionEntity> = mutableListOf()
-// @ManyToMany(mappedBy = "issues")
-// var accounts: MutableList<AccountEntity> = mutableListOf()
+    @ManyToMany
+    @JoinTable(
+        name = "issue_account_connections",
+        joinColumns = [JoinColumn(name = "issue_id")],
+        inverseJoinColumns = [JoinColumn(name = "account_id")],
+    )
+    var accounts: MutableSet<AccountEntity> = mutableSetOf(),
 // @ManyToMany
 // @JoinTable(
 //     name = "issue_commit_connections",
@@ -74,26 +91,123 @@ internal data class IssueEntity(
         inverseJoinColumns = [JoinColumn(name = "user_id")],
     )
     var developers: MutableList<DeveloperEntity> = mutableListOf(),
-) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", updatable = false)
+    var author: AccountEntity? = null
+) : AbstractEntity<Long, IssueEntity.Key>() {
+    data class Key(
+        val projectId: Project.Id,
+        val gid: String
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as IssueEntity
-
-        if (id != other.id) return false
-        if (iid != other.iid) return false
-        if (title != other.title) return false
-        if (description != other.description) return false
-        if (createdAt != other.createdAt) return false
-        if (closedAt != other.closedAt) return false
-        if (updatedAt != other.updatedAt) return false
-        if (state != other.state) return false
-        if (webUrl != other.webUrl) return false
-        if (developers != other.developers) return false
-
-        return true
+        if (other !is IssueEntity) return false
+        return iid == other.iid && gid == other.gid && project.iid == other.project.iid
     }
 
-    override fun hashCode(): Int = Objects.hash(id, iid, title, description, createdAt, closedAt, updatedAt, state, webUrl, developers)
+    override fun hashCode(): Int = Objects.hash(iid, gid, project.iid)
+
+    fun addAccount(account: AccountEntity) {
+        if (accounts.contains(account)) return
+
+        accounts.add(account)
+        account.issues.add(this)
+    }
+
+//    /**
+//     * Gets the mentions as domain model mentions
+//     */
+//    fun getDomainMentions(): List<Mention> {
+//        return mentions.map {
+//            Mention(
+//                commit = it.commit,
+//                createdAt = it.createdAt,
+//                closes = it.closes
+//            )
+//        }
+//    }
+//
+//    /**
+//     * Sets the mentions from domain model mentions
+//     */
+//    fun setDomainMentions(mentions: List<Mention>) {
+//        this.mentions.clear()
+//        this.mentions.addAll(mentions.map {
+//            MentionEntity(
+//                null,
+//                it.commit,
+//                it.createdAt,
+//                it.closes,
+//                null,
+//                this,
+//                null,
+//                null
+//            )
+//        })
+//    }
+//
+//    /**
+//     * Gets the labels as domain model labels
+//     */
+//    fun getDomainLabels(): List<String> {
+//        return labels.map { it.value }
+//    }
+//
+//    /**
+//     * Sets the labels from domain model labels
+//     */
+//    fun setDomainLabels(labels: List<String>) {
+//        this.labels.clear()
+//        this.labels.addAll(labels.map { LabelEntity(null, it, this, null) })
+//    }
+
+    // TODO map labels and mentions
+    fun toDomain(project: Project) =
+        Issue(
+            project = project.iid,
+            id = this.id?.toString(),
+            gid = this.gid,
+            platformIid = this.platformIid,
+            title = this.title,
+            description = this.description,
+            createdAt = this.createdAt,
+            closedAt = this.closedAt,
+            updatedAt = this.updatedAt,
+            state = this.state,
+            webUrl = this.webUrl,
+//        labels = getDomainLabels(),
+//        mentions = getDomainMentions(),
+//        notes = emptyList(),
+//        users = emptyList(),
+        )
+
+    override val uniqueKey: Key
+        get() = Key(project.iid, gid)
+
+    override fun toString(): String = "IssueEntity(id=$id, gid=$gid, title=$title)"
+}
+
+internal fun com.inso_world.binocular.model.Issue.toEntity(owner: ProjectEntity): IssueEntity {
+    val entity =
+        IssueEntity(
+            id = this.id?.toLong(),
+            iid = this.iid,
+            title = this.title,
+            description = this.description,
+            createdAt = this.createdAt,
+            closedAt = this.closedAt,
+            updatedAt = this.updatedAt,
+            state = this.state,
+            webUrl = this.webUrl,
+            gid = this.gid,
+            platformIid = this.platformIid,
+            project = owner,
+        )
+
+    // Set labels and mentions
+//    entity.setDomainLabels(this.labels)
+//    entity.setDomainMentions(this.mentions)
+
+    return entity
 }

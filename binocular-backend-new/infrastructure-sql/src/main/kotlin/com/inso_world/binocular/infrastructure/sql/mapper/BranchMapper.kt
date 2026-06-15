@@ -13,7 +13,6 @@ import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Lazy
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 import kotlin.uuid.ExperimentalUuidApi

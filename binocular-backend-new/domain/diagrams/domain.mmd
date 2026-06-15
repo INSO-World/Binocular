@@ -18,18 +18,19 @@ classDiagram
         +String name
         +String description
         +Repository repo
-        +Set~Issue~ issues
-        +Set~MergeRequest~ mergeRequests
+        +MutableSet~Issue~ issues
+        +MutableSet~MergeRequest~ mergeRequests
+        +MutableSet~Account~ accounts
     }
 
     class Repository {
         +Id iid
         +String localPath
         +Project project
-        +Set~Commit~ commits
-        +Set~Branch~ branches
-        +Set~Developer~ developers
-        +Set~Remote~ remotes
+        +MutableSet~Commit~ commits
+        +MutableSet~Branch~ branches
+        +MutableSet~Developer~ developers
+        +MutableSet~Remote~ remotes
     }
 
 %% VCS Technical Domain
@@ -80,12 +81,20 @@ classDiagram
         +Id iid
         +String title
         +String description
-        +List~Account~ accounts
-        +List~Commit~ commits
+        +Account author
+        +MutableSet~Account~ accounts
+        +MutableList~Commit~ commits
         +List~Milestone~ milestones
         +List~Note~ notes
         +List~Mention~ mentions
         +List~User~ users
+    }
+
+    class Mention {
+        +String commit
+        +LocalDateTime createdAt
+        +Boolean closes
+        +Account actor
     }
 
     class MergeRequest {
@@ -95,7 +104,8 @@ classDiagram
         +String createdAt
         +String closedAt
         +String updatedAt
-        +List~Account~ accounts
+        +Project project
+        +MutableList~Account~ accounts
         +List~Milestone~ milestones
         +List~Note~ notes
         +List~Mention~ mentions
@@ -106,6 +116,9 @@ classDiagram
         +String login
         +String name
         +Platform platform
+        +MutableSet~Issue~ issues
+        +MutableSet~MergeRequest~ mergeRequests
+        +MutableSet~Note~ notes
     }
 
     class Milestone {
@@ -141,6 +154,13 @@ classDiagram
         NOTE
         PSEUDO_REF
         UNKNOWN
+        MAIN_PSEUDO_REF
+        MAIN_REF
+        LINKED_PSEUDO_REF
+        LINKED_REF
+        BISECT
+        REWRITTEN
+        WORKTREE_PRIVATE
     }
 
     class StatsKind {
@@ -193,6 +213,7 @@ classDiagram
         +String name
         +String email
         +Repository repository
+        +MutableSet~Issue~ issues
     }
 
 %% Relationships
@@ -203,6 +224,8 @@ classDiagram
 
     Project "1" -- "0..1" Repository : scopes
     Project "1" -- "*" Issue : contains
+    Project "1" -- "*" MergeRequest : contains
+    Project "1" -- "*" Account : contains
     Repository "1" -- "*" Commit : owns
     Repository "1" -- "*" Branch : owns
     Repository "1" -- "*" Developer : involves
@@ -219,10 +242,11 @@ classDiagram
     Commit "*" -- "*" Build : triggers
     Commit "*" -- "*" Issue : references
     
+    Issue "1" -- "1" Account : authored by
     Issue "1" -- "*" Note : has
     Issue "1" -- "*" Mention : has
     Issue "*" -- "*" Milestone : belongs to
-    Issue "*" -- "*" Account : reporter/assignee
+    Issue "*" -- "*" Account : involves
     
     MergeRequest "1" -- "*" Note : has
     MergeRequest "1" -- "*" Mention : has

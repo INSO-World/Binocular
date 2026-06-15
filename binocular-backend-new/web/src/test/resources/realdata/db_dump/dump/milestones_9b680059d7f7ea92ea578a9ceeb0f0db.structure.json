@@ -1,1 +1,3 @@
-{"indexes":[],"parameters":{"allowUserKeys":true,"cacheEnabled":false,"cid":"249","computedValues":null,"deleted":false,"globallyUniqueId":"hA81F5FA25BBB/249","id":"249","internalValidatorType":0,"isDisjoint":false,"isSmart":false,"isSmartChild":false,"isSystem":false,"keyOptions":{"allowUserKeys":true,"type":"traditional","lastValue":0},"minReplicationFactor":1,"name":"milestones","numberOfShards":1,"planId":"249","replicationFactor":1,"schema":null,"shardKeys":["_key"],"shards":{},"status":3,"syncByRevision":true,"type":2,"usesRevisionsAsDocumentIds":true,"version":9,"waitForSync":false,"writeConcern":1}}
+version https://git-lfs.github.com/spec/v1
+oid sha256:943e63a13d9a5a9c5396045b9129167237d288d41dfd06db397e64a46219bde3
+size 614

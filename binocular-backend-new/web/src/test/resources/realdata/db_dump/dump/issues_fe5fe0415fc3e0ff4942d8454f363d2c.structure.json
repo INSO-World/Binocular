@@ -1,1 +1,3 @@
-{"indexes":[],"parameters":{"allowUserKeys":true,"cacheEnabled":false,"cid":"243","computedValues":null,"deleted":false,"globallyUniqueId":"hA81F5FA25BBB/243","id":"243","internalValidatorType":0,"isDisjoint":false,"isSmart":false,"isSmartChild":false,"isSystem":false,"keyOptions":{"allowUserKeys":true,"type":"traditional","lastValue":17410},"minReplicationFactor":1,"name":"issues","numberOfShards":1,"planId":"243","replicationFactor":1,"schema":null,"shardKeys":["_key"],"shards":{},"status":3,"syncByRevision":true,"type":2,"usesRevisionsAsDocumentIds":true,"version":9,"waitForSync":false,"writeConcern":1}}
+version https://git-lfs.github.com/spec/v1
+oid sha256:a1ebe8a9518173e62734ffc3d40d72d66fe76d46a031b79ab6acbae8fc8cdf96
+size 614

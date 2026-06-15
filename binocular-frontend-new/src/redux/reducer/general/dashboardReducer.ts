@@ -1,6 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
-import { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import type { DashboardItemType } from '../../../types/general/dashboardItemType.ts';
+import { cloneDeep } from 'lodash';
 
 export interface DashboardInitialState {
   dashboardItems: DashboardItemType[];
@@ -8,6 +9,7 @@ export interface DashboardInitialState {
   dashboardItemCount: number;
   popupCount: number;
   dashboardState: number[][];
+  initialized: boolean;
 }
 
 enum DashboardStateUpdateType {
@@ -22,6 +24,7 @@ const initialState: DashboardInitialState = {
   dashboardItemCount: 0,
   popupCount: 0,
   dashboardState: Array.from(Array(40), () => new Array(40).fill(0)),
+  initialized: false,
 };
 
 export const dashboardSlice = createSlice({
@@ -38,20 +41,22 @@ export const dashboardSlice = createSlice({
   reducers: {
     addDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
       state.placeableItem = undefined;
+      const payload = cloneDeep(action.payload);
       const nextFreePosition = findNextFreePosition(state.dashboardState, action.payload);
       if (nextFreePosition !== null) {
         state.dashboardItemCount++;
-        action.payload.id = state.dashboardItemCount;
-        if (action.payload.x === undefined) {
-          action.payload.x = nextFreePosition.x;
+        payload.id = state.dashboardItemCount;
+        if (payload.x === undefined) {
+          payload.x = nextFreePosition.x;
         }
-        if (action.payload.y === undefined) {
-          action.payload.y = nextFreePosition.y;
+        if (payload.y === undefined) {
+          payload.y = nextFreePosition.y;
         }
-        state.dashboardItems = [...state.dashboardItems, action.payload];
-        updateDashboardState(state.dashboardState, action.payload, DashboardStateUpdateType.place);
+        state.dashboardItems = [...state.dashboardItems, payload];
+        updateDashboardState(state.dashboardState, payload, DashboardStateUpdateType.place);
         localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
       }
+      state.initialized = true;
     },
     moveDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
       state.placeableItem = undefined;
@@ -71,6 +76,7 @@ export const dashboardSlice = createSlice({
     },
     placeDashboardItem: (state, action: PayloadAction<DashboardItemType | undefined>) => {
       state.placeableItem = action.payload;
+      state.initialized = true;
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     deleteDashboardItem: (state, action: PayloadAction<DashboardItemType>) => {
@@ -98,6 +104,42 @@ export const dashboardSlice = createSlice({
       state = action.payload;
       localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
+    clearDashboard: (state) => {
+      state.dashboardState = Array.from({ length: state.dashboardState.length }, () =>
+        Array.from({ length: state.dashboardState[0].length }, () => 0),
+      );
+
+      state.dashboardItems = [];
+      state.dashboardItemCount = 0;
+      state.placeableItem = undefined;
+      localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    setDashboardState: (state, action: PayloadAction<DashboardItemType[]>) => {
+      const dashboardItems = action.payload.map((item, id) => {
+        state.dashboardItemCount = id + 1;
+        return {
+          ...item,
+          id: id + 1,
+        };
+      });
+      state.dashboardState = Array.from(Array(40), () => new Array(40).fill(0));
+      dashboardItems.forEach((item: DashboardItemType) => {
+        if (item.x !== undefined && item.y !== undefined) {
+          for (let x = item.x; x < item.x + item.width; x++) {
+            for (let y = item.y; y < item.y + item.height; y++) {
+              state.dashboardState[y][x] = item.id;
+            }
+          }
+        }
+      });
+      state.dashboardItems = dashboardItems;
+      state.initialized = true;
+      localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    initializeDashboardState: (state) => {
+      state.initialized = true;
+      localStorage.setItem(`${dashboardSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
   },
 });
 
@@ -109,7 +151,10 @@ export const {
   updateDashboardItem,
   increasePopupCount,
   clearDashboardStorage,
+  clearDashboard,
   importDashboardStorage,
+  setDashboardState,
+  initializeDashboardState,
 } = dashboardSlice.actions;
 export default dashboardSlice.reducer;
 
@@ -163,6 +208,7 @@ function findNextFreePosition(dashboardState: number[][], item: DashboardItemTyp
           height: item.height,
           pluginName: '',
           dataPluginId: undefined,
+          settings: undefined,
         })
       ) {
         return { x: x, y: y };

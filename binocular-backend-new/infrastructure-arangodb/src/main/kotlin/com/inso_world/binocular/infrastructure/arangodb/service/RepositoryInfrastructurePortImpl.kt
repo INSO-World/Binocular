@@ -6,6 +6,7 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBranchDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IRepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
@@ -34,8 +35,9 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class RepositoryInfrastructurePortImpl :
-    AbstractInfrastructurePort<Repository, String>(),
+internal class RepositoryInfrastructurePortImpl(
+    private val branchDao: IBranchDao,
+) : AbstractInfrastructurePort<Repository, String>(),
     RepositoryInfrastructurePort {
     @PostConstruct
     fun init() {
@@ -204,15 +206,11 @@ internal class RepositoryInfrastructurePortImpl :
     override fun findExistingCommits(
         repo: Repository,
         shas: Set<String>,
-    ): Sequence<Commit> {
-        TODO("Not yet implemented")
-    }
+    ): Sequence<Commit> = commitDao.findByRepositoryAndShaIn(repo.localPath, shas).asSequence()
 
     @MappingSession
     override fun findBranch(
         repository: Repository,
         name: String,
-    ): Branch? {
-        TODO("Not yet implemented")
-    }
+    ): Branch? = branchDao.findByRepositoryAndName(repository.localPath, name)
 }

@@ -64,6 +64,9 @@ internal class NoteMapper
                 internal = domain.internal,
                 imported = domain.imported,
                 importedFrom = domain.importedFrom,
+                accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
+                issues = domain.issues.map { issueMapper.toEntity(it) }.toSet(),
+                mergeRequests = domain.mergeRequests.map { mergeRequestMapper.toEntity(it) }.toSet(),
             )
 
         /**
@@ -79,36 +82,45 @@ internal class NoteMapper
             // Fast-path: Check if already mapped
             ctx.findDomain<Note, NoteEntity>(entity)?.let { return it }
 
-            return Note(
-                id = entity.id,
-                body = entity.body,
-                createdAt = entity.createdAt,
-                updatedAt = entity.updatedAt,
-                system = entity.system,
-                resolvable = entity.resolvable,
-                confidential = entity.confidential,
-                internal = entity.internal,
-                imported = entity.imported,
-                importedFrom = entity.importedFrom,
-                accounts =
-                    proxyFactory.createLazyList {
-                        (entity.accounts ?: emptyList()).map { accountEntity ->
-                            accountMapper.toDomain(accountEntity)
-                        }
-                    },
-                issues =
-                    proxyFactory.createLazyList {
-                        (entity.issues ?: emptyList()).map { issueEntity ->
-                            issueMapper.toDomain(issueEntity)
-                        }
-                    },
-                mergeRequests =
-                    proxyFactory.createLazyList {
-                        (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
-                            mergeRequestMapper.toDomain(mergeRequestEntity)
-                        }
-                    },
+            val domain =
+                Note(
+                    id = entity.id,
+                    body = entity.body,
+                    createdAt = entity.createdAt,
+                    updatedAt = entity.updatedAt,
+                    system = entity.system,
+                    resolvable = entity.resolvable,
+                    confidential = entity.confidential,
+                    internal = entity.internal,
+                    imported = entity.imported,
+                    importedFrom = entity.importedFrom,
+                )
+
+            domain.issues.addAll(
+                proxyFactory.createLazyList {
+                    (entity.issues ?: emptyList()).map { issueEntity ->
+                        issueMapper.toDomain(issueEntity)
+                    }
+                }
             )
+
+            domain.mergeRequests.addAll(
+                proxyFactory.createLazyList {
+                    (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
+                        mergeRequestMapper.toDomain(mergeRequestEntity)
+                    }
+                }
+            )
+
+            domain.accounts.addAll(
+                proxyFactory.createLazyList {
+                    (entity.accounts ?: emptyList()).map { accountEntity ->
+                        accountMapper.toDomain(accountEntity)
+                    }
+                }
+            )
+
+            return domain
         }
 
         override fun toDomainList(entities: Iterable<NoteEntity>): List<Note> = entities.map { toDomain(it) }

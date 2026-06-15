@@ -6,9 +6,11 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MergeRequestEntity
 import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for MergeRequest domain objects.
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Component
  * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
  * mentions but uses lazy loading for accounts, milestones, and notes to optimize performance.
  */
+@OptIn(ExperimentalUuidApi::class)
 @Component
 internal class MergeRequestMapper
     @Autowired
@@ -67,9 +70,9 @@ internal class MergeRequestMapper
                 state = domain.state,
                 webUrl = domain.webUrl,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
-                accounts = domain.accounts.map { accountMapper.toEntity(it) },
-                milestones = domain.milestones.map { milestoneMapper.toEntity(it) },
-                notes = domain.notes.map { noteMapper.toEntity(it) },
+                accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
+                milestones = domain.milestones.map { milestoneMapper.toEntity(it) }.toSet(),
+                notes = domain.notes.map { noteMapper.toEntity(it) }.toSet(),
             )
 
         /**
@@ -85,37 +88,50 @@ internal class MergeRequestMapper
             // Fast-path: Check if already mapped
             ctx.findDomain<MergeRequest, MergeRequestEntity>(entity)?.let { return it }
 
-            return MergeRequest(
-                id = entity.id,
-                platformIid = entity.iid,
-                title = entity.title,
-                description = entity.description,
-                createdAt = entity.createdAt,
-                closedAt = entity.closedAt,
-                updatedAt = entity.updatedAt,
-                labels = entity.labels,
-                state = entity.state,
-                webUrl = entity.webUrl,
-                mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-                accounts =
-                    proxyFactory.createLazyList {
-                        (entity.accounts ?: emptyList()).map { accountEntity ->
-                            accountMapper.toDomain(accountEntity)
-                        }
-                    },
-                milestones =
-                    proxyFactory.createLazyList {
-                        (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                            milestoneMapper.toDomain(milestoneEntity)
-                        }
-                    },
-                notes =
-                    proxyFactory.createLazyList {
-                        (entity.notes ?: emptyList()).map { noteEntity ->
-                            noteMapper.toDomain(noteEntity)
-                        }
-                    },
+            val domain =
+                MergeRequest(
+                    project =
+                        entity.project?.let { Project.Id(it.iid!!) }
+                            ?: ctx.findDomain<Project, MergeRequestEntity>(entity)?.iid
+                            ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
+                    id = entity.id,
+                    platformIid = entity.iid,
+                    title = entity.title,
+                    description = entity.description,
+                    createdAt = entity.createdAt,
+                    closedAt = entity.closedAt,
+                    updatedAt = entity.updatedAt,
+                    labels = entity.labels,
+                    state = entity.state,
+                    webUrl = entity.webUrl,
+                    mentions = entity.mentions.map { mentionMapper.toDomain(it) },
+                )
+
+            domain.milestones.addAll(
+                proxyFactory.createLazyList {
+                    (entity.milestones ?: emptyList()).map { milestoneEntity ->
+                        milestoneMapper.toDomain(milestoneEntity)
+                    }
+                }
             )
+
+            domain.notes.addAll(
+                proxyFactory.createLazyList {
+                    (entity.notes ?: emptyList()).map { noteEntity ->
+                        noteMapper.toDomain(noteEntity)
+                    }
+                }
+            )
+
+            domain.accounts.addAll(
+                proxyFactory.createLazyList {
+                    (entity.accounts ?: emptyList()).map { accountEntity ->
+                        accountMapper.toDomain(accountEntity)
+                    }
+                }
+            )
+
+            return domain
         }
 
         /**

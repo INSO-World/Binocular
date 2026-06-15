@@ -2,6 +2,8 @@ package com.inso_world.binocular.infrastructure.sql.assembler
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
+import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.model.Project
@@ -50,6 +52,14 @@ internal class ProjectAssembler {
     private lateinit var repositoryAssembler: RepositoryAssembler
 
     @Autowired
+    @Lazy
+    private lateinit var accountMapper: AccountMapper
+
+    @Autowired
+    @Lazy
+    private lateinit var issueMapper: IssueMapper
+
+    @Autowired
     private lateinit var ctx: MappingContext
 
     /**
@@ -89,7 +99,35 @@ internal class ProjectAssembler {
             logger.trace("Wired Repository to Project: repoId=${repoEntity.id}")
         }
 
-        logger.debug("Assembled ProjectEntity with id=${entity.id}, hasRepository=${entity.repo != null}")
+        // Phase 3: Map Accounts
+        domain.accounts.forEach { account ->
+            logger.trace("Mapping Accounts for Project")
+            val accountEntity = accountMapper.toEntity(account)
+            entity.addAccount(accountEntity)
+        }
+
+        // Phase 4: Map and wire Issues (with assignees and author)
+        domain.issues.forEach { issue ->
+            val issueEntity = issueMapper.toEntity(issue, entity)
+            entity.addIssue(issueEntity)
+
+            // author
+            issue.author?.let { author ->
+                val authorEntity = accountMapper.toEntity(author)
+                issueEntity.author = authorEntity
+            }
+
+            // assignees
+            issue.accounts.forEach { acc ->
+                val assigneeEntity = accountMapper.toEntity(acc)
+                issueEntity.addAccount(assigneeEntity)
+            }
+        }
+
+        logger.debug(
+            "Assembled ProjectEntity with id=${entity.id}, hasRepository=${entity.repo != null}+" +
+                "accounts=${entity.accounts.size}, issues=${entity.issues.size}"
+        )
         return entity
     }
 
@@ -129,7 +167,35 @@ internal class ProjectAssembler {
             logger.trace("Wired Repository to Project: ${repository.localPath}")
         }
 
-        logger.debug("Assembled Project domain: ${domain.name}, hasRepository=${domain.repo != null}")
+        // Phase 3: Map Accounts
+        entity.accounts.forEach { account ->
+            logger.trace("Mapping Accounts for Project")
+            val accountDomain = accountMapper.toDomain(account)
+            domain.accounts.add(accountDomain)
+        }
+
+        // Phase 4: Map and wire Issues (with assignees and author)
+        entity.issues.forEach { issue ->
+            val issueDomain = issueMapper.toDomain(issue, domain)
+            domain.issues.add(issueDomain)
+
+            // author
+            issue.author?.let { author ->
+                val authorDomain = accountMapper.toDomain(author)
+                issueDomain.author = authorDomain
+            }
+
+            // assignees
+            issue.accounts.forEach { acc ->
+                val assigneeDomain = accountMapper.toDomain(acc)
+                issueDomain.accounts.add(assigneeDomain)
+            }
+        }
+
+        logger.debug(
+            "Assembled Project domain: ${domain.name}, hasRepository=${domain.repo != null}," +
+                "accounts=${domain.accounts.size}, issues=${domain.issues.size}"
+        )
         return domain
     }
 

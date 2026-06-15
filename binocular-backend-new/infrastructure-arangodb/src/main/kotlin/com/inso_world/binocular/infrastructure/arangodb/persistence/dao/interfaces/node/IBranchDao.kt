@@ -8,4 +8,9 @@ internal interface IBranchDao : IDao<Branch, String> {
     fun findByName(name: String): Branch?
 
     fun findByIid(iid: Reference.Id): Branch?
+
+    fun findByRepositoryAndName(
+        repoPath: String,
+        name: String
+    ): Branch?
 }

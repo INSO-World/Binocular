@@ -90,6 +90,16 @@ open class MappingContext {
         return e2dByObjectIdentity[objKey] as? D
     }
 
+    /**
+     * Special findDomain that doesn't care about the entity type if searching by ID,
+     * or uses a fallback object if provided.
+     */
+    @Suppress("UNCHECKED_CAST")
+    open fun <D : Any> findDomainById(
+        type: KClass<D>,
+        id: Any
+    ): D? = e2d[EntityKey(type, id)] as? D
+
     // ========================= Remember ===========================
 
     /**

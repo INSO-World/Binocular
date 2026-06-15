@@ -59,4 +59,12 @@ internal class CommitDao(
             }
         return Page(content, result.totalElements, pageable)
     }
+
+    override fun findByRepositoryAndShaIn(
+        repoPath: String,
+        shas: Collection<String>
+    ): Iterable<Commit> =
+        commitRepository.findByRepositoryAndShaIn(repoPath, shas).map {
+            commitMapper.toDomain(it)
+        }
 }

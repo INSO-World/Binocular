@@ -1,1 +1,3 @@
-{"indexes":[],"parameters":{"allowUserKeys":true,"cacheEnabled":false,"cid":"346","computedValues":null,"deleted":false,"globallyUniqueId":"hA81F5FA25BBB/346","id":"346","internalValidatorType":0,"isDisjoint":false,"isSmart":false,"isSmartChild":false,"isSystem":false,"keyOptions":{"allowUserKeys":true,"type":"traditional","lastValue":490492},"minReplicationFactor":1,"name":"modules-files","numberOfShards":1,"planId":"346","replicationFactor":1,"schema":null,"shardKeys":["_key"],"shards":{},"status":3,"syncByRevision":true,"type":3,"usesRevisionsAsDocumentIds":true,"version":9,"waitForSync":false,"writeConcern":1}}
+version https://git-lfs.github.com/spec/v1
+oid sha256:515c3f6c3c89a7a399271650dad1053552230e8269eb37f06292fe180293ee85
+size 622

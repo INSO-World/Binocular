@@ -1,7 +1,6 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.ModuleDto
 import org.junit.jupiter.api.Assertions.assertAll
@@ -29,7 +28,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "${TestDataProvider.testModules[0].id}") {
+                    module(id: "1") {
                         id
                         path
                     }
@@ -57,7 +56,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "${TestDataProvider.testModules[0].id}") {
+                    module(id: "1") {
                         id
                         path
                         commits {
@@ -87,8 +86,8 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
             val commit = commits.get(0)
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertEquals("a".repeat(40), commit.get("sha").asText(), "Commit SHA mismatch") },
-                { assertEquals("msg1", commit.get("message").asText(), "Commit message mismatch") },
+                { assertEquals("abc1230000000000000000000000000000000000", commit.get("sha").asText(), "Commit SHA mismatch") },
+                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
             )
         }
 
@@ -99,7 +98,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "${TestDataProvider.testModules[0].id}") {
+                    module(id: "1") {
                         id
                         path
                         files {
@@ -141,7 +140,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "${TestDataProvider.testModules[0].id}") {
+                    module(id: "1") {
                         id
                         path
                         childModules {
@@ -181,7 +180,7 @@ internal class ModuleResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    module(id: "${TestDataProvider.testModules[1].id}") {
+                    module(id: "2") {
                         id
                         path
                         parentModules {

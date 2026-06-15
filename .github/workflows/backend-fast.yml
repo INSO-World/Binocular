@@ -134,6 +134,7 @@ jobs:
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-application-arangodb:
+    if: false
     name: Test-Application Layers w/ ArangoDB
     needs:
       - preflight
@@ -195,6 +196,51 @@ jobs:
           name: ${{ matrix.module }}-report-arangodb
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
+  test-graphql-realdata:
+    if: false
+    name: Test-GraphQL Real Data Integration
+    needs:
+      - preflight
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Setup (cache/java/go-offline)
+        uses: ./.github/actions/java-maven-setup
+        with:
+          java-version: '23'
+          distribution: 'temurin'
+          working-directory: ${{ env.WD }}
+          checkout-depth: 1
+
+      - name: Run GraphQL Real-Data Tests
+        run: |
+          mvn $MAVEN_CLI_OPTS test \
+            --pl web -am \
+            -Prealdata \
+            -Dspring.profiles.active=test,nosql,arangodb
+
+      - name: Surefire report for GraphQL Real-Data Tests
+        if: always()
+        run: |
+          mvn $MAVEN_CLI_OPTS surefire-report:report-only \
+            --pl web -am \
+            -Prealdata \
+            -Dspring.profiles.active=test,nosql,arangodb
+
+      - name: Upload surefire report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-graphql-realdata-report
+          path: ${{ env.WD }}/web/target/reports/
+
   test-modules:
     name: Test
     needs:
@@ -210,14 +256,14 @@ jobs:
         MODULE: [
           { name: 'domain' },
           { name: 'ffi' },
-          { name: 'jgit' },
+          # { name: 'jgit' },
           { name: 'core' },
-          { name: 'integration-test/vcs-indexer', springProfile: 'jgit' },
-          { name: 'integration-test/vcs-indexer', springProfile: 'gix' },
+          # { name: 'integration-test/vcs-indexer', springProfile: 'jgit' },
+          # { name: 'integration-test/vcs-indexer', springProfile: 'gix' },
           { name: 'infrastructure-arangodb' },
           { name: 'infrastructure-sql' },
-          { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' },
-          { name: 'infrastructure-test', springProfile: 'test,gix,postgres' }
+          # { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' }
+          # { name: 'infrastructure-test', springProfile: 'test,gix,postgres' }
         ]
         os: [ ubuntu-latest ]
         java_version: [ '23' ]

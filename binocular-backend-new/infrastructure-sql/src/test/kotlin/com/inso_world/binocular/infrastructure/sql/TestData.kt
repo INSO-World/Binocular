@@ -1,21 +1,28 @@
 package com.inso_world.binocular.infrastructure.sql
 
+import com.inso_world.binocular.infrastructure.sql.TestData.Entity.testAccountEntity
+import com.inso_world.binocular.infrastructure.sql.TestData.Entity.testProjectEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RemoteEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Platform
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
 import com.inso_world.binocular.model.User
-import com.inso_world.binocular.model.vcs.Remote
 import com.inso_world.binocular.model.vcs.ReferenceCategory
+import com.inso_world.binocular.model.vcs.Remote
 import java.time.LocalDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -37,13 +44,14 @@ internal object TestData {
             id: Long? = 1L,
             description: String? = "this is a description",
             iid: Project.Id = Project.Id(Uuid.random())
-        ): ProjectEntity = ProjectEntity(
-            name = name,
-            iid = iid
-        ).apply {
-            this.description = description
-            this.id = id
-        }
+        ): ProjectEntity =
+            ProjectEntity(
+                name = name,
+                iid = iid
+            ).apply {
+                this.description = description
+                this.id = id
+            }
 
         /**
          * Creates a test CommitEntity persistence entity with customizable parameters.
@@ -63,30 +71,33 @@ internal object TestData {
             commitDateTime: LocalDateTime = authorDateTime,
             message: String?,
             repository: RepositoryEntity,
-            author: DeveloperEntity = testDeveloperEntity(
-                name = "Author-${sha.take(6)}",
-                email = "author-${sha.take(6)}@example.com",
-                repository = repository,
-            ),
-            committer: DeveloperEntity? = testDeveloperEntity(
-                name = "Committer-${sha.take(6)}",
-                email = "${sha.take(6)}@example.com",
-                repository = repository,
-            ),
+            author: DeveloperEntity =
+                testDeveloperEntity(
+                    name = "Author-${sha.take(6)}",
+                    email = "author-${sha.take(6)}@example.com",
+                    repository = repository,
+                ),
+            committer: DeveloperEntity? =
+                testDeveloperEntity(
+                    name = "Committer-${sha.take(6)}",
+                    email = "${sha.take(6)}@example.com",
+                    repository = repository,
+                ),
             iid: Commit.Id = Commit.Id(Uuid.random()),
             id: Long? = null,
-        ): CommitEntity = CommitEntity(
-            sha = sha,
-            authorDateTime = authorDateTime,
-            commitDateTime = commitDateTime,
-            message = message,
-            repository = repository,
-            iid = iid,
-            author = author,
-            committer = committer ?: author
-        ).apply {
-            this.id = id
-        }
+        ): CommitEntity =
+            CommitEntity(
+                sha = sha,
+                authorDateTime = authorDateTime,
+                commitDateTime = commitDateTime,
+                message = message,
+                repository = repository,
+                iid = iid,
+                author = author,
+                committer = committer ?: author
+            ).apply {
+                this.id = id
+            }
 
         /**
          * Creates a test DeveloperEntity persistence entity with customizable parameters.
@@ -104,14 +115,15 @@ internal object TestData {
             repository: RepositoryEntity,
             iid: Developer.Id = Developer.Id(Uuid.random()),
             id: Long? = null
-        ): DeveloperEntity = DeveloperEntity(
-            name = name,
-            email = email,
-            repository = repository,
-            iid = iid
-        ).apply {
-            this.id = id
-        }
+        ): DeveloperEntity =
+            DeveloperEntity(
+                name = name,
+                email = email,
+                repository = repository,
+                iid = iid
+            ).apply {
+                this.id = id
+            }
 
         @Deprecated("Use testDeveloperEntity", ReplaceWith("testDeveloperEntity(name,email,repository,iid,id)"))
         fun testUserEntity(
@@ -139,18 +151,20 @@ internal object TestData {
             localPath: String = "TestRepository",
             id: Long? = 1L,
             iid: Repository.Id = Repository.Id(Uuid.random()),
-            project: ProjectEntity = testProjectEntity(
-                name = "TestProject",
-                id = 1L,
-                description = "A test project"
-            )
-        ): RepositoryEntity = RepositoryEntity(
-            iid = iid,
-            localPath = localPath,
-            project = project
-        ).apply {
-            this.id = id
-        }
+            project: ProjectEntity =
+                testProjectEntity(
+                    name = "TestProject",
+                    id = 1L,
+                    description = "A test project"
+                )
+        ): RepositoryEntity =
+            RepositoryEntity(
+                iid = iid,
+                localPath = localPath,
+                project = project
+            ).apply {
+                this.id = id
+            }
 
         /**
          * Creates a test BranchEntity persistence entity with customizable parameters.
@@ -170,16 +184,110 @@ internal object TestData {
             category: ReferenceCategory = ReferenceCategory.LOCAL_BRANCH,
             iid: Reference.Id = Reference.Id(Uuid.random()),
             id: Long? = null
-        ): BranchEntity = BranchEntity(
-            name = name,
-            fullName = fullName,
-            category = category,
-            repository = repository,
-            head = head,
-            iid = iid
-        ).apply {
-            this.id = id
-        }
+        ): BranchEntity =
+            BranchEntity(
+                name = name,
+                fullName = fullName,
+                category = category,
+                repository = repository,
+                head = head,
+                iid = iid
+            ).apply {
+                this.id = id
+            }
+
+        /**
+         * Creates a test AccountEntity persistence entity with default or customizable parameters.
+         *
+         * @param gid The global platform-specific identifier (e.g., GitHub ID).
+         * @param login The login or username on the external platform.
+         * @param name The display name of the account (optional).
+         * @param avatarUrl The URL to the user's avatar image (optional).
+         * @param url The URL to the user's profile on the platform (optional).
+         * @param platform The platform the account belongs to (default: com.inso_world.binocular.model.Platform#GitHub).
+         * @param iid The internal immutable identifier.
+         * @param id The Long database identifier, or null.
+         * @param projects A mutable set of ProjectEntity instances this account is associated with.
+         *
+         * @return A new AccountEntity instance configured with the specified parameters.
+         */
+        fun testAccountEntity(
+            gid: String = "MPJAODF29843jiwp98u293834ewsfcs",
+            login: String = "testlogin",
+            name: String? = null,
+            avatarUrl: String? = null,
+            url: String? = null,
+            platform: Platform = Platform.GitHub,
+            iid: Account.Id = Account.Id(Uuid.random()),
+            id: Long? = null,
+            projects: MutableSet<ProjectEntity> = mutableSetOf(testProjectEntity())
+        ): AccountEntity =
+            AccountEntity(
+                gid = gid,
+                login = login,
+                name = name,
+                avatarUrl = avatarUrl,
+                url = url,
+                platform = platform,
+                iid = iid,
+                projects = projects
+            ).apply {
+                this.id = id
+            }
+
+        /**
+         * Creates a test IssueEntity persistence entity with default or customizable parameters.
+         *
+         * @param gid The global platform-specific identifier for the issue (e.g., GitHub ID).
+         * @param iid The internal immutable identifier.
+         * @param title The title of the issue.
+         * @param description The description of the issue.
+         * @param createdAt The creation timestamp.
+         * @param closedAt The closing timestamp.
+         * @param updatedAt The last update timestamp.
+         * @param state The state of the issue, e.g., "open" or "closed".
+         * @param webUrl The URL to the issue on the platform.
+         * @param project The owning ProjectEntity.
+         * @param accounts List of AccountEntity assigned to this issue.
+         * @param users List of UserEntity involved in this issue.
+         * @param author The author (AccountEntity) of the issue.
+         * @param id The Long database identifier, or null.
+         *
+         * @return A new IssueEntity instance configured with the specified parameters.
+         */
+        fun testIssueEntity(
+            gid: String = "MWERJKD2394750sf709a8s7f8970sa7df9",
+            iid: Issue.Id = Issue.Id(Uuid.random()),
+            title: String? = "Test Issue",
+            description: String? = "This is a test issue.",
+            createdAt: LocalDateTime? = LocalDateTime.now(),
+            closedAt: LocalDateTime? = null,
+            updatedAt: LocalDateTime? = LocalDateTime.now(),
+            state: String? = "open",
+            webUrl: String? = "https://example.com/issues/1000",
+            project: ProjectEntity = testProjectEntity(),
+            accounts: MutableSet<AccountEntity> = mutableSetOf(testAccountEntity()),
+            developers: MutableList<DeveloperEntity> = mutableListOf(),
+            author: AccountEntity? = testAccountEntity(),
+            id: Long? = null
+        ): IssueEntity =
+            IssueEntity(
+                gid = gid,
+                iid = iid,
+                title = title,
+                description = description,
+                createdAt = createdAt,
+                closedAt = closedAt,
+                updatedAt = updatedAt,
+                state = state,
+                webUrl = webUrl,
+                project = project,
+                accounts = accounts,
+                developers = developers,
+                author = author,
+            ).apply {
+                this.id = id
+            }
 
         fun testRemoteEntity(
             name: String,
@@ -187,14 +295,15 @@ internal object TestData {
             repository: RepositoryEntity,
             iid: Remote.Id = Remote.Id(Uuid.random()),
             id: Long? = null
-        ): RemoteEntity = RemoteEntity(
-            name = name,
-            url = url,
-            repository = repository,
-            iid = iid
-        ).apply {
-            this.id = id
-        }
+        ): RemoteEntity =
+            RemoteEntity(
+                name = name,
+                url = url,
+                repository = repository,
+                iid = iid
+            ).apply {
+                this.id = id
+            }
     }
 
     object Domain {
@@ -210,10 +319,11 @@ internal object TestData {
             name: String = "test project",
             id: String? = null,
             description: String? = "this is a description"
-        ): Project = Project(name = name).apply {
-            this.id = id
-            this.description = description
-        }
+        ): Project =
+            Project(name = name).apply {
+                this.id = id
+                this.description = description
+            }
 
         /**
          * Creates a test Commit domain object with customizable parameters.
@@ -233,11 +343,12 @@ internal object TestData {
             commitDateTime: LocalDateTime?,
             message: String?,
             repository: Repository,
-            author: Developer = testDeveloper(
-                name = "Author-${sha.take(6)}",
-                email = "author-${sha.take(6)}@example.com",
-                repository = repository
-            ),
+            author: Developer =
+                testDeveloper(
+                    name = "Author-${sha.take(6)}",
+                    email = "author-${sha.take(6)}@example.com",
+                    repository = repository
+                ),
             committer: Developer = author,
             id: String? = null,
         ): Commit {
@@ -270,17 +381,19 @@ internal object TestData {
         fun testRepository(
             localPath: String = "TestRepo",
             id: String? = "10",
-            project: Project = testProject(
-                name = "TestProject",
-                id = "1",
-                description = "A test project"
-            )
-        ): Repository = Repository(
-            localPath = localPath,
-            project = project
-        ).apply {
-            this.id = id
-        }
+            project: Project =
+                testProject(
+                    name = "TestProject",
+                    id = "1",
+                    description = "A test project"
+                )
+        ): Repository =
+            Repository(
+                localPath = localPath,
+                project = project
+            ).apply {
+                this.id = id
+            }
 
         /**
          * Creates a test Developer domain object with customizable parameters.
@@ -329,27 +442,116 @@ internal object TestData {
             fullName: String = name,
             category: ReferenceCategory = ReferenceCategory.LOCAL_BRANCH,
             id: String? = null
-        ): Branch = Branch(
-            name = name,
-            fullName = fullName,
-            category = category,
-            repository = repository,
-            head = head
-        ).apply {
-            this.id = id
-        }
+        ): Branch =
+            Branch(
+                name = name,
+                fullName = fullName,
+                category = category,
+                repository = repository,
+                head = head
+            ).apply {
+                this.id = id
+            }
+
+        /**
+         * Creates a test Account domain object with default or customizable parameters.
+         *
+         * @param gid The global platform-specific identifier (e.g., GitHub ID).
+         * @param login The login or username on the external platform.
+         * @param name The display name of the account (optional).
+         * @param avatarUrl The URL to the user's avatar image (optional).
+         * @param url The URL to the user's profile on the platform (optional).
+         * @param platform The platform the account belongs to (default: com.inso_world.binocular.model.Platform#GitHub).
+         * @param id The Long database identifier, or null.
+         * @param projects A mutable set of ProjectEntity instances this account is associated with.
+         *
+         * @return A new Account domain object configured with the specified parameters.
+         */
+        fun testAccount(
+            gid: String = "MPJAODF29843jiwp98u293834ewsfcs",
+            login: String = "testlogin",
+            name: String? = null,
+            avatarUrl: String? = null,
+            url: String? = null,
+            platform: Platform = Platform.GitHub,
+            id: String? = null,
+            projects: MutableSet<Project> = mutableSetOf(testProject())
+        ): Account =
+            Account(
+                gid = gid,
+                login = login,
+                platform = platform,
+                projects = projects
+            ).apply {
+                this.id = id
+                this.name = name
+                this.avatarUrl = avatarUrl
+                this.url = url
+            }
+
+        /**
+         * Creates a test Issue domain object with default or customizable parameters.
+         *
+         * @param gid The global platform-specific identifier for the issue (e.g., GitHub ID).
+         * @param title The title of the issue.
+         * @param description The description of the issue.
+         * @param createdAt The creation timestamp.
+         * @param closedAt The closing timestamp.
+         * @param updatedAt The last update timestamp.
+         * @param state The state of the issue, e.g., "open" or "closed".
+         * @param webUrl The URL to the issue on the platform.
+         * @param project The owning ProjectEntity.
+         * @param accounts List of AccountEntity assigned to this issue.
+         * @param users List of UserEntity involved in this issue.
+         * @param author The author (AccountEntity) of the issue.
+         * @param id The Long database identifier, or null.
+         *
+         * @return A new Issue domain object configured with the specified parameters.
+         */
+        fun testIssue(
+            gid: String = "MWERJKD2394750sf709a8s7f8970sa7df9",
+            title: String? = "Test Issue",
+            description: String? = "This is a test issue.",
+            createdAt: LocalDateTime? = LocalDateTime.now(),
+            closedAt: LocalDateTime? = null,
+            updatedAt: LocalDateTime? = LocalDateTime.now(),
+            state: String? = "open",
+            webUrl: String? = "https://example.com/issues/1000",
+            project: Project = testProject(),
+            accounts: MutableSet<Account> = mutableSetOf(testAccount()),
+            users: MutableList<User> = mutableListOf(),
+            author: Account? = null,
+            id: String? = null
+        ): Issue =
+            Issue(
+                gid = gid,
+                title = title,
+                description = description,
+                createdAt = createdAt,
+                closedAt = closedAt,
+                updatedAt = updatedAt,
+                state = state,
+                webUrl = webUrl,
+                project = project.iid,
+            ).apply {
+                this.id = id
+                this.accounts.addAll(accounts)
+                this.users = users
+                this.author = author
+            }
 
         fun testRemote(
             name: String = "origin",
             url: String = "https://example.com/repo.git",
             repository: Repository,
             id: String? = null
-        ): Remote = Remote(
-            name = name,
-            url = url,
-            repository = repository
-        ).apply {
-            this.id = id
-        }
+        ): Remote =
+            Remote(
+                name = name,
+                url = url,
+                repository = repository
+            ).apply {
+                this.id = id
+            }
     }
 }

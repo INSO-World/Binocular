@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { RootState } from '../../redux';
+import type { RootState } from '../../redux';
 import { ExportType } from '../../redux/reducer/export/exportReducer.ts';
 
 function ExportDialog() {
@@ -34,7 +34,7 @@ function ExportDialog() {
               style={{ height: '30rem' }}
               dangerouslySetInnerHTML={{ __html: exportSVGData }}></div>
             <button
-              className={'btn btn-accent'}
+              className={'btn btn-primary'}
               onClick={() => {
                 const svgBlob = new Blob([exportSVGData], { type: 'image/svg+xml;charset=utf-8' });
                 const svgUrl = URL.createObjectURL(svgBlob);
@@ -50,7 +50,7 @@ function ExportDialog() {
         <div className={'modal-action'}>
           <form method={'dialog'}>
             {/* if there is a button in form, it will close the modal */}
-            <button className={'btn btn-sm btn-accent'}>Close</button>
+            <button className={'btn btn-sm btn-ghost'}>Close</button>
           </form>
         </div>
       </div>

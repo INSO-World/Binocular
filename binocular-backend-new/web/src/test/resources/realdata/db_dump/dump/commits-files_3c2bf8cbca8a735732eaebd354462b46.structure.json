@@ -1,1 +1,3 @@
-{"indexes":[],"parameters":{"allowUserKeys":true,"cacheEnabled":false,"cid":"286","computedValues":null,"deleted":false,"globallyUniqueId":"hA81F5FA25BBB/286","id":"286","internalValidatorType":0,"isDisjoint":false,"isSmart":false,"isSmartChild":false,"isSystem":false,"keyOptions":{"allowUserKeys":true,"type":"traditional","lastValue":490537},"minReplicationFactor":1,"name":"commits-files","numberOfShards":1,"planId":"286","replicationFactor":1,"schema":null,"shardKeys":["_key"],"shards":{},"status":3,"syncByRevision":true,"type":3,"usesRevisionsAsDocumentIds":true,"version":9,"waitForSync":false,"writeConcern":1}}
+version https://git-lfs.github.com/spec/v1
+oid sha256:1114c5cd352276db9892d141c29634aaa93bcdecd759a6daa800182bc197b3da
+size 622

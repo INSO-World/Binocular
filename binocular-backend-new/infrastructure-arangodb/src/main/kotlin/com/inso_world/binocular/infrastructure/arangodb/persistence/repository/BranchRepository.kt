@@ -10,6 +10,12 @@ import kotlin.uuid.Uuid
 
 @Repository
 interface BranchRepository : ArangoRepository<BranchEntity, String> {
+    @Query("FOR b IN branches FILTER b.repository.localPath == @repoPath AND b.branch == @name RETURN b")
+    fun findByRepositoryAndName(
+        @Param("repoPath") repoPath: String,
+        @Param("name") name: String
+    ): BranchEntity?
+
     fun findByName(branch: String): BranchEntity?
 
     /**
