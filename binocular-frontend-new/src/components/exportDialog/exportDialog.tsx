@@ -205,7 +205,7 @@ function ExportDialog() {
             setPreviewTable(name);
             e.stopPropagation();
           }}>
-          <Icon name="show" size="w-5 h-5" colorClass="" />
+          <Icon name="show" size="w-5 h-5" colorClass="inherit" />
         </button>
       </div>
     );
@@ -299,10 +299,10 @@ function ExportDialog() {
               {/* Step 3: View and Download Data */}
               <p className="font-bold text-base">3. View and Download Data</p>
               <div className="flex gap-2 mb-3">
-                <button className="btn btn-sm btn-outline" onClick={selectAll}>
+                <button className="btn btn-sm btn-primary" onClick={selectAll}>
                   Select All
                 </button>
-                <button className="btn btn-sm btn-ghost" onClick={deselectAll}>
+                <button className="btn btn-sm btn-outline" onClick={deselectAll}>
                   Deselect All
                 </button>
               </div>
