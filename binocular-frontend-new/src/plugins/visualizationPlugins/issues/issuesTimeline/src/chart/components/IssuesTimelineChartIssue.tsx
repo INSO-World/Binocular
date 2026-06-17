@@ -62,7 +62,7 @@ export const IssuesTimelineChartIssue: React.FC<
           : coloringMode === 'time-spent'
             ? findAuthorWithMaxSpentTime(aggregateTimeTrackingData(extractTimeTrackingDataFromNotes(notes)).aggregatedTimeTrackingData)
             : undefined) ?? '',
-    )?.main ?? 'lightgrey';
+    )?.main ?? 'var(--color-base-300)';
 
   return (
     <>
@@ -93,8 +93,9 @@ export const IssuesTimelineChartIssue: React.FC<
           width={w}
           height={h}
           style={{ display: h > 25 ? undefined : 'none' }}
+          fill={'var(--color-base-content)'}
           paintOrder={'stroke'}
-          stroke={'white'}
+          stroke={'var(--color-base-100)'}
           strokeWidth={2}>
           #{iid}
         </text>

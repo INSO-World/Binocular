@@ -1,5 +1,5 @@
 import React from 'react';
-import folderIcon from '../../assets/folder-open-regular-full.svg';
+import { Icon } from '../../../../../../components/icon';
 import type { FolderWithRatio } from './commitByFileViz.tsx';
 
 type FolderViewProps = {
@@ -55,7 +55,7 @@ export const FolderView: React.FC<FolderViewProps> = ({ folder, isVertical, boun
               style={{
                 ...style,
                 backgroundColor: getFileColour(childNode.stats.additions, childNode.stats.deletions),
-                border: '2px solid #3182ce',
+                border: '2px solid var(--color-primary)',
                 borderRadius: '10px',
                 padding: '4px',
                 position: 'relative',
@@ -68,7 +68,7 @@ export const FolderView: React.FC<FolderViewProps> = ({ folder, isVertical, boun
               }}
               title={`Folder ${childName}  — +${childNode.stats.additions} / -${childNode.stats.deletions}`}
               onClick={() => onNavigate(childName)}>
-              <img src={folderIcon} alt="Folder Icon" style={{ width: '1.4rem', height: '1.4rem', color: '#3182ce', marginRight: '5px' }} />{' '}
+              <Icon name="folder" size="w-5 h-5" colorClass="primary" className="mr-1 shrink-0" />
               {childName}
             </div>
           );

@@ -10,6 +10,7 @@ import type { FileOwnershipCollection, OwnershipData, PreviousFileData } from '.
 import { DataState, setCurrentBranch } from '../reducer';
 import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
+import { filterOtherAuthors } from '../../../../../../utils/authorUtils.ts';
 
 function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: VisualizationPluginProperties<SettingsType, DataType>) {
   // /!*
@@ -183,9 +184,13 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
     }
 
     //get all users
-    const selectedAuthors = props.authorList.filter((author) => author.selected && author.parent == -1);
-    const mergedAuthors = props.authorList.filter((author) => author.selected && author.parent > 0);
-    const otherAuthors = props.authorList.filter((author) => author.selected && author.parent == 0);
+    const authorById = new Map(props.authorList.map((a) => [a.id, a]));
+    const selectedAuthors = props.authorList.filter((author) => author.selected && author.parent === -1);
+    const otherAuthors = filterOtherAuthors(props.authorList);
+    const mergedAuthors = props.authorList.filter((author) => {
+      if (!author.selected || author.parent <= 0) return false;
+      return authorById.get(author.parent)?.parent === -1;
+    });
     const tempKeys: string[] = selectedAuthors.map((author) => author.user.gitSignature);
 
     // Build palette with { main, secondary } format for simpleVis StackedAreaChart.
@@ -292,7 +297,7 @@ function Chart<SettingsType extends CodeOwnerShipSettings, DataType>(props: Visu
         {dataState === DataState.EMPTY && <div>NoData</div>}
         {dataState === DataState.FETCHING && (
           <div>
-            <span className="loading loading-spinner loading-lg text-accent"></span>
+            <span className="loading loading-spinner loading-lg text-primary"></span>
           </div>
         )}
         {dataState !== DataState.FETCHING && ownershipData.length > 0 && chartData.length > 0 && (

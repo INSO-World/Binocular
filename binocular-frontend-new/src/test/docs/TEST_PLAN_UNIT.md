@@ -568,7 +568,7 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 |---|---|---|
 | U26.1 | `setDragging` updates `dragging` flag | `dragging === true` |
 | U26.2 | `moveAuthorToOther` sets `parent = 0` for the target author | `a.parent === 0` |
-| U26.3 | `moveAuthorToOther` also sets `parent = 0` for children | child `parent === 0` |
+| U26.3 | `moveAuthorToOther` — children of the target keep their parent reference | child `parent === targetId` |
 | U26.4 | `resetAuthor` sets `parent = -1` for the target author | `a.parent === -1` |
 | U26.5 | `setParentAuthor` sets the parent relationship | `a.parent === 1` |
 | U26.6 | `setParentAuthor` ignores self-assignment | parent unchanged |
@@ -581,7 +581,7 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U26.13 | `setAuthorList` dispatched twice with identical data — no duplicate authors | list length remains 2 |
 | U26.14 | `switchAllAuthorSelection` — all-unselected list → all become selected | all `selected === true` |
 | U26.15 | `switchAllAuthorSelection` — all-selected list → all become unselected | all `selected === false` |
-| U26.16 | `moveAuthorToOther` — author AND its children all get `parent = 0` | parent and both children have `parent === 0` |
+| U26.16 | `moveAuthorToOther` — author gets `parent = 0`, children keep their parent reference | target `parent === 0`, children `parent === targetId` |
 
 ---
 
@@ -809,6 +809,11 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U37.6 | `splitSpentRemoved:true, splitTimePerIssue:false` — palette keys contain `"(Spent)"` and `"(Removed)"` |
 | U37.7 | `breakdown:true, splitSpentRemoved:false, splitTimePerIssue:false` — palette keys contain `"(Total)"` |
 | U37.8 | `splitSpentRemoved:true, splitTimePerIssue:true` — palette keys contain `"(Spent)"` and `"(Removed)"` for issue |
+| U37.9 | `breakdown:true + splitSpentRemoved:true` — palette has `(Spent)`/`(Removed)` series, not `(Total)` |
+| U37.10 | `breakdown:true + splitSpentRemoved:true` — all `(Spent)` values ≥ 0, all `(Removed)` values ≤ 0 |
+| U37.11 | `breakdown:true + splitSpentRemoved:true` — cumulative totals match input: 2 h spent → `(Spent) = 2.0`, 30 m removed → `(Removed) = -0.5` |
+| U37.12 | `breakdown:true + splitSpentRemoved:true` — no value drifts to ≈ −1 from stale `−0.001` accumulation over ~1 000 daily buckets |
+| U37.13 | `breakdown:true + splitSpentRemoved:true` — two "Others" group members (2 h + 3 h) sum to `(Spent) others = 5 h`, not last-author-wins |
 
 ---
 
@@ -1189,6 +1194,30 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 
 ---
 
+## U57 — `expertise/codeExpertise/calculateOwnershipMetrics`
+**File**: `src/test/unit/plugins/visualizationPlugins/expertise/codeExpertise/calculateOwnershipMetrics.test.ts`
+**Source**: `src/plugins/visualizationPlugins/expertise/codeExpertise/src/chart/chart.tsx`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U57.1 | Returns empty totals when both inputs are empty | `ownershipData: []`, `commitsWithBuilds: []` | `currentOwnership: {}`, `totalLinesAdded: {}` |
+| U57.2 | Sums additions from a single commit for one developer | one build with `additions: 42` | `totalLinesAdded['Alice'] === 42` |
+| U57.3 | Accumulates additions across multiple commits for the same developer | two builds with 10 and 5 additions | `totalLinesAdded['Alice'] === 15` |
+| U57.4 | Tracks additions separately per developer | Alice 10, Bob 7 | each has their own total |
+| U57.5 | Skips commits with no user without throwing | build with `user: null` | does not throw; `totalLinesAdded` is empty |
+| U57.6 | Returns empty ownership when ownershipData is empty | `ownershipData: []` | `currentOwnership: {}` |
+| U57.7 | Counts lines owned as `to - from + 1` for a single range | range `[3, 7]` | `currentOwnership['Alice'] === 5` |
+| U57.8 | Sums multiple line ranges within a hunk | `[1,3]` and `[10,12]` | `currentOwnership['Alice'] === 6` |
+| U57.9 | Tracks ownership separately for multiple owners of the same file | Alice owns lines 1–5, Bob owns 6–8 | Alice=5, Bob=3 |
+| U57.10 | Includes all files when fileList is undefined | `fileList: undefined` | file is counted |
+| U57.11 | Includes a file when it is checked in fileList | `fileList: [{ path, checked: true }]` | file is counted |
+| U57.12 | Excludes a file when it is unchecked in fileList | `fileList: [{ path, checked: false }]` | file is not counted |
+| U57.13 | Removes a file from ownership tracking when its action is deleted | add commit then delete commit | `currentOwnership['Alice']` is undefined |
+| U57.14 | Later commit replaces earlier ownership for the same file | commit 1: Alice owns 10 lines; commit 2: Bob owns 3 lines | Bob=3, Alice=undefined |
+| U57.15 | Accumulates ownership across multiple independent files | Alice owns 5 lines in a.ts and 3 in b.ts | `currentOwnership['Alice'] === 8` |
+
+---
+
 ## Unit test file locations
 
 ```
@@ -1234,6 +1263,7 @@ src/test/unit/
 │       │       └── dataConverter.test.ts                               (U2)
 │       ├── expertise/
 │       │   ├── codeExpertise/
+│       │   │   ├── calculateOwnershipMetrics.test.ts                   (U57)
 │       │   │   └── dbUtils.test.ts                                     (U3)
 │       │   └── knowledgeRadar/
 │       │       └── dataConverter.test.ts                               (U38)

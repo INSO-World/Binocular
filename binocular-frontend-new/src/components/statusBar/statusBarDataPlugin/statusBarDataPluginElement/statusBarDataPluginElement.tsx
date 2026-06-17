@@ -5,9 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { Store } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 import { SocketConnectionStatusType } from '../../../../types/general/socketConnectionType.ts';
-import ConnectedToApi from '../../../../assets/connected_to_api_blue.svg';
-import ConnectedToApiFailed from '../../../../assets/connected_to_api_failed_red.svg';
-import Idle from '../../../../assets/idle_blue.svg';
+import { Icon } from '../../../icon';
 import { store as globalStore } from '../../../../redux';
 import { updateDashboardItem } from '../../../../redux/reducer/general/dashboardReducer.ts';
 import type { DashboardItemType } from '../../../../types/general/dashboardItemType.ts';
@@ -72,12 +70,12 @@ function StatusBarDataPlugin(props: {
               {props.dataPluginConfig.name} #{props.dataPluginConfig.id}
             </span>
           )}
-          {socketConnection.status === SocketConnectionStatusType.Idle && <img className={'inline h-4 ml-2'} src={Idle} alt={'idle'} />}
+          {socketConnection.status === SocketConnectionStatusType.Idle && <Icon name="idle" className={'inline h-4 ml-2'} />}
           {socketConnection.status === SocketConnectionStatusType.Connected && (
-            <img className={'inline h-4 ml-2'} src={ConnectedToApi} alt={'idle'} />
+            <Icon name="connected_to_api" className={'inline h-4 ml-2'} />
           )}
           {socketConnection.status === SocketConnectionStatusType.Disconnected && (
-            <img className={'inline h-4 ml-2'} src={ConnectedToApiFailed} alt={'idle'} />
+            <Icon name="connected_to_api_failed" className={'inline h-4 ml-2'} />
           )}
         </div>
         {props.dataPluginConfig.parameters.progressUpdate?.useAutomaticUpdate ? (
@@ -87,19 +85,19 @@ function StatusBarDataPlugin(props: {
               <div>
                 {socketConnection.status === SocketConnectionStatusType.Idle && (
                   <span className={statusBarDataPluginElementStyles.connectionStatus}>
-                    <img className={'inline h-4 mr-2'} src={Idle} alt={'idle'} />
+                    <Icon name="idle" className={'inline h-4 mr-2'} />
                     Idle
                   </span>
                 )}
                 {socketConnection.status === SocketConnectionStatusType.Connected && (
                   <span className={statusBarDataPluginElementStyles.connectionStatus}>
-                    <img className={'inline h-4 mr-2'} src={ConnectedToApi} alt={'idle'} />
+                    <Icon name="connected_to_api" className={'inline h-4 mr-2'} />
                     Connected
                   </span>
                 )}
                 {socketConnection.status === SocketConnectionStatusType.Disconnected && (
                   <span className={statusBarDataPluginElementStyles.connectionStatus}>
-                    <img className={'inline h-4 mr-2'} src={ConnectedToApiFailed} alt={'idle'} />
+                    <Icon name="connected_to_api_failed" className={'inline h-4 mr-2'} />
                     Disconnected
                   </span>
                 )}
@@ -111,7 +109,7 @@ function StatusBarDataPlugin(props: {
                 Commits: {progress.report.commits.processed}/{progress.report.commits.total}
               </div>
               <progress
-                className="progress w-56 progress-accent"
+                className="progress w-56 progress-primary"
                 value={progress.report.commits.processed}
                 max={progress.report.commits.total}></progress>
             </div>
@@ -120,7 +118,7 @@ function StatusBarDataPlugin(props: {
                 Issues: {progress.report.issues.processed}/{progress.report.issues.total}
               </div>
               <progress
-                className="progress w-56 progress-accent"
+                className="progress w-56 progress-primary"
                 value={progress.report.issues.processed}
                 max={progress.report.issues.total}></progress>
             </div>
@@ -129,7 +127,7 @@ function StatusBarDataPlugin(props: {
                 Builds: {progress.report.builds.processed}/{progress.report.builds.total}
               </div>
               <progress
-                className="progress w-56 progress-accent"
+                className="progress w-56 progress-primary"
                 value={progress.report.builds.processed}
                 max={progress.report.builds.total}></progress>
             </div>
@@ -138,7 +136,7 @@ function StatusBarDataPlugin(props: {
                 Files: {progress.report.files.processed}/{progress.report.files.total}
               </div>
               <progress
-                className="progress w-56 progress-accent"
+                className="progress w-56 progress-primary"
                 value={progress.report.files.processed}
                 max={progress.report.files.total}></progress>
             </div>
@@ -147,7 +145,7 @@ function StatusBarDataPlugin(props: {
                 Modules: {progress.report.modules.processed}/{progress.report.modules.total}
               </div>
               <progress
-                className="progress w-56 progress-accent"
+                className="progress w-56 progress-primary"
                 value={progress.report.modules.processed}
                 max={progress.report.modules.total}></progress>
             </div>
@@ -156,7 +154,7 @@ function StatusBarDataPlugin(props: {
                 Milestones: {progress.report.milestones.processed}/{progress.report.milestones.total}
               </div>
               <progress
-                className="progress w-56 progress-accent"
+                className="progress w-56 progress-primary"
                 value={progress.report.milestones.processed}
                 max={progress.report.milestones.total}></progress>
             </div>
@@ -165,7 +163,7 @@ function StatusBarDataPlugin(props: {
                 Merge Requests: {progress.report.mergeRequests.processed}/{progress.report.mergeRequests.total}
               </div>
               <progress
-                className="progress w-56 progress-accent"
+                className="progress w-56 progress-primary"
                 value={progress.report.mergeRequests.processed}
                 max={progress.report.mergeRequests.total}></progress>
             </div>
