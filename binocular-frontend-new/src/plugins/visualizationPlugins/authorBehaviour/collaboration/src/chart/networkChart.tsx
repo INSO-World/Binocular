@@ -114,7 +114,7 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
     const linkSelection = container
       .append('g')
       .attr('class', 'links')
-      .attr('stroke', '#000')
+      .style('stroke', 'var(--color-base-content)')
       .attr('stroke-opacity', 0.6)
       .selectAll('line')
       .data(data.links)
@@ -277,6 +277,10 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
     }
   }, [data, width, height, colorScale, clipId, hasData]);
 
+  function tooltipOffset(coord: number, viewportSize: number, gap = 15): number {
+    return coord + (coord >= viewportSize / 2 ? -gap : gap);
+  }
+
   function showLinkTooltip(link: LinkType, x: number, y: number) {
     const sectionLabel: CSSProperties = {
       fontSize: '10px',
@@ -313,7 +317,7 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={item}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(128,128,128,0.2)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-base-200)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
                 <span>{issue.title}</span>
               </a>
@@ -332,7 +336,7 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={item}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(128,128,128,0.2)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-base-200)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
                 <span>{mr.title}</span>
               </a>
@@ -342,7 +346,13 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
       </div>
     );
 
-    showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, x, y, { headline: '', reactContent: content });
+    const ax = tooltipOffset(x, document.body.clientWidth);
+    const ay = tooltipOffset(y, document.body.clientHeight);
+    showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, ax, ay, {
+      headline: '',
+      reactContent: content,
+      borderColor: colorScale((link.source as NodeType).group),
+    });
   }
 
   function showNodeTooltip(node: NodeType, x: number, y: number) {
@@ -351,7 +361,13 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
         <div style={{ fontSize: '13px', fontWeight: 500 }}>{node.name || node.url}</div>
       </div>
     );
-    showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, x + 20, y + 20, { headline: '', reactContent: content });
+    const ax = tooltipOffset(x, document.body.clientWidth);
+    const ay = tooltipOffset(y, document.body.clientHeight);
+    showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, ax, ay, {
+      headline: '',
+      reactContent: content,
+      borderColor: colorScale(node.group),
+    });
   }
 
   function hideTooltip() {
@@ -369,7 +385,7 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
             left: 0,
             width: width,
             height: height,
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            backgroundColor: 'var(--color-base-100)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

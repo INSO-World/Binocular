@@ -4,6 +4,7 @@ import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInter
 import type { AuthorType } from '../../../../../../types/data/authorType.ts';
 import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties.ts';
 import type { SumSettings } from '../settings/settings.tsx';
+import { filterOtherAuthors } from '../../../../../../utils/authorUtils.ts';
 
 interface ColumnChartData {
   user: string;
@@ -56,6 +57,7 @@ export function convertToChartData(
   const palette: Palette = {};
   const parentAuthors = props.authorList.filter((a) => a.parent === -1 && a.selected);
   const knownIds = new Set(props.authorList.map((a) => a.user.id));
+  const otherGroupAuthors = filterOtherAuthors(props.authorList);
 
   function trimLabel(label: string): string {
     const maxLength = 15;
@@ -106,6 +108,38 @@ export function convertToChartData(
           : undefined,
     });
   });
+
+  /**
+   * Sum up commits from authors in the "Other" group (and their children)
+   */
+  if (props.settings.showOther && otherGroupAuthors.length > 0) {
+    otherGroupAuthors.forEach((a) => {
+      palette[a.user.gitSignature] = {
+        main: chroma(a.color.main).hex(),
+        secondary: chroma(a.color.secondary).hex(),
+      };
+    });
+    const otherSignatures = otherGroupAuthors.map((a) => a.user.gitSignature);
+    const otherTotal = _.sumBy(otherSignatures, (sig) => countsByUser[sig] ?? 0);
+    const otherCommits = _.flatMap(otherSignatures, (sig) => commitsByUser[sig] ?? []);
+    if (otherTotal > 0) {
+      chartData.push({
+        user: 'others',
+        gitSignature: 'others',
+        value: otherTotal,
+        avgCommitsPerWeek: avgCommitsPerWeek(otherCommits),
+        segments:
+          otherGroupAuthors.length > 1
+            ? otherGroupAuthors.map((a) => ({
+                label: trimLabel(a.user.gitSignature),
+                gitSignature: a.user.gitSignature,
+                value: countsByUser[a.user.gitSignature] ?? 0,
+              }))
+            : undefined,
+      });
+      palette['others'] = { main: '#555555', secondary: '#777777' };
+    }
+  }
 
   /**
    *  optional: sum up commits from unknown users

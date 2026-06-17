@@ -49,7 +49,7 @@
 
   --color-primary: "#0c74bb";
   --color-primary-content: "#FFFFFF";
-  --color-accent: "#555555";
+  --color-accent: "#3d6680";
   --color-accent-content:"#FFFFFF";
   --color-neutral: "#CCC";
   --color-neutral-content:"#555";
@@ -78,6 +78,10 @@
   /* effects */
   --depth: 1;
   --noise: 0;
+
+  /* custom shadows */
+  --shadow-default: 0 0 3px oklch(0 0 0 / 0.2);
+  --shadow-default-inset: 0 0 3px oklch(0 0 0 / 0.2) inset;
 }
 
 @plugin "daisyui/theme" {
@@ -88,19 +92,19 @@
 
   --color-primary: "#0c74bb";
   --color-primary-content: "#FFFFFF";
-  --color-accent: "#0062cc";
+  --color-accent: "#5e9fc8";
   --color-accent-content:"#FFFFFF";
   --color-neutral: "#555";
-  --color-neutral-content:"#666";
-  --color-base-100: "#111";
-  --color-base-200: "#222";
-  --color-base-300: "#333";
+  --color-neutral-content:"#ddd";
+  --color-base-100: "#222";
+  --color-base-200: "#333";
+  --color-base-300: "#444";
   --color-base-content: "#dbeaf5";
   --color-success:"#229e37";
   --color-success-content: "#fff";
   --color-error:"#db131f";
   --color-error-content: "#fff";
-  --color-warning:"#ffcc00";
+  --color-warning:"#c05e00";
   --color-info:"#5ac8fa";
 
   /* border radius */
@@ -118,4 +122,8 @@
   /* effects */
   --depth: 0;
   --noise: 0;
+
+  /* custom shadows */
+  --shadow-default: 0 0 4px oklch(1 0 0 / 0.12);
+  --shadow-default-inset: 0 0 4px oklch(1 0 0 / 0.12) inset;
 }

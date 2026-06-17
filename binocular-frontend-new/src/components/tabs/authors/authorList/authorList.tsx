@@ -5,26 +5,32 @@ import {
   checkAllAuthors,
   editAuthor,
   moveAuthorToOther,
+  releaseAuthor,
   resetAuthor,
   setAuthorList,
   setAuthorsDataPluginId,
   setDragging,
+  setDraggingSource,
   setParentAuthor,
   switchAllAuthorSelection,
   switchAuthorSelection,
   uncheckAllAuthors,
 } from '../../../../redux/reducer/data/authorsReducer.ts';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useExpandOverlay } from '../../shared/useExpandOverlay';
+import OtherAuthors from '../otherAuthors/otherAuthors.tsx';
+import InfoTooltip from '../../../infoTooltip/infoTooltip.tsx';
+import { hideInfoTooltip, showInfoTooltip } from '../../../infoTooltip/infoTooltipHelper.tsx';
 import distinctColors from 'distinct-colors';
 import { showContextMenu } from '../../../contextMenu/contextMenuHelper.ts';
-import addToOtherIcon from '../../../../assets/group_add_gray.svg';
-import settingsIcon from '../../../../assets/settings_gray.svg';
-import editIcon from '../../../../assets/edit_gray.svg';
-import dragIndicatorIcon from '../../../../assets/drag_indicator_gray.svg';
-import removePersonIcon from '../../../../assets/remove_person_gray.svg';
-import checkBoxIconGray from '../../../../assets/check_box_gray.svg';
-import checkBoxOutlineIconGray from '../../../../assets/check_box_outline_gray.svg';
-import flipIconGray from '../../../../assets/flip_gray.svg';
+import { Icon } from '../../../icon';
+import { GroupAddIcon } from '../../../icon/icons/GroupAddIcon';
+import { EditIcon } from '../../../icon/icons/EditIcon';
+import { RemovePersonIcon } from '../../../icon/icons/RemovePersonIcon';
+import { CheckBoxIcon } from '../../../icon/icons/CheckBoxIcon';
+import { CheckBoxOutlineIcon } from '../../../icon/icons/CheckBoxOutlineIcon';
+import { FlipIcon } from '../../../icon/icons/FlipIcon';
 import type { AuthorType } from '../../../../types/data/authorType.ts';
 import type { DatabaseSettingsDataPluginType } from '../../../../types/settings/databaseSettingsType.ts';
 import DataPluginStorage from '../../../../utils/dataPluginStorage.ts';
@@ -34,11 +40,12 @@ import { accountsSlice, setAccountList, setAccountsDataPluginId } from '../../..
 import Config from '../../../../config.ts';
 import type { AccountType } from '../../../../types/data/accountType.ts';
 
-function AuthorList(props: { orientation?: string }) {
+function AuthorList(props: { orientation?: string; showSettingsButton?: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
 
   const authorLists: { [id: number]: AuthorType[] } = useSelector((state: RootState) => state.authors.authorLists);
   const dragging = useSelector((state: RootState) => state.authors.dragging);
+  const draggingSource = useSelector((state: RootState) => state.authors.draggingSource);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
 
   const [authors, setAuthors] = useState<AuthorType[]>(authorLists[authorsDataPluginId] || []);
@@ -96,10 +103,14 @@ function AuthorList(props: { orientation?: string }) {
   function refreshAuthors(dP: DatabaseSettingsDataPluginType) {
     if (dP && dP.id !== undefined) {
       console.log(`REFRESH AUTHORS (${dP.name} #${dP.id})`);
-      const stored = localStorage.getItem(`${accountsSlice.name}StateV${Config.localStorageVersion}`);
-      let accounts: AccountType[];
+      const stored = localStorage.getItem(`${Config.localStoragePrefix}${accountsSlice.name}StateV${Config.localStorageVersion}`);
+      let accounts: AccountType[] = [];
       if (stored) {
-        accounts = JSON.parse(stored).accountLists[dP.id];
+        try {
+          accounts = JSON.parse(stored).accountLists[dP.id] ?? [];
+        } catch {
+          accounts = [];
+        }
       }
       DataPluginStorage.getDataPlugin(dP)
         .then((dataPlugin) => {
@@ -205,211 +216,354 @@ function AuthorList(props: { orientation?: string }) {
       }
     }
   });
-  return (
+
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const tooltipVisibleFlagRef = useRef(false);
+
+  const { isOpen, containerRef, overlayRef, overlayStyle } = useExpandOverlay(props.orientation);
+
+  const settingsButton = (
+    <button
+      className="btn btn-xs join-item"
+      title="Author settings"
+      onClick={() => window.dispatchEvent(new CustomEvent('openSettingsTab', { detail: { tab: 'Authors' } }))}>
+      <Icon name="settings" size="w-4 h-4" className="opacity-50 hover:opacity-90" />
+    </button>
+  );
+
+  const renderContent = (eff: string, overlay = false) => (
     <>
       <div
         className={
           'text-xs ' +
           authorListStyles.authorList +
           ' ' +
-          (props.orientation === 'horizontal' ? authorListStyles.authorListHorizontal : authorListStyles.authorListVertical)
+          (overlay ? '' : eff === 'horizontal' ? authorListStyles.authorListHorizontal : authorListStyles.authorListVertical)
         }>
-        <div className={'flex items-center justify-between border-b border-base-300 pt-1 pb-1 px-1'}>
-          <div className="join">
-            <button
-              className={'btn btn-xs join-item ' + authorListStyles.checkAllButton}
-              onClick={() => dispatch(checkAllAuthors())}
-              title="Check all authors"></button>
-            <button
-              className={`btn btn-xs join-item '+ ${authorListStyles.uncheckAllButton}`}
-              onClick={() => dispatch(uncheckAllAuthors())}
-              title="Uncheck all authors"></button>
-            <button
-              className={'btn btn-xs join-item ' + authorListStyles.flipButton}
-              onClick={() => dispatch(switchAllAuthorSelection())}
-              title="Switch author selection"></button>
-          </div>
-          <button
-            className="btn btn-ghost btn-xs p-0.5"
-            title="Author settings"
-            onClick={() => window.dispatchEvent(new CustomEvent('openSettingsTab', { detail: { tab: 'Authors' } }))}>
-            <img src={settingsIcon} alt="settings" className="w-4 h-4 opacity-50 hover:opacity-90" />
-          </button>
-        </div>
-        <div>
-          {authors
-            .filter((a: AuthorType) => a.parent === -1)
-            .map((parentAuthor: AuthorType, i: number) => {
-              return (
-                <div key={'author' + i}>
-                  <div
-                    className={
-                      'flex items-center gap-2 ' +
-                      authorListStyles.authorContainer +
-                      ' ' +
-                      (props.orientation === 'horizontal' ? authorListStyles.authorContainerHorizontal : '')
-                    }>
-                    <input
-                      type={'checkbox'}
-                      className={'checkbox checkbox-accent ' + authorListStyles.authorCheckbox}
-                      checked={parentAuthor.selected}
-                      onChange={() => {
-                        dispatch(switchAuthorSelection(parentAuthor.id));
-                      }}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showContextMenu(e.clientX, e.clientY, [
-                          {
-                            label: 'check all',
-                            icon: checkBoxIconGray,
-                            function: () => dispatch(checkAllAuthors()),
-                          },
-                          {
-                            label: 'uncheck all',
-                            icon: checkBoxOutlineIconGray,
-                            function: () => dispatch(uncheckAllAuthors()),
-                          },
-                          {
-                            label: 'flip',
-                            icon: flipIconGray,
-                            function: () => dispatch(switchAllAuthorSelection()),
-                          },
-                        ]);
-                      }}
-                    />
-                    <div
-                      className="relative flex flex-1 items-center gap-2 px-2 py-px rounded text-sm cursor-grab overflow-hidden group hover:opacity-80 transition-opacity"
-                      style={{ border: `1px solid ${parentAuthor.color.main}`, background: `${parentAuthor.color.main}0d` }}
-                      draggable={true}
-                      onDrop={(event) => {
-                        event.stopPropagation();
-                        dispatch(setDragging(false));
-
-                        dispatch(
-                          setParentAuthor({ author: Number(event.dataTransfer.getData('draggingAuthorId')), parent: parentAuthor.id }),
-                        );
-                      }}
-                      onDragOver={(event) => event.preventDefault()}
-                      onDragStart={(event) => {
-                        setTimeout(() => dispatch(setDragging(true), 1));
-                        event.dataTransfer.setData('draggingAuthorId', String(parentAuthor.id));
-                      }}
-                      onDragEnd={() => dispatch(setDragging(false))}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showContextMenu(e.clientX, e.clientY, [
-                          {
-                            label: 'edit author',
-                            icon: editIcon,
-                            function: () => dispatch(editAuthor(parentAuthor.id)),
-                          },
-                          {
-                            label: 'move to other',
-                            icon: addToOtherIcon,
-                            function: () => dispatch(moveAuthorToOther(parentAuthor.id)),
-                          },
-                        ]);
-                      }}>
-                      <div className="absolute left-0 inset-y-0 w-1 flex-none" style={{ background: parentAuthor.color.main }} />
-                      <img
-                        src={dragIndicatorIcon}
-                        alt={'drag'}
-                        className="relative flex-none w-4 opacity-40 group-hover:opacity-80 cursor-grab ml-1"
-                      />
-                      <span
-                        className="relative flex-1 font-semibold truncate text-sm"
-                        title={parentAuthor.displayName || parentAuthor.user.gitSignature}>
-                        {parentAuthor.displayName || parentAuthor.user.gitSignature}
-                      </span>
-                    </div>
-                  </div>
-                  {authors
-                    .filter((a: AuthorType) => a.parent === parentAuthor.id)
-                    .map((author: AuthorType, i: number, arr: AuthorType[]) => {
-                      const isLast = i === arr.length - 1;
-                      return (
-                        <div
-                          key={'author' + i}
-                          className={
-                            'flex items-center gap-1.5 text-xs cursor-pointer py-0 mt-px ' +
-                            (props.orientation === 'horizontal' ? authorListStyles.authorContainerHorizontal : '')
-                          }>
-                          <div
-                            className="flex-none ml-5"
-                            style={{
-                              width: 14,
-                              alignSelf: 'stretch',
-                              borderLeft: '1.5px solid var(--fallback-bc,oklch(var(--bc)/0.15))',
-                              borderBottom: isLast ? '1.5px solid var(--fallback-bc,oklch(var(--bc)/0.15))' : 'none',
-                              borderBottomLeftRadius: isLast ? 4 : 0,
-                            }}
-                          />
-                          <div
-                            className="relative flex-1 flex items-center gap-1.5 overflow-hidden rounded px-2 py-px hover:opacity-80 transition-opacity"
-                            style={{ border: `1px solid ${author.color.main}`, background: `${author.color.main}0d` }}
-                            draggable={true}
-                            onDragStart={(event) => {
-                              setTimeout(() => dispatch(setDragging(true), 1));
-                              event.dataTransfer.setData('draggingAuthorId', String(author.id));
-                            }}
-                            onDragEnd={() => dispatch(setDragging(false))}
-                            onContextMenu={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              showContextMenu(e.clientX, e.clientY, [
-                                {
-                                  label: 'edit author',
-                                  icon: editIcon,
-                                  function: () => dispatch(editAuthor(author.id)),
-                                },
-                                {
-                                  label: 'remove from parent',
-                                  icon: removePersonIcon,
-                                  function: () => dispatch(resetAuthor(author.id)),
-                                },
-                                {
-                                  label: 'move to other',
-                                  icon: addToOtherIcon,
-                                  function: () => dispatch(moveAuthorToOther(author.id)),
-                                },
-                              ]);
-                            }}>
-                            <div className="absolute left-0 inset-y-0 w-1 flex-none" style={{ background: author.color.main }} />
-                            <img src={dragIndicatorIcon} alt={'drag'} className="relative flex-none w-4 opacity-40 cursor-grab ml-1" />
-                            <span
-                              className="flex-1 truncate text-base-content/60 ml-1"
-                              title={author.displayName || author.user.gitSignature}>
-                              {author.displayName || author.user.gitSignature}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              );
-            })}
-        </div>
-      </div>
-      {(dragging || props.orientation === 'horizontal') && (
         <div
           className={
-            authorListStyles.authorDropNoParent +
-            ' ' +
-            (props.orientation === 'horizontal'
-              ? authorListStyles.authorDropNoParentHorizontal
-              : authorListStyles.authorDropNoParentVertical)
-          }
-          onDrop={(event) => {
-            event.stopPropagation();
-            dispatch(setDragging(false));
-            dispatch(resetAuthor(Number(event.dataTransfer.getData('draggingAuthorId'))));
-          }}
-          onDragOver={(event) => event.preventDefault()}>
-          <span>Drop here to remove Parent!</span>
+            eff === 'horizontal'
+              ? 'flex-none flex items-center self-stretch border-r border-base-300 px-1'
+              : 'flex items-center justify-between border-b border-base-300 pt-1 pb-1 px-1'
+          }>
+          <div className="join">
+            <button className="btn btn-xs join-item" onClick={() => dispatch(checkAllAuthors())} title="Check all authors">
+              <Icon name="check_box" size="w-4 h-4" />
+            </button>
+            <button className="btn btn-xs join-item" onClick={() => dispatch(uncheckAllAuthors())} title="Uncheck all authors">
+              <Icon name="check_box_outline" size="w-4 h-4" />
+            </button>
+            <button className="btn btn-xs join-item" onClick={() => dispatch(switchAllAuthorSelection())} title="Switch author selection">
+              <Icon name="flip" size="w-4 h-4" />
+            </button>
+          </div>
+          {eff === 'vertical' && <div className="join">{props.showSettingsButton !== false && settingsButton}</div>}
+        </div>
+        <div
+          className={
+            eff === 'horizontal' ? 'flex-1 overflow-x-auto min-w-0 h-full ' + authorListStyles.authorListHorizontalScrollArea : ''
+          }>
+          <div className={eff === 'horizontal' ? 'flex flex-nowrap items-center h-full gap-1 px-1' : ''}>
+            {authors.length === 0 ? (
+              <p className="text-xs text-base-content/40 text-center py-4">No authors loaded.</p>
+            ) : (
+              authors
+                .filter((a: AuthorType) => a.parent === -1)
+                .map((parentAuthor: AuthorType, i: number) => {
+                  const childAuthors = authors.filter((a: AuthorType) => a.parent === parentAuthor.id);
+                  return (
+                    <div key={'author' + i}>
+                      <div
+                        className={
+                          'flex items-center gap-2 ' +
+                          authorListStyles.authorContainer +
+                          ' ' +
+                          (eff === 'horizontal' ? authorListStyles.authorContainerHorizontal : '')
+                        }>
+                        <input
+                          type={'checkbox'}
+                          className={'checkbox checkbox-primary ' + authorListStyles.authorCheckbox}
+                          checked={parentAuthor.selected}
+                          onChange={() => {
+                            dispatch(switchAuthorSelection(parentAuthor.id));
+                          }}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showContextMenu(e.clientX, e.clientY, [
+                              {
+                                label: 'check all',
+                                icon: CheckBoxIcon,
+                                function: () => dispatch(checkAllAuthors()),
+                              },
+                              {
+                                label: 'uncheck all',
+                                icon: CheckBoxOutlineIcon,
+                                function: () => dispatch(uncheckAllAuthors()),
+                              },
+                              {
+                                label: 'flip',
+                                icon: FlipIcon,
+                                function: () => dispatch(switchAllAuthorSelection()),
+                              },
+                            ]);
+                          }}
+                        />
+                        <div
+                          className="relative flex flex-1 items-center gap-2 px-2 py-px rounded text-sm cursor-grab overflow-hidden group hover:opacity-80 transition-opacity"
+                          style={{ border: `1px solid ${parentAuthor.color.main}`, background: `${parentAuthor.color.main}0d` }}
+                          draggable={true}
+                          onMouseEnter={
+                            eff === 'horizontal' && childAuthors.length > 0
+                              ? (e) =>
+                                  showInfoTooltip(tooltipRef, tooltipVisibleFlagRef, e.clientX + 16, e.clientY + 16, {
+                                    headline: '',
+                                    borderColor: parentAuthor.color.main,
+                                    reactContent: (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                        <span style={{ fontSize: '0.65rem', opacity: 0.5, marginBottom: '2px' }}>merged authors</span>
+                                        {childAuthors.map((child, idx) => (
+                                          <div
+                                            key={idx}
+                                            style={{
+                                              position: 'relative',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              padding: '2px 8px 2px 10px',
+                                              borderRadius: '4px',
+                                              border: `1px solid ${child.color.main}`,
+                                              background: `${child.color.main}18`,
+                                              overflow: 'hidden',
+                                            }}>
+                                            <div
+                                              style={{
+                                                position: 'absolute',
+                                                left: 0,
+                                                top: 0,
+                                                bottom: 0,
+                                                width: '3px',
+                                                background: child.color.main,
+                                              }}
+                                            />
+                                            <span
+                                              style={{
+                                                fontSize: '0.7rem',
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                maxWidth: '200px',
+                                              }}>
+                                              {child.displayName || child.user.gitSignature}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ),
+                                  })
+                              : undefined
+                          }
+                          onMouseLeave={
+                            eff === 'horizontal' && childAuthors.length > 0
+                              ? () => hideInfoTooltip(tooltipRef, tooltipVisibleFlagRef)
+                              : undefined
+                          }
+                          onDrop={(event) => {
+                            event.stopPropagation();
+                            dispatch(setDragging(false));
+
+                            dispatch(
+                              setParentAuthor({ author: Number(event.dataTransfer.getData('draggingAuthorId')), parent: parentAuthor.id }),
+                            );
+                          }}
+                          onDragOver={(event) => event.preventDefault()}
+                          onDragStart={(event) => {
+                            setTimeout(() => dispatch(setDragging(true), 1));
+                            dispatch(setDraggingSource('authors'));
+                            event.dataTransfer.setData('draggingAuthorId', String(parentAuthor.id));
+                          }}
+                          onDragEnd={() => dispatch(setDragging(false))}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showContextMenu(e.clientX, e.clientY, [
+                              {
+                                label: 'edit author',
+                                icon: EditIcon,
+                                function: () => dispatch(editAuthor(parentAuthor.id)),
+                              },
+                              {
+                                label: 'move to other',
+                                icon: GroupAddIcon,
+                                function: () => dispatch(moveAuthorToOther(parentAuthor.id)),
+                              },
+                            ]);
+                          }}>
+                          <div className="absolute left-0 inset-y-0 w-1 flex-none" style={{ background: parentAuthor.color.main }} />
+                          <Icon name="drag_indicator" className="relative flex-none opacity-40 group-hover:opacity-80 cursor-grab ml-1" />
+                          <span
+                            className="relative flex-1 font-semibold truncate text-sm"
+                            title={parentAuthor.displayName || parentAuthor.user.gitSignature}>
+                            {parentAuthor.displayName || parentAuthor.user.gitSignature}
+                          </span>
+                          {eff === 'horizontal' && childAuthors.length > 0 && (
+                            <span className="relative flex-none text-xs opacity-50 whitespace-nowrap">×{childAuthors.length}</span>
+                          )}
+                        </div>
+                      </div>
+                      {eff !== 'horizontal' &&
+                        authors
+                          .filter((a: AuthorType) => a.parent === parentAuthor.id)
+                          .map((author: AuthorType, i: number, arr: AuthorType[]) => {
+                            const isLast = i === arr.length - 1;
+                            return (
+                              <div
+                                key={'author' + i}
+                                className={
+                                  'flex items-center gap-1.5 text-xs cursor-pointer py-0 mt-px ' +
+                                  (eff === 'horizontal' ? authorListStyles.authorContainerHorizontal : '')
+                                }>
+                                <div
+                                  className="flex-none ml-5"
+                                  style={{
+                                    width: 14,
+                                    alignSelf: 'stretch',
+                                    borderLeft: '1.5px solid var(--fallback-bc,oklch(var(--bc)/0.15))',
+                                    borderBottom: isLast ? '1.5px solid var(--fallback-bc,oklch(var(--bc)/0.15))' : 'none',
+                                    borderBottomLeftRadius: isLast ? 4 : 0,
+                                  }}
+                                />
+                                <div
+                                  className="relative flex-1 flex items-center gap-1.5 overflow-hidden rounded px-2 py-px hover:opacity-80 transition-opacity"
+                                  style={{ border: `1px solid ${author.color.main}`, background: `${author.color.main}0d` }}
+                                  draggable={true}
+                                  onDragStart={(event) => {
+                                    setTimeout(() => dispatch(setDragging(true), 1));
+                                    dispatch(setDraggingSource('authors'));
+                                    event.dataTransfer.setData('draggingAuthorId', String(author.id));
+                                  }}
+                                  onDragEnd={() => dispatch(setDragging(false))}
+                                  onContextMenu={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    showContextMenu(e.clientX, e.clientY, [
+                                      {
+                                        label: 'edit author',
+                                        icon: EditIcon,
+                                        function: () => dispatch(editAuthor(author.id)),
+                                      },
+                                      {
+                                        label: 'remove from parent',
+                                        icon: RemovePersonIcon,
+                                        function: () => dispatch(resetAuthor(author.id)),
+                                      },
+                                      {
+                                        label: 'move to other',
+                                        icon: GroupAddIcon,
+                                        function: () => dispatch(moveAuthorToOther(author.id)),
+                                      },
+                                    ]);
+                                  }}>
+                                  <div className="absolute left-0 inset-y-0 w-1 flex-none" style={{ background: author.color.main }} />
+                                  <Icon name="drag_indicator" className="relative flex-none opacity-40 cursor-grab ml-1" />
+                                  <span
+                                    className="flex-1 truncate text-base-content/60 ml-1"
+                                    title={author.displayName || author.user.gitSignature}>
+                                    {author.displayName || author.user.gitSignature}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                    </div>
+                  );
+                })
+            )}
+          </div>
+        </div>
+        <div className="join join-vertical">{eff === 'horizontal' && settingsButton}</div>
+        {eff === 'horizontal' && dragging && draggingSource === 'authors' && (
+          <div
+            className={authorListStyles.authorDropNoParent + ' ' + authorListStyles.authorDropNoParentHorizontal}
+            onDrop={(event) => {
+              event.stopPropagation();
+              dispatch(setDragging(false));
+              dispatch(resetAuthor(Number(event.dataTransfer.getData('draggingAuthorId'))));
+            }}
+            onDragOver={(event) => event.preventDefault()}>
+            <span>Drop here to remove Parent!</span>
+          </div>
+        )}
+        {eff === 'horizontal' && dragging && draggingSource === 'other' && (
+          <div
+            className={authorListStyles.authorDropNoParent + ' ' + authorListStyles.authorDropNoParentHorizontal}
+            onDrop={(event) => {
+              event.stopPropagation();
+              dispatch(setDragging(false));
+              dispatch(releaseAuthor(Number(event.dataTransfer.getData('draggingAuthorId'))));
+            }}
+            onDragOver={(event) => event.preventDefault()}>
+            <span>Drop here to move back to authors!</span>
+          </div>
+        )}
+      </div>
+      {eff !== 'horizontal' && dragging && (
+        <div className="flex flex-col gap-1">
+          {draggingSource === 'authors' && (
+            <div
+              className={authorListStyles.authorDropNoParent + ' ' + authorListStyles.authorDropNoParentVertical}
+              onDrop={(event) => {
+                event.stopPropagation();
+                dispatch(setDragging(false));
+                dispatch(resetAuthor(Number(event.dataTransfer.getData('draggingAuthorId'))));
+              }}
+              onDragOver={(event) => event.preventDefault()}>
+              <span>Drop here to remove Parent!</span>
+            </div>
+          )}
+          {draggingSource === 'other' && (
+            <div
+              className={authorListStyles.authorDropNoParent + ' ' + authorListStyles.authorDropNoParentVertical}
+              onDrop={(event) => {
+                event.stopPropagation();
+                dispatch(setDragging(false));
+                dispatch(releaseAuthor(Number(event.dataTransfer.getData('draggingAuthorId'))));
+              }}
+              onDragOver={(event) => event.preventDefault()}>
+              <span>Drop here to move back to authors!</span>
+            </div>
+          )}
         </div>
       )}
+    </>
+  );
+
+  return (
+    <>
+      <InfoTooltip ref={tooltipRef} tooltipVisibleFlagRef={tooltipVisibleFlagRef} />
+      <div ref={props.orientation === 'horizontal' ? containerRef : undefined}>{renderContent(props.orientation || 'vertical')}</div>
+      {isOpen &&
+        overlayStyle &&
+        createPortal(
+          <div
+            ref={overlayRef}
+            className="fixed z-50 bg-base-100 border border-base-300 rounded-lg shadow-xl flex flex-col"
+            style={{
+              top: overlayStyle.top,
+              bottom: overlayStyle.bottom,
+              left: overlayStyle.left,
+              width: overlayStyle.width,
+              maxHeight: '60vh',
+            }}>
+            <div className="overflow-y-auto flex-1 p-2">
+              {renderContent('vertical', true)}
+              <div className="border-t border-base-300 mt-2 pt-2">
+                <p className="text-xs font-bold text-base-content/70 pb-1">Other</p>
+                <OtherAuthors overlay />
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

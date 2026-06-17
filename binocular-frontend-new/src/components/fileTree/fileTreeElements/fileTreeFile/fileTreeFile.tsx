@@ -1,5 +1,5 @@
 import fileListElementsStyles from '../fileTreeElements.module.scss';
-import FileIcon from '../../../../assets/file_gray.svg';
+import { Icon } from '../../../icon';
 import { formatName } from '../../utils/fileTreeUtilities';
 import type { FileTreeElementType } from '../../../../types/data/fileListType';
 
@@ -13,11 +13,11 @@ function FileTreeFile(props: {
 }) {
   return (
     <>
-      <div className={'flex items-center'}>
+      <div className={'flex items-center gap-1'}>
         {props.showSelect && (props.listOnly === undefined || !props.listOnly) && (
           <input
             type={'checkbox'}
-            className={'checkbox checkbox-accent checkbox-xs'}
+            className={'checkbox checkbox-primary checkbox-xs'}
             checked={props.file.checked}
             onChange={(e) => {
               if (props.onElementSelectionChange !== undefined) {
@@ -38,7 +38,7 @@ function FileTreeFile(props: {
               props.onShowContextMenu(e, props.file);
             }
           }}>
-          <img src={FileIcon} alt={`folder ${props.file.name}`} />
+          <Icon name="file" size="w-5 h-5" />
           <span>{formatName(props.file.searchTerm, props.file.name)}</span>
         </div>
       </div>

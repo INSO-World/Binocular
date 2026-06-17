@@ -9,41 +9,18 @@
 }
 
 .fileListHorizontal{
-  display: inline-block;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   float: left;
-  width: 30rem;
   margin-left: .5rem;
   height: 3rem;
   box-shadow: $shadow-default-inset;
-  overflow-y: scroll;
+  overflow: hidden;
 }
 
 .fileListVertical{
   width: 100%;
   max-height: 30rem;
   overflow-y: scroll;
-}
-
-.checkAllButton{
-  background-image: url('../../../../assets/check_box_black.svg');
-  background-size: 1rem 1rem;
-  background-repeat: no-repeat;
-  background-position: center;
-  padding: 0 .75rem;
-}
-
-.uncheckAllButton{
-  background-image: url('../../../../assets/check_box_outline_black.svg');
-  background-size: 1rem 1rem;
-  background-repeat: no-repeat;
-  background-position: center;
-  padding: 0 .75rem;
-}
-
-.flipButton{
-  background-image: url('../../../../assets/flip_black.svg');
-  background-size: 1rem 1rem;
-  background-repeat: no-repeat;
-  background-position: center;
-  padding: 0 .75rem;
 }

@@ -3,8 +3,7 @@ import { useAppDispatch, type AppDispatch, type RootState } from '../../redux';
 import { ExportType, setExportData, setExportDataType, setExportLoading } from '../../redux/reducer/export/exportReducer.ts';
 import ImageExportPanel from './imageExportPanel/imageExportPanel.tsx';
 import dataExportStyles from './dataExport/dataExport.module.scss';
-import ShowIcon from '../../assets/show_gray.svg?react';
-import DownloadIcon from '../../assets/download.svg?react';
+import { Icon } from '../icon';
 import type { DatabaseSettingsDataPluginType } from '../../types/settings/databaseSettingsType.ts';
 import ColorCodedPanel from '../colorCodedPanel/colorCodedPanel.tsx';
 import { useEffect, useState } from 'react';
@@ -206,7 +205,7 @@ function ExportDialog() {
             setPreviewTable(name);
             e.stopPropagation();
           }}>
-          <ShowIcon fill="currentColor" width="1.8em" height="1.8em" />
+          <Icon name="show" size="w-5 h-5" colorClass="inherit" />
         </button>
       </div>
     );
@@ -300,10 +299,10 @@ function ExportDialog() {
               {/* Step 3: View and Download Data */}
               <p className="font-bold text-base">3. View and Download Data</p>
               <div className="flex gap-2 mb-3">
-                <button className="btn btn-sm btn-outline" onClick={selectAll}>
+                <button className="btn btn-sm btn-primary" onClick={selectAll}>
                   Select All
                 </button>
-                <button className="btn btn-sm btn-ghost" onClick={deselectAll}>
+                <button className="btn btn-sm btn-outline" onClick={deselectAll}>
                   Deselect All
                 </button>
               </div>
@@ -334,7 +333,7 @@ function ExportDialog() {
                   className="btn btn-primary btn-sm"
                   disabled={selectedItems.size === 0 || !selectedDataPlugin}
                   onClick={() => void downloadSelected()}>
-                  <DownloadIcon fill="currentColor" width="1.8em" height="1.8em" />
+                  <Icon name="download" colorClass="primary-content" size="w-5 h-5" />
                   Download Selected ({selectedItems.size})
                 </button>
                 <button
@@ -345,7 +344,7 @@ function ExportDialog() {
                       downloadExportCompressed(exportData, selectedDataPlugin!.metadata, exportDataType);
                     }
                   }}>
-                  <DownloadIcon fill="currentColor" width="1.8em" height="1.8em" />
+                  <Icon name="download" size="w-5 h-5" />
                   Download Complete Database
                 </button>
               </div>
@@ -376,7 +375,7 @@ function ExportDialog() {
                           Expand Columns
                         </button>
                         <button className="btn btn-sm btn-outline" onClick={() => downloadFile(previewName, previewTableData)}>
-                          <DownloadIcon fill="currentColor" width="1.8em" height="1.8em" />
+                          <Icon name="download" size="w-5 h-5" />
                           Download Preview
                         </button>
                       </div>
