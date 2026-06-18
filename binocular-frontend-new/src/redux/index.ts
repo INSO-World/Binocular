@@ -19,6 +19,7 @@ import LayoutReducer from './reducer/general/layoutReducer';
 const logger = createLogger({
   collapsed: () => true,
 });
+
 export const store = configureStore({
   reducer: {
     dashboard: DashboardReducer,

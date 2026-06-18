@@ -21,7 +21,7 @@ class Github implements DataPlugin {
   public experimental = true;
   public requirements = {
     apiKey: true,
-    endpoint: false,
+    endpoint: true,
     file: false,
     progressUpdate: false,
   };
@@ -53,14 +53,15 @@ class Github implements DataPlugin {
   public async init(apiKey: string | undefined, endpoint: string | undefined) {
     console.log(`Init GitHub Backend with ApiKey: ${apiKey} and Endpoint ${endpoint}`);
     if (apiKey !== undefined) {
-      this.commits = new Commits(apiKey, 'INSO-TUWien/Binocular');
+      const repository = endpoint || 'INSO-TUWien/Binocular';
+      this.commits = new Commits(apiKey, repository);
       this.builds = new Builds(); // Not implemented (questionable if needed in future)
       this.notes = new Notes(); // Not implemented (questionable if needed in future)
       this.issues = new Issues(); // Not implemented (questionable if needed in future)
       this.accounts = new Accounts(); // Not implemented (questionable if needed in future)
       this.mergeRequests = new MergeRequests(); // Not implemented (questionable if needed in future)
-      this.users = new Users(apiKey, 'INSO-TUWien/Binocular');
-      this.general = new General('INSO-TUWien/Binocular');
+      this.users = new Users(apiKey, repository);
+      this.general = new General(repository);
     }
     return undefined;
   }
