@@ -15,6 +15,7 @@ import IssuesTimeline from './visualizationPlugins/issues/issuesTimeline';
 import Burndown from './visualizationPlugins/issues/burndown';
 import CodeHotspots from './visualizationPlugins/expertise/codeHotspots';
 import SumCommits from './visualizationPlugins/commits/sumCommits';
+import ChangeFrequency from './visualizationPlugins/changeFrequency/index.ts';
 
 import ExampleComplex from './visualizationPlugins/example/exampleComplex';
 import ExampleStats from './visualizationPlugins/example/exampleStats';
@@ -33,12 +34,6 @@ import PouchDb from './dataPlugins/pouchDB';
 
 import type { VisualizationPlugin } from './interfaces/visualizationPlugin.ts';
 import createVisualizationPlugin from './visualizationPlugins/simpleVisualizationPlugin';
-import { BuildSettings, ChangesSettings } from './visualizationPlugins/simpleVisualizationPlugin/src/settings/settings.tsx';
-import { DataPluginCommit } from './interfaces/dataPluginInterfaces/dataPluginCommits.ts';
-import ExampleComplex from './visualizationPlugins/exampleComplex';
-import ExampleStats from './visualizationPlugins/exampleStats';
-import ExampleVisualization from './visualizationPlugins/exampleVisualization';
-import ChangeFrequency from './visualizationPlugins/change-frequency/index.ts';
 import type { IssueSettings } from './visualizationPlugins/issues/issues/src/settings/settings.tsx';
 import type { BuildSettings } from './visualizationPlugins/builds/builds/src/settings/settings.tsx';
 import type { TimeSpentSettings } from './visualizationPlugins/authorBehaviour/timeSpent/src/settings/settings.tsx';
@@ -54,7 +49,6 @@ const timeSpent = createVisualizationPlugin<TimeSpentSettings, DataPluginNote>(T
 
 //The implicit type here has to be any because every Visualization plugin has a different settings type implied
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const visualizationPlugins: VisualizationPlugin<any, any>[] = [builds, changes, ExampleStats, ExampleVisualization, ExampleComplex, ChangeFrequency];
 export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   changes,
   builds,
@@ -76,6 +70,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   Burndown,
   CodeHotspots,
   SumCommits,
+  ChangeFrequency,
 ];
 
 //Order = priority used when nothing selected by the user.

@@ -1,4 +1,5 @@
 import type {
+  CommitWithFileChanges,
   DataPluginCommit,
   DataPluginCommits,
   DataPluginOwnership,
@@ -1136,5 +1137,40 @@ export default class Commits implements DataPluginCommits {
 
     // Sort by date in descending order
     return filteredCommits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  /**
+   * Returns commits with their changed files (per-file stats and a `signature` field)
+   * in the shape expected by the change-frequency visualization.
+   */
+  public async getCommitDataWithFilesAndOwnership(from: string, to: string): Promise<CommitWithFileChanges[]> {
+    // from/to is the significant (visible) window. The mock data has no per-commit line count, so only
+    // that window is kept and every returned commit is significant.
+    const fromTime = new Date(from).getTime();
+    const toTime = new Date(to).getTime();
+    const commits = await this.getAll(from, to);
+
+    return commits
+      .filter((commit) => {
+        const time = new Date(commit.date).getTime();
+        return time >= fromTime && time <= toTime;
+      })
+      .map((commit) => ({
+        sha: commit.sha,
+        date: commit.date,
+        signature: commit.user?.gitSignature,
+        branch: commit.branch,
+        message: commit.message,
+        webUrl: commit.webUrl,
+        parents: commit.parents,
+        stats: commit.stats,
+        files: {
+          data: (commit.files?.data ?? []).map((file) => ({
+            file: { path: file.file.path },
+            stats: file.stats ?? { additions: 0, deletions: 0 },
+          })),
+        },
+        isSignificant: true,
+      }));
   }
 }

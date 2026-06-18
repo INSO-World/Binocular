@@ -31,8 +31,6 @@ import { useEffect, useState } from 'react';
 import DatabaseLoaders from './utils/databaseLoaders.ts';
 import OverlayController from './components/overlayController/overlayController.tsx';
 import { TabAlignment } from './types/general/tabType.ts';
-import HierarchyTab from './plugins/visualizationPlugins/change-frequency/src/tabs/hierarchyTab';
-import { DashboardItemType } from './types/general/dashboardItemType';
 import LayoutSelector from './components/tabs/layouts/layoutSelector/layoutSelector.tsx';
 import { loadFileList } from './components/tabs/fileTree/utils/fileListUtilities.tsx';
 
@@ -46,7 +44,7 @@ function App() {
   const parametersDateRange = useSelector((state: RootState) => state.parameters.parametersDateRange);
   const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const authorsDataPluginId = useSelector((state: RootState) => state.authors.dataPluginId);
-  const [authorsDataPlugin, setAuthorsDataPlugin] = useState();
+  const [authorsDataPlugin, setAuthorsDataPlugin] = useState<DatabaseSettingsDataPluginType | undefined>(undefined);
 
   const settingsInitialized = useSelector((state: RootState) => state.settings.initialized);
   const dashboardInitialized = useSelector((state: RootState) => state.dashboard.initialized);
@@ -70,9 +68,6 @@ function App() {
       localStorage.getItem(`${Config.localStoragePrefix}theme`) ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'binocularDark' : 'binocularLight'),
   );
-
-  const dashboardItems = useSelector((state: RootState) => state.dashboard.dashboardItems);
-  const isChangeFrequencyActive = dashboardItems.some((item: DashboardItemType) => item.pluginName === 'Change Frequency');
 
   useEffect(() => {
     // #v-ifdef PRE_CONFIGURE_DB=='pouchdb'
@@ -190,13 +185,6 @@ function App() {
               <FileTree></FileTree>
             </TabSection>
           </Tab>
-          {isChangeFrequencyActive && (
-            <Tab displayName={'Change Frequency'} alignment={TabAlignment.right}>
-              <TabSection name={'Hierarchy'}>
-                <HierarchyTab />
-              </TabSection>
-            </Tab>
-          )}
           <Tab displayName={'Help'} alignment={TabAlignment.right}>
             <TabSection name={'General'}>
               <HelpGeneral></HelpGeneral>

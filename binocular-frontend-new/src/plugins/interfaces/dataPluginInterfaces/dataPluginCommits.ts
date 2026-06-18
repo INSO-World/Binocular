@@ -11,7 +11,32 @@ export interface DataPluginCommits {
   getByFile: (file: string) => Promise<DataPluginCommit[]>;
   getDateOfFirstCommit: () => Promise<string>;
   getDateOfLastCommit: () => Promise<string>;
-  getCommitDataWithFilesAndOwnership?: (commitSpan: [Date, Date], significantSpan: [Date, Date]) => Promise<any[]>;
+  getCommitDataWithFilesAndOwnership: (from: string, to: string) => Promise<CommitWithFileChanges[]>;
+}
+
+// Per-file change information for a single commit, in the shape consumed by the
+// change-frequency visualization. `signature` is the commit author's git signature and
+// `lineCount` is the file's current size where the data source can provide it.
+export interface CommitFileChange {
+  file: { path: string };
+  lineCount?: number;
+  stats: DataPluginStats;
+}
+
+export interface CommitWithFileChanges {
+  sha?: string;
+  date: string;
+  signature?: string;
+  branch?: string;
+  message?: string;
+  webUrl?: string;
+  parents?: string[];
+  stats?: DataPluginStats;
+  files: { data: CommitFileChange[] };
+  // True when the commit falls inside the significant (visible) window. Commits loaded only for
+  // cumulative line-count context (outside the window) are returned with isSignificant: false.
+  // Absent is treated as true.
+  isSignificant?: boolean;
 }
 
 export interface DataPluginCommit {
