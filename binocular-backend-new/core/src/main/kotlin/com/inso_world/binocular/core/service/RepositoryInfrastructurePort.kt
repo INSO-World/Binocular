@@ -3,7 +3,9 @@ package com.inso_world.binocular.core.service
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
 
 interface RepositoryInfrastructurePort : BinocularInfrastructurePort<Repository, Repository.Id> {
     fun findByName(name: String): Repository?
@@ -25,4 +27,8 @@ interface RepositoryInfrastructurePort : BinocularInfrastructurePort<Repository,
     fun findAllBuilds(
         repository: Repository?,
     ): Sequence<Build>
+
+    fun findFileComplexityForAllFiles(
+        repository: Repository?,
+    ): Sequence<FileComplexityMinorContributors>
 }

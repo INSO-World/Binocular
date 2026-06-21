@@ -3,19 +3,20 @@ package com.inso_world.binocular.model.metrics
 import com.inso_world.binocular.model.AbstractDomainObject
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Commit.Id
-import com.inso_world.binocular.model.Commit.Key
 import com.inso_world.binocular.model.Developer
+import com.inso_world.binocular.model.File
+import com.inso_world.binocular.model.metrics.BusFactorCIErrorRate.Key
 import org.hibernate.validator.constraints.Range
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-class BusFactorCIErrorRate(
-    val id: String,
-    @field:Range(min = 0) val busFactor: Int,
-    @field:Range(min = 0, max = 1) val ciErrorRate: Double,
-    val topAuthors: List<AuthorContribution>,
-) : AbstractDomainObject<BusFactorCIErrorRate.Id, BusFactorCIErrorRate.Key>(
+class FileComplexityMinorContributors(
+    val filePath: String,
+    @field:Range(min = 0) val loc: Int,
+    @field:Range(min = 0) val minorContributors: Int,
+    @field:Range(min = 0) val nfix: Int,
+) : AbstractDomainObject<FileComplexityMinorContributors.Id, FileComplexityMinorContributors.Key>(
     Id(Uuid.random())
 ) {
     @JvmInline
@@ -23,6 +24,6 @@ class BusFactorCIErrorRate(
 
     data class Key(val id: String)
 
-    override val uniqueKey: BusFactorCIErrorRate.Key
-        get() = Key(id)
+    override val uniqueKey: FileComplexityMinorContributors.Key
+        get() = Key(filePath)
 }

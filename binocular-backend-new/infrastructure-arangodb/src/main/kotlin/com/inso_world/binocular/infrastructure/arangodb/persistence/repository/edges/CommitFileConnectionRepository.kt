@@ -126,4 +126,47 @@ FOR c IN commits
 """,
     )
     fun countCommitsByFile(fileId: String): List<Long>
+
+    @Query(
+        """
+LET threshold = 0.05
+FOR f IN files
+    LET loc = FIRST(
+        FOR cf IN `commits-files`
+            FILTER cf._to == f._id
+            LET commit = DOCUMENT(cf._from)
+            SORT commit.commitDateTime DESC
+            LIMIT 1
+            RETURN cf.lineCount
+    )
+    LET contributions = (
+        FOR cf IN `commits-files`
+            FILTER cf._to == f._id
+            LET authorId = FIRST(
+                FOR cu IN `commits-users`
+                    FILTER cu._from == cf._from
+                    RETURN cu._to
+            )
+            FILTER authorId != null
+            COLLECT author = authorId WITH COUNT INTO cnt
+            RETURN cnt
+    )
+    LET total = SUM(contributions)
+    LET minor = LENGTH(
+        FOR c IN contributions
+            FILTER total > 0 AND (c / total) < threshold
+            RETURN 1
+    )
+    LET nfix = LENGTH(
+        FOR cf IN `commits-files`
+            FILTER cf._to == f._id
+            LET commit = DOCUMENT(cf._from)
+            FILTER REGEX_TEST(commit.message OR "", "\\b(fix|bug|hotfix|patch|defect|fail|crash|fault)", true)
+            RETURN 1
+    )
+    SORT minor DESC
+    RETURN { fileId: f._key, filePath: f.path, loc: loc, minorContributors: minor, nfix: nfix }
+""",
+    )
+    fun findFileComplexityForAllFiles(): List<Map<String, Any?>>
 }

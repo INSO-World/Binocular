@@ -3,6 +3,8 @@ package com.inso_world.binocular.web.graphql.controller
 import com.inso_world.binocular.web.usecases.GetBusFactorCIErrorRateMetric
 import com.inso_world.binocular.model.metrics.BusFactorCIErrorRate
 import com.inso_world.binocular.model.enums.Granularity
+import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
+import com.inso_world.binocular.web.usecases.FileComplexityMinorContributorsMetric
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,21 +13,18 @@ import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.stereotype.Controller
 
 @Controller
-class BusFactorCIRateController(
-    @Autowired private val busfactorService: GetBusFactorCIErrorRateMetric,
+class FileComplexityMinorContributorsController(
+    @Autowired private val fileComplexityService: FileComplexityMinorContributorsMetric,
 ) {
     private var logger: Logger = LoggerFactory.getLogger(BuildController::class.java)
 
-    @QueryMapping(name = "busFactorCIErrorRate")
+    @QueryMapping(name = "fileComplexityMinorContributors")
     fun findAll(
         @Argument repoPath: String,
-        @Argument since: Long,
-        @Argument until: Long,
-        @Argument granularity: Granularity
-    ): List<BusFactorCIErrorRate> {
-        logger.info("Getting all BusFactorCIRateController...")
+    ): List<FileComplexityMinorContributors> {
+        logger.info("Getting all FileComplexityMinorContributors...")
 
-        val result = busfactorService.execute(repoPath, since, until, granularity)
+        val result = fileComplexityService.execute(repoPath)
         return result
     }
 }

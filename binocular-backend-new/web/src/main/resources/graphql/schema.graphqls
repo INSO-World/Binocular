@@ -25,12 +25,16 @@ scalar Sort
   users(page: Int, perPage: Int, sort: Sort): PaginatedUser!
 
    # Cross Cutting Metrics
-       busFactor(
+       busFactorCIErrorRate(
            repoPath: String!
            since: Timestamp!
            until: Timestamp!
            granularity: Granularity!
        ): [BusFactorCIErrorRate!]!
+
+       fileComplexityMinorContributors(
+           repoPath: String!
+       ): [FileComplexityMinorContributors!]!
 
   # Single item queries
   commit(sha: String!): Commit
@@ -451,3 +455,10 @@ type BusFactorCIErrorRate {
   ciErrorRate: Float!
   topAuthors: [AuthorContribution!]!
 }
+type FileComplexityMinorContributors {
+  filePath: String!
+  loc: Int!
+  minorContributors: Int!
+  nfix: Int!
+}
+

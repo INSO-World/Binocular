@@ -1,27 +1,28 @@
-package com.inso_world.binocular.core.service.usecase
+package com.inso_world.binocular.web.usecases
 
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.model.Build
-import com.inso_world.binocular.model.metrics.BusFactorCIErrorRate
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.enums.Granularity
 import com.inso_world.binocular.model.metrics.AuthorContribution
+import com.inso_world.binocular.model.metrics.BusFactorCIErrorRate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneOffset
+import kotlin.collections.plusAssign
 
 @Service
-open class GetBusFactorCIErrorRateMetric(
+class GetBusFactorCIErrorRateMetric(
     @Autowired private val repoPort: RepositoryInfrastructurePort,
 ) {
 
     @MappingSession
-    open fun execute(
+    fun execute(
         repoPath: String, since: Long, until: Long, granularity: Granularity
     ): List<BusFactorCIErrorRate> {
         //repo not used
@@ -50,7 +51,7 @@ open class GetBusFactorCIErrorRateMetric(
                 id = period.label,
                 busFactor = bf.busFactor,
                 ciErrorRate = calculateCiErrorRate(periodBuilds),
-                topAuthors = bf.topAuthors,
+                topAuthors = bf.topAuthors
             )
         }
     }

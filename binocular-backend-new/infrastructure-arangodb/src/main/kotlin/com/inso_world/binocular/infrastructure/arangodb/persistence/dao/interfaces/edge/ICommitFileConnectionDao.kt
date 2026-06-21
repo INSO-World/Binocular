@@ -6,6 +6,7 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.FileOwnership
 import com.inso_world.binocular.model.Stats
+import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
 import org.springframework.data.domain.Pageable
 
 /**
@@ -52,6 +53,8 @@ internal interface ICommitFileConnectionDao {
      * Return action per file for a given commit, keyed by file id
      */
     fun findFileActionsByCommit(commitId: String): Map<String, String?>
+
+    fun findFileComplexityForAllFiles(): List<FileComplexityMinorContributors>
 
     /**
      * Save a commit-file connection
