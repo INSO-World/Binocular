@@ -1,25 +1,24 @@
 classDiagram
     direction TB
 
+    class AbstractDomainObject {
+        +Iid iid
+        +Key uniqueKey
+    }
+
     class Stakeholder {
         +String name
         +String email
     }
 
     class Reference {
-        +String name
         +ReferenceCategory category
+        +RepositoryId repositoryId
     }
 
     class Repository {
-        +Id iid
         +String localPath
-        +Project project
-        +MutableSet~Commit~ commits
-        +MutableSet~Branch~ branches
-        +MutableSet~Developer~ developers
-        +MutableSet~Remote~ remotes
-        +MutableSet~User~ user
+        +ProjectId projectId
     }
 
     class Commit {
@@ -27,15 +26,15 @@ classDiagram
         +Signature authorSignature
         +Signature committerSignature
         +String message
-        +Repository repository
+        +RepositoryId repositoryId
         +String webUrl
         +Stats stats
-        +MutableSet~Commit~ parents
-        +MutableSet~Commit~ children
+        +MutableSet~String~ parentShas
+        +MutableSet~String~ childShas
     }
 
     class Signature {
-        +Developer developer
+        +DeveloperId developerId
         +LocalDateTime timestamp
     }
 
@@ -43,18 +42,17 @@ classDiagram
         +String name
         +String fullName
         +ReferenceCategory category
-        +Repository repository
-        +Commit head
-        +Set~File~ files
-        +Set~Commit~ commits
+        +RepositoryId repositoryId
+        +String headSha
+        +MutableSet~FileId~ fileIds
     }
 
     class Developer {
         +String name
         +String email
-        +Repository repository
-        +MutableSet~Commit~ committedCommits
-        +MutableSet~Commit~ authoredCommits
+        +RepositoryId repositoryId
+        +MutableSet~String~ committedCommitShas
+        +MutableSet~String~ authoredCommitShas
         +String gitSignature
     }
 
@@ -82,41 +80,46 @@ classDiagram
     }
 
     class Remote {
-        +Id iid
         +String name
         +String url
-        +Repository repository
+        +RepositoryId repositoryId
     }
 
     class File {
-        +Id iid
         +String path
     }
 
     class Revision {
-        +Id iid
         +String content
-        +Commit commit
-        +File file
+        +CommitId commitId
+        +FileId fileId
     }
 
-    Repository "1" -- "*" Commit : owns
-    Repository "1" -- "*" Branch : owns
-    Repository "1" -- "*" Developer : involves
-    Repository "1" -- "*" Remote : references
-    Repository "1" -- "*" User : legacy
-
+    AbstractDomainObject <|-- Repository
+    AbstractDomainObject <|-- Commit
+    AbstractDomainObject <|-- Remote
+    AbstractDomainObject <|-- File
+    AbstractDomainObject <|-- Revision
+    
+    AbstractDomainObject <|-- Stakeholder
     Stakeholder <|-- Developer
+
+    AbstractDomainObject <|-- Reference
     Reference <|-- Branch
+
+    Repository "1" -- "*" Commit : owns (via ID)
+    Repository "1" -- "*" Branch : owns (via ID)
+    Repository "1" -- "*" Developer : involves (via ID)
+    Repository "1" -- "*" Remote : references (via ID)
 
     Commit "1" *-- "0..1" Stats : describes
     Commit "1" -- "1" Signature : author
     Commit "1" -- "0..1" Signature : committer
-    Signature "*" -- "1" Developer : identifies
+    Signature "*" -- "1" Developer : identifies (via ID)
 
-    Commit "0..*" -- "0..*" Commit : parent/child
-    Commit "1" -- "*" Revision : records
-    Branch "*" -- "1" Commit : head
+    Commit "0..*" -- "0..*" Commit : parent/child (via SHA)
+    Commit "1" -- "*" Revision : records (via ID)
+    Branch "*" -- "1" Commit : head (via SHA)
     
-    Branch "1" -- "*" File : tracks
-    File "1" -- "*" Revision : has
+    Branch "1" -- "*" File : tracks (via ID)
+    File "1" -- "*" Revision : has (via ID)

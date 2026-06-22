@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.AccountEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.PlatformEntity
 import com.inso_world.binocular.model.*
@@ -22,7 +21,6 @@ import kotlin.uuid.Uuid
  * ## Design Principles
  * - **Single Responsibility**: Only converts Account structure
  * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It supports
@@ -30,9 +28,6 @@ import kotlin.uuid.Uuid
  */
 @Component
 internal class AccountMapper : EntityMapper<Account, AccountEntity> {
-
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     companion object {
         private val logger by logger()
@@ -71,7 +66,17 @@ internal class AccountMapper : EntityMapper<Account, AccountEntity> {
      */
     @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: AccountEntity): Account {
-        val domain = ctx.findDomain<Account, AccountEntity>(entity) ?: error("Account mapping requires existing domain Account.")
+        val domain = Account(
+            gid = entity.gid,
+            platform = toPlatform(entity.platform) ?: Platform.GitHub, // Default to GitHub if unknown
+            login = entity.login,
+        ).apply {
+            this.id = entity.id
+            this.name = entity.name
+            this.avatarUrl = entity.avatarUrl
+            this.url = entity.url
+            this.projectIds.addAll(entity.projects.map { Project.Id(it.iid) })
+        }
 
         domain.issueIds.addAll(
             entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } }

@@ -31,17 +31,21 @@ data class Issue(
     var commitIds: Set<Commit.Id> = emptySet(),
     var milestoneIds: Set<Milestone.Id> = emptySet(),
     var noteIds: Set<Note.Id> = emptySet(),
-    var users: List<User> = emptyList(),
+    var developerIds: Set<Developer.Id> = emptySet(),
 ) : AbstractDomainObject<Issue.Id, Issue.Key>(
     Id(Uuid.random())
 )  {
     @JvmInline
     value class Id(val value: Uuid)
 
+    @Deprecated("Use developerIds instead")
+    val userIds: Set<User.Id>
+        get() = developerIds.map { User.Id(it.value) }.toSet()
+
     data class Key(val projectId: Project.Id, val gid: String) // value object for lookups
 
     override fun toString(): String {
-        return "Issue(no=${iid.toString()}, title=$title, accountIds=$accountIds)"
+        return "Issue(no=$gid, title=$title, accountIds=$accountIds)"
     }
 
     override val uniqueKey: Key

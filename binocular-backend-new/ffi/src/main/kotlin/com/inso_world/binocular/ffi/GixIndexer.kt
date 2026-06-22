@@ -43,7 +43,7 @@ class GixIndexer : GitIndexer {
         val repo =
             com.inso_world.binocular.ffi.internal
                 .findRepo(path.toString().trim())
-                .toModel(project)
+                .toModel(project.iid)
         return repo
     }
 
@@ -61,14 +61,12 @@ class GixIndexer : GitIndexer {
                     useMailmap = cfg.vcs.useMailmap,
                 )
 
-        val commits: List<Commit> = branchTraversalResult.commits.toDomain(repo)
-        val branch: Branch =
-            with(commits.associateBy { it.sha }.getValue(branchTraversalResult.branch.target)) {
-                branchTraversalResult.branch.toDomain(
-                    repo,
-                    this,
-                )
-            }
+        val commits: List<Commit> = branchTraversalResult.commits.toDomain(repo.iid)
+        val headCommit = commits.associateBy { it.sha }.getValue(branchTraversalResult.branch.target)
+        val branch: Branch = branchTraversalResult.branch.toDomain(
+            repo.iid,
+            headCommit,
+        )
 
         return Pair(branch, commits)
     }
@@ -84,8 +82,8 @@ class GixIndexer : GitIndexer {
                             binocularRepo,
                             it.target,
                             useMailmap = cfg.vcs.useMailmap,
-                        ).toDomain(repo)
-                val branch = it.toDomain(repo, head)
+                        ).toDomain(repo.iid)
+                val branch = it.toDomain(repo.iid, head)
                 branch
             }
     }
@@ -99,7 +97,7 @@ class GixIndexer : GitIndexer {
                 repo.toFfi(),
                 hash,
                 useMailmap = cfg.vcs.useMailmap,
-            ).toDomain(repo)
+            ).toDomain(repo.iid)
 
     override fun traverse(
         repo: Repository,
@@ -112,5 +110,5 @@ class GixIndexer : GitIndexer {
                 source.sha,
                 target?.sha,
                 useMailmap = cfg.vcs.useMailmap,
-            ).toDomain(repo)
+            ).toDomain(repo.iid)
 }

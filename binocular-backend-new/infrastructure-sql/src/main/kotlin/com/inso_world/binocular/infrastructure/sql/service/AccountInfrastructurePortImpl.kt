@@ -1,7 +1,5 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.AccountInfrastructurePort
 import com.inso_world.binocular.core.service.exception.NotFoundException
@@ -41,9 +39,7 @@ import org.springframework.validation.annotation.Validated
     }
 
     @Autowired
-    private lateinit var ctx: MappingContext
 
-    @MappingSession
     override fun findAll(): Iterable<@Valid Account> {
         return super<AbstractInfrastructurePort>.findAllEntities()
             .map { entity ->
@@ -76,7 +72,6 @@ import org.springframework.validation.annotation.Validated
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findByIid(iid: Account.Id): Account? {
         logger.trace("Getting account by iid: $iid")
         val entity = accountDao.findByIid(iid) ?: return null
@@ -84,7 +79,6 @@ import org.springframework.validation.annotation.Validated
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findByIids(iids: Collection<Account.Id>): List<Account> {
         logger.trace("Getting accounts by iids: $iids")
         val entities = accountDao.findAllByIidIn(iids)
@@ -93,7 +87,6 @@ import org.springframework.validation.annotation.Validated
 
     @Deprecated("Save accounts via project instead.")
     @Transactional
-    @MappingSession
     override fun saveAll(values: Collection<@Valid Account>): Iterable<@Valid Account> {
         logger.trace("Save all accounts (${values.size})")
 
@@ -126,7 +119,6 @@ import org.springframework.validation.annotation.Validated
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findExistingGid(gids: List<String>): Iterable<Account> {
         return accountDao
             .findExistingGid(gids)

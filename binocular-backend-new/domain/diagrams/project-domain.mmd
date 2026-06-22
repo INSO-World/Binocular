@@ -2,81 +2,93 @@ classDiagram
     direction TB
 
     class Project {
-        +Id iid
         +String name
         +String description
-        +Repository repo
-        +MutableSet~Issue~ issues
-        +MutableSet~Account~ accounts
-        +MutableSet~MergeRequest~ mergeRequests
+        +MutableSet~AccountId~ accountIds
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~MergeRequestId~ mergeRequestIds
+        +MutableSet~MilestoneId~ milestoneIds
     }
 
     class Repository {
-        +Id iid
         +String localPath
-        +Project project
+        +ProjectId projectId
     }
 
     class Issue {
-        +Id iid
+        +String gid
+        +Int platformIid
         +String title
         +String description
-        +Account author
-        +MutableSet~Account~ accounts
-        +MutableList~Commit~ commits
-        +List~Milestone~ milestones
-        +List~Note~ notes
+        +LocalDateTime createdAt
+        +LocalDateTime closedAt
+        +LocalDateTime updatedAt
+        +String state
+        +String webUrl
         +List~Mention~ mentions
-        +List~User~ users
+        +ProjectId project
+        +AccountId authorId
+        +Set~AccountId~ accountIds
+        +Set~CommitId~ commitIds
+        +Set~MilestoneId~ milestoneIds
+        +Set~NoteId~ noteIds
+        +Set~DeveloperId~ developerIds
     }
 
     class MergeRequest {
-        +Id iid
+        +ProjectId project
+        +Int platformIid
         +String title
         +String description
         +String createdAt
         +String closedAt
         +String updatedAt
-        +Project project
-        +MutableList~Account~ accounts
-        +List~Milestone~ milestones
-        +List~Note~ notes
+        +String state
+        +String webUrl
         +List~Mention~ mentions
+        +MutableSet~MilestoneId~ milestoneIds
+        +MutableSet~NoteId~ noteIds
+        +MutableSet~AccountId~ accountIds
     }
 
     class Note {
-        +Id iid
         +String body
         +String createdAt
+        +String updatedAt
         +Boolean system
         +Boolean resolvable
         +Boolean confidential
         +Boolean internal
+        +Boolean imported
+        +String importedFrom
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~MergeRequestId~ mergeRequestIds
+        +MutableSet~AccountId~ accountIds
     }
 
     class User {
         <<deprecated>>
         +String name
         +String email
-        +Repository repository
-        +MutableSet~Issue~ issues
+        +RepositoryId repositoryId
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~FileId~ fileIds
     }
 
     class Mention {
         +String commit
         +LocalDateTime createdAt
         +Boolean closes
-        +Account actor
     }
 
-    Project "1" -- "0..1" Repository : scopes
-    Project "1" -- "*" Issue : contains
-    Project "1" -- "*" MergeRequest : contains
-    Project "1" -- "*" Account : contains
-    Issue "1" -- "1" Account : authored by
-    Issue "1" -- "*" Note : has
+    Project "1" -- "0..1" Repository : has (via ID)
+    Project "1" -- "*" Issue : contains (via ID)
+    Project "1" -- "*" MergeRequest : contains (via ID)
+    Project "1" -- "*" Account : contains (via ID)
+    Issue "1" -- "1" Account : authored by (via ID)
+    Issue "1" -- "*" Note : has (via ID)
     Issue "1" -- "*" Mention : has
-    Issue "*" -- "*" Account : involves
-    MergeRequest "1" -- "*" Note : has
+    Issue "*" -- "*" Account : involves (via ID)
+    MergeRequest "1" -- "*" Note : has (via ID)
     MergeRequest "1" -- "*" Mention : has
-    Repository "1" -- "*" User : legacy
+    Repository "1" -- "*" User : legacy (via ID)

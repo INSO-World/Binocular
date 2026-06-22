@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.sql.unit.assembler.base
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.unit.base.BaseUnitTest
 import com.inso_world.binocular.infrastructure.sql.assembler.ProjectAssembler
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler

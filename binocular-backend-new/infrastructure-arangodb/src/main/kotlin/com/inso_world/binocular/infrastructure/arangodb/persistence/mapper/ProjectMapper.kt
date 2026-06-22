@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.*
@@ -20,17 +19,15 @@ import kotlin.uuid.Uuid
  *
  * ## Design Principles
  * - **Single Responsibility**: Only converts Project structure (not children)
- * - **No Orchestration**: Child entities (Repository) are mapped by assemblers
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
+ * - **No Orchestration**: Child entities (Repository) are mapped by domain logic or ports
+ * - **Identity Management**: Domain objects use immutable IIDs
  *
  * ## Usage
- * This mapper is typically called by infrastructure ports and assemblers. Direct usage
+ * This mapper is typically called by infrastructure ports. Direct usage
  * is also supported for `refreshDomain` operations after persistence.
  */
 @Component
 internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     @Autowired
     private lateinit var issueMapper: IssueMapper
@@ -48,40 +45,26 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
     /**
      * Converts a Project domain object to ProjectEntity.
      *
-     * **Note**: This method does NOT map child entities (Repository). Use assemblers
-     * for complete aggregate assembly including children.
-     *
      * @param domain The Project domain object to convert
      * @return The ProjectEntity (structure only, without children)
      */
     override fun toEntity(domain: Project): ProjectEntity {
-        // Fast-path: if this Project was already mapped in the current context, return it.
-        ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)?.let { return it }
-
         val entity = domain.toArangoEntity()
         
-        // These are now handled differently since domain only has IDs
-        // entity.issues = domain.issueIds.map { ... } 
-        // For simple mapping, we skip these as entities should be populated via aggregators/repositories
+        // Relationships are handled via IDs in domain, 
+        // persistence layer can populate @Ref fields if needed during save
 
-        ctx.remember(domain, entity)
         return entity
     }
 
     /**
      * Converts a ProjectEntity to Project domain object.
      *
-     * **Note**: This method does NOT map child entities (Repository). Use assemblers
-     * for complete aggregate assembly including children.
-     *
      * @param entity The ProjectEntity to convert
      * @return The Project domain object (structure only, without children)
      */
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: ProjectEntity): Project {
-        // Fast-path: Check if already mapped
-        ctx.findDomain<Project, ProjectEntity>(entity)?.let { return it }
-
         val domain = entity.toDomain()
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
@@ -94,7 +77,6 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         domain.milestoneIds.addAll(entity.milestones.mapNotNull { it.id?.let { id -> Milestone.Id(Uuid.parse(id)) } })
         domain.accountIds.addAll(entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } })
 
-        ctx.remember(domain, entity)
         return domain
     }
 

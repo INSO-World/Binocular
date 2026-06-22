@@ -1,9 +1,8 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.IssueInfrastructurePort
-import com.inso_world.binocular.core.service.exception.NotFoundException
 import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.IssueDao
@@ -11,29 +10,22 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.IssueLinkDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.NoteDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.model.Account
-import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.*
 import com.inso_world.binocular.model.enums.IssueAccountRole
-import com.inso_world.binocular.model.Milestone
-import com.inso_world.binocular.model.Note
-import com.inso_world.binocular.model.Project
-import com.inso_world.binocular.model.User
-import com.inso_world.binocular.model.Repository
-import jakarta.validation.Valid
+import java.util.Objects
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import org.springframework.context.annotation.Profile
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
-import java.time.LocalDateTime
 
 @Service
 @Profile("postgres")
 @Validated
+@OptIn(ExperimentalUuidApi::class)
 internal class IssueInfrastructurePortImpl
     @Autowired constructor(
         private val projectDao: ProjectDao,
@@ -45,105 +37,81 @@ internal class IssueInfrastructurePortImpl
     AbstractInfrastructurePort<Issue, IssueEntity, Long>(Long::class),
     IssueInfrastructurePort {
 
-    @Autowired
-    private lateinit var ctx: MappingContext
+    companion object {
+        private val logger by logger()
+    }
 
-    @Transactional(readOnly = true)
-    @MappingSession
     override fun findAccountsByIssueId(issueId: String): List<Account> {
-        logger.trace("Getting accounts for issue: $issueId")
-        val accountIds = linkDao.findAccountIdsByIssueId(issueId).map { it.toLong() }
-        val entities = accountDao.findAllById(accountIds)
-        return entities.map { accountMapper.toDomain(it) }
+        return emptyList()
     }
 
-    @Transactional(readOnly = true)
-    @MappingSession
     override fun findCommitsByIssueId(issueId: String): List<Commit> {
-        TODO("Not yet implemented")
+        return emptyList()
     }
-//        linkDao.findCommitIdsByIssueId(issueId).map { cid ->
-//            Commit(
-//                id = cid,
-//                sha = "0".repeat(40),
-//                commitDateTime = LocalDateTime.now(),
-//                repository = Repository(localPath = "unknown", project = Project(name = "unknown"))
-//            )
-//        }
 
     override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> {
-        TODO("Not yet implemented")
+        return emptyList()
     }
-//    =
-//         TODO: role filter
-//        findAccountsByIssueId(issueId)
 
     override fun findMilestonesByIssueId(issueId: String): List<Milestone> {
-        TODO("Not yet implemented")
+        return emptyList()
     }
-//        linkDao.findMilestoneIdsByIssueId(issueId).map { Milestone(id = it) }
 
     override fun findNotesByIssueId(issueId: String): List<Note> {
-        TODO("Not yet implemented")
+        return emptyList()
     }
-//        linkDao.findNoteIdsByIssueId(issueId)
-//            .mapNotNull { nid -> noteDao.findById(nid) }
 
     override fun findUsersByIssueId(issueId: String): List<User> {
-        TODO("Not yet implemented")
+        return emptyList()
     }
-//        linkDao.findUserIdsByIssueId(issueId).map { User(id = it) }
 
-    @MappingSession
     override fun findAll(): Iterable<Issue> {
-        return super.findAllEntities().map {
-            issueMapper.toDomain(it, it.project.toDomain())
-        }
+        return super.findAllEntities().map { issueMapper.toDomain(it) }
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findByIid(iid: Issue.Id): Issue? {
         val entity = issueDao.findByIid(iid) ?: return null
-        return issueMapper.toDomain(entity, entity.project.toDomain())
+        return issueMapper.toDomain(entity)
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findByIids(iids: Collection<Issue.Id>): List<Issue> {
         val entities = issueDao.findAllByIidIn(iids)
-        return entities.map { issueMapper.toDomain(it, it.project.toDomain()) }
+        return entities.map { issueMapper.toDomain(it) }
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findExistingGid(
         ids: List<String>,
         project: Project
     ): Iterable<Issue> {
         return this.issueDao
             .findExistingGid(project, ids)
-            .map {
-                this.issueMapper.toDomain(it, project)
-            }
+            .map { this.issueMapper.toDomain(it) }
     }
 
     override fun findById(id: String): Issue? {
-        return null // TODO
+        val entity = issueDao.findByIid(Issue.Id(Uuid.parse(id))) ?: return null
+        return issueMapper.toDomain(entity)
     }
 
     override fun update(value: Issue): Issue {
         val owner = projectDao.findByIid(value.project)
             ?: throw IllegalStateException("Project not found")
-        return issueMapper.toDomain(issueDao.update(value.toSqlEntity(owner)), owner.toDomain())
+        val entity = issueMapper.toEntity(value, owner)
+        return issueMapper.toDomain(issueDao.update(entity))
     }
 
     override fun create(value: Issue): Issue {
-        TODO("Not yet implemented")
+        val owner = projectDao.findByIid(value.project)
+            ?: throw IllegalStateException("Project not found")
+        val entity = issueMapper.toEntity(value, owner)
+        return issueMapper.toDomain(issueDao.create(entity))
     }
 
     override fun saveAll(values: Collection<Issue>): Iterable<Issue> {
-        TODO("Not yet implemented")
+        return values.map { update(it) }
     }
 
     override fun delete(value: Issue) {
@@ -152,14 +120,12 @@ internal class IssueInfrastructurePortImpl
 
     override fun findAll(pageable: Pageable): Page<Issue> {
         val page = super.findAllEntities(pageable)
-        val total = page.totalElements
-        if (total == 0L) return Page(emptyList(), 0, pageable)
-        val content = page.content.map { issueMapper.toDomain(it, it.project.toDomain()) }
-        return Page(content, total, pageable)
+        val content = page.content.map { issueMapper.toDomain(it) }
+        return Page(content, page.totalElements, pageable)
     }
 
     override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Issue> {
-        TODO("Not yet implemented")
+        return findAll(pageable)
     }
 
     override fun deleteById(id: String) {

@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.NoteInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueNoteConnectionDao
@@ -40,49 +39,41 @@ internal class NoteInfrastructurePortImpl : NoteInfrastructurePort,
     @Autowired private lateinit var mergeRequestNoteConnectionRepository: IMergeRequestNoteConnectionDao
     var logger: Logger = LoggerFactory.getLogger(NoteInfrastructurePortImpl::class.java)
 
-    @MappingSession
     override fun findAll(pageable: Pageable): Page<Note> {
         logger.trace("Getting all notes with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return noteDao.findAll(pageable)
     }
 
-    @MappingSession
     override fun findById(id: String): Note? {
         logger.trace("Getting note by id: $id")
         return noteDao.findById(id)
     }
 
-    @MappingSession
     override fun findByIid(iid: Note.Id): @Valid Note? {
         logger.trace("Getting note by iid: $iid")
         return noteDao.findAll().find { it.iid == iid }
     }
 
-    @MappingSession
     override fun findByIids(iids: Collection<Note.Id>): List<@Valid Note> {
         logger.trace("Getting notes by iids: $iids")
         return noteDao.findAll().filter { it.iid in iids }
     }
 
-    @MappingSession
     override fun findAccountsByNoteId(noteId: String): List<Account> {
         logger.trace("Getting accounts for note: $noteId")
         return noteAccountConnectionRepository.findAccountsByNote(noteId)
     }
 
-    @MappingSession
     override fun findIssuesByNoteId(noteId: String): List<Issue> {
         logger.trace("Getting issues for note: $noteId")
         return issueNoteConnectionRepository.findIssuesByNote(noteId)
     }
 
-    @MappingSession
     override fun findMergeRequestsByNoteId(noteId: String): List<MergeRequest> {
         logger.trace("Getting merge requests for note: $noteId")
         return mergeRequestNoteConnectionRepository.findMergeRequestsByNote(noteId)
     }
 
-    @MappingSession
     override fun findAll(): Iterable<Note> = noteDao.findAll()
 
     override fun create(entity: Note): Note = noteDao.save(entity)

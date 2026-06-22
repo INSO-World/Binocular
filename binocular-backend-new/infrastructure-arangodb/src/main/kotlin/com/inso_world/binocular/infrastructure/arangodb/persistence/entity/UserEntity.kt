@@ -96,10 +96,10 @@ data class UserEntity(
      * @return User domain object
      */
     @Suppress("DEPRECATION")
-    fun toDomain(repository: Repository): User =
+    fun toDomain(): User =
         User(
             name = this.name,
-            repository = repository,
+            repositoryId = Repository.Id(this.repository.iid),
         ).apply {
             this.email = this@UserEntity.email
             this.id = this@UserEntity.id

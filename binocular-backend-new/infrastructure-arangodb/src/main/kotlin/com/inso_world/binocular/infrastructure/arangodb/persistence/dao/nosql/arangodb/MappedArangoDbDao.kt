@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,8 +43,6 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     protected val repository: ArangoRepository<E, I>,
     protected val mapper: EntityMapper<D, E>,
 ) : IDao<D, I> {
-    @Autowired
-    private lateinit var seeder: DefaultMappingContextSeeder
 
     /**
      * Converts a list of database entities to a list of domain models
@@ -55,9 +52,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds an entity by its ID and converts it to a domain model
      */
-    @MappingSession
     override fun findById(id: I): D? {
-        seeder.seed()
         val entity = repository.findById(id).orElse(null) ?: return null
         return mapper.toDomain(entity)
     }
@@ -65,9 +60,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds multiple entities by their IDs and converts them to domain models
      */
-    @MappingSession
     override fun findAllById(ids: Iterable<I>): Iterable<D> {
-        seeder.seed()
         val entities = repository.findAllById(ids)
         return toDomainList(entities)
     }
@@ -75,9 +68,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds all entities and converts them to domain models
      */
-    @MappingSession
     override fun findAll(): Iterable<D> {
-        seeder.seed()
         val entities = repository.findAll()
         return toDomainList(entities)
     }
@@ -85,9 +76,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds a page of entities and converts them to domain models
      */
-    @MappingSession
     override fun findAll(pageable: Pageable): Page<D> {
-        seeder.seed()
         val result = repository.findAll(pageable)
         val content = toDomainList(result.content)
         val totalElements = result.totalElements
@@ -111,7 +100,6 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * @param entity The domain model to update an entity from
      * @return The updated domain model
      */
-    @MappingSession
     override fun update(entity: D): D {
         val mappedEntity = mapper.toEntity(entity)
         val savedEntity = repository.save(mappedEntity)

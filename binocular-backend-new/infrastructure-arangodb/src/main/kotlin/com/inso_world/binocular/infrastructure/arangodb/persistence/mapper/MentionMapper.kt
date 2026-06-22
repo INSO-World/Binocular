@@ -1,7 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MentionEntity
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Mention
@@ -21,7 +20,6 @@ import kotlin.uuid.Uuid
  * ## Design Principles
  * - **Value Object**: Mention is a value object typically embedded within Issue
  * - **Date Conversion**: Converts between LocalDateTime and Date for ArangoDB storage
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is primarily used by IssueMapper to convert mentions within issue entities.
@@ -29,7 +27,6 @@ import kotlin.uuid.Uuid
 @Component
 internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
     @Autowired
-    private lateinit var ctx: MappingContext
 
     /**
      * Converts a Mention value object to MentionEntity.
@@ -57,7 +54,6 @@ internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
     @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: MentionEntity): Mention {
         // Fast-path: Check if already mapped
-        ctx.findDomain<Mention, MentionEntity>(entity)?.let { return it }
 
         return Mention(
             commit = entity.commit,

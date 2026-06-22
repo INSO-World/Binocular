@@ -85,7 +85,7 @@ internal data class CommitEntity(
     )
 
     init {
-        this.repository.commits.add(this)
+        // removed circular registration
     }
 
     @Id
@@ -99,27 +99,25 @@ internal data class CommitEntity(
 
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(
-        repository: Repository,
-        author: Developer,
-        committer: Developer,
-    ): Commit {
-        val authorSignature = Signature(developer = author, timestamp = authorDateTime)
+    fun toDomain(): Commit {
+        val authorSignature = Signature(developerId = author.iid, timestamp = authorDateTime)
         val committerSignature =
-            if (committer == author && commitDateTime == authorDateTime) {
+            if (committer.iid == author.iid && commitDateTime == authorDateTime) {
                 authorSignature
             } else {
-                Signature(developer = committer, timestamp = commitDateTime)
+                Signature(developerId = committer.iid, timestamp = commitDateTime)
             }
         return Commit(
             sha = this.sha,
             authorSignature = authorSignature,
             committerSignature = committerSignature,
-            repository = repository,
+            repositoryId = repository.iid,
             message = this.message,
         ).apply {
             this.id = this@CommitEntity.id?.toString()
             this.webUrl = this@CommitEntity.webUrl
+            this.parentShas.addAll(this@CommitEntity.parents.map { it.sha })
+            this.childShas.addAll(this@CommitEntity.children.map { it.sha })
         }
     }
 

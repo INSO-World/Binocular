@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.base
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.unit.base.BaseUnitTest
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper

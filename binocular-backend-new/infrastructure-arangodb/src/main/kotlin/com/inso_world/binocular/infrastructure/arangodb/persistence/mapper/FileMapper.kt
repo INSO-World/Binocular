@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.FileEntity
 import com.inso_world.binocular.model.File
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Component
  * ## Design Principles
  * - **Single Responsibility**: Only converts File structure
  * - **No Deep Traversal**: Does not map file states, commits, or branches
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It supports
@@ -27,7 +25,6 @@ import org.springframework.stereotype.Component
 @Component
 internal class FileMapper : EntityMapper<File, FileEntity> {
     @Autowired
-    private lateinit var ctx: MappingContext
 
     companion object {
         private val logger by logger()
@@ -44,7 +41,6 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
      */
     override fun toEntity(domain: File): FileEntity {
         // Fast-path: if this File was already mapped in the current context, return it.
-        ctx.findEntity<File.Key, File, FileEntity>(domain)?.let { return it }
 
         val entity =
             FileEntity(
@@ -54,7 +50,6 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
                 maxLength = domain.maxLength,
             )
 
-        ctx.remember(domain, entity)
         return entity
     }
 
@@ -70,7 +65,6 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
      */
     override fun toDomain(entity: FileEntity): File {
         // Fast-path: Check if already mapped
-        ctx.findDomain<File, FileEntity>(entity)?.let { return it }
 
         val domain =
             File(path = entity.path).apply {
@@ -78,7 +72,6 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
                 webUrl = entity.webUrl
             }
 
-        ctx.remember(domain, entity)
         return domain
     }
 

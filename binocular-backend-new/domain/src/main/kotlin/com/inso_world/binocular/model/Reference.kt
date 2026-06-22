@@ -10,7 +10,7 @@ abstract class Reference<Key>(
     @field:NotNull
     open val category: ReferenceCategory,
     @field:NotNull
-    open val repository: Repository
+    open val repositoryId: Repository.Id
 ) : AbstractDomainObject<Reference.Id, Key>(
     Id(Uuid.random())
 ) {

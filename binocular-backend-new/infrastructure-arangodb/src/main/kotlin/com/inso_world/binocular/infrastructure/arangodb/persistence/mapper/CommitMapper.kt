@@ -2,9 +2,9 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.DeveloperEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Commit
@@ -13,6 +13,7 @@ import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Commit domain objects.
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Component
  *
  * ## Design Principles
  * - **Single Responsibility**: Only converts Commit structure
- * - **Aggregate Boundaries**: Expects Repository already in MappingContext (cross-aggregate reference)
  * - **No Deep Traversal**: Does not automatically map entire parent/child commit graphs
  *
  * ## Usage
@@ -32,8 +32,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     @Autowired
     private lateinit var developerMapper: DeveloperMapper
@@ -45,31 +43,29 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
     /**
      * Converts a Commit domain object to CommitEntity.
      *
-     * **Precondition**: The referenced Repository must already be mapped and present in MappingContext.
-     * This enforces aggregate boundaries - Repository is a separate aggregate.
-     *
-     * **Note**: This method does NOT map parent/child commit relationships or branches.
-     * Use assemblers for complete commit graph assembly.
-     *
      * @param domain The Commit domain object to convert
      * @return The CommitEntity (structure only, without relationships)
-     * @throws IllegalStateException if Repository is not in MappingContext
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toEntity(domain: Commit): CommitEntity {
-        // Fast-path: if this Commit was already mapped in the current context, return it.
-        ctx.findEntity<Commit.Key, Commit, CommitEntity>(domain)?.let { return it }
+        // TODO
+        val owner = RepositoryEntity(
+            iid = domain.repositoryId.value,
+            localPath = "",
+            project = ProjectEntity(iid = domain.repositoryId.value, name = "") // Dummy project
+        )
 
-        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
-        // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner =
-            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-                ?: throw IllegalStateException(
-                    "RepositoryEntity must be mapped before CommitEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
-                )
-
-        val authorEntity = developerMapper.toEntity(domain.author)
-        val committerEntity = developerMapper.toEntity(domain.committer)
+        // For author/committer, we construct dummy entities with correct iids
+        val authorEntity = DeveloperEntity(
+            iid = domain.authorSignature.developerId,
+            gitSignature = "",
+            repository = owner
+        )
+        val committerEntity = DeveloperEntity(
+            iid = domain.committerSignature.developerId,
+            gitSignature = "",
+            repository = owner
+        )
 
         val entity =
             domain.toArangoEntity(
@@ -77,7 +73,6 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
                 author = authorEntity,
                 committer = committerEntity,
             )
-        ctx.remember(domain, entity)
 
         return entity
     }
@@ -85,39 +80,24 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
     /**
      * Converts a CommitEntity to Commit domain object.
      *
-     * **Precondition**: The referenced Repository must already be mapped and present in MappingContext.
-     * This enforces aggregate boundaries - Repository is a separate aggregate.
-     *
-     * **Note**: This method does NOT map parent/child commit relationships or branches.
-     * Use assemblers for complete commit graph assembly.
-     *
      * @param entity The CommitEntity to convert
      * @return The Commit domain object (structure only, without relationships)
-     * @throws IllegalStateException if Repository is not in MappingContext
      */
-    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: CommitEntity): Commit {
-        ctx.findDomain<Commit, CommitEntity>(entity)?.let { return it }
-
-        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
-        // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner =
-            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-                ?: throw IllegalStateException(
-                    "Repository must be mapped before Commit. " +
-                        "Ensure Repository is in MappingContext before calling toDomain().",
-                )
-
         val author = developerMapper.toDomain(entity.author)
         val committer = developerMapper.toDomain(entity.committer)
 
-        val domain = entity.toDomain(owner, author, committer)
+        val domain = entity.toDomain(
+            repository = entity.repository.toDomain(),
+            author = author,
+            committer = committer
+        )
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
             entity.iid
         )
-        ctx.remember(domain, entity)
 
         return domain
     }

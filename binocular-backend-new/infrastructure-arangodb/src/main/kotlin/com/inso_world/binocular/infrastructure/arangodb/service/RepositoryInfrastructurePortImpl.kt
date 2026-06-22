@@ -1,10 +1,8 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.inso_world.binocular.core.delegates.logger
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.BranchDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
@@ -40,33 +38,24 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     private lateinit var repositoryMapper: RepositoryMapper
 
     @Autowired
-    private lateinit var repositoryAssembler: RepositoryAssembler
-
-    @Autowired
     private lateinit var branchDao: BranchDao
 
-    @MappingSession
     override fun findByIid(iid: Repository.Id): Repository? {
         logger.trace("Getting repository by iid: $iid")
         return this.repositoryDao.findAll().find { it.iid == iid }
     }
 
-    @MappingSession
     override fun findByIids(iids: Collection<Repository.Id>): List<Repository> {
         logger.trace("Getting repositories by iids: $iids")
         return repositoryDao.findAll().filter { it.iid in iids }
     }
 
-    @MappingSession
     override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll()
 
-    @MappingSession
     override fun findAll(pageable: Pageable): Page<Repository> = this.repositoryDao.findAll(pageable)
 
-    @MappingSession
     override fun findById(id: String): Repository? = this.repositoryDao.findById(id)
 
-    @MappingSession
     override fun create(value: Repository): Repository {
         // DAO expects Repository domain model and handles mapping
         return this.repositoryDao.create(value)
@@ -74,15 +63,12 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
 
     override fun saveAll(values: Collection<Repository>): Iterable<Repository> = this.repositoryDao.saveAll(values)
 
-    @MappingSession
     override fun update(value: Repository): Repository {
         return this.repositoryDao.save(value)
     }
 
-    @MappingSession
     override fun findByName(name: String): Repository? = this.repositoryDao.findByName(name)?.let { this.repositoryMapper.toDomain(it) }
 
-    @MappingSession
     override fun findExistingCommits(
         repo: Repository,
         shas: Set<String>,
@@ -90,7 +76,6 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         return commitDao.findByRepositoryAndShaIn(repo.localPath, shas).asSequence()
     }
 
-    @MappingSession
     override fun findBranch(
         repository: Repository,
         name: String,

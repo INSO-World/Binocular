@@ -47,7 +47,7 @@ data class Developer(
     @field:NotBlank
     override val email: String,
     @field:NotNull
-    val repository: Repository,
+    val repositoryId: Repository.Id,
 ) : Stakeholder<Developer.Id, Developer.Key>(
         Id(Uuid.random()),
     ) {
@@ -72,104 +72,35 @@ data class Developer(
     var id: String? = null
 
     /**
-     * Issues associated with this developer.
+     * Issue IDs associated with this developer.
      */
-    val issues: MutableSet<Issue> = mutableSetOf()
+    val issueIds: MutableSet<Issue.Id> = mutableSetOf()
 
     /**
-     * Files associated with this developer.
+     * File IDs associated with this developer.
      */
-    val files: MutableSet<File> = object : NonRemovingMutableSet<File>() {}
+    val fileIds: MutableSet<File.Id> = mutableSetOf()
 
     init {
         require(name.trim().isNotBlank()) { "name cannot be blank." }
         require(email.trim().isNotBlank()) { "email cannot be blank." }
-        repository.developers.add(this)
     }
 
     /**
      * Commits committed by this [Developer].
      *
      * # Semantics
-     * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removals are not supported.
-     * - **Repository consistency:** Each added [Commit] must belong to the **same** `repository` as this developer.
-     * - **Set semantics / de-duplication:** Membership is keyed by each commit's `uniqueKey` (business key).
-     *   Re-adding an existing commit is a no-op (`false`).
-     *
-     * # Invariants enforced on insert
-     * - Precondition: `element.repository == this@Developer.repository`.
-     * - Precondition: `element.committer == this@Developer`.
-     *
-     * # Exceptions
-     * - Throws [IllegalArgumentException] when the commit's repository differs from this developer's repository.
-     * - Throws [IllegalArgumentException] when this developer is not the committer of the commit.
-     * - Any attempt to remove elements from this collection throws [UnsupportedOperationException].
-     *
-     * # Thread-safety
-     * - Internally backed by a concurrent map; individual `add`/`contains` operations are safe for concurrent use.
+     * - **Add-only collection:** removals are not supported.
      */
-    val committedCommits: MutableSet<Commit> =
-        object : NonRemovingMutableSet<Commit>() {
-            override fun add(element: Commit): Boolean {
-                require(element.repository == this@Developer.repository) {
-                    "Commit.repository (${element.repository}) doesn't match developer.repository (${this@Developer.repository})"
-                }
-                require(element.committer == this@Developer) {
-                    "Cannot add Commit $element to committedCommits since developer is not committer of Commit."
-                }
-                return super.add(element)
-            }
-
-            override fun addAll(elements: Collection<Commit>): Boolean {
-                var anyAdded = false
-                for (e in elements) {
-                    if (add(e)) anyAdded = true
-                }
-                return anyAdded
-            }
-        }
+    val committedCommitShas: MutableSet<String> = mutableSetOf()
 
     /**
      * Commits authored by this [Developer].
      *
      * # Semantics
-     * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removals are not supported.
-     * - **Repository consistency:** Each added [Commit] must belong to the **same** `repository` as this developer.
-     * - **Set semantics / de-duplication:** Membership is keyed by each commit's `uniqueKey` (business key).
-     *   Re-adding an existing commit is a no-op (`false`).
-     *
-     * # Invariants enforced on insert
-     * - Precondition: `element.repository == this@Developer.repository`.
-     * - Precondition: `element.author == this@Developer`.
-     *
-     * # Exceptions
-     * - Throws [IllegalArgumentException] when the commit's repository differs from this developer's repository.
-     * - Throws [IllegalArgumentException] when this developer is not the author of the commit.
-     * - Any attempt to remove elements from this collection throws [UnsupportedOperationException].
-     *
-     * # Thread-safety
-     * - Internally backed by a concurrent map; individual `add`/`contains` operations are safe for concurrent use.
+     * - **Add-only collection:** removals are not supported.
      */
-    val authoredCommits: MutableSet<Commit> =
-        object : NonRemovingMutableSet<Commit>() {
-            override fun add(element: Commit): Boolean {
-                require(element.repository == this@Developer.repository) {
-                    "Commit.repository (${element.repository}) doesn't match developer.repository (${this@Developer.repository})"
-                }
-                require(element.author == this@Developer) {
-                    "Cannot add Commit $element to authoredCommits since developer is not author of Commit."
-                }
-                return super.add(element)
-            }
-
-            override fun addAll(elements: Collection<Commit>): Boolean {
-                var anyAdded = false
-                for (e in elements) {
-                    if (add(e)) anyAdded = true
-                }
-                return anyAdded
-            }
-        }
+    val authoredCommitShas: MutableSet<String> = mutableSetOf()
 
     /**
      * Git signature format combining name and email.
@@ -179,7 +110,7 @@ data class Developer(
         get() = "${name.trim()} <${email.trim()}>"
 
     override val uniqueKey: Key
-        get() = Key(repository.iid, gitSignature)
+        get() = Key(repositoryId, gitSignature)
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
@@ -187,14 +118,14 @@ data class Developer(
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "Developer(id=$id, iid=$iid, name=$name, email=$email, gitSignature=$gitSignature, repositoryId=${repository.id})"
+        "Developer(id=$id, iid=$iid, name=$name, email=$email, gitSignature=$gitSignature, repositoryId=$repositoryId)"
 }
 
 fun Developer.toLegacyUser(): User {
     val user =
         User(
             name = this@toLegacyUser.name,
-            repository = this@toLegacyUser.repository
+            repositoryId = this@toLegacyUser.repositoryId
         ).apply {
             this.id = this@toLegacyUser.id
             this.email = this@toLegacyUser.email

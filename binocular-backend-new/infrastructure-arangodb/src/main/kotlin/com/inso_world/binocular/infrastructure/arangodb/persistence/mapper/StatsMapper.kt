@@ -1,7 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.StatsEntity
 import com.inso_world.binocular.model.Stats
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Component
  * ## Design Principles
  * - **Value Object**: Stats is an immutable value object representing commit statistics
  * - **Simple Mapping**: Direct property-to-property conversion without relationships
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is used by CommitMapper and other mappers that need to persist commit statistics.
@@ -24,7 +22,6 @@ import org.springframework.stereotype.Component
 @Component
 internal class StatsMapper : EntityMapper<Stats, StatsEntity> {
     @Autowired
-    private lateinit var ctx: MappingContext
 
     /**
      * Converts a Stats value object to StatsEntity.
@@ -46,7 +43,6 @@ internal class StatsMapper : EntityMapper<Stats, StatsEntity> {
      */
     override fun toDomain(entity: StatsEntity): Stats {
         // Fast-path: Check if already mapped
-        ctx.findDomain<Stats, StatsEntity>(entity)?.let { return it }
 
         return Stats(
             additions = entity.additions,

@@ -1,7 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.inso_world.binocular.core.delegates.logger
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
@@ -54,13 +53,11 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
         private val logger by logger()
     }
 
-    @MappingSession
     override fun findAll(pageable: Pageable): Page<Commit> {
         logger.trace("Getting all commits with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return commitDao.findAll(pageable)
     }
 
-    @MappingSession
     override fun findAll(
         pageable: Pageable,
         since: Long?,
@@ -85,37 +82,31 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
         )
     }
 
-    @MappingSession
     override fun findById(id: String): Commit? {
         logger.trace("Getting commit by id: $id")
         return commitDao.findById(id)
     }
 
-    @MappingSession
     override fun findByIid(iid: Commit.Id): @Valid Commit? {
         logger.trace("Getting commit by iid: $iid")
         return commitDao.findAll().find { it.iid == iid }
     }
 
-    @MappingSession
     override fun findByIids(iids: Collection<Commit.Id>): List<@Valid Commit> {
         logger.trace("Getting commits by iids: $iids")
         return commitDao.findAll().filter { it.iid in iids }
     }
 
-    @MappingSession
     override fun findBuildsByCommitId(commitId: String): List<Build> {
         logger.trace("Getting builds for commit: $commitId")
         return commitBuildConnectionRepository.findBuildsByCommit(commitId)
     }
 
-    @MappingSession
     override fun findFilesByCommitId(commitId: String): List<File> {
         logger.trace("Getting files for commit: $commitId")
         return commitFileConnectionRepository.findFilesByCommit(commitId)
     }
 
-    @MappingSession
     override fun findFilesByCommitId(
         commitId: String,
         pageable: Pageable,
@@ -124,37 +115,31 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
         return commitFileConnectionRepository.findFilesByCommitPaged(commitId, pageable)
     }
 
-    @MappingSession
     override fun findModulesByCommitId(commitId: String): List<Module> {
         logger.trace("Getting modules for commit: $commitId")
         return commitModuleConnectionRepository.findModulesByCommit(commitId)
     }
 
-    @MappingSession
     override fun findCommitStatsByCommitId(commitId: String): Stats {
         logger.trace("Getting stats for commit: $commitId")
         return commitFileConnectionRepository.findCommitStatsByCommit(commitId)
     }
 
-    @MappingSession
     override fun findFileStatsByCommitId(commitId: String): Map<String, Stats> {
         logger.trace("Getting per-file stats for commit: $commitId")
         return commitFileConnectionRepository.findFileStatsByCommit(commitId)
     }
 
-    @MappingSession
     override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
         logger.trace("Getting per-file actions for commit: $commitId")
         return commitFileConnectionRepository.findFileActionsByCommit(commitId)
     }
 
-    @MappingSession
     override fun findUsersByCommitId(commitId: String): List<User> {
         logger.trace("Getting users for commit: $commitId")
         return commitUserConnectionRepository.findUsersByCommit(commitId)
     }
 
-    @MappingSession
     override fun findFileOwnershipByCommitAndFile(
         commitId: String,
         fileId: String,
@@ -163,25 +148,21 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
         return commitFileConnectionRepository.findFileOwnershipByCommitAndFile(commitId, fileId)
     }
 
-    @MappingSession
     override fun findIssuesByCommitId(commitId: String): List<Issue> {
         logger.trace("Getting issues for commit: $commitId")
         return issueCommitConnectionRepository.findIssuesByCommit(commitId)
     }
 
-    @MappingSession
     override fun findParentCommitsByChildCommitId(childCommitId: String): List<Commit> {
         logger.trace("Getting parent commits for child commit: $childCommitId")
         return commitCommitConnectionRepository.findParentCommits(childCommitId)
     }
 
-    @MappingSession
     override fun findChildCommitsByParentCommitId(parentCommitId: String): List<Commit> {
         logger.trace("Getting child commits for parent commit: $parentCommitId")
         return commitCommitConnectionRepository.findChildCommits(parentCommitId)
     }
 
-    @MappingSession
     override fun findAll(): Iterable<Commit> = this.commitDao.findAll()
 
     override fun create(entity: Commit): Commit = this.commitDao.save(entity)

@@ -49,11 +49,11 @@ internal data class RemoteEntity(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     override var id: Long? = null
 
-    fun toDomain(repository: Repository): Remote =
+    fun toDomain(): Remote =
         Remote(
             name = this.name,
             url = this.url,
-            repository = repository
+            repositoryId = repository.iid
         ).apply {
             this.id = this@RemoteEntity.id?.toString()
         }

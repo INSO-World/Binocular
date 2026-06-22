@@ -53,20 +53,20 @@ internal data class BranchEntity(
     data class Key(val repositoryIid: Repository.Id, val name: String)
 
     init {
-        repository.branches.add(this)
+        // removed circular registration
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     override var id: Long? = null
 
-    fun toDomain(repository: Repository, head: Commit): Branch =
+    fun toDomain(): Branch =
         Branch(
             name = this.name,
             fullName = this.fullName,
             category = this.category,
-            repository = repository,
-            head = head,
+            repositoryId = this.repository.iid,
+            headSha = this.head.sha,
         ).apply {
             this.id = this@BranchEntity.id?.toString()
         }

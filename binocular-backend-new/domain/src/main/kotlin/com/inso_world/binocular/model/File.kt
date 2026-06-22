@@ -10,7 +10,6 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class File(
     var path: String,
-    val revisions: MutableSet<Revision> = mutableSetOf(),
 ) : AbstractDomainObject<File.Id, File.Key>(
         Id(Uuid.random()),
     ) {
@@ -31,33 +30,10 @@ data class File(
     lateinit var webUrl: String
 
     @Deprecated("legacy")
-    val maxLength: Int
-        get() =
-            revisions
-                .mapNotNull { it.content?.length }
-                .takeIf { it.isNotEmpty() }
-                ?.reduce { acc, n -> if (n > acc) n else acc } ?: Int.MIN_VALUE
-
-    // Relationships
-    @Deprecated("legacy")
-    val commits: List<Commit>
-        get() = revisions.map { it.commit }
-
-    @Deprecated("legacy")
-    val branches: List<Branch> = emptyList()
-
-    @Deprecated("legacy")
-    var modules: List<Module> = emptyList()
-
-    @Deprecated("legacy")
-    val relatedFiles: List<File> = emptyList()
-
-    @Deprecated("legacy")
-    val users: List<Developer>
-        get() = revisions.map { it.commit }.flatMap { it.users }
+    var modules: List<Module.Id> = emptyList()
 
     override val uniqueKey: Key
         get() = Key(this.path)
 
-    override fun toString(): String = "File(states=$revisions, path='$path', id=$id)"
+    override fun toString(): String = "File(path='$path', id=$id)"
 }

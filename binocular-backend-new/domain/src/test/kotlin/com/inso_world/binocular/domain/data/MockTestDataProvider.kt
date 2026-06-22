@@ -29,44 +29,43 @@ class MockTestDataProvider(
         listOf(
             run {
                 val project = projectsByName.getValue("proj-pg-0")
-                Repository(localPath = "repo-pg-0", project = project)
+                Repository(localPath = "repo-pg-0", projectId = project.iid)
             },
             run {
                 val project = projectsByName.getValue("proj-pg-1")
-                Repository(localPath = "repo-pg-1", project = project)
+                Repository(localPath = "repo-pg-1", projectId = project.iid)
             },
             run {
                 val project = projectsByName.getValue("proj-pg-2")
-                Repository(localPath = "repo-pg-2", project = project)
+                Repository(localPath = "repo-pg-2", projectId = project.iid)
             },
             run {
                 val project = projectsByName.getValue("proj-pg-3")
-                Repository(localPath = "repo-pg-3", project = project)
+                Repository(localPath = "repo-pg-3", projectId = project.iid)
             },
             run {
                 val project = projectsByName.getValue("proj-pg-4")
-                Repository(localPath = "repo-pg-4", project = project)
+                Repository(localPath = "repo-pg-4", projectId = project.iid)
             },
             run {
                 val project = projectsByName.getValue("proj-for-repos")
-                Repository(localPath = "repo-pg-5", project = project)
+                Repository(localPath = "repo-pg-5", projectId = project.iid)
             },
             run {
                 val project = projectsByName.getValue("proj-pg-5")
-                Repository(localPath = "repo-empty", project = project)
+                Repository(localPath = "repo-empty", projectId = project.iid)
             },
         )
     val repositoriesByPath = testRepositories.associateBy { requireNotNull(it.localPath) }
 
-    // Legacy User support (deprecated)
     @Deprecated("Use developers instead")
     val users: List<User> =
         listOf(
-            User(name = "User A", repository = repository).apply { this.email = "a@test.com" },
-            User(name = "User B", repository = repository).apply { this.email = "b@test.com" },
-            User(name = "User C", repository = repository).apply { this.email = "c@test.com" },
-            User(name = "User D", repository = repository).apply { this.email = "d@test.com" },
-            User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" },
+            User(name = "User A", repositoryId = repository.iid).apply { this.email = "a@test.com" },
+            User(name = "User B", repositoryId = repository.iid).apply { this.email = "b@test.com" },
+            User(name = "User C", repositoryId = repository.iid).apply { this.email = "c@test.com" },
+            User(name = "User D", repositoryId = repository.iid).apply { this.email = "d@test.com" },
+            User(name = "Author Only", repositoryId = repository.iid).apply { this.email = "author@test.com" },
         )
 
     @Deprecated("Use developerByEmail instead")
@@ -75,11 +74,11 @@ class MockTestDataProvider(
     // New Developer-based test data
     val developers: List<Developer> =
         listOf(
-            Developer(name = "User A", email = "a@test.com", repository = repository),
-            Developer(name = "User B", email = "b@test.com", repository = repository),
-            Developer(name = "User C", email = "c@test.com", repository = repository),
-            Developer(name = "User D", email = "d@test.com", repository = repository),
-            Developer(name = "Author Only", email = "author@test.com", repository = repository),
+            Developer(name = "User A", email = "a@test.com", repositoryId = repository.iid),
+            Developer(name = "User B", email = "b@test.com", repositoryId = repository.iid),
+            Developer(name = "User C", email = "c@test.com", repositoryId = repository.iid),
+            Developer(name = "User D", email = "d@test.com", repositoryId = repository.iid),
+            Developer(name = "Author Only", email = "author@test.com", repositoryId = repository.iid),
         )
     val developerByEmail = developers.associateBy { it.email }
 
@@ -91,8 +90,8 @@ class MockTestDataProvider(
                 Commit(
                     sha = "a".repeat(40),
                     message = "msg1",
-                    authorSignature = Signature(developer = dev, timestamp = timestamp),
-                    repository = repository,
+                    authorSignature = Signature(developerId = dev.iid, timestamp = timestamp),
+                    repositoryId = repository.iid,
                 )
             },
             run {
@@ -101,8 +100,8 @@ class MockTestDataProvider(
                 Commit(
                     sha = "b".repeat(40),
                     message = "msg2",
-                    authorSignature = Signature(developer = dev, timestamp = timestamp),
-                    repository = repository,
+                    authorSignature = Signature(developerId = dev.iid, timestamp = timestamp),
+                    repositoryId = repository.iid,
                 )
             },
             run {
@@ -111,8 +110,8 @@ class MockTestDataProvider(
                 Commit(
                     sha = "c".repeat(40),
                     message = "msg1",
-                    authorSignature = Signature(developer = dev, timestamp = timestamp),
-                    repository = repository,
+                    authorSignature = Signature(developerId = dev.iid, timestamp = timestamp),
+                    repositoryId = repository.iid,
                 )
             },
             run {
@@ -121,8 +120,8 @@ class MockTestDataProvider(
                 Commit(
                     sha = "d".repeat(40),
                     message = "msg-d",
-                    authorSignature = Signature(developer = dev, timestamp = timestamp),
-                    repository = repository,
+                    authorSignature = Signature(developerId = dev.iid, timestamp = timestamp),
+                    repositoryId = repository.iid,
                 )
             },
         )
@@ -133,15 +132,15 @@ class MockTestDataProvider(
             Branch(
                 fullName = "refs/remotes/origin/feature/test",
                 name = "origin/feature/test",
-                repository = repository,
-                head = commitBySha.getValue("a".repeat(40)),
+                repositoryId = repository.iid,
+                headSha = commitBySha.getValue("a".repeat(40)).sha,
                 category = ReferenceCategory.REMOTE_BRANCH,
             ),
             Branch(
                 fullName = "refs/remotes/origin/fixme/123",
                 name = "origin/fixme/123",
-                repository = repository,
-                head = commitBySha.getValue("a".repeat(40)),
+                repositoryId = repository.iid,
+                headSha = commitBySha.getValue("a".repeat(40)).sha,
                 category = ReferenceCategory.REMOTE_BRANCH,
             ),
         )

@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ModuleInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitModuleConnectionDao
@@ -40,55 +39,46 @@ internal class ModuleInfrastructurePortImpl : ModuleInfrastructurePort,
     @Autowired private lateinit var moduleModuleConnectionRepository: IModuleModuleConnectionDao
     var logger: Logger = LoggerFactory.getLogger(ModuleInfrastructurePortImpl::class.java)
 
-    @MappingSession
     override fun findAll(pageable: Pageable): Page<com.inso_world.binocular.model.Module> {
         logger.trace("Getting all modules with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return moduleDao.findAll(pageable)
     }
 
-    @MappingSession
     override fun findById(id: String): com.inso_world.binocular.model.Module? {
         logger.trace("Getting module by id: $id")
         return moduleDao.findById(id)
     }
 
-    @MappingSession
     override fun findByIid(iid: Module.Id): @Valid Module? {
         logger.trace("Getting module by iid: $iid")
         return moduleDao.findAll().find { it.iid == iid }
     }
 
-    @MappingSession
     override fun findByIids(iids: Collection<Module.Id>): List<@Valid Module> {
         logger.trace("Getting modules by iids: $iids")
         return moduleDao.findAll().filter { it.iid in iids }
     }
 
-    @MappingSession
     override fun findCommitsByModuleId(moduleId: String): List<Commit> {
         logger.trace("Getting commits for module: $moduleId")
         return commitModuleConnectionRepository.findCommitsByModule(moduleId)
     }
 
-    @MappingSession
     override fun findFilesByModuleId(moduleId: String): List<File> {
         logger.trace("Getting files for module: $moduleId")
         return moduleFileConnectionRepository.findFilesByModule(moduleId)
     }
 
-    @MappingSession
     override fun findChildModulesByModuleId(moduleId: String): List<com.inso_world.binocular.model.Module> {
         logger.trace("Getting child modules for module: $moduleId")
         return moduleModuleConnectionRepository.findChildModules(moduleId)
     }
 
-    @MappingSession
     override fun findParentModulesByModuleId(moduleId: String): List<com.inso_world.binocular.model.Module> {
         logger.trace("Getting parent modules for module: $moduleId")
         return moduleModuleConnectionRepository.findParentModules(moduleId)
     }
 
-    @MappingSession
     override fun findAll(): Iterable<Module> = moduleDao.findAll()
 
     override fun create(entity: Module): Module = moduleDao.save(entity)

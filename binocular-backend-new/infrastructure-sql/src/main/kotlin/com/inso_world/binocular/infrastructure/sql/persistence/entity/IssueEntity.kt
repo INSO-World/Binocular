@@ -2,9 +2,11 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
 import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity.Key
-import com.inso_world.binocular.model.Issue
-import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Mention
+import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.Project
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
@@ -22,6 +24,8 @@ import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import java.time.LocalDateTime
 import java.util.Objects
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * SQL-specific Issue entity.
@@ -57,11 +61,11 @@ internal data class IssueEntity(
     @JoinColumn(name = "project_id", nullable = false, updatable = false)
     var project: ProjectEntity,
 
-//    @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
-//    var labels: MutableList<LabelEntity> = mutableListOf()
+    @OneToMany(mappedBy = "issue", cascade = [jakarta.persistence.CascadeType.ALL], orphanRemoval = true)
+    var labels: MutableList<LabelEntity> = mutableListOf(),
 
-// @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
-// var mentions: MutableList<MentionEntity> = mutableListOf()
+    @OneToMany(mappedBy = "issue", cascade = [jakarta.persistence.CascadeType.ALL], orphanRemoval = true)
+    var mentions: MutableList<MentionEntity> = mutableListOf(),
 
     @ManyToMany
     @JoinTable(
@@ -71,27 +75,29 @@ internal data class IssueEntity(
     )
     var accounts: MutableSet<AccountEntity> = mutableSetOf(),
 
-// @ManyToMany
-// @JoinTable(
-//     name = "issue_commit_connections",
-//     joinColumns = [JoinColumn(name = "issue_id")],
-//     inverseJoinColumns = [JoinColumn(name = "commit_id")],
-// )
-// var commits: MutableList<CommitEntity> = mutableListOf()
-// @ManyToMany
-// @JoinTable(
-//     name = "issue_milestone_connections",
-//     joinColumns = [JoinColumn(name = "issue_id")],
-//     inverseJoinColumns = [JoinColumn(name = "milestone_id")],
-// )
-// var milestones: MutableList<MilestoneEntity> = mutableListOf()
-// @ManyToMany
-// @JoinTable(
-//     name = "issue_note_connections",
-//     joinColumns = [JoinColumn(name = "issue_id")],
-//     inverseJoinColumns = [JoinColumn(name = "note_id")],
-// )
-// var notes: MutableList<NoteEntity> = mutableListOf()
+    @ManyToMany
+    @JoinTable(
+        name = "issue_commit_connections",
+        joinColumns = [JoinColumn(name = "issue_id")],
+        inverseJoinColumns = [JoinColumn(name = "commit_id")],
+    )
+    var commits: MutableList<CommitEntity> = mutableListOf(),
+
+    @ManyToMany
+    @JoinTable(
+        name = "issue_milestone_connections",
+        joinColumns = [JoinColumn(name = "issue_id")],
+        inverseJoinColumns = [JoinColumn(name = "milestone_id")],
+    )
+    var milestones: MutableList<MilestoneEntity> = mutableListOf(),
+
+    @ManyToMany
+    @JoinTable(
+        name = "issue_note_connections",
+        joinColumns = [JoinColumn(name = "issue_id")],
+        inverseJoinColumns = [JoinColumn(name = "note_id")],
+    )
+    var notes: MutableList<NoteEntity> = mutableListOf(),
 
     @ManyToMany
     @JoinTable(
@@ -102,7 +108,7 @@ internal data class IssueEntity(
     var developers: MutableList<DeveloperEntity> = mutableListOf(),
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id",updatable = false)
+    @JoinColumn(name = "author_id", updatable = false)
     var author: AccountEntity? = null
 ) : AbstractEntity<Long, IssueEntity.Key>() {
 
@@ -125,56 +131,53 @@ internal data class IssueEntity(
         account.issues.add(this)
     }
 
-//    /**
-//     * Gets the mentions as domain model mentions
-//     */
-//    fun getDomainMentions(): List<Mention> {
-//        return mentions.map {
-//            Mention(
-//                commit = it.commit,
-//                createdAt = it.createdAt,
-//                closes = it.closes
-//            )
-//        }
-//    }
-//
-//    /**
-//     * Sets the mentions from domain model mentions
-//     */
-//    fun setDomainMentions(mentions: List<Mention>) {
-//        this.mentions.clear()
-//        this.mentions.addAll(mentions.map {
-//            MentionEntity(
-//                null,
-//                it.commit,
-//                it.createdAt,
-//                it.closes,
-//                null,
-//                this,
-//                null,
-//                null
-//            )
-//        })
-//    }
-//
-//    /**
-//     * Gets the labels as domain model labels
-//     */
-//    fun getDomainLabels(): List<String> {
-//        return labels.map { it.value }
-//    }
-//
-//    /**
-//     * Sets the labels from domain model labels
-//     */
-//    fun setDomainLabels(labels: List<String>) {
-//        this.labels.clear()
-//        this.labels.addAll(labels.map { LabelEntity(null, it, this, null) })
-//    }
+    /**
+     * Gets the mentions as domain model mentions
+     */
+    fun getDomainMentions(): List<Mention> {
+        return mentions.map {
+            Mention(
+                commit = it.commit,
+                createdAt = it.createdAt,
+                closes = it.closes
+            )
+        }
+    }
 
-    // TODO map labels and mentions
-    fun toDomain(project: Project): Issue = Issue(
-        project = project.iid,
+    /**
+     * Sets the mentions from domain model mentions
+     */
+    fun setDomainMentions(mentions: List<Mention>) {
+        this.mentions.clear()
+        this.mentions.addAll(mentions.map {
+            MentionEntity(
+                id = null,
+                commit = it.commit,
+                createdAt = it.createdAt,
+                closes = it.closes,
+                issue = this
+            )
+        })
+    }
+
+    /**
+     * Gets the labels as domain model labels
+     */
+    fun getDomainLabels(): List<String> {
+        return labels.map { it.value }
+    }
+
+    /**
+     * Sets the labels from domain model labels
+     */
+    fun setDomainLabels(labels: List<String>) {
+        this.labels.clear()
+        this.labels.addAll(labels.map { LabelEntity(null, it, this) })
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun toDomain(): Issue = Issue(
+        project = this.project.iid,
         gid = this.gid,
         platformIid = this.platformIid,
         title = this.title,
@@ -182,10 +185,16 @@ internal data class IssueEntity(
         createdAt = this.createdAt,
         closedAt = this.closedAt,
         updatedAt = this.updatedAt,
+        labels = this.getDomainLabels(),
         state = this.state,
         webUrl = this.webUrl,
+        mentions = this.getDomainMentions(),
         authorId = this.author?.iid,
-        accountIds = this.accounts.map { it.iid }.toSet()
+        accountIds = this.accounts.map { it.iid }.toSet(),
+        commitIds = this.commits.map { it.iid }.toSet(),
+        milestoneIds = this.milestones.map { it.iid }.toSet(),
+        noteIds = this.notes.map { Note.Id(Uuid.random()) }.toSet(),
+        developerIds = this.developers.map { it.iid }.toSet()
     ).apply {
         id = this@IssueEntity.id?.toString()
     }
@@ -198,7 +207,7 @@ internal data class IssueEntity(
     }
 }
 
-internal fun com.inso_world.binocular.model.Issue.toSqlEntity(owner: ProjectEntity): IssueEntity {
+internal fun Issue.toSqlEntity(owner: ProjectEntity): IssueEntity {
     val entity = IssueEntity(
         id = this.id?.toLong(),
         iid = this.iid,

@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.sql.unit.mapper.base
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.unit.base.BaseUnitTest
 import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper

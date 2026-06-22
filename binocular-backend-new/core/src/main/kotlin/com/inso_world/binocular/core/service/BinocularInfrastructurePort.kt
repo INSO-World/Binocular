@@ -81,13 +81,11 @@ interface BinocularInfrastructurePort<T : AbstractDomainObject<Iid, *>, Iid> {
      * ## Implementation Note - Kotlin Value Classes
      * When [Iid] is a Kotlin value class (e.g., `Repository.Id`), implementations require special
      * handling due to JVM name mangling. The mangled method signature prevents Spring AOP's
-     * `@annotation` pointcut from matching the `@MappingSession` annotation.
      *
      * **Required Workaround**: Implementations must use the self-injection pattern:
      * 1. Inject `self` reference to the proxied bean instance
      * 2. Override this method with `@JvmName` to declare the mangled signature (optional)
      * 3. Delegate to a non-private (e.g. protected) internal method (e.g., `findByIidInternal`) via `self`
-     * 4. Apply `@MappingSession` to the internal method where Spring AOP can intercept it
      *
      * This ensures the mapping session scope is properly established before calling DAOs/assemblers.
      *

@@ -2,15 +2,20 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.DeveloperEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.LocalDateTime
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 
@@ -23,7 +28,6 @@ import org.springframework.stereotype.Component
  *
  * ## Design Principles
  * - **Single Responsibility**: Only converts Branch structure
- * - **Aggregate Boundaries**: Expects Repository and Commit already in MappingContext (cross-aggregate references)
  * - **No Deep Traversal**: Does not map entire commit history or file structures
  *
  * ## Usage
@@ -32,8 +36,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     companion object {
         private val logger by logger()
@@ -42,40 +44,27 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
     /**
      * Converts a Branch domain object to BranchEntity.
      *
-     * **Precondition**: The referenced Repository must already be mapped and present in MappingContext.
-     * The referenced head Commit must also be mapped and present in MappingContext.
-     * This enforces aggregate boundaries - Repository and Commit are separate aggregates.
-     *
-     * **Note**: This method does NOT map child entities or traverse relationships deeply.
-     *
      * @param domain The Branch domain object to convert
      * @return The BranchEntity (structure only)
-     * @throws IllegalStateException if Repository or head Commit is not in MappingContext
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toEntity(domain: Branch): BranchEntity {
-        // Fast-path: if this Branch was already mapped in the current context, return it.
-        ctx.findEntity<Branch.Key, Branch, BranchEntity>(domain)?.let {
-            return it
-        }
-        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
-        // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner =
-            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-                ?: throw IllegalStateException(
-                    "RepositoryEntity must be mapped before BranchEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
-                )
-        // IMPORTANT: Expect Commit already in context (cross-aggregate reference).
-        // Do NOT auto-map Commit here - that's a separate aggregate.
-        val head =
-            ctx.findEntity<Commit.Key, Commit, CommitEntity>(domain.head)
-                ?: throw IllegalStateException(
-                    "CommitEntity must be mapped before BranchEntity. " +
-                        "Ensure CommitEntity is in MappingContext before calling toEntity().",
-                )
+        val owner = RepositoryEntity(
+            iid = domain.repositoryId.value,
+            localPath = "",
+            project = ProjectEntity(iid = domain.repositoryId.value, name = "")
+        )
+        val head = CommitEntity(
+            iid = Uuid.random(), // Dummy iid
+            sha = domain.headSha,
+            authorDateTime = LocalDateTime.now(),
+            commitDateTime = LocalDateTime.now(),
+            repository = owner,
+            author = DeveloperEntity(iid = Developer.Id(Uuid.random()), gitSignature = "", repository = owner),
+            committer = DeveloperEntity(iid = Developer.Id(Uuid.random()), gitSignature = "", repository = owner)
+        )
 
         val entity = domain.toArangoEntity(owner, head)
-        ctx.remember(domain, entity)
 
         return entity
     }
@@ -83,46 +72,18 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
     /**
      * Converts a BranchEntity to Branch domain object.
      *
-     * **Precondition**: The referenced Repository must already be mapped and present in MappingContext.
-     * The referenced head Commit must also be mapped and present in MappingContext.
-     * This enforces aggregate boundaries - Repository and Commit are separate aggregates.
-     *
-     * **Note**: This method does NOT map child entities or traverse relationships deeply.
-     *
      * @param entity The BranchEntity to convert
      * @return The Branch domain object (structure only)
-     * @throws IllegalStateException if Repository or head Commit is not in MappingContext
      */
-    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: BranchEntity): Branch {
-        // Fast-path: if this Branch was already mapped in the current context, return it.
-        ctx.findDomain<Branch, BranchEntity>(entity)?.let { return it }
-
-        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
-        // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner =
-            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-                ?: throw IllegalStateException(
-                    "Repository must be mapped before Branch. " +
-                        "Ensure Repository is in MappingContext before calling toDomain().",
-                )
-        // IMPORTANT: Expect Commit already in context (cross-aggregate reference).
-        // Do NOT auto-map Commit here - that's a separate aggregate.
-        val head =
-            ctx.findDomain<Commit, CommitEntity>(entity.head)
-                ?: throw IllegalStateException(
-                    "Commit must be mapped before Branch. " +
-                        "Ensure Commit is in MappingContext before calling toDomain().",
-                )
-
-        val domain = entity.toDomain(owner, head)
+        val domain = entity.toDomain()
         setField(
             domain.javaClass.superclass.superclass
                 .getDeclaredField("iid"),
             domain,
             entity.iid
         )
-        ctx.remember(domain, entity)
 
         return domain
     }

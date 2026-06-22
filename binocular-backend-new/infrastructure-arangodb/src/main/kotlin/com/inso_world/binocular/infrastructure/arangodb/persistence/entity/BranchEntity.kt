@@ -71,13 +71,13 @@ data class BranchEntity(
      * @param head The head commit domain object
      * @return Branch domain object
      */
-    fun toDomain(repository: Repository, head: Commit): Branch {
+    fun toDomain(): Branch {
         return Branch(
             name = this.name,
             fullName = this.fullName,
             category = ReferenceCategory.valueOf(this.category),
-            repository = repository,
-            head = head,
+            repositoryId = Repository.Id(this.repository.iid),
+            headSha = this.head.sha,
         ).apply {
             this.id = this@BranchEntity.id
             this.active = this@BranchEntity.active
@@ -103,7 +103,7 @@ internal fun Branch.toArangoEntity(repository: RepositoryEntity, head: CommitEnt
         category = this.category.name,
         active = this.active,
         tracksFileRenames = this.tracksFileRenames,
-        latestCommit = this.head.sha,
+        latestCommit = this.headSha,
         repository = repository,
         head = head,
     )

@@ -2,52 +2,54 @@ classDiagram
     direction TB
 
 %% Technical Inheritance & Base Classes
+    class AbstractDomainObject {
+        +Iid iid
+        +Key uniqueKey
+    }
+
     class Stakeholder {
         +String name
         +String email
     }
 
     class Reference {
-        +String name
         +ReferenceCategory category
+        +RepositoryId repositoryId
     }
 
 %% High-Level Organizations
     class Project {
-        +Id iid
         +String name
         +String description
-        +Repository repo
-        +MutableSet~Issue~ issues
-        +MutableSet~MergeRequest~ mergeRequests
-        +MutableSet~Account~ accounts
+        +MutableSet~AccountId~ accountIds
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~MergeRequestId~ mergeRequestIds
+        +MutableSet~MilestoneId~ milestoneIds
     }
 
     class Repository {
-        +Id iid
         +String localPath
-        +Project project
-        +MutableSet~Commit~ commits
-        +MutableSet~Branch~ branches
-        +MutableSet~Developer~ developers
-        +MutableSet~Remote~ remotes
+        +ProjectId projectId
     }
 
 %% VCS Technical Domain
     class Commit {
-        +Id iid
         +String sha
         +Signature authorSignature
         +Signature committerSignature
         +Stats stats
         +String message
-        +Repository repository
-        +MutableSet~Commit~ parents
-        +MutableSet~Commit~ children
+        +RepositoryId repositoryId
+        +MutableSet~String~ parentShas
+        +MutableSet~String~ childShas
+        +List~BuildId~ buildIds
+        +List~FileId~ fileIds
+        +List~ModuleId~ moduleIds
+        +List~IssueId~ issueIds
     }
 
     class Signature {
-        +Developer developer
+        +DeveloperId developerId
         +LocalDateTime timestamp
     }
 
@@ -55,88 +57,113 @@ classDiagram
         +String name
         +String fullName
         +ReferenceCategory category
-        +Commit head
-        +Repository repository
-        +Set~Commit~ commits
+        +String headSha
+        +RepositoryId repositoryId
+        +MutableSet~FileId~ fileIds
     }
 
     class Developer {
         +String name
         +String email
         +String gitSignature
-        +Repository repository
-        +MutableSet~Commit~ authoredCommits
-        +MutableSet~Commit~ committedCommits
+        +RepositoryId repositoryId
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~FileId~ fileIds
+        +MutableSet~String~ authoredCommitShas
+        +MutableSet~String~ committedCommitShas
     }
 
     class Remote {
-        +Id iid
         +String name
         +String url
-        +Repository repository
+        +RepositoryId repositoryId
     }
 
 %% ITS (Issue Tracking) Domain
     class Issue {
-        +Id iid
+        +String gid
+        +Int platformIid
         +String title
         +String description
-        +Account author
-        +MutableSet~Account~ accounts
-        +MutableList~Commit~ commits
-        +List~Milestone~ milestones
-        +List~Note~ notes
+        +LocalDateTime createdAt
+        +LocalDateTime closedAt
+        +LocalDateTime updatedAt
+        +String state
+        +String webUrl
         +List~Mention~ mentions
-        +List~User~ users
+        +ProjectId project
+        +AccountId authorId
+        +Set~AccountId~ accountIds
+        +Set~CommitId~ commitIds
+        +Set~MilestoneId~ milestoneIds
+        +Set~NoteId~ noteIds
+        +Set~DeveloperId~ developerIds
     }
 
     class Mention {
         +String commit
         +LocalDateTime createdAt
         +Boolean closes
-        +Account actor
     }
 
     class MergeRequest {
-        +Id iid
+        +ProjectId project
+        +Int platformIid
         +String title
         +String description
         +String createdAt
         +String closedAt
         +String updatedAt
-        +Project project
-        +MutableList~Account~ accounts
-        +List~Milestone~ milestones
-        +List~Note~ notes
+        +String state
+        +String webUrl
         +List~Mention~ mentions
+        +MutableSet~MilestoneId~ milestoneIds
+        +MutableSet~NoteId~ noteIds
+        +MutableSet~AccountId~ accountIds
     }
 
     class Account {
-        +Id iid
+        +String gid
+        +Platform platform
         +String login
         +String name
-        +Platform platform
-        +MutableSet~Issue~ issues
-        +MutableSet~MergeRequest~ mergeRequests
-        +MutableSet~Note~ notes
+        +String avatarUrl
+        +String url
+        +MutableSet~ProjectId~ projectIds
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~MergeRequestId~ mergeRequestIds
+        +MutableSet~NoteId~ noteIds
     }
 
     class Milestone {
-        +Id iid
+        +ProjectId project
+        +Int platformIid
         +String title
+        +String description
         +String state
-        +List~Issue~ issues
-        +List~MergeRequest~ mergeRequests
+        +String createdAt
+        +String updatedAt
+        +String startDate
+        +String dueDate
+        +Boolean expired
+        +String webUrl
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~MergeRequestId~ mergeRequestIds
     }
 
     class Note {
-        +Id iid
         +String body
         +String createdAt
+        +String updatedAt
         +Boolean system
         +Boolean resolvable
         +Boolean confidential
         +Boolean internal
+        +Boolean imported
+        +String importedFrom
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~MergeRequestId~ mergeRequestIds
+        +MutableSet~AccountId~ accountIds
     }
 
 %% Type Definitions & Enums
@@ -178,10 +205,9 @@ classDiagram
 
 %% CI/CD & Structure Domain
     class Build {
-        +Id iid
         +String status
-        +List~Job~ jobs
-        +List~Commit~ commits
+        +List~JobId~ jobIds
+        +List~CommitId~ commitIds
     }
 
     class Job {
@@ -190,69 +216,84 @@ classDiagram
     }
 
     class Module {
-        +Id iid
         +String path
+        +List~Commit~ commits
         +List~File~ files
         +List~Module~ childModules
+        +List~Module~ parentModules
     }
 
     class File {
-        +Id iid
         +String path
     }
 
     class Revision {
-        +Id iid
         +String content
-        +Commit commit
-        +File file
+        +CommitId commitId
+        +FileId fileId
     }
 
     class User {
         <<deprecated>>
         +String name
         +String email
-        +Repository repository
-        +MutableSet~Issue~ issues
+        +RepositoryId repositoryId
+        +MutableSet~IssueId~ issueIds
+        +MutableSet~FileId~ fileIds
     }
 
 %% Relationships
+    AbstractDomainObject <|-- Project
+    AbstractDomainObject <|-- Repository
+    AbstractDomainObject <|-- Commit
+    AbstractDomainObject <|-- Remote
+    AbstractDomainObject <|-- Issue
+    AbstractDomainObject <|-- MergeRequest
+    AbstractDomainObject <|-- Account
+    AbstractDomainObject <|-- Milestone
+    AbstractDomainObject <|-- Note
+    AbstractDomainObject <|-- Build
+    AbstractDomainObject <|-- Module
+    AbstractDomainObject <|-- File
+    AbstractDomainObject <|-- Revision
+
+    AbstractDomainObject <|-- Reference
+    Reference <|-- Branch
+
+    AbstractDomainObject <|-- Stakeholder
     Stakeholder <|-- Developer
     Stakeholder <|-- User
 
-    Reference <|-- Branch
-
-    Project "1" -- "0..1" Repository : scopes
-    Project "1" -- "*" Issue : contains
-    Project "1" -- "*" MergeRequest : contains
-    Project "1" -- "*" Account : contains
-    Repository "1" -- "*" Commit : owns
-    Repository "1" -- "*" Branch : owns
-    Repository "1" -- "*" Developer : involves
-    Repository "1" -- "*" Remote : references
-    Repository "1" -- "*" User : legacy
+    Project "1" -- "0..1" Repository : has (via ID)
+    Project "1" -- "*" Issue : contains (via ID)
+    Project "1" -- "*" MergeRequest : contains (via ID)
+    Project "1" -- "*" Account : contains (via ID)
+    Repository "1" -- "*" Commit : owns (via ID)
+    Repository "1" -- "*" Branch : owns (via ID)
+    Repository "1" -- "*" Developer : involves (via ID)
+    Repository "1" -- "*" Remote : references (via ID)
 
     Commit "1" *-- "0..1" Stats : describes
     Commit "1" -- "1" Signature : author
     Commit "1" -- "0..1" Signature : committer
-    Signature "*" -- "1" Developer : belongs to
+    Signature "*" -- "1" Developer : belongs to (via ID)
     
-    Commit "0..*" -- "0..*" Commit : parents/children
-    Commit "1" -- "*" Revision : includes
-    Commit "*" -- "*" Build : triggers
-    Commit "*" -- "*" Issue : references
+    Commit "0..*" -- "0..*" Commit : parents/children (via SHA)
+    Commit "1" -- "*" Revision : includes (via ID)
+    Commit "*" -- "*" Build : triggers (via ID)
+    Commit "*" -- "*" Issue : references (via ID)
     
-    Issue "1" -- "1" Account : authored by
-    Issue "1" -- "*" Note : has
+    Issue "1" -- "1" Account : authored by (via ID)
+    Issue "1" -- "*" Note : has (via ID)
     Issue "1" -- "*" Mention : has
-    Issue "*" -- "*" Milestone : belongs to
-    Issue "*" -- "*" Account : involves
+    Issue "*" -- "*" Milestone : belongs to (via ID)
+    Issue "*" -- "*" Account : involves (via ID)
     
-    MergeRequest "1" -- "*" Note : has
+    MergeRequest "1" -- "*" Note : has (via ID)
     MergeRequest "1" -- "*" Mention : has
-    MergeRequest "*" -- "*" Milestone : targets
+    MergeRequest "*" -- "*" Milestone : targets (via ID)
     
-    Module "1" -- "*" File : contains
-    Module "1" -- "*" Module : submodules
-    File "1" -- "*" Revision : history
-    Build "1" -- "*" Job : executes
+    Module "1" -- "*" File : contains (direct/ID)
+    Module "1" -- "*" Module : submodules (direct/ID)
+    File "1" -- "*" Revision : history (via ID)
+    Build "1" -- "*" Job : executes (via ID)

@@ -30,8 +30,15 @@ internal abstract class AbstractInfrastructurePort<D : Any, E : Any, I : Seriali
 
     @Transactional(readOnly = true)
     internal fun findAllEntities(pageable: Pageable): Page<E> {
-        TODO("Not yet implemented")
+        val entities = this.dao.findAll(pageable)
+        return Page(entities.content, entities.totalElements, pageable)
     }
+
+    @Transactional(readOnly = true)
+    internal fun findByIid(iid: Any): E? = this.dao.findByIid(iid)
+
+    @Transactional(readOnly = true)
+    internal fun findByIids(iids: Collection<Any>): List<E> = this.dao.findByIids(iids)
 
     @Transactional(readOnly = true)
     internal fun findAllAsStream(): Stream<E> = this.dao.findAllAsStream()

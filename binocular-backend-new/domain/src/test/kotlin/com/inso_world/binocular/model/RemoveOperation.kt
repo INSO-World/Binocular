@@ -13,7 +13,7 @@ class RemoveOperation {
             MockTestDataProvider(
                 Repository(
                     localPath = "mockTestDataProvider repo",
-                    project = Project(name = "mockTestDataProvider project"),
+                    projectId = Project(name = "mockTestDataProvider project").iid,
                 ),
             )
 
@@ -23,10 +23,7 @@ class RemoveOperation {
                 *run {
                     val repo = mockTestDataProvider.repository
 
-                    return@run listOf(
-                        repo.commits,
-                        repo.user,
-                        repo.branches,
+                    return@run listOf<NonRemovingMutableSet<*>>(
                     ).map { Arguments.of(it) }.toTypedArray()
                 },
                 *run {

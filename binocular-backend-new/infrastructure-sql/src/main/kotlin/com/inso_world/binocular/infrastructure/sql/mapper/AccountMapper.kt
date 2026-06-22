@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
  import com.inso_world.binocular.core.delegates.logger
  import com.inso_world.binocular.core.persistence.mapper.EntityMapper
- import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
  import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
  import com.inso_world.binocular.infrastructure.sql.persistence.entity.AccountEntity
  import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
@@ -19,8 +18,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
 @Component
  internal class AccountMapper : EntityMapper<Account, AccountEntity> {
-     @Autowired
-     private lateinit var ctx: MappingContext
 
      companion object {
          private val logger by logger()
@@ -30,48 +27,16 @@ package com.inso_world.binocular.infrastructure.sql.mapper
          * Converts a domain Account to a SQL AccountEntity
          */
         override fun toEntity(domain: Account): AccountEntity {
-
-            // Fast-path: if this Repository was already mapped in the current context, return it.
-            ctx.findEntity<Account.Key, Account, AccountEntity>(domain)?.let { return it }
-
             val entity = domain.toSqlEntity()
-
-//            // IMPORTANT: Expect Project already in context (cross-aggregate reference).
-//            // Do NOT auto-map Project here - that's a separate aggregate.
-//            val owner: ProjectEntity = ctx.findEntity<Project.Key, Project, ProjectEntity>(domain.project)
-//                ?: throw IllegalStateException(
-//                    "ProjectEntity must be mapped before RepositoryEntity. " +
-//                            "Ensure ProjectEntity is in MappingContext before calling toEntity()."
-//                )
-
-            // Create entity and remember in context
-            ctx.remember(domain, entity)
-
-            // Delegate to overload with explicit owner
             return entity
         }
 
 
         /**
          * Converts a SQL AccountEntity to a domain Account
-         *
-         * Uses lazy loading proxies for relationships, which will only be loaded
-         * when accessed. This provides a consistent API regardless of the database
-         * implementation and avoids the N+1 query problem.
          */
         @Transactional(readOnly = true)
         override fun toDomain(entity: AccountEntity): Account {
-            // Fast-path: Check if already mapped
-            ctx.findDomain<Account, AccountEntity>(entity)?.let { return it }
-
-            // IMPORTANT: Expect Project already in context (cross-aggregate reference).
-            // Do NOT auto-map Project here - that's a separate aggregate.
-//            val owner = ctx.findDomain<Project, ProjectEntity>(entity.project)
-//                ?: throw IllegalStateException(
-//                    "Project must be mapped before Repository. " +
-//                            "Ensure Project is in MappingContext before calling toDomain()."
-//                )
-
             val domain = entity.toDomain()
             setField(
                 domain.javaClass.superclass.getDeclaredField("iid"),
@@ -79,7 +44,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
                 entity.iid
             )
 
-            ctx.remember(domain, entity)
             return domain
         }
 

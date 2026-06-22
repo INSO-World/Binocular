@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.NoteEntity
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Issue
@@ -24,7 +23,6 @@ import kotlin.uuid.Uuid
  * ## Design Principles
  * - **Single Responsibility**: Only converts Note structure
  * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It uses lazy loading
@@ -32,8 +30,6 @@ import kotlin.uuid.Uuid
  */
 @Component
 internal class NoteMapper : EntityMapper<Note, NoteEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
         companion object {
             private val logger by logger()
@@ -73,8 +69,6 @@ internal class NoteMapper : EntityMapper<Note, NoteEntity> {
          */
         @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: NoteEntity): Note {
-            // Fast-path: Check if already mapped
-            ctx.findDomain<Note, NoteEntity>(entity)?.let { return it }
 
             val domain = Note(
                 id = entity.id,

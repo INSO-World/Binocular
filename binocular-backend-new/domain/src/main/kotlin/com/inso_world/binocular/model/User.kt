@@ -33,7 +33,7 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class User(
     @field:NotBlank val name: String,
-    @field:NotNull val repository: Repository,
+    @field:NotNull val repositoryId: Repository.Id,
 ) : AbstractDomainObject<User.Id, User.Key>(
     Id(Uuid.random()),
 ) {
@@ -52,112 +52,35 @@ data class User(
         }
 
     // Relationships
-    val issues: MutableSet<Issue> = mutableSetOf()
+    val issueIds: MutableSet<Issue.Id> = mutableSetOf()
 
-    //        object : NonRemovingMutableSet<Issue>() {}
-    val files: MutableSet<File> = object : NonRemovingMutableSet<File>() {}
+    val fileIds: MutableSet<File.Id> = mutableSetOf()
 
     init {
         require(name.trim().isNotBlank()) { "name cannot be blank." }
-        repository.user.add(this)
     }
 
     /**
      * Commits committed by this [User].
-     *
-     * # Semantics
-     * - **Add-only collection:** Backed by `NonRemovingMutableSet` — removals (`remove`, `retainAll`, `clear`,
-     *   iterator `remove`) are not supported.
-     * - **Repository consistency:** Each added [Commit] must belong to the **same** `repository` as this user.
-     * - **Bidirectional link:** On successful insert, this user is assigned as the commit’s `committer`
-     *   (`element.committer = this@User`), keeping both sides in sync.
-     * - **Set semantics / de-duplication:** Membership is keyed by each commit’s `uniqueKey` (business key).
-     *   Re-adding an existing commit is a no-op (`false`).
-     *
-     * # Invariants enforced on insert
-     * - Precondition: `element.repository == this@User.repository`.
-     * - Postcondition (on success / no exception):
-     *     - `element in committedCommits`
-     *     - `element.committer == this@User`
-     *
-     * # Bulk adds
-     * - `addAll` applies the same checks and back-linking as `add`, per element.
-     * - Returns `true` iff at least one new commit was added.
-     * - **Not transactional:** if a later element fails (e.g., repository mismatch or `author` already set
-     *   to a different user), earlier successful inserts remain. Callers should handle rollback if needed.
-     *
-     * # Idempotency & recursion safety
-     * - The back-link (`element.committer = this@User`) runs **only** when the commit is newly added
-     *   (`added == true`), preventing infinite mutual updates.
-     * - Re-adding the same commit (by `uniqueKey`) is a no-op and does not re-trigger the back-link.
-     *
-     * # Exceptions
-     * - Throws [IllegalArgumentException] when the commit’s repository differs from this user’s repository.
-     * - May throw [IllegalArgumentException] from `Commit.committer`’s setter if the commit already has a
-     *   different committer assigned (set-once constraint).
-     * - Any attempt to remove elements from this collection throws [UnsupportedOperationException].
-     *
-     * # Thread-safety
-     * - Internally backed by a concurrent map; individual `add`/`contains` operations are safe for concurrent use.
-     *   However, multi-step workflows (e.g., “add then do X”) are **not atomic**; coordinate externally to
-     *   avoid torn updates between set membership and the `author` back-link.
      */
-    val committedCommits: MutableSet<Commit> = object : NonRemovingMutableSet<Commit>() {
-        override fun add(element: Commit): Boolean {
-            require(element.repository == this@User.repository) {
-                "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
-            }
-            require(element.committer == this@User) {
-                "Cannot add Commit $element to committedCommits since user is not committer of Commit."
-            }
-            val added = super.add(element)
-            return added
-        }
-
-        override fun addAll(elements: Collection<Commit>): Boolean {
-            // for bulk-adds make sure each one gets the same treatment
-            var anyAdded = false
-            for (e in elements) {
-                if (add(e)) anyAdded = true
-            }
-            return anyAdded
-        }
-    }
+    val committedCommitShas: MutableSet<String> = mutableSetOf()
 
     /**
      * Commits authored by this [User].
-     *
-     * @deprecated This collection is deprecated along with [User]. Use [Developer.authoredCommits] instead.
-     * Note: This collection no longer back-links to commits as the new [Commit] model uses [Signature].
      */
     @Deprecated("Use Developer.authoredCommits instead")
-    val authoredCommits: MutableSet<Commit> = object : NonRemovingMutableSet<Commit>() {
-        override fun add(element: Commit): Boolean {
-            require(element.repository == this@User.repository) {
-                "Commit.repository (${element.repository}) doesn't match user.repository (${this@User.repository})"
-            }
-            return super.add(element)
-        }
-
-        override fun addAll(elements: Collection<Commit>): Boolean {
-            var anyAdded = false
-            for (e in elements) {
-                if (add(e)) anyAdded = true
-            }
-            return anyAdded
-        }
-    }
+    val authoredCommitShas: MutableSet<String> = mutableSetOf()
 
     val gitSignature: String
         get() = "${name.trim()} <${email?.trim()}>"
 
     override val uniqueKey: Key
-        get() = Key(repository.iid, gitSignature)
+        get() = Key(repositoryId, gitSignature)
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "User(id=$id, iid=$iid, name=$name, gitSignature=$gitSignature, repositoryId=${repository.id}, committedCommits=${committedCommits.map { it.sha }}, authoredCommits=${authoredCommits.map { it.sha }})"
+        "User(id=$id, iid=$iid, name=$name, gitSignature=$gitSignature, repositoryId=$repositoryId)"
 }

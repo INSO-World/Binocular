@@ -63,7 +63,7 @@ data class Commit(
     val committerSignature: Signature = authorSignature,
     val message: String? = null,
     @field:NotNull
-    val repository: Repository,
+    val repositoryId: Repository.Id,
 ) : AbstractDomainObject<Commit.Id, Commit.Key>(
     Id(Uuid.random())
 ) {
@@ -80,24 +80,10 @@ data class Commit(
     @Deprecated("do not use")
     var branch: String? = null
     var stats: Stats? = null
-    val builds: List<Build> = emptyList()
-    val files: List<File> = emptyList()
-    val modules: List<Module> = emptyList()
-    val issues: List<Issue> = emptyList()
-
-    /**
-     * The author [Developer] of this commit.
-     * Derived from [authorSignature].
-     */
-    val author: Developer
-        get() = authorSignature.developer
-
-    /**
-     * The committer [Developer] of this commit.
-     * Derived from [committerSignature], defaults to [author] if not explicitly set.
-     */
-    val committer: Developer
-        get() = committerSignature.developer
+    val buildIds: List<Build.Id> = emptyList()
+    val fileIds: List<File.Id> = emptyList()
+    val moduleIds: List<Module.Id> = emptyList()
+    val issueIds: List<Issue.Id> = emptyList()
 
     /**
      * The author timestamp.
@@ -117,106 +103,23 @@ data class Commit(
     init {
         require(sha.length == 40) { "SHA must be 40 hex chars, got ${sha.length}" }
         require(sha.all { it.isHex() }) { "SHA-1 must be hex [0-9a-fA-F]" }
-        require(authorSignature.developer.repository == this.repository) {
-            "Repository between author ${authorSignature.developer} and Commit do not match: ${this.repository}"
-        }
-        require(committerSignature.developer.repository == this.repository) {
-            "Repository between committer ${committerSignature.developer} and Commit do not match: ${this.repository}"
-        }
-
-        // Register commit to repository and developers
-        this.repository.commits.add(this)
-        author.authoredCommits.add(this)
-        committer.committedCommits.add(this)
     }
 
     /**
-     * Direct parent commits of this [Commit].
+     * Direct parent commit SHAs of this [Commit].
      *
      * ### Semantics
      * - **Non-removable set:** Backed by [NonRemovingMutableSet] — removals are disallowed.
-     * - **Repository consistency:** Every parent must belong to the same `repository`.
-     * - **Bidirectional link:** On successful `add`, this commit is added to the parent's `children`.
-     * - **Set semantics:** Duplicates are ignored; re-adding is a no-op.
-     *
-     * ### Exceptions
-     * - Throws [IllegalArgumentException] if a parent from a different repository is added.
-     * - Throws [IllegalArgumentException] if adding self as parent.
-     * - Throws [IllegalArgumentException] if the element is already in children.
      */
-    val parents: MutableSet<Commit> =
-        object : NonRemovingMutableSet<Commit>() {
-            override fun add(element: Commit): Boolean {
-                require(element.repository == this@Commit.repository) {
-                    "Repository between $element and Commit do not match: ${this@Commit.repository}"
-                }
-                require(element != this@Commit) {
-                    "Commit cannot be its own parent"
-                }
-                require(!this@Commit.children.contains(element)) {
-                    "${element.sha} is already present in '${this@Commit.sha}' children collection. Cannot be added as parent too."
-                }
-                val added = super.add(element)
-                if (added) {
-                    element.children.add(this@Commit)
-                }
-                return added
-            }
-
-            override fun addAll(elements: Collection<Commit>): Boolean {
-                var anyAdded = false
-                for (e in elements) {
-                    if (add(e)) anyAdded = true
-                }
-                return anyAdded
-            }
-        }
+    val parentShas: MutableSet<String> = mutableSetOf()
 
     /**
-     * Direct child commits of this [Commit].
+     * Direct child commit SHAs of this [Commit].
      *
      * ### Semantics
      * - **Non-removable set:** Backed by [NonRemovingMutableSet] — removals are disallowed.
-     * - **Repository consistency:** Every child must belong to the same `repository`.
-     * - **Bidirectional link:** On successful `add`, this commit is added to the child's `parents`.
-     * - **Set semantics:** Duplicates are ignored; re-adding is a no-op.
-     *
-     * ### Exceptions
-     * - Throws [IllegalArgumentException] if a child from a different repository is added.
-     * - Throws [IllegalArgumentException] if adding self as child.
-     * - Throws [IllegalArgumentException] if the element is already in parents.
      */
-    val children: MutableSet<Commit> =
-        object : NonRemovingMutableSet<Commit>() {
-            override fun add(element: Commit): Boolean {
-                require(element.repository == this@Commit.repository) {
-                    "Repository between $element and Commit do not match: ${this@Commit.repository}"
-                }
-                require(element != this@Commit) {
-                    "Commit cannot be its own child"
-                }
-                require(!this@Commit.parents.contains(element)) {
-                    "${element.sha} is already present in '${this@Commit.sha}' parent collection. Cannot be added as child too."
-                }
-                val added = super.add(element)
-                if (added) {
-                    element.parents.add(this@Commit)
-                }
-                return added
-            }
-
-            override fun addAll(elements: Collection<Commit>): Boolean {
-                var anyAdded = false
-                for (e in elements) {
-                    if (add(e)) anyAdded = true
-                }
-                return anyAdded
-            }
-        }
-
-    @Deprecated("Do not use")
-    val users: List<Developer>
-        get() = listOfNotNull(author, committer.takeIf { it != author })
+    val childShas: MutableSet<String> = mutableSetOf()
 
     override val uniqueKey: Key
         get() = Key(sha)
@@ -226,5 +129,5 @@ data class Commit(
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, author=$author, committer=$committer, repositoryId=${repository.id}, children=${children.map { it.sha }}, parents=${parents.map { it.sha }})"
+        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, repositoryId=$repositoryId, childShas=$childShas, parentShas=$parentShas)"
 }

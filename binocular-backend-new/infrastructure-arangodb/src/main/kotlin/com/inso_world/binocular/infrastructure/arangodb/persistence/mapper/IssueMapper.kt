@@ -2,11 +2,11 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
@@ -31,7 +31,6 @@ import kotlin.uuid.Uuid
  * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships
  * - **Date Conversion**: Converts between LocalDateTime and Date for ArangoDB storage
  * - **Eager Mentions**: Eagerly maps mentions as they are typically accessed with the issue
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
@@ -43,8 +42,6 @@ internal class IssueMapper
     constructor(
         private val mentionMapper: MentionMapper,
     ) : EntityMapper<Issue, IssueEntity> {
-        @Autowired
-        private lateinit var ctx: MappingContext
 
         companion object {
             private val logger by logger()
@@ -86,9 +83,6 @@ internal class IssueMapper
          */
         @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: IssueEntity): Issue {
-            // Fast-path: Check if already mapped
-            ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
-
             val domain =
                 Issue(
                     id = entity.id,
@@ -117,12 +111,12 @@ internal class IssueMapper
                     mentions = entity.mentions.map { mentionMapper.toDomain(it) },
                     project =
                         entity.project?.let { Project.Id(it.iid!!) }
-                            ?: ctx.findDomain<Project, IssueEntity>(entity)?.iid
-                            ?: error("Parent Project not found in entity or context for Issue ${entity.iid}"),
+                            ?: error("Parent Project not found in entity for Issue ${entity.iid}"),
                     accountIds = entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } }.toSet(),
                     commitIds = entity.commits.mapNotNull { it.iid?.let { iid -> Commit.Id(iid) } }.toSet(),
                     milestoneIds = entity.milestones.mapNotNull { it.id?.let { id -> Milestone.Id(Uuid.parse(id)) } }.toSet(),
                     noteIds = entity.notes.mapNotNull { it.id?.let { id -> Note.Id(Uuid.parse(id)) } }.toSet(),
+                    developerIds = entity.users.mapNotNull { it.iid?.let { iid -> Developer.Id(iid) } }.toSet(),
                 )
 
             return domain

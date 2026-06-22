@@ -1,9 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
-import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.BranchMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
@@ -28,8 +26,6 @@ internal class BranchInfrastructurePortImpl(
     @Autowired private val branchMapper: BranchMapper,
 ) : AbstractInfrastructurePort<Branch, BranchEntity, Long>(Long::class),
     BranchInfrastructurePort {
-    @Autowired
-    private lateinit var repositoryAssembler: RepositoryAssembler
 
     @Autowired
     private lateinit var branchDao: IBranchDao
@@ -63,14 +59,14 @@ internal class BranchInfrastructurePortImpl(
     }
 
     override fun findByIid(iid: Reference.Id): @Valid Branch? {
-        val branch = this.branchDao.findByIid(iid)
+        val branch = super<AbstractInfrastructurePort>.findByIid(iid)
 
-        requireNotNull(branch?.repository)
-        return repositoryAssembler
-            .toDomain(branch.repository)
-            .branches
-            .find { it.iid == iid }
-            ?.let { return it }
+        return branch?.let { branchMapper.toDomain(it) }
+    }
+
+    override fun findByIids(iids: Collection<Reference.Id>): List<@Valid Branch> {
+        val branches = super<AbstractInfrastructurePort>.findByIids(iids)
+        return branches.map { branchMapper.toDomain(it) }
     }
 
     override fun update(value: Branch): Branch {
@@ -89,20 +85,13 @@ internal class BranchInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findAll(): Iterable<Branch> {
         val branches = super<AbstractInfrastructurePort>.findAllEntities()
 
-        // Group branches by repository to process related branches together
-        return branches
-            .groupBy { it.repository }
-            .flatMap { (repoEntity, _) ->
-                repositoryAssembler.toDomain(repoEntity).branches
-            }
+        return branches.map { branchMapper.toDomain(it) }
     }
 
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findAll(repository: Repository): Iterable<Branch> =
         branchDao.findAll(repository).map { b ->

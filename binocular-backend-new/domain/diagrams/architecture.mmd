@@ -1,0 +1,57 @@
+graph TD
+    subgraph "Presentation Layer"
+        WEB["web (GraphQL API)"]
+        subgraph "GraphQL Components"
+            CTRL["GraphQL Controllers"]
+            RESL["Type Resolvers"]
+        end
+    end
+
+    subgraph "Application Core"
+        PORT["Infrastructure Ports (Interfaces)"]
+        DOMAIN["Domain Models"]
+    end
+
+    subgraph "Infrastructure Layer (ArangoDB)"
+        AR_PORT["ArangoDB Port Implementation"]
+        AR_DAO["ArangoDB DAOs"]
+        AR_REPO["ArangoDB Repositories"]
+        AR_ENT["ArangoDB Entities"]
+        AR_MAP["ArangoDB Mappers"]
+    end
+
+    subgraph "Infrastructure Layer (SQL/Postgres)"
+        SQL_PORT["SQL Port Implementation"]
+        SQL_DAO["SQL DAOs"]
+        SQL_REPO["JPA Repositories"]
+        SQL_ENT["JPA Entities"]
+        SQL_MAP["SQL Mappers"]
+    end
+
+    %% Flow - Top Down
+    WEB --> CTRL
+    WEB --> RESL
+    
+    CTRL --> PORT
+    RESL --> PORT
+    
+    PORT --> AR_PORT
+    PORT --> SQL_PORT
+
+    %% ArangoDB Path
+    AR_PORT --> AR_DAO
+    AR_DAO --> AR_REPO
+    AR_REPO --> AR_ENT
+    AR_PORT --> AR_MAP
+    AR_MAP --> AR_ENT
+    AR_MAP --> DOMAIN
+
+    %% SQL Path
+    SQL_PORT --> SQL_DAO
+    SQL_DAO --> SQL_REPO
+    SQL_REPO --> SQL_ENT
+    SQL_PORT --> SQL_MAP
+    SQL_MAP --> SQL_ENT
+    SQL_MAP --> DOMAIN
+
+    PORT --> DOMAIN

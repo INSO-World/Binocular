@@ -1,7 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb
 
 import com.inso_world.binocular.core.delegates.logger
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IProjectDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
@@ -33,14 +32,12 @@ internal class ProjectDao @Autowired constructor(
     @Autowired
     private lateinit var mergeRequestDao: MergeRequestDao
 
-    @MappingSession
     override fun findByName(name: String): Project? {
         return this.projectRepository.findByName(name)?.let {
             this.mapper.toDomain(it)
         }
     }
 
-    @MappingSession
     override fun create(entity: Project): Project {
         logger.debug("Creating new project: {}", entity)
 

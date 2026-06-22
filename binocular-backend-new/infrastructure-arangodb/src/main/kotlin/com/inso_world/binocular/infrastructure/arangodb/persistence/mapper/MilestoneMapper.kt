@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MilestoneEntity
 import com.inso_world.binocular.model.*
@@ -22,7 +21,6 @@ import kotlin.uuid.Uuid
  * ## Design Principles
  * - **Single Responsibility**: Only converts Milestone structure
  * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships (issues, merge requests)
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It uses lazy loading
@@ -30,8 +28,6 @@ import kotlin.uuid.Uuid
  */
 @Component
 internal class MilestoneMapper : EntityMapper<Milestone, MilestoneEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     companion object {
         private val logger by logger()
@@ -65,7 +61,6 @@ internal class MilestoneMapper : EntityMapper<Milestone, MilestoneEntity> {
     @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: MilestoneEntity): Milestone {
         // Fast-path: Check if already mapped
-        ctx.findDomain<Milestone, MilestoneEntity>(entity)?.let { return it }
 
         val domain = Milestone(
             id = entity.id,
@@ -81,7 +76,6 @@ internal class MilestoneMapper : EntityMapper<Milestone, MilestoneEntity> {
             webUrl = entity.webUrl,
             project =
                 entity.project?.let { Project.Id(it.iid!!) }
-                    ?: ctx.findDomain<Project, MilestoneEntity>(entity)?.iid
                     ?: error("Parent Project not found in entity or context for Milestone ${entity.iid}"),
             issueIds = entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } }.toMutableSet(),
             mergeRequestIds = entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } }.toMutableSet(),

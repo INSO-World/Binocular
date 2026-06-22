@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
@@ -20,46 +19,27 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class DeveloperMapper : EntityMapper<Developer, DeveloperEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     companion object {
         private val logger by logger()
     }
 
     override fun toEntity(domain: Developer): DeveloperEntity {
-        ctx.findEntity<Developer.Key, Developer, DeveloperEntity>(domain)?.let { return it }
+        throw UnsupportedOperationException("Mapping to entity now requires explicit repository entity.")
+    }
 
-        val owner =
-            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-                ?: throw IllegalStateException(
-                    "RepositoryEntity must be mapped before DeveloperEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
-                )
-
-        val entity = domain.toSqlEntity(owner)
-        ctx.remember(domain, entity)
-        return entity
+    fun toEntity(domain: Developer, repository: RepositoryEntity): DeveloperEntity {
+        return domain.toSqlEntity(repository)
     }
 
     override fun toDomain(entity: DeveloperEntity): Developer {
-        ctx.findDomain<Developer, DeveloperEntity>(entity)?.let { return it }
-
-        val owner =
-            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-                ?: throw IllegalStateException(
-                    "Repository must be mapped before Developer. " +
-                        "Ensure Repository is in MappingContext before calling toDomain().",
-                )
-
-        val domain = entity.toDomain(owner)
+        val domain = entity.toDomain()
         setField(
             domain.javaClass.superclass.superclass
                 .getDeclaredField("iid"),
             domain,
             entity.iid
         )
-        ctx.remember(domain, entity)
         return domain
     }
 

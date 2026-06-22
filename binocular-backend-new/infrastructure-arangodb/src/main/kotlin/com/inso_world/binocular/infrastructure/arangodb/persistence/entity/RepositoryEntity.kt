@@ -5,6 +5,8 @@ import com.arangodb.springframework.annotation.Field
 import com.arangodb.springframework.annotation.PersistentIndexed
 import com.arangodb.springframework.annotation.Ref
 import org.springframework.data.annotation.Id
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.Repository
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -61,17 +63,15 @@ data class RepositoryEntity(
     /**
      * Converts this RepositoryEntity to a Repository domain object.
      *
-     * @param project The project domain object to associate with the repository
      * @return Repository domain object
      */
-    fun toDomain(project: com.inso_world.binocular.model.Project): com.inso_world.binocular.model.Repository =
-        com.inso_world.binocular.model
-            .Repository(
-                localPath = this.localPath.trim(),
-                project = project,
-            ).apply {
-                this.id = this@RepositoryEntity.id
-            }
+    fun toDomain(): Repository =
+        Repository(
+            localPath = this.localPath.trim(),
+            projectId = Project.Id(this.project.iid),
+        ).apply {
+            this.id = this@RepositoryEntity.id
+        }
 }
 
 /**
@@ -81,7 +81,7 @@ data class RepositoryEntity(
  * @return RepositoryEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun com.inso_world.binocular.model.Repository.toArangoEntity(project: ProjectEntity): RepositoryEntity =
+internal fun Repository.toArangoEntity(project: ProjectEntity): RepositoryEntity =
     RepositoryEntity(
         id = this.id,
         iid = this.iid.value,

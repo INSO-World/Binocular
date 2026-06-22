@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MergeRequestEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.model.*
@@ -23,7 +22,6 @@ import kotlin.uuid.Uuid
  * - **Single Responsibility**: Only converts MergeRequest structure
  * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships
  * - **Eager Mentions**: Eagerly maps mentions as they are typically accessed with the merge request
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
@@ -34,8 +32,6 @@ import kotlin.uuid.Uuid
 internal class MergeRequestMapper(
     private val mentionMapper: MentionMapper,
 ) : EntityMapper<MergeRequest, MergeRequestEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     companion object {
         private val logger by logger()
@@ -73,13 +69,9 @@ internal class MergeRequestMapper(
      * @return The MergeRequest domain object with eager mentions and IDs for relationships
      */
     override fun toDomain(entity: MergeRequestEntity): MergeRequest {
-        // Fast-path: Check if already mapped
-        ctx.findDomain<MergeRequest, MergeRequestEntity>(entity)?.let { return it }
-
         val domain = MergeRequest(
             project =
                 entity.project?.let { Project.Id(it.iid!!) }
-                    ?: ctx.findDomain<Project, MergeRequestEntity>(entity)?.iid
                     ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
             id = entity.id,
             platformIid = entity.iid,

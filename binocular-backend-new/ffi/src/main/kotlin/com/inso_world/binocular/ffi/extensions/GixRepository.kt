@@ -9,13 +9,13 @@ internal fun Repository.toFfi(): GixRepository =
     GixRepository(
         gitDir = this.localPath,
         workTree = null,
-        remotes = this.remotes.map { it.toFfi() },
+        remotes = emptyList(),
     )
 
 private fun normalizePath(path: String): String = if (path.endsWith(".git")) path else "$path/.git"
 
-internal fun GixRepository.toModel(project: Project): Repository =
+internal fun GixRepository.toModel(projectId: Project.Id): Repository =
     Repository(
         localPath = normalizePath(gitDir),
-        project = project,
+        projectId = projectId,
     )

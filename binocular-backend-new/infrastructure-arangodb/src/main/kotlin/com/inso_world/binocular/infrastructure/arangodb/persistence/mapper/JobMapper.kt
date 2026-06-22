@@ -1,7 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.JobEntity
 import com.inso_world.binocular.model.Job
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,7 +17,6 @@ import java.util.Date
  * ## Design Principles
  * - **Value Object**: Job is a value object typically embedded within Build
  * - **Date Conversion**: Converts between LocalDateTime and Date for ArangoDB storage
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is primarily used by BuildMapper to convert jobs within build entities.
@@ -26,7 +24,6 @@ import java.util.Date
 @Component
 internal class JobMapper : EntityMapper<Job, JobEntity> {
     @Autowired
-    private lateinit var ctx: MappingContext
 
     /**
      * Converts a Job value object to JobEntity.
@@ -57,7 +54,6 @@ internal class JobMapper : EntityMapper<Job, JobEntity> {
      */
     override fun toDomain(entity: JobEntity): Job {
         // Fast-path: Check if already mapped
-        ctx.findDomain<Job, JobEntity>(entity)?.let { return it }
 
         return Job(
             id = entity.id,

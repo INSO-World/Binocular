@@ -1,7 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb
 
 import com.inso_world.binocular.core.delegates.logger
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IRepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
@@ -46,12 +45,10 @@ internal class RepositoryDao @Autowired constructor(
     @Autowired
     private lateinit var revisionRepository: RevisionRepository
 
-    @MappingSession
     override fun findByName(name: String): RepositoryEntity? {
         return this.repositoryRepository.findByLocalPath(name)
     }
 
-    @MappingSession
     fun create(entity: RepositoryEntity, skipProjectCheck: Boolean = false): RepositoryEntity {
         // Save Developers first (referenced by Commits)
         entity.developers.forEach { developerRepository.save(it) }

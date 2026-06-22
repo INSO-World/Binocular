@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.IssueInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueAccountConnectionDao
@@ -45,13 +44,11 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
     private lateinit var issueUserConnectionRepository: IIssueUserConnectionDao
     var logger: Logger = LoggerFactory.getLogger(IssueInfrastructurePortImpl::class.java)
 
-    @MappingSession
     override fun findAll(pageable: Pageable): Page<Issue> {
         logger.trace("Getting all issues with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return issueDao.findAll(pageable)
     }
 
-    @MappingSession
     override fun findAll(
         pageable: Pageable,
         since: Long?,
@@ -67,31 +64,26 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
         return issueDao.findAll(pageable, since, until)
     }
 
-    @MappingSession
     override fun findById(id: String): Issue? {
         logger.trace("Getting issue by id: $id")
         return issueDao.findById(id)
     }
 
-    @MappingSession
     override fun findByIid(iid: Issue.Id): @Valid Issue? {
         logger.trace("Getting issue by iid: $iid")
         return issueDao.findAll().find { it.iid == iid }
     }
 
-    @MappingSession
     override fun findByIids(iids: Collection<Issue.Id>): List<@Valid Issue> {
         logger.trace("Getting issues by iids: $iids")
         return issueDao.findAll().filter { it.iid in iids }
     }
 
-    @MappingSession
     override fun findAccountsByIssueId(issueId: String): List<Account> {
         logger.trace("Getting accounts for issue: $issueId")
         return issueAccountConnectionRepository.findAccountsByIssue(issueId)
     }
 
-    @MappingSession
     override fun findAccountsByIssueId(
         issueId: String,
         role: IssueAccountRole,
@@ -100,25 +92,21 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
         return issueAccountConnectionRepository.findAccountsByIssue(issueId, role)
     }
 
-    @MappingSession
     override fun findCommitsByIssueId(issueId: String): List<Commit> {
         logger.trace("Getting commits for issue: $issueId")
         return issueCommitConnectionRepository.findCommitsByIssue(issueId)
     }
 
-    @MappingSession
     override fun findMilestonesByIssueId(issueId: String): List<Milestone> {
         logger.trace("Getting milestones for issue: $issueId")
         return issueMilestoneConnectionRepository.findMilestonesByIssue(issueId)
     }
 
-    @MappingSession
     override fun findNotesByIssueId(issueId: String): List<Note> {
         logger.trace("Getting notes for issue: $issueId")
         return issueNoteConnectionRepository.findNotesByIssue(issueId)
     }
 
-    @MappingSession
     override fun findUsersByIssueId(issueId: String): List<User> {
         logger.trace("Getting users for issue: $issueId")
         return issueUserConnectionRepository.findUsersByIssue(issueId)
@@ -131,7 +119,6 @@ class IssueInfrastructurePortImpl : IssueInfrastructurePort {
         TODO("Not yet implemented")
     }
 
-    @MappingSession
     override fun findAll(): Iterable<Issue> = this.issueDao.findAll()
 
     override fun create(entity: Issue): Issue = this.issueDao.save(entity)

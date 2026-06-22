@@ -8,8 +8,8 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class Revision(
     val content: String? = null,
-    val commit: Commit,
-    val file: File,
+    val commitSha: String,
+    val filePath: String,
 ) : AbstractDomainObject<Revision.Id, String>(
     Id(Uuid.random())
 ) {
@@ -21,7 +21,7 @@ data class Revision(
     var id: String? = null
 
     override val uniqueKey: String
-        get() = "${commit.sha},${file.path}"
+        get() = "$commitSha,$filePath"
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = other is Revision && other.iid == iid
@@ -33,5 +33,5 @@ data class Revision(
             Base64.Default.encode(
                 content?.trim()?.encodeToByteArray() ?: ByteArray(0),
             )
-        }, commit=${commit.sha}, file=${file.path})"
+        }, commitSha=$commitSha, filePath=$filePath)"
 }

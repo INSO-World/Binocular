@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BuildEntity
 import com.inso_world.binocular.model.Build
@@ -23,7 +22,6 @@ import java.util.Date
  * - **Single Responsibility**: Only converts Build structure
  * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded commit relationships
  * - **Date Conversion**: Converts between LocalDateTime and Date for ArangoDB storage
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
@@ -38,7 +36,6 @@ internal class BuildMapper
     ) : EntityMapper<Build, BuildEntity> {
 
         @Autowired
-        private lateinit var ctx: MappingContext
 
         @Lazy
         @Autowired
@@ -89,7 +86,6 @@ internal class BuildMapper
          */
         override fun toDomain(entity: BuildEntity): Build {
             // Fast-path: Check if already mapped
-            ctx.findDomain<Build, BuildEntity>(entity)?.let { return it }
 
             val domain =
                 Build(

@@ -2,11 +2,8 @@ package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.RepositoryMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.BranchDao
@@ -46,7 +43,6 @@ internal class RepositoryInfrastructurePortImpl :
      *
      * **Problem**: When a method like `findByIid(iid: Repository.Id)` overrides an interface method and
      * uses a value class parameter, Kotlin mangles the JVM method name (e.g., `findByIid-pip`).
-     * Spring AOP's `@annotation` pointcut cannot properly match `@MappingSession` on mangled methods,
      * causing the `MappingSessionAspect` to not be triggered.
      *
      * **Solution**: Internal method calls bypass Spring's proxy. By injecting `self` and calling
@@ -61,17 +57,11 @@ internal class RepositoryInfrastructurePortImpl :
     private lateinit var self: RepositoryInfrastructurePortImpl
 
     @Autowired
-    private lateinit var ctx: MappingContext
-
-    @Autowired
     private lateinit var branchDao: BranchDao
 
     @Autowired
     @Lazy
     lateinit var commitMapper: CommitMapper
-
-    @Autowired
-    private lateinit var repositoryAssembler: RepositoryAssembler
 
     @Autowired
     private lateinit var repositoryMapper: RepositoryMapper
@@ -91,22 +81,19 @@ internal class RepositoryInfrastructurePortImpl :
         super.dao = repositoryDao
     }
 
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findByName(name: String): Repository? =
         this.repositoryDao.findByName(name)?.let {
-            this.repositoryAssembler.toDomain(it)
+            this.repositoryMapper.toDomain(it)
         }
 
-    @MappingSession
     @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll().map(repositoryAssembler::toDomain)
+    override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll().map(repositoryMapper::toDomain)
 
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findAll(pageable: Pageable): Page<Repository> {
         val page = this.repositoryDao.findAll(pageable)
-        val repositories = page.content.map { this.repositoryAssembler.toDomain(it) }
+        val repositories = page.content.map { this.repositoryMapper.toDomain(it) }
 
         return Page(
             content = repositories,
@@ -137,7 +124,6 @@ internal class RepositoryInfrastructurePortImpl :
      * This separate method is required because Spring AOP cannot intercept methods with
      * mangled signatures (caused by Kotlin value class parameters). By extracting
      * the logic here with a normal method name, Spring AOP can properly intercept the call when
-     * invoked via [self], establishing the `@MappingSession` scope needed by [repositoryAssembler].
      *
      * **Visibility**: Must not be `private` to allow Spring CGLIB to create
      * a proxy subclass that can override this method for aspect interception.
@@ -147,28 +133,24 @@ internal class RepositoryInfrastructurePortImpl :
      * @see findByIid
      * @see MappingSession
      */
-    @MappingSession
     @Transactional(readOnly = true)
     protected fun findByIidInternal(iid: Repository.Id): Repository? =
         this.repositoryDao.findByIid(iid)?.let {
-            repositoryAssembler.toDomain(it)
+            repositoryMapper.toDomain(it)
         }
 
-    @MappingSession
     @Transactional
     override fun create(
         @Valid value: Repository,
     ): Repository {
         val projectEntity =
-            projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
+            projectDao.findByIid(value.projectId) ?: throw NotFoundException("Project ${value.projectId} not found")
 
         if (projectEntity.repo != null) {
             throw IllegalArgumentException("Selected project $projectEntity has already a Repository set")
         }
 
-        ctx.remember(value.project, projectEntity)
-
-        val toPersist = this.repositoryAssembler.toEntity(value)
+        val toPersist = this.repositoryMapper.toEntity(value)
         val persisted = super.create(toPersist)
 
         // Refresh the input domain object with persisted values and return it
@@ -176,18 +158,16 @@ internal class RepositoryInfrastructurePortImpl :
         return value
     }
 
-    @MappingSession
     @Transactional
     override fun update(
         @Valid value: Repository,
     ): Repository {
         val entity =
-            projectDao.findByIid(value.project.iid)
-                ?: throw NotFoundException("Project ${value.project.uniqueKey} not found")
+            projectDao.findByIid(value.projectId)
+                ?: throw NotFoundException("Project ${value.projectId} not found")
         logger.debug("Project Entity found")
-        ctx.remember(value.project, entity)
 
-        val mapped = repositoryAssembler.toEntity(value)
+        val mapped = repositoryMapper.toEntity(value)
 
         // Phase 1: Save commits first (without branches and without parent/child relationships)
         // This ensures commits have database IDs before branches reference them
@@ -239,7 +219,7 @@ internal class RepositoryInfrastructurePortImpl :
         entityManager.flush()
         logger.trace("Phase 3: Branches persisted")
 
-        return repositoryAssembler.refresh(value, updated)
+        return this.repositoryMapper.refreshDomain(value, updated)
     }
 
     @Transactional
@@ -251,17 +231,10 @@ internal class RepositoryInfrastructurePortImpl :
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findExistingCommits(
         repo: Repository,
         shas: Set<String>,
     ): Sequence<Commit> {
-        val entity =
-            repositoryDao.findByIid(repo.iid)
-                ?: throw NotFoundException("Repository ${repo.uniqueKey} not found")
-        logger.debug("Repository Entity found")
-        ctx.remember(repo, entity)
-
         return this.commitDao
             .findExistingSha(repo, shas)
             .map { commitEntity ->
@@ -270,13 +243,18 @@ internal class RepositoryInfrastructurePortImpl :
     }
 
     @Transactional(readOnly = true)
-    @MappingSession
     override fun findBranch(
         repository: Repository,
         name: String,
     ): Branch? =
-        this.repositoryDao.findByIid(repository.iid)?.let {
-            this.branchDao.findByName(it, name)
-            repositoryAssembler.toDomain(it).branches.find { branch -> branch.name == name }
+        this.repositoryDao.findByIid(repository.iid)?.let { repoEntity ->
+            this.branchDao.findByName(repoEntity, name)?.let { branchEntity ->
+                 // Using constructor for now as BranchMapper might not be ready/needed
+                 branchEntity.toDomain()
+            }
         }
+
+    override fun findByIids(iids: Collection<Repository.Id>): List<Repository> {
+        return iids.mapNotNull { findByIid(it) }
+    }
 }

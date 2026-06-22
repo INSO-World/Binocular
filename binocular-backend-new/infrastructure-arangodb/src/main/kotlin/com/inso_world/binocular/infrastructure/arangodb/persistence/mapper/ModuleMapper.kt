@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ModuleEntity
 import com.inso_world.binocular.model.Module
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component
  * - **Single Responsibility**: Only converts Module structure
  * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships (commits, files, modules)
  * - **Hierarchical Support**: Handles parent-child module relationships with lazy loading
- * - **Context Management**: Uses MappingContext to prevent duplicate mappings
  *
  * ## Usage
  * This mapper is typically called by infrastructure ports and assemblers. It supports
@@ -35,7 +33,6 @@ internal class ModuleMapper
         @Lazy private val fileMapper: FileMapper,
     ) : EntityMapper<Module, ModuleEntity> {
         @Autowired
-        private lateinit var ctx: MappingContext
 
         @Lazy
         @Autowired
@@ -73,7 +70,6 @@ internal class ModuleMapper
          */
         override fun toDomain(entity: ModuleEntity): Module {
             // Fast-path: Check if already mapped
-            ctx.findDomain<Module, ModuleEntity>(entity)?.let { return it }
 
             return Module(
                 id = entity.id,

@@ -2,8 +2,8 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Commit
@@ -30,8 +30,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
-    @Autowired
-    private lateinit var ctx: MappingContext
 
     @Autowired
     private lateinit var developerMapper: DeveloperMapper
@@ -42,79 +40,29 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
 
     /**
      * Converts a Commit domain object to CommitEntity.
-     *
-     * **Precondition**: The referenced Repository must already be mapped and present in MappingContext.
-     * This enforces aggregate boundaries - Repository is a separate aggregate.
-     *
-     * **Note**: This method does NOT map parent/child commit relationships or branches.
-     * Use assemblers for complete commit graph assembly.
-     *
-     * @param domain The Commit domain object to convert
-     * @return The CommitEntity (structure only, without relationships)
-     * @throws IllegalStateException if Repository is not in MappingContext
      */
     override fun toEntity(domain: Commit): CommitEntity {
-        // Fast-path: if this Commit was already mapped in the current context, return it.
-        ctx.findEntity<Commit.Key, Commit, CommitEntity>(domain)?.let { return it }
+        throw UnsupportedOperationException("Mapping to entity now requires explicit dependencies.")
+    }
 
-        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
-        // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner =
-            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
-                ?: throw IllegalStateException(
-                    "RepositoryEntity must be mapped before CommitEntity. " +
-                        "Ensure CommitEntity is in MappingContext before calling toDomain().",
-                )
-
-        val authorEntity = developerMapper.toEntity(domain.author)
-        val committerEntity = developerMapper.toEntity(domain.committer)
-
-        val entity =
-            domain.toSqlEntity(
-                repository = owner,
-                author = authorEntity,
-                committer = committerEntity,
-            )
-        ctx.remember(domain, entity)
-
-        return entity
+    fun toEntity(domain: Commit, repository: RepositoryEntity, author: DeveloperEntity, committer: DeveloperEntity): CommitEntity {
+        return domain.toSqlEntity(
+            repository = repository,
+            author = author,
+            committer = committer,
+        )
     }
 
     /**
      * Converts a CommitEntity to Commit domain object.
-     *
-     * **Precondition**: The referenced Repository must already be mapped and present in MappingContext.
-     * This enforces aggregate boundaries - Repository is a separate aggregate.
-     *
-     * **Note**: This method does NOT map parent/child commit relationships or branches.
-     * Use assemblers for complete commit graph assembly.
-     *
-     * @param entity The CommitEntity to convert
-     * @return The Commit domain object (structure only, without relationships)
-     * @throws IllegalStateException if Repository is not in MappingContext
      */
     override fun toDomain(entity: CommitEntity): Commit {
-        ctx.findDomain<Commit, CommitEntity>(entity)?.let { return it }
-
-        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
-        // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner =
-            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-                ?: throw IllegalStateException(
-                    "Repository must be mapped before Commit. " +
-                        "Ensure Repository is in MappingContext before calling toDomain().",
-                )
-
-        val author = developerMapper.toDomain(entity.author)
-        val committer = developerMapper.toDomain(entity.committer)
-
-        val domain = entity.toDomain(owner, author, committer)
+        val domain = entity.toDomain()
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
             entity.iid,
         )
-        ctx.remember(domain, entity)
 
         return domain
     }

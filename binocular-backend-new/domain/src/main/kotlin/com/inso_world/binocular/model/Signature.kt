@@ -46,7 +46,7 @@ import java.time.LocalDateTime
  */
 data class Signature(
     @field:NotNull
-    val developer: Developer,
+    val developerId: Developer.Id,
     @field:PastOrPresent
     @field:NotNull
     val timestamp: LocalDateTime
@@ -57,13 +57,4 @@ data class Signature(
             "timestamp ($timestamp) must be past or present ($now)"
         }
     }
-
-    /**
-     * Git signature string format.
-     * Delegates to the developer's [Developer.gitSignature].
-     *
-     * @return Formatted string like "Name <email@example.com>"
-     */
-    val gitSignature: String
-        get() = developer.gitSignature
 }

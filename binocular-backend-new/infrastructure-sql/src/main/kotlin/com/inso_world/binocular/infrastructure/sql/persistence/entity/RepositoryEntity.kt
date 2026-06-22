@@ -74,7 +74,7 @@ internal data class RepositoryEntity(
     ) // value object for lookups
 
     init {
-        project.repo = this
+        // removed circular registration
     }
 
     @Id
@@ -123,11 +123,11 @@ internal data class RepositoryEntity(
 
     override fun toString(): String = "RepositoryEntity(id=$id, localPath='$localPath')"
 
-    fun toDomain(project: Project): Repository {
+    fun toDomain(): Repository {
         val repo =
             Repository(
                 localPath = this.localPath.trim(),
-                project = project
+                projectId = this.project.iid
             ).apply {
                 this.id = this@RepositoryEntity.id?.toString()
             }

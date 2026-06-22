@@ -50,7 +50,7 @@ internal data class DeveloperEntity(
     override var id: Long? = null
 
     init {
-        repository.developers.add(this)
+        // removed circular registration
     }
 
     override val uniqueKey: Key
@@ -60,14 +60,25 @@ internal data class DeveloperEntity(
 
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(repository: Repository): Developer =
+    fun toDomain(): Developer =
         Developer(
             name = this.name,
             email = this.email,
-            repository = repository,
+            repositoryId = this.repository.iid,
         ).apply {
             this.id = this@DeveloperEntity.id?.toString()
         }
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    fun toLegacyUser(): com.inso_world.binocular.model.User {
+        return com.inso_world.binocular.model.User(
+            name = this.name,
+            repositoryId = this.repository.iid
+        ).apply {
+            this.id = this@DeveloperEntity.id?.toString()
+            this.email = this@DeveloperEntity.email
+        }
+    }
 
     override fun toString(): String = "DeveloperEntity(id=$id, iid=$iid, name='$name', email='$email', repositoryId=${repository.id})"
 }

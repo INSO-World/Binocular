@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.FileInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
@@ -44,43 +43,36 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
     @Autowired private lateinit var commitFileUserConnectionRepository: ICommitFileUserConnectionDao
     var logger: Logger = LoggerFactory.getLogger(FileInfrastructurePortImpl::class.java)
 
-    @MappingSession
     override fun findAll(pageable: Pageable): Page<File> {
         logger.trace("Getting all files with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return fileDao.findAll(pageable)
     }
 
-    @MappingSession
     override fun findById(id: String): File? {
         logger.trace("Getting file by id: $id")
         return fileDao.findById(id)
     }
 
-    @MappingSession
     override fun findByIid(iid: File.Id): @Valid File? {
         logger.trace("Getting file by iid: $iid")
         return fileDao.findAll().find { it.iid == iid }
     }
 
-    @MappingSession
     override fun findByIids(iids: Collection<File.Id>): List<@Valid File> {
         logger.trace("Getting files by iids: $iids")
         return fileDao.findAll().filter { it.iid in iids }
     }
 
-    @MappingSession
     override fun findBranchesByFileId(fileId: String): List<Branch> {
         logger.trace("Getting branches for file: $fileId")
         return branchFileConnectionRepository.findBranchesByFile(fileId)
     }
 
-    @MappingSession
     override fun findCommitsByFileId(fileId: String): List<Commit> {
         logger.trace("Getting commits for file: $fileId")
         return commitFileConnectionRepository.findCommitsByFile(fileId)
     }
 
-    @MappingSession
     override fun findCommitsByFileId(
         fileId: String,
         pageable: Pageable,
@@ -89,19 +81,16 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
         return commitFileConnectionRepository.findCommitsByFilePaged(fileId, pageable)
     }
 
-    @MappingSession
     override fun findModulesByFileId(fileId: String): List<Module> {
         logger.trace("Getting modules for file: $fileId")
         return moduleFileConnectionRepository.findModulesByFile(fileId)
     }
 
-    @MappingSession
     override fun findRelatedFilesByFileId(fileId: String): List<File> {
         logger.trace("Getting related files for file: $fileId")
         return branchFileFileConnectionRepository.findFilesByBranchFile(fileId)
     }
 
-    @MappingSession
     override fun findUsersByFileId(fileId: String): List<User> {
         logger.trace("Getting users for file: $fileId")
         return commitFileUserConnectionRepository.findUsersByFile(fileId)
@@ -115,13 +104,11 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
         TODO("Not yet implemented")
     }
 
-    @MappingSession
     override fun findByPath(path: String): File? {
         logger.trace("Finding file by path: $path")
         return fileDao.findByPath(path)
     }
 
-    @MappingSession
     override fun findAll(): Iterable<File> = fileDao.findAll()
 
     override fun create(entity: File): File = this.fileDao.save(entity)

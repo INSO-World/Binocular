@@ -53,39 +53,6 @@ data class Project(
 
     var description: String? = null
 
-    /**
-     * Optional owning [Repository].
-     *
-     * #### Semantics
-     * - A project can exist without a repository.
-     * - Assignment is **set-once** and **non-null**:
-     *   - Reassigning the **same** instance is a no-op.
-     *   - Reassigning to a **different** repository throws.
-     *
-     * #### Invariants enforced on set
-     * - Precondition:
-     *    - `value != null`
-     *    - `this.repo == null || this.repo === value`
-     *
-     * #### Exceptions
-     * - [IllegalArgumentException] if `value` is `null`.
-     * - [IllegalArgumentException] if a different repository is assigned after one was already set.
-     *
-     * #### Thread-safety
-     * - No internal synchronization; coordinate externally if multiple threads may mutate this property.
-     */
-    var repo: Repository? = null
-        set(value) {
-            requireNotNull(value) { "Cannot set repo to null" }
-            if (value == this.repo) {
-                return
-            }
-            if (this.repo != null) {
-                throw IllegalArgumentException("Repository already set for Project $name: $repo")
-            }
-            field = value
-        }
-
     // some database dependent id
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))
     var id: String? = null

@@ -105,7 +105,7 @@ internal data class ProjectEntity(
     }
 
 
-    override fun toString(): String = "ProjectEntity(id=$id, iid=$iid, name=$name, description=$description, repo=$repo)"
+    override fun toString(): String = "ProjectEntity(id=$id, iid=$iid, name=$name, description=$description)"
 
     fun toStringDebug(): String = "ProjectEntity(id=$id, name=$name, accountCount=${accounts.size}, issueCount=${issues.size})"
 
@@ -117,13 +117,12 @@ internal data class ProjectEntity(
 
     override fun hashCode(): Int = super.hashCode()
 
-    fun toDomain(repo: Repository? = null): Project =
+    fun toDomain(): Project =
         Project(
             name = this.name,
         ).apply {
             this.id = this@ProjectEntity.id?.toString()
             this.description = this@ProjectEntity.description
-            repo?.let { this.repo = it }
         }
 
     companion object {

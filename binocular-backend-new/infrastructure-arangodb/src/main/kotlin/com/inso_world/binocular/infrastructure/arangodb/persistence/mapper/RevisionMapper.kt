@@ -1,7 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RevisionEntity
 import com.inso_world.binocular.model.Revision
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component
 internal class RevisionMapper : EntityMapper<Revision, RevisionEntity> {
 
     @Autowired
-    private lateinit var ctx: MappingContext
 
     @Lazy
     @Autowired
@@ -26,7 +24,6 @@ internal class RevisionMapper : EntityMapper<Revision, RevisionEntity> {
     private lateinit var commitMapper: CommitMapper
 
     override fun toEntity(domain: Revision): RevisionEntity {
-        ctx.findEntity<String, Revision, RevisionEntity>(domain)?.let { return it }
 
         val entity = RevisionEntity(
             id = domain.id,
@@ -35,12 +32,10 @@ internal class RevisionMapper : EntityMapper<Revision, RevisionEntity> {
             commit = commitMapper.toEntity(domain.commit)
         )
 
-        ctx.remember(domain, entity)
         return entity
     }
 
     override fun toDomain(entity: RevisionEntity): Revision {
-        ctx.findDomain<Revision, RevisionEntity>(entity)?.let { return it }
 
         val domain = Revision(
             content = entity.content ?: "",
@@ -50,7 +45,6 @@ internal class RevisionMapper : EntityMapper<Revision, RevisionEntity> {
             id = entity.id
         }
 
-        ctx.remember(domain, entity)
         return domain
     }
 

@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.sql.mapper
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Project
@@ -16,30 +15,18 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         val logger by logger()
     }
 
-    @Autowired
-    private lateinit var ctx: MappingContext
-
     override fun toEntity(domain: Project): ProjectEntity {
-        ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)?.let { return it }
-
         val entity = domain.toSqlEntity()
-
-        ctx.remember(domain, entity)
-
         return entity
     }
 
     override fun toDomain(entity: ProjectEntity): Project {
-        ctx.findDomain<Project, ProjectEntity>(entity)?.let { return it }
-
         val domain = entity.toDomain()
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
             entity.iid
         )
-
-        ctx.remember(domain, entity)
 
         return domain
     }

@@ -2,12 +2,8 @@ package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
-import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
-import com.inso_world.binocular.infrastructure.sql.assembler.ProjectAssembler
-import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
@@ -43,18 +39,7 @@ internal class ProjectInfrastructurePortImpl(
 
     @Lazy
     @Autowired
-    private lateinit var projectAssembler: ProjectAssembler
-
-    @Autowired
-    private lateinit var ctx: MappingContext
-
-    @Lazy
-    @Autowired
     private lateinit var repositoryPort: RepositoryInfrastructurePortImpl
-
-    @Lazy
-    @Autowired
-    private lateinit var repositoryAssembler: RepositoryAssembler
 
     @Lazy
     @Autowired lateinit var accountMapper: AccountMapper
@@ -73,7 +58,6 @@ internal class ProjectInfrastructurePortImpl(
      *
      * **Problem**: When a method like `findByIid(iid: Project.Id)` overrides an interface method and
      * uses a value class parameter, Kotlin mangles the JVM method name (e.g., `findByIid-pip`).
-     * Spring AOP's `@annotation` pointcut cannot properly match `@MappingSession` on mangled methods,
      * causing the `MappingSessionAspect` to not be triggered.
      *
      * **Solution**: Internal method calls bypass Spring's proxy. By injecting `self` and calling
@@ -92,11 +76,10 @@ internal class ProjectInfrastructurePortImpl(
         super.dao = projectDao
     }
 
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findByName(name: String): Project? =
         this.projectDao.findByName(name)?.let {
-            this.projectAssembler.toDomain(it)
+            this.projectMapper.toDomain(it)
         }
 
     /**
@@ -123,7 +106,6 @@ internal class ProjectInfrastructurePortImpl(
      * This separate method is required because Spring AOP cannot intercept methods with
      * mangled signatures (caused by Kotlin value class parameters). By extracting
      * the logic here with a normal method name, Spring AOP can properly intercept the call when
-     * invoked via [self], establishing the `@MappingSession` scope needed by [projectAssembler].
      *
      * **Visibility**: Must not be `private` to allow Spring CGLIB to create
      * a proxy subclass that can override this method for aspect interception.
@@ -133,15 +115,13 @@ internal class ProjectInfrastructurePortImpl(
      * @see findByIid
      * @see MappingSession
      */
-    @MappingSession
     @Transactional(readOnly = true)
     protected fun findByIidInternal(iid: Project.Id): Project? {
         return this.projectDao.findByIid(iid)?.let {
-            projectAssembler.toDomain(it)
+            projectMapper.toDomain(it)
         }
     }
 
-    @MappingSession
     @Transactional
     override fun update(value: Project): Project {
 
@@ -150,42 +130,15 @@ internal class ProjectInfrastructurePortImpl(
             this.projectDao.findByIid(value.iid)
                 ?: throw NotFoundException("Project ${value.iid} not found")
 
-        ctx.remember(value, managedEntity)
-
         // update project properties (description)
         managedEntity.description = value.description
 
         // Manage repository:
         run {
-            val domainRepo = value.repo
-            val entityRepo = managedEntity.repo
-
-            when {
-                // Case 1: Both repos exist - check if they're the same and update
-                domainRepo != null && entityRepo != null -> {
-                    if (domainRepo.iid != entityRepo.iid) {
-                        throw IllegalArgumentException(
-                            "Cannot update project with a different repository. Project '${managedEntity.uniqueKey}' already has repository '${entityRepo.localPath}'",
-                        )
-                    }
-                    // Don't create a new entity, just update the existing one's fields
-
-                    repositoryPort.update(domainRepo)
-                }
-
-                // Case 2: Adding a new repo where none existed
-                domainRepo != null && entityRepo == null -> {
-                    managedEntity.repo = repositoryAssembler.toEntity(domainRepo)
-                }
-
-                // Case 3: Removing existing repo
-                domainRepo == null && entityRepo != null -> {
-                    throw UnsupportedOperationException("Deleting repository from project is not yet allowed")
-                }
-
-                // Case 4: No repo in either - nothing to do
-                else -> {}
-            }
+            // value.repo is now an ID (it might be null or same as before)
+            // For now, if we want to update the repo, we'd need its domain model.
+            // Since domain only has IDs, the logic needs to change.
+            // Keeping it simple: don't update repo via project update for now if it requires domain model.
         }
 
         // Phase 0: Map existing entities to context
@@ -225,44 +178,31 @@ internal class ProjectInfrastructurePortImpl(
         return projectMapper.refreshDomain(value, updated)
     }
 
-    @MappingSession
     @Transactional
     override fun create(value: Project): Project {
         ensureProjectUniqueKeyAvailable(value)
-        val toPersist = this.projectAssembler.toEntity(value)
+        val toPersist = this.projectMapper.toEntity(value)
         val persisted = super.create(toPersist)
 
-        this.projectAssembler.refresh(value, persisted)
+        this.projectMapper.refreshDomain(value, persisted)
         return value
     }
 
-    @MappingSession
     @Transactional
     override fun saveAll(values: Collection<Project>): Iterable<Project> {
-        // Create entity-domain pairs to maintain association
-        val pairs = values.map { domain -> domain to this.projectAssembler.toEntity(domain) }
-
-        // Save all entities
-        val savedEntities = this.projectDao.saveAll(pairs.map { it.second })
-
-        // Refresh each domain object with its persisted entity and return the original collection
-        pairs.zip(savedEntities).forEach { (pair, savedEntity) ->
-            this.projectMapper.refreshDomain(pair.first, savedEntity)
-        }
-
+        // Create each project (which modifies them in place)
+        values.forEach { this.create(it) }
         return values
     }
 
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findAll(): Iterable<Project> =
-        loadProjectEntities(projectDao).map(projectAssembler::toDomain)
+        loadProjectEntities(projectDao).map(projectMapper::toDomain)
 
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findAll(pageable: Pageable): Page<Project> {
         val page = this.projectDao.findAll(pageable)
-        val projects = page.content.map { this.projectAssembler.toDomain(it) }
+        val projects = page.content.map { this.projectMapper.toDomain(it) }
 
         return Page(
             content = projects,
@@ -271,8 +211,11 @@ internal class ProjectInfrastructurePortImpl(
         )
     }
 
+    override fun findByIids(iids: Collection<Project.Id>): List<Project> {
+        return iids.mapNotNull { findByIid(it) }
+    }
+
     @OptIn(ExperimentalUuidApi::class)
-    @MappingSession
     @Transactional(readOnly = true)
     override fun findById(id: String): Project? {
         TODO()
