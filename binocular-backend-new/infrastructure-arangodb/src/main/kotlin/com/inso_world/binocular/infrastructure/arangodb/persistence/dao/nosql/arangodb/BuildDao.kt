@@ -3,9 +3,13 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IBuildDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BuildEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CiRateBucketEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.AuthorCommitCountMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.BuildMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CiErrorRateBucketMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BuildRepository
 import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.model.metrics.CiRateBucket
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Repository
 internal class BuildDao(
     @Autowired private val buildRepository: BuildRepository,
     @Autowired private val buildMapper: BuildMapper,
+    @Autowired private val ciErrorRateBucketMapper: CiErrorRateBucketMapper,
 ) : MappedArangoDbDao<Build, BuildEntity, String>(buildRepository, buildMapper),
     IBuildDao {
 
@@ -59,5 +64,13 @@ internal class BuildDao(
             else -> buildRepository.countAllUntil(until!!)
         }
         return Page(content, total, pageable)
+    }
+
+    override fun findCiErrorRateBuckets(
+        since: Long,
+        until: Long,
+        fmt: String
+    ): List<CiRateBucket> {
+        return ciErrorRateBucketMapper.toDomainList(buildRepository.findCiErrorRateBuckets(since, until, fmt))
     }
 }

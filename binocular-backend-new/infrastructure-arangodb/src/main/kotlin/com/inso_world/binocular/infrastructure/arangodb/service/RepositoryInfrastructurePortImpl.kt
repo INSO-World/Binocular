@@ -9,12 +9,16 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.ar
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.FileDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection.CommitFileConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.AuthorCommitCountMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CiErrorRateBucketMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.metrics.AuthorPeriodCount
+import com.inso_world.binocular.model.metrics.CiRateBucket
 import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +33,7 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     fun init() {
         super.dao = repositoryDao
     }
+
     companion object {
         val logger by logger()
     }
@@ -75,7 +80,8 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     }
 
     @MappingSession
-    override fun findByName(name: String): Repository? = this.repositoryDao.findByName(name)?.let { this.repositoryMapper.toDomain(it) }
+    override fun findByName(name: String): Repository? =
+        this.repositoryDao.findByName(name)?.let { this.repositoryMapper.toDomain(it) }
 
     @MappingSession
     override fun findExistingCommits(
@@ -93,16 +99,24 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         TODO("Not yet implemented")
     }
 
-    override fun findAllCommits(
-        repository: Repository?
-    ): Sequence<Commit> {
-        return this.commitDao.findAll().asSequence()
+    override fun findCiErrorRateBuckets(
+        repository: Repository?,
+        since: Long,
+        until: Long,
+        fmt: String
+    ): List<CiRateBucket> {
+        return buildDao.findCiErrorRateBuckets(since, until, fmt)
     }
 
-    override fun findAllBuilds(
-        repository: Repository?
-    ): Sequence<Build> {
-        return this.buildDao.findAll().asSequence()
+    override fun findAuthorCommitCountsByPeriod(
+        repository: Repository?,
+        until: Long,
+        start: Long,
+        firstLabel: String,
+        fmt: String
+    ): List<AuthorPeriodCount> {
+        return commitDao.findAuthorCommitCountsByPeriod(until, start, firstLabel, fmt)
+
     }
 
     override fun findFileComplexityForAllFiles(repository: Repository?): Sequence<FileComplexityMinorContributors> {

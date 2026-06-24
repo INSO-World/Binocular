@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.repository
 
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BuildEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CiRateBucketEntity
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -137,4 +138,22 @@ interface BuildRepository : ArangoRepository<BuildEntity, String> {
         @org.springframework.data.repository.query.Param("since") since: Long,
         @org.springframework.data.repository.query.Param("until") until: Long
     ): Long
+
+    @com.arangodb.springframework.annotation.Query(
+        """
+    FOR b IN builds
+      FILTER b.createdAt != null
+      FILTER DATE_TIMESTAMP(b.createdAt) >= @since AND DATE_TIMESTAMP(b.createdAt) <= @until
+      FILTER LOWER(b.status) IN ["failed", "success"]
+      COLLECT period = DATE_FORMAT(b.createdAt, @fmt)
+      AGGREGATE failed    = SUM(LOWER(b.status) == "failed" ? 1 : 0),
+                completed = SUM(1)
+      RETURN { period: period, failed: failed, completed: completed }
+    """
+    )
+    fun findCiErrorRateBuckets(
+        @org.springframework.data.repository.query.Param("since") since: Long,
+        @org.springframework.data.repository.query.Param("until") until: Long,
+        @org.springframework.data.repository.query.Param("fmt") fmt: String,
+    ): List<CiRateBucketEntity>
 }

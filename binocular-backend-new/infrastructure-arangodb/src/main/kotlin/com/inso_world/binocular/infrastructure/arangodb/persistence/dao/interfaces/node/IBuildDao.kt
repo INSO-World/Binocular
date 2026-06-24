@@ -3,8 +3,11 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfa
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
 import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.model.metrics.CiRateBucket
 import org.springframework.data.domain.Pageable
 
 internal interface IBuildDao : IDao<Build, String> {
     fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Build>
+
+    fun findCiErrorRateBuckets(since: Long, until: Long, fmt: String): List<CiRateBucket>
 }

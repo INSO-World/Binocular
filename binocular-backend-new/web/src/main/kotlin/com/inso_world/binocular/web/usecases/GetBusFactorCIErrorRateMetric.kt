@@ -2,9 +2,6 @@ package com.inso_world.binocular.web.usecases
 
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
-import com.inso_world.binocular.model.Build
-import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.enums.Granularity
 import com.inso_world.binocular.model.metrics.AuthorContribution
 import com.inso_world.binocular.model.metrics.BusFactorCIErrorRate
@@ -22,36 +19,40 @@ class GetBusFactorCIErrorRateMetric(
 ) {
 
     @MappingSession
-    fun execute(
-        repoPath: String, since: Long, until: Long, granularity: Granularity
-    ): List<BusFactorCIErrorRate> {
-        //repo not used
-        val repo = repoPort.findByName(repoPath)
+    fun execute(repoPath: String, since: Long, until: Long, granularity: Granularity): List<BusFactorCIErrorRate> {
 
+        val repo = repoPort.findByName(repoPath)
         val start = Instant.ofEpochMilli(since).atZone(ZoneOffset.UTC).toLocalDate()
         val end = Instant.ofEpochMilli(until).atZone(ZoneOffset.UTC).toLocalDate()
-
-        val builds = repoPort.findAllBuilds(repo).toList()
-        val commits = repoPort.findAllCommits(repo).toList()
-
         val periods = buildPeriods(start, end, granularity)
+        if (periods.isEmpty()) return emptyList()
 
-        return periods.mapIndexed { index, period ->
-            val commitsUpToPeriod = commits.asSequence().filter { c ->
-                !c.authorDateTime.toLocalDate().isAfter(period.end)
-            }
-            val periodBuilds = builds.asSequence().filter { b ->
-                val d = b.createdAt?.toLocalDate() ?: return@filter false
-                !d.isBefore(period.start) && !d.isAfter(period.end)
-            }
+        val fmt = when (granularity) {
+            Granularity.MONTH -> "%mm/%yyyy"
+            Granularity.YEAR -> "%yyyy"
+        }
+        val firstStartMillis = periods.first().start.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        val lastEndMillis = periods.last().end
+            .plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() - 1
 
-            val bf = calculateBusFactor(commitsUpToPeriod)
+        val firstLabel = periods.first().label
 
+        val ciByPeriod = repoPort.findCiErrorRateBuckets(repo, firstStartMillis, lastEndMillis, fmt)
+            .associate { it.period to (if (it.completed == 0L) 0.0 else it.failed.toDouble() / it.completed) }
+
+        val countsByPeriod = repoPort
+            .findAuthorCommitCountsByPeriod(repo, lastEndMillis, firstStartMillis, firstLabel, fmt)
+            .groupBy { it.period }
+
+        val running = HashMap<String, Int>()
+        return periods.map { period ->
+            countsByPeriod[period.label]?.forEach { running.merge(it.gitSignature, it.count.toInt(), Int::plus) }
+            val bf = calculateBusFactor(running)
             BusFactorCIErrorRate(
                 id = period.label,
                 busFactor = bf.busFactor,
-                ciErrorRate = calculateCiErrorRate(periodBuilds),
-                topAuthors = bf.topAuthors
+                ciErrorRate = ciByPeriod[period.label] ?: 0.0,
+                topAuthors = bf.topAuthors,
             )
         }
     }
@@ -60,43 +61,19 @@ class GetBusFactorCIErrorRateMetric(
 
     private data class BusFactorResult(val busFactor: Int, val topAuthors: List<AuthorContribution>)
 
-    private fun calculateCiErrorRate(builds: Sequence<Build>): Double {
-        var failed = 0
-        var completed = 0
-        for (build in builds) {
-            when (build.status?.lowercase()) {
-                "failed" -> {
-                    failed++; completed++
-                }
-
-                "success" -> completed++
-            }
-        }
-        return if (completed == 0) 0.0 else failed.toDouble() / completed
-    }
-
-    private fun calculateBusFactor(commits: Sequence<Commit>): BusFactorResult {
-        val commitsPerAuthor: Map<Developer, Int> = commits
-            .groupingBy { it.author }
-            .eachCount()
-
-        val totalCommits = commitsPerAuthor.values.sum()
-        if (totalCommits == 0) return BusFactorResult(0, emptyList())
-
+    private fun calculateBusFactor(commitsPerAuthor: Map<String, Int>): BusFactorResult {
+        val total = commitsPerAuthor.values.sum()
+        if (total == 0) return BusFactorResult(0, emptyList())
         val sorted = commitsPerAuthor.entries.sortedByDescending { it.value }
-
-        val threshold = totalCommits / 2.0
+        val threshold = total / 2.0
         var accumulated = 0
-        val topAuthors = mutableListOf<AuthorContribution>()
-        for ((author, count) in sorted) {
+        val top = mutableListOf<AuthorContribution>()
+        for ((gitSignature, count) in sorted) {
             accumulated += count
-            topAuthors += AuthorContribution(
-                gitSignature = author.gitSignature,
-                percentage = count.toDouble() / totalCommits,
-            )
+            top += AuthorContribution(gitSignature = gitSignature, percentage = count.toDouble() / total)
             if (accumulated > threshold) break
         }
-        return BusFactorResult(topAuthors.size, topAuthors)
+        return BusFactorResult(top.size, top)
     }
 
     private fun buildPeriods(
@@ -108,10 +85,15 @@ class GetBusFactorCIErrorRateMetric(
                 var cursor = YearMonth.from(start)
                 val last = YearMonth.from(end)
                 while (!cursor.isAfter(last)) {
-                    periods += Period(cursor.atDay(1), cursor.atEndOfMonth(), "%02d/%d".format(cursor.monthValue, cursor.year))
+                    periods += Period(
+                        cursor.atDay(1),
+                        cursor.atEndOfMonth(),
+                        "%02d/%d".format(cursor.monthValue, cursor.year)
+                    )
                     cursor = cursor.plusMonths(1)
                 }
             }
+
             Granularity.YEAR -> {
                 for (year in start.year..end.year) {
                     periods += Period(
