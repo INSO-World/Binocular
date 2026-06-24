@@ -4,6 +4,7 @@ function ParametersGeneral(props: {
   disabled: boolean;
   parametersGeneral: ParametersGeneralType;
   setParametersGeneral: (parametersGeneral: ParametersGeneralType) => void;
+  hideExcludeMergeCommits?: boolean;
 }) {
   return (
     <div className={'text-xs'}>
@@ -25,18 +26,20 @@ function ParametersGeneral(props: {
           <option value={'days'}>Day</option>
         </select>
       </label>
-      <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
-        <span className="label-text">Exclude Merge Commits:</span>
-        <input
-          type={'checkbox'}
-          className={'toggle toggle-primary toggle-sm'}
-          disabled={props.disabled}
-          checked={props.parametersGeneral.excludeMergeCommits}
-          onChange={(e) =>
-            props.setParametersGeneral({ granularity: props.parametersGeneral.granularity, excludeMergeCommits: e.target.checked })
-          }
-        />
-      </label>
+      {!props.hideExcludeMergeCommits && (
+        <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
+          <span className="label-text">Exclude Merge Commits:</span>
+          <input
+            type={'checkbox'}
+            className={'toggle toggle-primary toggle-sm'}
+            disabled={props.disabled}
+            checked={props.parametersGeneral.excludeMergeCommits}
+            onChange={(e) =>
+              props.setParametersGeneral({ granularity: props.parametersGeneral.granularity, excludeMergeCommits: e.target.checked })
+            }
+          />
+        </label>
+      )}
     </div>
   );
 }

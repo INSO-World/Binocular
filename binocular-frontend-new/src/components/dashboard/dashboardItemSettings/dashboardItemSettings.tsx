@@ -67,6 +67,7 @@ function DashboardItemSettings(props: {
         <div className={'font-bold'}>General:</div>
         <ParametersGeneral
           disabled={!props.ignoreGlobalParameters}
+          hideExcludeMergeCommits={props.item.pluginName === 'Bus Factor / CI Error Rate'}
           parametersGeneral={props.parametersGeneral}
           setParametersGeneral={props.setParametersGeneral}></ParametersGeneral>
       </div>
