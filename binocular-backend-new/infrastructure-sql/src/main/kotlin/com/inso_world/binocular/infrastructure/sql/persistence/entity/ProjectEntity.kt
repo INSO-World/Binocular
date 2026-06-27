@@ -137,4 +137,5 @@ internal fun Project.toEntity(): ProjectEntity =
         name = this@toEntity.name,
     ).apply {
         description = this@toEntity.description
+        id = this@toEntity.id?.trim()?.toLongOrNull()
     }
