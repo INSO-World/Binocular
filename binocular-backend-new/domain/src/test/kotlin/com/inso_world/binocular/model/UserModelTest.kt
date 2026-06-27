@@ -39,7 +39,7 @@ class UserModelTest {
 
         @OptIn(ExperimentalUuidApi::class)
         assertAll(
-            { assertThat(user.uniqueKey).isEqualTo(User.Key(repository.iid, "test-user <null>")) },
+            { assertThat(user.uniqueKey).isEqualTo(User.Key(repository.iid, "test-user")) },
             { assertThat(user.uniqueKey.repositoryId).isEqualTo(repository.iid) },
             // compare .value here
             // Because inline classes may be represented both as the underlying value and as a wrapper, referential equality is pointless for them and is therefore prohibited.

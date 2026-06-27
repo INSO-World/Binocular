@@ -10,5 +10,4 @@ data class Mention(
     var commit: String? = null,
     var createdAt: LocalDateTime? = null,
     var closes: Boolean? = null,
-    var actor: Account? = null,
 )
