@@ -15,6 +15,7 @@ import IssuesTimeline from './visualizationPlugins/issues/issuesTimeline';
 import Burndown from './visualizationPlugins/issues/burndown';
 import CodeHotspots from './visualizationPlugins/expertise/codeHotspots';
 import SumCommits from './visualizationPlugins/commits/sumCommits';
+import ChangeFrequency from './visualizationPlugins/changeFrequency/index.ts';
 
 import ExampleComplex from './visualizationPlugins/example/exampleComplex';
 import ExampleStats from './visualizationPlugins/example/exampleStats';
@@ -69,6 +70,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   Burndown,
   CodeHotspots,
   SumCommits,
+  ChangeFrequency,
 ];
 
 //Order = priority used when nothing selected by the user.

@@ -568,7 +568,7 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 |---|---|---|
 | U26.1 | `setDragging` updates `dragging` flag | `dragging === true` |
 | U26.2 | `moveAuthorToOther` sets `parent = 0` for the target author | `a.parent === 0` |
-| U26.3 | `moveAuthorToOther` also sets `parent = 0` for children | child `parent === 0` |
+| U26.3 | `moveAuthorToOther` — children of the target keep their parent reference | child `parent === targetId` |
 | U26.4 | `resetAuthor` sets `parent = -1` for the target author | `a.parent === -1` |
 | U26.5 | `setParentAuthor` sets the parent relationship | `a.parent === 1` |
 | U26.6 | `setParentAuthor` ignores self-assignment | parent unchanged |
@@ -581,7 +581,7 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U26.13 | `setAuthorList` dispatched twice with identical data — no duplicate authors | list length remains 2 |
 | U26.14 | `switchAllAuthorSelection` — all-unselected list → all become selected | all `selected === true` |
 | U26.15 | `switchAllAuthorSelection` — all-selected list → all become unselected | all `selected === false` |
-| U26.16 | `moveAuthorToOther` — author AND its children all get `parent = 0` | parent and both children have `parent === 0` |
+| U26.16 | `moveAuthorToOther` — author gets `parent = 0`, children keep their parent reference | target `parent === 0`, children `parent === targetId` |
 
 ---
 
@@ -809,6 +809,11 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U37.6 | `splitSpentRemoved:true, splitTimePerIssue:false` — palette keys contain `"(Spent)"` and `"(Removed)"` |
 | U37.7 | `breakdown:true, splitSpentRemoved:false, splitTimePerIssue:false` — palette keys contain `"(Total)"` |
 | U37.8 | `splitSpentRemoved:true, splitTimePerIssue:true` — palette keys contain `"(Spent)"` and `"(Removed)"` for issue |
+| U37.9 | `breakdown:true + splitSpentRemoved:true` — palette has `(Spent)`/`(Removed)` series, not `(Total)` |
+| U37.10 | `breakdown:true + splitSpentRemoved:true` — all `(Spent)` values ≥ 0, all `(Removed)` values ≤ 0 |
+| U37.11 | `breakdown:true + splitSpentRemoved:true` — cumulative totals match input: 2 h spent → `(Spent) = 2.0`, 30 m removed → `(Removed) = -0.5` |
+| U37.12 | `breakdown:true + splitSpentRemoved:true` — no value drifts to ≈ −1 from stale `−0.001` accumulation over ~1 000 daily buckets |
+| U37.13 | `breakdown:true + splitSpentRemoved:true` — two "Others" group members (2 h + 3 h) sum to `(Spent) others = 5 h`, not last-author-wins |
 
 ---
 
@@ -1213,6 +1218,77 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 
 ---
 
+## U58 — `changeFrequency/utilities`
+**File**: `src/test/unit/plugins/changeFrequency/utilities.test.ts`
+**Source**: `src/plugins/visualizationPlugins/changeFrequency/src/utilities/utilities.ts`
+
+### `colorGradient(additions, deletions)`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U58.1 | Returns neutral gray when there are no changes | `(0, 0)` | `'#a0a0a0'` |
+| U58.2 | Returns the pure-deletion and pure-addition endpoints | `(0, 10)` / `(10, 0)` | `rgb(255, 26, 26)` / `rgb(46, 204, 64)` |
+| U58.3 | Returns the midpoint yellow for a balanced ratio | `(5, 5)` | `rgb(255, 204, 0)` |
+
+### `escapeHtml(value)`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U58.4 | Escapes characters that would break or inject markup | `'<script>… & "x" \'y\''` | entity-encoded `&lt; &amp; &quot; &#39;` |
+| U58.5 | Leaves ordinary paths and signatures untouched | `'src/components/chart.tsx'` | unchanged |
+
+---
+
+## U59 — `changeFrequency/hierarchy`
+**File**: `src/test/unit/plugins/changeFrequency/hierarchy.test.ts`
+**Source**: `src/plugins/visualizationPlugins/changeFrequency/src/utilities/hierarchy.ts`
+
+### `generateFullHierarchy(files)`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U59.1 | Returns the top-level entries (root directory and root files) | tree of `src/a/*` + `README.md` | names `['README.md', 'src']` |
+| U59.2 | Pure: repeated calls with different data produce different trees | two distinct inputs | each yields its own tree |
+| U59.3 | Marks directories and files correctly | mixed tree | `src.isDirectory === true`, `README.md` false |
+| U59.4 | Aggregates directory statistics across descendant files | `src/a/file1` + `src/a/file2` | summed additions/deletions/changes/lineCount; `avg = changes / unique commits` |
+| U59.5 | Merges directory ownership across files | files owned by alice/bob | `src/a` owners include both |
+
+### `getHierarchyForPath(hierarchy, path)`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U59.6 | Finds a nested node by path | `'src/a'` | node `name === 'a'`, 2 children |
+| U59.7 | Returns null for a path that does not exist | `'does/not/exist'` | `null` |
+
+### `getHierarchyLevel(fileData, currentPath)`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U59.8 | Returns the root level when no path is selected | `''` | root entries |
+| U59.9 | Returns the children of the selected directory | `'src'` / `'src/a'` | `['a']` / `['file1.ts', 'file2.ts']` |
+| U59.10 | Returns null when the selected path no longer exists | `'src/removed'` | `null` |
+
+---
+
+## U60 — `changeFrequency/processCommits`
+**File**: `src/test/unit/plugins/changeFrequency/processCommits.test.ts`
+**Source**: `src/plugins/visualizationPlugins/changeFrequency/src/saga/index.ts`
+
+### `processCommits(commits)`
+
+| # | Description | Input | Expected |
+|---|---|---|---|
+| U60.1 | Returns an empty list for empty/undefined input | `[]` / `undefined` | `[]` |
+| U60.2 | Aggregates additions, deletions, changes and commit count per file | 2 commits on one file | summed totals; `averageChangesPerCommit = totalChanges / commitCount` |
+| U60.3 | Merges ownership per author signature, defaults to `"Unknown"` | commits with and without `signature` | per-author owners incl. `Unknown` |
+| U60.4 | Keeps the line count from the most recent commit that reports one | descending-date commits | latest commit's `lineCount` |
+| U60.5 | Tracks the earliest and latest modification dates | out-of-order dates | min `firstModification`, max `lastModification` |
+| U60.6 | One entry per distinct path; skips empty/null commits | files + empty + `null` commit | one entry per path, no crash |
+| U60.7 | Non-significant commits update the line count but not the change metrics | newer `isSignificant: false` commit | `lineCount` from it; `commitCount`/additions from significant only |
+| U60.8 | Excludes files touched only by non-significant commits | file only in `isSignificant: false` commits | file absent from result |
+
+---
+
 ## Unit test file locations
 
 ```
@@ -1235,6 +1311,10 @@ src/test/unit/
 │   └── visualizationOverview/
 │       └── showVisualizationOverview.test.ts                           (U48)
 ├── plugins/
+│   ├── changeFrequency/
+│   │   ├── hierarchy.test.ts                                           (U59)
+│   │   ├── processCommits.test.ts                                      (U60)
+│   │   └── utilities.test.ts                                           (U58)
 │   ├── dataPlugins/
 │   │   └── pouchDB/
 │   │       └── utils.test.ts                                           (U52)

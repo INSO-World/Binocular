@@ -7,12 +7,12 @@
 
 ## Test categories
 
-| Category | File | IDs |
-|---|---|---|
-| Unit Tests | [docs/TEST_PLAN_UNIT.md](docs/TEST_PLAN_UNIT.md) | U1–U56 |
+| Category | File | IDs    |
+|---|---|--------|
+| Unit Tests | [docs/TEST_PLAN_UNIT.md](docs/TEST_PLAN_UNIT.md) | U1–U60 |
 | Component Tests | [docs/TEST_PLAN_COMPONENT.md](docs/TEST_PLAN_COMPONENT.md) | C1–C44 |
 | Integration Tests | [docs/TEST_PLAN_INTEGRATION.md](docs/TEST_PLAN_INTEGRATION.md) | I1–I21 |
-| E2E Tests | [docs/TEST_PLAN_E2E.md](docs/TEST_PLAN_E2E.md) | E1–E4 |
+| E2E Tests | [docs/TEST_PLAN_E2E.md](docs/TEST_PLAN_E2E.md) | E1–E4  |
 
 ---
 
