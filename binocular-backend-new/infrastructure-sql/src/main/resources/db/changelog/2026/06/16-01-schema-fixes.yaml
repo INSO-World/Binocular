@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1781603207
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            tableName: merge_requests
+            columns:
+              - column:
+                  name: project_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseColumnNames: project_id
+            baseTableName: merge_requests
+            constraintName: FK_PROJECT_ID_ON_MERGE_REQUEST
+            referencedColumnNames: id
+            referencedTableName: projects
+            onDelete: CASCADE
