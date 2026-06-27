@@ -11,6 +11,7 @@ internal interface IProjectDao : IDao<Project, String> {
     fun findByName(name: String): Project?
 
     @OptIn(ExperimentalUuidApi::class)
+    @Deprecated("Use findEntityByIid() instead")
     fun findByIid(iid: Project.Id): Project?
 
     @OptIn(ExperimentalUuidApi::class)

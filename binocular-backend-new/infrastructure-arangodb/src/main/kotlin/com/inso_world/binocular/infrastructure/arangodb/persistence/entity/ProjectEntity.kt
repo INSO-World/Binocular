@@ -44,7 +44,7 @@ data class ProjectEntity(
     )
     var accounts: Set<AccountEntity> = emptySet()
 ) {
-    @Ref
+    @Ref(lazy = true)
     var repository: RepositoryEntity? = null
 
     /**
