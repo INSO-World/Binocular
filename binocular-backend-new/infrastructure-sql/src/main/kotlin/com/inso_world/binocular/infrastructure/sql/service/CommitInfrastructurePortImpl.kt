@@ -1,8 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.delegates.logger
-import com.inso_world.binocular.core.exception.BinocularInfrastructureException
-import com.inso_world.binocular.core.persistence.exception.PersistenceException
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
@@ -39,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
 import java.util.stream.Collectors
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Service
 @Validated
@@ -116,7 +113,7 @@ internal class CommitInfrastructurePortImpl
         @MappingSession
         @Transactional(readOnly = true)
         override fun findById(id: String): Commit? {
-            val idL = requireNotNull(id.toLongOrNull(), { "Id must be provided and a Long value" })
+            val idL = requireNotNull(id.trim().toLongOrNull(), { "Id must be provided and a Long value" })
 
             return this.commitDao.findById(idL)?.let {
                 val repository =

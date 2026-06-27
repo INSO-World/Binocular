@@ -73,7 +73,7 @@ internal class BranchInfrastructurePortImpl(
     @MappingSession
     @Transactional(readOnly = true)
     override fun findById(id: String): Branch? {
-        val idL = id.toLongOrNull() ?: throw IllegalArgumentException("id must be convertable to Long")
+        val idL = id.trim().toLongOrNull() ?: throw IllegalArgumentException("id must be convertable to Long")
         val branchEntity = this.branchDao.findById(idL) ?: return null
 
         return repositoryAssembler
