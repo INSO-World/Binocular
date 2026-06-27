@@ -7,7 +7,8 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.Repos
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.DeveloperMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.*
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.DeveloperRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -45,21 +46,6 @@ internal class RepositoryDao
         @Autowired
         @Lazy
         private lateinit var projectDao: ProjectDao
-
-        @Autowired
-        private lateinit var commitRepository: CommitRepository
-
-        @Autowired
-        private lateinit var branchRepository: BranchRepository
-
-        @Autowired
-        private lateinit var remoteRepository: RemoteRepository
-
-        @Autowired
-        private lateinit var fileRepository: FileRepository
-
-        @Autowired
-        private lateinit var revisionRepository: RevisionRepository
 
         override fun findAll(): Iterable<Repository> = this.findAll(PageRequest.of(0, Int.MAX_VALUE))
 
@@ -116,18 +102,6 @@ internal class RepositoryDao
             if (existingProject == null) {
                 this.projectDao.create(project)
             }
-            // Save Commits
-            entity.commits.forEach { commitRepository.save(it) }
-
-            // Save Branches
-            entity.branches.forEach { branchRepository.save(it) }
-
-            // Save Remotes
-            entity.remotes.forEach { remoteRepository.save(it) }
-
-            // Save Files and Revisions
-            entity.files.forEach { fileRepository.save(it) }
-            entity.revisions.forEach { revisionRepository.save(it) }
 
             return savedEntity
         }

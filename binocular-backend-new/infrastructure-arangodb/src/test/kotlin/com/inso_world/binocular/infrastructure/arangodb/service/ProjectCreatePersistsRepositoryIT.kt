@@ -2,7 +2,6 @@ package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
-import com.inso_world.binocular.infrastructure.arangodb.ArangodbInfrastructureDataSetup
 import com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.ProjectRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
@@ -40,9 +39,6 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 internal class ProjectCreatePersistsRepositoryIT : BaseIntegrationTest() {
     @Autowired
-    private lateinit var adbInfrastructureDataSetup: ArangodbInfrastructureDataSetup
-
-    @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
 
     @Autowired
@@ -56,7 +52,8 @@ internal class ProjectCreatePersistsRepositoryIT : BaseIntegrationTest() {
 
     @AfterEach
     fun cleanup() {
-        adbInfrastructureDataSetup.teardown()
+        projectIds.forEach { runCatching { projectRepository.deleteById(it) } }
+        repositoryIds.forEach { runCatching { repositoryRepository.deleteById(it) } }
     }
 
     /**

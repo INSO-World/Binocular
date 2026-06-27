@@ -72,15 +72,15 @@ internal class ProjectDao
 
             // Save Issues
             entity.issues.forEach { issue ->
-                issueDao.createEntity(issue)
+                issueDao.create(issue)
             }
 
             // Save Merge Requests
             entity.mergeRequests.forEach { mr ->
-                mergeRequestDao.createEntity(mr)
+                mergeRequestDao.create(mr)
             }
 
-            savedEntity = savedEntity.repository?.let {
+            savedEntity = entity.repository?.let {
                 val savedRepo = repositoryDao.create(it)
                 savedEntity.repository = savedRepo
                 // update so that @Ref gets updated

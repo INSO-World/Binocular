@@ -113,8 +113,14 @@ internal class BranchDao(
             }
         val content =
             entities.map { entity ->
-                repositoryAssembler.toDomain(entity.repository)
-                commitMapper.toDomain(entity.head)
+                repositoryAssembler.toDomain(
+                    entity.repository
+                        ?: throw IllegalStateException("BranchEntity.repository not loaded from ArangoDB — @Ref field was null."),
+                )
+                commitMapper.toDomain(
+                    entity.head
+                        ?: throw IllegalStateException("BranchEntity.head not loaded from ArangoDB — @Ref field was null."),
+                )
                 branchMapper.toDomain(entity)
             }
         val total = repository.count()

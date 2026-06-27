@@ -88,12 +88,16 @@ internal class IssueMapper
         /**
          * Converts an IssueEntity to Issue domain object.
          *
-         * Converts timestamp fields from Date to LocalDateTime. Eagerly maps mentions
-         * and creates lazy-loaded proxies for accounts, commits, milestones, notes, and users
-         * to avoid loading unnecessary data.
+         * Converts timestamp fields from Date to LocalDateTime. Eagerly maps mentions.
+         * Relationships (milestones, notes, commits, accounts) are intentionally left empty:
+         * Spring Data ArangoDB's auto-generated AQL for @Relations graph traversal does not
+         * backtick-quote hyphenated collection names (e.g. `issues-milestones`), producing
+         * a syntax error at runtime. The GraphQL layer resolves these relationships via
+         * IssueResolver using separate, hand-written AQL queries instead.
+         * Users are set as a true lazy list — only evaluated if domain.users is accessed directly.
          *
          * @param entity The IssueEntity to convert
-         * @return The Issue domain object with eager mentions and lazy relationships
+         * @return The Issue domain object with eager mentions; relationship collections are empty
          */
         @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: IssueEntity): Issue {
@@ -132,41 +136,15 @@ internal class IssueMapper
                             ?: error("Parent Project not found in entity or context for Issue ${entity.iid}"),
                 )
 
-            domain.milestones.addAll(
-                proxyFactory.createLazyList {
-                    (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                        milestoneMapper.toDomain(milestoneEntity)
-                    }
-                }
-            )
-
-            domain.notes.addAll(
-                proxyFactory.createLazyList {
-                    (entity.notes ?: emptyList()).map { noteEntity ->
-                        noteMapper.toDomain(noteEntity)
-                    }
-                }
-            )
-
+            // users is set as a true lazy list — not evaluated until domain.users is accessed.
+            // If accessed, it will trigger @Relations AQL on `issues-users`; the GraphQL layer
+            // resolves users via IssueResolver.users() instead of this field.
             domain.users =
                 proxyFactory.createLazyList {
                     (entity.users ?: emptyList()).map { userEntity ->
                         userMapper.toDomain(userEntity)
                     }
                 }
-
-            domain.commits.addAll(
-                proxyFactory.createLazyList {
-                    (entity.commits ?: emptyList()).map { commitEntity ->
-                        commitMapper.toDomain(commitEntity)
-                    }
-                }
-            )
-
-            // Add accounts separately to the proxy-backed set if needed
-            entity.accounts.forEach { accountEntity ->
-                domain.accounts.add(accountMapper.toDomain(accountEntity))
-            }
 
             return domain
         }

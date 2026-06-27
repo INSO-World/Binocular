@@ -79,7 +79,37 @@ internal class AccountMapper
             // Fast-path: Check if already mapped
             ctx.findDomain<Account, AccountEntity>(entity)?.let { return it }
 
-            throw IllegalStateException("Account mapping requires existing domain Account.")
+            val domain =
+                Account(
+                    gid = entity.gid,
+                    platform = entity.platform.let { toPlatform(it) },
+                    login = entity.login,
+//                    issues =
+//                        proxyFactory.createLazyList {
+//                            (entity.issues ?: emptyList()).map { issueEntity ->
+//                                issueMapper.toDomain(issueEntity)
+//                            }
+//                        },
+//                    mergeRequests =
+//                        proxyFactory.createLazyList {
+//                            (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
+//                                mergeRequestMapper.toDomain(mergeRequestEntity)
+//                            }
+//                        },
+//                    notes =
+//                        proxyFactory.createLazyList {
+//                            (entity.notes ?: emptyList()).map { noteEntity ->
+//                                noteMapper.toDomain(noteEntity)
+//                            }
+//                        },
+                ).apply {
+                    id = entity.id
+                    name = entity.name
+                    avatarUrl = entity.avatarUrl
+                    url = entity.url
+                }
+
+            return domain
         }
 
         private fun toPlatformEntity(platform: Platform): PlatformEntity =
@@ -88,12 +118,9 @@ internal class AccountMapper
                 Platform.GitLab -> PlatformEntity.GitLab
             }
 
-        private fun toPlatform(platformEntity: PlatformEntity): Platform? {
-            if (platformEntity == PlatformEntity.GitHub) {
-                return Platform.GitHub
-            } else if (platformEntity == PlatformEntity.GitLab) {
-                return Platform.GitLab
+        private fun toPlatform(platformEntity: PlatformEntity): Platform =
+            when (platformEntity) {
+                PlatformEntity.GitHub -> Platform.GitHub
+                PlatformEntity.GitLab -> Platform.GitLab
             }
-            return null
-        }
     }

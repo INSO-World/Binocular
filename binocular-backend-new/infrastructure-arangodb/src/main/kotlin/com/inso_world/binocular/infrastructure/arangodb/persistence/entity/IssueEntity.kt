@@ -31,7 +31,7 @@ data class IssueEntity(
     var state: String? = null,
     var webUrl: String? = null,
     var mentions: List<MentionEntity> = emptyList(),
-    @Ref
+    @Ref(lazy = true)
     var project: ProjectEntity? = null,
     @Relations(
         edges = [IssueAccountConnectionEntity::class],

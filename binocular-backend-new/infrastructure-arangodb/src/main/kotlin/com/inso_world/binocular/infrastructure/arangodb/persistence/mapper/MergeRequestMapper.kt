@@ -3,7 +3,6 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
-import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MergeRequestEntity
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Project
@@ -16,25 +15,20 @@ import kotlin.uuid.ExperimentalUuidApi
  * Mapper for MergeRequest domain objects.
  *
  * Converts between MergeRequest domain objects and MergeRequestEntity persistence entities for ArangoDB.
- * This mapper handles the conversion of merge request metadata, labels, mentions, and uses lazy loading
- * for related accounts, milestones, and notes.
+ * Relationship collections (accounts, milestones, notes) are always empty after toDomain —
+ * Spring Data ArangoDB's @Relations AQL generation does not backtick-quote hyphenated collection
+ * names, causing syntax errors. Resolvers load relationships via hand-written AQL instead.
  *
  * ## Design Principles
  * - **Single Responsibility**: Only converts MergeRequest structure
- * - **Lazy Loading**: Uses RelationshipProxyFactory for lazy-loaded relationships
  * - **Eager Mentions**: Eagerly maps mentions as they are typically accessed with the merge request
  * - **Context Management**: Uses MappingContext to prevent duplicate mappings
- *
- * ## Usage
- * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
- * mentions but uses lazy loading for accounts, milestones, and notes to optimize performance.
  */
 @OptIn(ExperimentalUuidApi::class)
 @Component
 internal class MergeRequestMapper
     @Autowired
     constructor(
-        private val proxyFactory: RelationshipProxyFactory,
         @Lazy private val milestoneMapper: MilestoneMapper,
         @Lazy private val noteMapper: NoteMapper,
         @Lazy private val accountMapper: AccountMapper,
@@ -52,7 +46,7 @@ internal class MergeRequestMapper
          *
          * Eagerly maps all mentions as they are typically accessed together with the merge request.
          * Relationships to accounts, milestones, and notes are not persisted in the entity - they
-         * are only restored during toDomain through lazy loading.
+         * relationship fields on MergeRequestEntity are not loaded in toDomain.
          *
          * @param domain The MergeRequest domain object to convert
          * @return The MergeRequestEntity with merge request metadata, labels, and mentions
@@ -78,60 +72,36 @@ internal class MergeRequestMapper
         /**
          * Converts a MergeRequestEntity to MergeRequest domain object.
          *
-         * Eagerly maps mentions and creates lazy-loaded proxies for accounts, milestones, and notes
-         * to avoid loading unnecessary data.
+         * Eagerly maps mentions. Relationships (milestones, notes, accounts) are intentionally
+         * left empty: Spring Data ArangoDB's auto-generated AQL for @Relations graph traversal
+         * does not backtick-quote hyphenated collection names (e.g. `mergeRequests-milestones`),
+         * producing a syntax error at runtime. The GraphQL layer resolves these relationships via
+         * MergeRequestResolver using separate, hand-written AQL queries instead.
          *
          * @param entity The MergeRequestEntity to convert
-         * @return The MergeRequest domain object with eager mentions and lazy relationships
+         * @return The MergeRequest domain object with eager mentions; relationship collections are empty
          */
         override fun toDomain(entity: MergeRequestEntity): MergeRequest {
             // Fast-path: Check if already mapped
             ctx.findDomain<MergeRequest, MergeRequestEntity>(entity)?.let { return it }
 
-            val domain =
-                MergeRequest(
-                    project =
-                        entity.project?.let { Project.Id(it.iid!!) }
-                            ?: ctx.findDomain<Project, MergeRequestEntity>(entity)?.iid
-                            ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
-                    id = entity.id,
-                    platformIid = entity.iid,
-                    title = entity.title,
-                    description = entity.description,
-                    createdAt = entity.createdAt,
-                    closedAt = entity.closedAt,
-                    updatedAt = entity.updatedAt,
-                    labels = entity.labels,
-                    state = entity.state,
-                    webUrl = entity.webUrl,
-                    mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-                )
-
-            domain.milestones.addAll(
-                proxyFactory.createLazyList {
-                    (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                        milestoneMapper.toDomain(milestoneEntity)
-                    }
-                }
+            return MergeRequest(
+                project =
+                    entity.project?.let { Project.Id(it.iid!!) }
+                        ?: ctx.findDomain<Project, MergeRequestEntity>(entity)?.iid
+                        ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
+                id = entity.id,
+                platformIid = entity.iid,
+                title = entity.title,
+                description = entity.description,
+                createdAt = entity.createdAt,
+                closedAt = entity.closedAt,
+                updatedAt = entity.updatedAt,
+                labels = entity.labels,
+                state = entity.state,
+                webUrl = entity.webUrl,
+                mentions = entity.mentions.map { mentionMapper.toDomain(it) },
             )
-
-            domain.notes.addAll(
-                proxyFactory.createLazyList {
-                    (entity.notes ?: emptyList()).map { noteEntity ->
-                        noteMapper.toDomain(noteEntity)
-                    }
-                }
-            )
-
-            domain.accounts.addAll(
-                proxyFactory.createLazyList {
-                    (entity.accounts ?: emptyList()).map { accountEntity ->
-                        accountMapper.toDomain(accountEntity)
-                    }
-                }
-            )
-
-            return domain
         }
 
         /**
