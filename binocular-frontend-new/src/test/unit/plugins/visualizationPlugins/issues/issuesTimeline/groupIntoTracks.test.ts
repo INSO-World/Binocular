@@ -58,4 +58,19 @@ describe('groupIntoTracks', () => {
     const tracks = groupIntoTracks([i1, i2], maxDate);
     expect(tracks).toHaveLength(2);
   });
+
+  it('U22.6 issues with the same createdAt are treated as overlapping', () => {
+    const i1 = makeIssue('1', '2024-01-01', '2024-03-01');
+    const i2 = makeIssue('2', '2024-01-01', '2024-02-01');
+    const tracks = groupIntoTracks([i1, i2], maxDate);
+    expect(tracks).toHaveLength(2);
+  });
+
+  it('U22.7 issue that contains another is treated as overlapping', () => {
+    // i1 is short; i2 starts before i1 and ends after — containment
+    const i1 = makeIssue('1', '2024-02-01', '2024-03-01');
+    const i2 = makeIssue('2', '2024-01-01', '2024-04-01');
+    const tracks = groupIntoTracks([i1, i2], maxDate);
+    expect(tracks).toHaveLength(2);
+  });
 });

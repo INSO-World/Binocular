@@ -1,64 +1,20 @@
 import type { DataPluginCommitFile, DataPluginCommitsFiles } from '../../../../interfaces/dataPluginInterfaces/dataPluginCommitsFiles.ts';
+import commitData from '../data/commits.json.zip';
+import fileData from '../data/files.json.zip';
+import { loadCommitsFiles, groupBy } from '../lazyData.ts';
+
+const filesById = new Map((fileData as { _id: string }[]).map((f) => [f._id, f]));
+const commitBySha = new Map((commitData as { sha: string; _id: string }[]).map((c) => [c.sha, c._id]));
 
 export default class CommitsFiles implements DataPluginCommitsFiles {
-  getAll(sha: string): Promise<DataPluginCommitFile[]> {
-    switch (sha) {
-      case '1':
-        return Promise.resolve([
-          // {
-          //   file: { path: 'Frontend/test/2/file1.ts' },
-          //   stats: { additions: 32, deletions: 0 },
-          // },
-          // {
-          //   file: { path: 'Frontend/test/1/file2.ts' },
-          //   stats: { additions: 0, deletions: 32 },
-          // },
-          {
-            file: { path: 'Backend/t1/file2.java' },
-            stats: { additions: 0, deletions: 8 },
-          },
-          {
-            file: { path: 'Backend/t1/file3.java' },
-            stats: { additions: 4, deletions: 4 },
-          },
-          {
-            file: { path: 'Backend/t1/a/file2.java' },
-            stats: { additions: 0, deletions: 8 },
-          },
-          {
-            file: { path: 'Backend/t1/b/file3.java' },
-            stats: { additions: 4, deletions: 4 },
-          },
-          // {
-          //   file: { path: 'DevOps/file.java' },
-          //   stats: { additions: 12, deletions: 4 },
-          // },
-        ]);
-      case '2':
-        return Promise.resolve([
-          {
-            file: { path: 'folder/src/ui/file1' },
-            stats: { additions: 64, deletions: 8 },
-          },
-          {
-            file: { path: 'folder/src/file1' },
-            stats: { additions: 0, deletions: 8 },
-          },
-          {
-            file: { path: 'Backend/file3.java' },
-            stats: { additions: 12, deletions: 50 },
-          },
-          {
-            file: { path: 'file' },
-            stats: { additions: 12, deletions: 4 },
-          },
-          {
-            file: { path: 'package.json' },
-            stats: { additions: 120, deletions: 4 },
-          },
-        ]);
-      default:
-        return Promise.resolve([]);
-    }
+  public async getAll(sha: string): Promise<DataPluginCommitFile[]> {
+    const commitId = commitBySha.get(sha);
+    if (!commitId) return [];
+    const cf = await loadCommitsFiles();
+    const cfByCommit = groupBy(cf, (e) => e._from);
+    return (cfByCommit.get(commitId) ?? []).map((e) => ({
+      file: { path: filesById.get(e._to)?.path ?? '' },
+      stats: e.stats,
+    }));
   }
 }

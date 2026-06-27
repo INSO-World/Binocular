@@ -4,12 +4,9 @@ export const aggregateTimeTrackingData = (timeTrackingData: TimeTrackingData[]) 
   const aggregatedTimeTrackingData = new Map<string, number>();
   let totalTime = 0;
 
-  for (const {
-    author: { name },
-    timeSpent,
-  } of timeTrackingData) {
-    aggregatedTimeTrackingData.set(name, (aggregatedTimeTrackingData.get(name) ?? 0) + timeSpent);
-
+  for (const { author, timeSpent } of timeTrackingData) {
+    const key = author.user?.gitSignature ?? author.name;
+    aggregatedTimeTrackingData.set(key, (aggregatedTimeTrackingData.get(key) ?? 0) + timeSpent);
     totalTime += timeSpent;
   }
 

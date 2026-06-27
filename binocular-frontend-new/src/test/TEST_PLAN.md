@@ -1,18 +1,18 @@
 # Frontend Test Plan
 
-**Framework**: Vitest + jsdom
-**Test ID convention**: `U{file_index}.{test_index}` for unit tests, `C{file_index}.{test_index}` for component tests, `I{file_index}.{test_index}` for integration tests.
+**Frameworks**: Vitest + jsdom (unit/component/integration), Playwright + Chromium (E2E)
+**Test ID convention**: `U{file_index}.{test_index}` for unit tests, `C{file_index}.{test_index}` for component tests, `I{file_index}.{test_index}` for integration tests, `E{file_index}.{test_index}` for E2E tests.
 
 ---
 
 ## Test categories
 
-| Category | File | IDs    |
-|---|---|--------|
-| Unit Tests | [docs/TEST_PLAN_UNIT.md](docs/TEST_PLAN_UNIT.md) | U1–U60 |
+| Category | File | IDs |
+|---|---|---|
+| Unit Tests | [docs/TEST_PLAN_UNIT.md](docs/TEST_PLAN_UNIT.md) | U1–U56 |
 | Component Tests | [docs/TEST_PLAN_COMPONENT.md](docs/TEST_PLAN_COMPONENT.md) | C1–C44 |
 | Integration Tests | [docs/TEST_PLAN_INTEGRATION.md](docs/TEST_PLAN_INTEGRATION.md) | I1–I21 |
-| E2E Tests | [docs/TEST_PLAN_E2E.md](docs/TEST_PLAN_E2E.md) | E1–E4  |
+| E2E Tests | [docs/TEST_PLAN_E2E.md](docs/TEST_PLAN_E2E.md) | E1–E17 |
 
 ---
 

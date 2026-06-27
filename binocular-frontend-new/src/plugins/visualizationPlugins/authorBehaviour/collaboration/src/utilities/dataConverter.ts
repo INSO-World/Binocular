@@ -228,6 +228,7 @@ function buildParticipantMap<T extends DataPluginIssue | DataPluginMergeRequest>
   const map = new Map<string, { participants: Set<string>; item: T }>();
   for (const account of accounts) {
     for (const item of getItems(account)) {
+      if (!item) continue;
       const entry = map.get(item.id);
       if (entry) {
         entry.participants.add(account.id);

@@ -362,7 +362,7 @@ const DashboardItem = memo(function DashboardItem(props: {
               props.setDragResizeItem(props.item.id, DragResizeMode.drag);
             }}>
             <div className={dashboardItemStyles.dashboardItemInteractionBarLeft}>
-              <span>{props.item.pluginName}</span>
+              <span>{props.item.pluginName}</span>{' '}
               {selectedDataPlugin && (
                 <span>
                   ({selectedDataPlugin.name} #{selectedDataPlugin.id})
