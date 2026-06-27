@@ -28,14 +28,14 @@ import java.util.function.BiPredicate
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-
 @OptIn(ExperimentalUuidApi::class)
 internal class ProjectMapperTest : BaseMapperTest() {
-
     companion object {
-        val IGNORED_FIELDS = listOf(
-            "id", "issues"
-        )
+        val IGNORED_FIELDS =
+            listOf(
+                "id",
+                "milestones"
+            )
 
         /**
          * Configures recursive comparison for Project domain-entity equality checks.
@@ -56,7 +56,8 @@ internal class ProjectMapperTest : BaseMapperTest() {
          * @return Configured RecursiveComparisonAssert ready for `.isEqualTo(entity)`
          */
         fun org.assertj.core.api.ObjectAssert<Project>.usingRecursiveComparisonForProject() =
-            this.usingRecursiveComparison()
+            this
+                .usingRecursiveComparison()
                 .ignoringCollectionOrder()
                 .withEqualsForFields(
                     BiPredicate<Any?, Any?> { actual, expected ->
@@ -68,9 +69,7 @@ internal class ProjectMapperTest : BaseMapperTest() {
                         }
                     },
                     "iid"
-                )
-                .ignoringFields(*IGNORED_FIELDS.toTypedArray())
-
+                ).ignoringFields(*IGNORED_FIELDS.toTypedArray())
     }
 
     @BeforeEach
@@ -87,9 +86,10 @@ internal class ProjectMapperTest : BaseMapperTest() {
         fun setup() {
             mockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntityKt")
             mockkStatic("com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntityKt")
-            mockTestDataProvider = MockTestDataProvider(
-                Repository(localPath = "./", project = TestData.Domain.testProject())
-            )
+            mockTestDataProvider =
+                MockTestDataProvider(
+                    Repository(localPath = "./", project = TestData.Domain.testProject())
+                )
         }
 
         @AfterEach
@@ -194,9 +194,10 @@ internal class ProjectMapperTest : BaseMapperTest() {
 
         @Test
         fun `map project with repository`() {
-            val domain = TestData.Domain.testProject(id = "1").apply {
-                repo = Repository(localPath = "./", project = this)
-            }
+            val domain =
+                TestData.Domain.testProject(id = "1").apply {
+                    repo = Repository(localPath = "./", project = this)
+                }
 
             val entity = projectMapper.toEntity(domain)
 
@@ -206,13 +207,15 @@ internal class ProjectMapperTest : BaseMapperTest() {
 
         @Test
         fun `map project with repository, check equality`() {
-            val domain = TestData.Domain.testProject(id = "1").apply {
-                repo = Repository(localPath = "./", project = this)
-            }
+            val domain =
+                TestData.Domain.testProject(id = "1").apply {
+                    repo = Repository(localPath = "./", project = this)
+                }
 
             val entity = projectMapper.toEntity(domain)
 
-            assertThat(entity).usingRecursiveComparison()
+            assertThat(entity)
+                .usingRecursiveComparison()
                 .ignoringCollectionOrder()
                 .ignoringFieldsMatchingRegexes(".*id")
                 .ignoringActualNullFields()
@@ -221,9 +224,10 @@ internal class ProjectMapperTest : BaseMapperTest() {
 
         @Test
         fun `map project with repository, check iid is equal`() {
-            val domain = TestData.Domain.testProject(id = "1").apply {
-                repo = Repository(localPath = "./", project = this)
-            }
+            val domain =
+                TestData.Domain.testProject(id = "1").apply {
+                    repo = Repository(localPath = "./", project = this)
+                }
 
             val entity = projectMapper.toEntity(domain)
 
@@ -235,9 +239,10 @@ internal class ProjectMapperTest : BaseMapperTest() {
 
         @Test
         fun `map project with repository, verify calls`() {
-            val domain = TestData.Domain.testProject(id = "1").apply {
-                repo = Repository(localPath = "./", project = this)
-            }
+            val domain =
+                TestData.Domain.testProject(id = "1").apply {
+                    repo = Repository(localPath = "./", project = this)
+                }
 
             val entity = projectMapper.toEntity(domain)
 
@@ -257,9 +262,10 @@ internal class ProjectMapperTest : BaseMapperTest() {
 
         @BeforeEach
         fun setup() {
-            mockTestDataProvider = MockTestDataProvider(
-                Repository(localPath = "./", project = TestData.Domain.testProject())
-            )
+            mockTestDataProvider =
+                MockTestDataProvider(
+                    Repository(localPath = "./", project = TestData.Domain.testProject())
+                )
         }
 
         @Test
@@ -537,5 +543,4 @@ internal class ProjectMapperTest : BaseMapperTest() {
             )
         }
     }
-
 }
