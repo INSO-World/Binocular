@@ -188,7 +188,9 @@ internal class RepositoryInfrastructurePortImpl :
      * 1. Resolve the parent `ProjectEntity` by `value.project.iid`. If absent, persist it first
      *    (upsert) so the repository can reference a valid `fk_project_id`. Either way,
      *    `value.project.id` is then refreshed from the resolved entity (a no-op when it was
-     *    already correct).
+     *    already correct). The upserted project entity's stale surrogate id is reset to `null`
+     *    before persist so that `persist()` treats it as a genuinely new row (not a detached
+     *    entity).
      * 2. Assemble the full `RepositoryEntity` graph via [RepositoryAssembler.toEntity].
      * 3. If the project row was missing in step 1, the previously persisted `RepositoryEntity` row
      *    (owned by that project via `cascade = [CascadeType.ALL]`) was cascade-deleted along with
@@ -230,7 +232,7 @@ internal class RepositoryInfrastructurePortImpl :
             existingProject
                 ?: run {
                     logger.debug("Project {} not found on update — persisting it (upsert)", value.project.uniqueKey)
-                    projectDao.create(projectMapper.toEntity(value.project))
+                    projectDao.create(projectMapper.toEntity(value.project).apply { id = null })
                 }
         logger.debug("Project Entity found")
         ctx.remember(value.project, entity)
