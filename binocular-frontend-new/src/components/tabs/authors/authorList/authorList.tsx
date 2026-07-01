@@ -119,9 +119,12 @@ function AuthorList(props: { orientation?: string; showSettingsButton?: boolean 
               .getAll()
               .then((users: DataPluginUser[]) => {
                 const colors = distinctColors({ count: users.length, lightMin: 50 });
+                const pluginId = dP.id !== undefined ? dP.id : -1;
+                const storedLength = globalStore.getState().authors.authorLists[pluginId]?.length ?? 0;
+                const wasReset = storedLength === 0;
                 dispatch(
                   setAuthorList({
-                    dataPluginId: dP.id !== undefined ? dP.id : -1,
+                    dataPluginId: pluginId,
                     authors: users.map((user, i) => {
                       if (user.account !== null && user.account !== undefined) {
                         const account = accounts.find((acc) => acc.id === user.account?.id);
@@ -162,6 +165,18 @@ function AuthorList(props: { orientation?: string; showSettingsButton?: boolean 
                     }),
                   }),
                 );
+                if (wasReset && dataPlugin.initialMerges) {
+                  void dataPlugin.initialMerges().then((merges) => {
+                    const authorList: AuthorType[] = globalStore.getState().authors.authorLists[pluginId] ?? [];
+                    for (const { child, parent } of merges) {
+                      const childId = authorList.find((a) => a.user.gitSignature === child)?.id;
+                      const parentId = authorList.find((a) => a.user.gitSignature === parent)?.id;
+                      if (childId && parentId) {
+                        dispatch(setParentAuthor({ author: childId, parent: parentId }));
+                      }
+                    }
+                  });
+                }
               })
               .catch((e) => console.log('Error loading Users from selected data source! ' + e));
           }

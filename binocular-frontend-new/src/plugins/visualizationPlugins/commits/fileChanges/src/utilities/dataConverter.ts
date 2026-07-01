@@ -77,6 +77,7 @@ export function convertCommitDataToChangesChartData(
       for (; i < sortedCommits.length && Date.parse(sortedCommits[i].date) < nextTimestamp; i++) {
         //Iterate through commits that fall into this time bucket
         let additions = 0;
+        if (sortedCommits[i].files === undefined) continue;
         for (const f of sortedCommits[i].files.data) {
           for (const h of f.hunks) {
             if (h.newLines) {

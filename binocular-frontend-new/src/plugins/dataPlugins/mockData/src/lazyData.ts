@@ -23,8 +23,11 @@ interface CfuEdge {
 }
 
 // Cached on first load — these files are large so we only decompress once.
+// The promise variable prevents a second fetch while the first is still in flight.
 let cfCache: CfEdge[] | null = null;
 let cfuCache: CfuEdge[] | null = null;
+let cfPromise: Promise<CfEdge[]> | null = null;
+let cfuPromise: Promise<CfuEdge[]> | null = null;
 
 async function fetchZip<T>(url: string): Promise<T> {
   const response = await fetch(url);
@@ -36,12 +39,16 @@ async function fetchZip<T>(url: string): Promise<T> {
 }
 
 export async function loadCommitsFiles(): Promise<CfEdge[]> {
-  if (!cfCache) cfCache = await fetchZip<CfEdge[]>(commitsFilesUrl);
+  if (cfCache) return cfCache;
+  if (!cfPromise) cfPromise = fetchZip<CfEdge[]>(commitsFilesUrl);
+  cfCache = await cfPromise;
   return cfCache;
 }
 
 export async function loadCommitsFilesUsers(): Promise<CfuEdge[]> {
-  if (!cfuCache) cfuCache = await fetchZip<CfuEdge[]>(commitsFilesUsersUrl);
+  if (cfuCache) return cfuCache;
+  if (!cfuPromise) cfuPromise = fetchZip<CfuEdge[]>(commitsFilesUsersUrl);
+  cfuCache = await cfuPromise;
   return cfuCache;
 }
 

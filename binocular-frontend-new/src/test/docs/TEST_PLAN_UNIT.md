@@ -498,6 +498,8 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U22.3 | Two non-overlapping sequential issues stay in one track | `tracks.length === 1, tracks[0].length === 2` |
 | U22.4 | Two overlapping issues split into two tracks | `tracks.length === 2` |
 | U22.5 | Issue without `closedAt` uses `maxDate` for overlap check | `tracks.length === 2` |
+| U22.6 | Issues with the same `createdAt` are treated as overlapping | `tracks.length === 2` |
+| U22.7 | Issue that contains another (containment) is treated as overlapping | `tracks.length === 2` |
 
 ---
 

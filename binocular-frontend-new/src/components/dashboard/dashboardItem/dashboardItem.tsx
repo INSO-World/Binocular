@@ -44,6 +44,7 @@ const DashboardItem = memo(function DashboardItem(props: {
 
   const authorLists = useSelector((state: RootState) => state.authors.authorLists);
   const fileLists = useSelector((state: RootState) => state.files.fileLists);
+  const fileListPluginNames = useSelector((state: RootState) => state.files.fileListPluginNames);
   const filesInitialized = useSelector((state: RootState) => state.files.initialized);
   const sprintList = useSelector((state: RootState) => state.sprints.sprintList);
   const availableDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
@@ -124,15 +125,25 @@ const DashboardItem = memo(function DashboardItem(props: {
   useEffect(() => {
     if (!filesInitialized) return;
     if (props.item.dataPluginId !== undefined) {
-      if (fileLists[props.item.dataPluginId] == undefined) {
-        const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
-        refreshFileList(dataPlugin, dispatch);
+      const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
+      if (dataPlugin) {
+        const cachedName = fileListPluginNames[props.item.dataPluginId];
+        const slotEmpty = fileLists[props.item.dataPluginId] == undefined;
+        // cachedName === undefined means OPFS was written before plugin-name tracking was added:
+        // treat as stale so we refresh once and then record the name going forward.
+        const nameUnknownOrChanged = cachedName === undefined || cachedName !== dataPlugin.name;
+        if (slotEmpty || nameUnknownOrChanged) refreshFileList(dataPlugin, dispatch);
       }
+    }
+  }, [availableDataPlugins, filesInitialized, props.item.dataPluginId]);
+
+  useEffect(() => {
+    if (props.item.dataPluginId !== undefined) {
       if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)) {
         setFiles(fileLists[props.item.dataPluginId]);
       }
     }
-  }, [availableDataPlugins, fileLists, filesInitialized, props.item.dataPluginId]);
+  }, [fileLists, props.item.dataPluginId]);
   const [settings, setSettingsState] = useState(props.item.settings ?? plugin.defaultSettings);
 
   // Persist settings changes to the dashboard store (and localStorage)
@@ -265,7 +276,8 @@ const DashboardItem = memo(function DashboardItem(props: {
                             key={plugin.name}
                             settings={settings}
                             setSettings={setSettings}
-                            store={store}></plugin.settingsComponent>
+                            store={store}
+                            dataPluginId={props.item.dataPluginId}></plugin.settingsComponent>
                         }
                         onClickDelete={() => props.deleteItem(props.item.id)}
                         onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}
@@ -500,7 +512,8 @@ const DashboardItem = memo(function DashboardItem(props: {
                     key={plugin.name}
                     settings={settings}
                     setSettings={setSettings}
-                    store={store}></plugin.settingsComponent>
+                    store={store}
+                    dataPluginId={props.item.dataPluginId}></plugin.settingsComponent>
                 }
                 onClickDelete={() => props.deleteItem(props.item.id)}
                 onClickRefresh={() => store?.dispatch({ type: 'REFRESH' })}

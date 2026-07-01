@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
+import { readFileSync } from 'node:fs';
+import JSZip from 'jszip';
 
 /**
  * Stubs all `src/db_export/*.json` imports during testing.
@@ -31,13 +33,31 @@ function dbExportStubPlugin(): Plugin {
   };
 }
 
+function zipDataPlugin(): Plugin {
+  return {
+    name: 'zip-data',
+    enforce: 'pre',
+    async load(id) {
+      // Skip ?url imports — Vite resolves those to asset URLs natively
+      if (!id.endsWith('.zip') || id.includes('?')) return;
+      const buffer = readFileSync(id);
+      const zip = await JSZip.loadAsync(buffer);
+      const jsonFileName = Object.keys(zip.files).find((n) => n.endsWith('.json'));
+      if (!jsonFileName) return;
+      const json = await zip.file(jsonFileName)!.async('string');
+      return `export default ${json};`;
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), dbExportStubPlugin()],
+  plugins: [react(), dbExportStubPlugin(), zipDataPlugin()],
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
-    exclude: ['src/test/e2e/**', '**/node_modules/**'],
+    // e2e/ and scripts/ are Playwright tests — importing @playwright/test under Vitest throws
+    exclude: ['src/test/e2e/**', 'scripts/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:offline": "PRE_CONFIGURE_DB=pouchdb NODE_OPTIONS=--max-old-space-size=32768 vite build",
+    "build:offline": "cross-env PRE_CONFIGURE_DB=pouchdb NODE_OPTIONS=--max-old-space-size=32768 vite build",
     "lint": "eslint binocular --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "check": "eslint .",
@@ -22,14 +22,14 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "screenshots": "playwright test --project=screenshots --reporter=list",
-    "screenshots:setup": "tsx scripts/capture-screenshot-state.ts"
+    "screenshots": "cross-env SCREENSHOTS=1 playwright test --project=screenshots --reporter=list"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@reduxjs/toolkit": "^2.8.2",
+    "@rollup/rollup-win32-x64-msvc": "^4.62.2",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/d3": "^7.4.3",
     "@types/react-redux": "^7.1.33",
@@ -80,6 +80,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^10.1.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",

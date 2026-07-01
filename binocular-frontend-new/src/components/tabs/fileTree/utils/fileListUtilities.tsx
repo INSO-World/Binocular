@@ -49,6 +49,7 @@ export function refreshFileList(dP: DatabaseSettingsDataPluginType, dispatch: Ap
               dispatch(
                 setFileList({
                   dataPluginId: dP.id !== undefined ? dP.id : -1,
+                  pluginName: dP.name,
                   fileTree: {
                     name: '/',
                     type: FileTreeElementTypeType.Folder,

@@ -43,4 +43,5 @@ export interface DataPlugin {
   ) => Promise<MetadataType | undefined>;
   clearRemains: () => Promise<void>;
   export?: () => Promise<{ [id: string]: JSONObject[] }>;
+  initialMerges?: () => Promise<Array<{ child: string; parent: string }>>;
 }

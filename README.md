@@ -1,10 +1,10 @@
 ![Binocular](docs/assets/Logo-Text.png)
 
-[![Build Offline-Binocular](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-offline.yml)
-[![Test ESLint](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/eslint.yml)
-[![Docker Image CI](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-docker.yml/badge.svg)](https://github.com/INSO-TUWien/Binocular/actions/workflows/build-docker.yml)
+[![Build Offline-Binocular](https://github.com/INSO-World/Binocular/actions/workflows/build-offline.yml/badge.svg)](https://github.com/INSO-World/Binocular/actions/workflows/build-offline.yml)
+[![Test ESLint](https://github.com/INSO-World/Binocular/actions/workflows/eslint.yml/badge.svg)](https://github.com/INSO-World/Binocular/actions/workflows/eslint.yml)
+[![Docker Image CI](https://github.com/INSO-World/Binocular/actions/workflows/build-docker.yml/badge.svg)](https://github.com/INSO-World/Binocular/actions/workflows/build-docker.yml)
 
-![Default Dashboard](docs/assets/screenshots/Dashboard_Parameters%20and%20Authors.png))
+![Default Dashboard](docs/assets/screenshots/DashboardParametersAuthors.png)
 
 Binocular is a tool for visualizing data from various software-engineering
 tools. It works as a command-line tool run from a git-repository. When
@@ -57,7 +57,7 @@ Binocular is not yet published on the npm registry. To install it, you
 should clone this repository and then link it:
 
 ``` shell
-$ git clone https://github.com/INSO-TUWien/Binocular.git
+$ git clone https://github.com/INSO-World/Binocular.git
 $ cd Binocular
 /Binocular $ npm install # <- this will install the dependencies Binocular needs
 /Binocular $ npm link    # <- this will make the `Binocular` executable available in your $PATH

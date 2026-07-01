@@ -97,7 +97,10 @@ export function convertToChartData(
               obj.statsByAuthor[commitAuthor] = { count: 1, additions: additions, deletions: deletions };
             }
           }
-        else {
+        else if (props.fileList && props.fileList.length > 0 && activeFiles.length === 0) {
+          // File list is loaded but all files are unchecked — show nothing
+          continue;
+        } else {
           // if we do not have the relevant data per file, we just sum up additions and deletions per commit
           const additions = sortedCommits[i].stats.additions;
           const deletions = sortedCommits[i].stats.deletions;

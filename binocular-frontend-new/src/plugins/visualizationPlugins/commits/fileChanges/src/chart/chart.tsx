@@ -8,7 +8,7 @@ import type { SprintType } from '../../../../../../types/data/sprintType.ts';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ParametersType } from '../../../../../../types/parameters/parametersType.ts';
 import type { Store } from '@reduxjs/toolkit';
-import { DataState, setDateRange } from '../reducer';
+import { DataState, setDateRange, setCurrentFile } from '../reducer';
 import { MetricsChart } from './metricsCharts.tsx';
 import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
@@ -127,12 +127,18 @@ function Chart(props: {
     dispatch(setDateRange(props.parameters.parametersDateRange));
   }, [props.parameters.parametersDateRange]);
 
-  //Trigger Refresh when dataConnection changes
+  //Trigger Refresh when dataConnection changes; also sync settings.file into Redux state
   useEffect(() => {
-    dispatch({
-      type: 'REFRESH',
-    });
+    if (props.settings.file) {
+      dispatch(setCurrentFile(props.settings.file));
+    } else {
+      dispatch({ type: 'REFRESH' });
+    }
   }, [props.dataConnection]);
+
+  useEffect(() => {
+    dispatch(setCurrentFile(props.settings.file));
+  }, [props.settings.file]);
 
   if (props.settings.file == null || props.settings.file === '') {
     return (

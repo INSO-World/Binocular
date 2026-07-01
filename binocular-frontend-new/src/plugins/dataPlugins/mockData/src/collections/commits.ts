@@ -14,11 +14,12 @@ import { loadCommitsFiles, loadCommitsFilesUsers, groupBy } from '../lazyData.ts
 const commits = commitData as unknown as DataPluginCommit[];
 const commitsWithBuilds = commitData as unknown as DataPluginCommitBuild[];
 
-const filesById = new Map((fileData as { _id: string }[]).map((f) => [f._id, f]));
-const usersById = new Map((userData as { _id: string }[]).map((u) => [u._id, u]));
+const filesById = new Map((fileData as { _id: string; path: string; webUrl: string; maxLength: number }[]).map((f) => [f._id, f]));
+const usersById = new Map((userData as { _id: string; gitSignature: string }[]).map((u) => [u._id, u]));
 
 export default class Commits implements DataPluginCommits {
-  public async getAll(_from: string, _to: string) {
+  public async getAll(from: string, to: string) {
+    console.log(`Getting Commits from ${from} to ${to}`);
     return commits;
   }
 
@@ -76,13 +77,28 @@ export default class Commits implements DataPluginCommits {
   public async getByFile(file: string): Promise<DataPluginCommit[]> {
     const cf = await loadCommitsFiles();
     const cfByCommit = groupBy(cf, (e) => e._from);
-    const matchingCommitIds = new Set<string>();
+    const commitsById = new Map(commits.map((c) => [(c as unknown as { _id: string })._id, c]));
+    const result: DataPluginCommit[] = [];
     for (const [commitId, edges] of cfByCommit) {
-      if (edges.some((e) => filesById.get(e._to)?.path === file)) {
-        matchingCommitIds.add(commitId);
-      }
+      const fileEdge = edges.find((e) => filesById.get(e._to)?.path === file);
+      if (!fileEdge) continue;
+      const commit = commitsById.get(commitId);
+      if (!commit) continue;
+      const fileInfo = filesById.get(fileEdge._to);
+      result.push({
+        ...commit,
+        files: {
+          data: [
+            {
+              file: { path: fileInfo?.path ?? '', webUrl: fileInfo?.webUrl ?? '', maxLength: fileInfo?.maxLength ?? 0 },
+              stats: fileEdge.stats,
+              hunks: fileEdge.hunks,
+            },
+          ],
+        },
+      });
     }
-    return commits.filter((c) => matchingCommitIds.has((c as unknown as { _id: string })._id));
+    return result;
   }
 
   public async getDateOfFirstCommit() {
@@ -102,7 +118,7 @@ export default class Commits implements DataPluginCommits {
     // that window is kept and every returned commit is significant.
     const fromTime = new Date(from).getTime();
     const toTime = new Date(to).getTime();
-    const commits = await this.getAll(from, to);
+    const commits = await this.getCommitsWithFiles(from, to);
 
     return commits
       .filter((commit) => {
