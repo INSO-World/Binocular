@@ -33,7 +33,16 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
           if (!props.disabled) {
             const width = props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[0] : 12;
             const height = props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[1] : 8;
-            const hasSpace = findNextFreePosition(dashboardState, { id: 0, x: 0, y: 0, width, height, pluginName: '' }) !== null;
+            const hasSpace =
+              findNextFreePosition(dashboardState, {
+                id: 0,
+                x: 0,
+                y: 0,
+                width,
+                height,
+                pluginName: '',
+                dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+              }) !== null;
             if (hasSpace) {
               dispatch(
                 addDashboardItem({

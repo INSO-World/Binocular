@@ -20,7 +20,7 @@ const usersById = new Map((userData as { _id: string; gitSignature: string }[]).
 export default class Commits implements DataPluginCommits {
   public async getAll(from: string, to: string) {
     console.log(`Getting Commits from ${from} to ${to}`);
-    return commits;
+    return this.getCommitsWithFiles(from, to);
   }
 
   public async getAllShort(): Promise<DataPluginCommitShort[]> {

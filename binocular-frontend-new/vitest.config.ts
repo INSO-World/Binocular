@@ -38,7 +38,16 @@ function zipDataPlugin(): Plugin {
     name: 'zip-data',
     enforce: 'pre',
     async load(id) {
-      // Skip ?url imports — Vite resolves those to asset URLs natively
+      // ?url imports are fetched at runtime (see lazyData.ts) instead of statically bundled.
+      // Vite would normally resolve those to a dev-server-served asset path, but Vitest has no
+      // such server, so `fetch()` on that path fails. Serve the zip's bytes as a data: URL
+      // instead — fetch() supports that scheme in both the browser and Node/undici.
+      if (id.endsWith('.zip?url')) {
+        const filePath = id.slice(0, -'?url'.length);
+        const buffer = readFileSync(filePath);
+        const dataUrl = `data:application/zip;base64,${buffer.toString('base64')}`;
+        return `export default ${JSON.stringify(dataUrl)};`;
+      }
       if (!id.endsWith('.zip') || id.includes('?')) return;
       const buffer = readFileSync(id);
       const zip = await JSZip.loadAsync(buffer);
