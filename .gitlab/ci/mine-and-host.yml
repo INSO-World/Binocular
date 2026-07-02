@@ -1,0 +1,266 @@
+# Reusable GitLab CI template that mines a project with the Binocular backend,
+# exports the mined database, builds the offline frontend with that database
+# preloaded, and hosts it on GitLab Pages and/or as a downloadable artifact.
+#
+# With BINOCULAR_RETAIN_RUNS enabled it keeps a history of previous runs on a
+# storage branch, each published under a dated subpath, with a generated
+# landing page to pick between them. Runs older than BINOCULAR_MAX_AGE_DAYS
+# are pruned on every run.
+#
+# This repository (INSO-World/Binocular) only lives on GitHub, so this file is
+# pulled in via a remote include rather than a GitLab CI/CD Component:
+#
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/INSO-World/Binocular/main/.gitlab/ci/mine-and-host.yml'
+#
+#   variables:
+#     BINOCULAR_INDEX_ITS: "false"
+#     BINOCULAR_DEPLOY_TARGET: "pages"
+#     BINOCULAR_RETAIN_RUNS: "true"
+#
+# See README ("Use Binocular on your own repository (GitLab CI)") for the full
+# setup, including required CI/CD variables (BINOCULAR_GITLAB_TOKEN, and
+# BINOCULAR_PUSH_TOKEN when BINOCULAR_RETAIN_RUNS is enabled).
+
+variables:
+  BINOCULAR_REF: 'main'
+  # Leave BINOCULAR_TARGET_REPO_URL empty to mine the project this pipeline runs in
+  # (the default). Set it to mine a *different* project instead - e.g. to publish
+  # the dashboard from a separate staff-only project so students in the mined
+  # project (who may only need Developer access there) are never members of the
+  # project hosting the results, and therefore can't view it.
+  BINOCULAR_TARGET_REPO_URL: ''
+  # Ref to check out in the mined project. Only meaningful together with
+  # BINOCULAR_TARGET_REPO_URL - self-mining always uses this pipeline's own commit.
+  BINOCULAR_TARGET_REF: ''
+  # Token to clone BINOCULAR_TARGET_REPO_URL with, only needed if that project is
+  # private. Not used at all for self-mining (the job token already has access).
+  BINOCULAR_TARGET_TOKEN: ''
+  BINOCULAR_INDEX_ITS: 'false'
+  BINOCULAR_INDEX_CI: 'false'
+  BINOCULAR_DEPLOY_TARGET: 'pages'
+  BINOCULAR_RETAIN_RUNS: 'false'
+  BINOCULAR_MAX_AGE_DAYS: '7'
+  BINOCULAR_STORAGE_BRANCH: 'binocular-runs'
+  BINOCULAR_ARANGO_VERSION: '3.12'
+  BINOCULAR_NODE_OPTIONS: '--max_old_space_size=4096'
+  ARANGO_ROOT_PASSWORD: 'openSesame'
+
+stages:
+  - mine
+  - publish
+
+# Mines the project this file is included into, and builds the offline frontend.
+binocular:build:
+  stage: mine
+  image: node:22
+  variables:
+    # Disable GitLab's automatic checkout of the consumer project into $CI_PROJECT_DIR;
+    # the script below clones both the consumer project and the Binocular tooling as
+    # explicit siblings instead, mirroring the layout the mining/build steps expect.
+    GIT_STRATEGY: none
+  services:
+    - name: arangodb:$BINOCULAR_ARANGO_VERSION
+      alias: arangodb
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - when: manual
+  script:
+    - |
+      set -euo pipefail
+
+      apt-get update -qq
+      apt-get install -y -qq --no-install-recommends git curl
+
+      # The Binocular tooling itself (not present in the consumer's project).
+      git clone --branch "$BINOCULAR_REF" --depth 1 https://github.com/INSO-World/Binocular.git binocular
+
+      # The project to mine. Cloned explicitly (rather than relying on GitLab's default
+      # checkout) so it ends up as a sibling of ./binocular, and so a full clone (not a
+      # shallow one) is done - the VCS indexer needs the complete git history.
+      #
+      # By default this mines the project the pipeline itself runs in. If
+      # BINOCULAR_TARGET_REPO_URL is set, an unrelated project is mined instead -
+      # e.g. a staff-only project mining a student's project, so Pages/artifact
+      # visibility follows the *hosting* project's membership, not the mined one's.
+      if [ -n "$BINOCULAR_TARGET_REPO_URL" ]; then
+        if [ -n "$BINOCULAR_TARGET_TOKEN" ]; then
+          SCHEME="${BINOCULAR_TARGET_REPO_URL%%://*}"
+          REST="${BINOCULAR_TARGET_REPO_URL#*://}"
+          CLONE_URL="${SCHEME}://oauth2:${BINOCULAR_TARGET_TOKEN}@${REST}"
+        else
+          CLONE_URL="$BINOCULAR_TARGET_REPO_URL"
+        fi
+        git clone "$CLONE_URL" target-repo
+        # Strip any embedded credentials from the remote so nothing downstream
+        # (e.g. the VCS/GitLab indexers reading the origin URL) ever sees the token.
+        git -C target-repo remote set-url origin "$BINOCULAR_TARGET_REPO_URL"
+        if [ -n "$BINOCULAR_TARGET_REF" ]; then
+          git -C target-repo checkout "$BINOCULAR_TARGET_REF"
+        fi
+        TARGET_PROJECT_PATH="${BINOCULAR_TARGET_REPO_URL#*://}"
+        TARGET_PROJECT_PATH="${TARGET_PROJECT_PATH#*/}"
+        TARGET_PROJECT_PATH="${TARGET_PROJECT_PATH%.git}"
+      else
+        git clone "$CI_REPOSITORY_URL" target-repo
+        git -C target-repo checkout "${BINOCULAR_TARGET_REF:-$CI_COMMIT_SHA}"
+        TARGET_PROJECT_PATH="$CI_PROJECT_PATH"
+      fi
+
+      echo "Waiting for ArangoDB..."
+      for i in $(seq 1 30); do
+        if curl -sf -u root:"$ARANGO_ROOT_PASSWORD" http://arangodb:8529/_api/version > /dev/null; then
+          break
+        fi
+        echo "  ...not ready yet ($i/30)"
+        sleep 2
+      done
+
+      # Capture the mined project's identity and mined commit's SHA/subject for the
+      # pages job to label the run with (the *mined* project/commit, which may differ
+      # from the project/commit that triggered this pipeline).
+      FULL_SHA="$(git -C target-repo rev-parse HEAD)"
+      SHORT_SHA="$(git -C target-repo rev-parse --short HEAD)"
+      SUBJECT="$(git -C target-repo log -1 --pretty=%s)"
+      TARGET_COMMIT_URL="${CI_SERVER_URL}/${TARGET_PROJECT_PATH}/-/commit/${FULL_SHA}"
+      {
+        echo "FULL_SHA=$FULL_SHA"
+        echo "SHORT_SHA=$SHORT_SHA"
+        echo "SUBJECT=$SUBJECT"
+        echo "TARGET_PROJECT_PATH=$TARGET_PROJECT_PATH"
+        echo "TARGET_COMMIT_URL=$TARGET_COMMIT_URL"
+      } >> build.env
+
+      cd binocular
+      npm ci
+
+      # The miner reads <targetPath>/.binocularrc. Generate one pointing at the service
+      # ArangoDB (reachable via its service alias, not localhost, under GitLab CI), with
+      # BINOCULAR_GITLAB_TOKEN for ITS/CI indexing. gitlab.url must be set explicitly -
+      # GitLab's URL provider does not actually derive the API base URL from the git
+      # remote - $CI_SERVER_URL is exactly the right value here.
+      node -e "
+        const fs = require('fs');
+        const indexers = {};
+        if (process.env.BINOCULAR_INDEX_ITS === 'true') indexers.its = 'gitlab';
+        if (process.env.BINOCULAR_INDEX_CI === 'true') indexers.ci = 'gitlab';
+        const config = {
+          gitlab: { url: process.env.CI_SERVER_URL, token: process.env.BINOCULAR_GITLAB_TOKEN },
+          arango: { host: 'arangodb', port: '8529', user: 'root', password: process.env.ARANGO_ROOT_PASSWORD },
+          indexers,
+          ignoreFiles: ['package-lock.json', 'docs/*', '*.png', '*.svg', 'yarn.lock'],
+        };
+        fs.writeFileSync('../target-repo/.binocularrc', JSON.stringify(config, null, 2));
+      "
+
+      # Mine the target repo and export the DB into binocular-frontend-new/src/db_export.
+      # --no-its / --no-ci turn the respective indexers OFF (they are ON by default).
+      FLAGS="--no-server --export"
+      if [ "$BINOCULAR_INDEX_ITS" != "true" ]; then FLAGS="$FLAGS --no-its"; fi
+      if [ "$BINOCULAR_INDEX_CI" != "true" ]; then FLAGS="$FLAGS --no-ci"; fi
+      echo "Running: npx tsx ./binocular-backend/binocular.ts run ../target-repo $FLAGS"
+      npx tsx ./binocular-backend/binocular.ts run ../target-repo $FLAGS
+
+      NODE_OPTIONS="$BINOCULAR_NODE_OPTIONS" npm run build:offline
+  artifacts:
+    paths:
+      - binocular/dist/
+    reports:
+      dotenv: build.env
+    expire_in: '1 day'
+
+# Publishes the build to GitLab Pages. Job must be named exactly "pages" for
+# GitLab to pick it up. If the consumer project already defines its own "pages"
+# job, including this template will collide with it.
+pages:
+  stage: publish
+  image: node:22
+  needs:
+    - job: binocular:build
+      artifacts: true
+  resource_group: binocular-pages
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($BINOCULAR_DEPLOY_TARGET == "pages" || $BINOCULAR_DEPLOY_TARGET == "both")'
+      when: always
+    - if: '$BINOCULAR_DEPLOY_TARGET == "pages" || $BINOCULAR_DEPLOY_TARGET == "both"'
+      when: manual
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - |
+      set -euo pipefail
+      apt-get update -qq
+      apt-get install -y -qq --no-install-recommends git
+
+      if [ "$BINOCULAR_RETAIN_RUNS" = "true" ]; then
+        # Needed for the landing-page generator script.
+        git clone --branch "$BINOCULAR_REF" --depth 1 https://github.com/INSO-World/Binocular.git binocular
+
+        URL="https://oauth2:${BINOCULAR_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+
+        # Clone the storage branch, or create it as an orphan if it doesn't exist yet.
+        if ! git clone --depth 1 --branch "$BINOCULAR_STORAGE_BRANCH" --single-branch "$URL" site 2>/dev/null; then
+          echo "Storage branch '$BINOCULAR_STORAGE_BRANCH' not found - creating it."
+          rm -rf site
+          git clone --depth 1 "$URL" site
+          ( cd site && git checkout --orphan "$BINOCULAR_STORAGE_BRANCH" && git rm -rf . >/dev/null 2>&1 || true )
+        fi
+
+        SLUG="$(date -u +%Y-%m-%d)-${SHORT_SHA}"
+        rm -rf "site/$SLUG"
+        mkdir -p "site/$SLUG"
+        cp -r binocular/dist/* "site/$SLUG/"
+
+        # Upsert manifest, prune runs older than BINOCULAR_MAX_AGE_DAYS, regenerate index.html.
+        # --repo/--sha/--commit-url describe the *mined* project (from binocular:build's
+        # dotenv output), which may differ from the project this pipeline runs in.
+        node binocular/scripts/generate-landing.mjs \
+          --site site \
+          --slug "$SLUG" \
+          --sha "$FULL_SHA" \
+          --run "$CI_PIPELINE_IID" \
+          --subject "$SUBJECT" \
+          --repo "$TARGET_PROJECT_PATH" \
+          --commit-url "$TARGET_COMMIT_URL" \
+          --max-age-days "$BINOCULAR_MAX_AGE_DAYS"
+
+        (
+          cd site
+          git config user.name "Binocular CI"
+          git config user.email "noreply@binocular"
+          git add -A
+          git commit -m "Binocular run $SLUG (#${CI_PIPELINE_IID})" || echo "Nothing to commit."
+          git push origin "$BINOCULAR_STORAGE_BRANCH"
+        )
+
+        rm -rf public
+        cp -r site public
+      else
+        rm -rf public
+        cp -r binocular/dist public
+      fi
+  artifacts:
+    paths:
+      - public
+
+# Uploads the static build as a downloadable job artifact instead of (or in
+# addition to) publishing it to Pages.
+binocular:artifact:
+  stage: publish
+  needs:
+    - job: binocular:build
+      artifacts: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($BINOCULAR_DEPLOY_TARGET == "artifact" || $BINOCULAR_DEPLOY_TARGET == "both")'
+      when: always
+    - if: '$BINOCULAR_DEPLOY_TARGET == "artifact" || $BINOCULAR_DEPLOY_TARGET == "both"'
+      when: manual
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Binocular UI build ready for download"
+  artifacts:
+    paths:
+      - binocular/dist/
+    expire_in: '30 days'
