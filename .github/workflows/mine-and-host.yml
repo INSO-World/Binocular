@@ -113,6 +113,9 @@ jobs:
       subject: ${{ steps.meta.outputs.subject }}
 
     # ArangoDB the miner indexes into. Credentials must match the generated .binocularrc below.
+    # No --health-cmd here: the arangodb image doesn't ship curl (or wget), so a docker-level
+    # healthcheck run *inside* the container always reports unhealthy regardless of actual
+    # readiness. Polled from the job itself instead (see "Wait for ArangoDB" below).
     services:
       arangodb:
         image: arangodb:${{ inputs.arango_version }}
@@ -120,13 +123,20 @@ jobs:
           - 8529:8529
         env:
           ARANGO_ROOT_PASSWORD: openSesame
-        options: >-
-          --health-cmd "curl -sf -u root:openSesame http://localhost:8529/_api/version"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 12
 
     steps:
+      - name: Wait for ArangoDB
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf -u root:openSesame http://localhost:8529/_api/version > /dev/null; then
+              exit 0
+            fi
+            echo "  ...not ready yet ($i/30)"
+            sleep 2
+          done
+          echo "ArangoDB did not become ready in time" >&2
+          exit 1
+
       # The repository to mine. In a workflow_call the github context belongs to the
       # caller, so the default checkout fetches the *consumer's* repository.
       # fetch-depth: 0 is required so the VCS indexer sees the full git history.
