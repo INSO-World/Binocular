@@ -65,7 +65,11 @@ binocular:build:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: always
+    # Manual start, but allow_failure: false blocks the pipeline on this job -
+    # once triggered and green, the publish jobs run automatically (on_success)
+    # without further clicking.
     - when: manual
+      allow_failure: false
   script:
     - |
       set -euo pipefail
@@ -188,10 +192,8 @@ pages:
       artifacts: true
   resource_group: binocular-pages
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($BINOCULAR_DEPLOY_TARGET == "pages" || $BINOCULAR_DEPLOY_TARGET == "both")'
-      when: always
     - if: '$BINOCULAR_DEPLOY_TARGET == "pages" || $BINOCULAR_DEPLOY_TARGET == "both"'
-      when: manual
+      when: on_success
   variables:
     GIT_STRATEGY: none
   script:
@@ -259,10 +261,8 @@ binocular:artifact:
     - job: binocular:build
       artifacts: true
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($BINOCULAR_DEPLOY_TARGET == "artifact" || $BINOCULAR_DEPLOY_TARGET == "both")'
-      when: always
     - if: '$BINOCULAR_DEPLOY_TARGET == "artifact" || $BINOCULAR_DEPLOY_TARGET == "both"'
-      when: manual
+      when: on_success
   variables:
     GIT_STRATEGY: none
   script:

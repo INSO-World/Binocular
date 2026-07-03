@@ -358,9 +358,11 @@ Notes:
   including this template will conflict with it.
 - `BINOCULAR_DEPLOY_TARGET: "artifact"` (or `"both"`) uploads the static build
   as a downloadable job artifact from the `binocular:artifact` job.
-- Trigger runs via a **CI/CD Schedule** (Settings → CI/CD → Schedules) for the
-  equivalent of a cron trigger, or run the pipeline manually for an on-demand
-  mine.
+- Start a mine by pressing ▶ on the `binocular:build` job in any pipeline —
+  the publish job(s) then run automatically once the build succeeds, no
+  further clicking needed. Alternatively, set up a **CI/CD Schedule**
+  (Settings → CI/CD → Schedules) to run everything unattended on a cron
+  schedule.
 
 #### Keeping a history of previous runs
 
