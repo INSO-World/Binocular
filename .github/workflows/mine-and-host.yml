@@ -34,11 +34,11 @@ on:
       index_its:
         description: "Index the Issue Tracking System (GitHub issues)"
         type: boolean
-        default: false
+        default: true
       index_ci:
         description: "Index the CI system (GitHub Actions runs)"
         type: boolean
-        default: false
+        default: true
       deploy_target:
         description: "Where to publish the built frontend: pages | artifact | both"
         type: string
@@ -73,11 +73,11 @@ on:
       index_its:
         description: "Index the Issue Tracking System (GitHub issues)"
         type: boolean
-        default: false
+        default: true
       index_ci:
         description: "Index the CI system (GitHub Actions runs)"
         type: boolean
-        default: false
+        default: true
       deploy_target:
         description: "Where to publish the built frontend: pages | artifact | both"
         type: string

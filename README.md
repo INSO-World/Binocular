@@ -239,8 +239,8 @@ jobs:
   binocular:
     uses: INSO-World/Binocular/.github/workflows/mine-and-host.yml@main
     with:
-      index_its: false        # index GitHub issues (needs more time / API quota)
-      index_ci: false         # index GitHub Actions runs
+      index_its: true         # index GitHub issues (needs more time / API quota)
+      index_ci: true          # index GitHub Actions runs
       deploy_target: pages    # pages | artifact | both
       retain_runs: true       # keep a history of previous runs (see below)
       max_age_days: 7         # prune runs older than this
@@ -256,8 +256,8 @@ Inputs (all optional):
 | Input | Default | Description |
 | --- | --- | --- |
 | `binocular_ref` | `main` | Git ref of `INSO-World/Binocular` to use |
-| `index_its` | `false` | Index the Issue Tracking System (GitHub issues) |
-| `index_ci` | `false` | Index the CI system (GitHub Actions runs) |
+| `index_its` | `true` | Index the Issue Tracking System (GitHub issues) |
+| `index_ci` | `true` | Index the CI system (GitHub Actions runs) |
 | `deploy_target` | `pages` | `pages`, `artifact`, or `both` |
 | `retain_runs` | `false` | Keep a history of previous runs (Pages only — see below) |
 | `max_age_days` | `7` | When `retain_runs` is on, prune runs older than this many days |
@@ -308,8 +308,8 @@ include:
   - remote: 'https://raw.githubusercontent.com/INSO-World/Binocular/main/.gitlab/ci/mine-and-host.yml'
 
 variables:
-  BINOCULAR_INDEX_ITS: "false"      # index GitLab issues/merge requests (needs more time / API quota)
-  BINOCULAR_INDEX_CI: "false"       # index GitLab CI pipelines
+  BINOCULAR_INDEX_ITS: "true"       # index GitLab issues/merge requests (needs more time / API quota)
+  BINOCULAR_INDEX_CI: "true"        # index GitLab CI pipelines
   BINOCULAR_DEPLOY_TARGET: "pages"  # pages | artifact | both
   BINOCULAR_RETAIN_RUNS: "true"     # keep a history of previous runs (see below)
   BINOCULAR_MAX_AGE_DAYS: "7"       # prune runs older than this
@@ -339,8 +339,8 @@ Other variables (all optional):
 | `BINOCULAR_TARGET_REPO_URL` | *(empty)* | Mine a different project than the one this pipeline runs in — see below |
 | `BINOCULAR_TARGET_REF` | *(empty)* | Ref to check out in the mined project (only meaningful with `BINOCULAR_TARGET_REPO_URL`) |
 | `BINOCULAR_TARGET_TOKEN` | *(empty)* | Token to clone `BINOCULAR_TARGET_REPO_URL` with, if that project is private |
-| `BINOCULAR_INDEX_ITS` | `false` | Index the Issue Tracking System (GitLab issues/MRs) |
-| `BINOCULAR_INDEX_CI` | `false` | Index the CI system (GitLab pipelines) |
+| `BINOCULAR_INDEX_ITS` | `true` | Index the Issue Tracking System (GitLab issues/MRs) |
+| `BINOCULAR_INDEX_CI` | `true` | Index the CI system (GitLab pipelines) |
 | `BINOCULAR_DEPLOY_TARGET` | `pages` | `pages`, `artifact`, or `both` |
 | `BINOCULAR_RETAIN_RUNS` | `false` | Keep a history of previous runs (Pages only — see below) |
 | `BINOCULAR_MAX_AGE_DAYS` | `7` | When retain runs is on, prune runs older than this many days |

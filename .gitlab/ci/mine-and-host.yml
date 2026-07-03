@@ -14,7 +14,7 @@
 #     - remote: 'https://raw.githubusercontent.com/INSO-World/Binocular/main/.gitlab/ci/mine-and-host.yml'
 #
 #   variables:
-#     BINOCULAR_INDEX_ITS: "false"
+#     BINOCULAR_INDEX_ITS: "true"
 #     BINOCULAR_DEPLOY_TARGET: "pages"
 #     BINOCULAR_RETAIN_RUNS: "true"
 #
@@ -36,8 +36,8 @@ variables:
   # Token to clone BINOCULAR_TARGET_REPO_URL with, only needed if that project is
   # private. Not used at all for self-mining (the job token already has access).
   BINOCULAR_TARGET_TOKEN: ''
-  BINOCULAR_INDEX_ITS: 'false'
-  BINOCULAR_INDEX_CI: 'false'
+  BINOCULAR_INDEX_ITS: 'true'
+  BINOCULAR_INDEX_CI: 'true'
   BINOCULAR_DEPLOY_TARGET: 'pages'
   BINOCULAR_RETAIN_RUNS: 'false'
   BINOCULAR_MAX_AGE_DAYS: '7'
