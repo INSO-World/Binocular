@@ -98,13 +98,20 @@ binocular:build:
         git -C target-repo remote set-url origin "$BINOCULAR_TARGET_REPO_URL"
         if [ -n "$BINOCULAR_TARGET_REF" ]; then
           git -C target-repo checkout "$BINOCULAR_TARGET_REF"
+          # Tag/SHA refs leave HEAD detached, but the VCS indexer needs a current
+          # branch (isomorphic-git's currentBranch() returns undefined otherwise).
+          if ! git -C target-repo symbolic-ref -q HEAD >/dev/null; then
+            git -C target-repo checkout -B binocular-mine
+          fi
         fi
         TARGET_PROJECT_PATH="${BINOCULAR_TARGET_REPO_URL#*://}"
         TARGET_PROJECT_PATH="${TARGET_PROJECT_PATH#*/}"
         TARGET_PROJECT_PATH="${TARGET_PROJECT_PATH%.git}"
       else
         git clone "$CI_REPOSITORY_URL" target-repo
-        git -C target-repo checkout "${BINOCULAR_TARGET_REF:-$CI_COMMIT_SHA}"
+        # checkout -B keeps HEAD attached to a branch - checking out the raw SHA
+        # would detach HEAD, and the VCS indexer needs a current branch.
+        git -C target-repo checkout -B "$CI_COMMIT_REF_NAME" "${BINOCULAR_TARGET_REF:-$CI_COMMIT_SHA}"
         TARGET_PROJECT_PATH="$CI_PROJECT_PATH"
       fi
 
