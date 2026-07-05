@@ -41,6 +41,7 @@ class GitHubService(
                     id
                     login
                     name
+                    email
                     url
                     avatarUrl
                   }

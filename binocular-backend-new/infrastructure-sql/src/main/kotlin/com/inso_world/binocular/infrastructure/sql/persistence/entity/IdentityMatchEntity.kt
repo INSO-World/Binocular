@@ -52,7 +52,7 @@ internal data class IdentityMatchEntity(
     data class Key(val userId: Long?, val accountId: Long?)
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     override var id: Long? = null
 
     override val uniqueKey: Key

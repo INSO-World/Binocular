@@ -26,6 +26,7 @@ data class Account(
     Id(Uuid.random())
 ) {
     var name: String? = null
+    var email: String? = null
     var avatarUrl: String? = null
     var url: String? = null
 

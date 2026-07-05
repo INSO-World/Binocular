@@ -46,6 +46,7 @@ internal data class AccountEntity(
     @Column(name = "avatar_url")
     var avatarUrl: String? = null,
     var url: String? = null,
+    var email: String? = null,
 
     @ManyToMany(mappedBy = "accounts")
     var issues: MutableList<IssueEntity> = mutableListOf(),
@@ -91,6 +92,7 @@ internal data class AccountEntity(
         this.name = this@AccountEntity.name
         this.avatarUrl = this@AccountEntity.avatarUrl
         this.url = this@AccountEntity.url
+        this.email = this@AccountEntity.email
     }
 
         // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method
@@ -121,6 +123,7 @@ internal fun Account.toSqlEntity( ): AccountEntity =
         name = this.name,
         avatarUrl = this.avatarUrl,
         url = this.url,
+        email = this.email,
 //        project = project,
         // Note: Relationships are not directly mapped in SQL entity
     ).apply {

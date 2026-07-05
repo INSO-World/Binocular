@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import org.springframework.transaction.annotation.Transactional
 
 private const val HIGH_CONFIDENCE = 0.90
 private val GITHUB_NOREPLY_REGEX =
@@ -30,7 +31,7 @@ internal class IdentityResolutionPortImpl(
     companion object {
         private val logger by logger()
     }
-
+    @Transactional
     override fun resolveIdentities(repositoryId: Long) {
         logger.info("Starting identity resolution for repository $repositoryId")
 

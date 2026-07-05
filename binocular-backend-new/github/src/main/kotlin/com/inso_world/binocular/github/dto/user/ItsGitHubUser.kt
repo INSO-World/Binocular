@@ -20,6 +20,7 @@ data class ItsGitHubUser(
             projects = mutableSetOf(project),
         ).apply {
             this.name = this@ItsGitHubUser.name
+            this.email = this@ItsGitHubUser.email
             this.url = this@ItsGitHubUser.url
             this.avatarUrl = this@ItsGitHubUser.avatarUrl
         }
