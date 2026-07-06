@@ -203,8 +203,10 @@ pages:
       apt-get install -y -qq --no-install-recommends git
 
       if [ "$BINOCULAR_RETAIN_RUNS" = "true" ]; then
-        # Needed for the landing-page generator script.
-        git clone --branch "$BINOCULAR_REF" --depth 1 https://github.com/INSO-World/Binocular.git binocular
+        # Needed for the landing-page generator script. Cloned under a name distinct
+        # from "binocular" - that path is already occupied by the binocular:build
+        # job's dist/ artifact, downloaded into the workspace before this script runs.
+        git clone --branch "$BINOCULAR_REF" --depth 1 https://github.com/INSO-World/Binocular.git binocular-tools
 
         URL="https://oauth2:${BINOCULAR_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
 
@@ -224,7 +226,7 @@ pages:
         # Upsert manifest, prune runs older than BINOCULAR_MAX_AGE_DAYS, regenerate index.html.
         # --repo/--sha/--commit-url describe the *mined* project (from binocular:build's
         # dotenv output), which may differ from the project this pipeline runs in.
-        node binocular/scripts/generate-landing.mjs \
+        node binocular-tools/scripts/generate-landing.mjs \
           --site site \
           --slug "$SLUG" \
           --sha "$FULL_SHA" \
