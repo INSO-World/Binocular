@@ -11,7 +11,7 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class BusFactorCIErrorRate(
-    val id: String,
+    val module: String,
     @field:Range(min = 0) val busFactor: Int,
     @field:Range(min = 0, max = 1) val ciErrorRate: Double,
     val topAuthors: List<AuthorContribution>,
@@ -21,8 +21,8 @@ class BusFactorCIErrorRate(
     @JvmInline
     value class Id(val value: Uuid)
 
-    data class Key(val id: String)
+    data class Key(val module: String)
 
     override val uniqueKey: BusFactorCIErrorRate.Key
-        get() = Key(id)
+        get() = Key(module)
 }

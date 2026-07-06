@@ -6,19 +6,17 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.BuildDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.CommitDao
-import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.FileDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.ModuleDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.RepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection.CommitFileConnectionDao
-import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.AuthorCommitCountMapper
-import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CiErrorRateBucketMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
 import com.inso_world.binocular.model.Branch
-import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.metrics.AuthorCountPerModule
 import com.inso_world.binocular.model.metrics.AuthorPeriodCount
 import com.inso_world.binocular.model.metrics.CiRateBucket
+import com.inso_world.binocular.model.metrics.CiRatePerModule
 import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,6 +41,9 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
 
     @Autowired
     private lateinit var buildDao: BuildDao
+
+    @Autowired
+    private lateinit var moduleDao: ModuleDao
 
     @Autowired
     private lateinit var fileCommitDao: CommitFileConnectionDao
@@ -122,4 +123,21 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
     override fun findFileComplexityForAllFiles(repository: Repository?): Sequence<FileComplexityMinorContributors> {
         return this.fileCommitDao.findFileComplexityForAllFiles().asSequence()
     }
+
+    override fun countCommitsByModule(
+        repository: Repository?,
+        neededModules: List<String>,
+        ): Sequence<AuthorCountPerModule> {
+        return this.moduleDao.countAuthorCommitsByModule(neededModules).asSequence()
+    }
+
+    override fun findCiErrorRateByModule(
+        repository: Repository?,
+        since: Long,
+        until: Long,
+        neededModules: List<String>,
+    ): Sequence<CiRatePerModule> {
+        return this.moduleDao.findCiErrorRateByModule(since, until, neededModules).asSequence()
+    }
+
 }

@@ -49,7 +49,7 @@ class GetBusFactorCIErrorRateMetric(
             countsByPeriod[period.label]?.forEach { running.merge(it.gitSignature, it.count.toInt(), Int::plus) }
             val bf = calculateBusFactor(running)
             BusFactorCIErrorRate(
-                id = period.label,
+                module = period.label,
                 busFactor = bf.busFactor,
                 ciErrorRate = ciByPeriod[period.label] ?: 0.0,
                 topAuthors = bf.topAuthors,
@@ -105,5 +105,55 @@ class GetBusFactorCIErrorRateMetric(
             }
         }
         return periods
+    }
+
+    @MappingSession
+    fun execute2(repoPath: String, since: Long, until: Long, excludedAuthors: List<String>, neededModules: List<String>): List<BusFactorCIErrorRate> {
+
+        val repo = repoPort.findByName(repoPath)
+
+        val excluded = excludedAuthors.toHashSet()
+
+        val ciByModule = repoPort.findCiErrorRateByModule(repo, since, until, neededModules)
+            .associate { it.module to (if (it.completed == 0L) 0.0 else it.failed.toDouble() / it.completed) }
+
+        val countsByModule = repoPort.countCommitsByModule(repo,neededModules)
+            .groupBy { it.module }
+
+        val modules = (countsByModule.keys + ciByModule.keys).toSortedSet()
+        return modules.map { module ->
+            val allCounts = countsByModule[module].orEmpty().associate { it.gitSignature to it.count.toInt() }
+            val bf = busFactorForModule(allCounts, excluded)
+            BusFactorCIErrorRate(
+                module = module,
+                busFactor = bf.busFactor,
+                ciErrorRate = ciByModule[module] ?: 0.0,
+                topAuthors = bf.topAuthors,
+            )
+        }
+    }
+
+    private fun busFactorForModule(
+        allCounts: Map<String, Int>,
+        excluded: Set<String>,
+    ): BusFactorResult {
+        val totalAll = allCounts.values.sum()
+        if (totalAll == 0) return BusFactorResult(0, emptyList())
+
+        val remaining = allCounts.entries
+            .filter { it.key !in excluded }
+            .sortedByDescending { it.value }
+
+        val threshold = totalAll / 2.0
+        var accumulated = 0
+        val top = mutableListOf<AuthorContribution>()
+        for ((gitSignature, count) in remaining) {
+            accumulated += count
+            top += AuthorContribution(gitSignature = gitSignature, percentage = count.toDouble() / totalAll)
+            if (accumulated > threshold) {
+                return BusFactorResult(top.size, top)
+            }
+        }
+        return BusFactorResult(0, top)
     }
 }

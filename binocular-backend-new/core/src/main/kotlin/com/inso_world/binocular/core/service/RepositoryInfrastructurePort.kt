@@ -5,8 +5,10 @@ import com.inso_world.binocular.model.Build
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.metrics.AuthorCountPerModule
 import com.inso_world.binocular.model.metrics.AuthorPeriodCount
 import com.inso_world.binocular.model.metrics.CiRateBucket
+import com.inso_world.binocular.model.metrics.CiRatePerModule
 import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
 
 interface RepositoryInfrastructurePort : BinocularInfrastructurePort<Repository, Repository.Id> {
@@ -33,4 +35,16 @@ interface RepositoryInfrastructurePort : BinocularInfrastructurePort<Repository,
     fun findFileComplexityForAllFiles(
         repository: Repository?,
     ): Sequence<FileComplexityMinorContributors>
+
+    fun countCommitsByModule(
+        repository: Repository?,
+        neededModules: List<String>
+    ): Sequence<AuthorCountPerModule>
+
+    fun findCiErrorRateByModule(
+        repository: Repository?,
+        since: Long,
+        until: Long,
+        neededModules: List<String>
+    ): Sequence<CiRatePerModule>
 }

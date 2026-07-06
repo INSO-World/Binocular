@@ -14,3 +14,15 @@ data class AuthorPeriodCountEntity(
     var gitSignature: String = "",
     var count: Long = 0,
 )
+
+data class ModuleAuthorCountEntity(
+    var module: String = "",
+    var gitSignature: String = "",
+    var count: Long = 0,
+)
+
+data class CiRatePerModuleEntity(
+    var module: String = "",
+    var failed: Long = 0,
+    var completed: Long = 0,
+)

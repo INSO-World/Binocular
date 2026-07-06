@@ -32,6 +32,14 @@ scalar Sort
            granularity: Granularity!
        ): [BusFactorCIErrorRate!]!
 
+       busFactorCIErrorRateModules(
+           repoPath: String!
+           since: Timestamp!
+           until: Timestamp!
+           excludedAuthors: String!
+           neededModules: String!
+       ): [BusFactorCIErrorRate!]!
+
        fileComplexityMinorContributors(
            repoPath: String!
        ): [FileComplexityMinorContributors!]!
@@ -450,11 +458,12 @@ type AuthorContribution {
 }
 
 type BusFactorCIErrorRate {
-  id: String!
+  module: String!
   busFactor: Int!
   ciErrorRate: Float!
   topAuthors: [AuthorContribution!]!
 }
+
 type FileComplexityMinorContributors {
   filePath: String!
   loc: Int!
