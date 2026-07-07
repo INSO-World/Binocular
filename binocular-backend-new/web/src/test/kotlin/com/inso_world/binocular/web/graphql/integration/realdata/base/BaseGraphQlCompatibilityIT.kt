@@ -1,6 +1,8 @@
 package com.inso_world.binocular.web.graphql.integration.realdata.base
 
+import com.arangodb.ArangoDB
 import com.inso_world.binocular.core.delegates.logger
+import com.inso_world.binocular.infrastructure.arangodb.migration.V002_AddBranchIid
 import com.inso_world.binocular.web.BinocularWebApplication
 import com.inso_world.binocular.web.graphql.integration.realdata.base.legacy.LegacyHttpGraphQlClient
 import com.inso_world.binocular.web.graphql.integration.realdata.base.spring.SpringTesterGraphQlClient
@@ -59,6 +61,7 @@ internal abstract class BaseGraphQlCompatibilityIT {
     private class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(ctx: ConfigurableApplicationContext) {
             adbContainer.start()
+            backfillBranchIid()
 
             TestPropertyValues
                 .of(
@@ -66,6 +69,27 @@ internal abstract class BaseGraphQlCompatibilityIT {
                     "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
                     "binocular.arangodb.database.name=binocular-binocular",
                 ).applyTo(ctx.environment)
+        }
+
+        /**
+         * The prebuilt real-data image contains legacy `branches` documents
+         * without an `iid`. [BranchEntity]'s unique persistent index on `iid`
+         * would otherwise fail to build the moment [BranchRepository]
+         * (which has eagerly-resolved `@Query` methods) is constructed, since
+         * [V002_AddBranchIid] only runs after Spring context bean creation has
+         * started and isn't guaranteed to run before [branchRepository].
+         * Run it here, directly against the just-started container, before any
+         * Spring bean exists.
+         */
+        private fun backfillBranchIid() {
+            val arango =
+                ArangoDB
+                    .Builder()
+                    .host(adbContainer.host, adbContainer.firstMappedPort)
+                    .user("root")
+                    .password("")
+                    .build()
+            V002_AddBranchIid().migrate(arango.db("binocular-binocular"))
         }
     }
 
