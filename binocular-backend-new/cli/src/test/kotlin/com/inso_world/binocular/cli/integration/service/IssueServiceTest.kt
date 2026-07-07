@@ -27,8 +27,6 @@ internal class IssueServiceTest
 
         @Test
         fun `checkExisting with empty list returns empty`() {
-            6
-
             val project = projectService.getOrCreateProject("test-project-1")
 
             val result = issueService.checkExisting(emptyList(), project)
