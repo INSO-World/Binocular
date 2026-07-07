@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
+import kotlin.uuid.ExperimentalUuidApi
 
 internal class ProjectServiceTest
     @Autowired
@@ -59,6 +60,7 @@ internal class ProjectServiceTest
             assertThat(reloaded?.issues).isEmpty()
         }
 
+        @OptIn(ExperimentalUuidApi::class)
         @Test
         fun `transformIssues links accounts and adds issues to project`() {
             val testData = ProjectTestDataProvider()
@@ -165,7 +167,7 @@ internal class ProjectServiceTest
                     assertThat(issue.accounts.map { it.login })
                         .containsExactlyInAnyOrder("account1", "account2")
 
-                    assertThat(issue.project).isEqualTo(project)
+                    assertThat(issue.project.value).isEqualTo(project.iid.value)
                 },
                 {
                     val account1 = testData.accountByLogin.getValue("account1")
