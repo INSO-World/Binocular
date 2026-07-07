@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.AccountDto
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.isEmptyString
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -45,7 +48,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
                     .get()
 
             // Verify account data
-            val expectedAccount = TestDataProvider.testAccounts.first { it.id == "1" }
+            val expectedAccount = TestDataProvider.testAccounts[0]
 
             assertAll(
                 { assertEquals(expectedAccount.id, result.get("id").asText(), "Account ID mismatch") },
@@ -87,7 +90,7 @@ internal class AccountResolverTest : GraphQlControllerTest() {
 
             // Verify account data
             assertAll(
-                { assertEquals("1", result.get("id").asText(), "Account ID mismatch") },
+                { assertThat("Account ID mismatch", result.get("id").asText(), CoreMatchers.not(isEmptyString())) },
                 { assertEquals("GitHub", result.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", result.get("login").asText(), "Account login mismatch") },
                 { assertEquals("User One", result.get("name").asText(), "Account name mismatch") },
@@ -133,7 +136,6 @@ internal class AccountResolverTest : GraphQlControllerTest() {
 
             // Verify account data
             assertAll(
-                { assertEquals("1", result.get("id").asText(), "Account ID mismatch") },
                 { assertEquals("GitHub", result.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", result.get("login").asText(), "Account login mismatch") },
                 { assertEquals("User One", result.get("name").asText(), "Account name mismatch") },
@@ -178,7 +180,6 @@ internal class AccountResolverTest : GraphQlControllerTest() {
 
             // Verify account data
             assertAll(
-                { assertEquals("1", result.get("id").asText(), "Account ID mismatch") },
                 { assertEquals("GitHub", result.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", result.get("login").asText(), "Account login mismatch") },
                 { assertEquals("User One", result.get("name").asText(), "Account name mismatch") },

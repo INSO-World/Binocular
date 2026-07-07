@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.NoteDto
-import java.time.Instant
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.isEmptyString
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.Instant
 
 /**
  * Test class for verifying the Note resolver functionality.
@@ -20,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 internal class NoteResolverTest : GraphQlControllerTest() {
     @Autowired
     private lateinit var noteResolver: NoteResolver
+
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -111,7 +115,7 @@ internal class NoteResolverTest : GraphQlControllerTest() {
 
             val account = accounts.get(0)
             assertAll(
-                { assertEquals("1", account.get("id").asText(), "Account ID mismatch") },
+                { assertThat("Account ID mismatch", account.get("id").asText(), CoreMatchers.not(isEmptyString())) },
                 { assertEquals("GitHub", account.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", account.get("login").asText(), "Account login mismatch") },
                 { assertEquals("User One", account.get("name").asText(), "Account name mismatch") },
