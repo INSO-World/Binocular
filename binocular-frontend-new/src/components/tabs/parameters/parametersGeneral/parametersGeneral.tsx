@@ -4,28 +4,33 @@ function ParametersGeneral(props: {
   disabled: boolean;
   parametersGeneral: ParametersGeneralType;
   setParametersGeneral: (parametersGeneral: ParametersGeneralType) => void;
-  hideExcludeMergeCommits?: boolean;
+  hideExcludeMergeCommits?: boolean; // hide the merge-commit toggle for widgets that don't need it
+  hideGranularity?: boolean; // hide the granularity select for widgets without time buckets
 }) {
   return (
     <div className={'text-xs'}>
-      <label className="label cursor-pointer flex w-full justify-between items-center">
-        <span className="label-text">Granularity:</span>
-        <select
-          className={'select select-bordered select-xs w-24'}
-          disabled={props.disabled}
-          value={props.parametersGeneral.granularity}
-          onChange={(e) =>
-            props.setParametersGeneral({
-              granularity: e.target.value,
-              excludeMergeCommits: props.parametersGeneral.excludeMergeCommits,
-            })
-          }>
-          <option value={'years'}>Year</option>
-          <option value={'months'}>Month</option>
-          <option value={'weeks'}>Week</option>
-          <option value={'days'}>Day</option>
-        </select>
-      </label>
+      {/* Granularity select - only rendered when the widget hasn't opted out */}
+      {!props.hideGranularity && (
+        <label className="label cursor-pointer flex w-full justify-between items-center">
+          <span className="label-text">Granularity:</span>
+          <select
+            className={'select select-bordered select-xs w-24'}
+            disabled={props.disabled}
+            value={props.parametersGeneral.granularity}
+            onChange={(e) =>
+              props.setParametersGeneral({
+                granularity: e.target.value,
+                excludeMergeCommits: props.parametersGeneral.excludeMergeCommits,
+              })
+            }>
+            <option value={'years'}>Year</option>
+            <option value={'months'}>Month</option>
+            <option value={'weeks'}>Week</option>
+            <option value={'days'}>Day</option>
+          </select>
+        </label>
+      )}
+      {/* Exclude merge commits toggle - only rendered when the widget hasn't opted out */}
       {!props.hideExcludeMergeCommits && (
         <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
           <span className="label-text">Exclude Merge Commits:</span>

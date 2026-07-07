@@ -67,7 +67,12 @@ function DashboardItemSettings(props: {
         <div className={'font-bold'}>General:</div>
         <ParametersGeneral
           disabled={!props.ignoreGlobalParameters}
-          hideExcludeMergeCommits={props.item.pluginName === 'Bus Factor / CI Error Rate'}
+          // quadrant widget has no time buckets -> no granularity control
+          hideGranularity={props.item.pluginName === 'Bus Factor / CI Quadrant'}
+          // both bus-factor widgets don't use merge-commit exclusion
+          hideExcludeMergeCommits={
+            props.item.pluginName === 'Bus Factor / CI Quadrant' || props.item.pluginName === 'Bus Factor / CI Error Rate'
+          }
           parametersGeneral={props.parametersGeneral}
           setParametersGeneral={props.setParametersGeneral}></ParametersGeneral>
       </div>

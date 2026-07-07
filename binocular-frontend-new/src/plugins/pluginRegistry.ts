@@ -15,7 +15,7 @@ import RepositoryActivity from './visualizationPlugins/authorBehaviour/repositor
 import IssuesTimeline from './visualizationPlugins/issues/issuesTimeline';
 import Burndown from './visualizationPlugins/issues/burndown';
 import CodeHotspots from './visualizationPlugins/expertise/codeHotspots';
-
+import BusFactorQuadrant from './visualizationPlugins/busFactorQuadrant';
 import ExampleComplex from './visualizationPlugins/example/exampleComplex';
 import ExampleStats from './visualizationPlugins/example/exampleStats';
 import ExampleVisualization from './visualizationPlugins/example/exampleVisualization';
@@ -57,6 +57,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   IssuesTimeline,
   RepositoryStats,
   BusFactorCIError,
+  BusFactorQuadrant,
   CodeOwnership,
   FileChanges,
   ExampleStats,
