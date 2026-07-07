@@ -30,7 +30,10 @@ internal class NoteInfrastructurePortImpl(
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun findIssuesByNoteId(noteId: String): List<Issue> =
         linkDao.findIssueIdsByNoteId(noteId).map {
+            // TODO: this is just a workaround for now, should be a proper mapper when refactoring is done
             Issue(
+                id = it,
+                platformIid = it.toIntOrNull(),
                 gid = it,
                 project =
                     com.inso_world.binocular.model.Project
@@ -41,6 +44,7 @@ internal class NoteInfrastructurePortImpl(
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun findMergeRequestsByNoteId(noteId: String): List<MergeRequest> =
         linkDao.findMergeRequestIdsByNoteId(noteId).map {
+            // TODO: this is just a workaround for now, should be a proper mapper when refactoring is done
             MergeRequest(
                 project =
                     com.inso_world.binocular.model.Project
