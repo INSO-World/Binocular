@@ -56,7 +56,6 @@ internal class CommitSaveOperation : BaseInfrastructureSpringTest() {
                 },
             )
         this.repository = this.project.repo ?: error("test repository cannot be null")
-        this.repositoryPort.create(this.repository)
     }
 
     // --- Helpers ---
@@ -114,7 +113,6 @@ internal class CommitSaveOperation : BaseInfrastructureSpringTest() {
                 },
             )
         val repo = freshProject.repo ?: error("repository cannot be null")
-        repositoryPort.create(repo)
         block(repo)
     }
 
