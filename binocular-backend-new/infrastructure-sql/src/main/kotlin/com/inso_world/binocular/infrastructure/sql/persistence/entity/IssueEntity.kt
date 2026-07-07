@@ -3,6 +3,7 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Project
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
@@ -56,7 +57,7 @@ internal data class IssueEntity(
 //    var labels: MutableList<LabelEntity> = mutableListOf()
 // @OneToMany(mappedBy = "issue", cascade = [CascadeType.ALL], orphanRemoval = true)
 // var mentions: MutableList<MentionEntity> = mutableListOf()
-    @ManyToMany
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinTable(
         name = "issue_account_connections",
         joinColumns = [JoinColumn(name = "issue_id")],
@@ -91,7 +92,7 @@ internal data class IssueEntity(
         inverseJoinColumns = [JoinColumn(name = "user_id")],
     )
     var developers: MutableList<DeveloperEntity> = mutableListOf(),
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinColumn(name = "author_id", updatable = false)
     var author: AccountEntity? = null
 ) : AbstractEntity<Long, IssueEntity.Key>() {

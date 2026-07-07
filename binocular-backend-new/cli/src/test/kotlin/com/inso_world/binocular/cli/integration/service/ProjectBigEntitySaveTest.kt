@@ -33,33 +33,40 @@ internal class ProjectBigEntitySaveTest
 
             val account1 =
                 Account(
+                    gid = "1",
                     login = "reporter",
-                    name = "The Reporter",
                     platform = com.inso_world.binocular.model.Platform.GitHub
-                )
+                ).apply {
+                    name = "The Reporter"
+                }
             val account2 =
                 Account(
+                    gid = "2",
                     login = "assignee",
-                    name = "The Assignee",
                     platform = com.inso_world.binocular.model.Platform.GitHub
-                )
+                ).apply {
+                    name = "The Assignee"
+                }
 
             val milestone1 =
                 Milestone(
                     title = "Release 1.0",
                     state = "open",
-                    description = "Finalizing version 1.0"
+                    description = "Finalizing version 1.0",
+                    project = project.iid
                 )
 
             // Add Issues
             val issue1 =
-                Issue().apply {
+                Issue(
+                    gid = "1",
+                    milestones = mutableSetOf(milestone1),
+                    project = project.iid
+                ).apply {
                     title = "Issue 1"
                     description = "Description for issue 1"
                     createdAt = LocalDateTime.now()
-                    accounts = listOf(account1, account2)
-                    milestones = listOf(milestone1)
-                }
+                }.apply { this.accounts.addAll(arrayOf(account1, account2)) }
 
             val note1 =
                 Note(
@@ -68,7 +75,7 @@ internal class ProjectBigEntitySaveTest
                     updatedAt = LocalDateTime.now().toString(),
                     importedFrom = "test"
                 )
-            issue1.notes = listOf(note1)
+            issue1.notes.add(note1)
 
             val mention1 =
                 Mention(
@@ -79,7 +86,10 @@ internal class ProjectBigEntitySaveTest
             issue1.mentions = listOf(mention1)
 
             val issue2 =
-                Issue().apply {
+                Issue(
+                    gid = "2",
+                    project = project.iid
+                ).apply {
                     title = "Issue 2"
                 }
 
@@ -88,19 +98,19 @@ internal class ProjectBigEntitySaveTest
                     title = "Merge Request 1",
                     description = "Implementing feature X",
                     createdAt = LocalDateTime.now().toString(),
-                    state = "opened"
+                    state = "opened",
+                    project = project.iid
                 ).apply {
-                    notes =
-                        listOf(
-                            Note(
-                                body = "MR Note",
-                                createdAt = LocalDateTime.now().toString(),
-                                updatedAt = LocalDateTime.now().toString(),
-                                importedFrom = "test"
-                            )
+                    notes.add(
+                        Note(
+                            body = "MR Note",
+                            createdAt = LocalDateTime.now().toString(),
+                            updatedAt = LocalDateTime.now().toString(),
+                            importedFrom = "test"
                         )
-                    milestones = listOf(milestone1)
-                    accounts = listOf(account1)
+                    )
+                    milestones.add(milestone1)
+                    accounts.add(account1)
                 }
 
             project.issues.addAll(listOf(issue1, issue2))
