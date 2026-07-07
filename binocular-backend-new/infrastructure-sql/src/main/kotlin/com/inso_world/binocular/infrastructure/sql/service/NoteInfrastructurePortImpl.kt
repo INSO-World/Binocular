@@ -50,9 +50,12 @@ internal class NoteInfrastructurePortImpl(
     }
 
     override fun findById(id: String): Note? = noteDao.findById(id)
-    override fun findByIid(iid: Note.Id): @Valid Note? {
-        TODO("Not yet implemented")
-    }
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun findByIid(iid: Note.Id): @Valid Note? = noteDao.findById(iid.value.toString())
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun findByIids(iids: Collection<Note.Id>): List<@Valid Note> = iids.mapNotNull { findByIid(it) }
 
     override fun findAll(): Iterable<Note> = noteDao.findAll()
 

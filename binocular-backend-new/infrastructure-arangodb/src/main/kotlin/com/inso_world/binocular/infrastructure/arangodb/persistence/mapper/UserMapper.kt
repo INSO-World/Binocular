@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -9,7 +10,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toAra
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -64,12 +64,15 @@ internal class UserMapper : EntityMapper<User, UserEntity> {
      */
     @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: UserEntity): User {
-        val domain = entity.toDomain()
-        setField(
-            domain.javaClass.superclass.getDeclaredField("iid"),
-            domain,
-            entity.iid
-        )
+        val domain = User(
+            name = entity.name,
+            repositoryId = Repository.Id(entity.repository.iid),
+            iid = User.Id(entity.iid)
+        ).apply {
+            this.id = entity.id
+            this.email = entity.email
+        }
+
         return domain
     }
 
@@ -90,11 +93,8 @@ internal class UserMapper : EntityMapper<User, UserEntity> {
         if (target.id.equals(entity.id)) {
             return target
         }
-        setField(
-            target.javaClass.getDeclaredField("id"),
-            target,
-            entity.id
-        )
+        target.id = entity.id
+
         return target
     }
 }

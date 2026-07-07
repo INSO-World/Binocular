@@ -39,8 +39,8 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
     @BeforeEach
     void setUp() {
         builder = new GitDepsTreeBuilder();
-        project = new Project("test-project");
-        repository = new Repository("/test/path", project);
+        project = TestModelFactory.createProject("test-project");
+        repository = TestModelFactory.createRepository("/test/path", project.getIid());
         shaCounter = 0;
     }
 
@@ -50,14 +50,16 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
         @Test
         void build_nullRepository_throwsNullPointerException() {
             List<Commit> commits = List.of();
+            List<Branch> branches = List.of();
 
-            assertThrows(NullPointerException.class, () -> builder.build(null, commits),
+            assertThrows(NullPointerException.class, () -> builder.build(null, commits, branches),
                     "Should throw NullPointerException for null repository");
         }
 
         @Test
         void build_nullCommits_throwsNullPointerException() {
-            assertThrows(NullPointerException.class, () -> builder.build(repository, null),
+            List<Branch> branches = List.of();
+            assertThrows(NullPointerException.class, () -> builder.build(repository, null, branches),
                     "Should throw NullPointerException for null commits list");
         }
     }
@@ -69,7 +71,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
         void build_emptyCommitList_returnsEmptyTree() {
             List<Commit> commits = List.of();
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             assertAll(
                     () -> assertNotNull(tree, "Tree should not be null"),
@@ -85,7 +87,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
             Commit commit = createCommit(LocalDateTime.now().minusDays(1), null);
             List<Commit> commits = List.of(commit);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             assertAll(
                     () -> assertEquals(1, tree.getNodes().size(), "Should have one node"),
@@ -115,7 +117,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(c3, c2, c1);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             assertAll(
                     () -> assertEquals(3, tree.getNodes().size(), "Should have 3 nodes"),
@@ -137,7 +139,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
             // Pass in wrong order - should be sorted internally
             List<Commit> commits = List.of(c1, c3, c2);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // Most recent should be first (row 0)
             GitTreeNode firstNode = tree.getNodes().stream()
@@ -165,7 +167,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(merge, feature, main, base);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // Find edges from merge commit
             List<GitTreeEdge> mergeEdges = tree.getEdges().stream()
@@ -190,7 +192,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(merge, feature, main, base);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             assertTrue(tree.getColumns() >= 1, "Should use multiple lanes for parallel branches");
         }
@@ -202,11 +204,11 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
         @Test
         void build_includesBranchNamesInNodes() {
             Commit commit = createCommit(LocalDateTime.now().minusDays(1), null);
-            new Branch("main", "refs/heads/main", ReferenceCategory.LOCAL_BRANCH, repository, commit);
+            Branch branch = TestModelFactory.createBranch("main", "refs/heads/main", repository.getIid(), commit.getSha());
 
             List<Commit> commits = List.of(commit);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of(branch));
 
             GitTreeNode node = tree.getNodes().get(0);
             Set<String> branchNames = node.getBranchNames();
@@ -217,12 +219,12 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
         @Test
         void build_commitOnMultipleBranches_hasAllBranchNames() {
             Commit commit = createCommit(LocalDateTime.now().minusDays(1), null);
-            new Branch("main", "refs/heads/main", ReferenceCategory.LOCAL_BRANCH, repository, commit);
-            new Branch("develop", "refs/heads/develop", ReferenceCategory.LOCAL_BRANCH, repository, commit);
+            Branch b1 = TestModelFactory.createBranch("main", "refs/heads/main", repository.getIid(), commit.getSha());
+            Branch b2 = TestModelFactory.createBranch("develop", "refs/heads/develop", repository.getIid(), commit.getSha());
 
             List<Commit> commits = List.of(commit);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of(b1, b2));
 
             GitTreeNode node = tree.getNodes().get(0);
             Set<String> branchNames = node.getBranchNames();
@@ -245,7 +247,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(c1, c2, c3);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             assertEquals(3, tree.getRows(), "Rows should equal commit count");
         }
@@ -254,7 +256,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
         void build_columnsIsAtLeastOne() {
             List<Commit> commits = List.of();
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             assertTrue(tree.getColumns() >= 1, "Columns should be at least 1");
         }
@@ -272,7 +274,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(c2, c3, c1);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // Should be sorted consistently
             assertEquals(3, tree.getNodes().size());
@@ -292,7 +294,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(c4, c3, c2, c1);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // Verify row indices are 0, 1, 2, 3 (sequential)
             List<Integer> rows = tree.getNodes().stream()
@@ -318,7 +320,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(merge, f1, m1, base);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // Verify correct number of columns (need at least 2 for parallel branches)
             assertTrue(tree.getColumns() >= 2, "Should have at least 2 columns for parallel branches");
@@ -338,7 +340,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(c3, c2, c1);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // In a linear history, all commits should be in column 0
             assertTrue(tree.getNodes().stream().allMatch(n -> n.getColumnIndex() == 0),
@@ -354,7 +356,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(isolated, root);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             assertEquals(2, tree.getNodes().size());
             assertEquals(2, tree.getRows());
@@ -370,7 +372,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(c3, c2, base);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // Each commit should be on exactly one node
             assertEquals(3, tree.getNodes().size());
@@ -390,7 +392,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
 
             List<Commit> commits = List.of(merge, p2, p1, base);
 
-            GitDepsTree tree = builder.build(repository, commits);
+            GitDepsTree tree = builder.build(repository, commits, List.of());
 
             // Find edges from merge
             List<GitTreeEdge> mergeEdges = tree.getEdges().stream()
@@ -419,20 +421,20 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
     }
 
     private Commit createCommit(LocalDateTime dateTime, Commit parent) {
-        Developer dev = new Developer("Test Developer", "test@example.com", repository);
-        Signature signature = new Signature(dev, dateTime);
-        Commit commit = new Commit(generateSha(), signature, signature, "Test message", repository);
+        Developer dev = ModelFactory.createDeveloper("Test Developer", "test@example.com", repository.getIid());
+        Signature signature = ModelFactory.createSignature(dev.getIid(), dateTime);
+        Commit commit = ModelFactory.createCommit(generateSha(), signature, signature, "Test message", repository.getIid());
         if (parent != null) {
-            commit.getParents().add(parent);
+            commit.getParentShas().add(parent.getSha());
         }
         return commit;
     }
 
     private Commit createCommitWithParents(LocalDateTime dateTime, List<Commit> parents) {
-        Developer dev = new Developer("Test Developer", "test@example.com", repository);
-        Signature signature = new Signature(dev, dateTime);
-        Commit commit = new Commit(generateSha(), signature, signature, "Test message", repository);
-        commit.getParents().addAll(parents);
+        Developer dev = ModelFactory.createDeveloper("Test Developer", "test@example.com", repository.getIid());
+        Signature signature = ModelFactory.createSignature(dev.getIid(), dateTime);
+        Commit commit = ModelFactory.createCommit(generateSha(), signature, signature, "Test message", repository.getIid());
+        commit.getParentShas().addAll(parents.stream().map(Commit::getSha).collect(Collectors.toSet()));
         return commit;
     }
 }

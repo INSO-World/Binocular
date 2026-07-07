@@ -18,10 +18,16 @@ import kotlin.uuid.ExperimentalUuidApi
 class DeveloperModelTest {
     private lateinit var repository: Repository
 
+    private fun developer(name: String = "Test", email: String = "test@example.com"): Developer =
+        Developer(name = name, email = email, repositoryId = repository.iid).apply {
+            this.repository = this@DeveloperModelTest.repository
+            this.repository?.developers?.add(this)
+        }
+
     @BeforeEach
     fun setUp() {
         val project = Project(name = "test-project")
-        repository = Repository(localPath = "test-repo", project = project)
+        repository = Repository(localPath = "test-repo", projectId = project.iid).apply { this.project = project }
     }
 
     @Nested
@@ -33,7 +39,10 @@ class DeveloperModelTest {
             val email = "john@example.com"
 
             // When
-            val developer = Developer(name = name, email = email, repository = repository)
+            val developer = Developer(name = name, email = email, repositoryId = repository.iid).apply { 
+                this.repository = this@DeveloperModelTest.repository 
+                this.repository?.developers?.add(this)
+            }
 
             // Then
             assertAll(
@@ -47,7 +56,10 @@ class DeveloperModelTest {
         @Test
         fun `given developer creation, when checking repository link, then developer should be in repository developers`() {
             // Given & When
-            val developer = Developer(name = "Jane", email = "jane@example.com", repository = repository)
+            val developer = Developer(name = "Jane", email = "jane@example.com", repositoryId = repository.iid).apply { 
+                this.repository = this@DeveloperModelTest.repository 
+                this.repository?.developers?.add(this)
+            }
 
             // Then
             assertThat(repository.developers).contains(developer)
@@ -58,7 +70,7 @@ class DeveloperModelTest {
         fun `given blank name, when creating developer, then it should throw IllegalArgumentException`(name: String) {
             // When & Then
             assertThrows<IllegalArgumentException> {
-                Developer(name = name, email = "test@example.com", repository = repository)
+                Developer(name = name, email = "test@example.com", repositoryId = repository.iid)
             }
         }
 
@@ -67,7 +79,7 @@ class DeveloperModelTest {
         fun `given blank email, when creating developer, then it should throw IllegalArgumentException`(email: String) {
             // When & Then
             assertThrows<IllegalArgumentException> {
-                Developer(name = "Test", email = email, repository = repository)
+                Developer(name = "Test", email = email, repositoryId = repository.iid)
             }
         }
     }
@@ -77,7 +89,7 @@ class DeveloperModelTest {
         @Test
         fun `given developer, when accessing uniqueKey, then it should contain repositoryId and gitSignature`() {
             // Given
-            val developer = Developer(name = "Test User", email = "test@example.com", repository = repository)
+            val developer = developer(name = "Test User")
 
             // When
             val key = developer.uniqueKey
@@ -95,7 +107,7 @@ class DeveloperModelTest {
         @Test
         fun `given developer with name and email, when getting gitSignature, then it should return formatted signature`() {
             // Given
-            val developer = Developer(name = "John Doe", email = "john@example.com", repository = repository)
+            val developer = developer(name = "John Doe", email = "john@example.com")
 
             // When
             val signature = developer.gitSignature
@@ -107,7 +119,7 @@ class DeveloperModelTest {
         @Test
         fun `given developer with whitespace in name, when getting gitSignature, then it should trim the name`() {
             // Given
-            val developer = Developer(name = "  John Doe  ", email = "john@example.com", repository = repository)
+            val developer = developer(name = "  John Doe  ", email = "john@example.com")
 
             // When
             val signature = developer.gitSignature
@@ -122,7 +134,7 @@ class DeveloperModelTest {
         @Test
         fun `given same developer instance, when comparing with equals, then it should be equal`() {
             // Given
-            val developer = Developer(name = "Test", email = "test@example.com", repository = repository)
+            val developer = developer()
 
             // Then
             assertThat(developer).isEqualTo(developer)
@@ -131,8 +143,8 @@ class DeveloperModelTest {
         @Test
         fun `given two different developers, when comparing, then they should not be equal`() {
             // Given
-            val developer1 = Developer(name = "Test1", email = "test1@example.com", repository = repository)
-            val developer2 = Developer(name = "Test2", email = "test2@example.com", repository = repository)
+            val developer1 = developer(name = "Test1", email = "test1@example.com")
+            val developer2 = developer(name = "Test2", email = "test2@example.com")
 
             // Then
             assertThat(developer1).isNotEqualTo(developer2)
@@ -141,7 +153,7 @@ class DeveloperModelTest {
         @Test
         fun `given developer, when getting hashCode, then it should be based on iid`() {
             // Given
-            val developer = Developer(name = "Test", email = "test@example.com", repository = repository)
+            val developer = developer()
 
             // Then
             assertThat(developer.hashCode()).isEqualTo(developer.iid.hashCode())
@@ -153,7 +165,7 @@ class DeveloperModelTest {
         @Test
         fun `given developer, when checking inheritance, then it should be instance of Stakeholder`() {
             // Given
-            val developer = Developer(name = "Test", email = "test@example.com", repository = repository)
+            val developer = developer()
 
             // Then
             assertThat(developer).isInstanceOf(Stakeholder::class.java)
@@ -167,7 +179,7 @@ class DeveloperModelTest {
             @Test
             fun `given new developer, when checking authoredCommits, then it should be empty`() {
                 // Given
-                val developer = Developer(name = "Test", email = "test@example.com", repository = repository)
+                val developer = developer()
 
                 // Then
                 assertThat(developer.authoredCommits).isEmpty()
@@ -179,7 +191,7 @@ class DeveloperModelTest {
             @Test
             fun `given new developer, when checking committedCommits, then it should be empty`() {
                 // Given
-                val developer = Developer(name = "Test", email = "test@example.com", repository = repository)
+                val developer = developer()
 
                 // Then
                 assertThat(developer.committedCommits).isEmpty()
@@ -192,7 +204,7 @@ class DeveloperModelTest {
         @Test
         fun `given new developer, when checking files, then it should be empty`() {
             // Given
-            val developer = Developer(name = "Test", email = "test@example.com", repository = repository)
+            val developer = developer()
 
             // Then
             assertThat(developer.files).isEmpty()
@@ -201,7 +213,7 @@ class DeveloperModelTest {
         @Test
         fun `given new developer, when checking issues, then it should be empty`() {
             // Given
-            val developer = Developer(name = "Test", email = "test@example.com", repository = repository)
+            val developer = developer()
 
             // Then
             assertThat(developer.issues).isEmpty()

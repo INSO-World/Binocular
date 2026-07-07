@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.service
 
 import com.inso_world.binocular.core.delegates.logger

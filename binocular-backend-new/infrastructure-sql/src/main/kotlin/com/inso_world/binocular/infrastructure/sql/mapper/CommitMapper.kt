@@ -41,6 +41,7 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
     /**
      * Converts a Commit domain object to CommitEntity.
      */
+    @Deprecated("Use toEntity(domain, repository, author, committer) instead")
     override fun toEntity(domain: Commit): CommitEntity {
         throw UnsupportedOperationException("Mapping to entity now requires explicit dependencies.")
     }

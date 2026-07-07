@@ -18,8 +18,8 @@ internal class RepositoryValidationTest : ValidationTest() {
         val repository =
             Repository(
                 localPath = "localPath",
-                project = project,
-            )
+                projectId = project.iid,
+            ).apply { this.project = project }
         // change field via reflection, otherwise constructor check fails
         setField(
             repository.javaClass.getDeclaredField("localPath").apply { isAccessible = true },

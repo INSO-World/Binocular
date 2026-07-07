@@ -1,5 +1,13 @@
 package com.inso_world.binocular.model
 
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+@OptIn(ExperimentalUuidApi::class)
+interface DomainId {
+    val value: Uuid
+}
+
 /**
  * Base type for domain entities within Binocular that expose two notions of identity:
  *
@@ -66,7 +74,7 @@ abstract class AbstractDomainObject<Iid, Key>(
      * Technical/aggregate identifier (stable, immutable).
      * Typical sources: aggregate-generated id or deterministic value id.
      */
-    val iid: Iid,
+    open val iid: Iid,
 ) {
     /**
      * Business/natural key that uniquely identifies this object **in domain terms**.

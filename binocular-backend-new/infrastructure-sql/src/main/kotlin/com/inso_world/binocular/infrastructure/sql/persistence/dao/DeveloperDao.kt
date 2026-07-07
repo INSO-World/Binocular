@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
 import com.inso_world.binocular.core.persistence.exception.PersistenceException
@@ -20,6 +21,31 @@ internal class DeveloperDao(
     init {
         this.setClazz(DeveloperEntity::class.java)
         this.setRepository(repo)
+    }
+
+    override fun findByIid(iid: Any): DeveloperEntity? {
+        val uIid: kotlin.uuid.Uuid = when (iid) {
+            is com.inso_world.binocular.model.Developer.Id -> iid.value
+            is kotlin.uuid.Uuid -> iid
+            is String -> kotlin.uuid.Uuid.parse(iid)
+            else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+        }
+        return this.repo.findByIid(uIid)
+    }
+
+    override fun findByIid(iid: com.inso_world.binocular.model.Developer.Id): DeveloperEntity? =
+        findByIid(iid as Any)
+
+    override fun findByIids(iids: Collection<Any>): List<DeveloperEntity> {
+        val uIids = iids.map { iid ->
+            when (iid) {
+                is com.inso_world.binocular.model.Developer.Id -> iid.value
+                is kotlin.uuid.Uuid -> iid
+                is String -> kotlin.uuid.Uuid.parse(iid)
+                else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+            }
+        }
+        return this.repo.findAllByIidIn(uIids)
     }
 
     private object DeveloperSpecification {

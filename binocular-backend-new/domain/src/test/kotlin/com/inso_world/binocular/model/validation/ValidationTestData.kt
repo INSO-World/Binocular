@@ -39,19 +39,20 @@ internal object ValidationTestData {
     private fun createDeveloper(
         repository: Repository,
         email: String = "test@example.com",
-    ): Developer = Developer(name = "Test Developer", email = email, repository = repository)
+    ): Developer = Developer(name = "Test Developer", email = email, repositoryId = repository.iid).apply { this.repository = repository }
 
     private fun createSignature(
         developer: Developer,
         timestamp: LocalDateTime = LocalDateTime.now().minusSeconds(1),
-    ): Signature = Signature(developer = developer, timestamp = timestamp)
+    ): Signature = Signature(developerId = developer.iid, timestamp = timestamp).apply { this.developer = developer }
 
     @JvmStatic
     fun invalidCommitsModels(): Stream<Arguments> =
         Stream.of(
             Arguments.of(
                 run {
-                    val repository = Repository(localPath = "test repo", project = Project(name = "test project"))
+                    val project = Project(name = "test project")
+                    val repository = Repository(localPath = "test repo", projectId = project.iid).apply { this.project = project }
                     val developer = createDeveloper(repository)
                     val signature = createSignature(developer)
                     val cmt =
@@ -59,8 +60,8 @@ internal object ValidationTestData {
                             sha = "a".repeat(40),
                             authorSignature = signature,
                             message = "Valid message",
-                            repository = repository,
-                        )
+                            repositoryId = repository.iid,
+                        ).apply { this.repository = repository }
                     repository.commits.add(cmt)
 
                     // change field via reflection, otherwise constructor check fails
@@ -72,7 +73,8 @@ internal object ValidationTestData {
             ),
             Arguments.of(
                 run {
-                    val repository = Repository(localPath = "2222222", project = Project(name = "test project"))
+                    val project = Project(name = "test project")
+                    val repository = Repository(localPath = "2222222", projectId = project.iid).apply { this.project = project }
                     val developer = createDeveloper(repository, "test2@example.com")
                     val signature = createSignature(developer)
                     val cmt =
@@ -80,8 +82,8 @@ internal object ValidationTestData {
                             sha = "a".repeat(40),
                             authorSignature = signature,
                             message = "Valid message",
-                            repository = repository,
-                        )
+                            repositoryId = repository.iid,
+                        ).apply { this.repository = repository }
                     repository.commits.add(cmt)
                     // invalid: should be 40 chars
                     // change field via reflection, otherwise constructor check fails
@@ -93,7 +95,8 @@ internal object ValidationTestData {
             ),
             Arguments.of(
                 run {
-                    val repository = Repository(localPath = "33333", project = Project(name = "test project"))
+                    val project = Project(name = "test project")
+                    val repository = Repository(localPath = "33333", projectId = project.iid).apply { this.project = project }
                     val developer = createDeveloper(repository, "test3@example.com")
                     val signature = createSignature(developer)
                     val cmt =
@@ -101,8 +104,8 @@ internal object ValidationTestData {
                             sha = "a".repeat(40),
                             authorSignature = signature,
                             message = "Valid message",
-                            repository = repository,
-                        )
+                            repositoryId = repository.iid,
+                        ).apply { this.repository = repository }
                     repository.commits.add(cmt)
 
                     // invalid: should be 40 chars
@@ -121,8 +124,8 @@ internal object ValidationTestData {
             val repository =
                 Repository(
                     localPath = "test",
-                    project = project,
-                )
+                    projectId = project.iid,
+                ).apply { this.project = project }
             return@run MockTestDataProvider(repository)
                 .commits
                 .map {

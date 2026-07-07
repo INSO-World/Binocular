@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IRepositoryDao
@@ -25,6 +26,25 @@ internal class RepositoryDao(
 
     override fun findByName(name: String): RepositoryEntity? = repo.findByLocalPath(name)
 
-    @OptIn(ExperimentalUuidApi::class)
-    override fun findByIid(iid: com.inso_world.binocular.model.Repository.Id): RepositoryEntity? = this.repo.findByIid(iid.value)
+    override fun findByIid(iid: Any): RepositoryEntity? {
+        val uIid: kotlin.uuid.Uuid = when (iid) {
+            is com.inso_world.binocular.model.Repository.Id -> iid.value
+            is kotlin.uuid.Uuid -> iid
+            is String -> kotlin.uuid.Uuid.parse(iid)
+            else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+        }
+        return this.repo.findByIid(uIid)
+    }
+
+    override fun findByIids(iids: Collection<Any>): List<RepositoryEntity> {
+        val uIids = iids.map { iid ->
+            when (iid) {
+                is com.inso_world.binocular.model.Repository.Id -> iid.value
+                is kotlin.uuid.Uuid -> iid
+                is String -> kotlin.uuid.Uuid.parse(iid)
+                else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+            }
+        }
+        return this.repo.findAllByIidIn(uIids)
+    }
 }

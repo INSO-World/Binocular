@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import jakarta.validation.constraints.NotBlank
@@ -34,14 +35,25 @@ import kotlin.uuid.Uuid
 data class User(
     @field:NotBlank val name: String,
     @field:NotNull val repositoryId: Repository.Id,
+    @Deprecated("Use repositoryId instead")
+    var repository: Repository? = null,
+    override val iid: User.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<User.Id, User.Key>(
-    Id(Uuid.random()),
+    iid,
 ) {
     data class Key(val repositoryId: Repository.Id, val gitSignature: String) // value object for lookups
 
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
+    @Deprecated("old")
+    val committedCommits: MutableSet<Commit> = mutableSetOf()
+    @Deprecated("old")
+    val authoredCommits: MutableSet<Commit> = mutableSetOf()
+    @Deprecated("old")
+    val issues: MutableSet<Issue> = mutableSetOf()
+    @Deprecated("old")
+    val files: MutableSet<File> = mutableSetOf()
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
 

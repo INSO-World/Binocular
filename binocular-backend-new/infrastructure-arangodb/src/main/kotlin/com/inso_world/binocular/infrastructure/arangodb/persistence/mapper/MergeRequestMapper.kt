@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -27,28 +28,16 @@ import kotlin.uuid.Uuid
  * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
  * mentions but uses lazy loading for accounts, milestones, and notes to optimize performance.
  */
-@OptIn(ExperimentalUuidApi::class)
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 @Component
 internal class MergeRequestMapper(
-    private val mentionMapper: MentionMapper,
+    @org.springframework.beans.factory.annotation.Autowired private val mentionMapper: MentionMapper,
 ) : EntityMapper<MergeRequest, MergeRequestEntity> {
 
-    companion object {
-        private val logger by logger()
-    }
-
-    /**
-     * Converts a MergeRequest domain object to MergeRequestEntity.
-     *
-     * Eagerly maps all mentions as they are typically accessed together with the merge request.
-     *
-     * @param domain The MergeRequest domain object to convert
-     * @return The MergeRequestEntity with merge request metadata, labels, and mentions
-     */
     override fun toEntity(domain: MergeRequest): MergeRequestEntity =
         MergeRequestEntity(
             id = domain.id,
-            iid = domain.platformIid,
+            iid = domain.iid.value,
             title = domain.title,
             description = domain.description,
             createdAt = domain.createdAt,
@@ -60,21 +49,13 @@ internal class MergeRequestMapper(
             mentions = domain.mentions.map { mentionMapper.toEntity(it) },
         )
 
-    /**
-     * Converts a MergeRequestEntity to MergeRequest domain object.
-     *
-     * Eagerly maps mentions and extracts IDs for related accounts, milestones, and notes.
-     *
-     * @param entity The MergeRequestEntity to convert
-     * @return The MergeRequest domain object with eager mentions and IDs for relationships
-     */
     override fun toDomain(entity: MergeRequestEntity): MergeRequest {
         val domain = MergeRequest(
             project =
-                entity.project?.let { Project.Id(it.iid!!) }
-                    ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
+            entity.project?.let { Project.Id(it.iid) }
+                ?: error("Parent Project not found in entity or context for MergeRequest ${entity.iid}"),
             id = entity.id,
-            platformIid = entity.iid,
+            platformIid = null,
             title = entity.title,
             description = entity.description,
             createdAt = entity.createdAt,
@@ -84,8 +65,9 @@ internal class MergeRequestMapper(
             state = entity.state,
             webUrl = entity.webUrl,
             mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-            milestoneIds = entity.milestones.mapNotNull { it.id?.let { id -> Milestone.Id(Uuid.parse(id)) } }.toMutableSet(),
+            milestoneIds = entity.milestones.mapNotNull { it.iid?.let { iid -> Milestone.Id(iid) } }.toMutableSet(),
             noteIds = entity.notes.mapNotNull { it.id?.let { id -> Note.Id(Uuid.parse(id)) } }.toMutableSet(),
+            iid = MergeRequest.Id(entity.iid!!),
         )
 
         domain.accountIds.addAll(
@@ -95,8 +77,7 @@ internal class MergeRequestMapper(
         return domain
     }
 
-        /**
-         * Converts a list of ArangoDB MergeRequestEntity objects to a list of domain MergeRequest objects
-         */
-        override fun toDomainList(entities: Iterable<MergeRequestEntity>): List<MergeRequest> = entities.map { toDomain(it) }
+    override fun toDomainList(entities: Iterable<MergeRequestEntity>): List<MergeRequest> {
+        return entities.map { this.toDomain(it) }
     }
+}

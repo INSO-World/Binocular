@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -6,7 +7,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.Proje
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
 import com.inso_world.binocular.model.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 import kotlin.uuid.Uuid
 
@@ -65,16 +65,16 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
      */
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: ProjectEntity): Project {
-        val domain = entity.toDomain()
-        setField(
-            domain.javaClass.superclass.getDeclaredField("iid"),
-            domain,
-            Project.Id(entity.iid),
-        )
+        val domain = Project(
+            name = entity.name,
+            iid = Project.Id(entity.iid),
+        ).apply {
+            this.id = entity.id
+        }
 
-        domain.issueIds.addAll(entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } })
-        domain.mergeRequestIds.addAll(entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } })
-        domain.milestoneIds.addAll(entity.milestones.mapNotNull { it.id?.let { id -> Milestone.Id(Uuid.parse(id)) } })
+        domain.issueIds.addAll(entity.issues.mapNotNull { it.iid?.let { iid -> Issue.Id(iid) } })
+        domain.mergeRequestIds.addAll(entity.mergeRequests.mapNotNull { it.iid?.let { iid -> MergeRequest.Id(iid) } })
+        domain.milestoneIds.addAll(entity.milestones.mapNotNull { it.iid?.let { iid -> Milestone.Id(iid) } })
         domain.accountIds.addAll(entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } })
 
         return domain

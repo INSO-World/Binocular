@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -12,11 +13,12 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Reference
+import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 
 /**
@@ -37,17 +39,8 @@ import org.springframework.stereotype.Component
 @Component
 internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
 
-    companion object {
-        private val logger by logger()
-    }
-
-    /**
-     * Converts a Branch domain object to BranchEntity.
-     *
-     * @param domain The Branch domain object to convert
-     * @return The BranchEntity (structure only)
-     */
-    @OptIn(ExperimentalUuidApi::class)
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    @Deprecated("Use toEntity(domain, owner, head) instead", ReplaceWith("toEntity(domain, owner, head)"))
     override fun toEntity(domain: Branch): BranchEntity {
         val owner = RepositoryEntity(
             iid = domain.repositoryId.value,
@@ -55,58 +48,37 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
             project = ProjectEntity(iid = domain.repositoryId.value, name = "")
         )
         val head = CommitEntity(
-            iid = Uuid.random(), // Dummy iid
+            iid = kotlin.uuid.Uuid.random(),
             sha = domain.headSha,
-            authorDateTime = LocalDateTime.now(),
-            commitDateTime = LocalDateTime.now(),
+            authorDateTime = java.time.LocalDateTime.now(),
+            commitDateTime = java.time.LocalDateTime.now(),
             repository = owner,
-            author = DeveloperEntity(iid = Developer.Id(Uuid.random()), gitSignature = "", repository = owner),
-            committer = DeveloperEntity(iid = Developer.Id(Uuid.random()), gitSignature = "", repository = owner)
+            author = DeveloperEntity(iid = Developer.Id(kotlin.uuid.Uuid.random()), gitSignature = "", repository = owner),
+            committer = DeveloperEntity(iid = Developer.Id(kotlin.uuid.Uuid.random()), gitSignature = "", repository = owner)
         )
-
-        val entity = domain.toArangoEntity(owner, head)
-
-        return entity
+        return domain.toArangoEntity(owner, head)
     }
 
-    /**
-     * Converts a BranchEntity to Branch domain object.
-     *
-     * @param entity The BranchEntity to convert
-     * @return The Branch domain object (structure only)
-     */
-    @OptIn(ExperimentalUuidApi::class)
-    override fun toDomain(entity: BranchEntity): Branch {
-        val domain = entity.toDomain()
-        setField(
-            domain.javaClass.superclass.superclass
-                .getDeclaredField("iid"),
-            domain,
-            entity.iid
-        )
+    fun toEntity(domain: Branch, owner: RepositoryEntity, head: CommitEntity): BranchEntity =
+        domain.toArangoEntity(owner, head)
 
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun toDomain(entity: BranchEntity): Branch {
+        val domain = Branch(
+            name = entity.name,
+            fullName = entity.fullName,
+            category = ReferenceCategory.valueOf(entity.category),
+            repositoryId = Repository.Id(entity.repository.iid),
+            headSha = entity.head.sha,
+            iid = Reference.Id(entity.iid)
+        ).apply {
+            this.id = entity.id
+        }
         return domain
     }
 
-    /**
-     * Refreshes a Branch domain object with data from the corresponding entity.
-     *
-     * This method updates the domain object's ID from the entity after persistence.
-     * It does NOT update nested objects - only top-level Branch properties.
-     *
-     * @param target The Branch domain object to refresh
-     * @param entity The BranchEntity with updated data
-     * @return The refreshed Branch domain object
-     */
-    fun refreshDomain(
-        target: Branch,
-        entity: BranchEntity,
-    ): Branch {
-        setField(
-            target.javaClass.getDeclaredField("id"),
-            target,
-            entity.id
-        )
+    fun refreshDomain(target: Branch, entity: BranchEntity): Branch {
+        target.id = entity.id
         return target
     }
 }

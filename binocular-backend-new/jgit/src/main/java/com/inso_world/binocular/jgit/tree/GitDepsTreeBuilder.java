@@ -20,9 +20,10 @@ import java.util.*;
 @Service
 public class GitDepsTreeBuilder {
 
-    public GitDepsTree build(Repository repository, List<Commit> commits) {
+    public GitDepsTree build(Repository repository, List<Commit> commits, List<Branch> branches) {
         Objects.requireNonNull(repository, "repository");
         Objects.requireNonNull(commits, "commits");
+        Objects.requireNonNull(branches, "branches");
 
         List<Commit> ordered = new ArrayList<>(commits);
         ordered.sort(Comparator
@@ -34,7 +35,7 @@ public class GitDepsTreeBuilder {
             remaining.add(c.getSha());
         }
 
-        Map<String, Set<String>> branchNamesByCommit = indexBranchNames(repository);
+        Map<String, Set<String>> branchNamesByCommit = indexBranchNames(branches, commits);
 
         List<String> lanes = new ArrayList<>();
         List<GitTreeNode> nodes = new ArrayList<>();
@@ -54,10 +55,7 @@ public class GitDepsTreeBuilder {
             Set<String> branchNames = branchNamesByCommit.getOrDefault(sha, Set.of());
             nodes.add(new GitTreeNode(sha, row, col, branchNames));
 
-            List<String> parentShas = new ArrayList<>();
-            for (Commit p : commit.getParents()) {
-                parentShas.add(p.getSha());
-            }
+            List<String> parentShas = new ArrayList<>(commit.getParentShas());
             parentShas.sort(String::compareTo);
 
             // create edges
@@ -99,13 +97,17 @@ public class GitDepsTreeBuilder {
         return new GitDepsTree(nodes, edges, Math.max(maxColumns, 1), nodes.size());
     }
 
-    private static Map<String, Set<String>> indexBranchNames(Repository repository) {
+    private static Map<String, Set<String>> indexBranchNames(List<Branch> branches, List<Commit> allCommits) {
         Map<String, Set<String>> out = new HashMap<>();
-        for (Branch b : repository.getBranches()) {
+        Map<String, Commit> commitsBySha = new HashMap<>();
+        for (Commit c : allCommits) {
+            commitsBySha.put(c.getSha(), c);
+        }
+
+        for (Branch b : branches) {
             String bName = b.getName();
-            for (Commit c : b.getCommits()) {
-                out.computeIfAbsent(c.getSha(), k -> new LinkedHashSet<>()).add(bName);
-            }
+            // TODO
+            out.computeIfAbsent(b.getHeadSha(), k -> new LinkedHashSet<>()).add(bName);
         }
         return out;
     }

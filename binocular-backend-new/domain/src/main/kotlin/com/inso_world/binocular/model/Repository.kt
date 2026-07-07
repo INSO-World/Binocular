@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.vcs.Remote
@@ -39,15 +40,27 @@ data class Repository(
     @field:Size(max = 255)
     val localPath: String,
     val projectId: Project.Id,
+    @Deprecated("Use projectId instead", ReplaceWith("Project(name = \"...\", iid = projectId)"))
+    var project: Project? = null,
+    override val iid: Repository.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Repository.Id, Repository.Key>(
-    Id(Uuid.random())
+    iid
 ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     data class Key(val projectId: Project.Id, val localPath: String) // value object for lookups
 
-    // some database dependent id
+    @Deprecated("old")
+    val commits: MutableSet<Commit> = mutableSetOf()
+    @Deprecated("old")
+    val branches: MutableSet<Branch> = mutableSetOf()
+    @Deprecated("old")
+    val developers: MutableSet<Developer> = mutableSetOf()
+    @Deprecated("old")
+    val user: MutableSet<User> = mutableSetOf()
+    @Deprecated("old")
+    val remotes: MutableSet<Remote> = mutableSetOf()
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))
     var id: String? = null
 

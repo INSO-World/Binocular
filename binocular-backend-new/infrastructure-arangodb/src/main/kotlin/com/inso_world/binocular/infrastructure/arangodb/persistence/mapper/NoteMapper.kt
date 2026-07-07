@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -31,66 +32,64 @@ import kotlin.uuid.Uuid
 @Component
 internal class NoteMapper : EntityMapper<Note, NoteEntity> {
 
-        companion object {
-            private val logger by logger()
-        }
+    /**
+     * Converts a Note domain object to NoteEntity.
+     *
+     * Maps all note properties including body, timestamps, flags (system, resolvable, etc.),
+     * and import metadata.
+     *
+     * @param domain The Note domain object to convert
+     * @return The NoteEntity with note metadata
+     */
+    override fun toEntity(domain: Note): NoteEntity =
+        NoteEntity(
+            id = domain.id,
+            iid = domain.iid.value,
+            body = domain.body,
+            createdAt = domain.createdAt,
+            updatedAt = domain.updatedAt,
+            system = domain.system,
+            resolvable = domain.resolvable,
+            confidential = domain.confidential,
+            internal = domain.internal,
+            imported = domain.imported,
+            importedFrom = domain.importedFrom,
+        )
 
-        /**
-         * Converts a Note domain object to NoteEntity.
-         *
-         * Maps all note properties including body, timestamps, flags (system, resolvable, etc.),
-         * and import metadata.
-         *
-         * @param domain The Note domain object to convert
-         * @return The NoteEntity with note metadata
-         */
-        override fun toEntity(domain: Note): NoteEntity =
-            NoteEntity(
-                id = domain.id,
-                body = domain.body,
-                createdAt = domain.createdAt,
-                updatedAt = domain.updatedAt,
-                system = domain.system,
-                resolvable = domain.resolvable,
-                confidential = domain.confidential,
-                internal = domain.internal,
-                imported = domain.imported,
-                importedFrom = domain.importedFrom,
-            )
+    /**
+     * Converts a NoteEntity to Note domain object.
+     *
+     * Extracts IDs for accounts, issues, and merge requests to avoid loading
+     * unnecessary data when only note metadata is needed.
+     *
+     * @param entity The NoteEntity to convert
+     * @return The Note domain object with IDs for relationships
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    override fun toDomain(entity: NoteEntity): Note {
 
-        /**
-         * Converts a NoteEntity to Note domain object.
-         *
-         * Extracts IDs for accounts, issues, and merge requests to avoid loading
-         * unnecessary data when only note metadata is needed.
-         *
-         * @param entity The NoteEntity to convert
-         * @return The Note domain object with IDs for relationships
-         */
-        @OptIn(ExperimentalUuidApi::class)
-        override fun toDomain(entity: NoteEntity): Note {
+        val domain = Note(
+            id = entity.id,
+            body = entity.body,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt,
+            system = entity.system,
+            resolvable = entity.resolvable,
+            confidential = entity.confidential,
+            internal = entity.internal,
+            imported = entity.imported,
+            importedFrom = entity.importedFrom,
+            issueIds = entity.issues.mapNotNull { it.iid?.let { iid -> Issue.Id(iid) } }.toMutableSet(),
+            mergeRequestIds = entity.mergeRequests.mapNotNull { it.iid?.let { iid -> MergeRequest.Id(iid) } }.toMutableSet(),
+            iid = entity.iid?.let { Note.Id(it) } ?: Note.Id(Uuid.random()),
+        )
 
-            val domain = Note(
-                id = entity.id,
-                body = entity.body,
-                createdAt = entity.createdAt,
-                updatedAt = entity.updatedAt,
-                system = entity.system,
-                resolvable = entity.resolvable,
-                confidential = entity.confidential,
-                internal = entity.internal,
-                imported = entity.imported,
-                importedFrom = entity.importedFrom,
-                issueIds = entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } }.toMutableSet(),
-                mergeRequestIds = entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } }.toMutableSet(),
-            )
+        domain.accountIds.addAll(
+            entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } }
+        )
 
-            domain.accountIds.addAll(
-                entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } }
-            )
-
-            return domain
-        }
-
-        override fun toDomainList(entities: Iterable<NoteEntity>): List<Note> = entities.map { toDomain(it) }
+        return domain
     }
+
+    override fun toDomainList(entities: Iterable<NoteEntity>): List<Note> = entities.map { it -> this.toDomain(it) }
+}

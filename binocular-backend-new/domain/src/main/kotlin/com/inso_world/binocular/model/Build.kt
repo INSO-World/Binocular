@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import java.time.LocalDateTime
@@ -31,7 +32,7 @@ data class Build(
     Id(Uuid.random())
 ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     // TODO work in progress, just for compatibility
     data class Key(val key: String) // value object for lookups

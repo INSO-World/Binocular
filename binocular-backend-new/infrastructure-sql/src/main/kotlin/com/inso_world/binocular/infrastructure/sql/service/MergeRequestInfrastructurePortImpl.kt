@@ -44,9 +44,12 @@ internal class MergeRequestInfrastructurePortImpl(
 //            .mapNotNull { nid -> noteDao.findById(nid) }
 
     override fun findById(id: String): MergeRequest? = mrDao.findById(id)
-    override fun findByIid(iid: MergeRequest.Id): @Valid MergeRequest? {
-        TODO("Not yet implemented")
-    }
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun findByIid(iid: MergeRequest.Id): @Valid MergeRequest? = mrDao.findById(iid.value.toString())
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun findByIids(iids: Collection<MergeRequest.Id>): List<@Valid MergeRequest> = iids.mapNotNull { findByIid(it) }
 
     override fun create(value: MergeRequest): MergeRequest = mrDao.create(value)
 

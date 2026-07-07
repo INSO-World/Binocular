@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.vcs.ReferenceCategory
@@ -44,13 +45,36 @@ class Branch(
     override val category: ReferenceCategory,
     @field:NotNull
     override val repositoryId: Repository.Id,
+    @Deprecated("Use repositoryId instead")
+    var repository: Repository? = null,
     var headSha: String,
-) : Reference<Branch.Key>(category, repositoryId), Cloneable {
+    @Deprecated("Use headSha instead")
+    var head: Commit? = null,
+    @Deprecated("Use repositoryId instead")
+    var developer: Developer? = null,
+    val developerId: Developer.Id? = null,
+    override val iid: Reference.Id = Reference.Id(Uuid.random()),
+) : Reference<Branch.Key>(category, repositoryId, iid), Cloneable {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     data class Key(val repositoryId: Repository.Id, val name: String)
+    
+    val commits: Set<Commit>
+        get() = head?.let { h ->
+            val result = mutableSetOf<Commit>()
+            val queue = mutableListOf(h)
+            while (queue.isNotEmpty()) {
+                val c = queue.removeAt(0)
+                if (result.add(c)) {
+                    c.parents.forEach { queue.add(it) }
+                }
+            }
+            result
+        } ?: emptySet()
 
+    @Deprecated("old")
+    val files: MutableSet<File> = mutableSetOf()
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
 

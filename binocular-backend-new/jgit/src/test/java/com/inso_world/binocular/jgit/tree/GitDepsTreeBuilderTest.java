@@ -76,7 +76,7 @@ class GitDepsTreeBuilderTest extends BaseUnitTest {
         }
 
         JGitGitIndexer indexer = new JGitGitIndexer(new JGitConfig());
-        Project project = new Project("test-project");
+        Project project = TestModelFactory.createProject("test-project");
         Repository repo = indexer.findRepo(repoDir, project);
 
         List<Branch> branches = indexer.findAllBranches(repo);
@@ -88,7 +88,7 @@ class GitDepsTreeBuilderTest extends BaseUnitTest {
         indexer.traverseBranch(repo, feature);
 
         GitDepsTreeBuilder builder = new GitDepsTreeBuilder();
-        GitDepsTree tree = builder.build(repo, mainCommits);
+        GitDepsTree tree = builder.build(repo, mainCommits, branches);
 
         assertEquals(5, tree.getNodes().size());
         int maxRowIndex = tree.getNodes().stream().mapToInt(GitTreeNode::getRowIndex).max().orElse(-1);
@@ -112,7 +112,7 @@ class GitDepsTreeBuilderTest extends BaseUnitTest {
 
         // Check merge commit has parents via the parents collection
         Commit mergeCommit = mainCommits.stream().filter(c -> shaMerge.equals(c.getSha())).findFirst().orElseThrow();
-        assertEquals(2, mergeCommit.getParents().size());
+        assertEquals(2, mergeCommit.getParentShas().size());
 
         assertTrue(mainCommits.stream().anyMatch(c -> shaA.equals(c.getSha())));
         assertTrue(mainCommits.stream().anyMatch(c -> shaB.equals(c.getSha())));

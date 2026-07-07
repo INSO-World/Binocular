@@ -72,8 +72,7 @@ internal class RepositoryDao @Autowired constructor(
         if (!skipProjectCheck) {
             val existingProject = this.projectDao.findByName(entity.project.name)
             if (existingProject == null) {
-                // repositoryMapper.toDomain(entity) might be too much, but we need a Project domain object
-                this.projectDao.create(repositoryMapper.toDomain(entity).project)
+                this.projectDao.create(entity.project.toDomain())
             }
         }
 

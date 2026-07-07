@@ -47,10 +47,15 @@ import java.time.LocalDateTime
 data class Signature(
     @field:NotNull
     val developerId: Developer.Id,
+    @Deprecated("Use developerId instead")
+    var developer: Developer? = null,
     @field:PastOrPresent
     @field:NotNull
     val timestamp: LocalDateTime
 ) {
+    val gitSignature: String
+        get() = developer?.gitSignature ?: "Unknown <unknown@unknown.com>"
+
     init {
         val now = LocalDateTime.now().plusNanos(1)
         require(timestamp.isBefore(now)) {

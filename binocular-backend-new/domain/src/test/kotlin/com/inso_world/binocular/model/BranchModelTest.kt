@@ -22,16 +22,17 @@ class BranchModelTest {
 
     @BeforeEach
     fun setup() {
-        repository = Repository(localPath = "test repo", project = Project(name = "test project"))
-        val developer = Developer(name = "Test Developer", email = "dev@test.com", repository = repository)
-        val signature = Signature(developer = developer, timestamp = LocalDateTime.now().minusSeconds(1))
+        val project = Project(name = "test project")
+        repository = Repository(localPath = "test repo", projectId = project.iid).apply { this.project = project }
+        val developer = Developer(name = "Test Developer", email = "dev@test.com", repositoryId = repository.iid).apply { this.repository = repository }
+        val signature = Signature(developerId = developer.iid, timestamp = LocalDateTime.now().minusSeconds(1)).apply { this.developer = developer }
         head =
             Commit(
                 sha = "a".repeat(40),
                 message = "msg1",
                 authorSignature = signature,
-                repository = repository,
-            )
+                repositoryId = repository.iid,
+            ).apply { this.repository = this@BranchModelTest.repository }
     }
 
     @Test
@@ -45,10 +46,11 @@ class BranchModelTest {
                 head = mockCommit,
             )
         assertThrows<IllegalArgumentException> {
+            val project = Project(name = "test project")
             Repository(
                 localPath = "test repo",
-                project = Project(name = "test project"),
-            ).branches.add(dummyBranch)
+                projectId = project.iid,
+            ).apply { this.project = project }.branches.add(dummyBranch)
         }
     }
 
@@ -177,8 +179,8 @@ class BranchModelTest {
         val branch = branch()
 
         assertThat(branch.repository).isSameAs(repository)
-        assertThat(branch.repository.branches).hasSize(1)
-        assertThat(branch.repository.branches).containsOnly(branch)
+        assertThat(branch.repository?.branches).hasSize(1)
+        assertThat(branch.repository?.branches).containsOnly(branch)
     }
 
     @Nested
@@ -192,11 +194,12 @@ class BranchModelTest {
         fun `create branch, add commit from different repository, should fail`() {
             val head = MockTestDataProvider(this@BranchModelTest.repository).commitBySha.getValue("a".repeat(40))
 
+            val project = Project(name = "different-project")
             val differentRepository =
                 Repository(
                     localPath = "different-repository",
-                    project = Project(name = "different-project"),
-                )
+                    projectId = project.iid,
+                ).apply { this.project = project }
 
             val branch =
                 branch(
@@ -338,7 +341,10 @@ class BranchModelTest {
             name = name,
             fullName = fullName,
             category = category,
-            repository = repository,
-            head = head,
-        )
+            repositoryId = repository.iid,
+            headSha = head.sha,
+        ).apply {
+            this.repository = repository
+            this.head = head
+        }
 }

@@ -89,12 +89,12 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
 
     override fun findByIid(iid: Commit.Id): @Valid Commit? {
         logger.trace("Getting commit by iid: $iid")
-        return commitDao.findAll().find { it.iid == iid }
+        return commitDao.findByIid(iid)
     }
 
     override fun findByIids(iids: Collection<Commit.Id>): List<@Valid Commit> {
         logger.trace("Getting commits by iids: $iids")
-        return commitDao.findAll().filter { it.iid in iids }
+        return commitDao.findByIids(iids.toList())
     }
 
     override fun findBuildsByCommitId(commitId: String): List<Build> {
@@ -165,13 +165,11 @@ internal class CommitInfrastructurePortImpl : CommitInfrastructurePort ,
 
     override fun findAll(): Iterable<Commit> = this.commitDao.findAll()
 
-    override fun create(entity: Commit): Commit = this.commitDao.save(entity)
+    override fun create(entity: Commit): Commit = this.commitDao.create(entity)
 
-    override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = this.commitDao.saveAll(entities)
+    override fun saveAll(entities: Collection<Commit>): Iterable<Commit> = entities.map { create(it) }
 
-    override fun update(entity: Commit): Commit {
-        TODO("Not yet implemented")
-    }
+    override fun update(entity: Commit): Commit = this.commitDao.update(entity)
 
     override fun findExistingSha(
         repo: Repository,

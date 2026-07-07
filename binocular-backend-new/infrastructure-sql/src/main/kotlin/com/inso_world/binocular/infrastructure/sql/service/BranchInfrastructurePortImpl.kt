@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.persistence.model.Page
@@ -29,6 +30,12 @@ internal class BranchInfrastructurePortImpl(
 
     @Autowired
     private lateinit var branchDao: IBranchDao
+
+    @Autowired
+    private lateinit var repositoryDao: com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IRepositoryDao
+
+    @Autowired
+    private lateinit var commitDao: com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.ICommitDao
 
     @Autowired
     @Lazy
@@ -78,11 +85,18 @@ internal class BranchInfrastructurePortImpl(
     }
 
     override fun create(value: Branch): Branch {
-        TODO("Not yet implemented")
+        val owner = repositoryDao.findByIid(value.repositoryId)
+            ?: throw IllegalStateException("Repository not found: ${value.repositoryId}")
+        val head = commitDao.findBySha(owner, value.headSha)
+            ?: throw IllegalStateException("Head commit not found: ${value.headSha} in repository ${value.repositoryId}")
+
+        val entity = branchMapper.toEntity(value, owner, head)
+        val savedEntity = branchDao.create(entity)
+        return branchMapper.toDomain(savedEntity)
     }
 
     override fun saveAll(values: Collection<Branch>): Iterable<Branch> {
-        TODO("Not yet implemented")
+        return values.map { create(it) }
     }
 
     @Transactional(readOnly = true)

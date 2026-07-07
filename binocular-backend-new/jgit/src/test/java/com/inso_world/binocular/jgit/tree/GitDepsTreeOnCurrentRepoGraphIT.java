@@ -39,7 +39,7 @@ public class GitDepsTreeOnCurrentRepoGraphIT extends BaseIntegrationTest {
                 .normalize();
 
         JGitGitIndexer indexer = new JGitGitIndexer(new JGitConfig());
-        Project project = new Project("test-project");
+        Project project = TestModelFactory.createProject("test-project");
 
         Repository repo;
         try {
@@ -64,7 +64,7 @@ public class GitDepsTreeOnCurrentRepoGraphIT extends BaseIntegrationTest {
         }
 
         GitDepsTreeBuilder builder = new GitDepsTreeBuilder();
-        GitDepsTree tree = builder.build(repo, commits);
+        GitDepsTree tree = builder.build(repo, commits, branches);
 
         GitDepsTreeAsciiGraphRenderer renderer = new GitDepsTreeAsciiGraphRenderer();
         String ascii = renderer.render(tree, commits);

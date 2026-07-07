@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
 import com.inso_world.binocular.core.persistence.exception.PersistenceException
@@ -17,12 +18,12 @@ import kotlin.uuid.ExperimentalUuidApi
  */
 @Repository
 internal class BranchDao(
-    @Autowired private val repo: BranchRepository,
+    @Autowired private val branchRepo: BranchRepository,
 ) : SqlDao<BranchEntity, Long>(),
     IBranchDao {
     init {
         this.setClazz(BranchEntity::class.java)
-        this.setRepository(repo)
+        this.setRepository(branchRepo)
     }
 
     private object BranchSpecification {
@@ -40,16 +41,38 @@ internal class BranchDao(
         name: String,
     ): BranchEntity? {
         val rId = repo.id ?: throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findByRepository_IdAndName(rId, name)
+        return this.branchRepo.findByRepository_IdAndName(rId, name)
     }
 
     override fun findAll(repository: com.inso_world.binocular.model.Repository): Iterable<BranchEntity> =
-        this.repo.findAll(
+        this.branchRepo.findAll(
             Specification.allOf(BranchSpecification.hasRepository(repository)),
         )
 
-    override fun findByIid(iid: Reference.Id): BranchEntity? {
-        @OptIn(ExperimentalUuidApi::class)
-        return this.repo.findByIid(iid.value)
+    override fun findByIid(iid: com.inso_world.binocular.model.Branch.Id): BranchEntity? =
+        findByIid(iid as Any)
+
+    override fun findByIid(iid: Any): BranchEntity? {
+        val uIid: kotlin.uuid.Uuid = when (iid) {
+            is com.inso_world.binocular.model.Branch.Id -> iid.value
+            is com.inso_world.binocular.model.Reference.Id -> iid.value
+            is kotlin.uuid.Uuid -> iid
+            is String -> kotlin.uuid.Uuid.parse(iid)
+            else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+        }
+        return this.branchRepo.findByIid(uIid)
+    }
+
+    override fun findByIids(iids: Collection<Any>): List<BranchEntity> {
+        val uIids = iids.map { iid ->
+            when (iid) {
+                is com.inso_world.binocular.model.Branch.Id -> iid.value
+                is com.inso_world.binocular.model.Reference.Id -> iid.value
+                is kotlin.uuid.Uuid -> iid
+                is String -> kotlin.uuid.Uuid.parse(iid)
+                else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+            }
+        }
+        return this.branchRepo.findAllByIidIn(uIids)
     }
 }

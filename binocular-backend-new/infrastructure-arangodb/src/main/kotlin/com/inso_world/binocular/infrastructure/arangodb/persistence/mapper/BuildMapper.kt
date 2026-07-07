@@ -35,8 +35,6 @@ internal class BuildMapper
         private val jobMapper: JobMapper
     ) : EntityMapper<Build, BuildEntity> {
 
-        @Autowired
-
         @Lazy
         @Autowired
         private lateinit var commitMapper: CommitMapper

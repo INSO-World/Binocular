@@ -44,8 +44,8 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
      * @param domain The Branch domain object to convert
      * @return The BranchEntity (structure only)
      */
+    @Deprecated("Use toEntity(domain, owner, head) instead", ReplaceWith("toEntity(domain, owner, head)"))
     override fun toEntity(domain: Branch): BranchEntity {
-        // TODO
         throw UnsupportedOperationException("Mapping to entity now requires explicit owner and head entities.")
     }
 

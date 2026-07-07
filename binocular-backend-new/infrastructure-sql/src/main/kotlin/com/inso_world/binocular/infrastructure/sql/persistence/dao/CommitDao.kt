@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
 import com.inso_world.binocular.core.persistence.exception.PersistenceException
@@ -27,8 +28,30 @@ internal class CommitDao(
         this.setRepository(repo)
     }
 
-    @OptIn(ExperimentalUuidApi::class)
-    override fun findByIid(iid: com.inso_world.binocular.model.Commit.Id): CommitEntity? = repo.findByIid(iid.value)
+    override fun findByIid(iid: com.inso_world.binocular.model.Commit.Id): CommitEntity? =
+        findByIid(iid as Any)
+
+    override fun findByIid(iid: Any): CommitEntity? {
+        val uIid: Uuid = when (iid) {
+            is com.inso_world.binocular.model.Commit.Id -> iid.value
+            is Uuid -> iid
+            is String -> Uuid.parse(iid)
+            else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+        }
+        return this.repo.findByIid(uIid)
+    }
+
+    override fun findByIids(iids: Collection<Any>): List<CommitEntity> {
+        val uIids = iids.map { iid ->
+            when (iid) {
+                is com.inso_world.binocular.model.Commit.Id -> iid.value
+                is Uuid -> iid
+                is String -> Uuid.parse(iid)
+                else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+            }
+        }
+        return this.repo.findAllByIidIn(uIids)
+    }
 
     @OptIn(ExperimentalUuidApi::class)
     override fun findAllByIidIn(iids: Collection<com.inso_world.binocular.model.Commit.Id>): List<CommitEntity> =

@@ -17,4 +17,10 @@ internal interface DeveloperRepository :
     fun findAllByEmailIn(emails: Collection<String>): Stream<DeveloperEntity>
 
     fun findAllByRepository_Id(id: Long): Stream<DeveloperEntity>
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    fun findByIid(iid: kotlin.uuid.Uuid): DeveloperEntity?
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    fun findAllByIidIn(iids: Collection<kotlin.uuid.Uuid>): List<DeveloperEntity>
 }

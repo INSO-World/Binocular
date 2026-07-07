@@ -5,7 +5,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import jakarta.validation.constraints.Size
 
 internal interface IRepositoryDao : IDao<RepositoryEntity, Long> {
-    fun findByIid(iid: com.inso_world.binocular.model.Repository.Id): RepositoryEntity?
     fun findByName(name: String): RepositoryEntity?
 
     fun findByIdWithAllRelations(id: Long): RepositoryEntity?

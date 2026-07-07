@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.repository
 
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
@@ -11,6 +12,5 @@ import kotlin.uuid.Uuid
 internal interface ProjectRepository : JpaRepository<ProjectEntity, Long> {
     fun findByName(name: String): ProjectEntity?
 
-    @OptIn(ExperimentalUuidApi::class)
-    fun findByIid(iid: Uuid): ProjectEntity?
+    fun findByIid(iid: kotlin.uuid.Uuid): ProjectEntity?
 }

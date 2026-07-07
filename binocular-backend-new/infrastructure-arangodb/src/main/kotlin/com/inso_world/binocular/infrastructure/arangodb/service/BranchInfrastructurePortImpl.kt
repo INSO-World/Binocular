@@ -43,12 +43,12 @@ internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
 
     override fun findByIid(iid: Reference.Id): @Valid Branch? {
         logger.trace("Getting branch by iid: $iid")
-        return branchDao.findAll().find { it.iid == iid }
+        return branchDao.findByIid(iid)
     }
 
     override fun findByIids(iids: Collection<Reference.Id>): List<@Valid Branch> {
         logger.trace("Getting branches by iids: $iids")
-        return branchDao.findAll().filter { it.iid in iids }
+        return branchDao.findByIids(iids.toList())
     }
 
     override fun findFilesByBranchId(branchId: String): List<File> {
@@ -66,13 +66,11 @@ internal class BranchInfrastructurePortImpl : BranchInfrastructurePort,
 
     override fun findAll(): Iterable<Branch> = this.branchDao.findAll()
 
-    override fun create(entity: Branch): Branch = this.branchDao.save(entity)
+    override fun create(entity: Branch): Branch = this.branchDao.create(entity)
 
-    override fun saveAll(entities: Collection<Branch>): Iterable<Branch> = this.branchDao.saveAll(entities)
+    override fun saveAll(entities: Collection<Branch>): Iterable<Branch> = entities.map { create(it) }
 
-    override fun update(entity: Branch): Branch {
-        TODO("Not yet implemented")
-    }
+    override fun update(entity: Branch): Branch = this.branchDao.update(entity)
 
     override fun findAll(repository: Repository): Iterable<Branch> {
         TODO("Not yet implemented")

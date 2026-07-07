@@ -198,14 +198,7 @@ public class GitDepsTreeAsciiGraphRenderer {
 
     private static String authorPart(Commit c) {
         if (c == null) return "";
-        Developer a = c.getAuthor();
-        if (a != null && !isBlank(a.getName())) {
-            return a.getName();
-        }
-        Developer comm = c.getCommitter();
-        if (comm != null && !isBlank(comm.getName())) {
-            return comm.getName();
-        }
+        // TODO
         return "";
     }
 

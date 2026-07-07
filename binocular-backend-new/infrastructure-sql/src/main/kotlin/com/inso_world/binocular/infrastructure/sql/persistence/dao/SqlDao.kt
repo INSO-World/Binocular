@@ -15,9 +15,10 @@ import java.io.Serializable
 import java.util.stream.Stream
 
 @Repository
-internal class SqlDao<T, I : Serializable> : IDao<T, I> {
-    private lateinit var clazz: Class<T>
-    private lateinit var repository: JpaRepository<T, I>
+internal open class SqlDao<T, I : Serializable>(
+    protected var repository: JpaRepository<T, I>? = null
+) : IDao<T, I> {
+    protected lateinit var clazz: Class<T>
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(SqlDao::class.java)
@@ -36,9 +37,11 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
 
     override fun findById(id: I): T? = entityManager.find(clazz, id)
 
-    override fun findAllById(ids: Iterable<I>): Iterable<T> = repository.findAllById(ids)
+    override fun findAllById(ids: Iterable<I>): Iterable<T> = repository?.findAllById(ids) ?: emptyList()
 
     override fun findAll(): List<T> = entityManager.createQuery("FROM ${clazz.name}", clazz).resultList
+
+    fun findAllEntities(): List<T> = findAll()
 
     override fun findAll(pageable: Pageable): Page<T> {
         val query = entityManager.createQuery("FROM ${clazz.name}", clazz)
@@ -62,6 +65,14 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
         return entity
     }
 
+    override fun findByIid(iid: Any): T? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findByIids(iids: Collection<Any>): List<T> {
+        TODO("Not yet implemented")
+    }
+
     override fun update(entity: T): T = entityManager.merge(entity)
 
     override fun updateAndFlush(entity: T): T {
@@ -83,13 +94,7 @@ internal class SqlDao<T, I : Serializable> : IDao<T, I> {
      * Delete all entities
      */
     override fun deleteAll() {
-//        val entities =
-//            entityManager
-//                .createQuery("SELECT e FROM ${clazz.name} e", clazz)
-//                .resultList
-//        entities.forEach { delete(it) }
-        this.repository.deleteAll()
-//        entityManager.createQuery("DELETE FROM ${clazz.name}").executeUpdate()
+        this.repository?.deleteAll()
     }
 
     /**

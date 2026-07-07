@@ -1,6 +1,8 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model.vcs
 
 import com.inso_world.binocular.model.AbstractDomainObject
+import com.inso_world.binocular.model.DomainId
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.validation.GitUrl
 import jakarta.validation.constraints.NotBlank
@@ -25,14 +27,17 @@ data class Remote(
     var url: String,
 
     val repositoryId: Repository.Id,
+    @Deprecated("Use repositoryId instead")
+    var repository: Repository? = null,
+    override val iid: Remote.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Remote.Id, Remote.Key>(
-    Id(Uuid.random())
+    iid
 ) {
     /**
      * Type-safe wrapper for the technical identity of a [Remote].
      */
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     /**
      * Business key for a [Remote]: unique combination of repository ID and remote name.

@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.delegates.logger
@@ -96,67 +97,17 @@ internal class CommitInfrastructurePortImpl
                 repositoryDao.findByIid(value.repositoryId.value)
                     ?: throw NotFoundException("Repository ${value.repositoryId} not found")
 
-            val mapped = commitMapper.toEntity(value)
+            val author = resolveDeveloperEntity(value.authorSignature.developerId)
+            val committer = resolveDeveloperEntity(value.committerSignature.developerId)
+
+            val mapped = commitMapper.toEntity(value, repositoryEntity, author, committer)
             return this.commitDao.create(mapped).let { commitEntity ->
                 commitMapper.refreshDomain(value, commitEntity)
             }
         }
 
-        override fun findAll(pageable: Pageable): Page<Commit> {
-            TODO("Not yet implemented")
-        }
-
-        @Deprecated("", replaceWith = ReplaceWith("findByIid(iid)"))
-        @OptIn(ExperimentalUuidApi::class)
-        @Transactional(readOnly = true)
-        override fun findById(id: String): Commit? =
-            this.commitDao.findByIid(Commit.Id(Uuid.parse(id)))?.let {
-                val repository =
-                    it.repository.let { r ->
-                        val project =
-                            projectMapper.toDomain(
-                                r.project,
-                            )
-
-                        repositoryMapper.toDomain(r)
-                    }
-
-                commitMapper.toDomain(it)
-            }
-
-    @OptIn(ExperimentalUuidApi::class)
-    @Transactional
-    override fun update(value: Commit): Commit {
-        val repositoryEntity =
-            repositoryDao.findByIid(value.repositoryId.value)
-                ?: throw NotFoundException("Repository ${value.repositoryId} not found")
-
-        val entity =
-            this.commitDao.findBySha(repositoryEntity, value.sha)
-                ?: throw NotFoundException("Commit ${value.sha} not found, required for update")
-
-        entity.apply {
-            this.message = value.message
-            this.webUrl = value.webUrl
-            this.authorDateTime = value.authorSignature.timestamp
-            this.commitDateTime = (value.committerSignature ?: value.authorSignature).timestamp
-            this.committer = resolveDeveloperEntity(value.committerSignature.developerId)
-            this.author = resolveDeveloperEntity(value.authorSignature.developerId)
-        }
-
-        return this.commitDao.update(entity).let {
-            commitMapper.refreshDomain(value, it)
-        }
-    }
-
-    @OptIn(ExperimentalUuidApi::class)
-    private fun resolveDeveloperEntity(developerId: Developer.Id): DeveloperEntity {
-        return developerDao.findByIid(developerId.value)
-            ?: throw NotFoundException("Developer $developerId not found")
-    }
-
         override fun saveAll(values: Collection<Commit>): Iterable<Commit> {
-            TODO("Not yet implemented")
+            return values.map { create(it) }
         }
 
         override fun delete(value: Commit) {

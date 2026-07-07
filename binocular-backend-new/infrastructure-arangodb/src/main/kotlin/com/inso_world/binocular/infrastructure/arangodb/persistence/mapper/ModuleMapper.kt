@@ -32,7 +32,6 @@ internal class ModuleMapper
         private val proxyFactory: RelationshipProxyFactory,
         @Lazy private val fileMapper: FileMapper,
     ) : EntityMapper<Module, ModuleEntity> {
-        @Autowired
 
         @Lazy
         @Autowired

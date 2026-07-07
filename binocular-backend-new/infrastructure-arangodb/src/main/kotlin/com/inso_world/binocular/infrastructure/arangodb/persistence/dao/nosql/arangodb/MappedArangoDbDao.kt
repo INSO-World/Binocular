@@ -1,9 +1,11 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb
 
 import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.TechnicalIdentifiableRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import java.io.Serializable
@@ -151,5 +153,29 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
 
     override fun findAllAsStream(): Stream<D> {
         TODO("Not yet implemented")
+    }
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun findByIid(iid: Any): D? {
+        val uIid = when (iid) {
+            is java.util.UUID -> iid.toKotlinUuid()
+            is kotlin.uuid.Uuid -> iid
+            is String -> kotlin.uuid.Uuid.parse(iid)
+            is com.inso_world.binocular.model.DomainId -> iid.value
+            else -> null
+        } ?: return null
+
+        val techRepo = repository as? TechnicalIdentifiableRepository<E>
+        val entity = techRepo?.findByIid(uIid) ?: return null
+        return mapper.toDomain(entity)
+    }
+
+    override fun findByIids(iids: Collection<Any>): List<D> {
+        return iids.mapNotNull { findByIid(it) }
+    }
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    private fun java.util.UUID.toKotlinUuid(): kotlin.uuid.Uuid {
+        return kotlin.uuid.Uuid.fromLongs(this.mostSignificantBits, this.leastSignificantBits)
     }
 }

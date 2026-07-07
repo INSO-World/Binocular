@@ -16,26 +16,32 @@ import kotlin.uuid.ExperimentalUuidApi
 class UserModelTest {
     private lateinit var repository: Repository
 
+    private fun user(name: String = "test-user"): User =
+        User(name = name, repositoryId = repository.iid).apply {
+            this.repository = this@UserModelTest.repository
+            this.repository?.user?.add(this)
+        }
+
     @BeforeEach
     fun setUp() {
         val project = Project(name = "test-project")
         repository =
             Repository(
                 localPath = "test",
-                project = project,
-            )
+                projectId = project.iid,
+            ).apply { this.project = project }
     }
 
     @Test
     fun `create user, check that iid is created automatically`() {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         assertThat(user.iid).isNotNull()
     }
 
     @Test
     fun `create user, validate uniqueKey`() {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         @OptIn(ExperimentalUuidApi::class)
         assertAll(
@@ -50,30 +56,30 @@ class UserModelTest {
 
     @Test
     fun `create user, validate hashCode is same based on iid`() {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         assertThat(user.hashCode()).isEqualTo(user.iid.hashCode())
     }
 
     @Test
     fun `create user, is is null`() {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         assertThat(user.id).isNull()
     }
 
     @Test
     fun `create user, check reference to owning repository`() {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         assertThat(user.repository).isSameAs(repository)
-        assertThat(user.repository.user).containsOnly(user)
+        assertThat(user.repository?.user).containsOnly(user)
         assertThat(repository.user).containsOnly(user)
     }
 
     @Test
     fun `create user, update email`() {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         assertDoesNotThrow {
             user.email = "test-email"
@@ -83,7 +89,7 @@ class UserModelTest {
 
     @Test
     fun `create user, update email, check gitSignature`() {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         assertDoesNotThrow {
             user.email = "test-email"
@@ -94,7 +100,7 @@ class UserModelTest {
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create user, update email with invalid strings, should fail`(email: String) {
-        val user = User(name = "test-user", repository)
+        val user = user()
 
         assertThrows<IllegalArgumentException> {
             user.email = email
@@ -105,7 +111,7 @@ class UserModelTest {
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
     fun `create user with invalid name, should fail`(name: String) {
         assertThrows<IllegalArgumentException> {
-            User(name, repository)
+            User(name = name, repositoryId = repository.iid)
         }
     }
 
@@ -125,7 +131,7 @@ class UserModelTest {
 
             @Test
             fun `create user, validate committedCommits relation is empty`() {
-                val user = User(name = "test-user", repository)
+                val user = user()
                 assertThat(user.committedCommits).isEmpty()
             }
 
@@ -137,10 +143,10 @@ class UserModelTest {
                 val differentRepository =
                     Repository(
                         localPath = "different-repository",
-                        project = Project(name = "different-project"),
+                        projectId = Project(name = "different-project").iid,
                     )
 
-                val user = User(name = "test-user", differentRepository)
+                val user = User(name = "test-user", repositoryId = differentRepository.iid).apply { this.repository = differentRepository }
 
                 assertAll(
                     { assertThat(user.repository).isNotEqualTo(mockCommit.repository) },
@@ -157,7 +163,7 @@ class UserModelTest {
                 val mockCommit =
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-                val user = User(name = "test-user", repository)
+                val user = User(name = "test-user", repositoryId = repository.iid).apply { this.repository = repository }
 
                 assertThrows<IllegalArgumentException> {
                     user.committedCommits.add(mockCommit)
@@ -174,7 +180,7 @@ class UserModelTest {
 
             @Test
             fun `create user, validate authoredCommits relation is empty`() {
-                val user = User(name = "test-user", repository)
+                val user = User(name = "test-user", repositoryId = repository.iid).apply { this.repository = repository }
                 assertThat(user.authoredCommits).isEmpty()
             }
 
@@ -186,10 +192,10 @@ class UserModelTest {
                 val differentRepository =
                     Repository(
                         localPath = "different-repository",
-                        project = Project(name = "different-project"),
+                        projectId = Project(name = "different-project").iid,
                     )
 
-                val user = User(name = "test-user", differentRepository)
+                val user = User(name = "test-user", repositoryId = differentRepository.iid).apply { this.repository = differentRepository }
 
                 assertAll(
                     { assertThat(user.repository).isNotEqualTo(mockCommit.repository) },
@@ -209,10 +215,10 @@ class UserModelTest {
                 val differentRepository =
                     Repository(
                         localPath = "different-repository",
-                        project = Project(name = "different-project"),
+                        projectId = Project(name = "different-project").iid,
                     )
 
-                val user = User(name = "test-user", differentRepository)
+                val user = User(name = "test-user", repositoryId = differentRepository.iid).apply { this.repository = differentRepository }
 
                 assertThrows<IllegalArgumentException> {
                     user.authoredCommits.add(mockCommit)
@@ -224,7 +230,7 @@ class UserModelTest {
                 val mockCommit =
                     MockTestDataProvider(this@UserModelTest.repository).commitBySha.getValue("a".repeat(40))
 
-                val user = User(name = "test-user", repository)
+                val user = User(name = "test-user", repositoryId = repository.iid).apply { this.repository = repository }
 
                 assertTrue(user.authoredCommits.add(mockCommit))
                 assertAll(

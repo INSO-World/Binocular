@@ -1,6 +1,5 @@
 package com.inso_world.binocular.model
 
-import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -47,14 +46,7 @@ class ProjectModelTest {
     fun `create projects via copy, check that equals they are equal`() {
         val projectA = Project(name = "test-project")
         val originIid = projectA.iid
-        val projectB = projectA.copy()
-        setField(
-            projectB.javaClass.superclass
-                .getDeclaredField("iid")
-                .apply { isAccessible = true },
-            projectB,
-            originIid,
-        )
+        val projectB = projectA.copy(iid = originIid)
 
         assertThat(projectA).isNotSameAs(projectB)
         assertThat(projectA.iid).isEqualTo(originIid)
@@ -64,19 +56,18 @@ class ProjectModelTest {
 
     @Test
     fun `create project with repository, should link correctly`() {
-        val project =
-            Project(name = "test-project").apply {
-                this.repo =
-                    Repository(
-                        localPath = "test",
-                        project = this,
-                    )
-            }
+        val project = Project(name = "test-project")
+        val repository = Repository(
+            localPath = "test",
+            projectId = project.iid,
+        )
+        project.repo = repository
+        repository.project = project
 
         // check reference
         assertThat(project.repo).isNotNull()
-        assertThat(requireNotNull(project.repo).project).isSameAs(project)
-        assertThat(requireNotNull(project.repo).project.repo).isSameAs(project.repo)
+        assertThat(project.repo?.project).isSameAs(project)
+        assertThat(project.repo?.project?.repo).isSameAs(project.repo)
     }
 
     @ParameterizedTest

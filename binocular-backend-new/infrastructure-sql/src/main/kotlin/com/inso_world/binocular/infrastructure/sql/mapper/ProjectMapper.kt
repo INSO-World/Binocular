@@ -6,7 +6,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEnt
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toSqlEntity
 import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 
 @Component
@@ -20,23 +19,20 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         return entity
     }
 
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: ProjectEntity): Project {
-        val domain = entity.toDomain()
-        setField(
-            domain.javaClass.superclass.getDeclaredField("iid"),
-            domain,
-            entity.iid
-        )
+        val domain = Project(
+            name = entity.name,
+            iid = entity.iid,
+        ).apply {
+            this.id = entity.id?.toString()
+        }
 
         return domain
     }
 
     fun refreshDomain(target: Project, entity: ProjectEntity) : Project {
-        setField(
-            target.javaClass.getDeclaredField("id"),
-            target,
-            entity.id?.toString()
-        )
+        target.id = entity.id?.toString()
         return target
     }
 }

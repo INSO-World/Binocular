@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.dao
 
 import com.inso_world.binocular.core.persistence.exception.PersistenceException
@@ -27,6 +28,40 @@ internal class IssueDao(
         this.setRepository(repo)
     }
 
+    override fun findByIid(iid: Any): IssueEntity? {
+        val uIid: kotlin.uuid.Uuid = when (iid) {
+            is com.inso_world.binocular.model.Issue.Id -> iid.value
+            is kotlin.uuid.Uuid -> iid
+            is String -> {
+                try {
+                    kotlin.uuid.Uuid.parse(iid)
+                } catch (e: IllegalArgumentException) {
+                    return null
+                }
+            }
+            else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+        }
+        return this.repo.findByIid(uIid)
+    }
+
+    override fun findByIids(iids: Collection<Any>): List<IssueEntity> {
+        val uIids = iids.mapNotNull { iid ->
+            when (iid) {
+                is com.inso_world.binocular.model.Issue.Id -> iid.value
+                is kotlin.uuid.Uuid -> iid
+                is String -> {
+                    try {
+                        kotlin.uuid.Uuid.parse(iid)
+                    } catch (e: IllegalArgumentException) {
+                        null
+                    }
+                }
+                else -> throw IllegalArgumentException("Unsupported iid type: ${iid.javaClass}")
+            }
+        }
+        return this.repo.findAllByIidIn(uIids)
+    }
+
     private object IssueEntitySpecification {
         fun hasProjectId(projectId: Long): Specification<IssueEntity> =
             Specification { root, _, cb ->
@@ -43,9 +78,7 @@ internal class IssueDao(
         return repo.findAllByDevelopersContaining(user)
     }
 
-    override fun findByIid(iid: Issue.Id): IssueEntity? = repo.findByIid(iid)
-
-    override fun findAllByIidIn(iids: Collection<Issue.Id>): List<IssueEntity> = repo.findAllByIidIn(iids)
+    override fun findAllByIidIn(iids: Collection<Issue.Id>): List<IssueEntity> = repo.findAllByIidIn(iids.map { it.value })
 
     override fun findExistingGid(
         project: com.inso_world.binocular.model.Project,

@@ -6,7 +6,7 @@ import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Developer;
 import com.inso_world.binocular.model.Project;
 import com.inso_world.binocular.model.Repository;
-import com.inso_world.binocular.model.Signature;
+import com.inso_world.binocular.jgit.ModelFactory;
 import com.inso_world.binocular.model.vcs.ReferenceCategory;
 import kotlin.Pair;
 import org.eclipse.jgit.api.Git;
@@ -66,7 +66,7 @@ public class JGitGitIndexer implements GitIndexer {
     public Repository findRepo(@NotNull Path path, @NotNull Project project) {
         try (org.eclipse.jgit.lib.Repository jgitRepo = openRepository(path)) {
             String gitDir = jgitRepo.getDirectory().getAbsolutePath();
-            return new Repository(gitDir, project);
+            return ModelFactory.createRepository(gitDir, project);
         } catch (IOException e) {
             throw new JGitException.DiscoverException("Cannot open git repository at " + path, e);
         }
@@ -106,23 +106,8 @@ public class JGitGitIndexer implements GitIndexer {
 
             // Check if branch already exists in repository and update its head
             Branch existingBranch = null;
-            for (Branch b : repo.getBranches()) {
-                if (b.getName().equals(normalizedName)) {
-                    existingBranch = b;
-                    break;
-                }
-            }
-
-            Branch branch;
-            if (existingBranch != null) {
-                // Update existing branch's head
-                existingBranch.setHead(headCommit);
-                branch = existingBranch;
-            } else {
-                // Create new branch - this registers with repository
-                branch = new Branch(normalizedName, fullName, category, repo, headCommit);
-            }
-
+            // TODO
+            Branch branch = ModelFactory.createBranch(normalizedName, fullName, category, repo, headCommit.getSha());
             return new Pair<>(branch, domainCommits);
         } catch (IOException e) {
             throw new JGitException.TraversalException("Cannot traverse branch " + branchName, e);
@@ -157,7 +142,7 @@ public class JGitGitIndexer implements GitIndexer {
                     // Find commit - need to get full commit info
                     Commit headCommit = findCommitInternal(repo, jgitRepo, headId.getName(), mailmap);
 
-                    Branch branch = new Branch(shortName, refName, category, repo, headCommit);
+                    Branch branch = ModelFactory.createBranch(shortName, refName, category, repo, headCommit.getSha());
                     result.add(branch);
                 }
 
@@ -203,15 +188,9 @@ public class JGitGitIndexer implements GitIndexer {
             try (RevWalk walk = new RevWalk(jgitRepo)) {
                 RevCommit revCommit = walk.parseCommit(id);
 
-                // Check if already in repository
-                for (Commit existing : repo.getCommits()) {
-                    if (existing.getSha().equals(id.getName())) {
-                        return existing;
-                    }
-                }
-
                 // Create the commit with mailmap
-                return createCommit(repo, revCommit, mailmap);
+                Map<String, Developer> developersByKey = new HashMap<>();
+                return ModelFactory.createCommit(repo, revCommit, developersByKey, mailmap);
             }
         } catch (IOException e) {
             throw new JGitException.TraversalException("Cannot resolve commit " + hash, e);
@@ -433,30 +412,22 @@ public class JGitGitIndexer implements GitIndexer {
         // Track which commits are merge commits for parent filtering
         Set<String> mergeCommitShas = new HashSet<>();
 
-        // Seed from existing repository state
-        for (Commit c : repo.getCommits()) {
-            commitsBySha.putIfAbsent(c.getSha(), c);
-        }
-        for (Developer d : repo.getDevelopers()) {
-            developersByKey.putIfAbsent(d.getGitSignature(), d);
-        }
+            // Pass 1: Create commits
+            for (RevCommit rc : revCommits) {
+                String sha = rc.getId().getName();
+                if (rc.getParentCount() > 1) {
+                    mergeCommitShas.add(sha);
+                }
+                if (commitsBySha.containsKey(sha)) {
+                    // Collect parent info even for existing
+                    parentShasByCommit.put(sha, getParentShas(rc));
+                    continue;
+                }
 
-        // Pass 1: Create commits
-        for (RevCommit rc : revCommits) {
-            String sha = rc.getId().getName();
-            if (rc.getParentCount() > 1) {
-                mergeCommitShas.add(sha);
-            }
-            if (commitsBySha.containsKey(sha)) {
-                // Collect parent info even for existing
+            Commit commit = ModelFactory.createCommit(repo, rc, developersByKey, mailmap);
+                commitsBySha.put(sha, commit);
                 parentShasByCommit.put(sha, getParentShas(rc));
-                continue;
             }
-
-            Commit commit = createCommit(repo, rc, developersByKey, mailmap);
-            commitsBySha.put(sha, commit);
-            parentShasByCommit.put(sha, getParentShas(rc));
-        }
 
         // Pass 2: Wire parent relationships
         for (RevCommit rc : revCommits) {
@@ -477,7 +448,7 @@ public class JGitGitIndexer implements GitIndexer {
                             if (skipMerges && parentRc.getParentCount() > 1) {
                                 continue;
                             }
-                            parent = createCommit(repo, parentRc, developersByKey, mailmap);
+                            parent = ModelFactory.createCommit(repo, parentRc, developersByKey, mailmap);
                             commitsBySha.put(pSha, parent);
                         }
                     } catch (Exception e) {
@@ -485,8 +456,8 @@ public class JGitGitIndexer implements GitIndexer {
                         continue;
                     }
                 }
-                if (parent != null && !commit.getParents().contains(parent)) {
-                    commit.getParents().add(parent);
+                if (parent != null) {
+                    commit.getParentShas().add(pSha);
                 }
             }
         }
@@ -506,78 +477,6 @@ public class JGitGitIndexer implements GitIndexer {
             parentShas.add(p.getId().getName());
         }
         return parentShas;
-    }
-
-    /**
-     * Creates a domain commit from a JGit RevCommit.
-     *
-     * @param repo      the domain repository
-     * @param rc        the JGit RevCommit
-     * @param mailmap   optional mailmap for identity transformation
-     * @return the domain commit
-     */
-    private Commit createCommit(Repository repo, RevCommit rc, Mailmap mailmap) {
-        Map<String, Developer> developersByKey = new HashMap<>();
-        for (Developer d : repo.getDevelopers()) {
-            developersByKey.put(d.getGitSignature(), d);
-        }
-        return createCommit(repo, rc, developersByKey, mailmap);
-    }
-
-    /**
-     * Creates a domain commit from a JGit RevCommit with developer caching.
-     *
-     * @param repo            the domain repository
-     * @param rc              the JGit RevCommit
-     * @param developersByKey cache of developers by git signature
-     * @param mailmap         optional mailmap for identity transformation
-     * @return the domain commit
-     */
-    private Commit createCommit(Repository repo, RevCommit rc, Map<String, Developer> developersByKey, Mailmap mailmap) {
-        String sha = rc.getId().getName();
-
-        PersonIdent authorIdent = rc.getAuthorIdent();
-        PersonIdent committerIdent = rc.getCommitterIdent();
-
-        // Apply mailmap transformation if available
-        if (mailmap != null) {
-            authorIdent = mailmap.map(authorIdent);
-            committerIdent = mailmap.map(committerIdent);
-        }
-
-        // Get or create author developer
-        Developer author = getOrCreateDeveloper(repo, authorIdent, developersByKey);
-        LocalDateTime authorTime = toLocalDateTime(rc.getAuthorIdent()); // Use original ident for time
-
-        // Get or create committer developer
-        Developer committer = getOrCreateDeveloper(repo, committerIdent, developersByKey);
-        LocalDateTime commitTime = toLocalDateTime(rc.getCommitterIdent()); // Use original ident for time
-
-        // Create signatures
-        Signature authorSignature = new Signature(author, authorTime);
-        Signature committerSignature = new Signature(committer, commitTime);
-
-        // Create commit
-        return new Commit(sha, authorSignature, committerSignature, rc.getFullMessage(), repo);
-    }
-
-    private Developer getOrCreateDeveloper(Repository repo, PersonIdent ident, Map<String, Developer> cache) {
-        String name = ident.getName();
-        String email = ident.getEmailAddress();
-        if (email == null || email.isBlank()) {
-            email = "unknown@unknown.com";
-        }
-        if (name == null || name.isBlank()) {
-            name = "Unknown";
-        }
-
-        String key = name.trim() + " <" + email.trim() + ">";
-        Developer developer = cache.get(key);
-        if (developer == null) {
-            developer = new Developer(name, email, repo);
-            cache.put(key, developer);
-        }
-        return developer;
     }
 
     private static LocalDateTime toLocalDateTime(PersonIdent ident) {

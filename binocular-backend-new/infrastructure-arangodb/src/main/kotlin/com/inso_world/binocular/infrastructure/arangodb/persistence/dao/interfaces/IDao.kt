@@ -8,6 +8,10 @@ import java.util.stream.Stream
 internal interface IDao<T, I : Serializable> {
     fun findById(id: I): T?
 
+    fun findByIid(iid: Any): T?
+
+    fun findByIids(iids: Collection<Any>): List<T>
+
     fun create(entity: T): T
 
     fun findAll(): Iterable<T>

@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.vcs.ReferenceCategory
@@ -10,12 +11,13 @@ abstract class Reference<Key>(
     @field:NotNull
     open val category: ReferenceCategory,
     @field:NotNull
-    open val repositoryId: Repository.Id
+    open val repositoryId: Repository.Id,
+    override val iid: Reference.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Reference.Id, Key>(
-    Id(Uuid.random())
+    iid
 ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     override fun equals(other: Any?): Boolean = super.equals(other)
 

@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.repository
 
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
@@ -17,4 +18,7 @@ internal interface BranchRepository :
 
     @OptIn(ExperimentalUuidApi::class)
     fun findByIid(iid: Uuid): BranchEntity?
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun findAllByIidIn(iids: Collection<Uuid>): List<BranchEntity>
 }

@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import java.time.LocalDateTime
@@ -26,17 +27,20 @@ data class Issue(
     var mentions: List<Mention> = emptyList(),
     // Relationships
     val project: Project.Id,
+    @Deprecated("Use project instead")
+    var project_old: Project? = null,
     var authorId: Account.Id? = null,
     var accountIds: Set<Account.Id> = emptySet(),
     var commitIds: Set<Commit.Id> = emptySet(),
     var milestoneIds: Set<Milestone.Id> = emptySet(),
     var noteIds: Set<Note.Id> = emptySet(),
     var developerIds: Set<Developer.Id> = emptySet(),
+    override val iid: Issue.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Issue.Id, Issue.Key>(
-    Id(Uuid.random())
+    iid
 )  {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     @Deprecated("Use developerIds instead")
     val userIds: Set<User.Id>

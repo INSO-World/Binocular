@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import jakarta.validation.constraints.NotBlank
@@ -31,11 +32,12 @@ import kotlin.uuid.Uuid
 data class Project(
     @field:NotBlank
     val name: String,
+    override val iid: Project.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Project.Id, Project.Key>(
-    Id(Uuid.random())
+    iid
 ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(Repository::class.java)
@@ -52,6 +54,9 @@ data class Project(
     val milestoneIds: MutableSet<Milestone.Id> = mutableSetOf()
 
     var description: String? = null
+
+    @Deprecated("Relationship moved to Repository.projectId")
+    var repo: Repository? = null
 
     // some database dependent id
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))

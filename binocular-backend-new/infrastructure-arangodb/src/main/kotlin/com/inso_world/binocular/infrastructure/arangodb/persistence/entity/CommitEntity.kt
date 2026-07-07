@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.entity
 
 import com.arangodb.springframework.annotation.Document
@@ -117,28 +118,21 @@ data class CommitEntity(
     /**
      * Converts this CommitEntity to a Commit domain object.
      *
-     * @param repository The repository domain object
-     * @param author The author Developer domain object
-     * @param committer The committer Developer domain object
      * @return Commit domain object
      */
-    fun toDomain(
-        repository: Repository,
-        author: Developer,
-        committer: Developer,
-    ): Commit {
-        val authorSignature = Signature(developer = author, timestamp = authorDateTime)
+    fun toDomain(): Commit {
+        val authorSignature = Signature(developerId = author.iid, timestamp = authorDateTime)
         val committerSignature =
-            if (committer == author && commitDateTime == authorDateTime) {
+            if (committer.iid == author.iid && commitDateTime == authorDateTime) {
                 authorSignature
             } else {
-                Signature(developer = committer, timestamp = commitDateTime)
+                Signature(developerId = committer.iid, timestamp = commitDateTime)
             }
         return Commit(
             sha = this.sha,
             authorSignature = authorSignature,
             committerSignature = committerSignature,
-            repository = repository,
+            repositoryId = Repository.Id(this.repository.iid),
             message = this.message,
         ).apply {
             this.id = this@CommitEntity.id

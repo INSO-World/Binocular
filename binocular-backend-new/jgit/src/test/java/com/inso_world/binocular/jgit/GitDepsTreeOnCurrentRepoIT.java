@@ -38,7 +38,7 @@ public class GitDepsTreeOnCurrentRepoIT extends BaseIntegrationTest {
                 .normalize();
 
         JGitGitIndexer indexer = new JGitGitIndexer(new JGitConfig());
-        Project project = new Project("test-project");
+        Project project = TestModelFactory.createProject("test-project");
 
         Repository repo;
         try {
@@ -63,7 +63,7 @@ public class GitDepsTreeOnCurrentRepoIT extends BaseIntegrationTest {
         }
 
         GitDepsTreeBuilder builder = new GitDepsTreeBuilder();
-        GitDepsTree tree = builder.build(repo, commits);
+        GitDepsTree tree = builder.build(repo, commits, branches);
 
         Path projectRoot = guessProjectRootFrom(start);
         Path outDir = projectRoot.resolve("cli").resolve("target").resolve("git-deps-trees");

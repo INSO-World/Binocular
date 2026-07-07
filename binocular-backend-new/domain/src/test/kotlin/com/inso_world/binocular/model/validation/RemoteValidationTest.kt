@@ -34,7 +34,7 @@ internal class RemoteValidationTest : ValidationTest() {
     @BeforeEach
     fun setup() {
         val project = Project(name = "test-project")
-        repository = Repository(localPath = "/path/to/repo", project = project)
+        repository = Repository(localPath = "/path/to/repo", projectId = project.iid).apply { this.project = project }
     }
 
     @Nested
@@ -58,8 +58,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
             // Change field via reflection, otherwise constructor check fails
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
@@ -121,8 +121,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
                 remote,
@@ -178,8 +178,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = validName,
                     url = "https://github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             // When
             val violations = validator.validate(remote)
@@ -210,8 +210,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
             setField(
                 remote.javaClass.getDeclaredField("url").apply { isAccessible = true },
                 remote,
@@ -256,8 +256,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://example.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
             // required, otherwise constructor will reject
             setField(
                 remote.javaClass.getDeclaredField("url").apply { isAccessible = true },
@@ -336,8 +336,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = validUrl,
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             // When
             val violations = validator.validate(remote)
@@ -368,8 +368,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://example.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             // When
             val violations = validator.validate(remote)
@@ -403,17 +403,17 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://example.com/user/repo1.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             val anotherProject = Project(name = "another-project")
-            val anotherRepository = Repository(localPath = "/path/to/another", project = anotherProject)
+            val anotherRepository = Repository(localPath = "/path/to/another", projectId = anotherProject.iid).apply { this.project = anotherProject }
             val remote2 =
                 Remote(
                     name = "origin",
                     url = "https://example.com/user/repo2.git",
-                    repository = anotherRepository,
-                )
+                    repositoryId = anotherRepository.iid,
+                ).apply { this.repository = anotherRepository }
 
             // When
             val key1 = remote1.uniqueKey
@@ -434,15 +434,15 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://example.com/user/repo1.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             val remote2 =
                 Remote(
                     name = "upstream",
                     url = "https://example.com/user/repo2.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
             // Change name to match remote1
             setField(
                 remote2.javaClass.getDeclaredField("name").apply { isAccessible = true },
@@ -477,8 +477,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = "https://example.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
                 remote,

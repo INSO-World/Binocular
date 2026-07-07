@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -44,7 +45,7 @@ internal class MilestoneMapper : EntityMapper<Milestone, MilestoneEntity> {
     override fun toEntity(domain: Milestone): MilestoneEntity {
         val entity = MilestoneEntity(
             id = domain.id,
-            iid = domain.platformIid,
+            iid = domain.iid.value,
             title = domain.title,
             description = domain.description,
             createdAt = domain.createdAt,
@@ -64,7 +65,7 @@ internal class MilestoneMapper : EntityMapper<Milestone, MilestoneEntity> {
 
         val domain = Milestone(
             id = entity.id,
-            platformIid = entity.iid,
+            platformIid = null, // TODO: where is platformIid stored now?
             title = entity.title,
             description = entity.description,
             createdAt = entity.createdAt,
@@ -75,10 +76,11 @@ internal class MilestoneMapper : EntityMapper<Milestone, MilestoneEntity> {
             expired = entity.expired,
             webUrl = entity.webUrl,
             project =
-                entity.project?.let { Project.Id(it.iid!!) }
+                entity.project?.let { Project.Id(it.iid) }
                     ?: error("Parent Project not found in entity or context for Milestone ${entity.iid}"),
-            issueIds = entity.issues.mapNotNull { it.id?.let { id -> Issue.Id(Uuid.parse(id)) } }.toMutableSet(),
-            mergeRequestIds = entity.mergeRequests.mapNotNull { it.id?.let { id -> MergeRequest.Id(Uuid.parse(id)) } }.toMutableSet(),
+            issueIds = entity.issues.mapNotNull { it.iid?.let { iid -> Issue.Id(iid) } }.toMutableSet(),
+            mergeRequestIds = entity.mergeRequests.mapNotNull { it.iid?.let { iid -> MergeRequest.Id(iid) } }.toMutableSet(),
+            iid = Milestone.Id(entity.iid!!),
         )
 
         return domain

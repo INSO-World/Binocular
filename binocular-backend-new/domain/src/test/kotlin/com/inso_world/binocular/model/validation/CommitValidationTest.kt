@@ -15,15 +15,18 @@ internal class CommitValidationTest : ValidationTest() {
         invalidCommit: Commit,
         propertyPath: String,
     ) {
-        val repository = invalidCommit.repository
+        val repository = invalidCommit.repository ?: throw IllegalStateException("Repository is null")
         val dummyBranch =
             Branch(
                 fullName = "refs/heads/branch",
                 name = "branch",
-                repository = repository,
-                head = invalidCommit,
+                repositoryId = repository.iid,
+                headSha = invalidCommit.sha,
                 category = ReferenceCategory.LOCAL_BRANCH,
-            )
+            ).apply { 
+                this.repository = repository
+                this.head = invalidCommit
+            }
 
         repository.branches.add(dummyBranch)
         repository.commits.add(invalidCommit)

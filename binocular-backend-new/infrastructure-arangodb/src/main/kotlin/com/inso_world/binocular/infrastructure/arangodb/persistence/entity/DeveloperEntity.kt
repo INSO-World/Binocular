@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.entity
 
 import com.arangodb.springframework.annotation.Document
@@ -92,11 +93,11 @@ data class DeveloperEntity(
      * @param repository The domain repository (must be the owner)
      * @return The domain Developer
      */
-    fun toDomain(repository: Repository): Developer =
+    fun toDomain(): Developer =
         Developer(
             name = this.name,
             email = this.email,
-            repository = repository,
+            repositoryId = Repository.Id(this.repository.iid),
         ).apply {
             this.id = this@DeveloperEntity.id
         }

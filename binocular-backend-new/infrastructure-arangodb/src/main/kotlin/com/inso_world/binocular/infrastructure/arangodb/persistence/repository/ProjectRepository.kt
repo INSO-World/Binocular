@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.repository
 
 import com.arangodb.springframework.repository.ArangoRepository
@@ -7,9 +8,9 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @Repository
-interface ProjectRepository : ArangoRepository<ProjectEntity, String> {
+interface ProjectRepository : ArangoRepository<ProjectEntity, String>, TechnicalIdentifiableRepository<ProjectEntity> {
     fun findByName(name: String): ProjectEntity?
 
     @OptIn(ExperimentalUuidApi::class)
-    fun findByIid(iid: Uuid): ProjectEntity?
+    override fun findByIid(iid: Uuid): ProjectEntity?
 }

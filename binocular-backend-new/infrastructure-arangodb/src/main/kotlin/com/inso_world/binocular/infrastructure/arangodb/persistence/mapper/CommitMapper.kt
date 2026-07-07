@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -10,8 +11,8 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toAra
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Developer
 import com.inso_world.binocular.model.Repository
+import com.inso_world.binocular.model.Signature
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -36,10 +37,6 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
     @Autowired
     private lateinit var developerMapper: DeveloperMapper
 
-    companion object {
-        private val logger by logger()
-    }
-
     /**
      * Converts a Commit domain object to CommitEntity.
      *
@@ -47,8 +44,8 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
      * @return The CommitEntity (structure only, without relationships)
      */
     @OptIn(ExperimentalUuidApi::class)
+    @Deprecated("Use toEntity(domain, repository, author, committer) instead")
     override fun toEntity(domain: Commit): CommitEntity {
-        // TODO
         val owner = RepositoryEntity(
             iid = domain.repositoryId.value,
             localPath = "",
@@ -77,6 +74,14 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
         return entity
     }
 
+    fun toEntity(domain: Commit, repository: RepositoryEntity, author: DeveloperEntity, committer: DeveloperEntity): CommitEntity {
+        return domain.toArangoEntity(
+            repository = repository,
+            author = author,
+            committer = committer,
+        )
+    }
+
     /**
      * Converts a CommitEntity to Commit domain object.
      *
@@ -85,19 +90,22 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
      */
     @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: CommitEntity): Commit {
-        val author = developerMapper.toDomain(entity.author)
-        val committer = developerMapper.toDomain(entity.committer)
-
-        val domain = entity.toDomain(
-            repository = entity.repository.toDomain(),
-            author = author,
-            committer = committer
-        )
-        setField(
-            domain.javaClass.superclass.getDeclaredField("iid"),
-            domain,
-            entity.iid
-        )
+        val domain = Commit(
+            sha = entity.sha,
+            authorSignature = Signature(
+                developerId = entity.author.iid,
+                timestamp = entity.authorDateTime
+            ),
+            committerSignature = Signature(
+                developerId = entity.committer.iid,
+                timestamp = entity.commitDateTime
+            ),
+            message = entity.message,
+            repositoryId = Repository.Id(entity.repository.iid),
+            iid = Commit.Id(entity.iid)
+        ).apply {
+            this.id = entity.id
+        }
 
         return domain
     }
@@ -118,11 +126,7 @@ internal class CommitMapper : EntityMapper<Commit, CommitEntity> {
         target: Commit,
         entity: CommitEntity,
     ): Commit {
-        setField(
-            target.javaClass.getDeclaredField("id"),
-            target,
-            entity.id
-        )
+        target.id = entity.id
 
         return target
     }

@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.sql.persistence.repository
 
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
@@ -28,4 +29,7 @@ internal interface RepositoryRepository : JpaRepository<RepositoryEntity, Long>,
 
     @OptIn(ExperimentalUuidApi::class)
     fun findByIid(iid: Uuid): RepositoryEntity?
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun findAllByIidIn(iids: Collection<Uuid>): List<RepositoryEntity>
 }

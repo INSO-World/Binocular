@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.model.validation.Hexadecimal
@@ -64,11 +65,15 @@ data class Commit(
     val message: String? = null,
     @field:NotNull
     val repositoryId: Repository.Id,
+    @Deprecated("Use repositoryId instead")
+    var repository: Repository? = null,
+    val parents: MutableSet<Commit> = mutableSetOf(),
+    override val iid: Commit.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Commit.Id, Commit.Key>(
-    Id(Uuid.random())
+    iid
 ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     data class Key(val sha: String)
 

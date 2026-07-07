@@ -1,7 +1,11 @@
 package com.inso_world.binocular.infrastructure.sql.persistence.entity
 
+import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Mention
+import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Project
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -21,7 +25,10 @@ internal data class MergeRequestEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
-    var iid: Int? = null,
+    @Column(nullable = false, updatable = false, unique = true)
+    @Convert(KotlinUuidConverter::class)
+    var iid: MergeRequest.Id,
+    var platformIid: Int? = null,
     var title: String? = null,
     @Column(columnDefinition = "TEXT")
     var description: String? = null,
@@ -113,4 +120,35 @@ internal data class MergeRequestEntity(
     }
 
     override fun hashCode(): Int = Objects.hash(id, iid, title, description, createdAt, closedAt, updatedAt, state, webUrl)
+
+    fun toDomain(): MergeRequest = MergeRequest(
+        project = this.project?.iid ?: error("Project not found for MergeRequest $iid"),
+        id = this.id?.toString(),
+        platformIid = this.platformIid,
+        title = this.title,
+        description = this.description,
+        createdAt = this.createdAt,
+        closedAt = this.closedAt,
+        updatedAt = this.updatedAt,
+        labels = emptyList(), // labels missing in entity
+        state = this.state,
+        webUrl = this.webUrl,
+        mentions = emptyList(), // mentions need proper mapping if needed
+    ).apply {
+        this.id = this@MergeRequestEntity.id?.toString()
+    }
 }
+
+internal fun MergeRequest.toSqlEntity(owner: ProjectEntity): MergeRequestEntity = MergeRequestEntity(
+    id = this.id?.toLongOrNull(),
+    iid = this.iid,
+    platformIid = this.platformIid,
+    title = this.title,
+    description = this.description,
+    createdAt = this.createdAt,
+    closedAt = this.closedAt,
+    updatedAt = this.updatedAt,
+    state = this.state,
+    webUrl = this.webUrl,
+    project = owner
+)

@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import kotlin.io.encoding.Base64
@@ -14,7 +15,7 @@ data class Revision(
     Id(Uuid.random())
 ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     // some database dependent id
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))

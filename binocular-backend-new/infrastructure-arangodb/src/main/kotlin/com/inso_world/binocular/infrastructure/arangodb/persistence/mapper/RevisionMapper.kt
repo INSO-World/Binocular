@@ -14,33 +14,23 @@ import org.springframework.stereotype.Component
 internal class RevisionMapper : EntityMapper<Revision, RevisionEntity> {
 
     @Autowired
-
     @Lazy
-    @Autowired
     private lateinit var fileMapper: FileMapper
 
-    @Lazy
     @Autowired
+    @Lazy
     private lateinit var commitMapper: CommitMapper
 
     override fun toEntity(domain: Revision): RevisionEntity {
-
-        val entity = RevisionEntity(
-            id = domain.id,
-            content = domain.content,
-            file = fileMapper.toEntity(domain.file),
-            commit = commitMapper.toEntity(domain.commit)
-        )
-
-        return entity
+        // TODO
+        throw UnsupportedOperationException("RevisionMapper.toEntity needs entities to be resolved externally")
     }
 
     override fun toDomain(entity: RevisionEntity): Revision {
-
         val domain = Revision(
             content = entity.content ?: "",
-            file = fileMapper.toDomain(entity.file),
-            commit = commitMapper.toDomain(entity.commit)
+            commitSha = entity.commit.sha,
+            filePath = entity.file.path
         ).apply {
             id = entity.id
         }
@@ -48,5 +38,5 @@ internal class RevisionMapper : EntityMapper<Revision, RevisionEntity> {
         return domain
     }
 
-    override fun toDomainList(entities: Iterable<RevisionEntity>): List<Revision> = entities.map { toDomain(it) }
+    override fun toDomainList(entities: Iterable<RevisionEntity>): List<Revision> = entities.map { it -> this.toDomain(it) }
 }

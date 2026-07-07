@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.git.EdgeType;
 import com.inso_world.binocular.model.git.GitDepsTree;
 import com.inso_world.binocular.model.git.GitTreeEdge;
 import com.inso_world.binocular.model.git.GitTreeNode;
+import kotlin.uuid.Uuid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -34,8 +35,8 @@ class GitDepsTreeAsciiGraphRendererTest extends BaseUnitTest {
     @BeforeEach
     void setUp() {
         renderer = new GitDepsTreeAsciiGraphRenderer();
-        project = new Project("test-project");
-        repository = new Repository("/test/path", project);
+        project = TestModelFactory.createProject("test-project");
+        repository = TestModelFactory.createRepository("/test/path", project.getIid());
         shaCounter = 0;
     }
 
@@ -644,8 +645,8 @@ class GitDepsTreeAsciiGraphRendererTest extends BaseUnitTest {
     // Helper methods to create test commits
 
     private Commit createCommit(String sha, String authorName, String email, LocalDateTime dateTime, String message) {
-        Developer author = new Developer(authorName, email, repository);
-        Signature authorSig = new Signature(author, dateTime);
-        return new Commit(sha, authorSig, authorSig, message, repository);
+        Developer author = ModelFactory.createDeveloper(authorName, email, repository.getIid());
+        Signature authorSig = ModelFactory.createSignature(author.getIid(), dateTime);
+        return ModelFactory.createCommit(sha, authorSig, authorSig, message, repository.getIid());
     }
 }

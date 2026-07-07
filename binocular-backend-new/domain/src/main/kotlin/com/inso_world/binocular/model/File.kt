@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import kotlin.uuid.ExperimentalUuidApi
@@ -15,8 +16,8 @@ data class File(
     ) {
     @JvmInline
     value class Id(
-        val value: Uuid,
-    )
+        override val value: Uuid
+    ) : DomainId
 
     data class Key(
         val path: String,

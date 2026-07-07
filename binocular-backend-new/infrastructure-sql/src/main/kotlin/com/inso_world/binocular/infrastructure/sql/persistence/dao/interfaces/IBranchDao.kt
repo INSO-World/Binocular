@@ -5,7 +5,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEnti
 import com.inso_world.binocular.model.Repository
 
 internal interface IBranchDao : IDao<BranchEntity, Long> {
+    fun findByIid(iid: com.inso_world.binocular.model.Branch.Id): BranchEntity?
     fun findAll(repository: Repository): Iterable<BranchEntity>
-
-    fun findByIid(iid: com.inso_world.binocular.model.Reference.Id): BranchEntity?
 }

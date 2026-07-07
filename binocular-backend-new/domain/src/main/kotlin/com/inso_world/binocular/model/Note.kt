@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.model
 
 import kotlin.uuid.ExperimentalUuidApi
@@ -22,11 +23,12 @@ data class Note(
     // Relationships
     val issueIds: MutableSet<Issue.Id> = mutableSetOf(),
     val mergeRequestIds: MutableSet<MergeRequest.Id> = mutableSetOf(),
+    override val iid: Note.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Note.Id, Note.Key>(
-    Id(Uuid.random())
+    iid
 ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(override val value: Uuid) : DomainId
 
     val accountIds: MutableSet<Account.Id> = mutableSetOf()
 

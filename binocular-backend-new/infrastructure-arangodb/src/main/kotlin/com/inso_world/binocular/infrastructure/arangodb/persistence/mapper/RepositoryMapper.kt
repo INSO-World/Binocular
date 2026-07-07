@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -9,7 +10,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.P
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
 
 /**
@@ -80,12 +80,13 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
      */
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toDomain(entity: RepositoryEntity): Repository {
-        val domain = entity.toDomain()
-        setField(
-            domain.javaClass.superclass.getDeclaredField("iid"),
-            domain,
-            Repository.Id(entity.iid),
-        )
+        val domain = Repository(
+            localPath = entity.localPath,
+            projectId = Project.Id(entity.project.iid),
+            iid = Repository.Id(entity.iid),
+        ).apply {
+            this.id = entity.id
+        }
 
         return domain
     }
@@ -104,11 +105,7 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
         target: Repository,
         entity: RepositoryEntity,
     ): Repository {
-        setField(
-            target.javaClass.getDeclaredField("id"),
-            target,
-            entity.id
-        )
+        target.id = entity.id
 
         return target
     }

@@ -8,7 +8,6 @@ import com.inso_world.binocular.model.Project
 import java.util.stream.Stream
 
 internal interface IIssueDao : IDao<IssueEntity, Long> {
-    fun findByIid(iid: Issue.Id): IssueEntity?
     fun findAllByIidIn(iids: Collection<Issue.Id>): List<IssueEntity>
 
     fun findAllByUser(user: DeveloperEntity): Stream<IssueEntity>

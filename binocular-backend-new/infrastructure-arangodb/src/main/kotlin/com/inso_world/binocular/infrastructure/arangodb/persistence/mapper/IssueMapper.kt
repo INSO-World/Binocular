@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -37,90 +38,69 @@ import kotlin.uuid.Uuid
  * mentions but uses lazy loading for accounts, commits, milestones, notes, and users to optimize performance.
  */
 @Component
-internal class IssueMapper
-    @Autowired
-    constructor(
-        private val mentionMapper: MentionMapper,
-    ) : EntityMapper<Issue, IssueEntity> {
+internal class IssueMapper(
+    @org.springframework.beans.factory.annotation.Autowired private val mentionMapper: com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.MentionMapper,
+) : EntityMapper<Issue, IssueEntity> {
 
-        companion object {
-            private val logger by logger()
-        }
+    override fun toEntity(domain: Issue): IssueEntity =
+        IssueEntity(
+            id = domain.id,
+            iid = domain.iid.value,
+            title = domain.title,
+            description = domain.description,
+            createdAt = domain.createdAt?.let { java.util.Date.from(it.toInstant(java.time.ZoneOffset.UTC)) },
+            closedAt = domain.closedAt?.let { java.util.Date.from(it.toInstant(java.time.ZoneOffset.UTC)) },
+            updatedAt = domain.updatedAt?.let { java.util.Date.from(it.toInstant(java.time.ZoneOffset.UTC)) },
+            labels = domain.labels,
+            state = domain.state,
+            webUrl = domain.webUrl,
+            gid = domain.gid,
+            mentions = domain.mentions.map { m -> this.mentionMapper.toEntity(m) },
+        )
 
-        /**
-         * Converts an Issue domain object to IssueEntity.
-         *
-         * Converts timestamp fields from LocalDateTime to Date for ArangoDB storage.
-         * Eagerly maps all mentions as they are typically accessed together with the issue.
-         *
-         * @param domain The Issue domain object to convert
-         * @return The IssueEntity with issue metadata, labels, and mentions
-         */
-        override fun toEntity(domain: Issue): IssueEntity =
-            IssueEntity(
-                id = domain.id,
-                iid = domain.platformIid,
-                title = domain.title,
-                description = domain.description,
-                createdAt = domain.createdAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
-                closedAt = domain.closedAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
-                updatedAt = domain.updatedAt?.let { Date.from(it.toInstant(ZoneOffset.UTC)) },
-                labels = domain.labels,
-                state = domain.state,
-                webUrl = domain.webUrl,
-                gid = domain.gid,
-                mentions = domain.mentions.map { mentionMapper.toEntity(it) },
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun toDomain(entity: IssueEntity): Issue {
+        val domain =
+            Issue(
+                id = entity.id,
+                platformIid = null,
+                gid = entity.gid,
+                title = entity.title,
+                description = entity.description,
+                createdAt =
+                entity.createdAt
+                    ?.toInstant()
+                    ?.atZone(java.time.ZoneOffset.UTC)
+                    ?.toLocalDateTime(),
+                closedAt =
+                entity.closedAt
+                    ?.toInstant()
+                    ?.atZone(java.time.ZoneOffset.UTC)
+                    ?.toLocalDateTime(),
+                updatedAt =
+                entity.updatedAt
+                    ?.toInstant()
+                    ?.atZone(java.time.ZoneOffset.UTC)
+                    ?.toLocalDateTime(),
+                labels = entity.labels,
+                state = entity.state,
+                webUrl = entity.webUrl,
+                mentions = entity.mentions.map { me -> this.mentionMapper.toDomain(me) },
+                project =
+                entity.project?.let { p -> Project.Id(p.iid) }
+                    ?: error("Parent Project not found in entity for Issue ${entity.iid}"),
+                accountIds = entity.accounts.mapNotNull { a -> a.id?.let { id -> Account.Id(Uuid.parse(id)) } }.toSet(),
+                commitIds = entity.commits.mapNotNull { c -> c.iid?.let { iid -> Commit.Id(iid) } }.toSet(),
+                milestoneIds = entity.milestones.mapNotNull { ms -> ms.iid?.let { iid -> Milestone.Id(iid) } }.toSet(),
+                noteIds = entity.notes.mapNotNull { n -> n.id?.let { id -> Note.Id(Uuid.parse(id)) } }.toSet(),
+                developerIds = entity.users.mapNotNull { u -> u.iid?.let { iid -> Developer.Id(iid) } }.toSet(),
+                iid = Issue.Id(entity.iid!!),
             )
 
-        /**
-         * Converts an IssueEntity to Issue domain object.
-         *
-         * Converts timestamp fields from Date to LocalDateTime. Eagerly maps mentions
-         * and extracts IDs for relationships to avoid loading unnecessary data.
-         *
-         * @param entity The IssueEntity to convert
-         * @return The Issue domain object with eager mentions and ID-based relationships
-         */
-        @OptIn(ExperimentalUuidApi::class)
-        override fun toDomain(entity: IssueEntity): Issue {
-            val domain =
-                Issue(
-                    id = entity.id,
-                    platformIid = entity.iid,
-                    gid = entity.gid,
-                    title = entity.title,
-                    description = entity.description,
-                    createdAt =
-                        entity.createdAt
-                            ?.toInstant()
-                            ?.atZone(ZoneOffset.UTC)
-                            ?.toLocalDateTime(),
-                    closedAt =
-                        entity.closedAt
-                            ?.toInstant()
-                            ?.atZone(ZoneOffset.UTC)
-                            ?.toLocalDateTime(),
-                    updatedAt =
-                        entity.updatedAt
-                            ?.toInstant()
-                            ?.atZone(ZoneOffset.UTC)
-                            ?.toLocalDateTime(),
-                    labels = entity.labels,
-                    state = entity.state,
-                    webUrl = entity.webUrl,
-                    mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-                    project =
-                        entity.project?.let { Project.Id(it.iid!!) }
-                            ?: error("Parent Project not found in entity for Issue ${entity.iid}"),
-                    accountIds = entity.accounts.mapNotNull { it.id?.let { id -> Account.Id(Uuid.parse(id)) } }.toSet(),
-                    commitIds = entity.commits.mapNotNull { it.iid?.let { iid -> Commit.Id(iid) } }.toSet(),
-                    milestoneIds = entity.milestones.mapNotNull { it.id?.let { id -> Milestone.Id(Uuid.parse(id)) } }.toSet(),
-                    noteIds = entity.notes.mapNotNull { it.id?.let { id -> Note.Id(Uuid.parse(id)) } }.toSet(),
-                    developerIds = entity.users.mapNotNull { it.iid?.let { iid -> Developer.Id(iid) } }.toSet(),
-                )
-
-            return domain
-        }
-
-        override fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> = entities.map { toDomain(it) }
+        return domain
     }
+
+    override fun toDomainList(entities: Iterable<IssueEntity>): List<Issue> {
+        return entities.map { e -> this.toDomain(e) }
+    }
+}

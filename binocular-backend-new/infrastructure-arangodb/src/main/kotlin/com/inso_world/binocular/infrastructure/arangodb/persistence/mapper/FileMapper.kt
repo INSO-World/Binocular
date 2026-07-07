@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class FileMapper : EntityMapper<File, FileEntity> {
-    @Autowired
 
     companion object {
         private val logger by logger()
@@ -47,7 +46,7 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
                 id = domain.id,
                 path = domain.path,
                 webUrl = domain.webUrl,
-                maxLength = domain.maxLength,
+                maxLength = 0,
             )
 
         return entity
