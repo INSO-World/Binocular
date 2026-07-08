@@ -12,15 +12,17 @@ import jakarta.validation.Valid
 import org.springframework.stereotype.Component
 
 /**
- * Mapper for [CiRateBucket] aggregation projections.
+ * Mapper between the per-module CI error-rate aggregation entity and its domain value object.
  *
- * Unlike aggregate mappers (e.g. BranchMapper), this is a **pure projection mapper**:
- * - no identity (no iid / business key)
- * - no cross-aggregate references
- * - no MappingContext, no remember()
+ * This is a **pure projection mapper**: it only exists to copy the aggregated numbers
+ * ([CiRatePerModuleEntity] <-> [CiRatePerModule]) that come out of an AQL query.
  *
- * It only copies the aggregated CI error-rate fields between the AQL result entity
- * and the domain value object.
+ * Unlike the "real" aggregate mappers (e.g. BranchMapper), it deliberately has:
+ * - no identity (no iid / business key),
+ * - no references to other aggregates,
+ * - no MappingContext and no remember() calls.
+ *
+ * So there is just a plain field-by-field copy in both directions.
  */
 @Component
 internal class CIRateMapper : EntityMapper<CiRatePerModule, CiRatePerModuleEntity> {
