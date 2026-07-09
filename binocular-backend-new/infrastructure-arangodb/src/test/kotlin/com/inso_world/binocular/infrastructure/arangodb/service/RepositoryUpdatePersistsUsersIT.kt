@@ -58,7 +58,7 @@ internal class RepositoryUpdatePersistsUsersIT : BaseIntegrationTest() {
         val repository = Repository(localPath = "/probe/user-upd-${Uuid.random()}", project = project)
         projectPort.create(project)
 
-        User(name = "Alice", repository = repository).apply { email = "alice@example.com" }
+        User(name = "Alice", repository = repository, email = "alice@example.com")
         val updated = repositoryPort.update(repository)
 
         assertAll(

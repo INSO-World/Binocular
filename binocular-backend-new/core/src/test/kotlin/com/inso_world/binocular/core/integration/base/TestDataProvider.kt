@@ -354,13 +354,11 @@ object TestDataProvider {
 
     val testUsers =
         listOf(
-            User("John Doe", repository = repository).apply {
+            User("John Doe", repository = repository, email = "john.doe@example.com").apply {
                 this.id = "1"
-                this.email = "john.doe@example.com"
             },
-            User("Jane Smith", repository = repository).apply {
+            User("Jane Smith", repository = repository, email = "jane.smith@example.com").apply {
                 this.id = "2"
-                this.email = "jane.smith@example.com"
             },
         )
 
