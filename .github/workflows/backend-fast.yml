@@ -17,9 +17,14 @@ env:
   WD: binocular-backend-new
 
 jobs:
-  build:
-    name: Build (install once)
-    runs-on: ubuntu-latest
+  lint:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         working-directory: ${{ env.WD }}
@@ -31,42 +36,30 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
-      - name: Install (whole reactor, skip tests)
-        run: mvn $MAVEN_CLI_OPTS clean install -DskipTests
-
-      - name: Lint (ktlint)
+      - name: Validate
         run: mvn $MAVEN_CLI_OPTS ktlint:check
 
-  test-modules:
-    name: Test Modules
-    needs:
-      - build
-    runs-on: ubuntu-latest
+  # Merged: validate + compile-sources + compile-tests
+  preflight:
+    name: Preflight (validate + compile + test-compile)
+    # needs:
+    #   - lint
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+    runs-on: ${{ matrix.os }}
+
     defaults:
       run:
         working-directory: ${{ env.WD }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        MODULE: [
-          { name: 'domain' },
-          { name: 'core' },
-          { name: 'ffi' },
-          { name: 'jgit' },
-          { name: 'github' },
-          { name: 'infrastructure-arangodb' },
-          { name: 'infrastructure-sql' },
-          { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' },
-          { name: 'infrastructure-test', springProfile: 'test,gix,postgres' },
-          { name: 'integration-test/vcs-indexer', springProfile: 'jgit' },
-          { name: 'integration-test/vcs-indexer', springProfile: 'gix' }
-        ]
 
     steps:
       - name: Checkout
@@ -75,43 +68,26 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
-      - name: Run tests for module ${{ matrix.MODULE.name }}
-        run: |
-          CMD="mvn $MAVEN_CLI_OPTS test -o --pl ${{ matrix.MODULE.name }}"
-          if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
-            CMD="$CMD -Dspring.profiles.active=${{ matrix.MODULE.springProfile }}"
-          fi
-          echo "Running: $CMD"
-          eval $CMD
+      - name: Validate
+        run: mvn $MAVEN_CLI_OPTS validate
 
-      - name: Surefire report for module ${{ matrix.MODULE.name }}
-        if: always()
-        run: |
-          SAFE_NAME=$(echo "${{ matrix.MODULE.name }}" | tr '/' '-')
-          CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl ${{ matrix.MODULE.name }}"
-          if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
-            CMD="$CMD -Dspring.profiles.active=${{ matrix.MODULE.springProfile }}"
-          fi
-          eval $CMD
+      - name: Compile sources
+        run: mvn $MAVEN_CLI_OPTS clean compile
 
-      - name: Upload surefire report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.SAFE_MODULE_NAME }}-${{ matrix.MODULE.springProfile }}-report
-          path: ${{ env.WD }}/${{ matrix.MODULE.name }}/target/reports/
+      - name: Compile tests
+        run: mvn $MAVEN_CLI_OPTS test-compile
 
   test-application-postgres:
     name: Test-Application Layers w/ postgres
     needs:
-      - build
+      - preflight
       - test-modules
-    runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: ${{ env.WD }}
@@ -119,27 +95,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [ 'cli' ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+        module: [ 'cli' ] # 'web' TODO add when implemented
+
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
 
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
+      - name: Install dependencies
+        run: |
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am
+
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn $MAVEN_CLI_OPTS test -o --pl ${{ matrix.module }} -Dspring.profiles.active=test,postgres
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl ${{ matrix.module }}
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
         if: always()
@@ -151,37 +137,58 @@ jobs:
   test-application-arangodb:
     name: Test-Application Layers w/ ArangoDB
     needs:
-      - build
+      - preflight
       - test-modules
-    runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: ${{ env.WD }}
 
+    services:
+      db:
+        image: arangodb:3.12
+        ports:
+          - "8529:8529"
+        env:
+          ARANGO_NO_AUTH: 1
+
     strategy:
       fail-fast: false
       matrix:
-        module: [ 'web' ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+        module: [ 'web' ] # 'cli' TODO: Add cli when it's done
+
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
 
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
+      - name: Install dependencies
+        run: |
+          mvn clean install -DskipTests --pl ${{ matrix.module }} --am
+
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn $MAVEN_CLI_OPTS test -o --pl ${{ matrix.module }} -Dspring.profiles.active=test,arangodb
+          ARANGODB_HOST=localhost \
+          mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.module }}
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl ${{ matrix.module }}
+        run: |
+          ARANGODB_HOST=localhost \
+          mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.module }} -am
 
       - name: Upload surefire report
         if: always()
@@ -193,16 +200,17 @@ jobs:
   test-graphql-realdata:
     name: Test-GraphQL Real Data Integration
     needs:
-      - build
+      - preflight
       - test-modules
-    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.WD }}
-
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
 
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
@@ -214,12 +222,18 @@ jobs:
 
       - name: Run GraphQL Real-Data Tests
         run: |
-          mvn $MAVEN_CLI_OPTS test -o --pl web -Dspring.profiles.active=test,nosql,arangodb -Dtest=*RealDataIT
+          mvn $MAVEN_CLI_OPTS test \
+            --pl web -am \
+            -Prealdata \
+            -Dspring.profiles.active=test,nosql,arangodb
 
       - name: Surefire report for GraphQL Real-Data Tests
         if: always()
         run: |
-          mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl web -Dspring.profiles.active=test,nosql,arangodb -Dtest=*RealDataIT
+          mvn $MAVEN_CLI_OPTS surefire-report:report-only \
+            --pl web -am \
+            -Prealdata \
+            -Dspring.profiles.active=test,nosql,arangodb
 
       - name: Upload surefire report
         if: always()
@@ -227,3 +241,83 @@ jobs:
         with:
           name: web-graphql-realdata-report
           path: ${{ env.WD }}/web/target/reports/
+
+  test-modules:
+    name: Test
+    needs:
+      - preflight
+
+    defaults:
+      run:
+        working-directory: ${{ env.WD }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        MODULE: [
+          { name: 'domain' },
+          { name: 'ffi' },
+          { name: 'jgit' },
+          { name: 'core' },
+          { name: 'github' },
+          { name: 'integration-test/vcs-indexer', springProfile: 'jgit' },
+          { name: 'integration-test/vcs-indexer', springProfile: 'gix' },
+          { name: 'infrastructure-arangodb' },
+          { name: 'infrastructure-sql' },
+          { name: 'infrastructure-test', springProfile: 'test,gix,arangodb' },
+          { name: 'infrastructure-test', springProfile: 'test,gix,postgres' }
+        ]
+        os: [ ubuntu-latest ]
+        java_version: [ '23' ]
+        distribution: [ 'temurin' ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Setup (cache/java/go-offline)
+        uses: ./.github/actions/java-maven-setup
+        with:
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          working-directory: ${{ env.WD }}
+          checkout-depth: 1
+
+      - name: Install dependencies
+        run: mvn clean --pl ${{ matrix.MODULE.name }} -am -DskipTests jar:test-jar install
+
+      - name: Run tests for module ${{ matrix.MODULE.name }}
+        run: |
+          CMD="mvn $MAVEN_CLI_OPTS test --pl ${{ matrix.MODULE.name }}"
+          if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
+            CMD="$CMD -Dspring.profiles.active=${{ matrix.MODULE.springProfile }}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
+
+      - name: Surefire report for module ${{ matrix.MODULE.name }}
+        if: always()
+        run: |
+          # 1. Sanitize the name: replace / with -
+          SAFE_NAME=$(echo "${{ matrix.MODULE.name }}" | tr '/' '-')
+          echo "SAFE_MODULE_NAME=$SAFE_NAME" >> $GITHUB_ENV
+
+          # 2. Run your existing command
+          CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only --pl ${{ matrix.MODULE.name }} -am"
+          if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
+            CMD="$CMD -Dspring.profiles.active=${{matrix.MODULE.springProfile}}"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
+
+      - name: Upload surefire report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # Use the environment variable created above
+          name: ${{ env.SAFE_MODULE_NAME }}-${{ matrix.MODULE.springProfile }}-report
+          path: ${{ env.WD }}/${{ matrix.MODULE.name }}/target/reports/
