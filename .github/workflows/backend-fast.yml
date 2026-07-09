@@ -17,28 +17,6 @@ env:
   WD: binocular-backend-new
 
 jobs:
-  lint:
-    name: Lint (ktlint)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.WD }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup (cache/java/go-offline)
-        uses: ./.github/actions/java-maven-setup
-        with:
-          java-version: '23'
-          distribution: 'temurin'
-          working-directory: ${{ env.WD }}
-          checkout-depth: 1
-
-      - name: Lint (ktlint)
-        run: mvn $MAVEN_CLI_OPTS ktlint:check
-
   build:
     name: Build (install once)
     runs-on: ubuntu-latest
@@ -60,6 +38,9 @@ jobs:
 
       - name: Install (whole reactor, skip tests)
         run: mvn $MAVEN_CLI_OPTS clean install -DskipTests
+
+      - name: Lint (ktlint)
+        run: mvn $MAVEN_CLI_OPTS ktlint:check
 
   test-modules:
     name: Test Modules
