@@ -2,9 +2,9 @@ package com.inso_world.binocular.jgit.tree;
 
 import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Developer;
-import com.inso_world.binocular.model.git.GitDepsTree;
-import com.inso_world.binocular.model.git.GitTreeEdge;
-import com.inso_world.binocular.model.git.GitTreeNode;
+import com.inso_world.binocular.jgit.git.GitDepsTree;
+import com.inso_world.binocular.jgit.git.GitTreeEdge;
+import com.inso_world.binocular.jgit.git.GitTreeNode;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

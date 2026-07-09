@@ -1,4 +1,4 @@
-package com.inso_world.binocular.model.git
+package com.inso_world.binocular.jgit.git
 
 /**
  * Lightweight representation of a git commit dependency graph that can be rendered as a tree.
