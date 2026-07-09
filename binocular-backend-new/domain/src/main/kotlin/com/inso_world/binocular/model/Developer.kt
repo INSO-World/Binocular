@@ -194,10 +194,10 @@ fun Developer.toLegacyUser(): User {
     val user =
         User(
             name = this@toLegacyUser.name,
-            repository = this@toLegacyUser.repository
+            repository = this@toLegacyUser.repository,
+            email = this@toLegacyUser.email
         ).apply {
             this.id = this@toLegacyUser.id
-            this.email = this@toLegacyUser.email
         }
 
     return user

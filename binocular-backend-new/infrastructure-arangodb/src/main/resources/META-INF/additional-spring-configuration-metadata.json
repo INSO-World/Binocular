@@ -52,6 +52,12 @@
       "defaultValue": "Binocular"
     },
     {
+      "name": "binocular.arangodb.migration.defaultUserEmailTemplate",
+      "type": "java.lang.String",
+      "description": "Template used to generate default email addresses for users with missing email fields during migration. The placeholder {name} is replaced with the user's name (sanitised) so that defaulted users remain distinct.",
+      "defaultValue": "{name}@users.noreply.binocular.inso-world.com"
+    },
+    {
       "name": "binocular.arangodb.migration.enabled",
       "type": "java.lang.Boolean",
       "description": "Whether to run ArangoDB schema migrations on application startup. When disabled, migrations are skipped entirely. Useful for tests that need a clean database.",

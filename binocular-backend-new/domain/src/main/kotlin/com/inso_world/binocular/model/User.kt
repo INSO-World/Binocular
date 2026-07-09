@@ -20,7 +20,7 @@ import kotlin.uuid.Uuid
  * ## Identity & equality
  * - Inherits entity identity from [AbstractDomainObject].
  *   - Technical id: [iid] of type [Id], generated at construction.
- *   - Business key: [uniqueKey] = [User.Key]([repository].iid, [name].trim()).
+ *   - Business key: [uniqueKey] = [User.Key]([repository].iid, [name].trim(), [email]).
  * - Although this is a `data class`, `equals`/`hashCode` delegate to
  *   [AbstractDomainObject] (no value-based equality on properties).
  *
@@ -33,13 +33,18 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class User(
     @field:NotBlank val name: String,
+    /**
+     * Email field of a user.
+     */
+    @field:NotBlank val email: String,
     @field:NotNull val repository: Repository,
 ) : AbstractDomainObject<User.Id, User.Key>(
         Id(Uuid.random()),
     ) {
     data class Key(
         val repositoryId: Repository.Id,
-        val name: String
+        val name: String,
+        val email: String
     ) // value object for lookups
 
     @JvmInline
@@ -50,12 +55,6 @@ data class User(
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
 
-    var email: String? = null
-        set(value) {
-            require(value?.trim()?.isNotBlank() == true) { "Email must not be empty" }
-            field = value
-        }
-
     // Relationships
     val issues: MutableSet<Issue> = mutableSetOf()
 
@@ -64,6 +63,7 @@ data class User(
 
     init {
         require(name.trim().isNotBlank()) { "name cannot be blank." }
+        require(email.trim().isNotBlank()) { "Email must not be empty" }
         repository.user.add(this)
     }
 
@@ -159,7 +159,7 @@ data class User(
         get() = "${name.trim()} <${email?.trim()}>"
 
     override val uniqueKey: Key
-        get() = Key(repository.iid, this.name)
+        get() = Key(repository.iid, this.name, this.email)
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)

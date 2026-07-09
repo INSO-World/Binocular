@@ -1,6 +1,7 @@
 binocular:
   arangodb:
     migration:
+      default-user-email-template: "{name}@users.noreply.binocular.inso-world.com"
       default-project-name: Binocular
     database:
       name: "binocular-repo"
