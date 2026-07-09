@@ -6,13 +6,12 @@ import com.inso_world.binocular.model.Developer;
 import com.inso_world.binocular.model.Project;
 import com.inso_world.binocular.model.Repository;
 import com.inso_world.binocular.model.Signature;
-import com.inso_world.binocular.model.git.EdgeType;
-import com.inso_world.binocular.model.git.GitDepsTree;
-import com.inso_world.binocular.model.git.GitTreeEdge;
-import com.inso_world.binocular.model.git.GitTreeNode;
+import com.inso_world.binocular.jgit.git.EdgeType;
+import com.inso_world.binocular.jgit.git.GitDepsTree;
+import com.inso_world.binocular.jgit.git.GitTreeEdge;
+import com.inso_world.binocular.jgit.git.GitTreeNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

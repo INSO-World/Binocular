@@ -7,7 +7,7 @@ import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Project;
 import com.inso_world.binocular.model.Repository;
-import com.inso_world.binocular.model.git.GitDepsTree;
+import com.inso_world.binocular.jgit.git.GitDepsTree;
 import kotlin.Pair;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Assertions;

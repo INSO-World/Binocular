@@ -1,4 +1,4 @@
-package com.inso_world.binocular.model.git
+package com.inso_world.binocular.jgit.git
 
 /**
  * Edge type for the git dependency graph.
