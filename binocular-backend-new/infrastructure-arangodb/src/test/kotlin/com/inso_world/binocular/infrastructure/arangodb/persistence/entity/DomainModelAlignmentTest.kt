@@ -120,6 +120,11 @@ class DomainModelAlignmentTest {
         }
         if (model == User::class.java) {
             internalModelProperties = setOf("_committedCommits", "_authoredCommits")
+
+            mappedProperties =
+                mapOf(
+                    "gitSignature" to "gitSignature",
+                )
         }
         if (model == Branch::class.java) {
             internalModelProperties = setOf("_commits")
