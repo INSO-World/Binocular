@@ -15,6 +15,8 @@ on:
 env:
   MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true'
   WD: binocular-backend-new
+  JAVA_VERSION: '23'
+  JAVA_DISTRIBUTION: 'temurin'
 
 jobs:
   lint:
@@ -31,8 +33,8 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
@@ -53,8 +55,8 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
@@ -94,8 +96,8 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
@@ -147,8 +149,8 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
@@ -189,8 +191,8 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
@@ -226,8 +228,8 @@ jobs:
       - name: Setup (cache/java/go-offline)
         uses: ./.github/actions/java-maven-setup
         with:
-          java-version: '23'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           working-directory: ${{ env.WD }}
           checkout-depth: 1
 
