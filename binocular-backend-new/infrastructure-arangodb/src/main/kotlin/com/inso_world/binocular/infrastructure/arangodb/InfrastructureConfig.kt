@@ -25,4 +25,5 @@ class DatabaseConfig(
 
 class MigrationConfig(
     val defaultProjectName: String,
+    val defaultUserEmailTemplate: String = "{name}@users.noreply.binocular.inso-world.com",
 )

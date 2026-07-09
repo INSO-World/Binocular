@@ -14,12 +14,12 @@ import org.springframework.transaction.support.TransactionTemplate
  * Sets up and tears down shared test fixtures for SQL-adapter integration tests.
  *
  * [setup] persists [TestDataProvider.testProjects] (the same singleton the tests read), which
- * cascades to their repositories, commits, and branches. [ProjectInfrastructurePortImpl.saveAll]
+ * cascades to their repositories, branches, commits, developers, and accounts. [ProjectInfrastructurePortImpl.saveAll]
  * back-propagates JPA-generated IDs onto the domain singletons so tests can use [Branch.id] etc.
  * immediately after setup.
  *
  * [teardown] deletes all projects; JPA [CascadeType.ALL] propagates the delete to repositories,
- * commits, and branches.
+ * branches, commits, developers, and accounts.
  */
 @Component
 internal class SqlInfrastructureDataSetup(
@@ -35,11 +35,26 @@ internal class SqlInfrastructureDataSetup(
 
     override fun setup() {
         logger.info(">>> SqlInfrastructureDataSetup setup")
-        // Reset JPA-assigned ids on Repository singletons so Hibernate always
-        // inserts fresh rows rather than attempting a merge on a non-existent id.
-        // (Project/Commit/Branch/Developer ids are never copied in toEntity, so
-        // they do not need resetting here.)
+        // Null out JPA-assigned ids on the entire persisted graph so Hibernate
+        // always inserts fresh rows rather than attempting a merge on stale IDs
+        // from a previous test run (the PG container is a static singleton that
+        // can retain data across JVM invocations).
+        //
+        // The toEntity functions in all SQL entity classes copy the domain id
+        // into the entity id (for update semantics), so any domain singleton
+        // that survived a previous test's back-propagation will carry a stale
+        // id. Persisting such an entity with a non-null @Id that has no
+        // matching row → detached entity → InvalidDataAccessApiUsageException.
+        //
+        // Reset order mirrors cascade order: top-level collections first,
+        // then children (branches/commits/developers are owned by repositories,
+        // accounts are owned by projects).
+        TestDataProvider.testProjects.forEach { it.id = null }
         TestDataProvider.testRepositories.forEach { it.id = null }
+        TestDataProvider.testBranches.forEach { it.id = null }
+        TestDataProvider.testCommits.forEach { it.id = null }
+        TestDataProvider.testDevelopers.forEach { it.id = null }
+        TestDataProvider.testAccounts.forEach { it.id = null }
         projectInfrastructurePort.saveAll(TestDataProvider.testProjects)
         logger.info("<<< SqlInfrastructureDataSetup setup")
     }
