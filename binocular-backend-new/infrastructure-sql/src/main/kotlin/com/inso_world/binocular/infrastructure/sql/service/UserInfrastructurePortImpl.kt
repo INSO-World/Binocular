@@ -153,9 +153,8 @@ internal class UserInfrastructurePortImpl(
     @OptIn(ExperimentalUuidApi::class)
     private fun DeveloperEntity.toLegacyUser(): User? {
         val repositoryDomain = repositoryAssembler.toDomain(this.repository)
-        return User(name = this.name, repository = repositoryDomain).apply {
+        return User(name = this.name, email = this@toLegacyUser.email, repository = repositoryDomain).apply {
             this.id = this@toLegacyUser.id?.toString()
-            this.email = this@toLegacyUser.email
             setField(
                 this.javaClass.superclass.getDeclaredField("iid"),
                 this,
