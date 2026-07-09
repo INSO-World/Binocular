@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.junit.jupiter.DisabledIf
 import kotlin.test.assertTrue
@@ -48,7 +50,7 @@ internal class UserTest : BaseInfrastructureSpringTest() {
     @Test
     @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
     fun `create user and load it by iid`() {
-        val user = User(name = "Jane Doe", repository = repository).apply { email = "jane@example.com" }
+        val user = User(name = "Jane Doe", email = "jane@example.com", repository = repository)
         val created =
             run {
                 val updatedRepository = repositoryPort.update(repository)
@@ -70,7 +72,7 @@ internal class UserTest : BaseInfrastructureSpringTest() {
     @Test
     @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
     fun `create user and load it by id`() {
-        val user = User(name = "Jane Doe", repository = repository).apply { email = "jane@example.com" }
+        val user = User(name = "Jane Doe", repository = repository, email = "jane@example.com")
         val created =
             run {
                 val updatedRepository = repositoryPort.update(repository)
@@ -90,7 +92,7 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `create user, verify automatic registration with repository`() {
-        val user = User(name = "Alice", repository = repository).apply { email = "alice@example.com" }
+        val user = User(name = "Alice", repository = repository, email = "alice@example.com")
 
         // User auto-registers with repository during construction
         assertEquals(1, repository.user.size)
@@ -117,7 +119,7 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 
         val u1 =
             run {
-                val u1 = User(name = "A", repository = repository).apply { email = "a@example.com" }
+                val u1 = User(name = "A", repository = repository, email = "a@example.com")
                 val updatedRepository = repositoryPort.update(repository)
                 assertThat(updatedRepository.user).hasSize(1)
                 requireNotNull(
@@ -127,7 +129,7 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 //            userPort.create()
         val u2 =
             run {
-                val u1 = User(name = "B", repository = repository).apply { email = "b@example.com" }
+                val u1 = User(name = "B", repository = repository, email = "b@example.com")
                 val updatedRepository = repositoryPort.update(repository)
                 assertThat(updatedRepository.user).hasSize(2)
                 requireNotNull(
@@ -141,16 +143,11 @@ internal class UserTest : BaseInfrastructureSpringTest() {
         assertThat(ids).containsOnly(u1.id, u2.id)
     }
 
-    @Test
-    fun `create user with blank email throws exception`() {
-        val user = User(name = "Bob", repository = repository)
-
+    @ParameterizedTest
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
+    fun `create user with blank email throws exception`(email: String) {
         org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            user.email = ""
-        }
-
-        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            user.email = "   "
+            User(name = "Bob", repository = repository, email = email)
         }
     }
 }
