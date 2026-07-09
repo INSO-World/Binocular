@@ -86,6 +86,7 @@ jobs:
     name: Test-Application Layers w/ postgres
     needs:
       - preflight
+      - test-modules
 
     defaults:
       run:
@@ -134,10 +135,10 @@ jobs:
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-application-arangodb:
-    if: false
     name: Test-Application Layers w/ ArangoDB
     needs:
       - preflight
+      - test-modules
 
     defaults:
       run:
@@ -197,10 +198,10 @@ jobs:
           path: ${{ env.WD }}/${{ matrix.module }}/target/reports/
 
   test-graphql-realdata:
-    if: false
     name: Test-GraphQL Real Data Integration
     needs:
       - preflight
+      - test-modules
     defaults:
       run:
         working-directory: ${{ env.WD }}
