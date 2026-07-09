@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 env:
-  MAVEN_CLI_OPTS: '--batch-mode --errors --show-version -DinstallAtEnd=true'
+  MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true'
   WD: binocular-backend-new
   JAVA_VERSION: '23'
   JAVA_DISTRIBUTION: 'temurin'
@@ -52,22 +52,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache local Maven repository
-        uses: actions/cache@v4
+      - name: Setup (cache/java/go-offline)
+        uses: ./.github/actions/java-maven-setup
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}.temurin.23-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}.temurin.23--maven-
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          cache: maven
-          cache-dependency-path: '**/pom.xml'
-          java-version: '23'
-          distribution: 'temurin'
-          architecture: x64
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          working-directory: ${{ env.WD }}
+          checkout-depth: 1
 
       - name: Install (whole reactor, skip tests)
         run: mvn $MAVEN_CLI_OPTS clean install -DskipTests
@@ -123,7 +114,6 @@ jobs:
         if: always()
         run: |
           SAFE_NAME=$(echo "${{ matrix.MODULE.name }}" | tr '/' '-')
-          echo "SAFE_MODULE_NAME=$SAFE_NAME" >> $GITHUB_ENV
           CMD="mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl ${{ matrix.MODULE.name }}"
           if [ -n "${{ matrix.MODULE.springProfile }}" ]; then
             CMD="$CMD -Dspring.profiles.active=${{ matrix.MODULE.springProfile }}"
@@ -208,11 +198,11 @@ jobs:
 
       - name: Run tests for module ${{ matrix.module }}
         run: |
-          mvn $MAVEN_CLI_OPTS test -o --pl ${{ matrix.module }} -Dspring.profiles.active=test,arangodb -DexcludedGroups=realdata
+          mvn $MAVEN_CLI_OPTS test -o --pl ${{ matrix.module }} -Dspring.profiles.active=test,arangodb
 
       - name: Surefire report for module ${{ matrix.module }}
         if: always()
-        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl ${{ matrix.module }} -DexcludedGroups=realdata
+        run: mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl ${{ matrix.module }}
 
       - name: Upload surefire report
         if: always()
@@ -245,12 +235,12 @@ jobs:
 
       - name: Run GraphQL Real-Data Tests
         run: |
-          mvn $MAVEN_CLI_OPTS test -o --pl web -Dspring.profiles.active=test,nosql,arangodb -Dgroups=realdata
+          mvn $MAVEN_CLI_OPTS test -o --pl web -Dspring.profiles.active=test,nosql,arangodb -Dtest=*RealDataIT
 
       - name: Surefire report for GraphQL Real-Data Tests
         if: always()
         run: |
-          mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl web -Dspring.profiles.active=test,nosql,arangodb -Dgroups=realdata
+          mvn $MAVEN_CLI_OPTS surefire-report:report-only -o --pl web -Dspring.profiles.active=test,nosql,arangodb -Dtest=*RealDataIT
 
       - name: Upload surefire report
         if: always()
