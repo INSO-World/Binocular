@@ -12,12 +12,12 @@ import org.testcontainers.utility.DockerImageName
 @Configuration
 @Import(SqlAppConfig::class)
 class SqlTestConfig {
-
     companion object {
-        val pg: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
-            .apply { withDatabaseName("binocular_it") }
-            .apply { withUsername("postgres") }
-            .apply { withPassword("postgres") }
+        val pg: PostgreSQLContainer<*> =
+            PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
+                .apply { withDatabaseName("binocular_it") }
+                .apply { withUsername("postgres") }
+                .apply { withPassword("postgres") }
     }
 
     class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -26,13 +26,14 @@ class SqlTestConfig {
 
             pg.start()
 
-            TestPropertyValues.of(
-                // Standard Spring DataSource-Props
-                "spring.datasource.url=${pg.jdbcUrl}",
-                "spring.datasource.username=${pg.username}",
-                "spring.datasource.password=${pg.password}",
-                "spring.datasource.driver-class-name=org.postgresql.Driver",
-            ).applyTo(ctx.environment)
+            TestPropertyValues
+                .of(
+                    // Standard Spring DataSource-Props
+                    "spring.datasource.url=${pg.jdbcUrl}",
+                    "spring.datasource.username=${pg.username}",
+                    "spring.datasource.password=${pg.password}",
+                    "spring.datasource.driver-class-name=org.postgresql.Driver",
+                ).applyTo(ctx.environment)
         }
     }
 }

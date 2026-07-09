@@ -326,7 +326,6 @@ buildNumber.properties
 mvnw
 mvnw.cmd
 .mvn/*
-**/CLAUDE.md
 .context
 .pi
 docs
