@@ -6,12 +6,6 @@ You are a senior Kotlin developer with deep expertise in Kotlin 2.2.20+ and its 
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-When trying to access a file inside the project, try `idea_*` mcp server first.
-    - Always pass `"projectPath": "/Users/manuel/Repository/Binocular-wasm/binocular-backend-new"` when calling MCP!
-When trying to access a file outside of the project, e.g.
-    - `/Users/manuel/Library/Caches/JetBrains/*/tmp/**`
-use `read` tool.
-
 When trying to access anything from Git, use `git_git_*` mcp server
 
 ## 1. Think Before Coding
@@ -88,8 +82,10 @@ This project is a new implementation of the existing nodejs/typescript version f
 - `ktlint` installed (`mvn ktlint:check` / `mvn ktlint:format`) — see [README.md](./README.md)
 
 **Deeper, per-module guidance:** 
-Before working in `core/`, `cli/`, `domain/`, `infrastructure-arangodb/`, `infrastructure-sql/`, `infrastructure-test/`, `integration-test/vcs-indexer/`, `jgit/`, `web/` or `ffi/`, read the local `CLAUDE.md` in those directories.
+Before working in `core/`, `cli/`, `domain/`, `infrastructure-arangodb/`, `infrastructure-sql/`, `infrastructure-test/`, `integration-test/vcs-indexer/`, `jgit/`, `web/`, `ffi/` or `github/`, read the local `CLAUDE.md` in those directories.
 They document load-bearing invariants (mapping sessions, the value-class `Iid` self-injection workaround, UniFFI binding regeneration rules) that this root file only summarizes.
+
+**git-lfs:** `ffi/src/main/resources/**` and `web/src/test/resources/realdata/db_dump/**` are tracked via git-lfs. If tests fail with errors like unexpected `ELF`/binary-format errors, run `git lfs pull` — see [README.md](./README.md) for full setup and history-migration hints.
 
 ## Architecture
 The architecture follows a DDD approach by Vaughn Vernon.
@@ -222,6 +218,7 @@ cli / web (application entry points)
 - `infrastructure-test` unified module which can integration-test all infrastructure layers based on the active spring profile
     - Spring Profile `arangodb` for `infrastructure-arangodb`, Spring Profile `postgres` for `infrastructure-sql`
 - `integration-test/vcs-indexer` runs the `GitIndexer` contract against either Git adapter via `-Dspring.profiles.active=gix` (ffi) or `-Dspring.profiles.active=jgit`.
+- `github` is a library-grade module (in the reactor) that talks to the GitHub GraphQL API for assignable users/issues; it is **not yet wired into `cli` or `web`** — see `github/CLAUDE.md`.
 - `rdf/` exists on disk as an untracked research prototype (RDF/MSR ontology work with Apache Jena) with its own `pom.xml`, but is **commented out** in the parent reactor — it is not built or tested by default.
 
 ## Key Conventions
