@@ -14,6 +14,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   CLICOLOR: '1'
+  WD: binocular-backend-new
   RUST_LIB_WD: binocular-backend-new/ffi/lib
   RESOURCES_DIR: binocular-backend-new/ffi/src/main/resources/
   LIB_BASENAME: gix_binocular
@@ -119,9 +120,53 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  verify-libs:
+    needs: pure-rust-build
+    defaults:
+      run:
+        working-directory: ${{ env.RUST_LIB_WD }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner-arch: x64
+            runner-os: ubuntu-latest
+            host-triple: x86_64-unknown-linux-gnu
+            file-ending: so
+          - runner-arch: arm64
+            runner-os: ubuntu-24.04-arm
+            host-triple: aarch64-unknown-linux-gnu
+            file-ending: so
+    runs-on: ${{ matrix.runner-os }}
+    container: ${{ matrix.container }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup (cache/java/go-offline)
+        uses: ./.github/actions/java-maven-setup
+        with:
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          working-directory: ${{ env.WD }}
+          checkout-depth: 1
+
+      - name: Validate
+        run: mvn $MAVEN_CLI_OPTS validate --pl ffi
+
+      - name: Install dependencies
+        run: |
+          mvn $MAVEN_CLI_OPTS install -N
+          mvn $MAVEN_CLI_OPTS install --pl domain --pl core
+
+      - name: Run Unit Tests
+        run: mvn $MAVEN_CLI_OPTS verify --pl ffi
+
   collect-and-push:
     name: Collect native libs into resources and push
-    needs: pure-rust-build
+    needs: verify-libs
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}   # don’t push on PRs
     permissions:
