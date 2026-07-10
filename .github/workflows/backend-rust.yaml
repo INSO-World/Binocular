@@ -165,6 +165,11 @@ jobs:
             | sh -s -- -y --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.RUST_LIB_WD }}
+          cache-all-crates: 'true'
+
       - name: Prepare library path for uniffi-bindgen
         shell: bash
         run: |
@@ -176,18 +181,13 @@ jobs:
           if [ -z "$ref" ]; then ref="$(ls artifacts/*/*.dylib 2>/dev/null | head -n1 || true)"; ending=dylib; fi
           if [ -z "$ref" ]; then ref="$(ls artifacts/*/*.dll 2>/dev/null | head -n1 || true)"; ending=dll; fi
           if [ -z "$ref" ]; then echo "No built library artifact found for uniffi-bindgen"; exit 1; fi
-          
+
           triple="$(basename "$(dirname "$ref")")"
           mkdir -p "${{ env.RUST_LIB_WD }}/target/$triple/release"
           cp "$ref" "${{ env.RUST_LIB_WD }}/target/$triple/release/lib${{ env.LIB_BASENAME }}.$ending"
-          
+
           echo "UNIFFI_TRIPLE=$triple" >> "$GITHUB_ENV"
           echo "UNIFFI_ENDING=$ending" >> "$GITHUB_ENV"
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: ${{ env.RUST_LIB_WD }}
-          cache-all-crates: 'true'
 
       - name: Generate Kotlin bindings (uniffi-bindgen)
         working-directory: ${{ env.RUST_LIB_WD }}
