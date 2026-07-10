@@ -5,11 +5,18 @@ import com.arangodb.springframework.repository.ArangoRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BranchEntity
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Repository
 interface BranchRepository : ArangoRepository<BranchEntity, String> {
+    @Query("FOR b IN branches FILTER b.repository.localPath == @repoPath AND b.branch == @name RETURN b")
+    fun findByRepositoryAndName(
+        @Param("repoPath") repoPath: String,
+        @Param("name") name: String
+    ): BranchEntity?
 
-    fun findByBranch(branch: String): BranchEntity?
+    fun findByName(branch: String): BranchEntity?
 
     /**
      * Returns branches sorted in ascending order using a deterministic,
@@ -124,4 +131,6 @@ interface BranchRepository : ArangoRepository<BranchEntity, String> {
         @Param("size") size: Int
     ): List<BranchEntity>
 
+    @OptIn(ExperimentalUuidApi::class)
+    fun findByIid(iid: Uuid): BranchEntity?
 }

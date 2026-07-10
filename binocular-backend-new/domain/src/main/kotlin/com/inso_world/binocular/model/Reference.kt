@@ -12,10 +12,12 @@ abstract class Reference<Key>(
     @field:NotNull
     open val repositoryId: Repository.Id
 ) : AbstractDomainObject<Reference.Id, Key>(
-    Id(Uuid.random())
-) {
+        Id(Uuid.random())
+    ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
     override fun equals(other: Any?): Boolean = super.equals(other)
 

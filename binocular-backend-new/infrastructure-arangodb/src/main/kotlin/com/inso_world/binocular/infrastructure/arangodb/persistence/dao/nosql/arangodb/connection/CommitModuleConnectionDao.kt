@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitModuleConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitModuleConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitModuleConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ModuleMapper
@@ -30,10 +32,16 @@ internal class CommitModuleConnectionDao
     ) : ICommitModuleConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
 
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all modules connected to a commit
          */
         override fun findModulesByCommit(commitId: String): List<com.inso_world.binocular.model.Module> {
+            seeder.seed()
             val moduleEntities = repository.findModulesByCommit(commitId)
             return moduleEntities.map { moduleMapper.toDomain(it) }
         }
@@ -42,15 +50,21 @@ internal class CommitModuleConnectionDao
          * Find all commits connected to a module
          */
         override fun findCommitsByModule(moduleId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findCommitsByModule(moduleId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
-         * Save a commit-module connection
+         * Save a commit-module connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitModuleConnection): CommitModuleConnection {
-            // Get the commit and module entities from their repositories
             val commitEntity =
                 commitRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Commit with ID ${connection.from.id} not found")
@@ -60,7 +74,6 @@ internal class CommitModuleConnectionDao
                     IllegalArgumentException("Module with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 CommitModuleConnectionEntity(
                     id = connection.id,
@@ -68,14 +81,12 @@ internal class CommitModuleConnectionDao
                     to = moduleEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitModuleConnection(
                 id = savedEntity.id,
-                from = commitMapper.toDomain(savedEntity.from),
-                to = moduleMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

@@ -9,20 +9,32 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 /**
- * ArangoDB implementation of IAccountDao using the MappedArangoDbDao approach.
+ * ArangoDB implementation of [IAccountDao].
  *
- * This class extends MappedArangoDbDao to leverage the entity mapping pattern,
- * which provides a clean separation between domain models (Account) and
- * database-specific entities (AccountEntity).
- *
- * This is an example of the second approach described in ArangoDbDao:
- * - Using entity mapping with a separate mapper class
- * - Extending MappedArangoDbDao instead of ArangoDbDao
- * - Implementing the specific interface (IAccountDao)
+ * Overrides [create] to bypass [AccountMapper.toDomain]: that method requires the account
+ * to already be registered in the [MappingContext] and throws otherwise, making the base
+ * class round-trip (save → toDomain) impossible for standalone account saves. Instead,
+ * after saving we write the ArangoDB-assigned id back onto the domain object and return it.
  */
 @Repository
 internal class AccountDao(
     @Autowired accountRepository: AccountRepository,
     @Autowired accountMapper: AccountMapper,
 ) : MappedArangoDbDao<Account, AccountEntity, String>(accountRepository, accountMapper),
-    IAccountDao
+    IAccountDao {
+    /**
+     * Persists an account and propagates the ArangoDB-assigned id back to the domain object.
+     *
+     * Skips the [AccountMapper.toDomain] round-trip because that mapper requires the account
+     * to be pre-registered in the mapping context. The caller receives the same [entity]
+     * instance with [Account.id] updated to the value assigned by the database.
+     *
+     * @param entity the account to persist
+     * @return the same [entity] with its [Account.id] set
+     */
+    override fun create(entity: Account): Account {
+        val savedEntity = repository.save(mapper.toEntity(entity))
+        entity.id = savedEntity.id
+        return entity
+    }
+}

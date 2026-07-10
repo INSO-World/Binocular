@@ -37,7 +37,6 @@ internal class AccountMapper
         @Lazy private val mergeRequestMapper: MergeRequestMapper,
         @Lazy private val noteMapper: NoteMapper,
     ) : EntityMapper<Account, AccountEntity> {
-
         @Autowired
         private lateinit var ctx: MappingContext
 
@@ -58,11 +57,13 @@ internal class AccountMapper
         override fun toEntity(domain: Account): AccountEntity =
             AccountEntity(
                 id = domain.id,
-                platform = domain.platform?.let { toPlatformEntity(it) },
+                gid = domain.gid,
+                platform = toPlatformEntity(domain.platform),
                 login = domain.login,
                 name = domain.name,
                 avatarUrl = domain.avatarUrl,
                 url = domain.url,
+                // project = domain.project,
             )
 
         /**
@@ -80,50 +81,46 @@ internal class AccountMapper
 
             val domain =
                 Account(
-                    id = entity.id,
-                    platform = entity.platform?.let { toPlatform(it) },
+                    gid = entity.gid,
+                    platform = entity.platform.let { toPlatform(it) },
                     login = entity.login,
-                    name = entity.name,
-                    avatarUrl = entity.avatarUrl,
-                    url = entity.url,
-                    issues =
-                        proxyFactory.createLazyList {
-                            (entity.issues ?: emptyList()).map { issueEntity ->
-                                issueMapper.toDomain(issueEntity)
-                            }
-                        },
-                    mergeRequests =
-                        proxyFactory.createLazyList {
-                            (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
-                                mergeRequestMapper.toDomain(mergeRequestEntity)
-                            }
-                        },
-                    notes =
-                        proxyFactory.createLazyList {
-                            (entity.notes ?: emptyList()).map { noteEntity ->
-                                noteMapper.toDomain(noteEntity)
-                            }
-                        },
-                )
+//                    issues =
+//                        proxyFactory.createLazyList {
+//                            (entity.issues ?: emptyList()).map { issueEntity ->
+//                                issueMapper.toDomain(issueEntity)
+//                            }
+//                        },
+//                    mergeRequests =
+//                        proxyFactory.createLazyList {
+//                            (entity.mergeRequests ?: emptyList()).map { mergeRequestEntity ->
+//                                mergeRequestMapper.toDomain(mergeRequestEntity)
+//                            }
+//                        },
+//                    notes =
+//                        proxyFactory.createLazyList {
+//                            (entity.notes ?: emptyList()).map { noteEntity ->
+//                                noteMapper.toDomain(noteEntity)
+//                            }
+//                        },
+                ).apply {
+                    id = entity.id
+                    name = entity.name
+                    avatarUrl = entity.avatarUrl
+                    url = entity.url
+                }
 
             return domain
         }
 
-    private fun toPlatformEntity(platform: Platform): PlatformEntity? {
-        if (platform == Platform.GitHub) {
-            return PlatformEntity.GitHub
-        } else if (platform == Platform.GitLab) {
-            return PlatformEntity.GitLab
-        }
-        return null
-    }
+        private fun toPlatformEntity(platform: Platform): PlatformEntity =
+            when (platform) {
+                Platform.GitHub -> PlatformEntity.GitHub
+                Platform.GitLab -> PlatformEntity.GitLab
+            }
 
-    private fun toPlatform(platformEntity: PlatformEntity): Platform? {
-        if (platformEntity == PlatformEntity.GitHub) {
-            return Platform.GitHub
-        } else if (platformEntity == PlatformEntity.GitLab) {
-            return Platform.GitLab
-        }
-        return null
-    }
+        private fun toPlatform(platformEntity: PlatformEntity): Platform =
+            when (platformEntity) {
+                PlatformEntity.GitHub -> Platform.GitHub
+                PlatformEntity.GitLab -> Platform.GitLab
+            }
     }

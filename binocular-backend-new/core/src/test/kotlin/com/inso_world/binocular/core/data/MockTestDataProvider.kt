@@ -68,9 +68,9 @@ class MockTestDataProvider {
     @Deprecated("Use developers instead")
     val users: List<User> =
         listOf(
-            User(name = "User A", repository = repository).apply { this.email = "a@test.com" },
-            User(name = "User B", repository = repository).apply { this.email = "b@test.com" },
-            User(name = "Author Only", repository = repository).apply { this.email = "author@test.com" },
+            User(name = "User A", repository = repository, email = "a@test.com"),
+            User(name = "User B", repository = repository, email = "b@test.com"),
+            User(name = "Author Only", repository = repository, email = "author@test.com"),
         )
 
     @Deprecated("Use developerByEmail instead")

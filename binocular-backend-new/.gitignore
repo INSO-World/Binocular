@@ -326,8 +326,12 @@ buildNumber.properties
 mvnw
 mvnw.cmd
 .mvn/*
+.context
+.pi
+docs
+rdf
+/.mcp.json
 
-.pi/**
-.claude/**
-docs/plans/*.md
-docs/superpowers/*/*.md
+# Codebase wiki — compiled artifact, regenerated from source
+.codebase-wiki/
+/context-build/

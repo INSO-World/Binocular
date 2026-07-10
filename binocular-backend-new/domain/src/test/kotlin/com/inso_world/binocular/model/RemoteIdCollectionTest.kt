@@ -23,29 +23,29 @@ import kotlin.uuid.ExperimentalUuidApi
  */
 @OptIn(ExperimentalUuidApi::class)
 class RemoteIdCollectionTest {
-
     private lateinit var project: Project
     private lateinit var repository: Repository
 
     @BeforeEach
     fun setup() {
         project = Project(name = "proj-remote-id-collection-test")
-        repository = Repository(
-            localPath = "repo-remote-id-collection-test",
-            projectId = project.iid,
-        )
+        repository =
+            Repository(
+                localPath = "repo-remote-id-collection-test",
+                projectId = project.iid,
+            )
     }
 
     @Nested
     inner class IdBasedCollection {
-
         @Test
         fun `remotes collection should store RemoteId not Remote objects`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
 
             // Add the remote's ID to the collection
             assertTrue(repository.remoteIds.add(remote.iid))
@@ -57,11 +57,12 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `adding same remote id twice should only be added once`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
 
             assertTrue(repository.remoteIds.add(remote.iid))
             assertFalse(repository.remoteIds.add(remote.iid))
@@ -70,21 +71,24 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `adding multiple remote ids should all be added`() {
-            val origin = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
-            val upstream = Remote(
-                name = "upstream",
-                url = "https://github.com/upstream/repo.git",
-                repositoryId = repository.iid
-            )
-            val fork = Remote(
-                name = "fork",
-                url = "https://github.com/fork/repo.git",
-                repositoryId = repository.iid
-            )
+            val origin =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
+            val upstream =
+                Remote(
+                    name = "upstream",
+                    url = "https://github.com/upstream/repo.git",
+                    repositoryId = repository.iid
+                )
+            val fork =
+                Remote(
+                    name = "fork",
+                    url = "https://github.com/fork/repo.git",
+                    repositoryId = repository.iid
+                )
 
             assertTrue(repository.remoteIds.add(origin.iid))
             assertTrue(repository.remoteIds.add(upstream.iid))
@@ -98,16 +102,18 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `adding remote ids via addAll should work`() {
-            val origin = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
-            val upstream = Remote(
-                name = "upstream",
-                url = "https://github.com/upstream/repo.git",
-                repositoryId = repository.iid
-            )
+            val origin =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
+            val upstream =
+                Remote(
+                    name = "upstream",
+                    url = "https://github.com/upstream/repo.git",
+                    repositoryId = repository.iid
+                )
 
             val ids = listOf(origin.iid, upstream.iid)
             assertTrue(repository.remoteIds.addAll(ids))
@@ -123,14 +129,14 @@ class RemoteIdCollectionTest {
 
     @Nested
     inner class RemovalOperations {
-
         @Test
         fun `removing remote id should throw UnsupportedOperationException`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
             repository.remoteIds.add(remote.iid)
             assertThat(repository.remoteIds).hasSize(1)
 
@@ -142,16 +148,18 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `clearing all remote ids should throw UnsupportedOperationException`() {
-            val remoteA = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
-            val remoteB = Remote(
-                name = "upstream",
-                url = "https://github.com/upstream/repo.git",
-                repositoryId = repository.iid
-            )
+            val remoteA =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
+            val remoteB =
+                Remote(
+                    name = "upstream",
+                    url = "https://github.com/upstream/repo.git",
+                    repositoryId = repository.iid
+                )
             repository.remoteIds.addAll(listOf(remoteA.iid, remoteB.iid))
             assertThat(repository.remoteIds).hasSize(2)
 
@@ -163,16 +171,18 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `removing by predicate should throw UnsupportedOperationException`() {
-            val remoteA = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
-            val remoteB = Remote(
-                name = "upstream",
-                url = "https://github.com/upstream/repo.git",
-                repositoryId = repository.iid
-            )
+            val remoteA =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
+            val remoteB =
+                Remote(
+                    name = "upstream",
+                    url = "https://github.com/upstream/repo.git",
+                    repositoryId = repository.iid
+                )
             repository.remoteIds.addAll(listOf(remoteA.iid, remoteB.iid))
             assertThat(repository.remoteIds).hasSize(2)
 
@@ -184,21 +194,24 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `retaining only specific remote ids should throw UnsupportedOperationException`() {
-            val remoteA = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
-            val remoteB = Remote(
-                name = "upstream",
-                url = "https://github.com/upstream/repo.git",
-                repositoryId = repository.iid
-            )
-            val remoteC = Remote(
-                name = "fork",
-                url = "https://github.com/fork/repo.git",
-                repositoryId = repository.iid
-            )
+            val remoteA =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
+            val remoteB =
+                Remote(
+                    name = "upstream",
+                    url = "https://github.com/upstream/repo.git",
+                    repositoryId = repository.iid
+                )
+            val remoteC =
+                Remote(
+                    name = "fork",
+                    url = "https://github.com/fork/repo.git",
+                    repositoryId = repository.iid
+                )
             repository.remoteIds.addAll(listOf(remoteA.iid, remoteB.iid, remoteC.iid))
             assertThat(repository.remoteIds).hasSize(3)
 
@@ -210,11 +223,12 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `removing via iterator should throw UnsupportedOperationException`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
             repository.remoteIds.add(remote.iid)
             assertThat(repository.remoteIds).hasSize(1)
 
@@ -231,14 +245,14 @@ class RemoteIdCollectionTest {
 
     @Nested
     inner class EdgeCases {
-
         @Test
         fun `repository should not hold Remote objects, only IDs`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
 
             repository.remoteIds.add(remote.iid)
 
@@ -253,16 +267,18 @@ class RemoteIdCollectionTest {
             val otherProject = Project(name = "other-project")
             val repo2 = Repository(localPath = "/other/path", projectId = otherProject.iid)
 
-            val remote1 = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo1.git",
-                repositoryId = repo1.iid
-            )
-            val remote2 = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo2.git",
-                repositoryId = repo2.iid
-            )
+            val remote1 =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo1.git",
+                    repositoryId = repo1.iid
+                )
+            val remote2 =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo2.git",
+                    repositoryId = repo2.iid
+                )
 
             repo1.remoteIds.add(remote1.iid)
             repo2.remoteIds.add(remote2.iid)
@@ -279,11 +295,12 @@ class RemoteIdCollectionTest {
 
         @Test
         fun `remote id can be added even after remote object is garbage collected`() {
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repositoryId = repository.iid
+                )
             val remoteId = remote.iid
 
             // Add the ID

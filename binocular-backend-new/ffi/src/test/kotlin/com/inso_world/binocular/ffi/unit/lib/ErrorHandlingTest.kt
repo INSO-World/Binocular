@@ -153,7 +153,7 @@ class ErrorHandlingTest : BaseLibraryUnitTest() {
         )
         fun `RevisionParseException for various invalid formats`(
             hash: String,
-            @Suppress("UNUSED_PARAMETER") description: String,
+            @Suppress("UNUSED_PARAMETER") description: String
         ) {
             // Verifies consistent error handling for different malformed hashes
             val repo = findRepo(System.getProperty("user.dir"))

@@ -13,8 +13,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import kotlin.test.assertContains
+import org.springframework.test.context.junit.jupiter.DisabledIf
+import kotlin.test.assertTrue
 
 /**
  * Integration tests for User persistence via UserInfrastructurePort.
@@ -45,20 +48,43 @@ internal class UserTest : BaseInfrastructureSpringTest() {
     }
 
     @Test
-    fun `create user and load it by id`() {
-        val user = User(name = "Jane Doe", repository = repository).apply { email = "jane@example.com" }
-        val created = run {
-            val updatedRepository = repositoryPort.update(repository)
-            assertThat(updatedRepository.user).hasSize(1)
-            updatedRepository.user.first()
-        }
-        val id = requireNotNull(created.id)
-        assertNotNull(id)
+    @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
+    fun `create user and load it by iid`() {
+        val user = User(name = "Jane Doe", email = "jane@example.com", repository = repository)
+        val created =
+            run {
+                val updatedRepository = repositoryPort.update(repository)
+                assertThat(updatedRepository.user).hasSize(1)
+                updatedRepository.user.first()
+            }
 
-        val loaded = userPort.findById(id)
+        val loaded = userPort.findByIid(created.iid)
         assertNotNull(loaded)
         loaded!!
         assertEquals(created.id, loaded.id)
+        assertEquals(created.iid, loaded.iid)
+        assertEquals(user.name, loaded.name)
+        assertEquals(user.email, loaded.email)
+        assertEquals(repository.id, loaded.repository.id)
+        assertEquals(repository.iid, loaded.repository.iid)
+    }
+
+    @Test
+    @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
+    fun `create user and load it by id`() {
+        val user = User(name = "Jane Doe", repository = repository, email = "jane@example.com")
+        val created =
+            run {
+                val updatedRepository = repositoryPort.update(repository)
+                assertThat(updatedRepository.user).hasSize(1)
+                updatedRepository.user.first()
+            }
+
+        val loaded = userPort.findByIid(created.iid)
+        assertNotNull(loaded)
+        loaded!!
+        assertEquals(created.id, loaded.id)
+        assertEquals(created.iid, loaded.iid)
         assertEquals(user.name, loaded.name)
         assertEquals(user.email, loaded.email)
         assertEquals(repository.id, loaded.repository.id)
@@ -66,17 +92,18 @@ internal class UserTest : BaseInfrastructureSpringTest() {
 
     @Test
     fun `create user, verify automatic registration with repository`() {
-        val user = User(name = "Alice", repository = repository).apply { email = "alice@example.com" }
+        val user = User(name = "Alice", repository = repository, email = "alice@example.com")
 
         // User auto-registers with repository during construction
         assertEquals(1, repository.user.size)
-        assert(repository.user.contains(user))
+        assertTrue(repository.user.contains(user))
 
-        val created =  run {
-            val updatedRepository = repositoryPort.update(repository)
-            assertThat(updatedRepository.user).hasSize(1)
-            updatedRepository.user.first()
-        }
+        val created =
+            run {
+                val updatedRepository = repositoryPort.update(repository)
+                assertThat(updatedRepository.user).hasSize(1)
+                updatedRepository.user.first()
+            }
 //            userPort.create(user)
         val loaded = userPort.findById(requireNotNull(created.id))
 
@@ -86,43 +113,41 @@ internal class UserTest : BaseInfrastructureSpringTest() {
     }
 
     @Test
+    @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
     fun `findAll returns created users`() {
-        val u1 = run {
-            val u1 = User(name = "A", repository = repository).apply { email = "a@example.com" }
-            val updatedRepository = repositoryPort.update(repository)
-            assertThat(updatedRepository.user).hasSize(1)
-            requireNotNull(
-                updatedRepository.user.find { it.name == "A" }
-            )
-        }
+        super.baseTearDown()
+
+        val u1 =
+            run {
+                val u1 = User(name = "A", repository = repository, email = "a@example.com")
+                val updatedRepository = repositoryPort.update(repository)
+                assertThat(updatedRepository.user).hasSize(1)
+                requireNotNull(
+                    updatedRepository.user.find { it.name == "A" }
+                )
+            }
 //            userPort.create()
-        val u2 = run {
-            val u1 = User(name = "B", repository = repository).apply { email = "b@example.com" }
-            val updatedRepository = repositoryPort.update(repository)
-            assertThat(updatedRepository.user).hasSize(2)
-            requireNotNull(
-                updatedRepository.user.find { it.name == "B" }
-            )
-        }
+        val u2 =
+            run {
+                val u1 = User(name = "B", repository = repository, email = "b@example.com")
+                val updatedRepository = repositoryPort.update(repository)
+                assertThat(updatedRepository.user).hasSize(2)
+                requireNotNull(
+                    updatedRepository.user.find { it.name == "B" }
+                )
+            }
 //            userPort.create()
         val all = userPort.findAll().toList()
         // at least 2 (could include other users if DB not fully isolated); ensure ours are present
         val ids = all.mapNotNull { it.id }.toSet()
-        assertContains(ids, u1.id, u2.id)
-//        val iids = all.map { it.iid }.toSet()
-//        assertContains(iids, u1.iid, u2.iid)
+        assertThat(ids).containsOnly(u1.id, u2.id)
     }
 
-    @Test
-    fun `create user with blank email throws exception`() {
-        val user = User(name = "Bob", repository = repository)
-
+    @ParameterizedTest
+    @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
+    fun `create user with blank email throws exception`(email: String) {
         org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            user.email = ""
-        }
-
-        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            user.email = "   "
+            User(name = "Bob", repository = repository, email = email)
         }
     }
 }

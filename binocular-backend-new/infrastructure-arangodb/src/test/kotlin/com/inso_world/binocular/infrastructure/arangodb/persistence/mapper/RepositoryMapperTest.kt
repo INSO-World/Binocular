@@ -30,7 +30,8 @@ internal class RepositoryMapperTest : BaseMapperTest() {
         val domain = requireNotNull(mockTestDataProvider.repositoriesByPath["repo-pg-0"])
         with(domain.project) {
             ctx.remember(
-                this, ProjectEntity(
+                this,
+                ProjectEntity(
                     iid = this.iid.value,
                     id = this.id,
                     name = this.name,
@@ -47,7 +48,7 @@ internal class RepositoryMapperTest : BaseMapperTest() {
             { assertThat(entity.id).isEqualTo(domain.id) },
             { assertThat(entity.localPath).isEqualTo(domain.localPath) },
             { assertThat(entity.project).isNotNull() },
-            { assertThat(entity.project.repository).isSameAs(entity) }
+            { assertThat(entity.project?.repository).isSameAs(entity) }
         )
 
         assertThat(ctx.findEntity<Project.Key, Project, ProjectEntity>(requireNotNull(domain.project))).isEqualTo(entity.project)

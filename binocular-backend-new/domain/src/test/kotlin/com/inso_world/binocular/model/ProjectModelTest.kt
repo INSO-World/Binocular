@@ -15,7 +15,7 @@ class ProjectModelTest {
         val project = Project(name = "test-project")
 
         assertThat(project.iid).isNotNull()
-        assertThat(project.repoId).isNull()
+        assertThat(project.repo).isNull()
     }
 
     @Test
@@ -31,7 +31,7 @@ class ProjectModelTest {
 
         assertAll(
             { assertThat(project.uniqueKey).isEqualTo(Project.Key("test-project")) },
-            { assertThat(project.uniqueKey.name).isSameAs(project.name) }
+            { assertThat(project.uniqueKey.name).isSameAs(project.name) },
         )
     }
 
@@ -49,9 +49,11 @@ class ProjectModelTest {
         val originIid = projectA.iid
         val projectB = projectA.copy()
         setField(
-            projectB.javaClass.superclass.getDeclaredField("iid").apply { isAccessible = true },
+            projectB.javaClass.superclass
+                .getDeclaredField("iid")
+                .apply { isAccessible = true },
             projectB,
-            originIid
+            originIid,
         )
 
         assertThat(projectA).isNotSameAs(projectB)
@@ -61,50 +63,49 @@ class ProjectModelTest {
     }
 
     @Test
-    fun `create project with repository id, should link correctly`() {
-        val project = Project(name = "test-project")
-        val repo = Repository(
-            localPath = "test",
-            projectId = project.iid,
-        )
-
-        project.repoId = repo.iid
+    fun `create project with repository, should link correctly`() {
+        val project =
+            Project(name = "test-project").apply {
+                this.repo =
+                    Repository(
+                        localPath = "test",
+                        project = this,
+                    )
+            }
 
         // check reference
-        assertThat(project.repoId).isNotNull()
-        assertThat(project.repoId).isEqualTo(repo.iid)
+        assertThat(project.repo).isNotNull()
+        assertThat(requireNotNull(project.repo).project).isSameAs(project)
+        assertThat(requireNotNull(project.repo).project.repo).isSameAs(project.repo)
     }
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `create project with blank name, should fail`(
-        name: String,
-    ) {
+    fun `create project with blank name, should fail`(name: String) {
         assertThrows<IllegalArgumentException> { Project(name) }
     }
 
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideAllowedStrings")
-    fun `create project with allowed names, should pass`(
-        name: String,
-    ) {
+    fun `create project with allowed names, should pass`(name: String) {
         assertDoesNotThrow { Project(name) }
     }
 
     @Test
     fun `create project with description`() {
-        val project = Project(name = "test-project").apply {
-            description = "test-description"
-        }
+        val project =
+            Project(name = "test-project").apply {
+                description = "test-description"
+            }
 
         assertThat(project.description).isEqualTo("test-description")
     }
 
     @Test
-    fun `create project with explicit null repoId`() {
+    fun `create project with explicit null repo`() {
         assertThrows<IllegalArgumentException> {
             Project(name = "test-project").apply {
-                this.repoId = null
+                this.repo = null
             }
         }
     }

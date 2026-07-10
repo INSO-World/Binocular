@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class BuildMapper {
-
-    fun map(builds: List<Map<String, Any?>>, model: Model) {
+    fun map(
+        builds: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val buildType = model.getResource("${RdfNamespaces.CI_GHA}WorkflowRun")
         val jobType = model.getResource("${RdfNamespaces.CI_GHA}Job")
         val statusProp = model.getProperty(RdfNamespaces.BIO, "status")

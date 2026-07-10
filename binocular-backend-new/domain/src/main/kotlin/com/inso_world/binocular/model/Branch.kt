@@ -12,11 +12,17 @@ class Branch(
     override val category: ReferenceCategory,
     override val repositoryId: Repository.Id,
     headCommitId: Commit.Id,
-) : Reference<Branch.Key>(category, repositoryId), Cloneable {
+) : Reference<Branch.Key>(category, repositoryId),
+    Cloneable {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
-    data class Key(val repositoryId: Repository.Id, val name: String)
+    data class Key(
+        val repositoryId: Repository.Id,
+        val name: String
+    )
 
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
@@ -45,6 +51,7 @@ class Branch(
         get() = Key(repositoryId, this.name)
 
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =

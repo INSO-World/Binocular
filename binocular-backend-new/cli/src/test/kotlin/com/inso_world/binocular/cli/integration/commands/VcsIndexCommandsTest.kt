@@ -12,11 +12,8 @@ import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
@@ -127,7 +124,7 @@ internal class VcsIndexCommandsTest : BaseFixturesIntegrationTest() {
 
             val repo = repoService.findRepo(BINOCULAR_REPO_PATH.absolutePathString())
             assertNotNull(repo)
-            assertThat(repo.commits).hasSizeGreaterThan(2400)
+            assertThat(repo.commits).hasSize(2580)
         }
 
         @Test
@@ -141,7 +138,7 @@ internal class VcsIndexCommandsTest : BaseFixturesIntegrationTest() {
             val repo = repoService.findRepo(BINOCULAR_REPO_PATH.absolutePathString())
             assertNotNull(repo)
             // git rev-list --count origin/develop
-            assertThat(repo.commits).hasSizeGreaterThan(2500)
+            assertThat(repo.commits).hasSize(2743)
         }
 
         @Test

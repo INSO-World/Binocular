@@ -5,6 +5,7 @@ import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import java.io.Serializable
 import java.util.stream.Stream
@@ -43,6 +44,9 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     protected val repository: ArangoRepository<E, I>,
     protected val mapper: EntityMapper<D, E>,
 ) : IDao<D, I> {
+    @Autowired
+    private lateinit var seeder: DefaultMappingContextSeeder
+
     /**
      * Converts a list of database entities to a list of domain models
      */
@@ -51,7 +55,9 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds an entity by its ID and converts it to a domain model
      */
+    @MappingSession
     override fun findById(id: I): D? {
+        seeder.seed()
         val entity = repository.findById(id).orElse(null) ?: return null
         return mapper.toDomain(entity)
     }
@@ -59,7 +65,9 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
     /**
      * Finds all entities and converts them to domain models
      */
+    @MappingSession
     override fun findAll(): Iterable<D> {
+        seeder.seed()
         val entities = repository.findAll()
         return toDomainList(entities)
     }
@@ -69,6 +77,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      */
     @MappingSession
     override fun findAll(pageable: Pageable): Page<D> {
+        seeder.seed()
         val result = repository.findAll(pageable)
         val content = toDomainList(result.content)
         val totalElements = result.totalElements
@@ -81,7 +90,7 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * @param entity The domain model to create an entity from
      * @return The created domain model
      */
-    @MappingSession
+    @Deprecated("legacy from initial implementation", ReplaceWith("create(entity)"))
     override fun create(entity: D): D {
         val mappedEntity = mapper.toEntity(entity)
         val savedEntity = repository.save(mappedEntity)
@@ -99,6 +108,12 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
         val savedEntity = repository.save(mappedEntity)
         return mapper.toDomain(savedEntity)
     }
+
+    /**
+     * Saves an entity directly to the database without domain mapping.
+     * Use this when you already have an entity and want to bypass the mapper.
+     */
+    open fun createEntity(entity: E): E = repository.save(entity)
 
     /**
      * Updates an existing entity from a domain model and flushes changes
@@ -135,13 +150,12 @@ open class MappedArangoDbDao<D : Any, E : Any, I : Serializable>(
      * Save an entity (create or update)
      * For ArangoDB, this is the same as create or update
      */
-    @Deprecated("should be replaced with create")
+    @Deprecated("should be replaced with create", ReplaceWith("create(entity)"))
     override fun save(entity: D): D = create(entity)
 
     /**
      * Save multiple entities
      */
-    @MappingSession
     override fun saveAll(entities: Collection<D>): Iterable<D> = entities.map { create(it) }
 
     override fun findAllAsStream(): Stream<D> {

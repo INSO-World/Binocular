@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.test.base
 
+import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
 import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.infrastructure.test.config.LocalArangodbConfig
 import com.inso_world.binocular.infrastructure.test.config.LocalPostgresConfig
@@ -26,7 +27,7 @@ import org.springframework.test.context.ContextConfiguration
     ]
 )
 @ComponentScan(basePackages = ["com.inso_world.binocular.infrastructure.test", "com.inso_world.binocular.core"])
-abstract class BaseInfrastructureSpringTest {
+internal abstract class BaseInfrastructureSpringTest : BaseIntegrationTest() {
     @Autowired
     protected lateinit var infrastructureDataSetup: InfrastructureDataSetup
 

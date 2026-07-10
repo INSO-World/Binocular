@@ -3,7 +3,6 @@ package com.inso_world.binocular.infrastructure.sql.persistence.entity
 import com.inso_world.binocular.infrastructure.sql.persistence.converter.KotlinUuidConverter
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
@@ -15,7 +14,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
-import jakarta.persistence.PreRemove
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
 import org.hibernate.annotations.BatchSize
@@ -68,8 +66,10 @@ internal data class RepositoryEntity(
     @JoinColumn(name = "fk_project_id")
     var project: ProjectEntity,
 ) : AbstractEntity<Long, RepositoryEntity.Key>() {
-
-    data class Key(val projectIid: Project.Id, val localPath: String) // value object for lookups
+    data class Key(
+        val projectIid: Project.Id,
+        val localPath: String,
+    ) // value object for lookups
 
     init {
         project.repoId = this.iid
@@ -112,9 +112,7 @@ internal data class RepositoryEntity(
         return this.developers.add(developer)
     }
 
-    fun addRemote(remote: RemoteEntity): Boolean {
-        return this.remotes.add(remote)
-    }
+    fun addRemote(remote: RemoteEntity): Boolean = this.remotes.add(remote)
 
     override val uniqueKey: Key
         get() = Key(project.iid, localPath)

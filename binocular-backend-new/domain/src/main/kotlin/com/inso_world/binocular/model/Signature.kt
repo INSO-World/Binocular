@@ -3,8 +3,6 @@ package com.inso_world.binocular.model
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
 import java.time.LocalDateTime
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 data class Signature(
     @field:NotNull
@@ -27,7 +25,11 @@ data class Signature(
     private val name: String
         get() {
             val nameRegex = Regex("""^(.+?)\s*<""")
-            return nameRegex.find(gitSignature)?.groupValues?.get(1)?.trim() ?: "Unknown"
+            return nameRegex
+                .find(gitSignature)
+                ?.groupValues
+                ?.get(1)
+                ?.trim() ?: "Unknown"
         }
 
     private val email: String

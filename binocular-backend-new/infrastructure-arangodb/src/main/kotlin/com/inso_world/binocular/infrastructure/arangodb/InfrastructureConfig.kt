@@ -11,6 +11,7 @@ class InfrastructureConfig : BinocularConfig() {
 }
 
 class AdbConfig {
+    lateinit var migration: MigrationConfig
     lateinit var database: DatabaseConfig
 }
 
@@ -20,4 +21,9 @@ class DatabaseConfig(
     val port: String,
     var user: String?,
     var password: String?,
+)
+
+class MigrationConfig(
+    val defaultProjectName: String,
+    val defaultUserEmailTemplate: String = "{name}@users.noreply.binocular.inso-world.com",
 )

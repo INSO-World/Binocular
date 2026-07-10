@@ -1,13 +1,14 @@
 package com.inso_world.binocular.web.graphql.integration.realdata.base
 
+import com.arangodb.ArangoDB
 import com.inso_world.binocular.core.delegates.logger
-import com.inso_world.binocular.core.integration.base.BaseIntegrationTest
-import com.inso_world.binocular.infrastructure.arangodb.ArangodbTestConfig
+import com.inso_world.binocular.infrastructure.arangodb.migration.V002_AddBranchIid
 import com.inso_world.binocular.web.BinocularWebApplication
-import com.inso_world.binocular.web.base.AbstractWebIntegrationTest
 import com.inso_world.binocular.web.graphql.integration.realdata.base.legacy.LegacyHttpGraphQlClient
 import com.inso_world.binocular.web.graphql.integration.realdata.base.spring.SpringTesterGraphQlClient
 import io.testcontainers.arangodb.containers.ArangoContainer
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Tags
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -15,7 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.core.env.Profiles
 import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.test.context.ContextConfiguration
 import org.testcontainers.containers.wait.strategy.Wait
@@ -33,21 +33,21 @@ import java.time.Duration
         BaseGraphQlCompatibilityIT.Initializer::class,
     ]
 )
+@Tags(Tag("integration"), Tag("realdata"))
 internal abstract class BaseGraphQlCompatibilityIT {
-
     companion object {
         private val adbContainer =
             ArangoContainer(
-                DockerImageName.parse("ghcr.io/inso-world/binocular-database:3.12.test-data")
-
+                DockerImageName
+                    .parse("ghcr.io/inso-world/binocular-database:3.12.test-data")
                     .asCompatibleSubstituteFor("arangodb")
-            )
-                .apply { withExposedPorts(8529) }
+            ).apply { withExposedPorts(8529) }
                 .apply { withoutAuth() }
                 // .apply { withReuse(true) }
                 .waitingFor(
                     // Wait for script success message
-                    Wait.forLogMessage(".*RECOVERY_COMPLETE_PROCEED_WITH_TESTS.*\\n", 1)
+                    Wait
+                        .forLogMessage(".*RECOVERY_COMPLETE_PROCEED_WITH_TESTS.*\\n", 1)
                         .withStartupTimeout(Duration.ofSeconds(120))
                 )
 
@@ -61,12 +61,35 @@ internal abstract class BaseGraphQlCompatibilityIT {
     private class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(ctx: ConfigurableApplicationContext) {
             adbContainer.start()
+            backfillBranchIid()
 
-            TestPropertyValues.of(
-                "binocular.arangodb.database.host=${adbContainer.host}",
-                "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
-                "binocular.arangodb.database.name=binocular-binocular"
-            ).applyTo(ctx.environment)
+            TestPropertyValues
+                .of(
+                    "binocular.arangodb.database.host=${adbContainer.host}",
+                    "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
+                    "binocular.arangodb.database.name=binocular-binocular",
+                ).applyTo(ctx.environment)
+        }
+
+        /**
+         * The prebuilt real-data image contains legacy `branches` documents
+         * without an `iid`. [BranchEntity]'s unique persistent index on `iid`
+         * would otherwise fail to build the moment [BranchRepository]
+         * (which has eagerly-resolved `@Query` methods) is constructed, since
+         * [V002_AddBranchIid] only runs after Spring context bean creation has
+         * started and isn't guaranteed to run before [branchRepository].
+         * Run it here, directly against the just-started container, before any
+         * Spring bean exists.
+         */
+        private fun backfillBranchIid() {
+            val arango =
+                ArangoDB
+                    .Builder()
+                    .host(adbContainer.host, adbContainer.firstMappedPort)
+                    .user("root")
+                    .password("")
+                    .build()
+            V002_AddBranchIid().migrate(arango.db("binocular-binocular"))
         }
     }
 
@@ -90,13 +113,9 @@ internal abstract class BaseGraphQlCompatibilityIT {
         return LegacyHttpGraphQlClient(url)
     }
 
-    private fun graphqlTarget(): String =
-        System.getProperty("graphql.target", DEFAULT_TARGET).lowercase()
+    private fun graphqlTarget(): String = System.getProperty("graphql.target", DEFAULT_TARGET).lowercase()
 
-    private fun legacyUrl(): String =
-        System.getProperty("graphql.legacy.url", DEFAULT_LEGACY_URL)
+    private fun legacyUrl(): String = System.getProperty("graphql.legacy.url", DEFAULT_LEGACY_URL)
 
-    private fun log(message: String) =
-        logger.info("[GRAPHQL-IT] $message")
-
+    private fun log(message: String) = logger.info("[GRAPHQL-IT] $message")
 }

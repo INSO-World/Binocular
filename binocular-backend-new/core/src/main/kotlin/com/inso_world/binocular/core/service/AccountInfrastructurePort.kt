@@ -59,4 +59,11 @@ interface AccountInfrastructurePort : BinocularInfrastructurePort<Account, Accou
      */
     fun findAccountsByUserId(userId: String): List<Account>
 
+    /**
+     * Find existing GitHub Accounts via gid.
+     *
+     * @param gids The list of GitHub account IDs
+     * @return the Accounts associated with the IDs
+     */
+    fun findExistingGid(gids: List<String>,): Iterable<Account>
 }

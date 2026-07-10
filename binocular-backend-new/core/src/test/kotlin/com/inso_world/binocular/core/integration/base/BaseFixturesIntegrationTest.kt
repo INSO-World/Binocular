@@ -29,11 +29,12 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
          * the shell scripts need to be executable on the filesystem.
          */
         val FIXTURES_PATH: String by lazy {
-            val resource = BaseFixturesIntegrationTest::class.java.getResource("/fixtures")
-                ?: throw IllegalStateException(
-                    "Cannot find fixtures directory on classpath. " +
-                            "Ensure core module's test resources are available."
-                )
+            val resource =
+                BaseFixturesIntegrationTest::class.java.getResource("/fixtures")
+                    ?: throw IllegalStateException(
+                        "Cannot find fixtures directory on classpath. " +
+                            "Ensure core module's test resources are available.",
+                    )
 
             try {
                 val uri = resource.toURI()
@@ -44,16 +45,19 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
 
                     // Extract fixtures from JAR to temp directory
                     val tempDir = Files.createTempDirectory("binocular-fixtures-")
-                    Runtime.getRuntime().addShutdownHook(Thread {
-                        tempDir.toFile().deleteRecursively()
-                    })
+                    Runtime.getRuntime().addShutdownHook(
+                        Thread {
+                            tempDir.toFile().deleteRecursively()
+                        },
+                    )
 
                     // Create filesystem for the JAR
-                    val fs = try {
-                        FileSystems.getFileSystem(uri)
-                    } catch (e: java.nio.file.FileSystemNotFoundException) {
-                        FileSystems.newFileSystem(uri, emptyMap<String, Any>())
-                    }
+                    val fs =
+                        try {
+                            FileSystems.getFileSystem(uri)
+                        } catch (e: java.nio.file.FileSystemNotFoundException) {
+                            FileSystems.newFileSystem(uri, emptyMap<String, Any>())
+                        }
 
                     val fixturesInJar = fs.getPath("/fixtures")
 
@@ -95,9 +99,15 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         const val MAILMAP_REPO = "mailmap"
         const val MAILMAP_PROJECT_NAME = "mailmap"
 
-        fun execCmd(path: String, vararg cmd: String) {
+        fun execCmd(
+            path: String,
+            vararg cmd: String,
+        ) {
             val isWindows =
-                java.lang.System.getProperty("os.name").lowercase(java.util.Locale.getDefault()).startsWith("windows")
+                java.lang.System
+                    .getProperty("os.name")
+                    .lowercase(java.util.Locale.getDefault())
+                    .startsWith("windows")
             val builder = java.lang.ProcessBuilder()
             if (isWindows) {
                 builder.command(*cmd)
@@ -124,8 +134,11 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
         @BeforeAll
         fun setUp() {
             fun createGitRepo(path: String) {
-                val isWindows = java.lang.System.getProperty("os.name").lowercase(java.util.Locale.getDefault())
-                    .startsWith("windows")
+                val isWindows =
+                    java.lang.System
+                        .getProperty("os.name")
+                        .lowercase(java.util.Locale.getDefault())
+                        .startsWith("windows")
                 if (isWindows) {
                     val winPath = java.io.File(FIXTURES_PATH).absolutePath
                     val wslPath = "/mnt/" + winPath[0].lowercase() + winPath.substring(2).replace("\\", "/")
@@ -156,9 +169,10 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
     fun addCommit() {
         val executorService = Executors.newFixedThreadPool(3)
         SIMPLE_REPO.let { path ->
-            val future = executorService.submit {
-                execCmd(path = path, "sh", "-c", "./${path}_add_commit.sh $path")
-            }
+            val future =
+                executorService.submit {
+                    execCmd(path = path, "sh", "-c", "./${path}_add_commit.sh $path")
+                }
             future.get()
         }
     }

@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class ContributorMapper {
-
-    fun map(users: List<Map<String, Any?>>, model: Model) {
+    fun map(
+        users: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val contributorType = model.getResource("${RdfNamespaces.BIO}Contributor")
         val nameProp = model.getProperty(RdfNamespaces.BIO, "name")
         val emailProp = model.getProperty(RdfNamespaces.BIO, "email")

@@ -11,10 +11,12 @@ data class Revision(
     val commitId: Commit.Id,
     val fileId: File.Id,
 ) : AbstractDomainObject<Revision.Id, String>(
-    Id(Uuid.random())
-) {
+        Id(Uuid.random())
+    ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))
     var id: String? = null
@@ -23,6 +25,7 @@ data class Revision(
         get() = "${commitId.value},${fileId.value}"
 
     override fun equals(other: Any?) = other is Revision && other.iid == iid
+
     override fun hashCode(): Int = iid.hashCode()
 
     @OptIn(ExperimentalEncodingApi::class)

@@ -49,4 +49,7 @@ class MilestoneResolver(
         // Get all connections for this milestone and extract the merge requests
         return milestoneService.findMergeRequestsByMilestoneId(id).map { mapper.toDto(it) }
     }
+
+    @SchemaMapping(typeName = "Milestone", field = "iid")
+    fun iid(milestone: MilestoneDto): Int? = milestone.iid
 }

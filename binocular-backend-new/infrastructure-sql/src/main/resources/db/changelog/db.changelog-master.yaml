@@ -1,7 +1,25 @@
 databaseChangeLog:
-  - includeAll:
-      path: db/changelog/2025/09
-  - includeAll:
-      path: db/changelog/2025/11
+  - include:
+      file: db/changelog/2025/09/18-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/08/21-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/08/26-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/01-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/09/16-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/11/19-01-changelog.yaml
+  - include:
+      file: db/changelog/2025/11/04-notes-and-links.yaml
+  - include:
+      file: db/changelog/2025/09/25-01-changelog.yaml
   - includeAll:
       path: db/changelog/2025/12
+  - include:
+      file: db/changelog/2026/03/01-03-changelog.yaml
+  - include:
+      file: db/changelog/2026/03/17-01-changelog.yaml
+  - includeAll:
+      path: db/changelog/2026/06

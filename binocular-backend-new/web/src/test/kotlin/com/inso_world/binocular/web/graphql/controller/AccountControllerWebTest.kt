@@ -111,14 +111,14 @@ internal class AccountControllerWebTest : BaseIntegrationTest() {
 
         @Test
         fun `should return account by id`() {
-            val expectedAccount = TestDataProvider.testAccounts.first { it.id == "1" }
+            val expectedAccount = TestDataProvider.testAccounts[0]
 
             val result: JsonNode =
                 graphQlTester
                     .document(
                         """
             query {
-                account(id: "1") {
+                account(id: "${TestDataProvider.testAccounts[0].id}") {
                     id
                     platform
                     login

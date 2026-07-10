@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileUserConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitFileUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.FileMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
@@ -30,12 +32,22 @@ internal class CommitFileUserConnectionDao
         private val fileMapper: FileMapper,
         private val userMapper: UserMapper,
     ) : ICommitFileUserConnectionDao {
+        @Autowired
+        private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all users connected to a file
          */
         override fun findUsersByFile(fileId: String): List<User> {
             val userEntities = repository.findUsersByCommitFile(fileId)
-            return userEntities.map { userMapper.toDomain(it) }
+            return userEntities.map {
+                seeder.seed()
+                repositoryAssembler.toDomain(it.repository)
+                userMapper.toDomain(it)
+            }
         }
 
         /**
@@ -47,10 +59,12 @@ internal class CommitFileUserConnectionDao
         }
 
         /**
-         * Save a commit-file-user connection
+         * Save a commit-file-user connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitFileUserConnection): CommitFileUserConnection {
-            // Get the file and user entities from their repositories
             val fileEntity =
                 fileRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("File with ID ${connection.from.id} not found")
@@ -60,7 +74,6 @@ internal class CommitFileUserConnectionDao
                     IllegalArgumentException("User with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 CommitFileUserConnectionEntity(
                     id = connection.id,
@@ -68,14 +81,12 @@ internal class CommitFileUserConnectionDao
                     to = userEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitFileUserConnection(
                 id = savedEntity.id,
-                from = fileMapper.toDomain(savedEntity.from),
-                to = userMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

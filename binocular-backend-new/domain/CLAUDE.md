@@ -68,8 +68,3 @@ These rules are enforced by code and tests. Treat violations as bugs, not style 
 - Use `NonRemovingMutableSet` (often via an anonymous subclass overriding `add` to inject repository checks) for any 1:N or N:M collection.
 - Add KDoc covering: identity & equality, validation rules, set-once relationships, thread-safety, and at least one usage example. Existing models (e.g. `Commit.kt`, `Repository.kt`) are the reference template.
 - Coverage targets: **80%+ line coverage and 80%+ mutation coverage**. Add tests under `src/test/kotlin/com/inso_world/binocular/model/` (model tests) and `.../model/validation/` (Jakarta validation tests). Use `MockTestDataProvider` for pre-wired graphs.
-
-## Notes on the Wider Repository
-
-- The top-level `/Users/manuel/Repository/Binocular-wasm/CLAUDE.md` describes a **different, legacy JS/TS backend** (`binocular-backend/`). It does not apply here. The Kotlin backend you're working on lives entirely under `binocular-backend-new/`.
-- The current branch is `feature/backend-new`; recent commits refactored entities (`Project`, `Repository`, `MockTestDataProvider`) toward **ID-based references** rather than holding direct object references. When extending models, follow that direction — prefer `Foo.Id` over `Foo` for cross-aggregate references where appropriate.

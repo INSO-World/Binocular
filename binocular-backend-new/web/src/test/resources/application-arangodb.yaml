@@ -1,5 +1,9 @@
 binocular:
   arangodb:
+    migration:
+      default_project_name: "INSO-World/Binocular"
+      default_user_email_template: "{name}@users.noreply.binocular.inso-world.com"
+      enabled: true
     database:
       name: "binocular-web-test"
       host: ${ARANGODB_HOST:localhost}

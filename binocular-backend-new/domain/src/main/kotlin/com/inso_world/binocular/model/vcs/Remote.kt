@@ -79,20 +79,20 @@ data class Remote(
         message = "Remote name must contain only alphanumeric characters, dots, underscores, slashes, or hyphens"
     )
     val name: String,
-
     @field:NotBlank
     @field:GitUrl
     var url: String,
-
     val repositoryId: Repository.Id,
 ) : AbstractDomainObject<Remote.Id, Remote.Key>(
-    Id(Uuid.random())
-) {
+        Id(Uuid.random())
+    ) {
     /**
      * Type-safe wrapper for the technical identity of a [Remote].
      */
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
     /**
      * Business key for a [Remote]: unique combination of repository ID and remote name.
@@ -100,7 +100,10 @@ data class Remote(
      * Within a single repository, remote names must be unique (Git enforces this).
      * Across repositories, the same name (e.g., "origin") can exist independently.
      */
-    data class Key(val repositoryId: Repository.Id, val name: String)
+    data class Key(
+        val repositoryId: Repository.Id,
+        val name: String
+    )
 
     /**
      * Optional database-specific identifier.
@@ -119,8 +122,8 @@ data class Remote(
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 
-    override fun toString(): String =
-        "Remote(id=$id, iid=$iid, name='$name', url='$url', repositoryId=$repositoryId)"
+    override fun toString(): String = "Remote(id=$id, iid=$iid, name='$name', url='$url', repositoryId=$repositoryId)"
 }

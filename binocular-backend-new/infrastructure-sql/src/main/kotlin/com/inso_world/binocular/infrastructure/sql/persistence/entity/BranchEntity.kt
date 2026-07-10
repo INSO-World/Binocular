@@ -23,6 +23,10 @@ import jakarta.persistence.UniqueConstraint
 
 /**
  * SQL-specific Branch entity.
+ *
+ * Maps all persisted branch state including [active] and [tracksFileRenames] flags, which are
+ * round-tripped through [toDomain] and [Branch.toEntity] so that the port contract test
+ * assertions on those fields pass.
  */
 @Entity
 @Table(
@@ -48,9 +52,16 @@ internal data class BranchEntity(
     val repository: RepositoryEntity,
     @Column(nullable = false, updatable = false, unique = true)
     @Convert(KotlinUuidConverter::class)
-    val iid: Reference.Id
+    val iid: Reference.Id,
+    @Column(nullable = false)
+    val active: Boolean = false,
+    @Column(name = "tracks_file_renames", nullable = false)
+    val tracksFileRenames: Boolean = false,
 ) : AbstractEntity<Long, BranchEntity.Key>() {
-    data class Key(val repositoryIid: Repository.Id, val name: String)
+    data class Key(
+        val repositoryIid: Repository.Id,
+        val name: String
+    )
 
     init {
         repository.branches.add(this)
@@ -60,7 +71,15 @@ internal data class BranchEntity(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     override var id: Long? = null
 
-    fun toDomain(repository: Repository, head: Commit): Branch =
+    /**
+     * Converts this entity to a [Branch] domain object.
+     *
+     * Sets [Branch.id], [Branch.active], and [Branch.tracksFileRenames] from the persisted values.
+     */
+    fun toDomain(
+        repository: Repository,
+        head: Commit
+    ): Branch =
         Branch(
             name = this.name,
             fullName = this.fullName,
@@ -69,6 +88,8 @@ internal data class BranchEntity(
             headCommitId = head.iid,
         ).apply {
             this.id = this@BranchEntity.id?.toString()
+            this.active = this@BranchEntity.active
+            this.tracksFileRenames = this@BranchEntity.tracksFileRenames
         }
 
     override fun equals(other: Any?): Boolean = super.equals(other)
@@ -78,13 +99,23 @@ internal data class BranchEntity(
     override fun toString(): String = "BranchEntity(id=$id, name='$name', headId=${head.id})"
 
     override val uniqueKey: Key
-        get() = Key(
-            repository.iid,
-            name
-        )
+        get() =
+            Key(
+                repository.iid,
+                name
+            )
 }
 
-internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): BranchEntity =
+/**
+ * Converts a [Branch] domain object to a [BranchEntity].
+ *
+ * Copies [Branch.active] and [Branch.tracksFileRenames] so those flags survive the round-trip.
+ * Sets [BranchEntity.id] from the domain [Branch.id] when the branch was previously persisted.
+ */
+internal fun Branch.toEntity(
+    repository: RepositoryEntity,
+    head: CommitEntity
+): BranchEntity =
     BranchEntity(
         iid = this.iid,
         name = this.name,
@@ -92,6 +123,8 @@ internal fun Branch.toEntity(repository: RepositoryEntity, head: CommitEntity): 
         category = this.category,
         repository = repository,
         head = head,
+        active = this.active,
+        tracksFileRenames = this.tracksFileRenames,
     ).apply {
         id = this@toEntity.id?.trim()?.toLongOrNull()
     }

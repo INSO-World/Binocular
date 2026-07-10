@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.AccountUserConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IAccountUserConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.AccountUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.AccountMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
@@ -26,10 +27,14 @@ internal class AccountUserConnectionDao
         private val accountMapper: AccountMapper,
         private val userMapper: UserMapper,
     ) : IAccountUserConnectionDao {
+        @Autowired
+        private lateinit var seeder: DefaultMappingContextSeeder
+
         /**
          * Find all users connected to an account
          */
         override fun findUsersByAccount(accountId: String): List<User> {
+            seeder.seed()
             val userEntities = repository.findUsersByAccount(accountId)
             return userEntities.map { userMapper.toDomain(it) }
         }
@@ -38,12 +43,16 @@ internal class AccountUserConnectionDao
          * Find all accounts connected to a user
          */
         override fun findAccountsByUser(userId: String): List<Account> {
+            seeder.seed()
             val accountEntities = repository.findAccountsByUser(userId)
             return accountEntities.map { accountMapper.toDomain(it) }
         }
 
         /**
-         * Save an account-user connection
+         * Save an account-user connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: AccountUserConnection): AccountUserConnection {
             val accountEntity =
@@ -66,8 +75,8 @@ internal class AccountUserConnectionDao
 
             return AccountUserConnection(
                 id = saved.id,
-                from = accountMapper.toDomain(saved.from),
-                to = userMapper.toDomain(saved.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

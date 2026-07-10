@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.IssueUserConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IIssueUserConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
@@ -30,12 +32,19 @@ internal class IssueUserConnectionDao
         private val issueMapper: IssueMapper,
         private val userMapper: UserMapper,
     ) : IIssueUserConnectionDao {
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+        @Autowired private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all users connected to an issue
          */
         override fun findUsersByIssue(issueId: String): List<User> {
             val userEntities = repository.findUsersByIssue(issueId)
-            return userEntities.map { userMapper.toDomain(it) }
+            return userEntities.map {
+                seeder.seed()
+                repositoryAssembler.toDomain(it.repository)
+                userMapper.toDomain(it)
+            }
         }
 
         /**
@@ -47,10 +56,12 @@ internal class IssueUserConnectionDao
         }
 
         /**
-         * Save an issue-user connection
+         * Save an issue-user connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: IssueUserConnection): IssueUserConnection {
-            // Get the issue and user entities from their repositories
             val issueEntity =
                 issueRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Issue with ID ${connection.from.id} not found")
@@ -60,7 +71,6 @@ internal class IssueUserConnectionDao
                     IllegalArgumentException("User with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 IssueUserConnectionEntity(
                     id = connection.id,
@@ -68,14 +78,12 @@ internal class IssueUserConnectionDao
                     to = userEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return IssueUserConnection(
                 id = savedEntity.id,
-                from = issueMapper.toDomain(savedEntity.from),
-                to = userMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

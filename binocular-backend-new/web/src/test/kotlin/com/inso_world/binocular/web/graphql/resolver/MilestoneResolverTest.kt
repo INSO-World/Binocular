@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.MilestoneDto
 import org.junit.jupiter.api.Assertions.assertAll
@@ -27,7 +28,7 @@ internal class MilestoneResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    milestone(id: "1") {
+                    milestone(id: "${TestDataProvider.testMilestones[0].id}") {
                         id
                         iid
                         title
@@ -73,7 +74,7 @@ internal class MilestoneResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    milestone(id: "1") {
+                    milestone(id: "${TestDataProvider.testMilestones[0].id}") {
                         id
                         iid
                         title
@@ -125,7 +126,7 @@ internal class MilestoneResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    milestone(id: "1") {
+                    milestone(id: "${TestDataProvider.testMilestones[0].id}") {
                         id
                         iid
                         title

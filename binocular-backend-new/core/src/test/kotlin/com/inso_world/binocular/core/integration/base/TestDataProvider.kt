@@ -24,32 +24,72 @@ import java.time.LocalDateTime
  */
 @Deprecated(
     "Objects are singletons, every change is propagated over tests. Instead, use the MockTestDataProvider class and create a new object before each test rung to have a clean state",
-    replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider")
+    replaceWith = ReplaceWith("com.inso_world.binocular.core.data.MockTestDataProvider"),
 )
 object TestDataProvider {
-    private val project = Project(name = "proj-pg-0")
-    private val repository = Repository(localPath = "repo-pg-0", project = project)
+    val testProjects =
+        listOf(
+            Project(name = "proj-pg-0").apply { this.id = "1" },
+            Project(name = "proj-pg-1").apply { this.id = "2" },
+            Project(name = "proj-pg-2").apply { this.id = "3" },
+            Project(name = "proj-pg-3").apply { this.id = "4" },
+            Project(name = "proj-pg-4").apply { this.id = "5" },
+            Project(name = "proj-pg-7").apply { this.id = "7" },
+            Project(name = "proj-for-repos").apply { this.id = "6" },
+        )
+    private val testProjectsByName = testProjects.associateBy { it.name }
+
+    val testRepositories =
+        listOf(
+            Repository(localPath = "repo-pg-0", project = testProjectsByName.getValue("proj-for-repos")).apply {
+                this.id = "r1"
+            },
+            Repository(localPath = "repo-pg-1", project = testProjectsByName.getValue("proj-pg-4")).apply {
+                this.id = "r2"
+            },
+            Repository(localPath = "repo-pg-2", project = testProjectsByName.getValue("proj-pg-3")).apply {
+                this.id = "r3"
+            },
+            Repository(localPath = "repo-pg-3", project = testProjectsByName.getValue("proj-pg-2")).apply {
+                this.id = "r4"
+            },
+            Repository(localPath = "repo-pg-4", project = testProjectsByName.getValue("proj-pg-1")).apply {
+                this.id = "r5"
+            },
+            Repository(localPath = "repo-pg-5", project = testProjectsByName.getValue("proj-pg-0")).apply {
+                this.id = "r6"
+            },
+            Repository(localPath = "repo-pg-6", project = testProjectsByName.getValue("proj-pg-7")).apply {
+                this.id = "r7"
+            },
+        )
+
+    private val repository = testRepositories.first()
 
     private val mockTestDataProvider = MockTestDataProvider(repository)
 
     val testAccounts =
         listOf(
             Account(
-                "1",
+                "MDQ9JXMlcjY5MoB7Nah4",
                 Platform.GitHub,
                 "user1",
-                "User One",
-                "https://example.com/avatars/user1.png",
-                "https://github.com/user1",
-            ),
+                projects = mutableSetOf(testProjectsByName.getValue("proj-pg-7"))
+            ).apply {
+                this.name = "User One"
+                this.avatarUrl = "https://example.com/avatars/user1.png"
+                this.url = "https://github.com/user1"
+            },
             Account(
-                "2",
+                "MDQ9JXjIMjY5MoB7Nah4",
                 Platform.GitLab,
                 "user2",
-                "User Two",
-                "https://example.com/avatars/user2.png",
-                "https://gitlab.com/user2",
-            ),
+                projects = mutableSetOf(testProjectsByName.getValue("proj-pg-7"))
+            ).apply {
+                this.name = "User Two"
+                this.avatarUrl = "https://example.com/avatars/user2.png"
+                this.url = "https://github.com/user2"
+            },
         )
 
 //    private val mainBranch = Branch("main","abc123", repository = repository).apply {
@@ -65,6 +105,8 @@ object TestDataProvider {
 //        listOf(mainBranch, newFeatureBranch)
 
     val testCommits = mockTestDataProvider.commits
+
+    val testDevelopers = mockTestDataProvider.developers
 //        listOf(
 //            run {
 //                val cmt =
@@ -131,7 +173,7 @@ object TestDataProvider {
             ),
             Build(
                 "2",
-                "def456",
+                "def4560000000000000000000000000000000000",
                 "feature/new-feature",
                 "failed",
                 "v1.0.0",
@@ -189,6 +231,7 @@ object TestDataProvider {
             Issue(
                 "1",
                 101,
+                "asdfasdf293487",
                 "Fix bug in login flow",
                 "Users are unable to log in...",
                 LocalDateTime.now(),
@@ -204,10 +247,12 @@ object TestDataProvider {
                         false,
                     ),
                 ),
+                project = testProjectsByName.getValue("proj-pg-7").iid
             ),
             Issue(
                 "2",
                 102,
+                "ölkjo342",
                 "Add new feature",
                 "Implement profile customization",
                 LocalDateTime.now(),
@@ -218,53 +263,58 @@ object TestDataProvider {
                 "https://example.com/issues/102",
                 listOf(
                     Mention(
-                        "def456",
+                        "def4560000000000000000000000000000000000",
                         LocalDateTime.now(),
                         true,
                     ),
                 ),
+                project = testProjectsByName.getValue("proj-pg-7").iid
             ),
         )
 
     val testMergeRequests =
         listOf(
             MergeRequest(
-                "1",
-                201,
-                "Implement user authentication",
-                "Add JWT auth",
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                null,
-                listOf("feature", "security"),
-                "open",
-                "https://example.com/merge_requests/201",
-                listOf(
-                    Mention(
-                        "abc123",
-                        LocalDateTime.now(),
-                        false,
+                project = testProjectsByName.getValue("proj-pg-7").iid,
+                id = "1",
+                platformIid = 201,
+                title = "Implement user authentication",
+                description = "Add JWT auth",
+                createdAt = LocalDateTime.now().toString(),
+                closedAt = LocalDateTime.now().toString(),
+                updatedAt = null,
+                labels = listOf("feature", "security"),
+                state = "open",
+                webUrl = "https://example.com/merge_requests/201",
+                mentions =
+                    listOf(
+                        Mention(
+                            "abc123",
+                            LocalDateTime.now(),
+                            false,
+                        ),
                     ),
-                ),
             ),
             MergeRequest(
-                "2",
-                202,
-                "Fix CSS",
-                "Fix responsive design",
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                LocalDateTime.now().toString(),
-                listOf("bug", "ui"),
-                "merged",
-                "https://example.com/merge_requests/202",
-                listOf(
-                    Mention(
-                        "def456",
-                        LocalDateTime.now(),
-                        true,
+                project = testProjectsByName.getValue("proj-pg-7").iid,
+                id = "2",
+                platformIid = 202,
+                title = "Fix CSS",
+                description = "Fix responsive design",
+                createdAt = LocalDateTime.now().toString(),
+                closedAt = LocalDateTime.now().toString(),
+                updatedAt = LocalDateTime.now().toString(),
+                labels = listOf("bug", "ui"),
+                state = "merged",
+                webUrl = "https://example.com/merge_requests/202",
+                mentions =
+                    listOf(
+                        Mention(
+                            "def4560000000000000000000000000000000000",
+                            LocalDateTime.now(),
+                            true,
+                        ),
                     ),
-                ),
             ),
         )
 
@@ -272,43 +322,6 @@ object TestDataProvider {
         listOf(
             Module("1", "src/main/kotlin/com/example/core"),
             Module("2", "src/main/kotlin/com/example/api"),
-        )
-
-    val testProjects =
-        listOf(
-            Project(name = "proj-pg-0").apply { this.id = "1" },
-            Project(name = "proj-pg-1").apply { this.id = "2" },
-            Project(name = "proj-pg-2").apply { this.id = "3" },
-            Project(name = "proj-pg-3").apply { this.id = "4" },
-            Project(name = "proj-pg-4").apply { this.id = "5" },
-            Project(name = "proj-pg-7").apply { this.id = "7" },
-            Project(name = "proj-for-repos").apply {this.id = "6" },
-        )
-    private val testProjectsByName = testProjects.associateBy { it.name }
-
-    val testRepositories =
-        listOf(
-            Repository(localPath = "repo-pg-0", project = testProjectsByName.getValue("proj-for-repos")).apply {
-                this.id = "r1"
-            },
-            Repository(localPath = "repo-pg-1", project = testProjectsByName.getValue("proj-pg-4")).apply {
-                this.id = "r2"
-            },
-            Repository(localPath = "repo-pg-2", project = testProjectsByName.getValue("proj-pg-3")).apply {
-                this.id = "r3"
-            },
-            Repository(localPath = "repo-pg-3", project = testProjectsByName.getValue("proj-pg-2")).apply {
-                this.id = "r4"
-            },
-            Repository(localPath = "repo-pg-4", project = testProjectsByName.getValue("proj-pg-1")).apply {
-                this.id = "r5"
-            },
-            Repository(localPath = "repo-pg-5", project = testProjectsByName.getValue("proj-pg-0")).apply {
-                this.id = "r6"
-            },
-            Repository(localPath = "repo-pg-6", project = testProjectsByName.getValue("proj-pg-7")).apply {
-                this.id = "r7"
-            },
         )
 
     val testNotes =
@@ -341,19 +354,18 @@ object TestDataProvider {
 
     val testUsers =
         listOf(
-            User("John Doe", repository = repository).apply {
+            User("John Doe", repository = repository, email = "john.doe@example.com").apply {
                 this.id = "1"
-                this.email = "john.doe@example.com"
             },
-            User("Jane Smith", repository = repository).apply {
+            User("Jane Smith", repository = repository, email = "jane.smith@example.com").apply {
                 this.id = "2"
-                this.email = "jane.smith@example.com"
             },
         )
 
     val testMilestones =
         listOf(
             Milestone(
+                project = testProjectsByName.getValue("proj-pg-7").iid,
                 id = "1",
                 platformIid = 201,
                 title = "Release 1.0",
@@ -367,6 +379,7 @@ object TestDataProvider {
                 webUrl = "https://example.com/milestones/1",
             ),
             Milestone(
+                project = testProjectsByName.getValue("proj-pg-7").iid,
                 id = "2",
                 platformIid = 202,
                 title = "Release 2.0",

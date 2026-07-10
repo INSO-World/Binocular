@@ -21,7 +21,8 @@ internal class StreamGobbler(
             } else {
                 formattedPath.padEnd(fixedWidth, ' ')
             }
-        java.io.BufferedReader(java.io.InputStreamReader(inputStream))
+        java.io
+            .BufferedReader(java.io.InputStreamReader(inputStream))
             .lines()
             .forEach { line -> consumer.accept("$paddedPath\t$line") }
     }

@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
+import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.exception.NotFoundException
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
@@ -7,13 +8,13 @@ import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.assembler.ProjectAssembler
 import com.inso_world.binocular.infrastructure.sql.assembler.RepositoryAssembler
+import com.inso_world.binocular.infrastructure.sql.mapper.AccountMapper
+import com.inso_world.binocular.infrastructure.sql.mapper.IssueMapper
 import com.inso_world.binocular.infrastructure.sql.mapper.ProjectMapper
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.interfaces.IProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.service.AggregateFetchSupport.loadProjectEntities
 import com.inso_world.binocular.model.Project
-import com.inso_world.binocular.model.Repository
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -30,9 +31,16 @@ internal class ProjectInfrastructurePortImpl(
     @Autowired private val projectDao: IProjectDao,
 ) : AbstractInfrastructurePort<Project, ProjectEntity, Long>(Long::class),
     ProjectInfrastructurePort {
+    companion object {
+        private val logger by logger()
+    }
+
     @Lazy
     @Autowired
     private lateinit var projectAssembler: ProjectAssembler
+
+    @Autowired
+    private lateinit var ctx: MappingContext
 
     @Lazy
     @Autowired
@@ -42,8 +50,11 @@ internal class ProjectInfrastructurePortImpl(
     @Autowired
     private lateinit var repositoryAssembler: RepositoryAssembler
 
-    @Autowired
-    private lateinit var ctx: MappingContext
+    @Lazy
+    @Autowired lateinit var accountMapper: AccountMapper
+
+    @Lazy
+    @Autowired lateinit var issueMapper: IssueMapper
 
     /**
      * Self-reference to this bean's proxy instance.
@@ -95,9 +106,7 @@ internal class ProjectInfrastructurePortImpl(
      * @see self
      * @see findByIidInternal
      */
-    override fun findByIid(iid: Project.Id): Project? {
-        return self.findByIidInternal(iid)
-    }
+    override fun findByIid(iid: Project.Id): Project? = self.findByIidInternal(iid)
 
     /**
      * Internal implementation of project lookup by iid.
@@ -118,11 +127,10 @@ internal class ProjectInfrastructurePortImpl(
      */
     @MappingSession
     @Transactional(readOnly = true)
-    protected fun findByIidInternal(iid: Project.Id): Project? {
-        return this.projectDao.findByIid(iid)?.let {
+    protected fun findByIidInternal(iid: Project.Id): Project? =
+        this.projectDao.findByIid(iid)?.let {
             projectAssembler.toDomain(it)
         }
-    }
 
     @MappingSession
     @Transactional
@@ -133,32 +141,35 @@ internal class ProjectInfrastructurePortImpl(
         // update project properties
         managedEntity.description = value.description
 
+        // Seed identity-map so child assemblers (e.g. RepositoryMapper) can locate this Project's entity
+        ctx.remember(value, managedEntity)
+
         run {
-            val domainRepoId = value.repoId
-            val entityRepoId = managedEntity.repoId
+            val domainRepo = value.repo
+            val entityRepo = managedEntity.repo
 
             when {
                 // Case 1: Both repos exist - check if they're the same and update
-                domainRepoId != null && entityRepoId != null -> {
-                    if (domainRepoId != entityRepoId) {
+                domainRepo != null && entityRepo != null -> {
+                    if (domainRepo.iid != entityRepo.iid) {
                         throw IllegalArgumentException(
-                            "Cannot update project with a different repository. Project '${managedEntity.uniqueKey}' already has repository",
+                            "Cannot update project with a different repository. Project '${managedEntity.uniqueKey}' already has repository '${entityRepo.localPath}'",
                         )
                     }
-                    val domainRepo = ctx.findDomainByIid<Repository>(domainRepoId, RepositoryEntity::class)
-                        ?: throw IllegalStateException("Repository for ${domainRepoId} must be in context")
+                    // Seed identity-map so RepositoryMapper/Assembler short-circuit to the
+                    // already-managed RepositoryEntity instead of constructing a new (id=null) one.
+                    ctx.remember(domainRepo, entityRepo)
+
                     repositoryPort.update(domainRepo)
                 }
 
                 // Case 2: Adding a new repo where none existed
-                domainRepoId != null && entityRepoId == null -> {
-                    val domainRepo = ctx.findDomainByIid<Repository>(domainRepoId, RepositoryEntity::class)
-                        ?: throw IllegalStateException("Repository for ${domainRepoId} must be in context")
-                    managedEntity.repoId = repositoryAssembler.toEntity(domainRepo).iid
+                domainRepo != null && entityRepo == null -> {
+                    managedEntity.repo = repositoryAssembler.toEntity(domainRepo)
                 }
 
                 // Case 3: Removing existing repo
-                domainRepoId == null && entityRepoId != null -> {
+                domainRepo == null && entityRepo != null -> {
                     throw UnsupportedOperationException("Deleting repository from project is not yet allowed")
                 }
 
@@ -167,7 +178,64 @@ internal class ProjectInfrastructurePortImpl(
             }
         }
 
+        // Phase 0: Map existing entities to context
+        // Prevents creating duplicate entities for existing accounts/issues
+        logger.trace("Mapping existing entities to context")
+
+        // Map existing accounts
+        managedEntity.accounts.forEach { accountEntity ->
+            val domainAccount = value.accounts.find { it.uniqueKey == accountEntity.uniqueKey }
+            if (domainAccount != null) {
+                ctx.remember(domainAccount, accountEntity)
+            }
+        }
+
+        // Map existing issues
+        managedEntity.issues.forEach { issueEntity ->
+            val domainIssue = value.issues.find { it.uniqueKey == issueEntity.uniqueKey }
+            if (domainIssue != null) {
+                ctx.remember(domainIssue, issueEntity)
+            }
+        }
+
+        // Phase 1: Map and wire issues and accounts TODO
+
+        // Add or update accounts
+        logger.debug("Update accounts")
+        value.accounts.forEach { account ->
+            val accountEntity = accountMapper.toEntity(account)
+            // Only add if not already present
+            if (!managedEntity.accounts.contains(accountEntity)) {
+                managedEntity.addAccount(accountEntity)
+            }
+        }
+        logger.trace("Accounts updated")
+
+        // Add or update issues
+        logger.debug("Update issues")
+        value.issues.forEach { issue ->
+            val issueEntity = issueMapper.toEntity(issue, managedEntity)
+            // Only add if not already present
+            if (!managedEntity.issues.contains(issueEntity)) {
+                managedEntity.addIssue(issueEntity)
+            }
+
+            // Add all accounts to issue
+            issue.accounts.map { domainAccount ->
+                val accountEntity = accountMapper.toEntity(domainAccount)
+                issueEntity.addAccount(accountEntity)
+            }
+
+            // Add author connection
+            issue.author?.let { domainAuthor ->
+                val authorEntity = accountMapper.toEntity(domainAuthor)
+                issueEntity.author = authorEntity
+            }
+        }
+        logger.trace("Issues updated")
+
         val updated = super.updateEntity(managedEntity)
+        logger.trace("Update executed")
 
         // Refresh the input domain object with persisted values and return it
         this.projectMapper.refreshDomain(value, updated)
@@ -185,6 +253,14 @@ internal class ProjectInfrastructurePortImpl(
         return value
     }
 
+    /**
+     * Persists a batch of [Project] aggregates and back-propagates all JPA-generated IDs.
+     *
+     * [ProjectAssembler.refresh] is used (rather than [ProjectMapper.refreshDomain] alone) so that
+     * cascade-saved children — repositories, commits, branches — also receive their generated IDs via
+     * [RepositoryAssembler.refresh]. This ensures callers can immediately use [Branch.id],
+     * [Commit.id], etc. on the domain objects they passed in.
+     */
     @MappingSession
     @Transactional
     override fun saveAll(values: Collection<Project>): Iterable<Project> {
@@ -196,16 +272,14 @@ internal class ProjectInfrastructurePortImpl(
 
         // Refresh each domain object with its persisted entity and return the original collection
         pairs.zip(savedEntities).forEach { (pair, savedEntity) ->
-            this.projectMapper.refreshDomain(pair.first, savedEntity)
+            this.projectAssembler.refresh(pair.first, savedEntity)
         }
-
         return values
     }
 
     @MappingSession
     @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Project> =
-        loadProjectEntities(projectDao).map(projectAssembler::toDomain)
+    override fun findAll(): Iterable<Project> = loadProjectEntities(projectDao).map(projectAssembler::toDomain)
 
     @MappingSession
     @Transactional(readOnly = true)

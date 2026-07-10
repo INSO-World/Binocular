@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class ModuleMapper {
-
-    fun map(modules: List<Map<String, Any?>>, model: Model) {
+    fun map(
+        modules: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val moduleType = model.getResource("${RdfNamespaces.BIO}Module")
         val nameProp = model.getProperty(RdfNamespaces.BIO, "name")
 

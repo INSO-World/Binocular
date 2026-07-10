@@ -47,10 +47,12 @@ internal class MergeRequestMilestoneConnectionDao
         }
 
         /**
-         * Save a merge request-milestone connection
+         * Save a merge request-milestone connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: MergeRequestMilestoneConnection): MergeRequestMilestoneConnection {
-            // Get the merge request and milestone entities from their repositories
             val mergeRequestEntity =
                 mergeRequestRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("MergeRequest with ID ${connection.from.id} not found")
@@ -60,7 +62,6 @@ internal class MergeRequestMilestoneConnectionDao
                     IllegalArgumentException("Milestone with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the entity format
             val entity =
                 MergeRequestMilestoneConnectionEntity(
                     id = connection.id,
@@ -68,14 +69,12 @@ internal class MergeRequestMilestoneConnectionDao
                     to = milestoneEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return MergeRequestMilestoneConnection(
                 id = savedEntity.id,
-                from = mergeRequestMapper.toDomain(savedEntity.from),
-                to = milestoneMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

@@ -12,21 +12,19 @@ import org.junit.jupiter.params.provider.MethodSource
 internal class RepositoryValidationTest : ValidationTest() {
     @ParameterizedTest
     @MethodSource("com.inso_world.binocular.domain.data.DummyTestData#provideBlankStrings")
-    fun `should fail when localPath is blank`(
-        localPath: String,
-    ) {
+    fun `should fail when localPath is blank`(localPath: String) {
         // Given
         val project = Project(name = "test-project")
         val repository =
             Repository(
                 localPath = "localPath",
-                projectId = project.iid,
+                project = project,
             )
         // change field via reflection, otherwise constructor check fails
         setField(
             repository.javaClass.getDeclaredField("localPath").apply { isAccessible = true },
             repository,
-            localPath
+            localPath,
         )
         assertThat(repository.localPath).isEqualTo(localPath)
 

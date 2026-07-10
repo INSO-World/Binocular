@@ -279,7 +279,7 @@ internal class DbExportControllerTest : RestControllerTest() {
                     // assertEquals(expected.iid, actual.get("iid").asInt(),
                     //  "Issue $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}")
                     assertEquals(
-                        expected.iid,
+                        expected.platformIid,
                         actual.get("iid").asInt(),
                         "Issue $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}",
                     )
@@ -365,7 +365,7 @@ internal class DbExportControllerTest : RestControllerTest() {
                     val actual = mergeRequests[index]
                     // id and date verification are missing
                     assertEquals(
-                        expected.iid,
+                        expected.platformIid,
                         actual.get("iid").asInt(),
                         "MergeRequest $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}",
                     )
@@ -546,7 +546,7 @@ internal class DbExportControllerTest : RestControllerTest() {
                     // id check still missing (also date checks)
 
                     assertEquals(
-                        expected.iid,
+                        expected.platformIid,
                         actual.get("iid").asInt(),
                         "Milestone $index iid mismatch: expected ${expected.iid}, got ${actual.get("iid").asInt()}",
                     )

@@ -3,37 +3,65 @@
     {
       "name": "binocular.arangodb",
       "type": "com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig",
-      "description": "Configuration for the gix (Rust Git implementation) indexer."
+      "description": "Configuration for the arangodb infrastructure layer."
+    },
+    {
+      "name": "binocular.arangodb.database",
+      "type": "com.inso_world.binocular.infrastructure.arangodb.DatabaseConfig",
+      "description": "Configuration for the arangodb database connection."
+    },
+    {
+      "name": "binocular.arangodb.migration",
+      "type": "com.inso_world.binocular.infrastructure.arangodb.MigrationConfig",
+      "description": "Configuration for migration config similar to something liquibase is to SQL."
     }
   ],
   "properties": [
     {
       "name": "binocular.arangodb.database.name",
       "type": "java.lang.String",
-      "description": "Name of the database to use",
+      "description": "Name of the database to use.",
       "defaultValue": "Binocular"
     },
     {
       "name": "binocular.arangodb.database.host",
       "type": "java.lang.String",
-      "description": "Host of where the database is running",
+      "description": "Host of where the database is running.",
       "defaultValue": "localhost"
     },
     {
       "name": "binocular.arangodb.database.port",
       "type": "java.lang.Integer",
-      "description": "Port of where the database is running",
+      "description": "Port of where the database is running.",
       "defaultValue": 5432
     },
     {
       "name": "binocular.arangodb.database.user",
       "type": "java.lang.String",
-      "description": "User to login with into the ArangoDB instance"
+      "description": "User to login with into the ArangoDB instance."
     },
     {
       "name": "binocular.arangodb.database.password",
       "type": "java.lang.String",
-      "description": "Password to login with into the ArangoDB instance"
+      "description": "Password to login with into the ArangoDB instance."
+    },
+    {
+      "name": "binocular.arangodb.migration.defaultProjectName",
+      "type": "java.lang.String",
+      "description": "Name of the default project used by ArangoDB migrations and startup seeding. Must match the existing project name in the database for legacy deployments.",
+      "defaultValue": "Binocular"
+    },
+    {
+      "name": "binocular.arangodb.migration.defaultUserEmailTemplate",
+      "type": "java.lang.String",
+      "description": "Template used to generate default email addresses for users with missing email fields during migration. The placeholder {name} is replaced with the user's name (sanitised) so that defaulted users remain distinct.",
+      "defaultValue": "{name}@users.noreply.binocular.inso-world.com"
+    },
+    {
+      "name": "binocular.arangodb.migration.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to run ArangoDB schema migrations on application startup. When disabled, migrations are skipped entirely. Useful for tests that need a clean database.",
+      "defaultValue": true
     }
   ],
   "hints": []

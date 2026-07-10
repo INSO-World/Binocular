@@ -1,14 +1,12 @@
-@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
-
 package com.inso_world.binocular.infrastructure.arangodb.assembler
 
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.IssueMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.MergeRequestMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.ProjectMapper
 import com.inso_world.binocular.model.Project
-import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -50,10 +48,10 @@ internal class ProjectAssembler {
     private lateinit var projectMapper: ProjectMapper
 
     @Autowired
-    private lateinit var issueMapper: com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.IssueMapper
+    private lateinit var issueMapper: IssueMapper
 
     @Autowired
-    private lateinit var mergeRequestMapper: com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.MergeRequestMapper
+    private lateinit var mergeRequestMapper: MergeRequestMapper
 
     @Autowired
     @Lazy
@@ -96,9 +94,12 @@ internal class ProjectAssembler {
         domain.issues.forEach { issueMapper.toEntity(it) }
         domain.mergeRequests.forEach { mergeRequestMapper.toEntity(it) }
 
-        // Phase 3: Wire Repository to Project entity if present
-        domain.repoId?.let {
-            logger.trace("Repository reference set for Project: repoId=${it.value}")
+        // Phase 3: Assemble owned Repository if present
+        domain.repo?.let { repository ->
+            logger.trace("Assembling owned Repository for Project")
+            val repoEntity = repositoryAssembler.toEntity(repository)
+            entity.repository = repoEntity
+            logger.trace("Wired Repository to Project: repoId=${repoEntity.id}")
         }
 
         logger.debug("Assembled ProjectEntity with id=${entity.id}, hasRepository=${entity.repository != null}")
@@ -137,11 +138,11 @@ internal class ProjectAssembler {
         entity.repository?.let { repoEntity ->
             logger.trace("Assembling owned Repository from ProjectEntity")
             val repository = repositoryAssembler.toDomain(repoEntity)
-            domain.repoId = repository.iid
+            domain.repo = repository
             logger.trace("Wired Repository to Project: ${repository.localPath}")
         }
 
-        logger.debug("Assembled Project domain: ${domain.name}, hasRepository=${domain.repoId != null}")
+        logger.debug("Assembled Project domain: ${domain.name}, hasRepository=${domain.repo != null}")
         return domain
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.QueryHints
 import org.springframework.stereotype.Repository
 import java.util.stream.Stream
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Repository
 internal interface DeveloperRepository :
@@ -17,4 +19,7 @@ internal interface DeveloperRepository :
     fun findAllByEmailIn(emails: Collection<String>): Stream<DeveloperEntity>
 
     fun findAllByRepository_Id(id: Long): Stream<DeveloperEntity>
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun findByIid(iid: Uuid): DeveloperEntity?
 }

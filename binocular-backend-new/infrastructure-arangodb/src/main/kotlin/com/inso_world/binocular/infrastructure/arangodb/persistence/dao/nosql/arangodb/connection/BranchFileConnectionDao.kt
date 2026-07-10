@@ -1,10 +1,13 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
 import com.inso_world.binocular.core.persistence.model.Page
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.BranchFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.BranchFileConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.BranchMapper
+import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.FileMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BranchRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.FileRepository
@@ -32,7 +35,12 @@ internal class BranchFileConnectionDao
         private val fileRepository: FileRepository,
         private val branchMapper: BranchMapper,
         private val fileMapper: FileMapper,
+        private val commitMapper: CommitMapper,
     ) : IBranchFileConnectionDao {
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all files connected to a branch
          */
@@ -46,33 +54,44 @@ internal class BranchFileConnectionDao
          */
         override fun findBranchesByFile(fileId: String): List<Branch> {
             val branchEntities = repository.findBranchesByFile(fileId)
-            return branchEntities.map { branchMapper.toDomain(it) }
+            return branchEntities.map {
+                seeder.seed()
+                repositoryAssembler.toDomain(it.repository)
+                commitMapper.toDomain(it.head)
+                branchMapper.toDomain(it)
+            }
         }
 
         /**
-        * Find all files by branch paginated
-        */
-        override fun findFilesByBranch(branchId: String, pageable: Pageable): Page<File> {
+         * Find all files by branch paginated
+         */
+        override fun findFilesByBranch(
+            branchId: String,
+            pageable: Pageable
+        ): Page<File> {
             val offset = pageable.offset.toInt()
             val size = pageable.pageSize
             val firstOrder = pageable.sort.firstOrNull()
             val asc = firstOrder?.direction != Sort.Direction.DESC
 
-            val entities = if (asc) {
-                repository.findFilesByBranchAsc(branchId, offset, size)
-            } else {
-                repository.findFilesByBranchDesc(branchId, offset, size)
-            }
+            val entities =
+                if (asc) {
+                    repository.findFilesByBranchAsc(branchId, offset, size)
+                } else {
+                    repository.findFilesByBranchDesc(branchId, offset, size)
+                }
             val content = entities.map { fileMapper.toDomain(it) }
             val total = repository.countFilesByBranch(branchId)
             return Page(content, total, pageable)
         }
 
         /**
-         * Save a branch-file connection
+         * Save a branch-file connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: BranchFileConnection): BranchFileConnection {
-            // Get the branch and file entities from their repositories
             val branchEntity =
                 branchRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Branch with ID ${connection.from.id} not found")
@@ -82,7 +101,6 @@ internal class BranchFileConnectionDao
                     IllegalArgumentException("File with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the edge entity format
             val edgeEntity =
                 BranchFileConnectionEntity(
                     id = connection.id,
@@ -90,14 +108,12 @@ internal class BranchFileConnectionDao
                     to = fileEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(edgeEntity)
 
-            // Convert back to domain model
             return BranchFileConnection(
                 id = savedEntity.id,
-                from = branchMapper.toDomain(savedEntity.from),
-                to = fileMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

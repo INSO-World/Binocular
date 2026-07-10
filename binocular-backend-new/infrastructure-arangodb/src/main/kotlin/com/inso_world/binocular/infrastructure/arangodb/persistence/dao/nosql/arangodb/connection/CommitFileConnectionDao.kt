@@ -1,8 +1,10 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
 import com.inso_world.binocular.core.persistence.model.Page
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitFileConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitFileConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.FileMapper
@@ -41,7 +43,16 @@ internal class CommitFileConnectionDao
     ) : ICommitFileConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
 
-        override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
+        override fun findFileOwnershipByCommitAndFile(
+            commitId: String,
+            fileId: String
+        ): List<FileOwnership> {
+            seeder.seed()
             val rows = repository.findOwnershipByCommitAndFile(commitId, fileId)
             if (rows.isEmpty()) return emptyList()
 
@@ -50,18 +61,20 @@ internal class CommitFileConnectionDao
             rows.forEach { row ->
                 val userId = row["userId"]?.toString() ?: return@forEach
                 val hunksRaw = row["hunks"] as? List<*> ?: emptyList<Any?>()
-                val hunks = hunksRaw.mapNotNull { hunkAny ->
-                    val hunkMap = hunkAny as? Map<*, *> ?: return@mapNotNull null
-                    val originalCommit = hunkMap["originalCommit"]?.toString()
-                    val linesRaw = hunkMap["lines"] as? List<*> ?: emptyList<Any?>()
-                    val lines = linesRaw.mapNotNull { lineAny ->
-                        val lineMap = lineAny as? Map<*, *> ?: return@mapNotNull null
-                        val from = (lineMap["from"] as? Number)?.toInt() ?: return@mapNotNull null
-                        val to = (lineMap["to"] as? Number)?.toInt() ?: return@mapNotNull null
-                        OwnershipLine(from = from, to = to)
+                val hunks =
+                    hunksRaw.mapNotNull { hunkAny ->
+                        val hunkMap = hunkAny as? Map<*, *> ?: return@mapNotNull null
+                        val originalCommit = hunkMap["originalCommit"]?.toString()
+                        val linesRaw = hunkMap["lines"] as? List<*> ?: emptyList<Any?>()
+                        val lines =
+                            linesRaw.mapNotNull { lineAny ->
+                                val lineMap = lineAny as? Map<*, *> ?: return@mapNotNull null
+                                val from = (lineMap["from"] as? Number)?.toInt() ?: return@mapNotNull null
+                                val to = (lineMap["to"] as? Number)?.toInt() ?: return@mapNotNull null
+                                OwnershipLine(from = from, to = to)
+                            }
+                        OwnershipHunk(originalCommit = originalCommit, lines = lines)
                     }
-                    OwnershipHunk(originalCommit = originalCommit, lines = lines)
-                }
                 val list = byUser.getOrPut(userId) { mutableListOf() }
                 list.addAll(hunks)
             }
@@ -80,14 +93,19 @@ internal class CommitFileConnectionDao
          * Find all files connected to a commit
          */
         override fun findFilesByCommit(commitId: String): List<File> {
+            seeder.seed()
             val fileEntities = repository.findFilesByCommit(commitId)
             return fileEntities.map { fileMapper.toDomain(it) }
         }
 
         /**
-        * Find all files connected to a commit with pagination support.
-        */
-        override fun findFilesByCommitPaged(commitId: String, pageable: Pageable): Page<File> {
+         * Find all files connected to a commit with pagination support.
+         */
+        override fun findFilesByCommitPaged(
+            commitId: String,
+            pageable: Pageable
+        ): Page<File> {
+            seeder.seed()
             val offset = pageable.offset.toInt()
             val limit = pageable.pageSize
             val total = repository.countFilesByCommit(commitId).firstOrNull() ?: 0L
@@ -100,28 +118,41 @@ internal class CommitFileConnectionDao
          * Find all commits connected to a file
          */
         override fun findCommitsByFile(fileId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findCommitsByFile(fileId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
-        * Find all commits connected to a file with pagination support.
-        */
-        override fun findCommitsByFilePaged(fileId: String, pageable: Pageable): Page<Commit> {
+         * Find all commits connected to a file with pagination support.
+         */
+        override fun findCommitsByFilePaged(
+            fileId: String,
+            pageable: Pageable
+        ): Page<Commit> {
+            seeder.seed()
             val offset = pageable.offset.toInt()
             val limit = pageable.pageSize
             val total = repository.countCommitsByFile(fileId).firstOrNull() ?: 0L
             val commitEntities = if (limit > 0) repository.findCommitsByFileOrdered(fileId, offset, limit) else emptyList()
-            val content = commitEntities.map { commitMapper.toDomain(it) }
+            val content = commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
             return Page(content, total, pageable)
         }
 
         /**
-        * Find aggregated stats for a commit
-        */
+         * Find aggregated stats for a commit
+         */
         override fun findCommitStatsByCommit(commitId: String): Stats {
-            val row = repository.findCommitStats(commitId).firstOrNull()
-                ?: return Stats(additions = 0, deletions = 0)
+            seeder.seed()
+            val row =
+                repository.findCommitStats(commitId).firstOrNull()
+                    ?: return Stats(additions = 0, deletions = 0)
 
             return Stats(
                 additions = (row["additions"] as? Number)?.toLong() ?: 0L,
@@ -130,14 +161,16 @@ internal class CommitFileConnectionDao
         }
 
         /**
-        * Find stats per file for a commit
-        */
+         * Find stats per file for a commit
+         */
         override fun findFileStatsByCommit(commitId: String): Map<String, Stats> {
+            seeder.seed()
             val rows = repository.findFileStatsByCommit(commitId)
 
             return rows.associate { row ->
-                val fileId = row["fileId"]?.toString()
-                    ?: error("Missing fileId in commit file stats row: $row")
+                val fileId =
+                    row["fileId"]?.toString()
+                        ?: error("Missing fileId in commit file stats row: $row")
 
                 val additions = (row["additions"] as? Number)?.toLong() ?: 0L
                 val deletions = (row["deletions"] as? Number)?.toLong() ?: 0L
@@ -147,20 +180,24 @@ internal class CommitFileConnectionDao
         }
 
         override fun findFileActionsByCommit(commitId: String): Map<String, String?> {
+            seeder.seed()
             val rows = repository.findFileActionsByCommit(commitId)
             return rows.associate { row ->
-                val fileId = row["fileId"]?.toString()
-                    ?: error("Missing fileId in commit file actions row: $row")
+                val fileId =
+                    row["fileId"]?.toString()
+                        ?: error("Missing fileId in commit file actions row: $row")
                 val action = row["action"]?.toString()
                 fileId to action
             }
         }
 
         /**
-         * Save a commit-file connection
+         * Save a commit-file connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitFileConnection): CommitFileConnection {
-            // Get the commit and file entities from their repositories
             val commitEntity =
                 commitRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Commit with ID ${connection.from.id} not found")
@@ -170,7 +207,6 @@ internal class CommitFileConnectionDao
                     IllegalArgumentException("File with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 CommitFileConnectionEntity(
                     id = connection.id,
@@ -179,14 +215,12 @@ internal class CommitFileConnectionDao
                     lineCount = connection.lineCount,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitFileConnection(
                 id = savedEntity.id,
-                from = commitMapper.toDomain(savedEntity.from),
-                to = fileMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
                 lineCount = savedEntity.lineCount,
             )
         }

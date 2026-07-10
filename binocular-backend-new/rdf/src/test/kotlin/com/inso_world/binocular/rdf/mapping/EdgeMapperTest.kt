@@ -3,10 +3,8 @@ package com.inso_world.binocular.rdf.mapping
 import org.apache.jena.rdf.model.ModelFactory
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class EdgeMapperTest {
-
     @Test
     fun `maps commits-users edges to bio author relationships`() {
         val model = ModelFactory.createDefaultModel()
@@ -18,10 +16,11 @@ class EdgeMapperTest {
         model.createResource(commitUri)
         model.createResource(userUri)
 
-        val commitUserEdges = listOf(
-            mapOf("_from" to "commits/796", "_to" to "users/800"),
-            mapOf("_from" to "commits/893", "_to" to "users/800")
-        )
+        val commitUserEdges =
+            listOf(
+                mapOf("_from" to "commits/796", "_to" to "users/800"),
+                mapOf("_from" to "commits/893", "_to" to "users/800")
+            )
 
         EdgeMapper().mapCommitsUsers(commitUserEdges, model)
 
@@ -43,10 +42,11 @@ class EdgeMapperTest {
         model.createResource(commit796Uri)
         model.createResource(commit893Uri)
 
-        val issueCommitEdges = listOf(
-            mapOf("_from" to "issues/11011", "_to" to "commits/796", "closes" to true),
-            mapOf("_from" to "issues/11011", "_to" to "commits/893", "closes" to false)
-        )
+        val issueCommitEdges =
+            listOf(
+                mapOf("_from" to "issues/11011", "_to" to "commits/796", "closes" to true),
+                mapOf("_from" to "issues/11011", "_to" to "commits/893", "closes" to false)
+            )
 
         EdgeMapper().mapIssuesCommits(issueCommitEdges, model)
 
@@ -69,9 +69,10 @@ class EdgeMapperTest {
         model.createResource(commitUri)
         model.createResource(moduleUri)
 
-        val commitModuleEdges = listOf(
-            mapOf("_from" to "commits/796", "_to" to "modules/869")
-        )
+        val commitModuleEdges =
+            listOf(
+                mapOf("_from" to "commits/796", "_to" to "modules/869")
+            )
 
         EdgeMapper().mapCommitsModules(commitModuleEdges, model)
 

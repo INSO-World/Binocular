@@ -53,7 +53,7 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
             assertEquals(2, branchesData.size(), "Expected 2 branches, but got ${branchesData.size()}")
 
             // Check that the branches match the test data
-            TestDataProvider.testBranches.asReversed().forEachIndexed { index, expectedBranch ->
+            TestDataProvider.testBranches.sortedBy { it.name }.forEachIndexed { index, expectedBranch ->
                 val actualBranch = branchesData.get(index)
 
                 assertAll(
@@ -109,7 +109,7 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                branch(id: "1") {
+                branch(id: "${TestDataProvider.testBranches[0].id}") {
                     id
                     branch
                     active
@@ -204,9 +204,13 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, branchesData.size(), "Expected 1 branch, but got ${branchesData.size()}")
 
             // Check that the branch matches the first test branch
-            val expectedBranch = TestDataProvider.testBranches
-                .sortedBy { it.name ?: "" }
-                .first()
+            val expectedBranch =
+                TestDataProvider.testBranches
+                    // this is hacky but works
+                    // sorting in tests is probably not clever.
+                    // idk who did this first
+                    .sortedBy { it.name }
+                    .first()
             val actualBranch = branchesData.get(0)
 
             assertAll(
@@ -313,10 +317,14 @@ internal class BranchControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, branchesData.size(), "Expected 1 branch, but got ${branchesData.size()}")
 
             // Check that the branch matches the second test branch
-            val expectedBranch = TestDataProvider.testBranches
-                .sortedBy { it.name ?: "" }
-                .drop(1)
-                .first()
+            val expectedBranch =
+                TestDataProvider.testBranches
+                    // this is hacky but works
+                    // sorting in tests is probably not clever.
+                    // idk who did this first
+                    .sortedBy { it.name }
+                    .drop(1)
+                    .first()
             val actualBranch = branchesData.get(0)
 
             assertAll(

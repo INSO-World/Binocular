@@ -7,16 +7,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class FileMapperTest {
-
     @Test
     fun `maps files to bio File with path as name`() {
         val model = ModelFactory.createDefaultModel()
         model.setNsPrefix("bio", RdfNamespaces.BIO)
 
-        val files = listOf(
-            mapOf("_key" to "102319", "path" to ".pupilrc_ci"),
-            mapOf("_key" to "10597", "path" to "package-lock.json")
-        )
+        val files =
+            listOf(
+                mapOf("_key" to "102319", "path" to ".pupilrc_ci"),
+                mapOf("_key" to "10597", "path" to "package-lock.json")
+            )
 
         FileMapper().map(files, model)
 
@@ -26,7 +26,9 @@ class FileMapperTest {
 
         val file1 = model.getResource("${RdfNamespaces.INST}file/102319")
         assertNotNull(file1)
-        assertEquals(".pupilrc_ci",
-            file1.getProperty(model.getProperty(RdfNamespaces.BIO, "name"))?.string)
+        assertEquals(
+            ".pupilrc_ci",
+            file1.getProperty(model.getProperty(RdfNamespaces.BIO, "name"))?.string
+        )
     }
 }

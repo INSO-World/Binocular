@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1764865534
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            tableName: "accounts"
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false
+        - addColumn:
+            tableName: "accounts"
+            column:
+              constraints:
+                nullable: false
+              name: fk_project_id
+              type: BIGINT
+        - addForeignKeyConstraint:
+            baseColumnNames: fk_project_id
+            baseTableName: accounts
+            constraintName: FK_ACCOUNTS_ON_PROJECT
+            referencedColumnNames: id
+            referencedTableName: projects

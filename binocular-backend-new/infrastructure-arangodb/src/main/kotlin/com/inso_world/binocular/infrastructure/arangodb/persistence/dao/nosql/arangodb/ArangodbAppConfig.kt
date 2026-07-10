@@ -3,9 +3,15 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 import com.arangodb.ArangoDB
 import com.arangodb.springframework.annotation.EnableArangoRepositories
 import com.arangodb.springframework.config.ArangoConfiguration
+import com.arangodb.springframework.core.ArangoOperations
+import com.arangodb.springframework.core.template.ArangoTemplate
 import com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig
+import com.inso_world.binocular.infrastructure.arangodb.persistence.converter.LocalDateTimeToStringConverter
+import com.inso_world.binocular.infrastructure.arangodb.persistence.converter.StringToLocalDateTimeConverter
+import com.inso_world.binocular.infrastructure.arangodb.persistence.converter.StringToUuidConverter
+import com.inso_world.binocular.infrastructure.arangodb.persistence.converter.UuidToStringConverter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
@@ -41,4 +47,12 @@ class ArangodbAppConfig(
     override fun database(): String = infraConfig.arangodb.database.name
 
     override fun returnOriginalEntities(): Boolean = false
+
+    override fun customConverters() =
+        listOf(
+            UuidToStringConverter(),
+            StringToUuidConverter(),
+            LocalDateTimeToStringConverter(),
+            StringToLocalDateTimeConverter(),
+        )
 }

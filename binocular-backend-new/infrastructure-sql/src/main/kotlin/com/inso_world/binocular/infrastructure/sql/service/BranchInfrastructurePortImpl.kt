@@ -13,7 +13,6 @@ import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.File
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
-import kotlin.uuid.ExperimentalUuidApi
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,6 +21,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
+import kotlin.uuid.ExperimentalUuidApi
 
 @Service
 @Validated
@@ -44,6 +44,10 @@ internal class BranchInfrastructurePortImpl(
     @Lazy
     private lateinit var projectMapper: ProjectMapper
 
+    @Autowired
+    @Lazy
+    private lateinit var self: BranchInfrastructurePortImpl
+
     @PostConstruct
     fun init() {
         super.dao = branchDao
@@ -60,13 +64,34 @@ internal class BranchInfrastructurePortImpl(
         TODO("Not yet implemented")
     }
 
+    /**
+     * Finds a branch by its JPA-assigned surrogate [id].
+     *
+     * Assembles the owning repository aggregate so the returned [Branch] is fully wired (head commit,
+     * repository, active/tracksFileRenames flags). Returns null when no entity with [id] exists.
+     *
+     * @throws IllegalArgumentException if [id] cannot be parsed as a Long
+     */
+    @MappingSession
+    @Transactional(readOnly = true)
     override fun findById(id: String): Branch? {
-        TODO("Not yet implemented")
+        val idL = id.trim().toLongOrNull() ?: throw IllegalArgumentException("id must be convertable to Long")
+        val branchEntity = this.branchDao.findById(idL) ?: return null
+
+        return repositoryAssembler
+            .toDomain(branchEntity.repository)
+            .branches
+            .find { it.id == id }
     }
 
-    override fun findByIid(iid: Reference.Id): @Valid Branch? {
-        val branch = this.branchDao.findByIid(iid)
-            ?: return null
+    override fun findByIid(iid: Reference.Id): @Valid Branch? = self.findByIidInternal(iid)
+
+    @MappingSession
+    @Transactional(readOnly = true)
+    protected fun findByIidInternal(iid: Reference.Id): Branch? {
+        val branch =
+            this.branchDao.findByIid(iid)
+                ?: return null
 
         return repositoryAssembler
             .toDomain(branch.repository)
@@ -103,8 +128,9 @@ internal class BranchInfrastructurePortImpl(
             .flatMap { (repoEntity, branchEntities) ->
                 val assembledRepo = repositoryAssembler.toDomain(repoEntity)
                 assembledRepo.branchIds.map { branchId ->
-                    val branchEntity = branchEntities.find { it.iid.value == branchId.value }
-                        ?: throw IllegalStateException("BranchEntity for ${branchId} not found")
+                    val branchEntity =
+                        branchEntities.find { it.iid.value == branchId.value }
+                            ?: throw IllegalStateException("BranchEntity for $branchId not found")
                     branchMapper.toDomain(branchEntity)
                 }
             }

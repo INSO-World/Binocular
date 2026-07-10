@@ -15,18 +15,18 @@ internal class CommitValidationTest : ValidationTest() {
         invalidCommit: Commit,
         propertyPath: String,
     ) {
-        val repositoryId = invalidCommit.repositoryId
+        val repository = invalidCommit.repository
         val dummyBranch =
             Branch(
                 fullName = "refs/heads/branch",
                 name = "branch",
-                repositoryId = repositoryId,
-                headCommitId = invalidCommit.iid,
-                category = ReferenceCategory.LOCAL_BRANCH
+                repository = repository,
+                head = invalidCommit,
+                category = ReferenceCategory.LOCAL_BRANCH,
             )
 
-//        repository.branches.add(dummyBranch)
-//        repository.commits.add(invalidCommit)
+        repository.branches.add(dummyBranch)
+        repository.commits.add(invalidCommit)
 
         val violation =
             run {
@@ -37,5 +37,4 @@ internal class CommitValidationTest : ValidationTest() {
             }
         assertThat(violation.propertyPath.toString()).isEqualTo(propertyPath)
     }
-
 }

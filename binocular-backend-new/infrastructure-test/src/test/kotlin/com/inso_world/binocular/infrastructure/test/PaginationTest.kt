@@ -1,14 +1,17 @@
 package com.inso_world.binocular.infrastructure.test
 
 import com.inso_world.binocular.core.data.MockTestDataProvider
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.core.service.RepositoryInfrastructurePort
 import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSpringTest
 import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Repository
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,6 +24,12 @@ internal class PaginationTest : BaseInfrastructureSpringTest() {
 
     @Autowired
     lateinit var repositoryPort: RepositoryInfrastructurePort
+
+    @BeforeEach
+    fun setup() {
+        infrastructureDataSetup.teardown()
+        infrastructureDataSetup.setup()
+    }
 
     @Test
     fun `project pagination returns correct metadata`() {
@@ -73,8 +82,8 @@ internal class PaginationTest : BaseInfrastructureSpringTest() {
         )
 
         // sanity: ensure provider data present
-        val expectedRepoIds = MockTestDataProvider().testRepositories.map { it.localPath }.toSet()
+        val expectedRepoIds = TestDataProvider.testRepositories.map { it.localPath }.toSet()
         val actualRepoIds = repositoryPort.findAll().map { it.localPath }.toSet()
-        assertTrue(actualRepoIds.containsAll(expectedRepoIds))
+        assertThat(actualRepoIds).containsAll(expectedRepoIds)
     }
 }

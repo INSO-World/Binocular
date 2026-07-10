@@ -87,5 +87,4 @@ class AccountResolver(
             .findUsersByAccountId(id)
             .firstOrNull()?.let { mapper.toDto(it) }
     }
-
 }

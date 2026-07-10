@@ -7,16 +7,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class ModuleMapperTest {
-
     @Test
     fun `maps modules to bio Module with path as name`() {
         val model = ModelFactory.createDefaultModel()
         model.setNsPrefix("bio", RdfNamespaces.BIO)
 
-        val modules = listOf(
-            mapOf("_key" to "869", "path" to "."),
-            mapOf("_key" to "968", "path" to "./lib")
-        )
+        val modules =
+            listOf(
+                mapOf("_key" to "869", "path" to "."),
+                mapOf("_key" to "968", "path" to "./lib")
+            )
 
         ModuleMapper().map(modules, model)
 
@@ -26,7 +26,9 @@ class ModuleMapperTest {
 
         val mod1 = model.getResource("${RdfNamespaces.INST}module/869")
         assertNotNull(mod1)
-        assertEquals(".",
-            mod1.getProperty(model.getProperty(RdfNamespaces.BIO, "name"))?.string)
+        assertEquals(
+            ".",
+            mod1.getProperty(model.getProperty(RdfNamespaces.BIO, "name"))?.string
+        )
     }
 }

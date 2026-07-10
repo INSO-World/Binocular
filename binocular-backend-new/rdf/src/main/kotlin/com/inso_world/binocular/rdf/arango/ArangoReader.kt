@@ -4,8 +4,9 @@ import com.arangodb.ArangoDatabase
 import org.springframework.stereotype.Component
 
 @Component
-class ArangoReader(private val arangoDb: ArangoDatabase) {
-
+class ArangoReader(
+    private val arangoDb: ArangoDatabase
+) {
     fun readCommits(): List<Map<String, Any?>> = executeQuery("FOR x IN commits RETURN x")
 
     fun readUsers(): List<Map<String, Any?>> = executeQuery("FOR x IN users RETURN x")

@@ -5,9 +5,13 @@ import org.apache.jena.vocabulary.RDF
 import org.springframework.stereotype.Component
 
 @Component
-class BranchMapper(val commitShaToUri: Map<String, String> = emptyMap()) {
-
-    fun map(branches: List<Map<String, Any?>>, model: Model) {
+class BranchMapper(
+    val commitShaToUri: Map<String, String> = emptyMap()
+) {
+    fun map(
+        branches: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val labelType = model.getResource("${RdfNamespaces.BIO}MutableLabel")
         val nameProp = model.getProperty(RdfNamespaces.BIO, "name")
         val pointsToProp = model.getProperty(RdfNamespaces.BIO, "pointsTo")

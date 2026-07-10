@@ -2,6 +2,7 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.a
 
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitBuildConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitBuildConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.BuildEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.CommitEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitBuildConnectionEntity
@@ -11,6 +12,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.B
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.CommitRepository
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.edges.CommitBuildConnectionRepository
 import com.inso_world.binocular.model.Build
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.model.Commit
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -33,10 +35,16 @@ internal class CommitBuildConnectionDao
     ) : ICommitBuildConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
 
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all builds connected to a commit
          */
         override fun findBuildsByCommit(commitId: String): List<Build> {
+            seeder.seed()
             val buildEntities = repository.findBuildsByCommit(commitId) as List<Any>
             return buildEntities.map { buildMapper.toDomain(it as BuildEntity) }
         }
@@ -45,15 +53,21 @@ internal class CommitBuildConnectionDao
          * Find all commits connected to a build
          */
         override fun findCommitsByBuild(buildId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findCommitsByBuild(buildId) as List<Any>
-            return commitEntities.map { commitMapper.toDomain(it as CommitEntity) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain((entity as CommitEntity).repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
-         * Save a commit-build connection
+         * Save a commit-build connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitBuildConnection): CommitBuildConnection {
-            // Get the commit and build entities from their repositories
             val commitEntity =
                 commitRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Commit with ID ${connection.from.id} not found")
@@ -63,7 +77,6 @@ internal class CommitBuildConnectionDao
                     IllegalArgumentException("Build with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 CommitBuildConnectionEntity(
                     id = connection.id,
@@ -71,14 +84,12 @@ internal class CommitBuildConnectionDao
                     to = buildEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitBuildConnection(
                 id = savedEntity.id,
-                from = commitMapper.toDomain(savedEntity.from),
-                to = buildMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

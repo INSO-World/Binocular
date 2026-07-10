@@ -14,7 +14,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.BranchDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.CommitDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.RepositoryDao
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.BranchEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -96,7 +95,6 @@ internal class RepositoryInfrastructurePortImpl :
         super.dao = repositoryDao
     }
 
-    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     @MappingSession
     @Transactional(readOnly = true)
     override fun findByName(name: String): Repository? =
@@ -106,9 +104,7 @@ internal class RepositoryInfrastructurePortImpl :
 
     @MappingSession
     @Transactional(readOnly = true)
-    override fun findAll(): Iterable<Repository> {
-        return this.repositoryDao.findAll().map(repositoryAssembler::toDomain)
-    }
+    override fun findAll(): Iterable<Repository> = this.repositoryDao.findAll().map(repositoryAssembler::toDomain)
 
     @MappingSession
     @Transactional(readOnly = true)
@@ -136,9 +132,7 @@ internal class RepositoryInfrastructurePortImpl :
      * @see self
      * @see findByIidInternal
      */
-    override fun findByIid(iid: Repository.Id): Repository? {
-        return self.findByIidInternal(iid)
-    }
+    override fun findByIid(iid: Repository.Id): Repository? = self.findByIidInternal(iid)
 
     /**
      * Internal implementation of repository lookup by iid.
@@ -159,24 +153,24 @@ internal class RepositoryInfrastructurePortImpl :
      */
     @MappingSession
     @Transactional(readOnly = true)
-    protected fun findByIidInternal(iid: Repository.Id): Repository? {
-        return this.repositoryDao.findByIid(iid)?.let {
+    protected fun findByIidInternal(iid: Repository.Id): Repository? =
+        this.repositoryDao.findByIid(iid)?.let {
             repositoryAssembler.toDomain(it)
         }
-    }
 
     @MappingSession
     @Transactional
-    override fun create(@Valid value: Repository): Repository {
+    override fun create(
+        @Valid value: Repository,
+    ): Repository {
         val projectEntity =
-            projectDao.findByIid(value.projectId) ?: throw NotFoundException("Project ${value.projectId} not found")
+            projectDao.findByIid(value.project.iid) ?: throw NotFoundException("Project ${value.project} not found")
 
-        if (projectEntity.repoId != null) {
+        if (projectEntity.repo != null) {
             throw IllegalArgumentException("Selected project $projectEntity has already a Repository set")
         }
 
-        val projectDomain = projectMapper.toDomain(projectEntity)
-        ctx.remember(projectDomain, projectEntity)
+        ctx.remember(value.project, projectEntity)
 
         val toPersist = this.repositoryAssembler.toEntity(value)
         val persisted = super.create(toPersist)
@@ -186,19 +180,73 @@ internal class RepositoryInfrastructurePortImpl :
         return value
     }
 
-
+    /**
+     * Updates an existing [Repository] aggregate, persisting all owned children (commits, branches,
+     * developers, remotes) and upserting the parent [com.inso_world.binocular.model.Project] reference if it does not yet exist.
+     *
+     * ## Semantics
+     * 1. Resolve the parent `ProjectEntity` by `value.project.iid`. If absent, persist it first
+     *    (upsert) so the repository can reference a valid `fk_project_id`. Either way,
+     *    `value.project.id` is then refreshed from the resolved entity (a no-op when it was
+     *    already correct). The upserted project entity's stale surrogate id is reset to `null`
+     *    before persist so that `persist()` treats it as a genuinely new row (not a detached
+     *    entity).
+     * 2. Assemble the full `RepositoryEntity` graph via [RepositoryAssembler.toEntity].
+     * 3. If the project row was missing in step 1, the previously persisted `RepositoryEntity` row
+     *    (owned by that project via `cascade = [CascadeType.ALL]`) was cascade-deleted along with
+     *    it — reset `mapped.id` to `null` so the repository is treated as new (upsert).
+     * 4. **Phase 1** — persist commits (parent/child links and branches temporarily detached).
+     * 5. **Phase 2** — re-wire commit parent/child relationships now that commits have ids.
+     * 6. **Phase 3** — re-attach branches (pointing at persisted commit heads) and flush.
+     * 7. Refresh `value` from the persisted state via [RepositoryAssembler.refresh].
+     *
+     * ## Invariants & Requirements
+     * - **New repository (`mapped.id == null`)**: must be persisted via `entityManager.persist(mapped)`,
+     *   never via [RepositoryDao.update] (= `entityManager.merge`). `RepositoryEntity`'s
+     *   `init { project.repo = this }` side effect sets the already-managed parent `ProjectEntity.repo`
+     *   to `mapped`. Since `ProjectEntity.repo` is declared `cascade = [CascadeType.ALL]`, merging
+     *   `mapped` would persist a *separate* managed copy while leaving the original (still-transient)
+     *   `mapped` reachable from `project.repo` — Hibernate then cascade-persists that stale instance
+     *   too, producing a second `repositories` row for the same `fk_project_id` and violating
+     *   `uc_repositories_fk_project_id`. Using `persist()` makes `mapped` itself the managed instance,
+     *   so `project.repo` and the persisted entity are identical and no duplicate insert occurs.
+     * - **Existing repository (`mapped.id != null`)**: persisted via [RepositoryDao.update]
+     *   (`entityManager.merge`), unchanged from prior behavior.
+     * - **Stale repository id (`value.id` refers to a row already deleted via project cascade)**:
+     *   `mapped.id` is reset to `null` before the branch above is evaluated, so the repository row
+     *   is re-inserted (persist) rather than merged onto a non-existent row — which would otherwise
+     *   throw `ObjectOptimisticLockingFailureException`. `value.id` is refreshed with the new id via
+     *   [RepositoryAssembler.refresh] → [RepositoryMapper.refreshDomain].
+     *
+     * @param value The repository aggregate to update (refreshed in place with persisted ids).
+     * @return The same [value] instance, refreshed with persisted identifiers.
+     */
     @MappingSession
     @Transactional
-    override fun update(@Valid value: Repository): Repository {
-        val projectEntity =
-            projectDao.findByIid(value.projectId)
-                ?: throw NotFoundException("Project ${value.projectId} not found")
+    override fun update(
+        @Valid value: Repository,
+    ): Repository {
+        val existingProject = projectDao.findByIid(value.project.iid)
+        val projectWasMissing = existingProject == null
+        val entity =
+            existingProject
+                ?: run {
+                    logger.debug("Project {} not found on update — persisting it (upsert)", value.project.uniqueKey)
+                    projectDao.create(projectMapper.toEntity(value.project).apply { id = null })
+                }
         logger.debug("Project Entity found")
-
-        val projectDomain = projectMapper.toDomain(projectEntity)
-        ctx.remember(projectDomain, projectEntity)
+        ctx.remember(value.project, entity)
+        projectMapper.refreshDomain(value.project, entity)
 
         val mapped = repositoryAssembler.toEntity(value)
+
+        // The project row was missing (just re-created above via upsert), so any previously
+        // persisted RepositoryEntity row was cascade-deleted along with it. `mapped.id` still
+        // carries the stale id from `value.id` — reset it so the repository is re-inserted
+        // (persist) instead of merged onto a non-existent row (see KDoc on this method for why).
+        if (projectWasMissing) {
+            mapped.id = null
+        }
 
         // Phase 1: Save commits first (without branches and without parent/child relationships)
         // This ensures commits have database IDs before branches reference them
@@ -212,8 +260,16 @@ internal class RepositoryInfrastructurePortImpl :
             it.children.clear()
         }
 
-        // Persist commits
-        val intermediateRepo = repositoryDao.update(mapped)
+        // Persist commits.
+        // New repositories (mapped.id == null) must use entityManager.persist(mapped) directly
+        // rather than repositoryDao.update (= entityManager.merge): see KDoc on this method for why.
+        val intermediateRepo =
+            if (mapped.id == null) {
+                entityManager.persist(mapped)
+                mapped
+            } else {
+                repositoryDao.update(mapped)
+            }
         entityManager.flush()
         logger.trace("Phase 1: Commits persisted")
 
@@ -237,8 +293,9 @@ internal class RepositoryInfrastructurePortImpl :
 
         // Phase 3: Add branches (commits are now persisted with IDs)
         branches.forEach { branch ->
-            val persistedHead = commitsBySha[branch.head.sha]
-                ?: throw IllegalStateException("Head commit ${branch.head.sha} not found for branch ${branch.name}")
+            val persistedHead =
+                commitsBySha[branch.head.sha]
+                    ?: throw IllegalStateException("Head commit ${branch.head.sha} not found for branch ${branch.name}")
 
             // Create new branch entity pointing to persisted commit
             val newBranch = branch.copy(head = persistedHead)
@@ -262,33 +319,31 @@ internal class RepositoryInfrastructurePortImpl :
 
     @Transactional(readOnly = true)
     @MappingSession
-    override fun findExistingCommits(repo: Repository, shas: Set<String>): Sequence<Commit> {
+    override fun findExistingCommits(
+        repo: Repository,
+        shas: Set<String>,
+    ): Sequence<Commit> {
         val entity =
             repositoryDao.findByIid(repo.iid)
                 ?: throw NotFoundException("Repository ${repo.uniqueKey} not found")
         logger.debug("Repository Entity found")
         ctx.remember(repo, entity)
 
-        return this.commitDao.findExistingSha(repo, shas).map { commitEntity ->
-            commitMapper.toDomain(commitEntity)
-        }.asSequence()
+        return this.commitDao
+            .findExistingSha(repo, shas)
+            .map { commitEntity ->
+                commitMapper.toDomain(commitEntity)
+            }.asSequence()
     }
 
     @Transactional(readOnly = true)
     @MappingSession
     override fun findBranch(
         repository: Repository,
-        name: String
-    ): Branch? {
-        return this.repositoryDao.findByIid(repository.iid)?.let { repoEntity ->
-            this.branchDao.findByName(repoEntity, name)
-            val assembledRepo = repositoryAssembler.toDomain(repoEntity)
-            val branchId = assembledRepo.branchIds.find { id ->
-                val branch = ctx.findDomainByIid<Branch>(id, BranchEntity::class)
-                branch?.name == name
-            }
-            branchId?.let { id -> ctx.findDomainByIid<Branch>(id, BranchEntity::class) }
+        name: String,
+    ): Branch? =
+        this.repositoryDao.findByIid(repository.iid)?.let {
+            this.branchDao.findByName(it, name)
+            repositoryAssembler.toDomain(it).branches.find { branch -> branch.name == name }
         }
-    }
-
 }

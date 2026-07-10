@@ -34,7 +34,7 @@ internal class RemoteValidationTest : ValidationTest() {
     @BeforeEach
     fun setup() {
         val project = Project(name = "test-project")
-        repository = Repository(localPath = "/path/to/repo", projectId = project.iid)
+        repository = Repository(localPath = "/path/to/repo", project = project)
     }
 
     @Nested
@@ -54,16 +54,17 @@ internal class RemoteValidationTest : ValidationTest() {
         @MethodSource("com.inso_world.binocular.model.validation.ValidationTestData#provideBlankStrings")
         fun `should fail when name is blank`(name: String) {
             // Given
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
             // Change field via reflection, otherwise constructor check fails
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
                 remote,
-                name
+                name,
             )
             assertThat(remote.name).isEqualTo(name)
 
@@ -89,42 +90,43 @@ internal class RemoteValidationTest : ValidationTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "origin@upstream",     // @ not allowed
-                "remote name",         // space not allowed
-                "remote:name",         // : not allowed
-                "remote*name",         // * not allowed
-                "remote&name",         // & not allowed
-                "remote#name",         // # not allowed
-                "remote\$name",        // $ not allowed
-                "remote%name",         // % not allowed
-                "remote^name",         // ^ not allowed
-                "remote(name)",        // parentheses not allowed
-                "remote[name]",        // brackets not allowed
-                "remote{name}",        // braces not allowed
-                "remote|name",         // pipe not allowed
-                "remote\\name",        // backslash not allowed
-                "remote;name",         // semicolon not allowed
-                "remote'name",         // single quote not allowed
-                "remote\"name",        // double quote not allowed
-                "remote<name>",        // angle brackets not allowed
-                "remote,name",         // comma not allowed
-                "remote?name",         // question mark not allowed
-                "remote!name",         // exclamation not allowed
-                "remote~name",         // tilde not allowed
-                "remote`name",         // backtick not allowed
-            ]
+                "origin@upstream", // @ not allowed
+                "remote name", // space not allowed
+                "remote:name", // : not allowed
+                "remote*name", // * not allowed
+                "remote&name", // & not allowed
+                "remote#name", // # not allowed
+                "remote\$name", // $ not allowed
+                "remote%name", // % not allowed
+                "remote^name", // ^ not allowed
+                "remote(name)", // parentheses not allowed
+                "remote[name]", // brackets not allowed
+                "remote{name}", // braces not allowed
+                "remote|name", // pipe not allowed
+                "remote\\name", // backslash not allowed
+                "remote;name", // semicolon not allowed
+                "remote'name", // single quote not allowed
+                "remote\"name", // double quote not allowed
+                "remote<name>", // angle brackets not allowed
+                "remote,name", // comma not allowed
+                "remote?name", // question mark not allowed
+                "remote!name", // exclamation not allowed
+                "remote~name", // tilde not allowed
+                "remote`name", // backtick not allowed
+            ],
         )
         fun `should fail when name contains invalid characters`(invalidName: String) {
             // Given
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
                 remote,
-                invalidName
+                invalidName,
             )
 
             // When
@@ -132,10 +134,11 @@ internal class RemoteValidationTest : ValidationTest() {
 
             // Then
             assertThat(violations).hasSizeGreaterThanOrEqualTo(1)
-            val nameViolations = violations.filter {
-                it.propertyPath.toString() == "name" &&
+            val nameViolations =
+                violations.filter {
+                    it.propertyPath.toString() == "name" &&
                         it.message.contains("alphanumeric")
-            }
+                }
             assertThat(nameViolations).isNotEmpty
         }
 
@@ -149,33 +152,34 @@ internal class RemoteValidationTest : ValidationTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "origin",              // Most common
-                "upstream",            // Fork workflow
-                "fork",                // Another fork name
-                "production",          // Deployment remote
-                "staging",             // Another deployment remote
-                "backup",              // Backup remote
-                "origin-https",        // With hyphen
-                "origin_ssh",          // With underscore
-                "remote.name",         // With dot
-                "remote/name",         // With slash
-                "remote-name_123",     // Mixed alphanumeric
-                "Remote123",           // Mixed case
-                "ORIGIN",              // Uppercase
-                "123remote",           // Starting with number
-                "r",                   // Single character
+                "origin", // Most common
+                "upstream", // Fork workflow
+                "fork", // Another fork name
+                "production", // Deployment remote
+                "staging", // Another deployment remote
+                "backup", // Backup remote
+                "origin-https", // With hyphen
+                "origin_ssh", // With underscore
+                "remote.name", // With dot
+                "remote/name", // With slash
+                "remote-name_123", // Mixed alphanumeric
+                "Remote123", // Mixed case
+                "ORIGIN", // Uppercase
+                "123remote", // Starting with number
+                "r", // Single character
                 "remote-name-with-many-hyphens", // Long with hyphens
                 "remote_name_with_many_underscores", // Long with underscores
                 "remote.name.with.dots", // With multiple dots
-            ]
+            ],
         )
         fun `should pass when name contains only valid characters`(validName: String) {
             // Given
-            val remote = Remote(
-                name = validName,
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = validName,
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
 
             // When
             val violations = validator.validate(remote)
@@ -202,15 +206,16 @@ internal class RemoteValidationTest : ValidationTest() {
         @MethodSource("com.inso_world.binocular.model.validation.ValidationTestData#provideBlankStrings")
         fun `should fail when url is blank`(url: String) {
             // Given
-            val remote = Remote(
-                name = "origin",
-                url = "https://github.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://github.com/user/repo.git",
+                    repository = repository,
+                )
             setField(
                 remote.javaClass.getDeclaredField("url").apply { isAccessible = true },
                 remote,
-                url
+                url,
             )
             assertThat(remote.url).isEqualTo(url)
 
@@ -236,27 +241,28 @@ internal class RemoteValidationTest : ValidationTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "not-a-url",           // Plain text
+                "not-a-url", // Plain text
                 "github.com/user/repo", // Missing protocol
-                "htp://invalid.com",   // Invalid protocol
-                "://no-protocol.com",  // Missing protocol name
-                "http://",             // Incomplete URL
-                "http:///path",        // Missing host
-                "http:// space.com",   // Space in URL
-            ]
+                "htp://invalid.com", // Invalid protocol
+                "://no-protocol.com", // Missing protocol name
+                "http://", // Incomplete URL
+                "http:///path", // Missing host
+                "http:// space.com", // Space in URL
+            ],
         )
         fun `should fail when url format is invalid`(invalidUrl: String) {
             // Given
-            val remote = Remote(
-                name = "origin",
-                url = "https://example.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://example.com/user/repo.git",
+                    repository = repository,
+                )
             // required, otherwise constructor will reject
             setField(
                 remote.javaClass.getDeclaredField("url").apply { isAccessible = true },
                 remote,
-                invalidUrl
+                invalidUrl,
             )
 
             // When
@@ -322,15 +328,16 @@ internal class RemoteValidationTest : ValidationTest() {
                 "../relative/path/repo",
                 "./current/dir/repo",
                 "relative/repo",
-            ]
+            ],
         )
         fun `should pass when url format is valid`(validUrl: String) {
             // Given
-            val remote = Remote(
-                name = "origin",
-                url = validUrl,
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = validUrl,
+                    repository = repository,
+                )
 
             // When
             val violations = validator.validate(remote)
@@ -357,18 +364,21 @@ internal class RemoteValidationTest : ValidationTest() {
         @Test
         fun `should maintain valid repository relationship`() {
             // Given
-            val remote = Remote(
-                name = "origin",
-                url = "https://example.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://example.com/user/repo.git",
+                    repository = repository,
+                )
 
             // When
             val violations = validator.validate(remote)
 
             // Then
             assertThat(violations).isEmpty()
-            assertThat(remote.repositoryId).isEqualTo(repository.iid)
+            assertThat(remote.repository).isNotNull
+            assertThat(remote.repository).isSameAs(repository)
+            assertThat(repository.remotes).contains(remote)
         }
     }
 
@@ -389,19 +399,21 @@ internal class RemoteValidationTest : ValidationTest() {
         @Test
         fun `should generate unique business key per repository`() {
             // Given
-            val remote1 = Remote(
-                name = "origin",
-                url = "https://example.com/user/repo1.git",
-                repositoryId = repository.iid
-            )
+            val remote1 =
+                Remote(
+                    name = "origin",
+                    url = "https://example.com/user/repo1.git",
+                    repository = repository,
+                )
 
             val anotherProject = Project(name = "another-project")
-            val anotherRepository = Repository(localPath = "/path/to/another", projectId = anotherProject.iid)
-            val remote2 = Remote(
-                name = "origin",
-                url = "https://example.com/user/repo2.git",
-                repositoryId = anotherRepository.iid
-            )
+            val anotherRepository = Repository(localPath = "/path/to/another", project = anotherProject)
+            val remote2 =
+                Remote(
+                    name = "origin",
+                    url = "https://example.com/user/repo2.git",
+                    repository = anotherRepository,
+                )
 
             // When
             val key1 = remote1.uniqueKey
@@ -418,22 +430,24 @@ internal class RemoteValidationTest : ValidationTest() {
         @Test
         fun `should generate same business key for same repository and name`() {
             // Given
-            val remote1 = Remote(
-                name = "origin",
-                url = "https://example.com/user/repo1.git",
-                repositoryId = repository.iid
-            )
+            val remote1 =
+                Remote(
+                    name = "origin",
+                    url = "https://example.com/user/repo1.git",
+                    repository = repository,
+                )
 
-            val remote2 = Remote(
-                name = "upstream",
-                url = "https://example.com/user/repo2.git",
-                repositoryId = repository.iid
-            )
+            val remote2 =
+                Remote(
+                    name = "upstream",
+                    url = "https://example.com/user/repo2.git",
+                    repository = repository,
+                )
             // Change name to match remote1
             setField(
                 remote2.javaClass.getDeclaredField("name").apply { isAccessible = true },
                 remote2,
-                "origin"
+                "origin",
             )
 
             // When
@@ -459,15 +473,16 @@ internal class RemoteValidationTest : ValidationTest() {
         @Test
         fun `should trim whitespace in business key name`() {
             // Given
-            val remote = Remote(
-                name = "origin",
-                url = "https://example.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = "https://example.com/user/repo.git",
+                    repository = repository,
+                )
             setField(
                 remote.javaClass.getDeclaredField("name").apply { isAccessible = true },
                 remote,
-                "  origin  "
+                "  origin  ",
             )
 
             // When
@@ -488,11 +503,12 @@ internal class RemoteValidationTest : ValidationTest() {
         fun `should handle very long remote names`() {
             // Given
             val longName = "remote-" + "name".repeat(50) // 255 characters
-            val remote = Remote(
-                name = longName,
-                url = "https://example.com/user/repo.git",
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = longName,
+                    url = "https://example.com/user/repo.git",
+                    repository = repository,
+                )
 
             // When
             val violations = validator.validate(remote)
@@ -514,11 +530,12 @@ internal class RemoteValidationTest : ValidationTest() {
             // Given
             val longPath = "path/".repeat(50)
             val longUrl = "https://example.com/user/$longPath/repo.git"
-            val remote = Remote(
-                name = "origin",
-                url = longUrl,
-                repositoryId = repository.iid
-            )
+            val remote =
+                Remote(
+                    name = "origin",
+                    url = longUrl,
+                    repository = repository,
+                )
 
             // When
             val violations = validator.validate(remote)

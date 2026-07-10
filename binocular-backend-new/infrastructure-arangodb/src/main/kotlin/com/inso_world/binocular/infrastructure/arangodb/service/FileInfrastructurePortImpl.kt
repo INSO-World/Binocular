@@ -1,5 +1,6 @@
 package com.inso_world.binocular.infrastructure.arangodb.service
 
+import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.core.service.FileInfrastructurePort
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IBranchFileConnectionDao
@@ -8,7 +9,6 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfac
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitFileUserConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.IModuleFileConnectionDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IFileDao
-import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.File
@@ -23,13 +23,14 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-internal class FileInfrastructurePortImpl : FileInfrastructurePort,
-    AbstractInfrastructurePort<File, String>() {
-
+internal class FileInfrastructurePortImpl :
+    AbstractInfrastructurePort<File, String>(),
+    FileInfrastructurePort {
     @PostConstruct
     fun init() {
         super.dao = fileDao
     }
+
     @Autowired private lateinit var fileDao: IFileDao
 
     @Autowired private lateinit var branchFileConnectionRepository: IBranchFileConnectionDao
@@ -43,67 +44,84 @@ internal class FileInfrastructurePortImpl : FileInfrastructurePort,
     @Autowired private lateinit var commitFileUserConnectionRepository: ICommitFileUserConnectionDao
     var logger: Logger = LoggerFactory.getLogger(FileInfrastructurePortImpl::class.java)
 
+    @MappingSession
     override fun findAll(pageable: Pageable): Page<File> {
         logger.trace("Getting all files with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return fileDao.findAll(pageable)
     }
 
+    @MappingSession
     override fun findById(id: String): File? {
         logger.trace("Getting file by id: $id")
         return fileDao.findById(id)
     }
 
+    @MappingSession
     override fun findByIid(iid: File.Id): @Valid File? {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findBranchesByFileId(fileId: String): List<Branch> {
         logger.trace("Getting branches for file: $fileId")
         return branchFileConnectionRepository.findBranchesByFile(fileId)
     }
 
+    @MappingSession
     override fun findCommitsByFileId(fileId: String): List<Commit> {
         logger.trace("Getting commits for file: $fileId")
         return commitFileConnectionRepository.findCommitsByFile(fileId)
     }
 
-    override fun findCommitsByFileId(fileId: String, pageable: Pageable): Page<Commit> {
+    @MappingSession
+    override fun findCommitsByFileId(
+        fileId: String,
+        pageable: Pageable,
+    ): Page<Commit> {
         logger.trace("Getting commits for file: $fileId with pageable: page=${pageable.pageNumber}, size=${pageable.pageSize}")
         return commitFileConnectionRepository.findCommitsByFilePaged(fileId, pageable)
     }
 
+    @MappingSession
     override fun findModulesByFileId(fileId: String): List<Module> {
         logger.trace("Getting modules for file: $fileId")
         return moduleFileConnectionRepository.findModulesByFile(fileId)
     }
 
+    @MappingSession
     override fun findRelatedFilesByFileId(fileId: String): List<File> {
         logger.trace("Getting related files for file: $fileId")
         return branchFileFileConnectionRepository.findFilesByBranchFile(fileId)
     }
 
+    @MappingSession
     override fun findUsersByFileId(fileId: String): List<User> {
         logger.trace("Getting users for file: $fileId")
         return commitFileUserConnectionRepository.findUsersByFile(fileId)
     }
 
+    @MappingSession
     override fun findAllRevisions(pageable: Pageable): Page<com.inso_world.binocular.model.Revision> {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findRevisionById(id: String): com.inso_world.binocular.model.Revision? {
         TODO("Not yet implemented")
     }
 
+    @MappingSession
     override fun findByPath(path: String): File? {
         logger.trace("Finding file by path: $path")
         return fileDao.findByPath(path)
     }
 
+    @MappingSession
     override fun findAll(): Iterable<File> = fileDao.findAll()
 
     override fun create(entity: File): File = this.fileDao.save(entity)
 
+    @MappingSession
     override fun saveAll(entities: Collection<File>): Iterable<File> = this.fileDao.saveAll(entities)
 
     override fun delete(entity: File) {

@@ -1,8 +1,6 @@
 package com.inso_world.binocular.infrastructure.sql.service
 
 import com.inso_world.binocular.core.delegates.logger
-import com.inso_world.binocular.core.exception.BinocularInfrastructureException
-import com.inso_world.binocular.core.persistence.exception.PersistenceException
 import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.mapper.context.MappingSession
 import com.inso_world.binocular.core.persistence.model.Page
@@ -39,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
 import java.util.stream.Collectors
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Service
 @Validated
@@ -118,8 +115,10 @@ internal class CommitInfrastructurePortImpl
         @OptIn(ExperimentalUuidApi::class)
         @MappingSession
         @Transactional(readOnly = true)
-        override fun findById(id: String): Commit? =
-            this.commitDao.findByIid(Commit.Id(Uuid.parse(id)))?.let {
+        override fun findById(id: String): Commit? {
+            val idL = requireNotNull(id.trim().toLongOrNull(), { "Id must be provided and a Long value" })
+
+            return this.commitDao.findById(idL)?.let {
                 val repository =
                     it.repository.let { r ->
                         val project =
@@ -134,6 +133,7 @@ internal class CommitInfrastructurePortImpl
             } ?: run {
                 null
             }
+        }
 
         @MappingSession
         @Transactional
@@ -168,8 +168,9 @@ internal class CommitInfrastructurePortImpl
         }
 
         private fun resolveDeveloperEntity(developerId: Developer.Id): DeveloperEntity {
-            val developer = ctx.findDomainByIid<Developer>(developerId, DeveloperEntity::class)
-                ?: throw IllegalStateException("Developer for ${developerId} must be in context")
+            val developer =
+                ctx.findDomainByIid<Developer>(developerId, DeveloperEntity::class)
+                    ?: throw IllegalStateException("Developer for $developerId must be in context")
             ctx.findEntity<Developer.Key, Developer, DeveloperEntity>(developer)?.let { return it }
 
             developer.id?.trim()?.toLongOrNull()?.let { existingId ->
@@ -281,12 +282,13 @@ internal class CommitInfrastructurePortImpl
         override fun findAll(
             repo: Repository,
             pageable: Pageable,
-        ): Iterable<Commit> = repositoryInfrastructurePort.findByIid(repo.iid)?.let { repo ->
-            repo.commitIds.map { commitId ->
-                ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
-                    ?: throw IllegalStateException("Commit for ${commitId} must be in context")
-            }
-        } ?: emptyList()
+        ): Iterable<Commit> =
+            repositoryInfrastructurePort.findByIid(repo.iid)?.let { repo ->
+                repo.commitIds.map { commitId ->
+                    ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
+                        ?: throw IllegalStateException("Commit for $commitId must be in context")
+                }
+            } ?: emptyList()
 
         @MappingSession
         @Transactional(readOnly = true)
@@ -297,7 +299,7 @@ internal class CommitInfrastructurePortImpl
             return commits.groupBy { it.repository }.flatMap { (repoEntity, _) ->
                 repositoryAssembler.toDomain(repoEntity).commitIds.map { commitId ->
                     ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
-                        ?: throw IllegalStateException("Commit for ${commitId} must be in context")
+                        ?: throw IllegalStateException("Commit for $commitId must be in context")
                 }
             }
         }
@@ -324,11 +326,13 @@ internal class CommitInfrastructurePortImpl
                 }?.let {
                     this.commitDao.findHeadForBranch(it, branch)
                 }?.let { head ->
-                    val commitsMap = repo.commitIds.associate { commitId ->
-                        val commit = ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
-                            ?: throw IllegalStateException("Commit for ${commitId} must be in context")
-                        commitId to commit
-                    }
+                    val commitsMap =
+                        repo.commitIds.associate { commitId ->
+                            val commit =
+                                ctx.findDomainByIid<Commit>(commitId, CommitEntity::class)
+                                    ?: throw IllegalStateException("Commit for $commitId must be in context")
+                            commitId to commit
+                        }
                     return@let commitsMap.getValue(head.iid)
                 }
         }

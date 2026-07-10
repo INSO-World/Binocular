@@ -9,12 +9,13 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.toEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Lazy
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Branch domain objects.
@@ -55,29 +56,26 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
      * @throws IllegalStateException if Repository or head Commit is not in MappingContext
      */
     override fun toEntity(domain: Branch): BranchEntity {
+        // Fast-path: if this Branch was already mapped in the current context, return it.
         ctx.findEntity<Branch.Key, Branch, BranchEntity>(domain)?.let {
             return it
         }
-        val repo = ctx.findDomainByIid<Repository>(domain.repositoryId, RepositoryEntity::class)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before Branch. " +
-                        "Ensure Repository is in MappingContext before calling toEntity()."
-            )
-        val owner = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(repo)
-            ?: throw IllegalStateException(
-                "RepositoryEntity must be mapped before BranchEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity()."
-            )
-        val headCommit = ctx.findDomainByIid<Commit>(domain.headCommitId, CommitEntity::class)
-            ?: throw IllegalStateException(
-                "Commit must be mapped before Branch. " +
-                        "Ensure Commit is in MappingContext before calling toEntity()."
-            )
-        val head = ctx.findEntity<Commit.Key, Commit, CommitEntity>(headCommit)
-            ?: throw IllegalStateException(
-                "CommitEntity must be mapped before BranchEntity. " +
-                        "Ensure CommitEntity is in MappingContext before calling toEntity()."
-            )
+        // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
+        // Do NOT auto-map Repository here - that's a separate aggregate.
+        val owner =
+            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+                ?: throw IllegalStateException(
+                    "RepositoryEntity must be mapped before BranchEntity. " +
+                        "Ensure RepositoryEntity is in MappingContext before calling toDomain().",
+                )
+        // IMPORTANT: Expect Commit already in context (cross-aggregate reference).
+        // Do NOT auto-map Commit here - that's a separate aggregate.
+        val head =
+            ctx.findEntity<Commit.Key, Commit, CommitEntity>(domain.head)
+                ?: throw IllegalStateException(
+                    "CommitEntity must be mapped before BranchEntity. " +
+                        "Ensure CommitEntity is in MappingContext before calling toDomain().",
+                )
 
         val entity = domain.toEntity(owner, head)
         ctx.remember(domain, entity)
@@ -98,30 +96,34 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
      * @return The Branch domain object (structure only)
      * @throws IllegalStateException if Repository or head Commit is not in MappingContext
      */
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: BranchEntity): @Valid Branch {
         // Fast-path: if this Branch was already mapped in the current context, return it.
         ctx.findDomain<Branch, BranchEntity>(entity)?.let { return it }
 
         // IMPORTANT: Expect Repository already in context (cross-aggregate reference).
         // Do NOT auto-map Repository here - that's a separate aggregate.
-        val owner = ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before Branch. " +
-                        "Ensure Repository is in MappingContext before calling toDomain()."
-            )
+        val owner =
+            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
+                ?: throw IllegalStateException(
+                    "Repository must be mapped before Branch. " +
+                        "Ensure Repository is in MappingContext before calling toDomain().",
+                )
         // IMPORTANT: Expect Commit already in context (cross-aggregate reference).
         // Do NOT auto-map Commit here - that's a separate aggregate.
-        val head = ctx.findDomain<Commit, CommitEntity>(entity.head)
-            ?: throw IllegalStateException(
-                "Commit must be mapped before Branch. " +
-                        "Ensure Commit is in MappingContext before calling toDomain()."
-            )
+        val head =
+            ctx.findDomain<Commit, CommitEntity>(entity.head)
+                ?: throw IllegalStateException(
+                    "Commit must be mapped before Branch. " +
+                        "Ensure Commit is in MappingContext before calling toDomain().",
+                )
 
         val domain = entity.toDomain(owner, head)
         setField(
-            domain.javaClass.superclass.superclass.getDeclaredField("iid"),
+            domain.javaClass.superclass.superclass
+                .getDeclaredField("iid"),
             domain,
-            entity.iid
+            Reference.Id(entity.iid.value),
         )
         ctx.remember(domain, entity)
 
@@ -138,11 +140,14 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
      * @param entity The BranchEntity with updated data
      * @return The refreshed Branch domain object
      */
-    fun refreshDomain(target: Branch, entity: BranchEntity): Branch {
+    fun refreshDomain(
+        target: Branch,
+        entity: BranchEntity,
+    ): Branch {
         setField(
             target.javaClass.getDeclaredField("id"),
             target,
-            entity.id?.toString()
+            entity.id?.toString(),
         )
         return target
     }

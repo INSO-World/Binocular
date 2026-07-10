@@ -31,7 +31,6 @@ class ArangodbTestConfig {
 
             TestPropertyValues
                 .of(
-                    "binocular.arangodb.database.name=infrastructure_arangodb_it",
                     "binocular.arangodb.database.host=${adbContainer.host}",
                     "binocular.arangodb.database.port=${adbContainer.firstMappedPort}",
                 ).applyTo(ctx.environment)

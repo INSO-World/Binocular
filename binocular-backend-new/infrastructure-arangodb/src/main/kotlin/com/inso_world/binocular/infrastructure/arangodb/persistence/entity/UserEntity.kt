@@ -25,7 +25,9 @@ import kotlin.uuid.Uuid
  * - [gitSignature]: Combined "Name <email>" format
  *
  * ### Relationships
- * - [repository]: Owning repository (required)
+ * - [repository]: Owning repository (required). Declared as a `lateinit var` body property rather than
+ *   a constructor parameter — Spring Data ArangoDB injects `@Ref` fields after construction.
+ *   Always set via the [toEntity] factory before use.
  *
  * ### Indexes
  * - [iid]: Unique persistent index for UUID-based lookups
@@ -39,8 +41,16 @@ data class UserEntity(
     @PersistentIndexed(unique = true)
     var iid: Uuid,
     var gitSignature: String,
-    @Ref(lazy = true)
-    var repository: RepositoryEntity,
+    /**
+     * Persisted name extracted from [gitSignature].
+     * Populated by V014 migration; used directly in [toDomain] and [User.toEntity].
+     */
+    var name: String,
+    /**
+     * Persisted email extracted from [gitSignature].
+     * Populated by V014 migration; defaults to null if not yet migrated.
+     */
+    var email: String,
     @Relations(
         edges = [CommitUserConnectionEntity::class],
         lazy = true,
@@ -63,31 +73,8 @@ data class UserEntity(
     )
     var files: Set<FileEntity> = emptySet(),
 ) {
-    /**
-     * Extracts the name portion from the git signature.
-     * Format expected: "Name <email@example.com>"
-     */
-    val name: String
-        get() {
-            val nameRegex = Regex("""^(.+?)\s*<""")
-            return nameRegex
-                .find(gitSignature)
-                ?.groupValues
-                ?.get(1)
-                ?.trim()
-                ?: throw IllegalArgumentException("Could not extract name from gitSignature: $gitSignature")
-        }
-
-    /**
-     * Extracts the email portion from the git signature.
-     * Format expected: "Name <email@example.com>"
-     */
-    val email: String
-        get() {
-            val emailRegex = Regex("""<([^>]+)>$""")
-            return emailRegex.find(gitSignature)?.groupValues?.get(1)
-                ?: throw IllegalArgumentException("Could not extract email from gitSignature: $gitSignature")
-        }
+    @Ref(lazy = false)
+    lateinit var repository: RepositoryEntity
 
     /**
      * Converts this UserEntity to a User domain object.
@@ -99,9 +86,9 @@ data class UserEntity(
     fun toDomain(repository: Repository): User =
         User(
             name = this.name,
+            email = this@UserEntity.email.trim(),
             repository = repository,
         ).apply {
-            this.email = this@UserEntity.email
             this.id = this@UserEntity.id
         }
 }
@@ -119,5 +106,6 @@ internal fun User.toEntity(repository: RepositoryEntity): UserEntity =
         id = this.id,
         iid = this.iid.value,
         gitSignature = this.gitSignature,
-        repository = repository,
-    )
+        name = this.name,
+        email = this.email.trim(),
+    ).also { it.repository = repository }

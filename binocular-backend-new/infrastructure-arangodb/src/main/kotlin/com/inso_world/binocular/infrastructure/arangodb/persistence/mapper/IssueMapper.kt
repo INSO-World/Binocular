@@ -6,11 +6,13 @@ import com.inso_world.binocular.core.persistence.mapper.context.MappingContext
 import com.inso_world.binocular.core.persistence.proxy.RelationshipProxyFactory
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.IssueEntity
 import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.util.Date
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Mapper for Issue domain objects.
@@ -41,7 +43,6 @@ internal class IssueMapper
         @Lazy private val userMapper: UserMapper,
         private val mentionMapper: MentionMapper,
     ) : EntityMapper<Issue, IssueEntity> {
-
         @Autowired
         private lateinit var ctx: MappingContext
 
@@ -76,22 +77,29 @@ internal class IssueMapper
                 labels = domain.labels,
                 state = domain.state,
                 webUrl = domain.webUrl,
+                gid = domain.gid,
                 mentions = domain.mentions.map { mentionMapper.toEntity(it) },
-                accounts = domain.accounts.map { accountMapper.toEntity(it) },
-                milestones = domain.milestones.map { milestoneMapper.toEntity(it) },
-                notes = domain.notes.map { noteMapper.toEntity(it) },
+                accounts = domain.accounts.map { accountMapper.toEntity(it) }.toSet(),
+                commits = domain.commits.map { commitMapper.toEntity(it) }.toSet(),
+                milestones = domain.milestones.map { milestoneMapper.toEntity(it) }.toSet(),
+                notes = domain.notes.map { noteMapper.toEntity(it) }.toSet(),
             )
 
         /**
          * Converts an IssueEntity to Issue domain object.
          *
-         * Converts timestamp fields from Date to LocalDateTime. Eagerly maps mentions
-         * and creates lazy-loaded proxies for accounts, commits, milestones, notes, and users
-         * to avoid loading unnecessary data.
+         * Converts timestamp fields from Date to LocalDateTime. Eagerly maps mentions.
+         * Relationships (milestones, notes, commits, accounts) are intentionally left empty:
+         * Spring Data ArangoDB's auto-generated AQL for @Relations graph traversal does not
+         * backtick-quote hyphenated collection names (e.g. `issues-milestones`), producing
+         * a syntax error at runtime. The GraphQL layer resolves these relationships via
+         * IssueResolver using separate, hand-written AQL queries instead.
+         * Users are set as a true lazy list — only evaluated if domain.users is accessed directly.
          *
          * @param entity The IssueEntity to convert
-         * @return The Issue domain object with eager mentions and lazy relationships
+         * @return The Issue domain object with eager mentions; relationship collections are empty
          */
+        @OptIn(ExperimentalUuidApi::class)
         override fun toDomain(entity: IssueEntity): Issue {
             // Fast-path: Check if already mapped
             ctx.findDomain<Issue, IssueEntity>(entity)?.let { return it }
@@ -100,6 +108,7 @@ internal class IssueMapper
                 Issue(
                     id = entity.id,
                     platformIid = entity.iid,
+                    gid = entity.gid,
                     title = entity.title,
                     description = entity.description,
                     createdAt =
@@ -121,37 +130,21 @@ internal class IssueMapper
                     state = entity.state,
                     webUrl = entity.webUrl,
                     mentions = entity.mentions.map { mentionMapper.toDomain(it) },
-                    accounts =
-                        proxyFactory.createLazyList {
-                            (entity.accounts ?: emptyList()).map { accountEntity ->
-                                accountMapper.toDomain(accountEntity)
-                            }
-                        },
-                    commits =
-                        proxyFactory.createLazyList {
-                            (entity.commits ?: emptyList()).map { commitEntity ->
-                                commitMapper.toDomain(commitEntity)
-                            }
-                        },
-                    milestones =
-                        proxyFactory.createLazyList {
-                            (entity.milestones ?: emptyList()).map { milestoneEntity ->
-                                milestoneMapper.toDomain(milestoneEntity)
-                            }
-                        },
-                    notes =
-                        proxyFactory.createLazyList {
-                            (entity.notes ?: emptyList()).map { noteEntity ->
-                                noteMapper.toDomain(noteEntity)
-                            }
-                        },
-                    users =
-                        proxyFactory.createLazyList {
-                            (entity.users ?: emptyList()).map { userEntity ->
-                                userMapper.toDomain(userEntity)
-                            }
-                        },
+                    project =
+                        entity.project?.let { Project.Id(it.iid!!) }
+                            ?: ctx.findDomain<Project, IssueEntity>(entity)?.iid
+                            ?: error("Parent Project not found in entity or context for Issue ${entity.iid}"),
                 )
+
+            // users is set as a true lazy list — not evaluated until domain.users is accessed.
+            // If accessed, it will trigger @Relations AQL on `issues-users`; the GraphQL layer
+            // resolves users via IssueResolver.users() instead of this field.
+            domain.users =
+                proxyFactory.createLazyList {
+                    (entity.users ?: emptyList()).map { userEntity ->
+                        userMapper.toDomain(userEntity)
+                    }
+                }
 
             return domain
         }

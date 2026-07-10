@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class MergeRequestMapper {
-
-    fun map(mergeRequests: List<Map<String, Any?>>, model: Model) {
+    fun map(
+        mergeRequests: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val prType = model.getResource("${RdfNamespaces.ITS_GH}PullRequest")
         val prIdProp = model.getProperty(RdfNamespaces.BIO, "prId")
         val titleProp = model.getProperty(RdfNamespaces.BIO, "title")

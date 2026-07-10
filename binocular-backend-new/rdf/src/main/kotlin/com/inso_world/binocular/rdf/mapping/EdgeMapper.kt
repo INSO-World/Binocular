@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class EdgeMapper {
-
-    fun mapCommitsUsers(edges: List<Map<String, Any?>>, model: Model) {
+    fun mapCommitsUsers(
+        edges: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val authorProp = model.getProperty(RdfNamespaces.BIO, "author")
 
         edges.forEach { edge ->
@@ -24,7 +26,10 @@ class EdgeMapper {
         }
     }
 
-    fun mapCommitsFiles(edges: List<Map<String, Any?>>, model: Model) {
+    fun mapCommitsFiles(
+        edges: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val modifiedFileProp = model.getProperty(RdfNamespaces.BIO, "modifiedFile")
         val changedFileProp = model.getProperty(RdfNamespaces.BIO, "changedFile")
         val fileChangeType = model.getResource("${RdfNamespaces.BIO}FileChange")
@@ -45,7 +50,10 @@ class EdgeMapper {
         }
     }
 
-    fun mapIssuesCommits(edges: List<Map<String, Any?>>, model: Model) {
+    fun mapIssuesCommits(
+        edges: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val closedByRevisionProp = model.getProperty(RdfNamespaces.BIO, "closedByRevision")
         val containsCommitProp = model.getProperty(RdfNamespaces.BIO, "containsCommit")
 
@@ -68,7 +76,10 @@ class EdgeMapper {
         }
     }
 
-    fun mapCommitsModules(edges: List<Map<String, Any?>>, model: Model) {
+    fun mapCommitsModules(
+        edges: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val changedModuleProp = model.getProperty(RdfNamespaces.BIO, "changedModule")
 
         edges.forEach { edge ->
@@ -85,7 +96,10 @@ class EdgeMapper {
         }
     }
 
-    fun mapCommitsBuilds(edges: List<Map<String, Any?>>, model: Model) {
+    fun mapCommitsBuilds(
+        edges: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val triggeredByProp = model.getProperty(RdfNamespaces.BIO, "triggeredBy")
 
         edges.forEach { edge ->
@@ -102,12 +116,18 @@ class EdgeMapper {
         }
     }
 
-    fun mapModulesFiles(edges: List<Map<String, Any?>>, model: Model) {
+    fun mapModulesFiles(
+        edges: List<Map<String, Any?>>,
+        model: Model
+    ) {
         // Note: This represents the extension property, not a named predicate
         // Skipping for now as per ontology design
     }
 
-    fun mapModulesModules(edges: List<Map<String, Any?>>, model: Model) {
+    fun mapModulesModules(
+        edges: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val containsModuleProp = model.getProperty(RdfNamespaces.BIO, "containsModule")
 
         edges.forEach { edge ->
@@ -124,7 +144,5 @@ class EdgeMapper {
         }
     }
 
-    private fun extractKey(id: String?): String? {
-        return id?.substringAfterLast("/")
-    }
+    private fun extractKey(id: String?): String? = id?.substringAfterLast("/")
 }

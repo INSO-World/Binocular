@@ -8,7 +8,6 @@ import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.BranchFileConnectionEntity
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
-import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 import org.springframework.data.annotation.Id
@@ -26,12 +25,20 @@ import kotlin.uuid.Uuid
  * - [name]: Branch name (business key component with repository)
  *
  * ### Relationships
- * - [repository]: Owning repository (required)
- * - [head]: Head commit reference (required)
+ * - [repository]: Owning repository (required). Declared as `lateinit var` — Spring Data ArangoDB
+ *   injects `@Ref` fields after construction; constructor params receive `null` from cursor results.
+ * - [head]: Head commit reference (same constraint as [repository]).
  * - [files]: Related files via edge collection
  *
  * ### Indexes
  * - [iid]: Unique persistent index for UUID-based lookups
+ *
+ * ### Legacy fields
+ * - [branch]: deprecated alias for [name], defaulting to [name] at construction. Declared as a
+ *   constructor parameter (not a body `val`) so Spring Data ArangoDB can both persist it on write
+ *   and repopulate it via the persistence constructor on read-back (e.g. during `repsert`). This
+ *   makes it appear in raw ArangoDB document exports ([com.inso_world.binocular.infrastructure.arangodb.service.DbExportPortImpl])
+ *   for backward-compatibility with the `db-export` JSON contract.
  */
 @OptIn(ExperimentalUuidApi::class)
 @Document("branches")
@@ -48,10 +55,6 @@ data class BranchEntity(
     var tracksFileRenames: Boolean = false,
     @Deprecated("Use head.sha instead")
     var latestCommit: String? = null,
-    @Ref(lazy = false)
-    val repositoryId: String,
-    @Ref(lazy = false)
-    val headCommitId: String,
     @Relations(
         edges = [BranchFileConnectionEntity::class],
         lazy = true,
@@ -59,42 +62,51 @@ data class BranchEntity(
         direction = Relations.Direction.OUTBOUND,
     )
     var files: Set<FileEntity> = emptySet(),
+    @Deprecated("Legacy", replaceWith = ReplaceWith("name"))
+    val branch: String = name,
 ) {
+    @Ref(lazy = false)
+    lateinit var repository: RepositoryEntity
 
-    @Deprecated("Legacy", replaceWith = ReplaceWith("fullName"))
-    val branch = fullName
+    @Ref(lazy = false)
+    lateinit var head: CommitEntity
 
     /**
      * Converts this BranchEntity to a Branch domain object.
      *
-     * @param repositoryId The repository ID to associate with the branch
-     * @param headCommitId The head commit ID
+     * @param repository The repository domain object to associate with the branch
+     * @param head The head commit domain object
      * @return Branch domain object
      */
-    fun toDomain(repositoryId: Repository.Id, headCommitId: Commit.Id): Branch {
-        return Branch(
+    fun toDomain(
+        repository: Repository,
+        head: Commit
+    ): Branch =
+        Branch(
             name = this.name,
             fullName = this.fullName,
             category = ReferenceCategory.valueOf(this.category),
-            repositoryId = repositoryId,
-            headCommitId = headCommitId,
+            repository = repository,
+            head = head,
         ).apply {
             this.id = this@BranchEntity.id
             this.active = this@BranchEntity.active
             this.tracksFileRenames = this@BranchEntity.tracksFileRenames
         }
-    }
 }
 
 /**
  * Converts a Branch domain object to BranchEntity.
  *
- * @param repositoryEntity The RepositoryEntity to associate with the branch
- * @param headCommitEntity The head CommitEntity
+ * @param repository The RepositoryEntity to associate with the branch
+ * @param head The head CommitEntity
  * @return BranchEntity for persistence
  */
 @OptIn(ExperimentalUuidApi::class)
-internal fun Branch.toEntity(repositoryEntity: RepositoryEntity, headCommitEntity: CommitEntity): BranchEntity =
+internal fun Branch.toEntity(
+    repository: RepositoryEntity,
+    head: CommitEntity
+): BranchEntity =
     BranchEntity(
         id = this.id,
         iid = this.iid.value,
@@ -103,7 +115,8 @@ internal fun Branch.toEntity(repositoryEntity: RepositoryEntity, headCommitEntit
         category = this.category.name,
         active = this.active,
         tracksFileRenames = this.tracksFileRenames,
-        latestCommit = this.headCommitId.value.toString(),
-        repositoryId = repositoryEntity.id ?: throw IllegalStateException("RepositoryEntity must be saved"),
-        headCommitId = headCommitEntity.sha,
-    )
+        latestCommit = this.head.sha,
+    ).also {
+        it.repository = repository
+        it.head = head
+    }

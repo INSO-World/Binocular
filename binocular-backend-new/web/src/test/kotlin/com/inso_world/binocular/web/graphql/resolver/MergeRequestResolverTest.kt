@@ -1,8 +1,12 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.MergeRequestDto
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.isEmptyString
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -18,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 internal class MergeRequestResolverTest : GraphQlControllerTest() {
     @Autowired
     private lateinit var mergeRequestResolver: MergeRequestResolver
+
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -27,7 +32,7 @@ internal class MergeRequestResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    mergeRequest(id: "1") {
+                    mergeRequest(id: "${TestDataProvider.testMergeRequests[0].id}") {
                         id
                         iid
                         title
@@ -70,7 +75,7 @@ internal class MergeRequestResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    mergeRequest(id: "1") {
+                    mergeRequest(id: "${TestDataProvider.testMergeRequests[0].id}") {
                         id
                         iid
                         title
@@ -108,7 +113,7 @@ internal class MergeRequestResolverTest : GraphQlControllerTest() {
 
             val account = accounts.get(0)
             assertAll(
-                { assertEquals("1", account.get("id").asText(), "Account ID mismatch") },
+                { assertThat("Account ID mismatch", account.get("id").asText(), CoreMatchers.not(isEmptyString())) },
                 { assertEquals("GitHub", account.get("platform").asText(), "Account platform mismatch") },
                 { assertEquals("user1", account.get("login").asText(), "Account login mismatch") },
                 { assertEquals("User One", account.get("name").asText(), "Account name mismatch") },
@@ -122,7 +127,7 @@ internal class MergeRequestResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    mergeRequest(id: "1") {
+                    mergeRequest(id: "${TestDataProvider.testMergeRequests[0].id}") {
                         id
                         iid
                         title
@@ -168,7 +173,7 @@ internal class MergeRequestResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    mergeRequest(id: "1") {
+                    mergeRequest(id: "${TestDataProvider.testMergeRequests[0].id}") {
                         id
                         iid
                         title

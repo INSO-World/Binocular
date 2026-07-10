@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class FileMapper {
-
-    fun map(files: List<Map<String, Any?>>, model: Model) {
+    fun map(
+        files: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val fileType = model.getResource("${RdfNamespaces.BIO}File")
         val nameProp = model.getProperty(RdfNamespaces.BIO, "name")
 

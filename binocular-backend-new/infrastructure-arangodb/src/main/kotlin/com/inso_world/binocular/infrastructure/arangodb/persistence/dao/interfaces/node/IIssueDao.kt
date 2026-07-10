@@ -2,11 +2,16 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfa
 
 import com.inso_world.binocular.core.persistence.model.Page
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.IDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.IssueEntity
 import com.inso_world.binocular.model.Issue
 import org.springframework.data.domain.Pageable
 
 internal interface IIssueDao : IDao<Issue, String> {
+    fun findAll(
+        pageable: Pageable,
+        since: Long?,
+        until: Long?
+    ): Page<Issue>
 
-    fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Issue>
-
+    fun create(issue: IssueEntity): IssueEntity
 }

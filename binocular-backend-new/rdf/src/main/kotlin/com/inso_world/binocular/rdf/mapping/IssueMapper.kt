@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class IssueMapper {
-
-    fun map(issues: List<Map<String, Any?>>, model: Model) {
+    fun map(
+        issues: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val issueType = model.getResource("${RdfNamespaces.ITS_GH}Issue")
         val issueIdProp = model.getProperty(RdfNamespaces.BIO, "issueId")
         val titleProp = model.getProperty(RdfNamespaces.BIO, "title")

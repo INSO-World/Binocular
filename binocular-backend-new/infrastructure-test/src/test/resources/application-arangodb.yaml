@@ -1,11 +1,15 @@
 binocular:
   arangodb:
+    migration:
+      default_project_name: "INSO-World/Binocular"
+      default_user_email_template: "{name}@users.noreply.binocular.inso-world.com"
+      enabled: true
     database:
       host: "localhost"
       port: 8529
       user: TODO
       password: TODO
-      name: "binocular-1234"
+      name: "binocular-infrastructure-test"
 
 spring:
   # Prevent Spring Boot from trying to configure SQL/JPA when running ArangoDB tests

@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class FileMapper : EntityMapper<File, FileEntity> {
-
     @Autowired
     private lateinit var ctx: MappingContext
 
@@ -73,10 +72,11 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
         // Fast-path: Check if already mapped
         ctx.findDomain<File, FileEntity>(entity)?.let { return it }
 
-        val domain = File(path = entity.path).apply {
-            id = entity.id
-            webUrl = entity.webUrl
-        }
+        val domain =
+            File(path = entity.path).apply {
+                id = entity.id
+                webUrl = entity.webUrl
+            }
 
         ctx.remember(domain, entity)
         return domain

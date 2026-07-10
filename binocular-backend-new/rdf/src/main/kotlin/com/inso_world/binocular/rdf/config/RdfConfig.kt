@@ -1,10 +1,10 @@
 package com.inso_world.binocular.rdf.config
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Bean
 import com.arangodb.ArangoDB
 import com.arangodb.ArangoDatabase
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ConfigurationProperties(prefix = "binocular.rdf")
@@ -14,11 +14,13 @@ class RdfConfig {
 
     @Bean
     fun arangoDatabase(): ArangoDatabase {
-        val arango = ArangoDB.Builder()
-            .host(arangodb.host, arangodb.port)
-            .user(arangodb.user)
-            .password(arangodb.password)
-            .build()
+        val arango =
+            ArangoDB
+                .Builder()
+                .host(arangodb.host, arangodb.port)
+                .user(arangodb.user)
+                .password(arangodb.password)
+                .build()
         return arango.db(arangodb.database)
     }
 }

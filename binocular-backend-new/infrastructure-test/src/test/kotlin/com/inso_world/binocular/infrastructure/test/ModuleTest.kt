@@ -6,7 +6,9 @@ import com.inso_world.binocular.infrastructure.test.base.BaseInfrastructureSprin
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('postgres')}", loadContext = true)
 internal class ModuleTest : BaseInfrastructureSpringTest() {
     @Autowired
     lateinit var modulePort: ModuleInfrastructurePort

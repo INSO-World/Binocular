@@ -16,4 +16,6 @@ pkg
 *.tsbuildinfo
 docker/arangodb/data
 !docker/arangodb/data/.gitkeep
-binocular-backend-new/**/logs/
+binocular-backend-new/**/logs
+binocular-backend-new/.ai-docs
+.context

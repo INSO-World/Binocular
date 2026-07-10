@@ -3,8 +3,8 @@ package com.inso_world.binocular.rdf.service
 import com.inso_world.binocular.rdf.arango.ArangoReader
 import com.inso_world.binocular.rdf.mapping.*
 import org.apache.jena.rdf.model.ModelFactory
-import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.riot.Lang
+import org.apache.jena.riot.RDFDataMgr
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -23,7 +23,6 @@ class KnowledgeGraphBuilder(
     private val buildMapper: BuildMapper = BuildMapper(),
     private val edgeMapper: EdgeMapper = EdgeMapper()
 ) {
-
     private val logger = LoggerFactory.getLogger(KnowledgeGraphBuilder::class.java)
 
     fun buildAndExport() {
@@ -53,8 +52,16 @@ class KnowledgeGraphBuilder(
             val builds = arangoReader.readBuilds()
             val branches = arangoReader.readBranches()
 
-            logger.info("Read {} users, {} files, {} modules, {} issues, {} MRs, {} builds, {} branches",
-                users.size, files.size, modules.size, issues.size, mergeRequests.size, builds.size, branches.size)
+            logger.info(
+                "Read {} users, {} files, {} modules, {} issues, {} MRs, {} builds, {} branches",
+                users.size,
+                files.size,
+                modules.size,
+                issues.size,
+                mergeRequests.size,
+                builds.size,
+                branches.size
+            )
 
             // Map entity collections to RDF
             logger.info("Mapping entities...")
@@ -67,9 +74,11 @@ class KnowledgeGraphBuilder(
             buildMapper.map(builds, model)
 
             // Build SHA → URI lookup for branches
-            val commitShaToUri = commits.associate { commit ->
-                (commit["sha"] as? String) to "${RdfNamespaces.INST}commit/${commit["_key"]}"
-            }.filterKeys { it != null } as Map<String, String>
+            val commitShaToUri =
+                commits
+                    .associate { commit ->
+                        (commit["sha"] as? String) to "${RdfNamespaces.INST}commit/${commit["_key"]}"
+                    }.filterKeys { it != null } as Map<String, String>
 
             val branchMapper = BranchMapper(commitShaToUri)
             branchMapper.map(branches, model)

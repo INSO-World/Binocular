@@ -24,12 +24,16 @@ data class Commit(
     @field:NotNull
     val repositoryId: Repository.Id,
 ) : AbstractDomainObject<Commit.Id, Commit.Key>(
-    Id(Uuid.random())
-) {
+        Id(Uuid.random())
+    ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
-    data class Key(val sha: String)
+    data class Key(
+        val sha: String
+    )
 
     @Deprecated("Avoid using database specific id, use business key", ReplaceWith("iid"))
     var id: String? = null
@@ -65,8 +69,11 @@ data class Commit(
         get() = Key(sha)
 
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String =
-        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, authorId=$authorId, committerId=$committerId, repositoryId=$repositoryId, childIds=${childIds.map { it.value }}, parentIds=${parentIds.map { it.value }})"
+        "Commit(id=$id, sha='$sha', authorDateTime=$authorDateTime, commitDateTime=$commitDateTime, message=$message, webUrl=$webUrl, stats=$stats, authorId=$authorId, committerId=$committerId, repositoryId=$repositoryId, childIds=${childIds.map {
+            it.value
+        }}, parentIds=${parentIds.map { it.value }})"
 }

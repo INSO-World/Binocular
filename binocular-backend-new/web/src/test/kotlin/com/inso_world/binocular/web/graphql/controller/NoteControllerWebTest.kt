@@ -155,7 +155,7 @@ internal class NoteControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                note(id: "1") {
+                note(id: "${TestDataProvider.testNotes[0].id}") {
                     id
                     body
                     createdAt

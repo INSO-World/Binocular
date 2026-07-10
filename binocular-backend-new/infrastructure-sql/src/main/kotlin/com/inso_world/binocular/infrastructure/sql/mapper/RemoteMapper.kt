@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.vcs.Remote
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 @Component
 internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
@@ -19,37 +20,35 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
     override fun toEntity(domain: Remote): RemoteEntity {
         ctx.findEntity<Remote.Key, Remote, RemoteEntity>(domain)?.let { return it }
 
-        val repo = ctx.findDomainByIid<Repository>(domain.repositoryId, RepositoryEntity::class)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before Remote. " +
-                        "Ensure Repository is in MappingContext before calling toEntity()."
-            )
-        val repoEntity = ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(repo)
-            ?: throw IllegalStateException(
-                "RepositoryEntity must be mapped before RemoteEntity. " +
-                        "Ensure RepositoryEntity is in MappingContext before calling toEntity()."
-            )
+        val repository =
+            ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(domain.repository)
+                ?: throw IllegalStateException(
+                    "RepositoryEntity must be mapped before RemoteEntity. " +
+                        "Ensure RepositoryEntity is in MappingContext before calling toEntity().",
+                )
 
-        val entity = domain.toEntity(repoEntity)
+        val entity = domain.toEntity(repository)
         ctx.remember(domain, entity)
 
         return entity
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: RemoteEntity): Remote {
         ctx.findDomain<Remote, RemoteEntity>(entity)?.let { return it }
 
-        val repository = ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
-            ?: throw IllegalStateException(
-                "Repository must be mapped before Remote. " +
-                        "Ensure Repository is in MappingContext before calling toDomain()."
-            )
+        val repository =
+            ctx.findDomain<Repository, RepositoryEntity>(entity.repository)
+                ?: throw IllegalStateException(
+                    "Repository must be mapped before Remote. " +
+                        "Ensure Repository is in MappingContext before calling toDomain().",
+                )
 
-        val domain = entity.toDomain(repository.iid)
+        val domain = entity.toDomain(repository)
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Remote.Id(entity.iid.value)
         )
 
         ctx.remember(domain, entity)
@@ -66,7 +65,10 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
      * @param entity The RemoteEntity with updated data
      * @return The refreshed Remote domain object
      */
-    fun refreshDomain(target: Remote, entity: RemoteEntity): Remote {
+    fun refreshDomain(
+        target: Remote,
+        entity: RemoteEntity,
+    ): Remote {
         setField(
             RemoteEntity::class.java.getDeclaredField("id"),
             target,

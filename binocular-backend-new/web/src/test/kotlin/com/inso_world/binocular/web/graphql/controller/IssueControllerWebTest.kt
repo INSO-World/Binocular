@@ -68,39 +68,49 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
                     },
                     {
                         assertEquals(
-                            expectedIssue.iid,
+                            expectedIssue.platformIid,
                             actualIssue.get("iid").asInt(),
-                            "Issue IID mismatch: expected ${expectedIssue.iid}, got ${actualIssue.get("iid").asInt()}",
+                            "Issue IID mismatch: expected ${expectedIssue.platformIid}, got ${
+                                actualIssue.get("iid").asInt()
+                            }",
                         )
                     },
                     {
                         assertEquals(
                             expectedIssue.title,
                             actualIssue.get("title").asText(),
-                            "Issue title mismatch: expected ${expectedIssue.title}, got ${actualIssue.get("title").asText()}",
+                            "Issue title mismatch: expected ${expectedIssue.title}, got ${
+                                actualIssue.get("title").asText()
+                            }",
                         )
                     },
                     {
                         assertEquals(
                             expectedIssue.description,
                             actualIssue.get("description").asText(),
-                            "Issue description mismatch: expected ${expectedIssue.description}, got ${actualIssue.get(
-                                "description",
-                            ).asText()}",
+                            "Issue description mismatch: expected ${expectedIssue.description}, got ${
+                                actualIssue.get(
+                                    "description",
+                                ).asText()
+                            }",
                         )
                     },
                     {
                         assertEquals(
                             expectedIssue.state,
                             actualIssue.get("state").asText(),
-                            "Issue state mismatch: expected ${expectedIssue.state}, got ${actualIssue.get("state").asText()}",
+                            "Issue state mismatch: expected ${expectedIssue.state}, got ${
+                                actualIssue.get("state").asText()
+                            }",
                         )
                     },
                     {
                         assertEquals(
                             expectedIssue.webUrl,
                             actualIssue.get("webUrl").asText(),
-                            "Issue webUrl mismatch: expected ${expectedIssue.webUrl}, got ${actualIssue.get("webUrl").asText()}",
+                            "Issue webUrl mismatch: expected ${expectedIssue.webUrl}, got ${
+                                actualIssue.get("webUrl").asText()
+                            }",
                         )
                     },
                     // Note: labels is an array, so we need to handle it differently
@@ -117,7 +127,7 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                issue(id: "1") {
+                issue(id: "${expectedIssue.id}") {
                     id
                     iid
                     title
@@ -144,9 +154,9 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedIssue.iid,
+                        expectedIssue.platformIid,
                         result.get("iid").asInt(),
-                        "Issue IID mismatch: expected ${expectedIssue.iid}, got ${result.get("iid").asInt()}",
+                        "Issue IID mismatch: expected ${expectedIssue.platformIid}, got ${result.get("iid").asInt()}",
                     )
                 },
                 {
@@ -160,7 +170,9 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
                     assertEquals(
                         expectedIssue.description,
                         result.get("description").asText(),
-                        "Issue description mismatch: expected ${expectedIssue.description}, got ${result.get("description").asText()}",
+                        "Issue description mismatch: expected ${expectedIssue.description}, got ${
+                            result.get("description").asText()
+                        }",
                     )
                 },
                 {
@@ -236,37 +248,47 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedIssue.iid,
+                        expectedIssue.platformIid,
                         actualIssue.get("iid").asInt(),
-                        "Issue IID mismatch: expected ${expectedIssue.iid}, got ${actualIssue.get("iid").asInt()}",
+                        "Issue IID mismatch: expected ${expectedIssue.platformIid}, got ${
+                            actualIssue.get("iid").asInt()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.title,
                         actualIssue.get("title").asText(),
-                        "Issue title mismatch: expected ${expectedIssue.title}, got ${actualIssue.get("title").asText()}",
+                        "Issue title mismatch: expected ${expectedIssue.title}, got ${
+                            actualIssue.get("title").asText()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.description,
                         actualIssue.get("description").asText(),
-                        "Issue description mismatch: expected ${expectedIssue.description}, got ${actualIssue.get("description").asText()}",
+                        "Issue description mismatch: expected ${expectedIssue.description}, got ${
+                            actualIssue.get("description").asText()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.state,
                         actualIssue.get("state").asText(),
-                        "Issue state mismatch: expected ${expectedIssue.state}, got ${actualIssue.get("state").asText()}",
+                        "Issue state mismatch: expected ${expectedIssue.state}, got ${
+                            actualIssue.get("state").asText()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.webUrl,
                         actualIssue.get("webUrl").asText(),
-                        "Issue webUrl mismatch: expected ${expectedIssue.webUrl}, got ${actualIssue.get("webUrl").asText()}",
+                        "Issue webUrl mismatch: expected ${expectedIssue.webUrl}, got ${
+                            actualIssue.get("webUrl").asText()
+                        }",
                     )
                 },
                 // Note: labels is an array, so we need to handle it differently
@@ -360,37 +382,47 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedIssue.iid,
+                        expectedIssue.platformIid,
                         actualIssue.get("iid").asInt(),
-                        "Issue IID mismatch: expected ${expectedIssue.iid}, got ${actualIssue.get("iid").asInt()}",
+                        "Issue IID mismatch: expected ${expectedIssue.platformIid}, got ${
+                            actualIssue.get("iid").asInt()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.title,
                         actualIssue.get("title").asText(),
-                        "Issue title mismatch: expected ${expectedIssue.title}, got ${actualIssue.get("title").asText()}",
+                        "Issue title mismatch: expected ${expectedIssue.title}, got ${
+                            actualIssue.get("title").asText()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.description,
                         actualIssue.get("description").asText(),
-                        "Issue description mismatch: expected ${expectedIssue.description}, got ${actualIssue.get("description").asText()}",
+                        "Issue description mismatch: expected ${expectedIssue.description}, got ${
+                            actualIssue.get("description").asText()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.state,
                         actualIssue.get("state").asText(),
-                        "Issue state mismatch: expected ${expectedIssue.state}, got ${actualIssue.get("state").asText()}",
+                        "Issue state mismatch: expected ${expectedIssue.state}, got ${
+                            actualIssue.get("state").asText()
+                        }",
                     )
                 },
                 {
                     assertEquals(
                         expectedIssue.webUrl,
                         actualIssue.get("webUrl").asText(),
-                        "Issue webUrl mismatch: expected ${expectedIssue.webUrl}, got ${actualIssue.get("webUrl").asText()}",
+                        "Issue webUrl mismatch: expected ${expectedIssue.webUrl}, got ${
+                            actualIssue.get("webUrl").asText()
+                        }",
                     )
                 },
                 // Note: labels is an array, so we need to handle it differently
@@ -432,7 +464,11 @@ internal class IssueControllerWebTest : BaseIntegrationTest() {
 
             // Get the issues from the result
             val issuesData = result.get("data")
-            assertEquals(0, issuesData.size(), "Expected 0 issues on page beyond available data, but got ${issuesData.size()}")
+            assertEquals(
+                0,
+                issuesData.size(),
+                "Expected 0 issues on page beyond available data, but got ${issuesData.size()}"
+            )
         }
     }
 

@@ -62,7 +62,6 @@ import kotlin.io.path.Path
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
-
     @Autowired
     private lateinit var indexer: GitIndexer
 
@@ -76,7 +75,6 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Repository operations")
     inner class RepositoryOperations {
-
         @ParameterizedTest
         @ValueSource(strings = [SIMPLE_REPO, OCTO_REPO, ADVANCED_REPO])
         fun `findRepo should locate existing repositories`(repoName: String) {
@@ -99,9 +97,10 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
         fun `findRepo with non-git directory should throw exception`() {
             val nonGitPath = Files.createTempDirectory(LocalDateTime.now().toString())
 
-            val e = assertThrows<UniffiException.GixDiscoverException> {
-                indexer.findRepo(nonGitPath, project)
-            }
+            val e =
+                assertThrows<UniffiException.GixDiscoverException> {
+                    indexer.findRepo(nonGitPath, project)
+                }
             assertThat(e.message).contains(nonGitPath.toString())
         }
 
@@ -127,7 +126,6 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Order(Int.MAX_VALUE)
     @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
     inner class BranchOperations {
-
         @ParameterizedTest
         @MethodSource("com.inso_world.binocular.ffi.integration.GitIndexerTest#findAllBranchesData")
         fun `findAllBranches should return all branches for repository`(
@@ -284,14 +282,16 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Commit operations")
     inner class CommitOperations {
-
         @ParameterizedTest
         @CsvSource(
             "${SIMPLE_REPO},b51199ab8b83e31f64b631e42b2ee0b1c7e3259a",
             "${OCTO_REPO},4dedc3c738eee6b69c43cde7d89f146912532cff",
             "${ADVANCED_REPO},379dc91fb055ba385b5e5446428ffbe38804fa99"
         )
-        fun `findCommit with HEAD should return correct commit`(repoName: String, expectedSha: String) {
+        fun `findCommit with HEAD should return correct commit`(
+            repoName: String,
+            expectedSha: String
+        ) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val commit = indexer.findCommit(repo, "HEAD")
 
@@ -309,7 +309,10 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
             "${OCTO_REPO},d16fb2d78e3d867377c078a03aadc5aa34bdb408",
             "${ADVANCED_REPO},5c81ebfb36467b8d1f70295adf2f9ae5a93a2c33"
         )
-        fun `findCommit with specific SHA should return correct commit`(repoName: String, sha: String) {
+        fun `findCommit with specific SHA should return correct commit`(
+            repoName: String,
+            sha: String
+        ) {
             val repo = indexer.findRepo(Path("${FIXTURES_PATH}/$repoName"), project)
             val commit = indexer.findCommit(repo, sha)
 
@@ -438,13 +441,13 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Error handling")
     inner class ErrorHandling {
-
         @Test
         fun `operations on invalid repository should fail gracefully`() {
-            val invalidRepo = Repository(
-                localPath = "/invalid/path",
-                project = project
-            )
+            val invalidRepo =
+                Repository(
+                    localPath = "/invalid/path",
+                    project = project
+                )
 
             assertAll(
                 {
@@ -469,7 +472,6 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
     @Nested
     @DisplayName("Integration scenarios")
     inner class Integration {
-
         @Test
         fun `complete workflow - Binocular`() {
             val repo = indexer.findRepo(Path("./"), project)
@@ -610,18 +612,22 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
 
             val committerGroups = branchCommits.groupBy { it.committer }
             for ((committer, commits) in committerGroups) {
-                val gitLogProcess = ProcessBuilder(
-                    "git", "log", "--use-mailmap", "--pretty=format:'%cN <%cE>'",
-                    branchName
-                )
-                    .directory(repoDir)
-                    .redirectErrorStream(true)
-                    .start()
+                val gitLogProcess =
+                    ProcessBuilder(
+                        "git",
+                        "log",
+                        "--use-mailmap",
+                        "--pretty=format:'%cN <%cE>'",
+                        branchName
+                    ).directory(repoDir)
+                        .redirectErrorStream(true)
+                        .start()
                 logger.debug("{}", gitLogProcess.info())
 
-                val lineCount = gitLogProcess.inputStream.bufferedReader().useLines { lines ->
-                    lines.count { it.contains(committer.email.orEmpty()) }
-                }
+                val lineCount =
+                    gitLogProcess.inputStream.bufferedReader().useLines { lines ->
+                        lines.count { it.contains(committer.email.orEmpty()) }
+                    }
                 gitLogProcess.waitFor(5, TimeUnit.SECONDS)
 
                 logger.info("Committer: ${committer.email} - Commits: $lineCount")
@@ -645,20 +651,24 @@ internal open class GitIndexerTest : BaseFixturesIntegrationTest() {
             // localPath points to .git directory, so get the parent for git commands
             val repoDir = File(repo.localPath).parentFile
 
-            val authorGroups = branchCommits.filter { it.author != null }.groupBy { requireNotNull(it.author) }
+            val authorGroups = branchCommits.groupBy { requireNotNull(it.author) }
             for ((author, commits) in authorGroups) {
-                val gitLogProcess = ProcessBuilder(
-                    "git", "log", "--use-mailmap", "--pretty=format:'%aN <%aE>'",
-                    branchName
-                )
-                    .directory(repoDir)
-                    .redirectErrorStream(true)
-                    .start()
+                val gitLogProcess =
+                    ProcessBuilder(
+                        "git",
+                        "log",
+                        "--use-mailmap",
+                        "--pretty=format:'%aN <%aE>'",
+                        branchName
+                    ).directory(repoDir)
+                        .redirectErrorStream(true)
+                        .start()
                 logger.debug("{}", gitLogProcess.info())
 
-                val lineCount = gitLogProcess.inputStream.bufferedReader().useLines { lines ->
-                    lines.count { it.contains(author.email.orEmpty()) }
-                }
+                val lineCount =
+                    gitLogProcess.inputStream.bufferedReader().useLines { lines ->
+                        lines.count { it.contains(author.email.orEmpty()) }
+                    }
                 gitLogProcess.waitFor(5, TimeUnit.SECONDS)
 
                 logger.info("Author: ${author.email} - Commits: $lineCount")

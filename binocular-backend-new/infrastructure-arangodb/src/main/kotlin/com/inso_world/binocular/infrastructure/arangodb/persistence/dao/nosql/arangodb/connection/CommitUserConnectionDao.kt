@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitUserConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.edge.ICommitUserConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitUserConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.UserMapper
@@ -11,6 +13,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.e
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.User
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Repository
 
 /**
@@ -31,27 +34,42 @@ internal class CommitUserConnectionDao
     ) : ICommitUserConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
 
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        @Lazy
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all users connected to a commit
          */
         override fun findUsersByCommit(commitId: String): List<User> {
             val userEntities = repository.findUsersByCommit(commitId)
-            return userEntities.map { userMapper.toDomain(it) }
+            return userEntities.map {
+                repositoryAssembler.toDomain(it.repository)
+                userMapper.toDomain(it)
+            }
         }
 
         /**
          * Find all commits connected to a user
          */
         override fun findCommitsByUser(userId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findCommitsByUser(userId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
-         * Save a commit-user connection
+         * Save a commit-user connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitUserConnection): CommitUserConnection {
-            // Get the commit and user entities from their repositories
             val commitEntity =
                 commitRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Commit with ID ${connection.from.id} not found")
@@ -61,7 +79,6 @@ internal class CommitUserConnectionDao
                     IllegalArgumentException("User with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 CommitUserConnectionEntity(
                     id = connection.id,
@@ -69,14 +86,12 @@ internal class CommitUserConnectionDao
                     to = userEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitUserConnection(
                 id = savedEntity.id,
-                from = commitMapper.toDomain(savedEntity.from),
-                to = userMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

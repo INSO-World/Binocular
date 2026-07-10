@@ -12,7 +12,9 @@ import kotlin.uuid.Uuid
 import org.springframework.stereotype.Repository as SpringRepository
 
 @SpringRepository
-internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpecificationExecutor<CommitEntity> {
+internal interface CommitRepository :
+    JpaRepository<CommitEntity, Long>,
+    JpaSpecificationExecutor<CommitEntity> {
     /**
      * Fetches only the SHAs that actually exist in the database.
      */
@@ -67,7 +69,9 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
             where c.sha = :sha
         """
     )
-    fun findChildrenBySha(@Param("sha") sha: String): Set<CommitEntity>
+    fun findChildrenBySha(
+        @Param("sha") sha: String,
+    ): Set<CommitEntity>
 
     @Query(
         """
@@ -76,5 +80,7 @@ internal interface CommitRepository : JpaRepository<CommitEntity, Long>, JpaSpec
                 where c.sha = :sha
             """,
     )
-    fun findParentsBySha(@Param("sha") sha: String): Set<CommitEntity>
+    fun findParentsBySha(
+        @Param("sha") sha: String,
+    ): Set<CommitEntity>
 }

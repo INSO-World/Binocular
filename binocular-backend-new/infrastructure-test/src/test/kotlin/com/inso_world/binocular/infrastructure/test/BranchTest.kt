@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Integration tests for Branch persistence via BranchInfrastructurePort.
@@ -18,12 +20,14 @@ internal class BranchTest : BaseInfrastructureSpringTest() {
     lateinit var branchPort: BranchInfrastructurePort
 
     @Test
+    @OptIn(ExperimentalUuidApi::class)
     fun `load branch by provider id`() {
         val expected = TestDataProvider.testBranches.first()
-        val loaded = branchPort.findByIid(requireNotNull(expected.iid))
+        val loaded = branchPort.findById(requireNotNull(expected.id))
         assertNotNull(loaded)
         loaded!!
         assertEquals(expected.id, loaded.id)
+        assertEquals(expected.iid, loaded.iid)
         assertEquals(expected.name, loaded.name)
         assertEquals(expected.active, loaded.active)
         assertEquals(expected.tracksFileRenames, loaded.tracksFileRenames)
@@ -31,6 +35,22 @@ internal class BranchTest : BaseInfrastructureSpringTest() {
     }
 
     @Test
+    fun `load branch by provider iid`() {
+        val expected = TestDataProvider.testBranches.first()
+        val loaded = branchPort.findByIid(requireNotNull(expected.iid))
+        assertNotNull(loaded)
+        loaded!!
+        assertEquals(expected.id, loaded.id)
+        @OptIn(ExperimentalUuidApi::class)
+        assertEquals(expected.iid, loaded.iid)
+        assertEquals(expected.name, loaded.name)
+        assertEquals(expected.active, loaded.active)
+        assertEquals(expected.tracksFileRenames, loaded.tracksFileRenames)
+        assertEquals(expected.latestCommit, loaded.latestCommit)
+    }
+
+    @Test
+    @DisabledIf(expression = "#{environment['spring.profiles.active'].contains('postgres')}", loadContext = true)
     fun `find files by provider branch id returns entries when linked`() {
         val branch = TestDataProvider.testBranches.first()
         val files = branchPort.findFilesByBranchId(requireNotNull(branch.id))

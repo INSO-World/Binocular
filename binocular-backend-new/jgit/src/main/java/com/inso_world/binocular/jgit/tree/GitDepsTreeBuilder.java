@@ -3,13 +3,12 @@ package com.inso_world.binocular.jgit.tree;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Repository;
-import com.inso_world.binocular.model.git.EdgeType;
-import com.inso_world.binocular.model.git.GitDepsTree;
-import com.inso_world.binocular.model.git.GitTreeEdge;
-import com.inso_world.binocular.model.git.GitTreeNode;
+import com.inso_world.binocular.jgit.git.EdgeType;
+import com.inso_world.binocular.jgit.git.GitDepsTree;
+import com.inso_world.binocular.jgit.git.GitTreeEdge;
+import com.inso_world.binocular.jgit.git.GitTreeNode;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**

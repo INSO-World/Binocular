@@ -1,12 +1,13 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.FileDto
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 internal class FileResolverTest : GraphQlControllerTest() {
     @Autowired
     private lateinit var fileResolver: FileResolver
+
     @Nested
     inner class BasicFunctionality {
         @Test
@@ -27,7 +29,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -43,8 +45,20 @@ internal class FileResolverTest : GraphQlControllerTest() {
             // Verify file data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "File ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/Main.kt", result.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", result.get("webUrl").asText(), "File webUrl mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/Main.kt",
+                        result.get("path").asText(),
+                        "File path mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        "https://example.com/files/Main.kt",
+                        result.get("webUrl").asText(),
+                        "File webUrl mismatch"
+                    )
+                },
                 { assertEquals(Int.MIN_VALUE, result.get("maxLength").asInt(), "File maxLength mismatch") },
             )
         }
@@ -59,7 +73,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -80,8 +94,20 @@ internal class FileResolverTest : GraphQlControllerTest() {
             // Verify file data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "File ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/Main.kt", result.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", result.get("webUrl").asText(), "File webUrl mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/Main.kt",
+                        result.get("path").asText(),
+                        "File path mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        "https://example.com/files/Main.kt",
+                        result.get("webUrl").asText(),
+                        "File webUrl mismatch"
+                    )
+                },
             )
 
             // Verify branches
@@ -94,7 +120,13 @@ internal class FileResolverTest : GraphQlControllerTest() {
                 { assertEquals("1", branch.get("id").asText(), "Branch ID mismatch") },
                 { assertEquals("main", branch.get("branch").asText(), "Branch name mismatch") },
                 { assertEquals(true, branch.get("active").asBoolean(), "Branch active status mismatch") },
-                { assertEquals(true, branch.get("tracksFileRenames").asBoolean(), "Branch tracksFileRenames mismatch") },
+                {
+                    assertEquals(
+                        true,
+                        branch.get("tracksFileRenames").asBoolean(),
+                        "Branch tracksFileRenames mismatch"
+                    )
+                },
             )
         }
 
@@ -105,7 +137,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "2") {
+                    file(id: "${TestDataProvider.testFiles[1].id}") {
                         id
                         path
                         webUrl
@@ -124,8 +156,20 @@ internal class FileResolverTest : GraphQlControllerTest() {
             // Verify file data
             assertAll(
                 { assertEquals("2", result.get("id").asText(), "File ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/Utils.kt", result.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Utils.kt", result.get("webUrl").asText(), "File webUrl mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/Utils.kt",
+                        result.get("path").asText(),
+                        "File path mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        "https://example.com/files/Utils.kt",
+                        result.get("webUrl").asText(),
+                        "File webUrl mismatch"
+                    )
+                },
             )
 
             // Verify branches
@@ -137,10 +181,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
             val branchIds = (0 until branches.size()).map { branches.get(it).get("id").asText() }
 
             // Verify that both branch IDs are present
-            assertAll(
-                { assertTrue(branchIds.contains("1"), "Should contain branch ID 1") },
-                { assertTrue(branchIds.contains("2"), "Should contain branch ID 2") },
-            )
+            assertThat(branchIds).contains("1", "2")
         }
 
         @Test
@@ -150,7 +191,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -177,8 +218,20 @@ internal class FileResolverTest : GraphQlControllerTest() {
             // Verify file data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "File ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/Main.kt", result.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", result.get("webUrl").asText(), "File webUrl mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/Main.kt",
+                        result.get("path").asText(),
+                        "File path mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        "https://example.com/files/Main.kt",
+                        result.get("webUrl").asText(),
+                        "File webUrl mismatch"
+                    )
+                },
             )
 
             // Verify commits (paginated)
@@ -193,8 +246,19 @@ internal class FileResolverTest : GraphQlControllerTest() {
             assertNotNull(commit, "Commit payload should not be null in CommitInFile")
             assertAll(
                 { assertEquals("1", commit.get("id").asText(), "Commit ID mismatch") },
-                { assertTrue(commit.get("sha").asText().startsWith("abc1230000000000000000000000000000000000"), "Commit SHA should start with short hash prefix") },
-                { assertEquals("First commit", commit.get("message").asText(), "Commit message mismatch") },
+                {
+                    assertThat(commit.get("sha").asText()).isEqualTo(
+                        TestDataProvider.testCommits[0].sha,
+                        "Commit SHA mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        TestDataProvider.testCommits[0].message,
+                        commit.get("message").asText(),
+                        "Commit message mismatch"
+                    )
+                },
             )
         }
 
@@ -205,7 +269,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -224,8 +288,20 @@ internal class FileResolverTest : GraphQlControllerTest() {
             // Verify file data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "File ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/Main.kt", result.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", result.get("webUrl").asText(), "File webUrl mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/Main.kt",
+                        result.get("path").asText(),
+                        "File path mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        "https://example.com/files/Main.kt",
+                        result.get("webUrl").asText(),
+                        "File webUrl mismatch"
+                    )
+                },
             )
 
             // Verify modules
@@ -236,7 +312,13 @@ internal class FileResolverTest : GraphQlControllerTest() {
             val module = modules.get(0)
             assertAll(
                 { assertEquals("1", module.get("id").asText(), "Module ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/core", module.get("path").asText(), "Module path mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/core",
+                        module.get("path").asText(),
+                        "Module path mismatch"
+                    )
+                },
             )
         }
 
@@ -247,7 +329,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    file(id: "1") {
+                    file(id: "${TestDataProvider.testFiles[0].id}") {
                         id
                         path
                         webUrl
@@ -266,8 +348,20 @@ internal class FileResolverTest : GraphQlControllerTest() {
             // Verify file data
             assertAll(
                 { assertEquals("1", result.get("id").asText(), "File ID mismatch") },
-                { assertEquals("src/main/kotlin/com/example/Main.kt", result.get("path").asText(), "File path mismatch") },
-                { assertEquals("https://example.com/files/Main.kt", result.get("webUrl").asText(), "File webUrl mismatch") },
+                {
+                    assertEquals(
+                        "src/main/kotlin/com/example/Main.kt",
+                        result.get("path").asText(),
+                        "File path mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        "https://example.com/files/Main.kt",
+                        result.get("webUrl").asText(),
+                        "File webUrl mismatch"
+                    )
+                },
             )
 
             // Verify users
@@ -276,7 +370,13 @@ internal class FileResolverTest : GraphQlControllerTest() {
             if (users.size() > 0) {
                 val user = users.get(0)
                 assertAll(
-                    { assertEquals("John Doe <john.doe@example.com>", user.get("gitSignature").asText(), "User gitSignature mismatch") },
+                    {
+                        assertEquals(
+                            "John Doe <john.doe@example.com>",
+                            user.get("gitSignature").asText(),
+                            "User gitSignature mismatch"
+                        )
+                    },
                 )
             }
         }
@@ -293,7 +393,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
             val result = fileResolver.branches(file)
 
             // Assert
-            assertTrue(result.isEmpty(), "Branches list should be empty when file ID is null")
+            assertThat(result).isEmpty()
         }
 
         @Test
@@ -305,7 +405,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
             val result = fileResolver.commits(file, null, null, null)
 
             // Assert
-            assertTrue(result.data.isEmpty(), "Commits data should be empty when file ID is null")
+            assertThat(result.data).isEmpty()
             assertEquals(0, result.count, "Count should be 0")
         }
 
@@ -318,7 +418,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
             val result = fileResolver.modules(file)
 
             // Assert
-            assertTrue(result.isEmpty(), "Modules list should be empty when file ID is null")
+            assertThat(result).isEmpty()
         }
 
         @Test
@@ -330,7 +430,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
             val result = fileResolver.relatedFiles(file)
 
             // Assert
-            assertTrue(result.isEmpty(), "Related files list should be empty when file ID is null")
+            assertThat(result).isEmpty()
         }
 
         @Test
@@ -342,7 +442,7 @@ internal class FileResolverTest : GraphQlControllerTest() {
             val result = fileResolver.users(file)
 
             // Assert
-            assertTrue(result.isEmpty(), "Users list should be empty when file ID is null")
+            assertThat(result).isEmpty()
         }
 
         @Test

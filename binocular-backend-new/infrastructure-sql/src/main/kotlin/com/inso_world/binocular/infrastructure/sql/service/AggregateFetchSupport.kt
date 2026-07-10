@@ -15,6 +15,5 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 internal object AggregateFetchSupport {
     fun loadProjectEntities(projectDao: IProjectDao): Iterable<ProjectEntity> = projectDao.findAll()
 
-    fun loadRepositoryEntities(repositoryDao: IRepositoryDao): List<RepositoryEntity> =
-        repositoryDao.findAll().toList()
+    fun loadRepositoryEntities(repositoryDao: IRepositoryDao): List<RepositoryEntity> = repositoryDao.findAll().toList()
 }

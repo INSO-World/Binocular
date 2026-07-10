@@ -48,75 +48,88 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
                     .get()
 
             // Check pagination metadata
-            assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+            assertEquals(
+                TestDataProvider.testCommits.size,
+                result.get("count").asInt(),
+                "Expected count to be ${TestDataProvider.testCommits.size}"
+            )
             assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
             assertEquals(100, result.get("perPage").asInt(), "Expected perPage to be 100")
 
             // Get the commits from the result
             val commitsData = result.get("data")
-            assertEquals(2, commitsData.size(), "Expected 2 commits, but got ${commitsData.size()}")
+            assertEquals(
+                TestDataProvider.testCommits.size,
+                commitsData.size(),
+                "Expected ${TestDataProvider.testCommits.size} commits, but got ${commitsData.size()}"
+            )
 
             // Check that the commits match the test data
-            TestDataProvider.testCommits.forEachIndexed { index, expectedCommit ->
-                val actualCommit = commitsData.get(index)
+            TestDataProvider.testCommits
+                // this is hacky but works
+                // sorting in tests is probably not clever.
+                // idk who did this first
+                .sortedBy { it.id ?: "" }
+                .forEachIndexed { index, expectedCommit ->
+                    val actualCommit = commitsData.get(index)
 
-                assertAll(
-                    {
-                        assertEquals(
-                            expectedCommit.id,
-                            actualCommit.get("id").asText(),
-                            "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.get("id").asText()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedCommit.sha,
-                            actualCommit.get("sha").asText(),
-                            "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.get("sha").asText()}",
-                        )
-                    },
-                    // Skip date field verification for now as they're causing issues
-                    {
-                        assertEquals(
-                            expectedCommit.message,
-                            actualCommit.get("message").asText(),
-                            "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.get("message").asText()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedCommit.branch,
-                            actualCommit.get("branch").asText(),
-                            "Commit branch mismatch: expected ${expectedCommit.branch}, got ${actualCommit.get("branch").asText()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedCommit.webUrl,
-                            actualCommit.get("webUrl").asText(),
-                            "Commit webUrl mismatch: expected ${expectedCommit.webUrl}, got ${actualCommit.get("webUrl").asText()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedCommit.stats?.additions?.toInt(),
-                            actualCommit.get("stats").get("additions").asInt(),
-                            "Commit additions mismatch: expected ${expectedCommit.stats?.additions}, got ${actualCommit.get(
-                                "stats",
-                            ).get("additions").asInt()}",
-                        )
-                    },
-                    {
-                        assertEquals(
-                            expectedCommit.stats?.deletions?.toInt(),
-                            actualCommit.get("stats").get("deletions").asInt(),
-                            "Commit deletions mismatch: expected ${expectedCommit.stats?.deletions}, got ${actualCommit.get(
-                                "stats",
-                            ).get("deletions").asInt()}",
-                        )
-                    },
-                )
-            }
+                    assertAll(
+                        {
+                            assertEquals(
+                                expectedCommit.id,
+                                actualCommit.get("id").asText(),
+                                "Commit ID mismatch: expected ${expectedCommit.id}, got ${actualCommit.get("id").asText()}",
+                            )
+                        },
+                        {
+                            assertEquals(
+                                expectedCommit.sha,
+                                actualCommit.get("sha").asText(),
+                                "Commit SHA mismatch: expected ${expectedCommit.sha}, got ${actualCommit.get("sha").asText()}",
+                            )
+                        },
+                        // Skip date field verification for now as they're causing issues
+                        {
+                            assertEquals(
+                                expectedCommit.message,
+                                actualCommit.get("message").asText(),
+                                "Commit message mismatch: expected ${expectedCommit.message}, got ${actualCommit.get("message").asText()}",
+                            )
+                        },
+                        {
+                            assertEquals(
+                                expectedCommit.branch ?: "null",
+                                actualCommit.get("branch").asText(),
+                                "Commit branch mismatch: expected ${expectedCommit.branch}, got ${actualCommit.get("branch").asText()}",
+                            )
+                        },
+                        {
+                            assertEquals(
+                                expectedCommit.webUrl,
+                                actualCommit.get("webUrl").asText(),
+                                "Commit webUrl mismatch: expected ${expectedCommit.webUrl}, got ${actualCommit.get("webUrl").asText()}",
+                            )
+                        },
+                        {
+                            assertEquals(
+                                expectedCommit.stats?.additions?.toInt(),
+                                actualCommit.get("stats").get("additions").asInt(),
+                                "Commit additions mismatch: expected ${expectedCommit.stats?.additions}, got ${actualCommit.get(
+                                    "stats",
+                                ).get("additions").asInt()}",
+                            )
+                        },
+                        {
+                            assertEquals(
+                                expectedCommit.stats?.deletions?.toInt(),
+                                actualCommit.get("stats").get("deletions").asInt(),
+                                "Commit deletions mismatch: expected ${expectedCommit.stats?.deletions}, got ${actualCommit.get(
+                                    "stats",
+                                ).get("deletions").asInt()}",
+                            )
+                        },
+                    )
+                }
         }
 
         @Test
@@ -235,7 +248,11 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
                     .get()
 
             // Check pagination metadata
-            assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+            assertEquals(
+                TestDataProvider.testCommits.size,
+                result.get("count").asInt(),
+                "Expected count to be ${TestDataProvider.testCommits.size}"
+            )
             assertEquals(1, result.get("page").asInt(), "Expected page to be 1")
             assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
@@ -298,13 +315,21 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
                     .get()
 
             // Check pagination metadata
-            assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+            assertEquals(
+                TestDataProvider.testCommits.size,
+                result.get("count").asInt(),
+                "Expected count to be ${TestDataProvider.testCommits.size}"
+            )
             assertEquals(1, result.get("page").asInt(), "Expected page to be 1 (default)")
             assertEquals(20, result.get("perPage").asInt(), "Expected perPage to be 20 (default)")
 
             // Get the commits from the result
             val commitsData = result.get("data")
-            assertEquals(2, commitsData.size(), "Expected 2 commits, but got ${commitsData.size()}")
+            assertEquals(
+                TestDataProvider.testCommits.size,
+                commitsData.size(),
+                "Expected ${TestDataProvider.testCommits.size} commits, but got ${commitsData.size()}"
+            )
         }
 
         @Test
@@ -333,7 +358,11 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
                     .get()
 
             // Check pagination metadata
-            assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
+            assertEquals(
+                TestDataProvider.testCommits.size,
+                result.get("count").asInt(),
+                "Expected count to be ${TestDataProvider.testCommits.size}"
+            )
             assertEquals(2, result.get("page").asInt(), "Expected page to be 2")
             assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
@@ -377,7 +406,7 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
               query {
-                  commits(page: 3, perPage: 1) {
+                  commits(page: 5, perPage: 1) {
                       count
                       page
                       perPage
@@ -395,8 +424,12 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
                     .get()
 
             // Check pagination metadata
-            assertEquals(2, result.get("count").asInt(), "Expected count to be 2")
-            assertEquals(3, result.get("page").asInt(), "Expected page to be 3")
+            assertEquals(
+                TestDataProvider.testCommits.size,
+                result.get("count").asInt(),
+                "Expected count to be ${TestDataProvider.testCommits.size}"
+            )
+            assertEquals(5, result.get("page").asInt(), "Expected page to be 3")
             assertEquals(1, result.get("perPage").asInt(), "Expected perPage to be 1")
 
             // Get the commits from the result
@@ -427,8 +460,7 @@ internal class CommitControllerWebTest : BaseIntegrationTest() {
                 .errors()
                 .expect { error ->
                     error.message?.contains("Commit not found with id: $nonExistentSha") ?: false
-                }
-                .verify()
+                }.verify()
         }
 
         @Test

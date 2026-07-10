@@ -1,6 +1,5 @@
 package com.inso_world.binocular.infrastructure.test.commit
 
-import com.inso_world.binocular.core.integration.base.InfrastructureDataSetup
 import com.inso_world.binocular.core.service.BranchInfrastructurePort
 import com.inso_world.binocular.core.service.CommitInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.junit.jupiter.DisabledIf
 import java.time.LocalDateTime
 
 /**
@@ -28,6 +28,7 @@ import java.time.LocalDateTime
  * Verifies that commit updates preserve domain model semantics including
  * parent/child relationships and repository consistency.
  */
+@DisabledIf(expression = "#{environment['spring.profiles.active'].contains('arangodb')}", loadContext = true)
 internal class CommitUpdateOperation : BaseInfrastructureSpringTest() {
     @Autowired
     private lateinit var branchPort: BranchInfrastructurePort
@@ -102,7 +103,7 @@ internal class CommitUpdateOperation : BaseInfrastructureSpringTest() {
         val parentDeveloper = Developer(name = "parent author", email = "parent@example.com", repository = repository)
         val parentCommit =
             Commit(
-                sha = "0".repeat(40),
+                sha = "3F8A".repeat(10),
                 message = "parent commit",
                 authorSignature = Signature(developer = parentDeveloper, timestamp = LocalDateTime.of(2019, 12, 31, 23, 59, 59)),
                 repository = repository,

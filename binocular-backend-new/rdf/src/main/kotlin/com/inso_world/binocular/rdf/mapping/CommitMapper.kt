@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class CommitMapper {
-
-    fun map(commits: List<Map<String, Any?>>, model: Model) {
+    fun map(
+        commits: List<Map<String, Any?>>,
+        model: Model
+    ) {
         val commitType = model.getResource("${RdfNamespaces.VCS_GIT}Commit")
         val identifierProp = model.getProperty(RdfNamespaces.BIO, "identifier")
         val messageProp = model.getProperty(RdfNamespaces.BIO, "message")

@@ -1,6 +1,7 @@
 package com.inso_world.binocular.web.graphql.resolver
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.inso_world.binocular.core.integration.base.TestDataProvider
 import com.inso_world.binocular.web.graphql.base.GraphQlControllerTest
 import com.inso_world.binocular.web.graphql.model.BranchDto
 import org.junit.jupiter.api.Assertions.assertAll
@@ -27,7 +28,7 @@ internal class BranchResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    branch(id: "1") {
+                    branch(id: "${TestDataProvider.testBranches[0].id}") {
                         id
                         branch
                         active
@@ -46,8 +47,20 @@ internal class BranchResolverTest : GraphQlControllerTest() {
                 { assertEquals("1", result.get("id").asText(), "Branch ID mismatch") },
                 { assertEquals("main", result.get("branch").asText(), "Branch name mismatch") },
                 { assertEquals(true, result.get("active").asBoolean(), "Branch active status mismatch") },
-                { assertEquals(true, result.get("tracksFileRenames").asBoolean(), "Branch tracksFileRenames mismatch") },
-                { assertEquals("abc1230000000000000000000000000000000000", result.get("latestCommit").asText(), "Branch latestCommit mismatch") },
+                {
+                    assertEquals(
+                        true,
+                        result.get("tracksFileRenames").asBoolean(),
+                        "Branch tracksFileRenames mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        TestDataProvider.testBranches[0].latestCommit,
+                        result.get("latestCommit").asText(),
+                        "Branch latestCommit mismatch"
+                    )
+                },
             )
         }
     }
@@ -61,7 +74,7 @@ internal class BranchResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    branch(id: "1") {
+                    branch(id: "${TestDataProvider.testBranches[0].id}") {
                         id
                         branch
                         active
@@ -92,8 +105,20 @@ internal class BranchResolverTest : GraphQlControllerTest() {
                 { assertEquals("1", result.get("id").asText(), "Branch ID mismatch") },
                 { assertEquals("main", result.get("branch").asText(), "Branch name mismatch") },
                 { assertEquals(true, result.get("active").asBoolean(), "Branch active status mismatch") },
-                { assertEquals(true, result.get("tracksFileRenames").asBoolean(), "Branch tracksFileRenames mismatch") },
-                { assertEquals("abc1230000000000000000000000000000000000", result.get("latestCommit").asText(), "Branch latestCommit mismatch") },
+                {
+                    assertEquals(
+                        true,
+                        result.get("tracksFileRenames").asBoolean(),
+                        "Branch tracksFileRenames mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        TestDataProvider.testBranches[0].latestCommit,
+                        result.get("latestCommit").asText(),
+                        "Branch latestCommit mismatch"
+                    )
+                },
             )
 
             // Verify files (paginated connection)
@@ -104,12 +129,29 @@ internal class BranchResolverTest : GraphQlControllerTest() {
             assertEquals(2, files.size(), "Should have 2 files")
 
             // Create a list of file paths from the result
-            val filePaths = (0 until files.size()).map { files.get(it).get("file").get("path").asText() }
+            val filePaths =
+                (0 until files.size()).map {
+                    files
+                        .get(it)
+                        .get("file")
+                        .get("path")
+                        .asText()
+                }
 
             // Verify that both files are present
             assertAll(
-                { assertTrue(filePaths.contains("src/main/kotlin/com/example/Main.kt"), "Should contain Main.kt file") },
-                { assertTrue(filePaths.contains("src/main/kotlin/com/example/Utils.kt"), "Should contain Utils.kt file") },
+                {
+                    assertTrue(
+                        filePaths.contains("src/main/kotlin/com/example/Main.kt"),
+                        "Should contain Main.kt file"
+                    )
+                },
+                {
+                    assertTrue(
+                        filePaths.contains("src/main/kotlin/com/example/Utils.kt"),
+                        "Should contain Utils.kt file"
+                    )
+                },
             )
         }
 
@@ -120,7 +162,7 @@ internal class BranchResolverTest : GraphQlControllerTest() {
                     .document(
                         """
                 query {
-                    branch(id: "2") {
+                    branch(id: "${TestDataProvider.testBranches[1].id}") {
                         id
                         branch
                         active
@@ -151,8 +193,20 @@ internal class BranchResolverTest : GraphQlControllerTest() {
                 { assertEquals("2", result.get("id").asText(), "Branch ID mismatch") },
                 { assertEquals("feature/new-feature", result.get("branch").asText(), "Branch name mismatch") },
                 { assertEquals(true, result.get("active").asBoolean(), "Branch active status mismatch") },
-                { assertEquals(false, result.get("tracksFileRenames").asBoolean(), "Branch tracksFileRenames mismatch") },
-                { assertEquals("def4560000000000000000000000000000000000", result.get("latestCommit").asText(), "Branch latestCommit mismatch") },
+                {
+                    assertEquals(
+                        false,
+                        result.get("tracksFileRenames").asBoolean(),
+                        "Branch tracksFileRenames mismatch"
+                    )
+                },
+                {
+                    assertEquals(
+                        TestDataProvider.testBranches[1].latestCommit,
+                        result.get("latestCommit").asText(),
+                        "Branch latestCommit mismatch"
+                    )
+                },
             )
 
             // Verify files (paginated connection)
@@ -163,7 +217,14 @@ internal class BranchResolverTest : GraphQlControllerTest() {
             assertTrue(files.size() >= 1, "Should have at least 1 file")
 
             // Ensure expected file is present among results
-            val filePaths = (0 until files.size()).map { files.get(it).get("file").get("path").asText() }
+            val filePaths =
+                (0 until files.size()).map {
+                    files
+                        .get(it)
+                        .get("file")
+                        .get("path")
+                        .asText()
+                }
             assertTrue(filePaths.contains("src/main/kotlin/com/example/Utils.kt"), "Should contain Utils.kt file")
         }
     }

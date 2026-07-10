@@ -18,9 +18,14 @@ data class Repository(
         Id(Uuid.random())
     ) {
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
-    data class Key(val projectId: Project.Id, val localPath: String)
+    data class Key(
+        val projectId: Project.Id,
+        val localPath: String
+    )
 
     @Deprecated("Avoid using database specific id, use business key .iid", ReplaceWith("iid"))
     var id: String? = null
@@ -53,24 +58,37 @@ data class Repository(
 
     val remoteIds: MutableSet<Remote.Id> =
         object : AbstractMutableSet<Remote.Id>() {
-            val backing = java.util.concurrent.ConcurrentHashMap.newKeySet<Remote.Id>()
+            val backing =
+                java.util.concurrent.ConcurrentHashMap
+                    .newKeySet<Remote.Id>()
 
             override val size: Int get() = backing.size
+
             override fun isEmpty(): Boolean = backing.isEmpty()
+
             override fun contains(element: Remote.Id): Boolean = backing.contains(element)
+
             override fun containsAll(elements: Collection<Remote.Id>): Boolean = backing.containsAll(elements)
+
             override fun add(element: Remote.Id): Boolean = backing.add(element)
+
             override fun addAll(elements: Collection<Remote.Id>): Boolean = backing.addAll(elements)
+
             override fun clear(): Unit = fail()
+
             override fun remove(element: Remote.Id): Boolean = fail()
+
             override fun removeAll(elements: Collection<Remote.Id>): Boolean = fail()
+
             override fun retainAll(elements: Collection<Remote.Id>): Boolean = fail()
 
             override fun iterator(): MutableIterator<Remote.Id> {
                 val it = backing.iterator()
                 return object : MutableIterator<Remote.Id> {
                     override fun hasNext(): Boolean = it.hasNext()
+
                     override fun next(): Remote.Id = it.next()
+
                     override fun remove(): Unit = fail()
                 }
             }
@@ -86,5 +104,6 @@ data class Repository(
         get() = Key(projectId, localPath.trim())
 
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 }

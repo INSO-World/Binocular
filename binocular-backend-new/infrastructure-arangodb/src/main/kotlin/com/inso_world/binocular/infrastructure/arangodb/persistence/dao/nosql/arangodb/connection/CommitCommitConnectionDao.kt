@@ -1,7 +1,9 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.connection
 
+import com.inso_world.binocular.infrastructure.arangodb.assembler.RepositoryAssembler
 import com.inso_world.binocular.infrastructure.arangodb.model.edge.CommitCommitConnection
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.ICommitCommitConnectionDao
+import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.nosql.arangodb.DefaultMappingContextSeeder
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitCommitConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.CommitMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.CommitRepository
@@ -26,27 +28,42 @@ class CommitCommitConnectionDao
     ) : ICommitCommitConnectionDao {
         @Autowired private lateinit var commitMapper: CommitMapper
 
+        @Autowired private lateinit var seeder: DefaultMappingContextSeeder
+
+        @Autowired
+        private lateinit var repositoryAssembler: RepositoryAssembler
+
         /**
          * Find all child commits connected to a parent commit
          */
         override fun findChildCommits(parentCommitId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findChildCommitsByParentCommit(parentCommitId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
          * Find all parent commits connected to a child commit
          */
         override fun findParentCommits(childCommitId: String): List<Commit> {
+            seeder.seed()
             val commitEntities = repository.findParentCommitsByChildCommit(childCommitId)
-            return commitEntities.map { commitMapper.toDomain(it) }
+            return commitEntities.map { entity ->
+                repositoryAssembler.toDomain(entity.repository)
+                commitMapper.toDomain(entity)
+            }
         }
 
         /**
-         * Save a commit-commit connection
+         * Save a commit-commit connection.
+         *
+         * Uses the domain objects from [connection] directly on return to avoid requiring
+         * an active MappingSession for the mapper round-trip.
          */
         override fun save(connection: CommitCommitConnection): CommitCommitConnection {
-            // Get the parent and child commit entities from the repository
             val fromCommitEntity =
                 commitRepository.findById(connection.from.id!!).orElseThrow {
                     IllegalArgumentException("Parent Commit with ID ${connection.from.id} not found")
@@ -56,7 +73,6 @@ class CommitCommitConnectionDao
                     IllegalArgumentException("Child Commit with ID ${connection.to.id} not found")
                 }
 
-            // Convert domain model to the repository entity format
             val entity =
                 CommitCommitConnectionEntity(
                     id = connection.id,
@@ -64,14 +80,12 @@ class CommitCommitConnectionDao
                     to = toCommitEntity,
                 )
 
-            // Save using the repository
             val savedEntity = repository.save(entity)
 
-            // Convert back to domain model
             return CommitCommitConnection(
                 id = savedEntity.id,
-                from = commitMapper.toDomain(savedEntity.from),
-                to = commitMapper.toDomain(savedEntity.to),
+                from = connection.from,
+                to = connection.to,
             )
         }
 

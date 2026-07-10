@@ -8,8 +8,12 @@ spring:
 
 binocular:
   arangodb:
+    migration:
+      default_project_name: "INSO-World/Binocular"
+      default_user_email_template: "{name}@users.noreply.binocular.inso-world.com"
+      enabled: true
     database:
-      name: "binocular-web-test"
+      name: "binocular-infrastructure-arangodb"
       host: localhost
       port: ${ARANGODB_PORT:5432}
       user: TODO

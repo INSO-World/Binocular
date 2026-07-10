@@ -9,6 +9,7 @@ import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
 import org.springframework.stereotype.Component
+import kotlin.uuid.ExperimentalUuidApi
 
 @Component
 internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
@@ -29,7 +30,7 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         return entity
     }
 
-
+    @OptIn(ExperimentalUuidApi::class)
     override fun toDomain(entity: ProjectEntity): Project {
         ctx.findDomain<Project, ProjectEntity>(entity)?.let { return it }
 
@@ -37,7 +38,7 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         setField(
             domain.javaClass.superclass.getDeclaredField("iid"),
             domain,
-            entity.iid
+            Project.Id(entity.iid.value)
         )
 
         ctx.remember(domain, entity)
@@ -45,7 +46,15 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
         return domain
     }
 
-    fun refreshDomain(target: Project, entity: ProjectEntity) {
-        target.id = entity.id?.toString()
+    fun refreshDomain(
+        target: Project,
+        entity: ProjectEntity
+    ): Project {
+        setField(
+            target.javaClass.getDeclaredField("id"),
+            target,
+            entity.id?.toString()
+        )
+        return target
     }
 }

@@ -74,9 +74,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     },
                     {
                         assertEquals(
-                            expectedMilestone?.iid,
+                            expectedMilestone?.platformIid,
                             node.get("iid").asInt(),
-                            "Milestone iid mismatch: expected ${expectedMilestone?.iid}, got ${node.get("iid").asInt()}",
+                            "Milestone iid mismatch: expected ${expectedMilestone?.platformIid}, got ${node.get("iid").asInt()}",
                         )
                     },
                     {
@@ -170,7 +170,7 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     .document(
                         """
             query {
-                milestone(id: "1") {
+                milestone(id: "${TestDataProvider.testMilestones[0].id}") {
                     id
                     iid
                     title
@@ -201,9 +201,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedMilestone.iid,
+                        expectedMilestone.platformIid,
                         result.get("iid").asInt(),
-                        "Milestone iid mismatch: expected ${expectedMilestone.iid}, got ${result.get("iid").asInt()}",
+                        "Milestone iid mismatch: expected ${expectedMilestone.platformIid}, got ${result.get("iid").asInt()}",
                     )
                 },
                 {
@@ -342,9 +342,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedMilestone.iid,
+                        expectedMilestone.platformIid,
                         actualMilestone.get("iid").asInt(),
-                        "Milestone iid mismatch: expected ${expectedMilestone.iid}, got ${actualMilestone.get("iid").asInt()}",
+                        "Milestone iid mismatch: expected ${expectedMilestone.platformIid}, got ${actualMilestone.get("iid").asInt()}",
                     )
                 },
                 {
@@ -369,7 +369,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     assertEquals(
                         expected,
                         actual,
-                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get("createdAt").asText()}",
+                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get(
+                            "createdAt"
+                        ).asText()}",
                     )
                 },
                 {
@@ -378,7 +380,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     assertEquals(
                         expected,
                         actual,
-                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get("updatedAt").asText()}",
+                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get(
+                            "updatedAt"
+                        ).asText()}",
                     )
                 },
                 {
@@ -504,10 +508,11 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
             assertEquals(1, milestonesData.size(), "Expected 1 milestone, but got ${milestonesData.size()}")
 
             // With new default sort (dueDate DESC), compute expected second item accordingly
-            val expectedMilestone = TestDataProvider.testMilestones
-                .sortedByDescending { Instant.parse(it.dueDate) }
-                .drop(1)
-                .first()
+            val expectedMilestone =
+                TestDataProvider.testMilestones
+                    .sortedByDescending { Instant.parse(it.dueDate) }
+                    .drop(1)
+                    .first()
             val actualMilestone = milestonesData.get(0)
 
             assertAll(
@@ -520,9 +525,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                 },
                 {
                     assertEquals(
-                        expectedMilestone.iid,
+                        expectedMilestone.platformIid,
                         actualMilestone.get("iid").asInt(),
-                        "Milestone iid mismatch: expected ${expectedMilestone.iid}, got ${actualMilestone.get("iid").asInt()}",
+                        "Milestone iid mismatch: expected ${expectedMilestone.platformIid}, got ${actualMilestone.get("iid").asInt()}",
                     )
                 },
                 {
@@ -547,7 +552,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     assertEquals(
                         expected,
                         actual,
-                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get("createdAt").asText()}",
+                        "Milestone createdAt mismatch: expected ${expectedMilestone.createdAt}, got ${actualMilestone.get(
+                            "createdAt"
+                        ).asText()}",
                     )
                 },
                 {
@@ -556,7 +563,9 @@ internal class MilestoneControllerWebTest : BaseIntegrationTest() {
                     assertEquals(
                         expected,
                         actual,
-                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get("updatedAt").asText()}",
+                        "Milestone updatedAt mismatch: expected ${expectedMilestone.updatedAt}, got ${actualMilestone.get(
+                            "updatedAt"
+                        ).asText()}",
                     )
                 },
                 {

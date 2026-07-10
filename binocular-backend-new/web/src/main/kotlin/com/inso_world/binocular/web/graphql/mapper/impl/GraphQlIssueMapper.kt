@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component
 class GraphQlIssueMapper(
     private val mentionMapper: GraphQlMentionMapper
 ) {
-    fun toDto(issue: Issue): IssueDto {
-        return IssueDto(
+    fun toDto(issue: Issue): IssueDto =
+        IssueDto(
             id = issue.id,
             iid = issue.platformIid,
             title = issue.title,
@@ -22,5 +22,4 @@ class GraphQlIssueMapper(
             webUrl = issue.webUrl,
             mentions = issue.mentions.map { mentionMapper.toDto(it) }
         )
-    }
 }
