@@ -81,7 +81,7 @@ open class RustBuffer : Structure() {
 
     @Suppress("TooGenericExceptionThrown")
     fun asByteBuffer() =
-        this.data?.getByteBuffer(0, this.len)?.also {
+        this.data?.getByteBuffer(0, this.len.toLong())?.also {
             it.order(ByteOrder.BIG_ENDIAN)
         }
 }
@@ -98,43 +98,6 @@ internal open class ForeignBytes : Structure() {
     @JvmField var data: Pointer? = null
 
     class ByValue : ForeignBytes(), Structure.ByValue
-}
-
-// Converter for `&[u8]` / `[ByRef] bytes` arguments.
-//
-// Only `lower` is valid — zero-copy byte buffers only flow foreign -> Rust,
-// and only in argument position. `lift`, `read`, `write`, and
-// `allocationSize` have no sound implementation here and all panic at
-// runtime. The `FfiConverter` interface is implemented so that the
-// compiler enforces the full method set (rather than relying on eyeball).
-//
-// The provided `ByteBuffer` MUST be direct — only direct buffers have a
-// stable native address that JNA can expose via `getDirectBufferPointer`.
-// The returned `ForeignBytes.ByValue` is only valid for the duration of
-// the FFI call; the Rust side treats it as a borrow.
-internal object FfiConverterByRefBytes : FfiConverter<java.nio.ByteBuffer, ForeignBytes.ByValue> {
-    override fun lower(value: java.nio.ByteBuffer): ForeignBytes.ByValue {
-        require(value.isDirect) { "UniFFI zero-copy &[u8] requires a direct ByteBuffer. Use ByteBuffer.allocateDirect()." }
-        val remaining = value.remaining()
-        val fb = ForeignBytes.ByValue()
-        fb.len = remaining
-        // Zero-length direct buffers: skip getDirectBufferPointer (platform-variable behavior)
-        // and pass null. The Rust side treats (null, 0) as &[].
-        fb.data = if (remaining == 0) null else com.sun.jna.Native.getDirectBufferPointer(value)
-        return fb
-    }
-
-    override fun lift(value: ForeignBytes.ByValue): java.nio.ByteBuffer =
-        error("ByRef bytes cannot be lifted: zero-copy &[u8] only flows foreign->Rust")
-
-    override fun read(buf: java.nio.ByteBuffer): java.nio.ByteBuffer =
-        error("ByRef bytes cannot be read from a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
-
-    override fun write(value: java.nio.ByteBuffer, buf: java.nio.ByteBuffer): Unit =
-        error("ByRef bytes cannot be written to a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
-
-    override fun allocationSize(value: java.nio.ByteBuffer): ULong =
-        error("ByRef bytes have no RustBuffer allocation size: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
 }
 /**
  * The FfiConverter interface handles converter types to and from the FFI
@@ -319,9 +282,8 @@ internal inline fun<T> uniffiTraitInterfaceCall(
     try {
         writeReturn(makeCall())
     } catch(e: kotlin.Exception) {
-        val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-        callStatus.error_buf = FfiConverterString.lower(err)
+        callStatus.error_buf = FfiConverterString.lower(e.toString())
     }
 }
 
@@ -338,9 +300,8 @@ internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
         } else {
-            val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
             callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-            callStatus.error_buf = FfiConverterString.lower(err)
+            callStatus.error_buf = FfiConverterString.lower(e.toString())
         }
     }
 }
@@ -674,26 +635,26 @@ internal object IntegrityCheckingUniffiLib {
         uniffiCheckApiChecksums(this)
     }
     external fun uniffi_gix_binocular_checksum_func_blames(
-    ): Int
-    external fun uniffi_gix_binocular_checksum_func_traverse_branch(
-    ): Int
-    external fun uniffi_gix_binocular_checksum_func_find_commit(
-    ): Int
-    external fun uniffi_gix_binocular_checksum_func_traverse_history(
-    ): Int
+    ): Short
     external fun uniffi_gix_binocular_checksum_func_diffs(
-    ): Int
+    ): Short
     external fun uniffi_gix_binocular_checksum_func_find_all_branches(
-    ): Int
+    ): Short
+    external fun uniffi_gix_binocular_checksum_func_find_commit(
+    ): Short
     external fun uniffi_gix_binocular_checksum_func_find_repo(
-    ): Int
+    ): Short
     external fun uniffi_gix_binocular_checksum_func_hello(
-    ): Int
+    ): Short
+    external fun uniffi_gix_binocular_checksum_func_traverse_branch(
+    ): Short
+    external fun uniffi_gix_binocular_checksum_func_traverse_history(
+    ): Short
     external fun uniffi_gix_binocular_checksum_method_procerrorinterface_message(
-    ): Int
+    ): Short
     external fun ffi_gix_binocular_uniffi_contract_version(
     ): Int
-
+    
         
 }
 
@@ -725,20 +686,20 @@ internal object UniffiLib {
     ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_blames(`gixRepo`: RustBuffer.ByValue,`defines`: RustBuffer.ByValue,`diffAlgorithm`: RustBuffer.ByValue,`maxThreads`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun uniffi_gix_binocular_fn_func_traverse_branch(`gixRepo`: RustBuffer.ByValue,`branch`: RustBuffer.ByValue,`skipMerges`: Byte,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    external fun uniffi_gix_binocular_fn_func_find_commit(`gixRepo`: RustBuffer.ByValue,`hash`: RustBuffer.ByValue,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    external fun uniffi_gix_binocular_fn_func_traverse_history(`gixRepo`: RustBuffer.ByValue,`sourceCommit`: RustBuffer.ByValue,`targetCommit`: RustBuffer.ByValue,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_diffs(`gixRepo`: RustBuffer.ByValue,`commitPairs`: RustBuffer.ByValue,`maxThreads`: Byte,`diffAlgorithm`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_find_all_branches(`gixRepo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_gix_binocular_fn_func_find_commit(`gixRepo`: RustBuffer.ByValue,`hash`: RustBuffer.ByValue,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_find_repo(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_gix_binocular_fn_func_hello(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    external fun uniffi_gix_binocular_fn_func_traverse_branch(`gixRepo`: RustBuffer.ByValue,`branch`: RustBuffer.ByValue,`skipMerges`: Byte,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_gix_binocular_fn_func_traverse_history(`gixRepo`: RustBuffer.ByValue,`sourceCommit`: RustBuffer.ByValue,`targetCommit`: RustBuffer.ByValue,`useMailmap`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     external fun ffi_gix_binocular_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun ffi_gix_binocular_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -754,7 +715,7 @@ internal object UniffiLib {
     external fun ffi_gix_binocular_rust_future_free_u8(`handle`: Long,
     ): Unit
     external fun ffi_gix_binocular_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Int
+    ): Byte
     external fun ffi_gix_binocular_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
     external fun ffi_gix_binocular_rust_future_cancel_i8(`handle`: Long,
@@ -770,7 +731,7 @@ internal object UniffiLib {
     external fun ffi_gix_binocular_rust_future_free_u16(`handle`: Long,
     ): Unit
     external fun ffi_gix_binocular_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Int
+    ): Short
     external fun ffi_gix_binocular_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
     external fun ffi_gix_binocular_rust_future_cancel_i16(`handle`: Long,
@@ -843,7 +804,7 @@ internal object UniffiLib {
     ): Unit
     external fun ffi_gix_binocular_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-
+    
         
 }
 
@@ -858,31 +819,31 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_gix_binocular_checksum_func_blames() != 58878) {
+    if (lib.uniffi_gix_binocular_checksum_func_blames() != 1896.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_traverse_branch() != 22286) {
+    if (lib.uniffi_gix_binocular_checksum_func_diffs() != 34571.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_find_commit() != 52746) {
+    if (lib.uniffi_gix_binocular_checksum_func_find_all_branches() != 347.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_traverse_history() != 56210) {
+    if (lib.uniffi_gix_binocular_checksum_func_find_commit() != 47044.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_diffs() != 7005) {
+    if (lib.uniffi_gix_binocular_checksum_func_find_repo() != 7719.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_find_all_branches() != 17287) {
+    if (lib.uniffi_gix_binocular_checksum_func_hello() != 44428.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_find_repo() != 49798) {
+    if (lib.uniffi_gix_binocular_checksum_func_traverse_branch() != 40308.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_func_hello() != 34164) {
+    if (lib.uniffi_gix_binocular_checksum_func_traverse_history() != 2463.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_gix_binocular_checksum_method_procerrorinterface_message() != 31937) {
+    if (lib.uniffi_gix_binocular_checksum_method_procerrorinterface_message() != 46837.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1047,10 +1008,6 @@ private class JavaLangRefCleanable(
  */
 public object FfiConverterUByte: FfiConverter<UByte, Byte> {
     override fun lift(value: Byte): UByte {
-        return value.toUByte()
-    }
-
-    fun lift(value: Int): UByte {
         return value.toUByte()
     }
 
@@ -1314,6 +1271,7 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 //
 
 
+//
 public interface AnyhowErrorInterface {
     
     companion object
@@ -1341,19 +1299,14 @@ open class AnyhowError: Disposable, AutoCloseable, AnyhowErrorInterface
     @Suppress("UNUSED_PARAMETER")
     constructor(noHandle: NoHandle) {
         this.handle = 0
-        this.cleanable = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     protected val handle: Long
-    protected val cleanable: UniffiCleaner.Cleanable?
+    protected val cleanable: UniffiCleaner.Cleanable
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
-
-    /**
-     * Whether the current object has been destroyed and its reference is gone in the Rust side.
-     */
-    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -1361,7 +1314,7 @@ open class AnyhowError: Disposable, AutoCloseable, AnyhowErrorInterface
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable?.clean()
+                cleanable.clean()
             }
         }
     }
@@ -1389,7 +1342,7 @@ open class AnyhowError: Disposable, AutoCloseable, AnyhowErrorInterface
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable?.clean()
+                cleanable.clean()
             }
         }
     }
@@ -1554,6 +1507,7 @@ public object FfiConverterTypeAnyhowError: FfiConverter<AnyhowError, Long> {
 //
 
 
+//
 public interface ProcErrorInterfaceInterface {
     
     fun `message`(): kotlin.String
@@ -1583,19 +1537,14 @@ open class ProcErrorInterface: Disposable, AutoCloseable, ProcErrorInterfaceInte
     @Suppress("UNUSED_PARAMETER")
     constructor(noHandle: NoHandle) {
         this.handle = 0
-        this.cleanable = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     protected val handle: Long
-    protected val cleanable: UniffiCleaner.Cleanable?
+    protected val cleanable: UniffiCleaner.Cleanable
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
-
-    /**
-     * Whether the current object has been destroyed and its reference is gone in the Rust side.
-     */
-    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -1603,7 +1552,7 @@ open class ProcErrorInterface: Disposable, AutoCloseable, ProcErrorInterfaceInte
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable?.clean()
+                cleanable.clean()
             }
         }
     }
@@ -1631,7 +1580,7 @@ open class ProcErrorInterface: Disposable, AutoCloseable, ProcErrorInterfaceInte
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable?.clean()
+                cleanable.clean()
             }
         }
     }
@@ -1736,8 +1685,6 @@ data class BranchTraversalResult (
     
 
     
-
-    
     companion object
 }
 
@@ -1775,8 +1722,6 @@ data class GixBlameEntry (
     var `commitId`: ObjectId
     
 ){
-    
-
     
 
     
@@ -1822,8 +1767,6 @@ data class GixBlameOutcome (
     
 
     
-
-    
     companion object
 }
 
@@ -1857,8 +1800,6 @@ data class GixBlameResult (
     var `commit`: ObjectId
     
 ){
-    
-
     
 
     
@@ -1899,8 +1840,6 @@ data class GixBranch (
     var `category`: GixReferenceCategory
     
 ){
-    
-
     
 
     
@@ -1953,8 +1892,6 @@ data class GixCommit (
     var `fileTree`: List<BString>
     
 ){
-    
-
     
 
     
@@ -2011,8 +1948,6 @@ data class GixDiff (
     
 
     
-
-    
     companion object
 }
 
@@ -2052,8 +1987,6 @@ data class GixDiffInput (
     
 
     
-
-    
     companion object
 }
 
@@ -2089,8 +2022,6 @@ data class GixDiffStats (
     var `kind`: kotlin.String
     
 ){
-    
-
     
 
     
@@ -2139,8 +2070,6 @@ data class GixFileDiff (
     
 
     
-
-    
     companion object
 }
 
@@ -2186,8 +2115,6 @@ data class GixRemote (
     
 
     
-
-    
     companion object
 }
 
@@ -2223,8 +2150,6 @@ data class GixRepository (
     var `remotes`: List<GixRemote>
     
 ){
-    
-
     
 
     
@@ -2266,8 +2191,6 @@ data class GixSignature (
     var `time`: GixTime
     
 ){
-    
-
     
 
     
@@ -2316,8 +2239,6 @@ data class GixTime (
     
 
     
-
-    
     companion object
 }
 
@@ -2348,7 +2269,7 @@ public object FfiConverterTypeGixTime: FfiConverterRustBuffer<GixTime> {
 sealed class GixChangeType {
     
     data class Addition(
-        val `location`: com.inso_world.binocular.ffi.internal.BString) : GixChangeType()
+        val `location`: BString) : GixChangeType()
         
     {
         
@@ -2357,7 +2278,7 @@ sealed class GixChangeType {
     }
     
     data class Deletion(
-        val `location`: com.inso_world.binocular.ffi.internal.BString) : GixChangeType()
+        val `location`: BString) : GixChangeType()
         
     {
         
@@ -2366,7 +2287,7 @@ sealed class GixChangeType {
     }
     
     data class Modification(
-        val `location`: com.inso_world.binocular.ffi.internal.BString) : GixChangeType()
+        val `location`: BString) : GixChangeType()
         
     {
         
@@ -2375,8 +2296,8 @@ sealed class GixChangeType {
     }
     
     data class Rewrite(
-        val `sourceLocation`: com.inso_world.binocular.ffi.internal.BString, 
-        val `location`: com.inso_world.binocular.ffi.internal.BString, 
+        val `sourceLocation`: BString, 
+        val `location`: BString, 
         val `copy`: kotlin.Boolean) : GixChangeType()
         
     {
@@ -2387,11 +2308,6 @@ sealed class GixChangeType {
     
 
     
-
-    
-    
-
-
     companion object
 }
 
@@ -2419,7 +2335,7 @@ public object FfiConverterTypeGixChangeType : FfiConverterRustBuffer<GixChangeTy
         }
     }
 
-    override fun allocationSize(value: GixChangeType): ULong = when(value) {
+    override fun allocationSize(value: GixChangeType) = when(value) {
         is GixChangeType.Addition -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -2490,10 +2406,6 @@ enum class GixDiffAlgorithm {
     HISTOGRAM,
     MYERS,
     MYERS_MINIMAL;
-
-    
-
-
     companion object
 }
 
@@ -2535,10 +2447,6 @@ enum class GixReferenceCategory {
     BISECT,
     REWRITTEN,
     WORKTREE_PRIVATE;
-
-    
-
-
     companion object
 }
 
@@ -2572,10 +2480,6 @@ enum class LogLevel {
     INFO,
     DEBUG,
     TRACE;
-
-    
-
-
     companion object
 }
 
@@ -2680,9 +2584,6 @@ sealed class UniffiException: kotlin.Exception() {
             get() = "v1=${ v1 }"
     }
     
-
-    
-
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<UniffiException> {
         override fun lift(error_buf: RustBuffer.ByValue): UniffiException = FfiConverterTypeUniffiError.lift(error_buf)
@@ -3337,21 +3238,41 @@ public object FfiConverterMapTypeObjectIdSequenceString: FfiConverterRustBuffer<
 
 
 
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
 public typealias BString = kotlin.String
 public typealias FfiConverterTypeBString = FfiConverterString
 
 
 
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
 public typealias FullName = BString
 public typealias FfiConverterTypeFullName = FfiConverterTypeBString
 
 
 
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
 public typealias ObjectId = kotlin.String
 public typealias FfiConverterTypeObjectId = FfiConverterString
 
 
 
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
 public typealias PathBuf = kotlin.String
 public typealias FfiConverterTypePathBuf = FfiConverterString
         /**
@@ -3375,104 +3296,7 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.uniffi_gix_binocular_fn_func_blames(
     
-        
-        FfiConverterTypeGixRepository.lower(`gixRepo`),
-        FfiConverterMapTypeObjectIdSequenceString.lower(`defines`),
-        FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),
-        FfiConverterUByte.lower(`maxThreads`),_status)
-}
-    )
-    }
-    
-
-        /**
-         * Traverses a specific branch and returns its commits
-         *
-         * # Arguments
-         * * `gix_repo` - The repository containing the branch
-         * * `branch` - The name of the branch to traverse (e.g., "refs/heads/main" or "main")
-         * * `skip_merges` - Whether to skip merge commits in the result
-         * * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
-         *
-         * # Returns
-         * A `BranchTraversalResult` containing the branch metadata and all commits
-         *
-         * # Errors
-         * - `GixDiscoverError` if repository cannot be opened
-         * - `ReferenceError` if the branch reference cannot be found
-         * - `TraversalError` if the traversal fails or returns unexpected results
-         */
-    @Throws(UniffiException::class) fun `traverseBranch`(`gixRepo`: GixRepository, `branch`: kotlin.String, `skipMerges`: kotlin.Boolean, `useMailmap`: kotlin.Boolean): BranchTraversalResult {
-            return FfiConverterTypeBranchTraversalResult.lift(
-    uniffiRustCallWithError(UniffiException) { _status ->
-    UniffiLib.uniffi_gix_binocular_fn_func_traverse_branch(
-    
-        
-        FfiConverterTypeGixRepository.lower(`gixRepo`),
-        FfiConverterString.lower(`branch`),
-        FfiConverterBoolean.lower(`skipMerges`),
-        FfiConverterBoolean.lower(`useMailmap`),_status)
-}
-    )
-    }
-    
-
-        /**
-         * Finds a specific commit by its hash
-         *
-         * # Arguments
-         * * `gix_repo` - The repository to search in
-         * * `hash` - The commit hash to find (full or abbreviated) or any valid revision spec
-         * * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
-         *
-         * # Returns
-         * The commit metadata if found
-         *
-         * # Errors
-         * - `RevisionParseError` if the hash/revision spec is invalid or malformed
-         * - `ObjectError` if the object cannot be found or is not a commit
-         * - `CommitLookupError` if author/committer information cannot be read
-         */
-    @Throws(UniffiException::class) fun `findCommit`(`gixRepo`: GixRepository, `hash`: kotlin.String, `useMailmap`: kotlin.Boolean): GixCommit {
-            return FfiConverterTypeGixCommit.lift(
-    uniffiRustCallWithError(UniffiException) { _status ->
-    UniffiLib.uniffi_gix_binocular_fn_func_find_commit(
-    
-        
-        FfiConverterTypeGixRepository.lower(`gixRepo`),
-        FfiConverterString.lower(`hash`),
-        FfiConverterBoolean.lower(`useMailmap`),_status)
-}
-    )
-    }
-    
-
-        /**
-         * Traverses commit history from a source commit to an optional target commit
-         *
-         * # Arguments
-         * * `gix_repo` - The repository to traverse
-         * * `source_commit` - The starting commit
-         * * `target_commit` - Optional ending commit. If None, traverses to repository root
-         *
-         * # Returns
-         * A vector of commits between source and target
-         *
-         * # Errors
-         * - `GixDiscoverError` if repository discovery fails
-         * - `CommitLookupError` if commits cannot be found
-         * - `GixError` for other traversal errors
-         */
-    @Throws(UniffiException::class) fun `traverseHistory`(`gixRepo`: GixRepository, `sourceCommit`: ObjectId, `targetCommit`: ObjectId?, `useMailmap`: kotlin.Boolean): List<GixCommit> {
-            return FfiConverterSequenceTypeGixCommit.lift(
-    uniffiRustCallWithError(UniffiException) { _status ->
-    UniffiLib.uniffi_gix_binocular_fn_func_traverse_history(
-    
-        
-        FfiConverterTypeGixRepository.lower(`gixRepo`),
-        FfiConverterTypeObjectId.lower(`sourceCommit`),
-        FfiConverterOptionalTypeObjectId.lower(`targetCommit`),
-        FfiConverterBoolean.lower(`useMailmap`),_status)
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterMapTypeObjectIdSequenceString.lower(`defines`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),FfiConverterUByte.lower(`maxThreads`),_status)
 }
     )
     }
@@ -3499,11 +3323,7 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.uniffi_gix_binocular_fn_func_diffs(
     
-        
-        FfiConverterTypeGixRepository.lower(`gixRepo`),
-        FfiConverterSequenceTypeGixDiffInput.lower(`commitPairs`),
-        FfiConverterUByte.lower(`maxThreads`),
-        FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),_status)
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterSequenceTypeGixDiffInput.lower(`commitPairs`),FfiConverterUByte.lower(`maxThreads`),FfiConverterOptionalTypeGixDiffAlgorithm.lower(`diffAlgorithm`),_status)
 }
     )
     }
@@ -3527,8 +3347,34 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.uniffi_gix_binocular_fn_func_find_all_branches(
     
-        
         FfiConverterTypeGixRepository.lower(`gixRepo`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * Finds a specific commit by its hash
+         *
+         * # Arguments
+         * * `gix_repo` - The repository to search in
+         * * `hash` - The commit hash to find (full or abbreviated) or any valid revision spec
+         * * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
+         *
+         * # Returns
+         * The commit metadata if found
+         *
+         * # Errors
+         * - `RevisionParseError` if the hash/revision spec is invalid or malformed
+         * - `ObjectError` if the object cannot be found or is not a commit
+         * - `CommitLookupError` if author/committer information cannot be read
+         */
+    @Throws(UniffiException::class) fun `findCommit`(`gixRepo`: GixRepository, `hash`: kotlin.String, `useMailmap`: kotlin.Boolean): GixCommit {
+            return FfiConverterTypeGixCommit.lift(
+    uniffiRustCallWithError(UniffiException) { _status ->
+    UniffiLib.uniffi_gix_binocular_fn_func_find_commit(
+    
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterString.lower(`hash`),FfiConverterBoolean.lower(`useMailmap`),_status)
 }
     )
     }
@@ -3551,7 +3397,6 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
     uniffiRustCallWithError(UniffiException) { _status ->
     UniffiLib.uniffi_gix_binocular_fn_func_find_repo(
     
-        
         FfiConverterString.lower(`path`),_status)
 }
     )
@@ -3568,6 +3413,61 @@ public typealias FfiConverterTypePathBuf = FfiConverterString
         _status)
 }
     
+    
+
+        /**
+         * Traverses a specific branch and returns its commits
+         *
+         * # Arguments
+         * * `gix_repo` - The repository containing the branch
+         * * `branch` - The name of the branch to traverse (e.g., "refs/heads/main" or "main")
+         * * `skip_merges` - Whether to skip merge commits in the result
+         * * `use_mailmap` - Whether to apply mailmap transformations to author/committer info
+         *
+         * # Returns
+         * A `BranchTraversalResult` containing the branch metadata and all commits
+         *
+         * # Errors
+         * - `GixDiscoverError` if repository cannot be opened
+         * - `ReferenceError` if the branch reference cannot be found
+         * - `TraversalError` if the traversal fails or returns unexpected results
+         */
+    @Throws(UniffiException::class) fun `traverseBranch`(`gixRepo`: GixRepository, `branch`: kotlin.String, `skipMerges`: kotlin.Boolean, `useMailmap`: kotlin.Boolean): BranchTraversalResult {
+            return FfiConverterTypeBranchTraversalResult.lift(
+    uniffiRustCallWithError(UniffiException) { _status ->
+    UniffiLib.uniffi_gix_binocular_fn_func_traverse_branch(
+    
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterString.lower(`branch`),FfiConverterBoolean.lower(`skipMerges`),FfiConverterBoolean.lower(`useMailmap`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * Traverses commit history from a source commit to an optional target commit
+         *
+         * # Arguments
+         * * `gix_repo` - The repository to traverse
+         * * `source_commit` - The starting commit
+         * * `target_commit` - Optional ending commit. If None, traverses to repository root
+         *
+         * # Returns
+         * A vector of commits between source and target
+         *
+         * # Errors
+         * - `GixDiscoverError` if repository discovery fails
+         * - `CommitLookupError` if commits cannot be found
+         * - `GixError` for other traversal errors
+         */
+    @Throws(UniffiException::class) fun `traverseHistory`(`gixRepo`: GixRepository, `sourceCommit`: ObjectId, `targetCommit`: ObjectId?, `useMailmap`: kotlin.Boolean): List<GixCommit> {
+            return FfiConverterSequenceTypeGixCommit.lift(
+    uniffiRustCallWithError(UniffiException) { _status ->
+    UniffiLib.uniffi_gix_binocular_fn_func_traverse_history(
+    
+        FfiConverterTypeGixRepository.lower(`gixRepo`),FfiConverterTypeObjectId.lower(`sourceCommit`),FfiConverterOptionalTypeObjectId.lower(`targetCommit`),FfiConverterBoolean.lower(`useMailmap`),_status)
+}
+    )
+    }
     
 
 
