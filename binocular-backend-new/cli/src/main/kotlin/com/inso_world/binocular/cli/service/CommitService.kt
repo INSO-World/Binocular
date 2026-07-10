@@ -10,14 +10,11 @@ import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Repository
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.util.stream.Collectors
-import java.util.stream.Stream
 import kotlin.streams.asSequence
 
 @Service
@@ -78,4 +75,6 @@ class CommitService(
         logger.trace("Finding head for branch $branch in repository ${repo.localPath}...")
         return commitPort.findHeadForBranch(repo, branch)
     }
+
+    fun findById(commitId: Commit.Id): Commit? = commitPort.findByIid(commitId)
 }

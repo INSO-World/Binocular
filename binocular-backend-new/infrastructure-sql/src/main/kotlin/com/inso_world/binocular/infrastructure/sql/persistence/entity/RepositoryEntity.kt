@@ -72,7 +72,7 @@ internal data class RepositoryEntity(
     ) // value object for lookups
 
     init {
-        project.repo = this
+        project.repoId = this.iid
     }
 
     @Id
@@ -125,7 +125,7 @@ internal data class RepositoryEntity(
         val repo =
             Repository(
                 localPath = this.localPath.trim(),
-                project = project
+                projectId = project.iid
             ).apply {
                 this.id = this@RepositoryEntity.id?.toString()
             }

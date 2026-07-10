@@ -21,9 +21,11 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.validation.annotation.Validated
+import kotlin.uuid.ExperimentalUuidApi
 
 @Service
 @Validated
+@OptIn(ExperimentalUuidApi::class)
 internal class BranchInfrastructurePortImpl(
     @Autowired private val branchMapper: BranchMapper,
 ) : AbstractInfrastructurePort<Branch, BranchEntity, Long>(Long::class),
@@ -87,14 +89,17 @@ internal class BranchInfrastructurePortImpl(
     @MappingSession
     @Transactional(readOnly = true)
     protected fun findByIidInternal(iid: Reference.Id): Branch? {
-        val branch = this.branchDao.findByIid(iid)
+        val branch =
+            this.branchDao.findByIid(iid)
+                ?: return null
 
-        requireNotNull(branch?.repository)
         return repositoryAssembler
             .toDomain(branch.repository)
-            .branches
-            .find { it.iid == iid }
-            ?.let { return it }
+            .branchIds
+            .find { it.value == iid.value }
+            ?.let { branchId ->
+                branchMapper.toDomain(branch)
+            }
     }
 
     override fun update(value: Branch): Branch {
@@ -118,11 +123,16 @@ internal class BranchInfrastructurePortImpl(
     override fun findAll(): Iterable<Branch> {
         val branches = super<AbstractInfrastructurePort>.findAllEntities()
 
-        // Group branches by repository to process related branches together
         return branches
             .groupBy { it.repository }
-            .flatMap { (repoEntity, _) ->
-                repositoryAssembler.toDomain(repoEntity).branches
+            .flatMap { (repoEntity, branchEntities) ->
+                val assembledRepo = repositoryAssembler.toDomain(repoEntity)
+                assembledRepo.branchIds.map { branchId ->
+                    val branchEntity =
+                        branchEntities.find { it.iid.value == branchId.value }
+                            ?: throw IllegalStateException("BranchEntity for $branchId not found")
+                    branchMapper.toDomain(branchEntity)
+                }
             }
     }
 

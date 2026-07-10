@@ -39,9 +39,13 @@ data class File(
                 ?.reduce { acc, n -> if (n > acc) n else acc } ?: Int.MIN_VALUE
 
     // Relationships
-    @Deprecated("legacy")
+    @Deprecated("legacy, use commitIds")
     val commits: List<Commit>
-        get() = revisions.map { it.commit }
+        get() = emptyList()
+
+    @Deprecated("legacy")
+    val commitIds: List<Commit.Id>
+        get() = revisions.map { it.commitId }
 
     @Deprecated("legacy")
     val branches: List<Branch> = emptyList()
@@ -54,7 +58,7 @@ data class File(
 
     @Deprecated("legacy")
     val users: List<Developer>
-        get() = revisions.map { it.commit }.flatMap { it.users }
+        get() = emptyList()
 
     override val uniqueKey: Key
         get() = Key(this.path)

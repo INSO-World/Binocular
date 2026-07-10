@@ -84,8 +84,8 @@ internal data class BranchEntity(
             name = this.name,
             fullName = this.fullName,
             category = this.category,
-            repository = repository,
-            head = head,
+            repositoryId = repository.iid,
+            headCommitId = head.iid,
         ).apply {
             this.id = this@BranchEntity.id?.toString()
             this.active = this@BranchEntity.active

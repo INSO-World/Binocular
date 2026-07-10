@@ -1,0 +1,576 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+
+# MSR namespace (replace with your real IRI before deployment)
+@prefix msr:  <https://ontology.msr.example.org/msr#> .
+
+# Code structure namespaces
+@prefix code:  <https://ontology.msr.example.org/code#> .
+@prefix lang:  <https://ontology.msr.example.org/code/lang#> .
+
+# Dependencies namespaces
+@prefix dep:   <https://ontology.msr.example.org/dependencies#> .
+@prefix pkg:   <https://ontology.msr.example.org/packages#> .
+
+# Team & expertise namespaces
+@prefix team:  <https://ontology.msr.example.org/team#> .
+
+# Metrics namespace
+@prefix metric: <https://ontology.msr.example.org/metrics#> .
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 1: CODE STRUCTURE
+#  Why: Without knowing what code areas exist and who owns them, everything is noise.
+#       Enables: identifying technical debt hotspots, refactoring ROI, code health trends.
+# ═════════════════════════════════════════════════════════════════════════════
+
+code:Module
+    a owl:Class ;
+    rdfs:label "Module"@en ;
+    rdfs:comment """Language-agnostic code unit: Java package, Python module, Go package,
+    TypeScript namespace, Rust crate, C# namespace, etc.
+
+    Design: Generic enough to normalize across languages, specific enough to be useful.
+    Related: code:Package (npm/pip/maven artifact), code:Service (microservice boundary)."""@en .
+
+code:ModuleHierarchy
+    a owl:Class ;
+    rdfs:label "ModuleHierarchy"@en ;
+    rdfs:comment "Represents module containment (parent/child structure). E.g., 'com.acme' contains 'com.acme.auth'."@en .
+
+code:CodeEntity
+    a owl:Class ;
+    rdfs:label "CodeEntity"@en ;
+    rdfs:comment """Lowest-level code units: functions, classes, interfaces, types.
+
+    Subclasses:
+    - code:Class / code:Interface / code:Trait (OO constructs)
+    - code:Function / code:Method / code:Procedure
+    - code:Type / code:Struct / code:Record
+
+    Purpose: Detailed program analysis, dead code detection, refactoring impact.
+    Note: Extracting these requires language-specific parsers (LSP, AST analysis)."""@en .
+
+code:Class           a owl:Class ; rdfs:subClassOf code:CodeEntity ; rdfs:label "Class"@en .
+code:Interface       a owl:Class ; rdfs:subClassOf code:CodeEntity ; rdfs:label "Interface"@en .
+code:Function        a owl:Class ; rdfs:subClassOf code:CodeEntity ; rdfs:label "Function"@en .
+code:Type            a owl:Class ; rdfs:subClassOf code:CodeEntity ; rdfs:label "Type"@en .
+
+code:File
+    a owl:Class ;
+    rdfs:label "File"@en ;
+    rdfs:comment "Source file. Maps to msr:FileChange for correlation with commits."@en .
+
+#  Module properties
+code:moduleName      a owl:DatatypeProperty ; rdfs:domain code:Module ; rdfs:range xsd:string .
+code:moduleLanguage  a owl:DatatypeProperty ; rdfs:domain code:Module ; rdfs:range xsd:string ;
+    rdfs:comment "java | python | go | typescript | rust | csharp | c++ | swift | …"@en .
+code:moduleVersion   a owl:DatatypeProperty ; rdfs:domain code:Module ; rdfs:range xsd:string .
+code:contains        a owl:ObjectProperty  ; rdfs:domain code:Module ; rdfs:range code:Module ;
+    rdfs:comment "Parent-child relationship in module hierarchy."@en .
+code:hasFile         a owl:ObjectProperty  ; rdfs:domain code:Module ; rdfs:range code:File .
+code:hasCodeEntity   a owl:ObjectProperty  ; rdfs:domain code:Module ; rdfs:range code:CodeEntity .
+code:owner           a owl:ObjectProperty  ; rdfs:domain code:Module ; rdfs:range msr:Contributor ;
+    rdfs:comment "Primary owner/maintainer of this module. Can be multiple via owl:maxCardinality relaxation."@en .
+
+#  File properties
+code:fileName        a owl:DatatypeProperty ; rdfs:domain code:File ; rdfs:range xsd:string .
+code:filePath        a owl:DatatypeProperty ; rdfs:domain code:File ; rdfs:range xsd:string ;
+    rdfs:comment "Relative path from repo root. Correlates with msr:FileChange:path."@en .
+code:fileLanguage    a owl:DatatypeProperty ; rdfs:domain code:File ; rdfs:range xsd:string .
+code:isTestFile      a owl:DatatypeProperty ; rdfs:domain code:File ; rdfs:range xsd:boolean .
+
+#  CodeEntity properties
+code:entityName      a owl:DatatypeProperty ; rdfs:domain code:CodeEntity ; rdfs:range xsd:string .
+code:entityType      a owl:DatatypeProperty ; rdfs:domain code:CodeEntity ; rdfs:range xsd:string ;
+    rdfs:comment "class | interface | function | method | type | struct | trait | …"@en .
+code:signature       a owl:DatatypeProperty ; rdfs:domain code:CodeEntity ; rdfs:range xsd:string ;
+    rdfs:comment "Full signature (e.g., method(arg1: int, arg2: string) -> bool)."@en .
+code:lineStart       a owl:DatatypeProperty ; rdfs:domain code:CodeEntity ; rdfs:range xsd:nonNegativeInteger .
+code:lineEnd         a owl:DatatypeProperty ; rdfs:domain code:CodeEntity ; rdfs:range xsd:nonNegativeInteger .
+code:isPublic        a owl:DatatypeProperty ; rdfs:domain code:CodeEntity ; rdfs:range xsd:boolean .
+code:isDeprecated    a owl:DatatypeProperty ; rdfs:domain code:CodeEntity ; rdfs:range xsd:boolean .
+code:calls           a owl:ObjectProperty  ; rdfs:domain code:CodeEntity ; rdfs:range code:CodeEntity ;
+    rdfs:comment "Function/method call graph. Enables impact analysis."@en .
+code:references      a owl:ObjectProperty  ; rdfs:domain code:CodeEntity ; rdfs:range code:CodeEntity ;
+    rdfs:comment "Data structure / type references (enables call graph + type analysis)."@en .
+
+#  Link to VCS for tracking changes
+code:touchedByRevision a owl:ObjectProperty ; rdfs:domain code:File ; rdfs:range msr:Revision ;
+    rdfs:comment "Links code:File to msr:Revision for commit history correlation."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 1: DEPENDENCIES
+#  Why: Enables blast radius analysis, architectural health, security exposure tracking.
+#       Cannot answer 'what breaks if X changes' without this.
+# ═════════════════════════════════════════════════════════════════════════════
+
+dep:InternalDependency
+    a owl:Class ;
+    rdfs:label "InternalDependency"@en ;
+    rdfs:comment """Code dependency within the project: Module A imports/depends on Module B.
+
+    Enables: Circular dependency detection, bottleneck identification (heavily depended modules),
+    architecture layer validation (e.g., 'data' layer should not depend on 'presentation')."""@en .
+
+dep:ExternalDependency
+    a owl:Class ;
+    rdfs:label "ExternalDependency"@en ;
+    rdfs:comment """Third-party package dependency: npm, pip, Maven, Cargo, etc.
+
+    Subclasses per ecosystem: npm:Package, pip:Package, maven:Artifact, cargo:Crate, swift:Package, …
+
+    Enables: Vulnerability tracking (CVE correlation), supply chain risk, version management,
+    transitive dependency analysis, license compliance."""@en .
+
+dep:Vulnerability
+    a owl:Class ;
+    rdfs:label "Vulnerability"@en ;
+    rdfs:comment "Known security vulnerability (CVE) in an ExternalDependency."@en .
+
+dep:ArchitectureLayer
+    a owl:Class ;
+    rdfs:label "ArchitectureLayer"@en ;
+    rdfs:comment """Logical layer in the architecture: presentation, business logic, data access, infrastructure.
+
+    Used to validate architectural decisions: layers should only depend on lower layers (layered arch),
+    or follow a defined dependency graph (hexagonal, DDD, etc.)."""@en .
+
+#  Internal dependency properties
+dep:fromModule       a owl:ObjectProperty  ; rdfs:domain dep:InternalDependency ; rdfs:range code:Module ;
+    rdfs:comment "Module A that depends on something."@en .
+dep:toModule         a owl:ObjectProperty  ; rdfs:domain dep:InternalDependency ; rdfs:range code:Module ;
+    rdfs:comment "Module B that is depended on."@en .
+dep:fromCodeEntity   a owl:ObjectProperty  ; rdfs:domain dep:InternalDependency ; rdfs:range code:CodeEntity .
+dep:toCodeEntity     a owl:ObjectProperty  ; rdfs:domain dep:InternalDependency ; rdfs:range code:CodeEntity .
+dep:dependencyType   a owl:DatatypeProperty ; rdfs:domain dep:InternalDependency ; rdfs:range xsd:string ;
+    rdfs:comment "import | extends | implements | references | calls | …"@en .
+dep:count            a owl:DatatypeProperty ; rdfs:domain dep:InternalDependency ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:comment "How many call/reference edges exist (enables strength analysis)."@en .
+
+#  External dependency properties
+dep:packageName      a owl:DatatypeProperty ; rdfs:domain dep:ExternalDependency ; rdfs:range xsd:string .
+dep:packageEcosystem a owl:DatatypeProperty ; rdfs:domain dep:ExternalDependency ; rdfs:range xsd:string ;
+    rdfs:comment "npm | pip | maven | cargo | rubygems | swift | nuget | …"@en .
+dep:versionConstraint a owl:DatatypeProperty ; rdfs:domain dep:ExternalDependency ; rdfs:range xsd:string ;
+    rdfs:comment "Requested version (e.g., ^1.2.3, >=2.0.0, ~1.5.0)."@en .
+dep:resolvedVersion  a owl:DatatypeProperty ; rdfs:domain dep:ExternalDependency ; rdfs:range xsd:string ;
+    rdfs:comment "Actual pinned version in lock file."@en .
+dep:isTransitive     a owl:DatatypeProperty ; rdfs:domain dep:ExternalDependency ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if pulled in by another dependency, not directly declared."@en .
+dep:hasVulnerability a owl:ObjectProperty  ; rdfs:domain dep:ExternalDependency ; rdfs:range dep:Vulnerability .
+dep:usedByModule     a owl:ObjectProperty  ; rdfs:domain dep:ExternalDependency ; rdfs:range code:Module ;
+    rdfs:comment "Which modules import/use this package."@en .
+
+#  Vulnerability properties
+dep:cveId            a owl:DatatypeProperty ; rdfs:domain dep:Vulnerability ; rdfs:range xsd:string .
+dep:cveScore         a owl:DatatypeProperty ; rdfs:domain dep:Vulnerability ; rdfs:range xsd:float ;
+    rdfs:comment "CVSS 3.1 severity (0.0–10.0)."@en .
+dep:affectedVersions a owl:DatatypeProperty ; rdfs:domain dep:Vulnerability ; rdfs:range xsd:string ;
+    rdfs:comment "Version range(s) affected."@en .
+dep:fixedVersion     a owl:DatatypeProperty ; rdfs:domain dep:Vulnerability ; rdfs:range xsd:string .
+dep:isResolvable     a owl:DatatypeProperty ; rdfs:domain dep:Vulnerability ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if a fix version exists and is available."@en .
+
+#  Architecture layer properties
+dep:layerName        a owl:DatatypeProperty ; rdfs:domain dep:ArchitectureLayer ; rdfs:range xsd:string .
+dep:layerLevel       a owl:DatatypeProperty ; rdfs:domain dep:ArchitectureLayer ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:comment "Execution order (0=lowest/kernel, higher=closer to user)."@en .
+dep:canDependOn      a owl:ObjectProperty  ; rdfs:domain dep:ArchitectureLayer ; rdfs:range dep:ArchitectureLayer ;
+    rdfs:comment "Architecture rule: this layer is allowed to depend on those layers."@en .
+dep:contains         a owl:ObjectProperty  ; rdfs:domain dep:ArchitectureLayer ; rdfs:range code:Module ;
+    rdfs:comment "Which modules belong to this layer."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 1: TEAM EXPERTISE & KNOWLEDGE DISTRIBUTION
+#  Why: Knowledge concentration is the biggest project risk. Single-person dependencies destroy teams.
+#       Enables: Identifying key-person risk, measuring team resilience, optimizing onboarding.
+# ═════════════════════════════════════════════════════════════════════════════
+
+team:CodeOwnership
+    a owl:Class ;
+    rdfs:label "CodeOwnership"@en ;
+    rdfs:comment """Association: Contributor owns/understands Module.
+
+    Derived from commit/review history but can also be explicit (CODEOWNERS file).
+
+    Properties:
+    - owner: The Contributor
+    - ownedModule: The Module
+    - ownershipType: primary | secondary | reviewer
+    - lastActiveDate: When they last touched this code
+    - commitCount: Number of commits to this module (recency + frequency weighted)"""@en .
+
+team:ExpertiseProfile
+    a owl:Class ;
+    rdfs:label "ExpertiseProfile"@en ;
+    rdfs:comment """Summary of a Contributor's expertise across modules.
+
+    Enables: Finding the right reviewer, identifying generalists vs. specialists,
+    detecting bottlenecks (one person knows too much), onboarding effectiveness."""@en .
+
+team:BusFactorRisk
+    a owl:Class ;
+    rdfs:label "BusFactorRisk"@en ;
+    rdfs:comment """Alert: A module has knowledge concentration risk.
+
+    Example: 'Critical authentication module known only by Alice. Bus factor = 1.'
+    Thresholds: 1 person = critical risk, 2 people = high risk, 3+ = healthy."""@en .
+
+team:CodeReviewQuality
+    a owl:Class ;
+    rdfs:label "CodeReviewQuality"@en ;
+    rdfs:comment """Metrics on review depth and thoroughness (not just 'review happened').
+
+    Properties:
+    - reviewer: The Contributor
+    - reviewedPR: The ChangeProposal
+    - commentCount: Number of review comments
+    - commentDepth: Average comment length / substantiveness (inferred)
+    - timeToReview: Days from PR open to approval
+    - isApprovalGiven: Boolean
+    - suggestedChanges: Number of change requests
+
+    Enables: Identifying rubber-stamp reviewers vs. thorough reviews, quality bottlenecks."""@en .
+
+#  CodeOwnership properties
+team:owner           a owl:ObjectProperty  ; rdfs:domain team:CodeOwnership ; rdfs:range msr:Contributor .
+team:ownedModule     a owl:ObjectProperty  ; rdfs:domain team:CodeOwnership ; rdfs:range code:Module .
+team:ownershipType   a owl:DatatypeProperty ; rdfs:domain team:CodeOwnership ; rdfs:range xsd:string ;
+    rdfs:comment "primary | secondary | reviewer | contributor"@en .
+team:lastActiveDate  a owl:DatatypeProperty ; rdfs:domain team:CodeOwnership ; rdfs:range xsd:dateTime .
+team:commitCount     a owl:DatatypeProperty ; rdfs:domain team:CodeOwnership ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:comment "Weighted by recency: recent commits count more than old ones."@en .
+team:reviewCount     a owl:DatatypeProperty ; rdfs:domain team:CodeOwnership ; rdfs:range xsd:nonNegativeInteger .
+
+#  ExpertiseProfile properties
+team:contributor     a owl:ObjectProperty  ; rdfs:domain team:ExpertiseProfile ; rdfs:range msr:Contributor .
+team:primarySkills   a owl:ObjectProperty  ; rdfs:domain team:ExpertiseProfile ; rdfs:range code:Module ;
+    rdfs:comment "Modules where this person is a primary owner/expert."@en .
+team:secondarySkills a owl:ObjectProperty  ; rdfs:domain team:ExpertiseProfile ; rdfs:range code:Module ;
+    rdfs:comment "Modules where they contribute but aren't primary."@en .
+team:skillCount      a owl:DatatypeProperty ; rdfs:domain team:ExpertiseProfile ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:comment "Breadth: how many different modules have they touched."@en .
+team:isGeneralist    a owl:DatatypeProperty ; rdfs:domain team:ExpertiseProfile ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if contributions spread across many modules (>50% of codebase)."@en .
+team:isSpecialist    a owl:DatatypeProperty ; rdfs:domain team:ExpertiseProfile ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if expertise concentrated in <5 modules."@en .
+
+#  BusFactorRisk properties
+team:atRiskModule    a owl:ObjectProperty  ; rdfs:domain team:BusFactorRisk ; rdfs:range code:Module .
+team:busFactorValue  a owl:DatatypeProperty ; rdfs:domain team:BusFactorRisk ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:comment "Number of people with meaningful knowledge of this module."@en .
+team:criticalPeople  a owl:ObjectProperty  ; rdfs:domain team:BusFactorRisk ; rdfs:range msr:Contributor ;
+    rdfs:comment "The people whose departure would be catastrophic."@en .
+team:riskLevel       a owl:DatatypeProperty ; rdfs:domain team:BusFactorRisk ; rdfs:range xsd:string ;
+    rdfs:comment "critical | high | medium | low"@en .
+team:mitigationHint  a owl:DatatypeProperty ; rdfs:domain team:BusFactorRisk ; rdfs:range xsd:string ;
+    rdfs:comment "Suggested action: 'Pair Alice with Bob on auth module' or 'Write architecture docs'."@en .
+
+#  CodeReviewQuality properties
+team:reviewer        a owl:ObjectProperty  ; rdfs:domain team:CodeReviewQuality ; rdfs:range msr:Contributor .
+team:reviewedPR      a owl:ObjectProperty  ; rdfs:domain team:CodeReviewQuality ; rdfs:range msr:ChangeProposal .
+team:commentCount    a owl:DatatypeProperty ; rdfs:domain team:CodeReviewQuality ; rdfs:range xsd:nonNegativeInteger .
+team:timeToReview    a owl:DatatypeProperty ; rdfs:domain team:CodeReviewQuality ; rdfs:range xsd:duration ;
+    rdfs:comment "ISO 8601 duration (PT2H30M = 2.5 hours)."@en .
+team:isBottleneck    a owl:DatatypeProperty ; rdfs:domain team:CodeReviewQuality ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if this reviewer is on critical path (blocks many PRs)."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 2: CODE METRICS & QUALITY
+#  Why: Identifies problem areas (complexity, coverage, churn).
+#       Multiplies value of Layer 1 (now you know WHICH code needs attention).
+# ═════════════════════════════════════════════════════════════════════════════
+
+metric:CodeMetrics
+    a owl:Class ;
+    rdfs:label "CodeMetrics"@en ;
+    rdfs:comment """Snapshot of quality metrics for a module/file/entity at a point in time.
+
+    Point-in-time means: keyed by (subject, timestamp).
+    Enables: Trend analysis, quality degradation detection, refactoring impact measurement."""@en .
+
+metric:ChurnMetrics
+    a owl:Class ;
+    rdfs:label "ChurnMetrics"@en ;
+    rdfs:comment """Change frequency and volatility. High churn in core code = red flag.
+
+    Computed from commit history:
+    - commitCountLastMonth
+    - commitCountLastQuarter
+    - uniqueContributorsLastMonth
+    - fileChangeFrequency (how often files in this module are touched)
+
+    Distinguishes: Active development (good) from fire-fighting (bad)."""@en .
+
+metric:TestCoverageMetrics
+    a owl:Class ;
+    rdfs:label "TestCoverageMetrics"@en ;
+    rdfs:comment """Code coverage data from test runners (JaCoCo, Istanbul, coverage.py, etc.).
+
+    Per-module breakdown:
+    - lineCoverage: % of lines executed
+    - branchCoverage: % of branches taken
+    - uncoveredLines: Set of line ranges not hit by tests
+    - criticalUncovered: High-risk code with no tests (identified via static analysis)"""@en .
+
+#  CodeMetrics properties
+metric:subject       a owl:ObjectProperty  ; rdfs:domain metric:CodeMetrics ; rdfs:range code:Module ;
+    rdfs:comment "The module/file/entity being measured."@en .
+metric:measuredAt    a owl:DatatypeProperty ; rdfs:domain metric:CodeMetrics ; rdfs:range xsd:dateTime .
+metric:cyclomaticComplexity a owl:DatatypeProperty ; rdfs:domain metric:CodeMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Average cyclomatic complexity per function (McCallum). >10 = complex."@en .
+metric:linesOfCode   a owl:DatatypeProperty ; rdfs:domain metric:CodeMetrics ; rdfs:range xsd:nonNegativeInteger .
+metric:commentDensity a owl:DatatypeProperty ; rdfs:domain metric:CodeMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Ratio of comment lines to code lines. High = under-documented."@en .
+metric:maintainabilityIndex a owl:DatatypeProperty ; rdfs:domain metric:CodeMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Microsoft maintainability metric (0-100). <20 = unmaintainable."@en .
+metric:technicalDebtRatio a owl:DatatypeProperty ; rdfs:domain metric:CodeMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Ratio of refactoring time to implementation time (SonarQube). High = debt."@en .
+metric:codeSmells   a owl:DatatypeProperty ; rdfs:domain metric:CodeMetrics ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:comment "Count of detected code smells (long methods, duplicate code, etc.)."@en .
+metric:hasChurnMetrics a owl:ObjectProperty  ; rdfs:domain metric:CodeMetrics ; rdfs:range metric:ChurnMetrics .
+metric:hasCoverageMetrics a owl:ObjectProperty  ; rdfs:domain metric:CodeMetrics ; rdfs:range metric:TestCoverageMetrics .
+
+#  ChurnMetrics properties
+metric:commitCountLastMonth a owl:DatatypeProperty ; rdfs:domain metric:ChurnMetrics ; rdfs:range xsd:nonNegativeInteger .
+metric:commitCountLastQuarter a owl:DatatypeProperty ; rdfs:domain metric:ChurnMetrics ; rdfs:range xsd:nonNegativeInteger .
+metric:uniqueContributorsLastMonth a owl:DatatypeProperty ; rdfs:domain metric:ChurnMetrics ; rdfs:range xsd:nonNegativeInteger .
+metric:fileChangeFrequency a owl:DatatypeProperty ; rdfs:domain metric:ChurnMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Average number of touches per file per month."@en .
+metric:isUnstable    a owl:DatatypeProperty ; rdfs:domain metric:ChurnMetrics ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if churn is high relative to codebase baseline (fire-fighting signal)."@en .
+
+#  TestCoverageMetrics properties
+metric:lineCoverage  a owl:DatatypeProperty ; rdfs:domain metric:TestCoverageMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "0.0–1.0 (0–100%)."@en .
+metric:branchCoverage a owl:DatatypeProperty ; rdfs:domain metric:TestCoverageMetrics ; rdfs:range xsd:float .
+metric:uncoveredLineCount a owl:DatatypeProperty ; rdfs:domain metric:TestCoverageMetrics ; rdfs:range xsd:nonNegativeInteger .
+metric:hasCriticalUncovered a owl:DatatypeProperty ; rdfs:domain metric:TestCoverageMetrics ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if high-risk code (identified via static analysis) lacks tests."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 2: DEPLOYMENT & RUNTIME LINKING
+#  Why: Closes the feedback loop. Distinguishes useless builds from impactful ones.
+# ═════════════════════════════════════════════════════════════════════════════
+
+msr:Deployment
+    a owl:Class ;
+    rdfs:label "Deployment"@en ;
+    rdfs:comment """Record of code going to an environment.
+
+    Attributes:
+    - sourceRevision: Which commit was deployed
+    - targetEnvironment: prod | staging | dev | …
+    - deployTime: When it went live
+    - status: success | failed | rolled_back | …
+    - artifacts: The binaries/containers deployed
+
+    Enables: Build → Deployment → Production incident lineage."""@en .
+
+msr:Environment
+    a owl:Class ;
+    rdfs:label "Environment"@en ;
+    rdfs:comment "Execution environment: production, staging, development, integration test."@en .
+
+msr:Incident
+    a owl:Class ;
+    rdfs:label "Incident"@en ;
+    rdfs:comment """Production incident: outage, degradation, or error event.
+
+    Attributes:
+    - affectedService: Which service broke
+    - startTime, endTime: Duration
+    - severity: critical | high | medium | low
+    - rootCause: (determined post-incident)
+    - affectedDeployment: Which deployment caused it
+    - mttr: Mean time to recovery
+
+    Enables: Correlating commits → deployments → incidents."""@en .
+
+msr:PerformanceMetrics
+    a owl:Class ;
+    rdfs:label "PerformanceMetrics"@en ;
+    rdfs:comment """Runtime performance data: latency, throughput, error rates.
+    Keyed by (service, environment, timewindow).
+
+    Enables: Detecting regressions post-deployment."""@en .
+
+#  Deployment properties
+msr:sourceRevision   a owl:ObjectProperty  ; rdfs:domain msr:Deployment ; rdfs:range msr:Revision .
+msr:targetEnvironment a owl:ObjectProperty  ; rdfs:domain msr:Deployment ; rdfs:range msr:Environment .
+msr:deployTime       a owl:DatatypeProperty ; rdfs:domain msr:Deployment ; rdfs:range xsd:dateTime .
+msr:deployStatus     a owl:DatatypeProperty ; rdfs:domain msr:Deployment ; rdfs:range xsd:string ;
+    rdfs:comment "success | failed | rolled_back | in_progress"@en .
+msr:deployedArtifacts a owl:ObjectProperty  ; rdfs:domain msr:Deployment ; rdfs:range msr:Artifact .
+msr:linkedIncidents  a owl:ObjectProperty  ; rdfs:domain msr:Deployment ; rdfs:range msr:Incident ;
+    rdfs:comment "Incidents that occurred after this deployment (automated correlation)."@en .
+
+#  Environment properties
+msr:environmentName  a owl:DatatypeProperty ; rdfs:domain msr:Environment ; rdfs:range xsd:string .
+msr:environmentType  a owl:DatatypeProperty ; rdfs:domain msr:Environment ; rdfs:range xsd:string ;
+    rdfs:comment "production | staging | dev | qa | integration | …"@en .
+
+#  Incident properties
+msr:affectedService  a owl:DatatypeProperty ; rdfs:domain msr:Incident ; rdfs:range xsd:string .
+msr:incidentStart    a owl:DatatypeProperty ; rdfs:domain msr:Incident ; rdfs:range xsd:dateTime .
+msr:incidentEnd      a owl:DatatypeProperty ; rdfs:domain msr:Incident ; rdfs:range xsd:dateTime .
+msr:incidentSeverity a owl:DatatypeProperty ; rdfs:domain msr:Incident ; rdfs:range xsd:string ;
+    rdfs:comment "critical | high | medium | low"@en .
+msr:rootCauseRevision a owl:ObjectProperty  ; rdfs:domain msr:Incident ; rdfs:range msr:Revision ;
+    rdfs:comment "Which commit likely caused the incident."@en .
+msr:rootCauseModule  a owl:ObjectProperty  ; rdfs:domain msr:Incident ; rdfs:range code:Module ;
+    rdfs:comment "Which module/component failed."@en .
+msr:mttr             a owl:DatatypeProperty ; rdfs:domain msr:Incident ; rdfs:range xsd:duration ;
+    rdfs:comment "Mean time to recovery (ISO 8601 duration)."@en .
+
+#  PerformanceMetrics properties
+msr:measuredService  a owl:DatatypeProperty ; rdfs:domain msr:PerformanceMetrics ; rdfs:range xsd:string .
+msr:measuredEnvironment a owl:ObjectProperty  ; rdfs:domain msr:PerformanceMetrics ; rdfs:range msr:Environment .
+msr:metricsTimeWindow a owl:DatatypeProperty ; rdfs:domain msr:PerformanceMetrics ; rdfs:range xsd:dateTime .
+msr:p50Latency       a owl:DatatypeProperty ; rdfs:domain msr:PerformanceMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Milliseconds (50th percentile)."@en .
+msr:p99Latency       a owl:DatatypeProperty ; rdfs:domain msr:PerformanceMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Milliseconds (99th percentile)."@en .
+msr:errorRate        a owl:DatatypeProperty ; rdfs:domain msr:PerformanceMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "0.0–1.0 (0–100%)."@en .
+msr:throughput       a owl:DatatypeProperty ; rdfs:domain msr:PerformanceMetrics ; rdfs:range xsd:float ;
+    rdfs:comment "Requests per second."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 2: REQUIREMENTS TRACEABILITY
+#  Why: Connects work tracking (issues) to actual code impact.
+# ═════════════════════════════════════════════════════════════════════════════
+
+msr:CodeTraceability
+    a owl:Class ;
+    rdfs:label "CodeTraceability"@en ;
+    rdfs:comment """Link: Issue → PullRequest → Commits → Code Changes.
+
+    Purpose: Answer 'What code was changed to implement feature X?'
+    Enables: Scope tracking, feature-to-code correlation, refactoring ROI measurement."""@en .
+
+msr:IssueToCode
+    a owl:Class ;
+    rdfs:subClassOf msr:CodeTraceability ;
+    rdfs:label "IssueToCode"@en ;
+    rdfs:comment "Issue closes via PR which modifies code."@en .
+
+#  Traceability properties
+msr:relatesIssue     a owl:ObjectProperty  ; rdfs:domain msr:CodeTraceability ; rdfs:range msr:Issue .
+msr:relatesChangeProposal a owl:ObjectProperty  ; rdfs:domain msr:CodeTraceability ; rdfs:range msr:ChangeProposal .
+msr:relatesRevision  a owl:ObjectProperty  ; rdfs:domain msr:CodeTraceability ; rdfs:range msr:Revision .
+msr:relatesModule    a owl:ObjectProperty  ; rdfs:domain msr:CodeTraceability ; rdfs:range code:Module .
+msr:affectsFile      a owl:ObjectProperty  ; rdfs:domain msr:CodeTraceability ; rdfs:range code:File .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 3: CODE EVOLUTION & CHURN PATTERNS
+#  Why: Identifies problem areas needing stabilization, early warning for architecture problems.
+# ═════════════════════════════════════════════════════════════════════════════
+
+metric:CodeChurnPattern
+    a owl:Class ;
+    rdfs:label "CodeChurnPattern"@en ;
+    rdfs:comment """Analysis of change patterns over time.
+
+    Examples:
+    - 'High churn in core module': touched 40+ times in 2 months (fire-fighting vs. development)
+    - 'Increasing test coverage': ratio of test-to-code changes trending up (good)
+    - 'Constant rewrites': same code modified 10x in short period (death spiral)
+    - 'Stabilizing module': decreasing churn over quarters (mature)"""@en .
+
+metric:RefactoringEvent
+    a owl:Class ;
+    rdfs:label "RefactoringEvent"@en ;
+    rdfs:comment """Identified refactoring: large structural change without feature addition.
+
+    Detected by: high line deletions + additions in same module, multiple files touched,
+    no new test files (pure refactoring vs. feature + refactor).
+
+    Enables: Measuring refactoring ROI, tracking architecture improvements."""@en .
+
+#  CodeChurnPattern properties
+metric:patternModule a owl:ObjectProperty  ; rdfs:domain metric:CodeChurnPattern ; rdfs:range code:Module .
+metric:patternType   a owl:DatatypeProperty ; rdfs:domain metric:CodeChurnPattern ; rdfs:range xsd:string ;
+    rdfs:comment "high_churn | increasing_coverage | constant_rewrite | stabilizing | …"@en .
+metric:timeWindow    a owl:DatatypeProperty ; rdfs:domain metric:CodeChurnPattern ; rdfs:range xsd:duration ;
+    rdfs:comment "Observation period (e.g., PT3M for last 3 months)."@en .
+metric:severity      a owl:DatatypeProperty ; rdfs:domain metric:CodeChurnPattern ; rdfs:range xsd:string ;
+    rdfs:comment "critical | high | medium | low | informational"@en .
+metric:insight       a owl:DatatypeProperty ; rdfs:domain metric:CodeChurnPattern ; rdfs:range xsd:string ;
+    rdfs:comment "Human-readable insight: 'Fire-fighting detected in auth module.'"@en .
+
+#  RefactoringEvent properties
+metric:refactorModule a owl:ObjectProperty  ; rdfs:domain metric:RefactoringEvent ; rdfs:range code:Module .
+metric:refactorRevisions a owl:ObjectProperty  ; rdfs:domain metric:RefactoringEvent ; rdfs:range msr:Revision ;
+    rdfs:comment "The commits involved in this refactoring."@en .
+metric:refactorStartDate a owl:DatatypeProperty ; rdfs:domain metric:RefactoringEvent ; rdfs:range xsd:dateTime .
+metric:refactorEndDate a owl:DatatypeProperty ; rdfs:domain metric:RefactoringEvent ; rdfs:range xsd:dateTime .
+metric:refactorROI    a owl:DatatypeProperty ; rdfs:domain metric:RefactoringEvent ; rdfs:range xsd:string ;
+    rdfs:comment "Qualitative assessment: 'Reduced complexity by 30%, improved test coverage from 20% to 60%'."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  LAYER 3: GOVERNANCE & DECISION-MAKING
+#  Why: Process quality directly impacts delivery velocity and architecture health.
+# ═════════════════════════════════════════════════════════════════════════════
+
+msr:ArchitectureDecisionRecord
+    a owl:Class ;
+    rdfs:label "ArchitectureDecisionRecord"@en ;
+    rdfs:comment """ADR: Documented design decision.
+
+    Standard fields: Title, Status (proposed|accepted|deprecated|superseded),
+    Context (why this decision?), Decision (what was chosen?),
+    Consequences (tradeoffs, risks, benefits)."""@en .
+
+msr:CodeOwnershipPolicy
+    a owl:Class ;
+    rdfs:label "CodeOwnershipPolicy"@en ;
+    rdfs:comment """Explicit ownership rules: CODEOWNERS file, team assignments.
+    Correlates with team:CodeOwnership for validation (actual vs. policy)."""@en .
+
+msr:ApprovalWorkflow
+    a owl:Class ;
+    rdfs:label "ApprovalWorkflow"@en ;
+    rdfs:comment """Rules for PR approval: how many reviewers, expertise requirements,
+    SLA targets (e.g., 'approve within 24 hours').
+
+    Enables: Detecting process bottlenecks, approval SLA misses."""@en .
+
+#  ADR properties
+msr:adrTitle         a owl:DatatypeProperty ; rdfs:domain msr:ArchitectureDecisionRecord ; rdfs:range xsd:string .
+msr:adrStatus        a owl:DatatypeProperty ; rdfs:domain msr:ArchitectureDecisionRecord ; rdfs:range xsd:string ;
+    rdfs:comment "proposed | accepted | deprecated | superseded"@en .
+msr:adrContext       a owl:DatatypeProperty ; rdfs:domain msr:ArchitectureDecisionRecord ; rdfs:range xsd:string .
+msr:adrDecision      a owl:DatatypeProperty ; rdfs:domain msr:ArchitectureDecisionRecord ; rdfs:range xsd:string .
+msr:adrConsequences  a owl:DatatypeProperty ; rdfs:domain msr:ArchitectureDecisionRecord ; rdfs:range xsd:string .
+msr:adrAffectsModule a owl:ObjectProperty  ; rdfs:domain msr:ArchitectureDecisionRecord ; rdfs:range code:Module ;
+    rdfs:comment "Which module(s) are governed by this decision."@en .
+msr:adrDecidedAt     a owl:DatatypeProperty ; rdfs:domain msr:ArchitectureDecisionRecord ; rdfs:range xsd:dateTime .
+
+#  CodeOwnershipPolicy properties
+msr:policyModule     a owl:ObjectProperty  ; rdfs:domain msr:CodeOwnershipPolicy ; rdfs:range code:Module .
+msr:policyOwners     a owl:ObjectProperty  ; rdfs:domain msr:CodeOwnershipPolicy ; rdfs:range msr:Contributor ;
+    rdfs:comment "Approved owners per policy."@en .
+msr:requiresCodeOwner a owl:DatatypeProperty ; rdfs:domain msr:CodeOwnershipPolicy ; rdfs:range xsd:boolean ;
+    rdfs:comment "If true, only module owner can approve changes to this module."@en .
+
+#  ApprovalWorkflow properties
+msr:workflowModule   a owl:ObjectProperty  ; rdfs:domain msr:ApprovalWorkflow ; rdfs:range code:Module .
+msr:requiredReviewers a owl:DatatypeProperty ; rdfs:domain msr:ApprovalWorkflow ; rdfs:range xsd:nonNegativeInteger .
+msr:slaDays          a owl:DatatypeProperty ; rdfs:domain msr:ApprovalWorkflow ; rdfs:range xsd:float ;
+    rdfs:comment "Target approval turnaround in days (e.g., 1.0 = 24 hours)."@en .
+msr:requiredExpertise a owl:DatatypeProperty ; rdfs:domain msr:ApprovalWorkflow ; rdfs:range xsd:string ;
+    rdfs:comment "Required reviewer expertise: 'primary owner | senior engineer | security'."@en .
+

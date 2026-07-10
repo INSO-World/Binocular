@@ -23,17 +23,19 @@ import kotlin.uuid.Uuid
  *
  * ### Identity & equality
  * - Technical identity: immutable [iid] of type [Id] (generated at construction).
- * - Business key: [uniqueKey] == [Key]([repository].iid, [name]).
+ * - Business key: [uniqueKey] == [Key]([repositoryId], [name]).
  * - Equality is identity-based (same [iid]); `hashCode()` derives from [iid].
  *
  * ### Construction & validation
  * - Requires a non-blank [name] (`@field:NotBlank` + runtime `require`).
  * - Requires a non-blank [url] (`@field:NotBlank` + `@field:GitUrl` + runtime `require`).
  * - The [url] must be a valid Git repository URL (supports HTTP/HTTPS, SSH, Git protocol, file paths, etc.).
- * - On construction, the remote **registers itself** to the owning [repository] via `repository.remotes.add(this)`.
+ * - On construction, the remote does **NOT** auto-register to the owning repository.
+ *   Callers must explicitly add the remote to `repository.remotes`.
  *
  * ### Relationships
- * - **Many-to-one with [Repository]:** Each remote belongs to exactly one repository.
+ * - **Many-to-one with [Repository]:** Each remote belongs to exactly one repository,
+ *   referenced by [repositoryId] (ID-based, not direct object reference).
  *   A repository may have multiple remotes (e.g., "origin", "upstream", "fork").
  * - **Naming convention:** The default remote created by `git clone` is named "origin".
  *
@@ -47,10 +49,10 @@ import kotlin.uuid.Uuid
  *   Coordinate externally if concurrent access is required.
  *
  * @property name The short, human-readable name for this remote (e.g., "origin", "upstream").
- *   Must be non-blank and unique within the [repository]. Participates in [uniqueKey].
+ *   Must be non-blank and unique within the owning repository. Participates in [uniqueKey].
  * @property url The complete URL to the remote repository (e.g., "https://github.com/user/repo.git").
  *   Must be non-blank. Can be HTTP(S), SSH, or Git protocol.
- * @property repository The local [Repository] that references this remote.
+ * @property repositoryId The [Repository.Id] of the owning repository (ID-based reference).
  *
  * ### Example
  * ```kotlin
@@ -58,11 +60,11 @@ import kotlin.uuid.Uuid
  * val origin = Remote(
  *     name = "origin",
  *     url = "https://github.com/user/repo.git",
- *     repository = repo
+ *     repositoryId = repo.iid
  * )
  *
- * // The remote is automatically added to repo.remotes during construction
- * check(origin in repo.remotes)
+ * // Explicitly add to repository (no auto-registration)
+ * repo.remotes.add(origin)
  * ```
  *
  * ### Git documentation reference
@@ -77,20 +79,20 @@ data class Remote(
         message = "Remote name must contain only alphanumeric characters, dots, underscores, slashes, or hyphens"
     )
     val name: String,
-
     @field:NotBlank
     @field:GitUrl
     var url: String,
-
-    val repository: Repository,
+    val repositoryId: Repository.Id,
 ) : AbstractDomainObject<Remote.Id, Remote.Key>(
-    Id(Uuid.random())
-) {
+        Id(Uuid.random())
+    ) {
     /**
      * Type-safe wrapper for the technical identity of a [Remote].
      */
     @JvmInline
-    value class Id(val value: Uuid)
+    value class Id(
+        val value: Uuid
+    )
 
     /**
      * Business key for a [Remote]: unique combination of repository ID and remote name.
@@ -98,7 +100,10 @@ data class Remote(
      * Within a single repository, remote names must be unique (Git enforces this).
      * Across repositories, the same name (e.g., "origin") can exist independently.
      */
-    data class Key(val repositoryId: Repository.Id, val name: String)
+    data class Key(
+        val repositoryId: Repository.Id,
+        val name: String
+    )
 
     /**
      * Optional database-specific identifier.
@@ -110,16 +115,15 @@ data class Remote(
     init {
         require(name.trim().isNotBlank()) { "Remote name cannot be blank." }
         require(url.trim().isNotBlank()) { "Remote URL cannot be blank." }
-        repository.remotes.add(this)
     }
 
     override val uniqueKey: Key
-        get() = Key(repository.iid, name.trim())
+        get() = Key(repositoryId, name.trim())
 
     // Entities compare by immutable identity only
     override fun equals(other: Any?) = super.equals(other)
+
     override fun hashCode(): Int = super.hashCode()
 
-    override fun toString(): String =
-        "Remote(id=$id, iid=$iid, name='$name', url='$url', repository=${repository.uniqueKey})"
+    override fun toString(): String = "Remote(id=$id, iid=$iid, name='$name', url='$url', repositoryId=$repositoryId)"
 }

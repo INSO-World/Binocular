@@ -45,6 +45,9 @@ class VcsService(
     @Autowired
     private lateinit var gitIndexer: GitIndexer
 
+    @Autowired
+    private lateinit var commitService: CommitService
+
     /**
      * Indexes a Git repository, fetching commits for the specified branch.
      *
@@ -73,13 +76,14 @@ class VcsService(
         // Check for incremental indexing opportunity
         val existingHead = findExistingBranchHead(vcsRepo, branch)
 
-        val (branchResult, commits) = if (existingHead != null && gitBranch != null) {
-            // Incremental: traverse from current HEAD to existing HEAD
-            performIncrementalTraversal(vcsRepo, gitBranch, existingHead)
-        } else {
-            // Full traversal: no existing commits for this branch
-            performFullTraversal(vcsRepo, branch)
-        }
+        val (branchResult, commits) =
+            if (existingHead != null && gitBranch != null) {
+                // Incremental: traverse from current HEAD to existing HEAD
+                performIncrementalTraversal(vcsRepo, gitBranch, existingHead)
+            } else {
+                // Full traversal: no existing commits for this branch
+                performFullTraversal(vcsRepo, branch)
+            }
 
         if (commits.isEmpty()) {
             logger.info("No new commits found for branch '$branch' - repository is up to date")
@@ -95,8 +99,11 @@ class VcsService(
     /**
      * Finds an existing repository or creates a new one.
      */
-    private fun findOrCreateRepository(repoPath: String?, project: Project): Repository {
-        return try {
+    private fun findOrCreateRepository(
+        repoPath: String?,
+        project: Project
+    ): Repository =
+        try {
             repoService.findRepo(
                 requireNotNull(repoPath) { "Repository path is empty/null" },
             ) ?: run {
@@ -107,25 +114,29 @@ class VcsService(
         } catch (e: ServiceException) {
             throw CliException(e)
         }
-    }
 
     /**
      * Finds a branch by name in the repository.
      *
      * @throws IllegalArgumentException if branch doesn't exist
      */
-    private fun findBranch(repo: Repository, branchName: String): Branch {
-        return requireNotNull(
+    private fun findBranch(
+        repo: Repository,
+        branchName: String
+    ): Branch =
+        requireNotNull(
             gitIndexer.findAllBranches(repo).find { it.name == branchName },
         ) { "Branch not found: $branchName" }
-    }
 
     /**
      * Finds the existing HEAD commit for a branch if it was previously indexed.
      *
      * @return The existing HEAD commit SHA, or null if branch was never indexed
      */
-    private fun findExistingBranchHead(repo: Repository, branchName: String): Commit? {
+    private fun findExistingBranchHead(
+        repo: Repository,
+        branchName: String
+    ): Commit? {
         // Check if we have any commits for this branch
         val existingHead = repoService.getHeadCommits(repo, branchName)
 
@@ -154,7 +165,10 @@ class VcsService(
         branch: Branch,
         existingHead: Commit,
     ): Pair<Branch, List<Commit>> {
-        val currentHead = branch.head
+        // Resolve current HEAD commit via CommitService
+        val currentHead =
+            commitService.findById(branch.headCommitId)
+                ?: return Pair(branch, emptyList())
 
         // Quick check: if HEAD hasn't changed, no new commits
         if (currentHead.sha == existingHead.sha) {
@@ -182,16 +196,20 @@ class VcsService(
         repo: Repository,
         branch: String,
     ): Pair<Branch, List<Commit>> {
-        logger.info("Full traversal for branch '${branch}'")
+        logger.info("Full traversal for branch '$branch'")
         return gitIndexer.traverseBranch(repo, branch)
     }
 
     /**
      * Logs commit statistics for debugging and monitoring.
      */
-    private fun logCommitStatistics(commits: List<Commit>, branchName: String) {
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    private fun logCommitStatistics(
+        commits: List<Commit>,
+        branchName: String
+    ) {
         val shas = commits.map { it.sha }
-        val parentShas = commits.flatMap { it.parents.map { p -> p.sha } }
+        val parentShas = commits.flatMap { it.parentIds.map { p -> p.value.toString() } }
 
         logger.debug(
             "Commits to process: ${shas.count()}+${parentShas.count()}=${

@@ -1,0 +1,700 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix doap:    <http://usefulinc.com/ns/doap#> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix oslc_cm: <http://open-services.net/xmlns/cm/1.0/> .
+@prefix sioc:    <http://rdfs.org/sioc/ns#> .
+
+# MSR namespace (replace with your real IRI before deployment)
+@prefix msr:  <https://ontology.msr.example.org/msr#> .
+
+# VCS system-specific subontologies
+@prefix git:  <https://ontology.msr.example.org/vcs/git#> .
+@prefix svn:  <https://ontology.msr.example.org/vcs/svn#> .
+@prefix hg:   <https://ontology.msr.example.org/vcs/hg#> .
+@prefix jj:   <https://ontology.msr.example.org/vcs/jj#> .
+
+# ITS system-specific subontologies
+@prefix gh:     <https://ontology.msr.example.org/its/github#> .
+@prefix gl:     <https://ontology.msr.example.org/its/gitlab#> .
+@prefix bb:     <https://ontology.msr.example.org/its/bitbucket#> .
+@prefix jira:   <https://ontology.msr.example.org/its/jira#> .
+@prefix linear: <https://ontology.msr.example.org/its/linear#> .
+
+# CI system-specific subontologies
+@prefix gha:    <https://ontology.msr.example.org/ci/github-actions#> .
+@prefix glci:   <https://ontology.msr.example.org/ci/gitlab-ci#> .
+@prefix jenkins: <https://ontology.msr.example.org/ci/jenkins#> .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  ONTOLOGY METADATA
+# ═════════════════════════════════════════════════════════════════════════════
+
+<https://ontology.msr.example.org/msr>
+    a owl:Ontology ;
+    rdfs:label "MSR Unified Ontology"@en ;
+    rdfs:comment """Unified schema for Mining Software Repositories (MSR).
+    Covers three domains — Version Control (VCS), Issue Tracking (ITS), and
+    Continuous Integration (CI) — under a shared abstract vocabulary, with
+    system-specific subclasses at a second layer.
+
+    Design principle: the abstract layer is deliberately thin. It asserts only
+    what every system in the family supports. System-specific subontologies add
+    richer structure so that SPARQL at the abstract level works uniformly across
+    all tools, while deeper queries can exploit tool-specific properties.
+
+    Intended use: pragmatic knowledge-graph schema vehicle, not a formal
+    research artifact. Replace the example namespace IRI before deployment.
+
+    Builds on:
+      SE-ON / SOFAS  (Würsch & Gall, U. Zurich)
+      OSLC-CM 3.0    (OASIS)
+      EvoOnt / BOM   (Bug Ontology Model)
+      BAETLE + Helios_bt
+      DOAP, FOAF, PROV-O, SIOC (W3C / community)"""@en ;
+    dcterms:created "2025-01-01"^^xsd:date ;
+    owl:versionInfo "0.2.0" .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  1. SHARED CONCEPTS  — project, contributor, forge
+# ═════════════════════════════════════════════════════════════════════════════
+
+msr:Project
+    a owl:Class ;
+    rdfs:subClassOf doap:Project ;
+    rdfs:label "Project"@en ;
+    rdfs:comment "Top-level container. One project may span multiple repositories and trackers. Use msr:hasRepository, msr:hasIssueTracker, msr:hasPipeline."@en .
+
+msr:Contributor
+    a owl:Class ;
+    rdfs:subClassOf foaf:Agent ;
+    rdfs:label "Contributor"@en ;
+    rdfs:comment """A person or automated agent contributing to a project.
+    Identity resolution across tools (git email vs. GitHub username vs. Jira account)
+    is the primary data-quality challenge. Recommended approach: use email as the
+    primary matching key, then emit owl:sameAs triples after resolution.
+    msr:accountType values: human | bot | org"""@en .
+
+msr:Forge
+    a owl:Class ;
+    rdfs:label "Forge"@en ;
+    rdfs:comment "A hosting platform (GitHub, GitLab, Bitbucket) bundling VCS, ITS, and CI under one service. A single forge URI can be the target of both msr:hasRepository and msr:hasIssueTracker on the same project."@en .
+
+#  Project ↔ domain properties
+msr:hasRepository    a owl:ObjectProperty ; rdfs:domain msr:Project    ; rdfs:range msr:Repository .
+msr:hasIssueTracker  a owl:ObjectProperty ; rdfs:domain msr:Project    ; rdfs:range msr:IssueTracker .
+msr:hasPipeline      a owl:ObjectProperty ; rdfs:domain msr:Project    ; rdfs:range msr:Pipeline .
+msr:hasContributor   a owl:ObjectProperty ; rdfs:domain msr:Project    ; rdfs:range msr:Contributor .
+msr:hostedAt         a owl:ObjectProperty ; rdfs:domain msr:Repository ; rdfs:range msr:Forge .
+
+#  Contributor properties
+msr:name             a owl:DatatypeProperty ; rdfs:domain msr:Contributor ; rdfs:range xsd:string .
+msr:email            a owl:DatatypeProperty ; rdfs:domain msr:Contributor ; rdfs:range xsd:string ;
+    rdfs:comment "Primary cross-tool identity key. Multiple email addresses for the same person should be linked via owl:sameAs."@en .
+msr:accountId        a owl:DatatypeProperty ; rdfs:domain msr:Contributor ; rdfs:range xsd:string ;
+    rdfs:comment "Platform-specific account identifier (e.g., GitHub numeric user id)."@en .
+msr:accountType      a owl:DatatypeProperty ; rdfs:domain msr:Contributor ; rdfs:range xsd:string ;
+    rdfs:comment "human | bot | org"@en .
+msr:platform         a owl:DatatypeProperty ; rdfs:domain msr:Contributor ; rdfs:range xsd:string ;
+    rdfs:comment "github | gitlab | jira | bitbucket | git-email | …"@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  2. VCS — VERSION CONTROL SYSTEMS
+# ═════════════════════════════════════════════════════════════════════════════
+#
+#  Key design decisions:
+#   • msr:identifier is xsd:string, not integer, to accommodate both SHA hashes
+#     and SVN's global revision numbers.
+#   • msr:hasParent is 0..* covering initial commit (0), linear (1), merge (2),
+#     octopus (N), and SVN's no-parent case.
+#   • msr:Label → msr:MutableLabel (branch/bookmark) / msr:ImmutableLabel (tag)
+#   • jj dual identity: jj:changeId (stable, survives amend) = msr:identifier;
+#     jj:commitId (ephemeral content hash) is a separate property.
+
+msr:Repository
+    a owl:Class ;
+    rdfs:label "Repository"@en ;
+    rdfs:comment "A VCS repository. Subclassed per tool: git:Repository, svn:Repository, hg:Repository, jj:Repository."@en .
+
+msr:Revision
+    a owl:Class ;
+    rdfs:label "Revision"@en ;
+    rdfs:comment """Abstract unit of recorded change.
+    git:Commit      — SHA content-addressed snapshot, DAG of parents
+    svn:Revision    — global monotonic integer, no content hash, no DAG
+    hg:Changeset    — SHA content-addressed, phase-aware (public/draft/secret)
+    jj:Change       — dual identity: stable changeId + ephemeral commitId"""@en .
+
+msr:FileChange
+    a owl:Class ;
+    rdfs:label "FileChange"@en ;
+    rdfs:comment "One file's modification within a Revision."@en .
+
+msr:Label
+    a owl:Class ;
+    rdfs:label "Label"@en ;
+    rdfs:comment "A named pointer to a Revision."@en .
+
+msr:MutableLabel
+    a owl:Class ;
+    rdfs:subClassOf msr:Label ;
+    rdfs:label "MutableLabel"@en ;
+    rdfs:comment "A movable pointer: git branch, hg bookmark, jj bookmark."@en .
+
+msr:ImmutableLabel
+    a owl:Class ;
+    rdfs:subClassOf msr:Label ;
+    rdfs:label "ImmutableLabel"@en ;
+    rdfs:comment "A fixed pointer: git annotated tag, signed tag, release."@en .
+
+#  Repository properties
+msr:repoUrl          a owl:DatatypeProperty ; rdfs:domain msr:Repository ; rdfs:range xsd:anyURI .
+msr:vcsType          a owl:DatatypeProperty ; rdfs:domain msr:Repository ; rdfs:range xsd:string ;
+    rdfs:comment "git | svn | hg | jj | cvs | …"@en .
+msr:defaultBranch    a owl:DatatypeProperty ; rdfs:domain msr:Repository ; rdfs:range xsd:string .
+msr:isForkedFrom     a owl:ObjectProperty  ; rdfs:domain msr:Repository ; rdfs:range msr:Repository .
+msr:containsRevision a owl:ObjectProperty  ; rdfs:domain msr:Repository ; rdfs:range msr:Revision .
+msr:hasLabel         a owl:ObjectProperty  ; rdfs:domain msr:Repository ; rdfs:range msr:Label .
+
+#  Revision properties
+msr:identifier       a owl:DatatypeProperty ; rdfs:domain msr:Revision ; rdfs:range xsd:string ;
+    rdfs:comment "Content hash (git/hg), monotonic integer (svn), or opaque string. For jj use jj:changeId here."@en .
+msr:message          a owl:DatatypeProperty ; rdfs:domain msr:Revision ; rdfs:range xsd:string .
+msr:authoredAt       a owl:DatatypeProperty ; rdfs:domain msr:Revision ; rdfs:range xsd:dateTime .
+msr:committedAt      a owl:DatatypeProperty ; rdfs:domain msr:Revision ; rdfs:range xsd:dateTime .
+msr:hasParent        a owl:ObjectProperty  ; rdfs:domain msr:Revision ; rdfs:range msr:Revision ;
+    rdfs:comment "0..* parents. Covers initial commit (0), linear (1), merge (2), octopus merge (N). SVN has no parent — omit entirely."@en .
+msr:touches          a owl:ObjectProperty  ; rdfs:domain msr:Revision ; rdfs:range msr:FileChange .
+msr:authoredBy       a owl:ObjectProperty  ; rdfs:domain msr:Revision ; rdfs:range msr:Contributor .
+msr:committedBy      a owl:ObjectProperty  ; rdfs:domain msr:Revision ; rdfs:range msr:Contributor .
+
+#  FileChange properties
+msr:path             a owl:DatatypeProperty ; rdfs:domain msr:FileChange ; rdfs:range xsd:string .
+msr:changeType       a owl:DatatypeProperty ; rdfs:domain msr:FileChange ; rdfs:range xsd:string ;
+    rdfs:comment "add | modify | delete | rename | copy"@en .
+msr:linesAdded       a owl:DatatypeProperty ; rdfs:domain msr:FileChange ; rdfs:range xsd:nonNegativeInteger .
+msr:linesDeleted     a owl:DatatypeProperty ; rdfs:domain msr:FileChange ; rdfs:range xsd:nonNegativeInteger .
+msr:oldPath          a owl:DatatypeProperty ; rdfs:domain msr:FileChange ; rdfs:range xsd:string ;
+    rdfs:comment "Original path for rename/copy operations."@en .
+
+#  Label properties
+msr:labelName        a owl:DatatypeProperty ; rdfs:domain msr:Label ; rdfs:range xsd:string .
+msr:pointsTo         a owl:ObjectProperty  ; rdfs:domain msr:Label ; rdfs:range msr:Revision .
+
+# ── VCS system-specific subclasses ───────────────────────────────────────────
+
+git:Repository       a owl:Class ; rdfs:subClassOf msr:Repository .
+git:Commit           a owl:Class ; rdfs:subClassOf msr:Revision .
+git:commitHash       a owl:DatatypeProperty ; rdfs:domain git:Commit ; rdfs:range xsd:string ;
+    rdfs:comment "SHA-1 (40 hex) or SHA-256 (64 hex) content hash. Alias of msr:identifier for git commits."@en .
+git:isMergeCommit    a owl:DatatypeProperty ; rdfs:domain git:Commit ; rdfs:range xsd:boolean .
+git:gpgSignature     a owl:DatatypeProperty ; rdfs:domain git:Commit ; rdfs:range xsd:string .
+git:renameSimilarity a owl:DatatypeProperty ; rdfs:domain msr:FileChange ; rdfs:range xsd:float ;
+    rdfs:comment "0.0–1.0 heuristic similarity score for git rename/copy detection."@en .
+
+svn:Repository       a owl:Class ; rdfs:subClassOf msr:Repository .
+svn:Revision         a owl:Class ; rdfs:subClassOf msr:Revision .
+svn:revisionNumber   a owl:DatatypeProperty ; rdfs:domain svn:Revision ; rdfs:range xsd:positiveInteger ;
+    rdfs:comment "Global monotonic integer. Stored also as msr:identifier (as string)."@en .
+svn:BranchDirectory  a owl:Class ;
+    rdfs:comment "SVN has no formal label concept; branches are directory paths (e.g. /branches/feature-x)."@en .
+svn:branchPath       a owl:DatatypeProperty ; rdfs:domain svn:BranchDirectory ; rdfs:range xsd:string .
+
+hg:Repository        a owl:Class ; rdfs:subClassOf msr:Repository .
+hg:Changeset         a owl:Class ; rdfs:subClassOf msr:Revision .
+hg:phase             a owl:DatatypeProperty ; rdfs:domain hg:Changeset ; rdfs:range xsd:string ;
+    rdfs:comment "public | draft | secret"@en .
+
+jj:Repository        a owl:Class ; rdfs:subClassOf msr:Repository .
+jj:Change            a owl:Class ; rdfs:subClassOf msr:Revision ;
+    rdfs:comment "jj Change has dual identity. changeId is stable across rewrites and maps to msr:identifier. commitId is ephemeral (changes on every amend) and is separate."@en .
+jj:changeId          a owl:DatatypeProperty ; rdfs:domain jj:Change ; rdfs:range xsd:string ;
+    rdfs:comment "Stable 32-char hex change identity. Use this as msr:identifier."@en .
+jj:commitId          a owl:DatatypeProperty ; rdfs:domain jj:Change ; rdfs:range xsd:string ;
+    rdfs:comment "Ephemeral SHA content hash. Do not use as primary identifier."@en .
+jj:isWorkingCopy     a owl:DatatypeProperty ; rdfs:domain jj:Change ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if this is the @ (working copy) change."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  3. ITS — ISSUE TRACKING SYSTEMS
+# ═════════════════════════════════════════════════════════════════════════════
+#
+#  Key design decisions:
+#   • msr:Issue is dual-classed: oslc_cm:ChangeRequest (work item) + sioc:Thread
+#     (discussion thread). Both hierarchies are useful for different queries.
+#   • msr:ChangeProposal is rdfs:subClassOf msr:Issue. In GitHub, a PR IS an
+#     Issue (shared id space). In Jira it's an external link. Both are covered.
+#   • State machine: abstract to msr:IssueState (open/closed). Tool states
+#     subclass these. Use msr:workflowState for the tool-specific string.
+#   • Classification axes: msr:Classification with msr:classificationScheme
+#     unifies flat labels (GitHub), scoped labels (GitLab), and typed fields
+#     (Jira Component, Priority, Severity, IssueType).
+#   • Issue hierarchy: msr:parentIssue 0..1 handles flat to 4-level trees.
+#     Cross-cutting: msr:blockedBy, msr:duplicates, msr:relatesTo.
+#   • Time containers: msr:TimeBox with start/end/goal. Tool-specific:
+#     jira:Sprint (iteration) and jira:FixVersion (release). Do NOT collapse.
+
+msr:IssueTracker
+    a owl:Class ;
+    rdfs:label "IssueTracker"@en ;
+    rdfs:comment "The issue tracking service for a project. May be a forge (GitHub, GitLab) or standalone (Jira, Linear, YouTrack)."@en .
+
+msr:Issue
+    a owl:Class ;
+    rdfs:subClassOf oslc_cm:ChangeRequest ;
+    rdfs:subClassOf sioc:Thread ;
+    rdfs:label "Issue"@en ;
+    rdfs:comment """A unit of tracked work and discussion.
+    Dual classification: oslc_cm:ChangeRequest (work item) + sioc:Thread (conversation).
+    Subclassed per tool: gh:Issue, gl:Issue, bb:Issue, jira:Issue, linear:Issue."""@en .
+
+msr:ChangeProposal
+    a owl:Class ;
+    rdfs:subClassOf msr:Issue ;
+    rdfs:label "ChangeProposal"@en ;
+    rdfs:comment """A proposed code change: GitHub PullRequest, GitLab MergeRequest, Bitbucket PR.
+    Modeled as subClassOf Issue because in GitHub, a PR IS an Issue (same id space, same timeline).
+    In Jira, linked PRs are external annotations — represent as msr:ChangeProposal with an external URI."""@en .
+
+msr:Comment
+    a owl:Class ;
+    rdfs:label "Comment"@en ;
+    rdfs:comment "A textual contribution to an issue or change proposal."@en .
+
+msr:ReviewComment
+    a owl:Class ;
+    rdfs:subClassOf msr:Comment ;
+    rdfs:label "ReviewComment"@en ;
+    rdfs:comment "An inline code review comment with file path and line reference."@en .
+
+msr:IssueState
+    a owl:Class ;
+    rdfs:label "IssueState"@en ;
+    rdfs:comment "Abstract state value. Minimum vocabulary: msr:OpenState, msr:ClosedState. Tool-specific states (Jira workflow, GitLab locked) are individuals of this class."@en .
+
+msr:OpenState
+    a msr:IssueState ;
+    rdfs:label "open"@en .
+
+msr:ClosedState
+    a msr:IssueState ;
+    rdfs:label "closed"@en .
+
+msr:TimeBox
+    a owl:Class ;
+    rdfs:label "TimeBox"@en ;
+    rdfs:comment """A named time container grouping issues.
+    Subclasses: gh:Milestone, gl:Milestone, gl:Iteration, bb:Milestone,
+    jira:Sprint, jira:FixVersion, linear:Cycle.
+    IMPORTANT: jira:Sprint (iteration-based) ≠ jira:FixVersion (release-based).
+    Do not collapse these even though both have start and end dates."""@en .
+
+msr:Classification
+    a owl:Class ;
+    rdfs:label "Classification"@en ;
+    rdfs:comment """A classification dimension value. Unifies:
+    • Flat labels (GitHub, Bitbucket): bug, enhancement, P1, frontend
+    • Scoped labels (GitLab): type::bug, priority::high
+    • Typed fields (Jira): Component, Priority, Severity, IssueType
+    Use msr:classificationScheme to identify the axis (type/priority/component/label/…)."""@en .
+
+#  Issue datatype properties
+msr:issueId          a owl:DatatypeProperty ; rdfs:domain msr:Issue ; rdfs:range xsd:string ;
+    rdfs:comment "Tool-local identifier string: '#42' for GitHub, 'PROJ-123' for Jira."@en .
+msr:title            a owl:DatatypeProperty ; rdfs:domain msr:Issue ; rdfs:range xsd:string .
+msr:body             a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Markdown body text. Applies to Issue, ChangeProposal, Comment."@en .
+msr:status           a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Raw status string from the tool (e.g. 'In Progress', 'WONT FIX'). For abstract reasoning use msr:hasState → msr:IssueState."@en .
+msr:priority         a owl:DatatypeProperty ;
+    rdfs:comment "Tool-specific priority string or numeric value."@en .
+msr:severity         a owl:DatatypeProperty ;
+    rdfs:comment "Tool-specific severity string (blocker, critical, major, minor, trivial)."@en .
+msr:createdAt        a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+msr:closedAt         a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+msr:updatedAt        a owl:DatatypeProperty ; rdfs:range xsd:dateTime .
+msr:issueType        a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Tool-specific type string: bug | feature | task | story | epic | question | …"@en .
+msr:workflowState    a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Tool-specific workflow state string for systems with configurable state machines (Jira, Linear, YouTrack)."@en .
+
+#  Issue object properties
+msr:hasState         a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:IssueState ;
+    rdfs:comment "Points to the abstract state (msr:OpenState / msr:ClosedState). For richer state use msr:workflowState."@en .
+msr:reportedBy       a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:Contributor .
+msr:assignedTo       a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:Contributor .
+msr:hasComment       a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:Comment .
+msr:hasClassification a owl:ObjectProperty ; rdfs:domain msr:Issue ; rdfs:range msr:Classification .
+msr:partOfTimeBox    a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:TimeBox .
+msr:parentIssue      a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:Issue ;
+    rdfs:comment "0..1 parent. Accommodates flat (GitHub) to 4-level enforced tree (Jira Epic→Story→Task→Sub-task)."@en .
+msr:blockedBy        a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:Issue .
+msr:duplicates       a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:Issue .
+msr:relatesTo        a owl:ObjectProperty  ; rdfs:domain msr:Issue ; rdfs:range msr:Issue .
+
+#  ChangeProposal datatype properties
+msr:sourceBranch     a owl:DatatypeProperty ; rdfs:domain msr:ChangeProposal ; rdfs:range xsd:string .
+msr:targetBranch     a owl:DatatypeProperty ; rdfs:domain msr:ChangeProposal ; rdfs:range xsd:string .
+msr:mergedAt         a owl:DatatypeProperty ; rdfs:domain msr:ChangeProposal ; rdfs:range xsd:dateTime .
+msr:isDraft          a owl:DatatypeProperty ; rdfs:domain msr:ChangeProposal ; rdfs:range xsd:boolean .
+msr:reviewDecision   a owl:DatatypeProperty ; rdfs:domain msr:ChangeProposal ; rdfs:range xsd:string ;
+    rdfs:comment "approved | changes_requested | commented | dismissed"@en .
+
+#  ChangeProposal object properties
+msr:proposes         a owl:ObjectProperty  ; rdfs:domain msr:ChangeProposal ; rdfs:range msr:Revision ;
+    rdfs:comment "Head commit of the proposal."@en .
+msr:mergedAs         a owl:ObjectProperty  ; rdfs:domain msr:ChangeProposal ; rdfs:range msr:Revision ;
+    rdfs:comment "The merge commit once merged."@en .
+msr:proposedIn       a owl:ObjectProperty  ; rdfs:domain msr:ChangeProposal ; rdfs:range msr:Repository .
+msr:reviewedBy       a owl:ObjectProperty  ; rdfs:domain msr:ChangeProposal ; rdfs:range msr:Contributor .
+
+#  Comment properties
+msr:commentAuthor    a owl:ObjectProperty  ; rdfs:domain msr:Comment ; rdfs:range msr:Contributor .
+msr:commentBody      a owl:DatatypeProperty ; rdfs:domain msr:Comment ; rdfs:range xsd:string .
+msr:commentedAt      a owl:DatatypeProperty ; rdfs:domain msr:Comment ; rdfs:range xsd:dateTime .
+msr:reviewCommentPath a owl:DatatypeProperty ; rdfs:domain msr:ReviewComment ; rdfs:range xsd:string .
+msr:reviewCommentLine a owl:DatatypeProperty ; rdfs:domain msr:ReviewComment ; rdfs:range xsd:positiveInteger .
+msr:diffHunk          a owl:DatatypeProperty ; rdfs:domain msr:ReviewComment ; rdfs:range xsd:string .
+
+#  TimeBox properties
+msr:timeBoxName      a owl:DatatypeProperty ; rdfs:domain msr:TimeBox ; rdfs:range xsd:string .
+msr:startDate        a owl:DatatypeProperty ; rdfs:domain msr:TimeBox ; rdfs:range xsd:date .
+msr:dueDate          a owl:DatatypeProperty ; rdfs:domain msr:TimeBox ; rdfs:range xsd:date .
+msr:goal             a owl:DatatypeProperty ; rdfs:domain msr:TimeBox ; rdfs:range xsd:string .
+
+#  Classification properties
+msr:classificationScheme a owl:DatatypeProperty ; rdfs:domain msr:Classification ; rdfs:range xsd:string ;
+    rdfs:comment "The axis: type | priority | severity | component | label | iteration | version | …"@en .
+msr:classificationValue  a owl:DatatypeProperty ; rdfs:domain msr:Classification ; rdfs:range xsd:string ;
+    rdfs:comment "The value within the axis: 'bug', 'P1', 'frontend', …"@en .
+msr:classificationColor  a owl:DatatypeProperty ; rdfs:domain msr:Classification ; rdfs:range xsd:string ;
+    rdfs:comment "Hex color code for display (e.g. '#d73a4a')."@en .
+
+# ── ITS system-specific subclasses ───────────────────────────────────────────
+
+## GitHub
+gh:Issue             a owl:Class ; rdfs:subClassOf msr:Issue ;
+    rdfs:comment "GitHub Issue. Note: in GitHub's data model PullRequests are also Issues."@en .
+gh:PullRequest       a owl:Class ; rdfs:subClassOf msr:ChangeProposal ;
+    rdfs:comment "GitHub PR. rdfs:subClassOf msr:ChangeProposal which is rdfs:subClassOf msr:Issue."@en .
+gh:Milestone         a owl:Class ; rdfs:subClassOf msr:TimeBox .
+gh:Reaction          a owl:Class ;
+    rdfs:comment "Emoji reaction on a GitHub issue or comment."@en .
+gh:reactionEmoji     a owl:DatatypeProperty ; rdfs:domain gh:Reaction ; rdfs:range xsd:string ;
+    rdfs:comment "+1 | -1 | laugh | hooray | confused | heart | rocket | eyes"@en .
+gh:reactedBy         a owl:ObjectProperty  ; rdfs:domain gh:Reaction ; rdfs:range msr:Contributor .
+gh:hasReaction       a owl:ObjectProperty ; rdfs:range gh:Reaction ;
+    rdfs:comment "Domain: gh:Issue or msr:Comment."@en .
+gh:requestedReviewer a owl:ObjectProperty  ; rdfs:domain gh:PullRequest ; rdfs:range msr:Contributor .
+
+## GitLab
+gl:Issue             a owl:Class ; rdfs:subClassOf msr:Issue .
+gl:MergeRequest      a owl:Class ; rdfs:subClassOf msr:ChangeProposal .
+gl:Epic              a owl:Class ; rdfs:subClassOf msr:Issue ;
+    rdfs:comment "GitLab Epic — parent container for Issues and child Epics."@en .
+gl:Milestone         a owl:Class ; rdfs:subClassOf msr:TimeBox .
+gl:Iteration         a owl:Class ; rdfs:subClassOf msr:TimeBox ;
+    rdfs:comment "GitLab Iteration = sprint-equivalent, within an Iteration Cadence."@en .
+gl:IterationCadence  a owl:Class ;
+    rdfs:comment "A recurring schedule producing Iterations."@en .
+gl:ScopedLabel       a owl:Class ; rdfs:subClassOf msr:Classification ;
+    rdfs:comment "GitLab scoped label: key::value syntax. Only one value per scope key is allowed on an issue."@en .
+gl:scopeKey          a owl:DatatypeProperty ; rdfs:domain gl:ScopedLabel ; rdfs:range xsd:string ;
+    rdfs:comment "The scope prefix before '::' (e.g. 'type', 'priority')."@en .
+gl:scopeValue        a owl:DatatypeProperty ; rdfs:domain gl:ScopedLabel ; rdfs:range xsd:string ;
+    rdfs:comment "The value after '::' (e.g. 'bug', 'high')."@en .
+gl:mergeTrainPosition a owl:DatatypeProperty ; rdfs:domain gl:MergeRequest ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:comment "Position in a GitLab Merge Train (0 = not in train)."@en .
+gl:approvalCount     a owl:DatatypeProperty ; rdfs:domain gl:MergeRequest ; rdfs:range xsd:nonNegativeInteger .
+
+## Bitbucket
+bb:Issue             a owl:Class ; rdfs:subClassOf msr:Issue ;
+    rdfs:comment "Bitbucket Issue (Cloud). Simpler model than GitHub/GitLab: no reactions, fewer label types."@en .
+bb:PullRequest       a owl:Class ; rdfs:subClassOf msr:ChangeProposal .
+bb:Milestone         a owl:Class ; rdfs:subClassOf msr:TimeBox .
+bb:Component         a owl:Class ; rdfs:subClassOf msr:Classification ;
+    rdfs:comment "Bitbucket Issue Component (equivalent to Jira Component)."@en .
+bb:Version           a owl:Class ; rdfs:subClassOf msr:TimeBox ;
+    rdfs:comment "Bitbucket Issue Version field — release-oriented container."@en .
+bb:issuePriority     a owl:DatatypeProperty ; rdfs:domain bb:Issue ; rdfs:range xsd:string ;
+    rdfs:comment "trivial | minor | major | critical | blocker"@en .
+bb:approvalStatus    a owl:DatatypeProperty ; rdfs:domain bb:PullRequest ; rdfs:range xsd:string ;
+    rdfs:comment "approved | changes_requested | unapproved"@en .
+
+## Jira
+jira:Issue           a owl:Class ; rdfs:subClassOf msr:Issue ;
+    rdfs:comment "Base Jira issue. All Jira issue types are subclasses. Custom types can further subclass these."@en .
+jira:Epic            a owl:Class ; rdfs:subClassOf jira:Issue ;
+    rdfs:comment "Jira Epic: top-level work container, spanning multiple Sprints."@en .
+jira:Story           a owl:Class ; rdfs:subClassOf jira:Issue .
+jira:Task            a owl:Class ; rdfs:subClassOf jira:Issue .
+jira:SubTask         a owl:Class ; rdfs:subClassOf jira:Issue .
+jira:Bug             a owl:Class ; rdfs:subClassOf jira:Issue .
+jira:Sprint          a owl:Class ; rdfs:subClassOf msr:TimeBox ;
+    rdfs:comment "Jira Sprint: time-boxed Scrum iteration, attached to a board. Distinct from FixVersion."@en .
+jira:FixVersion      a owl:Class ; rdfs:subClassOf msr:TimeBox ;
+    rdfs:comment "Jira FixVersion: release-oriented container. Do NOT collapse with jira:Sprint."@en .
+jira:Component       a owl:Class ; rdfs:subClassOf msr:Classification ;
+    rdfs:comment "Jira Component: a named subsystem or module of the project."@en .
+jira:WorkflowState   a owl:Class ; rdfs:subClassOf msr:IssueState ;
+    rdfs:comment "A named state in a Jira workflow (e.g. 'In Progress', 'In Review', 'Done')."@en .
+jira:storyPoints     a owl:DatatypeProperty ; rdfs:domain jira:Issue ; rdfs:range xsd:decimal .
+jira:epicLink        a owl:ObjectProperty  ; rdfs:domain jira:Issue ; rdfs:range jira:Epic ;
+    rdfs:comment "Old-style Jira epic link field (pre parent_id approach). Alias for msr:parentIssue in Jira epics."@en .
+jira:boardId         a owl:DatatypeProperty ; rdfs:domain jira:Sprint ; rdfs:range xsd:string .
+jira:rapidViewId     a owl:DatatypeProperty ; rdfs:domain jira:Sprint ; rdfs:range xsd:string .
+jira:customField     a owl:DatatypeProperty ; rdfs:domain jira:Issue ; rdfs:range xsd:string ;
+    rdfs:comment "Multi-valued. Each value encodes a custom field as 'customfield_NNNNN=value'. For richer modeling emit separate RDF statements."@en .
+
+## Linear
+linear:Issue         a owl:Class ; rdfs:subClassOf msr:Issue ;
+    rdfs:comment "Linear Issue."@en .
+linear:Cycle         a owl:Class ; rdfs:subClassOf msr:TimeBox ;
+    rdfs:comment "Linear Cycle = sprint equivalent."@en .
+linear:Team          a owl:Class ;
+    rdfs:comment "Linear Team: a group owning a set of Issues and Cycles."@en .
+linear:identifier    a owl:DatatypeProperty ; rdfs:domain linear:Issue ; rdfs:range xsd:string ;
+    rdfs:comment "Linear's human-readable id: '{TEAM}-{NUMBER}' (e.g. 'ENG-42')."@en .
+linear:estimate      a owl:DatatypeProperty ; rdfs:domain linear:Issue ; rdfs:range xsd:decimal ;
+    rdfs:comment "Story point estimate."@en .
+linear:partOfTeam    a owl:ObjectProperty  ; rdfs:domain linear:Issue ; rdfs:range linear:Team .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  4. CI — CONTINUOUS INTEGRATION / CONTINUOUS DELIVERY
+# ═════════════════════════════════════════════════════════════════════════════
+#
+#  Key design decisions:
+#   • msr:BuildRun is rdfs:subClassOf prov:Activity — gives artifact lineage for
+#     free via prov:wasGeneratedBy and prov:wasDerivedFrom.
+#   • msr:Artifact is rdfs:subClassOf prov:Entity — same reason.
+#   • No published ontology covers CI/CD; PROV-O is the recommended bridge.
+#   • msr:Pipeline = the definition file in the repo (the schema).
+#     msr:BuildRun  = one execution instance (the data).
+
+msr:Pipeline
+    a owl:Class ;
+    rdfs:label "Pipeline"@en ;
+    rdfs:comment "A CI/CD pipeline definition (.github/workflows/*.yml, .gitlab-ci.yml, Jenkinsfile, …). This is the template; msr:BuildRun is one execution."@en .
+
+msr:BuildRun
+    a owl:Class ;
+    rdfs:subClassOf prov:Activity ;
+    rdfs:label "BuildRun"@en ;
+    rdfs:comment "One execution of a pipeline, triggered by a Revision or ChangeProposal. prov:Activity gives artifact lineage for free."@en .
+
+msr:TestResult
+    a owl:Class ;
+    rdfs:label "TestResult"@en ;
+    rdfs:comment "Outcome of one test case (or CI step) within a BuildRun."@en .
+
+msr:Artifact
+    a owl:Class ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:label "Artifact"@en ;
+    rdfs:comment "A file or package produced by a BuildRun. Use prov:wasGeneratedBy → BuildRun and prov:wasDerivedFrom → Revision for lineage."@en .
+
+msr:Runner
+    a owl:Class ;
+    rdfs:label "Runner"@en ;
+    rdfs:comment "The execution environment: GitHub-hosted, self-hosted, Docker executor, …"@en .
+
+#  Pipeline properties
+msr:pipelineName     a owl:DatatypeProperty ; rdfs:domain msr:Pipeline ; rdfs:range xsd:string .
+msr:toolType         a owl:DatatypeProperty ; rdfs:domain msr:Pipeline ; rdfs:range xsd:string ;
+    rdfs:comment "github-actions | gitlab-ci | jenkins | travis | circleci | teamcity | …"@en .
+msr:definitionPath   a owl:DatatypeProperty ; rdfs:domain msr:Pipeline ; rdfs:range xsd:string .
+msr:triggerEvents    a owl:DatatypeProperty ; rdfs:domain msr:Pipeline ; rdfs:range xsd:string ;
+    rdfs:comment "push | pull_request | schedule | manual | tag | …"@en .
+msr:definedIn        a owl:ObjectProperty  ; rdfs:domain msr:Pipeline ; rdfs:range msr:Repository .
+
+#  BuildRun properties
+msr:buildStatus      a owl:DatatypeProperty ; rdfs:domain msr:BuildRun ; rdfs:range xsd:string ;
+    rdfs:comment "Abstract: success | failure | cancelled | skipped. Tool-specific strings map here."@en .
+msr:startedAt        a owl:DatatypeProperty ; rdfs:domain msr:BuildRun ; rdfs:range xsd:dateTime .
+msr:finishedAt       a owl:DatatypeProperty ; rdfs:domain msr:BuildRun ; rdfs:range xsd:dateTime .
+msr:duration         a owl:DatatypeProperty ; rdfs:domain msr:BuildRun ; rdfs:range xsd:decimal ;
+    rdfs:comment "Seconds."@en .
+msr:runBy            a owl:ObjectProperty  ; rdfs:domain msr:BuildRun ; rdfs:range msr:Pipeline .
+msr:runOn            a owl:ObjectProperty  ; rdfs:domain msr:BuildRun ; rdfs:range msr:Runner .
+msr:hasTestResult    a owl:ObjectProperty  ; rdfs:domain msr:BuildRun ; rdfs:range msr:TestResult .
+msr:produces         a owl:ObjectProperty  ; rdfs:domain msr:BuildRun ; rdfs:range msr:Artifact .
+
+#  TestResult properties
+msr:testName         a owl:DatatypeProperty ; rdfs:domain msr:TestResult ; rdfs:range xsd:string .
+msr:testSuite        a owl:DatatypeProperty ; rdfs:domain msr:TestResult ; rdfs:range xsd:string .
+msr:outcome          a owl:DatatypeProperty ; rdfs:domain msr:TestResult ; rdfs:range xsd:string ;
+    rdfs:comment "pass | fail | skip | error"@en .
+msr:testDuration     a owl:DatatypeProperty ; rdfs:domain msr:TestResult ; rdfs:range xsd:decimal .
+msr:errorMessage     a owl:DatatypeProperty ; rdfs:domain msr:TestResult ; rdfs:range xsd:string .
+
+#  Artifact properties
+msr:artifactName     a owl:DatatypeProperty ; rdfs:domain msr:Artifact ; rdfs:range xsd:string .
+msr:artifactUrl      a owl:DatatypeProperty ; rdfs:domain msr:Artifact ; rdfs:range xsd:anyURI .
+msr:mediaType        a owl:DatatypeProperty ; rdfs:domain msr:Artifact ; rdfs:range xsd:string .
+msr:digestSha256     a owl:DatatypeProperty ; rdfs:domain msr:Artifact ; rdfs:range xsd:string .
+msr:sizeBytes        a owl:DatatypeProperty ; rdfs:domain msr:Artifact ; rdfs:range xsd:nonNegativeInteger .
+
+# ── CI system-specific subclasses ────────────────────────────────────────────
+
+gha:WorkflowRun      a owl:Class ; rdfs:subClassOf msr:BuildRun ;
+    rdfs:comment "A GitHub Actions workflow run."@en .
+gha:Job              a owl:Class ;
+    rdfs:comment "A job within a GHA workflow run. Can be modeled as a child BuildRun for fine-grained analysis."@en .
+gha:Step             a owl:Class ; rdfs:subClassOf msr:TestResult ;
+    rdfs:comment "A GHA step maps to msr:TestResult for outcome tracking."@en .
+gha:runnerLabels     a owl:DatatypeProperty ; rdfs:domain gha:WorkflowRun ; rdfs:range xsd:string ;
+    rdfs:comment "Runner labels e.g. 'ubuntu-latest', 'self-hosted,linux,arm64'."@en .
+
+glci:Pipeline        a owl:Class ; rdfs:subClassOf msr:BuildRun ;
+    rdfs:comment "A GitLab CI pipeline run."@en .
+glci:Job             a owl:Class ; rdfs:subClassOf msr:BuildRun ;
+    rdfs:comment "A GitLab CI job within a pipeline — finer granularity than the pipeline itself."@en .
+glci:stage           a owl:DatatypeProperty ; rdfs:domain glci:Job ; rdfs:range xsd:string ;
+    rdfs:comment "The pipeline stage this job belongs to."@en .
+
+jenkins:Build        a owl:Class ; rdfs:subClassOf msr:BuildRun .
+jenkins:jobName      a owl:DatatypeProperty ; rdfs:domain jenkins:Build ; rdfs:range xsd:string .
+jenkins:buildNumber  a owl:DatatypeProperty ; rdfs:domain jenkins:Build ; rdfs:range xsd:positiveInteger .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  5. CROSS-DOMAIN BRIDGES  ← the heart of the unified KG
+# ═════════════════════════════════════════════════════════════════════════════
+#
+#  These properties are the primary reason to unify VCS, ITS, and CI.
+#  They enable queries like:
+#    "What issue motivated this commit?"
+#    "What build ran against this PR?"
+#    "What artifact was produced from this commit?"
+
+# ── VCS ↔ ITS ────────────────────────────────────────────────────────────────
+
+msr:closes
+    a owl:ObjectProperty ;
+    rdfs:domain msr:Revision ;
+    rdfs:range msr:Issue ;
+    rdfs:label "closes"@en ;
+    rdfs:comment "A Revision that closes/fixes/resolves an Issue. Populated from commit message keywords: closes, fixes, resolves + issue reference (e.g. 'Fixes #42', 'Closes PROJ-123')."@en .
+
+msr:resolvedBy
+    a owl:ObjectProperty ;
+    owl:inverseOf msr:closes ;
+    rdfs:domain msr:Issue ;
+    rdfs:range msr:Revision ;
+    rdfs:label "resolvedBy"@en ;
+    rdfs:comment "Inverse of msr:closes. The Revision that resolved this Issue."@en .
+
+msr:mentionedIn
+    a owl:ObjectProperty ;
+    rdfs:domain msr:Issue ;
+    rdfs:range msr:Revision ;
+    rdfs:label "mentionedIn"@en ;
+    rdfs:comment "Issue referenced in commit message but not explicitly closed."@en .
+
+# ── VCS ↔ CI ─────────────────────────────────────────────────────────────────
+
+msr:triggers
+    a owl:ObjectProperty ;
+    rdfs:range msr:BuildRun ;
+    rdfs:label "triggers"@en ;
+    rdfs:comment "Domain: msr:Revision or msr:ChangeProposal. A push or PR event that caused a pipeline to run."@en .
+
+msr:tests
+    a owl:ObjectProperty ;
+    rdfs:domain msr:BuildRun ;
+    rdfs:range msr:Revision ;
+    rdfs:label "tests"@en ;
+    rdfs:comment "The Revision whose code is being tested by this BuildRun."@en .
+
+# ── CI ↔ VCS (artifact provenance — use PROV-O directly) ─────────────────────
+#
+#  Recommended usage pattern:
+#    <artifact>  prov:wasGeneratedBy  <buildrun> .
+#    <artifact>  prov:wasDerivedFrom  <revision> .
+#    <buildrun>  prov:used            <revision-of-pipeline-definition> .
+#
+#  prov:Activity = msr:BuildRun
+#  prov:Entity   = msr:Artifact, msr:Revision
+
+# ── ITS ↔ CI ─────────────────────────────────────────────────────────────────
+
+msr:testedBy
+    a owl:ObjectProperty ;
+    rdfs:domain msr:ChangeProposal ;
+    rdfs:range msr:BuildRun ;
+    rdfs:label "testedBy"@en ;
+    rdfs:comment "A CI build run that was triggered by or validated this ChangeProposal."@en .
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  6. EXAMPLE INSTANCE SKETCH (comments — not executable, illustrative only)
+# ═════════════════════════════════════════════════════════════════════════════
+#
+#  @prefix ex: <https://data.example.org/> .
+#
+#  # ── Project scaffold ─────────────────────────────────────────────────────
+#  ex:myproject  a msr:Project ;
+#      msr:hasRepository    ex:repo-main ;
+#      msr:hasIssueTracker  ex:github-tracker ;
+#      msr:hasPipeline      ex:ci-workflow .
+#
+#  ex:repo-main  a git:Repository ;
+#      msr:repoUrl       "https://github.com/acme/myproject"^^xsd:anyURI ;
+#      msr:vcsType       "git" ;
+#      msr:defaultBranch "main" .
+#
+#  # ── VCS ──────────────────────────────────────────────────────────────────
+#  ex:commit-abc  a git:Commit ;
+#      msr:identifier  "abc123def456..." ;
+#      msr:message     "Fix null pointer in parser (closes #42)" ;
+#      msr:authoredAt  "2025-03-01T14:22:00Z"^^xsd:dateTime ;
+#      msr:authoredBy  ex:alice ;
+#      msr:hasParent   ex:commit-xyz ;
+#      msr:closes      ex:issue-42 .         # ← cross-domain bridge
+#
+#  # ── ITS ──────────────────────────────────────────────────────────────────
+#  ex:issue-42  a gh:Issue ;
+#      msr:issueId    "42" ;
+#      msr:title      "NullPointerException in Parser.parse()" ;
+#      msr:hasState   msr:ClosedState ;
+#      msr:reportedBy ex:bob ;
+#      msr:assignedTo ex:alice ;
+#      msr:resolvedBy ex:commit-abc .        # ← inverse of msr:closes
+#
+#  ex:pr-55  a gh:PullRequest ;
+#      msr:issueId    "55" ;                 # same id space as Issue on GitHub
+#      msr:sourceBranch "fix/null-parser" ;
+#      msr:targetBranch "main" ;
+#      msr:isDraft    false ;
+#      msr:proposes   ex:commit-abc ;
+#      msr:testedBy   ex:run-789 .           # ← ITS ↔ CI bridge
+#
+#  # ── CI ───────────────────────────────────────────────────────────────────
+#  ex:ci-workflow  a msr:Pipeline ;
+#      msr:pipelineName "CI" ;
+#      msr:toolType     "github-actions" ;
+#      msr:definitionPath ".github/workflows/ci.yml" ;
+#      msr:definedIn    ex:repo-main .
+#
+#  ex:run-789  a gha:WorkflowRun ;
+#      msr:buildStatus  "success" ;
+#      msr:startedAt    "2025-03-01T14:25:00Z"^^xsd:dateTime ;
+#      msr:finishedAt   "2025-03-01T14:31:00Z"^^xsd:dateTime ;
+#      msr:runBy        ex:ci-workflow ;
+#      msr:tests        ex:commit-abc .      # ← VCS ↔ CI bridge
+#
+#  ex:docker-v1  a msr:Artifact ;
+#      msr:artifactName  "myproject:1.0.0" ;
+#      msr:mediaType     "application/vnd.oci.image" ;
+#      msr:digestSha256  "sha256:deadbeef..." ;
+#      prov:wasGeneratedBy ex:run-789 ;       # ← PROV-O lineage
+#      prov:wasDerivedFrom ex:commit-abc .

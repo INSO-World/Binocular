@@ -49,11 +49,11 @@ internal data class RemoteEntity(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     override var id: Long? = null
 
-    fun toDomain(repository: Repository): Remote =
+    fun toDomain(repositoryId: Repository.Id): Remote =
         Remote(
             name = this.name,
             url = this.url,
-            repository = repository
+            repositoryId = repositoryId
         ).apply {
             this.id = this@RemoteEntity.id?.toString()
         }
@@ -80,4 +80,18 @@ internal fun Remote.toEntity(repository: RepositoryEntity): RemoteEntity =
         repository = repository,
     ).apply {
         id = this@toEntity.id?.trim()?.toLongOrNull()
+    }
+
+/**
+ * Converts a Remote domain object to RemoteEntity using only the repositoryId.
+ * The RepositoryEntity is looked up in the MappingContext by the caller.
+ */
+internal fun Remote.toEntityFromId(repositoryEntity: RepositoryEntity): RemoteEntity =
+    RemoteEntity(
+        iid = this.iid,
+        name = this.name,
+        url = this.url,
+        repository = repositoryEntity,
+    ).apply {
+        id = this@toEntityFromId.id?.trim()?.toLongOrNull()
     }
