@@ -3,8 +3,8 @@ binocular:
     migration:
       default-project-name: Binocular
     database:
-      name: "binocular-repo"
+      name: "binocular-binocular"
       host: "localhost"
       port: 8529
-      user: TODO
-      password: TODO
+      user: root
+      password: "binocular"

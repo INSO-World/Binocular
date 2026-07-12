@@ -1,28 +1,35 @@
-import React, { type ReactElement, useEffect, useState } from 'react';
-import tabControllerStyles from './tabController.module.scss';
-import tabHandleStyles from './tabHandle.module.scss';
-import TabDropHint from './tabDropHint/tabDropHint.tsx';
-import Tab, { type TabProps } from '../tab/tab.tsx';
-import TabMenuContent from '../tabMenuContent/tabMenuContent.tsx';
-import TabControllerButton from '../tabControllerButton/tabControllerButton.tsx';
-import { TabAlignment, type TabType } from '../../../types/general/tabType.ts';
-import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
-import { useSelector } from 'react-redux';
-import { setTabList } from '../../../redux/reducer/general/tabsReducer.ts';
-import _ from 'lodash';
-import TabControllerButtonThemeSwitch from '../tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx';
-import { type ContextMenuOption, showContextMenu } from '../../contextMenu/contextMenuHelper.ts';
-import showIcon from '../../../assets/show_gray.svg';
-import hideIcon from '../../../assets/hide_gray.svg';
-import arrowUpIcon from '../../../assets/arrow_up_gray.svg';
-import arrowRightIcon from '../../../assets/arrow_right_gray.svg';
-import arrowDownIcon from '../../../assets/arrow_down_gray.svg';
-import arrowLeftIcon from '../../../assets/arrow_left_gray.svg';
-import { DragDropElementType } from '../../../types/general/dragDropElementType.ts';
-import { addNotification } from '../../../redux/reducer/general/notificationsReducer.ts';
-import { AlertType } from '../../../types/general/alertType.ts';
-import { placeDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
-import LogoIconText from '../../../assets/logo_icon_text.svg';
+import React, { type ReactElement, useEffect, useState } from "react";
+import tabControllerStyles from "./tabController.module.scss";
+import tabHandleStyles from "./tabHandle.module.scss";
+import TabDropHint from "./tabDropHint/tabDropHint.tsx";
+import Tab, { type TabProps } from "../tab/tab.tsx";
+import TabMenuContent from "../tabMenuContent/tabMenuContent.tsx";
+import TabControllerButton from "../tabControllerButton/tabControllerButton.tsx";
+import { TabAlignment, type TabType } from "../../../types/general/tabType.ts";
+import {
+  type AppDispatch,
+  type RootState,
+  useAppDispatch,
+} from "../../../redux";
+import { useSelector } from "react-redux";
+import { setTabList } from "../../../redux/reducer/general/tabsReducer.ts";
+import _ from "lodash";
+import TabControllerButtonThemeSwitch from "../tabControllerButtonThemeSwitch/tabControllerButtonThemeSwitch.tsx";
+import {
+  type ContextMenuOption,
+  showContextMenu,
+} from "../../contextMenu/contextMenuHelper.ts";
+import showIcon from "../../../assets/show_gray.svg";
+import hideIcon from "../../../assets/hide_gray.svg";
+import arrowUpIcon from "../../../assets/arrow_up_gray.svg";
+import arrowRightIcon from "../../../assets/arrow_right_gray.svg";
+import arrowDownIcon from "../../../assets/arrow_down_gray.svg";
+import arrowLeftIcon from "../../../assets/arrow_left_gray.svg";
+import { DragDropElementType } from "../../../types/general/dragDropElementType.ts";
+import { addNotification } from "../../../redux/reducer/general/notificationsReducer.ts";
+import { AlertType } from "../../../types/general/alertType.ts";
+import { placeDashboardItem } from "../../../redux/reducer/general/dashboardReducer.ts";
+import LogoIconText from "../../../assets/logo_icon_text.svg";
 
 interface TabContents {
   [id: number]: ReactElement;
@@ -33,7 +40,11 @@ export interface TabElementType {
 }
 
 function TabController(props: {
-  children: ReactElement<{ children: ReactElement[] | ReactElement; displayName: string; alignment: TabAlignment }>[];
+  children: ReactElement<{
+    children: ReactElement[] | ReactElement;
+    displayName: string;
+    alignment: TabAlignment;
+  }>[];
   appName: string;
 }) {
   const dispatch: AppDispatch = useAppDispatch();
@@ -43,16 +54,36 @@ function TabController(props: {
 
   const [dragState, setDragState] = useState(false);
 
-  const [tabMenuContent] = useState(props.children.filter((child) => child.type === TabMenuContent)[0]);
+  const tabMenuContent = props.children.filter(
+    (child) => child.type === TabMenuContent,
+  )[0];
 
-  const tabBarTopCollapsed = tabList.filter((tab: TabType) => tab.alignment === TabAlignment.top && tab.selected).length === 0;
-  const tabBarRightCollapsed = tabList.filter((tab: TabType) => tab.alignment === TabAlignment.right && tab.selected).length === 0;
-  const tabBarBottomCollapsed = tabList.filter((tab: TabType) => tab.alignment === TabAlignment.bottom && tab.selected).length === 0;
-  const tabBarLeftCollapsed = tabList.filter((tab: TabType) => tab.alignment === TabAlignment.left && tab.selected).length === 0;
+  const tabBarTopCollapsed =
+    tabList.filter(
+      (tab: TabType) => tab.alignment === TabAlignment.top && tab.selected,
+    ).length === 0;
+  const tabBarRightCollapsed =
+    tabList.filter(
+      (tab: TabType) => tab.alignment === TabAlignment.right && tab.selected,
+    ).length === 0;
+  const tabBarBottomCollapsed =
+    tabList.filter(
+      (tab: TabType) => tab.alignment === TabAlignment.bottom && tab.selected,
+    ).length === 0;
+  const tabBarLeftCollapsed =
+    tabList.filter(
+      (tab: TabType) => tab.alignment === TabAlignment.left && tab.selected,
+    ).length === 0;
 
-  const tabCountRight = tabList.filter((tab: TabType) => tab.alignment === TabAlignment.right).length;
-  const tabCountBottom = tabList.filter((tab: TabType) => tab.alignment === TabAlignment.bottom).length;
-  const tabCountLeft = tabList.filter((tab: TabType) => tab.alignment === TabAlignment.left).length;
+  const tabCountRight = tabList.filter(
+    (tab: TabType) => tab.alignment === TabAlignment.right,
+  ).length;
+  const tabCountBottom = tabList.filter(
+    (tab: TabType) => tab.alignment === TabAlignment.bottom,
+  ).length;
+  const tabCountLeft = tabList.filter(
+    (tab: TabType) => tab.alignment === TabAlignment.left,
+  ).length;
 
   useEffect(() => {
     const [newTabList, tabContents] = generateTabs(props.children);
@@ -82,7 +113,8 @@ function TabController(props: {
             left: `calc(${tabControllerStyles.tabBarThickness} * ${tabCountLeft > 0 || dragState ? 1 : 0} + ${tabControllerStyles.tabContentThicknessVertical} * ${tabBarLeftCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 || dragState ? 2 : 1} - 10px)`,
             width: `calc(100% -  ${tabControllerStyles.tabContentThicknessVertical} * ${(tabBarLeftCollapsed ? 0 : 1) + (tabBarRightCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${(tabCountLeft > 0 || dragState ? 1 : 0) + (tabCountRight > 0 || dragState ? 1 : 0)} - 8px)`,
-          }}>
+          }}
+        >
           {tabMenuContent}
         </div>
       </>
@@ -90,59 +122,108 @@ function TabController(props: {
         {/*Background for all tabs. This has to be rendered before the tab handle for each tab and the content for each tab*/}
         <div
           className={
-            tabControllerStyles.tabContentBackgroundTop + (tabBarTopCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')
-          }></div>
+            tabControllerStyles.tabContentBackgroundTop +
+            (tabBarTopCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
+          }
+        ></div>
         <div
           className={
-            tabControllerStyles.tabContentBackgroundRight + (tabBarRightCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')
+            tabControllerStyles.tabContentBackgroundRight +
+            (tabBarRightCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
           }
           style={{
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
-          }}></div>
+          }}
+        ></div>
         <div
           className={
-            tabControllerStyles.tabContentBackgroundBottom + (tabBarBottomCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')
-          }></div>
+            tabControllerStyles.tabContentBackgroundBottom +
+            (tabBarBottomCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
+          }
+        ></div>
         <div
           className={
-            tabControllerStyles.tabContentBackgroundLeft + (tabBarLeftCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')
+            tabControllerStyles.tabContentBackgroundLeft +
+            (tabBarLeftCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
           }
           style={{
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
-          }}></div>
+          }}
+        ></div>
       </>
       <>
         {/*Handles for all tabs. Here all the handles for all the tabs get rendered */}
         <div
-          id={'tabBarTop'}
-          className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarHorizontal + ' ' + tabControllerStyles.tabBarTop}
+          id={"tabBarTop"}
+          className={
+            tabControllerStyles.tabBar +
+            " " +
+            tabControllerStyles.tabBarHorizontal +
+            " " +
+            tabControllerStyles.tabBarTop
+          }
           onDragOver={(event) => {
             event.stopPropagation();
             event.preventDefault();
           }}
           onDrop={(event) => {
             console.log(event);
-            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
-            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
-              moveTab(transferredData.tabName, TabAlignment.top, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            const transferredData = JSON.parse(
+              event.dataTransfer.getData("text/plain"),
+            );
+            if (
+              transferredData.dragDropElementType === DragDropElementType.Tab
+            ) {
+              moveTab(
+                transferredData.tabName,
+                TabAlignment.top,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+              );
             }
-          }}>
+          }}
+        >
           <div className={tabControllerStyles.appName}>
-            <img src={LogoIconText} alt={props.appName} className={'h-full'} />
+            <img src={LogoIconText} alt={props.appName} className={"h-full"} />
           </div>
 
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.top)
-            .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
+            .sort(
+              (tabA: TabType, tabB: TabType) => tabA.position - tabB.position,
+            )
+            .map((tab: TabType) =>
+              generateHandle(
+                tab,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+                dispatch,
+              ),
+            )}
         </div>
         <div
-          id={'tabBarRight'}
-          className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarVertical + ' ' + tabControllerStyles.tabBarRight}
+          id={"tabBarRight"}
+          className={
+            tabControllerStyles.tabBar +
+            " " +
+            tabControllerStyles.tabBarVertical +
+            " " +
+            tabControllerStyles.tabBarRight
+          }
           style={{
-            display: dragState || tabCountRight > 0 ? 'block' : 'none',
+            display: dragState || tabCountRight > 0 ? "block" : "none",
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
           }}
@@ -151,42 +232,96 @@ function TabController(props: {
             event.preventDefault();
           }}
           onDrop={(event) => {
-            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
-            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
-              moveTab(transferredData.tabName, TabAlignment.right, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            const transferredData = JSON.parse(
+              event.dataTransfer.getData("text/plain"),
+            );
+            if (
+              transferredData.dragDropElementType === DragDropElementType.Tab
+            ) {
+              moveTab(
+                transferredData.tabName,
+                TabAlignment.right,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+              );
             }
-          }}>
+          }}
+        >
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.right)
-            .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
+            .sort(
+              (tabA: TabType, tabB: TabType) => tabA.position - tabB.position,
+            )
+            .map((tab: TabType) =>
+              generateHandle(
+                tab,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+                dispatch,
+              ),
+            )}
         </div>
         <div
-          id={'tabBarBottom'}
-          className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarHorizontal + ' ' + tabControllerStyles.tabBarBottom}
+          id={"tabBarBottom"}
+          className={
+            tabControllerStyles.tabBar +
+            " " +
+            tabControllerStyles.tabBarHorizontal +
+            " " +
+            tabControllerStyles.tabBarBottom
+          }
           style={{
-            display: dragState || tabCountBottom > 0 ? 'block' : 'none',
+            display: dragState || tabCountBottom > 0 ? "block" : "none",
           }}
           onDragOver={(event) => {
             event.stopPropagation();
             event.preventDefault();
           }}
           onDrop={(event) => {
-            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
-            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
-              moveTab(transferredData.tabName, TabAlignment.bottom, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            const transferredData = JSON.parse(
+              event.dataTransfer.getData("text/plain"),
+            );
+            if (
+              transferredData.dragDropElementType === DragDropElementType.Tab
+            ) {
+              moveTab(
+                transferredData.tabName,
+                TabAlignment.bottom,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+              );
             }
-          }}>
+          }}
+        >
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.bottom)
-            .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
+            .sort(
+              (tabA: TabType, tabB: TabType) => tabA.position - tabB.position,
+            )
+            .map((tab: TabType) =>
+              generateHandle(
+                tab,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+                dispatch,
+              ),
+            )}
         </div>
         <div
-          id={'tabBarLeft'}
-          className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarVertical + ' ' + tabControllerStyles.tabBarLeft}
+          id={"tabBarLeft"}
+          className={
+            tabControllerStyles.tabBar +
+            " " +
+            tabControllerStyles.tabBarVertical +
+            " " +
+            tabControllerStyles.tabBarLeft
+          }
           style={{
-            display: dragState || tabCountLeft > 0 ? 'block' : 'none',
+            display: dragState || tabCountLeft > 0 ? "block" : "none",
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
           }}
@@ -195,29 +330,64 @@ function TabController(props: {
             event.preventDefault();
           }}
           onDrop={(event) => {
-            const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
-            if (transferredData.dragDropElementType === DragDropElementType.Tab) {
-              moveTab(transferredData.tabName, TabAlignment.left, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState);
+            const transferredData = JSON.parse(
+              event.dataTransfer.getData("text/plain"),
+            );
+            if (
+              transferredData.dragDropElementType === DragDropElementType.Tab
+            ) {
+              moveTab(
+                transferredData.tabName,
+                TabAlignment.left,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+              );
             }
-          }}>
+          }}
+        >
           {tabList
             .filter((tab: TabType) => tab.alignment === TabAlignment.left)
-            .sort((tabA: TabType, tabB: TabType) => tabA.position - tabB.position)
-            .map((tab: TabType) => generateHandle(tab, tabList, (tabs) => dispatch(setTabList(tabs)), setDragState, dispatch))}
+            .sort(
+              (tabA: TabType, tabB: TabType) => tabA.position - tabB.position,
+            )
+            .map((tab: TabType) =>
+              generateHandle(
+                tab,
+                tabList,
+                (tabs) => dispatch(setTabList(tabs)),
+                setDragState,
+                dispatch,
+              ),
+            )}
         </div>
       </>
       <>
         {/*Content for all tabs. Here all the content for all active tabs get rendered */}
-        <div className={tabControllerStyles.tabContentTop + (tabBarTopCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')}>
+        <div
+          className={
+            tabControllerStyles.tabContentTop +
+            (tabBarTopCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
+          }
+        >
           {
             tabList
-              .filter((tab: TabType) => tab.alignment === TabAlignment.top && tab.selected)
+              .filter(
+                (tab: TabType) =>
+                  tab.alignment === TabAlignment.top && tab.selected,
+              )
               .map((tab: TabType, i: number) => {
                 if (tabContents[tab.contentID] === undefined) {
                   return;
                 }
                 return (
-                  <Tab key={'tabTop' + i} displayName={tab.displayName} alignment={TabAlignment.top}>
+                  <Tab
+                    key={"tabTop" + i}
+                    displayName={tab.displayName}
+                    alignment={TabAlignment.top}
+                  >
                     {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
@@ -225,20 +395,33 @@ function TabController(props: {
           }
         </div>
         <div
-          className={tabControllerStyles.tabContentRight + (tabBarRightCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')}
+          className={
+            tabControllerStyles.tabContentRight +
+            (tabBarRightCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
+          }
           style={{
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
-          }}>
+          }}
+        >
           {
             tabList
-              .filter((tab: TabType) => tab.alignment === TabAlignment.right && tab.selected)
+              .filter(
+                (tab: TabType) =>
+                  tab.alignment === TabAlignment.right && tab.selected,
+              )
               .map((tab: TabType, i: number) => {
                 if (tabContents[tab.contentID] === undefined) {
                   return;
                 }
                 return (
-                  <Tab key={'tabRight' + i} displayName={tab.displayName} alignment={TabAlignment.right}>
+                  <Tab
+                    key={"tabRight" + i}
+                    displayName={tab.displayName}
+                    alignment={TabAlignment.right}
+                  >
                     {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
@@ -246,16 +429,29 @@ function TabController(props: {
           }
         </div>
         <div
-          className={tabControllerStyles.tabContentBottom + (tabBarBottomCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')}>
+          className={
+            tabControllerStyles.tabContentBottom +
+            (tabBarBottomCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
+          }
+        >
           {
             tabList
-              .filter((tab: TabType) => tab.alignment === TabAlignment.bottom && tab.selected)
+              .filter(
+                (tab: TabType) =>
+                  tab.alignment === TabAlignment.bottom && tab.selected,
+              )
               .map((tab: TabType, i: number) => {
                 if (tabContents[tab.contentID] === undefined) {
                   return;
                 }
                 return (
-                  <Tab key={'tabBottom' + i} displayName={tab.displayName} alignment={TabAlignment.bottom}>
+                  <Tab
+                    key={"tabBottom" + i}
+                    displayName={tab.displayName}
+                    alignment={TabAlignment.bottom}
+                  >
                     {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
@@ -263,20 +459,33 @@ function TabController(props: {
           }
         </div>
         <div
-          className={tabControllerStyles.tabContentLeft + (tabBarLeftCollapsed ? ' ' + tabControllerStyles.tabContentCollapsed : '')}
+          className={
+            tabControllerStyles.tabContentLeft +
+            (tabBarLeftCollapsed
+              ? " " + tabControllerStyles.tabContentCollapsed
+              : "")
+          }
           style={{
             top: `calc(${tabControllerStyles.tabBarThickness} + ${tabControllerStyles.tabContentThicknessHorizontal} * ${tabBarTopCollapsed ? 0 : 1} + 4px)`,
             height: `calc(100% - ${tabControllerStyles.tabContentThicknessHorizontal} * ${(tabBarTopCollapsed ? 0 : 1) + (tabBarBottomCollapsed ? 0 : 1)} - ${tabControllerStyles.tabBarThickness} * ${tabCountBottom > 0 ? 2 : 1} - 10px)`,
-          }}>
+          }}
+        >
           {
             tabList
-              .filter((tab: TabType) => tab.alignment === TabAlignment.left && tab.selected)
+              .filter(
+                (tab: TabType) =>
+                  tab.alignment === TabAlignment.left && tab.selected,
+              )
               .map((tab: TabType, i: number) => {
                 if (tabContents[tab.contentID] === undefined) {
                   return;
                 }
                 return (
-                  <Tab key={'tabLeft' + i} displayName={tab.displayName} alignment={TabAlignment.left}>
+                  <Tab
+                    key={"tabLeft" + i}
+                    displayName={tab.displayName}
+                    alignment={TabAlignment.left}
+                  >
                     {(tabContents[tab.contentID].props as TabProps).children}
                   </Tab>
                 );
@@ -286,11 +495,21 @@ function TabController(props: {
       </>
       <>
         {/*Additional Buttons. Here additional buttons like Settings or export get rendered that get displayed in the top right corner */}
-        <div className={tabControllerStyles.tabBar + ' ' + tabControllerStyles.tabBarHorizontal + ' ' + tabControllerStyles.tabBarTopRight}>
+        <div
+          className={
+            tabControllerStyles.tabBar +
+            " " +
+            tabControllerStyles.tabBarHorizontal +
+            " " +
+            tabControllerStyles.tabBarTopRight
+          }
+        >
           {props.children.filter(
             (child) =>
-              (child.type as TabElementType).name === TabControllerButton.name ||
-              (child.type as TabElementType).name === TabControllerButtonThemeSwitch.name,
+              (child.type as TabElementType).name ===
+                TabControllerButton.name ||
+              (child.type as TabElementType).name ===
+                TabControllerButtonThemeSwitch.name,
           )}
         </div>
       </>
@@ -352,15 +571,23 @@ function generateTabs(
   return [tabList, tabContents];
 }
 
-function changeTabVisibility(listTab: TabType, tab: TabType, visibility: boolean) {
+function changeTabVisibility(
+  listTab: TabType,
+  tab: TabType,
+  visibility: boolean,
+) {
   const localListTab = _.clone(listTab); //necessary because of reducer behavior of making ListTab read-only
   if (localListTab.alignment === tab.alignment) {
     if (localListTab.displayName === tab.displayName) {
       localListTab.selected = visibility;
-      document.getElementById('tab_' + localListTab.displayName)?.classList.add(tabHandleStyles.tabHandleSelected);
+      document
+        .getElementById("tab_" + localListTab.displayName)
+        ?.classList.add(tabHandleStyles.tabHandleSelected);
     } else {
       localListTab.selected = false;
-      document.getElementById('tab_' + localListTab.displayName)?.classList.remove(tabHandleStyles.tabHandleSelected);
+      document
+        .getElementById("tab_" + localListTab.displayName)
+        ?.classList.remove(tabHandleStyles.tabHandleSelected);
     }
   }
   return localListTab;
@@ -385,13 +612,14 @@ function generateHandle(
     <div
       key={tab.displayName}
       draggable={true}
-      id={'tab_' + tab.displayName}
+      id={"tab_" + tab.displayName}
       className={
-        (tab.alignment === TabAlignment.left || tab.alignment === TabAlignment.right
-          ? tabHandleStyles.tabHandle + ' ' + tabHandleStyles.tabHandleVertical
+        (tab.alignment === TabAlignment.left ||
+        tab.alignment === TabAlignment.right
+          ? tabHandleStyles.tabHandle + " " + tabHandleStyles.tabHandleVertical
           : tabHandleStyles.tabHandle) +
         (tab.selected
-          ? ' ' +
+          ? " " +
             (tab.alignment === TabAlignment.right
               ? tabHandleStyles.tabHandleSelectedVertical
               : tab.alignment === TabAlignment.bottom
@@ -399,10 +627,14 @@ function generateHandle(
                 : tab.alignment === TabAlignment.left
                   ? tabHandleStyles.tabHandleSelectedVertical
                   : tabHandleStyles.tabHandleSelectedTop)
-          : '')
+          : "")
       }
       onClick={() => {
-        setTabList(tabList.map((listTab) => changeTabVisibility(listTab, tab, !listTab.selected)));
+        setTabList(
+          tabList.map((listTab) =>
+            changeTabVisibility(listTab, tab, !listTab.selected),
+          ),
+        );
       }}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -411,40 +643,78 @@ function generateHandle(
         const contextMenuOptions: ContextMenuOption[] = [];
         if (tab.selected) {
           contextMenuOptions.push({
-            label: 'hide',
+            label: "hide",
             icon: hideIcon,
-            function: () => setTabList(tabList.map((listTab) => changeTabVisibility(listTab, tab, false))),
+            function: () =>
+              setTabList(
+                tabList.map((listTab) =>
+                  changeTabVisibility(listTab, tab, false),
+                ),
+              ),
           });
         } else {
           contextMenuOptions.push({
-            label: 'show',
+            label: "show",
             icon: showIcon,
-            function: () => setTabList(tabList.map((listTab) => changeTabVisibility(listTab, tab, true))),
+            function: () =>
+              setTabList(
+                tabList.map((listTab) =>
+                  changeTabVisibility(listTab, tab, true),
+                ),
+              ),
           });
         }
 
         const contextMenuOptionMoveTop: ContextMenuOption = {
-          label: 'move to top',
+          label: "move to top",
           icon: arrowUpIcon,
-          function: () => moveTab(tab.displayName, TabAlignment.top, tabList, setTabList, setDragState),
+          function: () =>
+            moveTab(
+              tab.displayName,
+              TabAlignment.top,
+              tabList,
+              setTabList,
+              setDragState,
+            ),
         };
 
         const contextMenuOptionMoveRight: ContextMenuOption = {
-          label: 'move to right',
+          label: "move to right",
           icon: arrowRightIcon,
-          function: () => moveTab(tab.displayName, TabAlignment.right, tabList, setTabList, setDragState),
+          function: () =>
+            moveTab(
+              tab.displayName,
+              TabAlignment.right,
+              tabList,
+              setTabList,
+              setDragState,
+            ),
         };
 
         const contextMenuOptionMoveBottom: ContextMenuOption = {
-          label: 'move to bottom',
+          label: "move to bottom",
           icon: arrowDownIcon,
-          function: () => moveTab(tab.displayName, TabAlignment.bottom, tabList, setTabList, setDragState),
+          function: () =>
+            moveTab(
+              tab.displayName,
+              TabAlignment.bottom,
+              tabList,
+              setTabList,
+              setDragState,
+            ),
         };
 
         const contextMenuOptionMoveLeft: ContextMenuOption = {
-          label: 'move to left',
+          label: "move to left",
           icon: arrowLeftIcon,
-          function: () => moveTab(tab.displayName, TabAlignment.left, tabList, setTabList, setDragState),
+          function: () =>
+            moveTab(
+              tab.displayName,
+              TabAlignment.left,
+              tabList,
+              setTabList,
+              setDragState,
+            ),
         };
 
         switch (tab.alignment) {
@@ -479,8 +749,11 @@ function generateHandle(
         setDragState(true);
         event.dataTransfer.clearData();
         event.dataTransfer.setData(
-          'text/plain',
-          JSON.stringify({ dragDropElementType: DragDropElementType.Tab, tabName: tab.displayName }),
+          "text/plain",
+          JSON.stringify({
+            dragDropElementType: DragDropElementType.Tab,
+            tabName: tab.displayName,
+          }),
         );
       }}
       onDragEnd={(event) => {
@@ -492,17 +765,31 @@ function generateHandle(
         event.preventDefault();
       }}
       onDragEnter={() => {
-        document.getElementById('tab_' + tab.displayName)?.classList.add(tabHandleStyles.tabHandleSwitch);
+        document
+          .getElementById("tab_" + tab.displayName)
+          ?.classList.add(tabHandleStyles.tabHandleSwitch);
       }}
       onDragLeave={() => {
-        document.getElementById('tab_' + tab.displayName)?.classList.remove(tabHandleStyles.tabHandleSwitch);
+        document
+          .getElementById("tab_" + tab.displayName)
+          ?.classList.remove(tabHandleStyles.tabHandleSwitch);
       }}
       onDrop={(event) => {
         event.stopPropagation();
-        document.getElementById('tab_' + tab.displayName)?.classList.remove(tabHandleStyles.tabHandleSwitch);
-        const transferredData = JSON.parse(event.dataTransfer.getData('text/plain'));
+        document
+          .getElementById("tab_" + tab.displayName)
+          ?.classList.remove(tabHandleStyles.tabHandleSwitch);
+        const transferredData = JSON.parse(
+          event.dataTransfer.getData("text/plain"),
+        );
         if (transferredData.dragDropElementType === DragDropElementType.Tab) {
-          switchTabs(transferredData.tabName, tab.displayName, tabList, setTabList, setDragState);
+          switchTabs(
+            transferredData.tabName,
+            tab.displayName,
+            tabList,
+            setTabList,
+            setDragState,
+          );
         } else {
           dispatch(placeDashboardItem(undefined));
           dispatch(
@@ -512,7 +799,8 @@ function generateHandle(
             }),
           );
         }
-      }}>
+      }}
+    >
       {tab.displayName}
     </div>
   );
@@ -568,15 +856,27 @@ function switchTabs(
   console.log(`Switching tab ${name} with ${targetTabName}`);
   setDragState(false);
   const tab = { ...tabList.filter((t) => t.displayName === name)[0] };
-  const targetTab = { ...tabList.filter((t) => t.displayName === targetTabName)[0] };
+  const targetTab = {
+    ...tabList.filter((t) => t.displayName === targetTabName)[0],
+  };
 
   setTabList(
     tabList.map((listTab) => {
       if (listTab.displayName === name) {
-        return { ...listTab, alignment: targetTab.alignment, position: targetTab.position, selected: targetTab.selected };
+        return {
+          ...listTab,
+          alignment: targetTab.alignment,
+          position: targetTab.position,
+          selected: targetTab.selected,
+        };
       }
       if (listTab.displayName === targetTabName) {
-        return { ...listTab, alignment: tab.alignment, position: tab.position, selected: tab.selected };
+        return {
+          ...listTab,
+          alignment: tab.alignment,
+          position: tab.position,
+          selected: tab.selected,
+        };
       }
       return listTab;
     }),

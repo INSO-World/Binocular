@@ -14,6 +14,7 @@ enum class MatchLayer {
 enum class MatchStatus {
     AUTO_MATCHED,
     PENDING_REVIEW,
+    LOW_CONFIDENCE,
     MANUALLY_CONFIRMED,
     MANUALLY_REJECTED
 }
