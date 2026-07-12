@@ -17,6 +17,11 @@ import org.springframework.validation.annotation.Validated
 internal class MergeRequestInfrastructurePortImpl :
     AbstractInfrastructurePort<MergeRequest, MergeRequestEntity, Long>(Long::class),
     MergeRequestInfrastructurePort {
+
+    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<MergeRequest> {
+        TODO("Not yet implemented")
+    }
+
     override fun update(value: MergeRequest): MergeRequest {
         TODO("Not yet implemented")
     }

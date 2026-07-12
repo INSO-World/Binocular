@@ -9,6 +9,7 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Milestone
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.enums.IssueAccountRole
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -19,6 +20,15 @@ import org.springframework.validation.annotation.Validated
 internal class IssueInfrastructurePortImpl :
     AbstractInfrastructurePort<Issue, IssueEntity, Long>(Long::class),
     IssueInfrastructurePort {
+
+    override fun findAccountsByIssueId(issueId: String, role: IssueAccountRole): List<Account> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findAll(pageable: Pageable, since: Long?, until: Long?): Page<Issue> {
+        TODO("Not yet implemented")
+    }
+
     override fun findAccountsByIssueId(issueId: String): List<Account> {
         TODO("Not yet implemented")
     }
