@@ -5,6 +5,16 @@ import com.inso_world.binocular.model.BranchExportData
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
+/**
+ * Builds a normalized JSON-LD export document from BranchExportData.
+ *
+ * The builder turns the input DTO into one JSON-LD artifact with a single @context
+ * and a @graph containing separate nodes for the root export, child commits,
+ * programmers, files, and file content versions.
+ *
+ * Its main responsibility is structural transformation and stable @id generation.
+ * It does not fetch data or validate the result.
+ */
 class JsonLdExportDocumentBuilder(
     private val objectMapper: ObjectMapper
 ) {
@@ -14,7 +24,22 @@ class JsonLdExportDocumentBuilder(
         const val ID_BASE = "https://data.inso-world.com/id/binocular"
     }
 
+    /**
+     * Builds the full JSON-LD export artifact for one branch snapshot.
+     *
+     * The result is emitted as a normalized graph:
+     * - one root BranchExport node
+     * - separate ChildCommitDetail nodes
+     * - separate Programmer nodes
+     * - separate FileContent nodes
+     * - separate Content/Version nodes
+     *
+     * References between nodes are represented via minted IRIs instead of nested objects.
+     */
     fun buildBranchExportDocument(exportData: BranchExportData): Map<String, Any> {
+
+        // Start from the DTO shape, then replace embedded objects and raw identifiers
+        // with JSON-LD node references and minted IRIs.
         val rootId = mintBranchExportId(exportData.branchId, exportData.commitSha)
 
         val rootNode = toMutableMap(exportData)
@@ -46,10 +71,15 @@ class JsonLdExportDocumentBuilder(
     }
 
     /**
-     * Builds:
-     * - fileNodes: FileContent nodes with filePath + content=[Version IRIs]
-     * - versionNodes: Content/Version nodes with @id + blobId + contentText
-     * - packagedVersionIris: flattened set of Version IRIs for root.fileContents
+     * Builds file-related graph nodes for the export.
+     *
+     * Returns:
+     * - fileNodes: nodes describing exported files
+     * - versionNodes: nodes describing concrete blob/content versions
+     * - packagedVersionIris: a flattened, de-duplicated list of version IRIs referenced by the root node
+     *
+     * Embedded DTO content entries are normalized into separate Version-like nodes so the
+     * JSON-LD graph uses explicit identity-based references instead of nested structures.
      */
     private fun buildFileAndVersionNodes(
         exportData: BranchExportData
@@ -57,7 +87,7 @@ class JsonLdExportDocumentBuilder(
 
         val versionNodes = mutableListOf<MutableMap<String, Any?>>()
         val fileNodes = mutableListOf<MutableMap<String, Any?>>()
-        val packagedVersionIris = linkedSetOf<String>() // preserves insertion order, de-dupes
+        val packagedVersionIris = linkedSetOf<String>()
 
         for (file in exportData.fileContents) {
             // Build File node (Artifact_CI-ish)
@@ -79,8 +109,8 @@ class JsonLdExportDocumentBuilder(
                 versionIrisForFile.add(versionIri)
                 packagedVersionIris.add(versionIri)
 
-                // Emit Version node once per blobId (de-dupe)
-                // (If you want strong de-dupe, keep a set; for minimal code, this is OK if blobIds are unique)
+                // Emit a version node for each export entry.
+                // If strong de-duplication by blobId is required, add a seen-set here.
                 val versionNode = linkedMapOf<String, Any?>(
                     "@id" to versionIri,
                     "@type" to "Content",
@@ -98,7 +128,14 @@ class JsonLdExportDocumentBuilder(
         return Triple(fileNodes, versionNodes, packagedVersionIris.toList())
     }
 
-
+    /**
+     * Converts child commit DTO entries into separate JSON-LD graph nodes.
+     *
+     * Each child receives:
+     * - a stable commit IRI
+     * - a typed JSON-LD node representation
+     * - a committer reference rewritten from raw id to Programmer IRI
+     */
     private fun buildChildCommitNodes(exportData: BranchExportData): List<MutableMap<String, Any?>> {
         return exportData.childrenCommits.map { child ->
             val childNode = toMutableMap(child)
@@ -152,6 +189,12 @@ class JsonLdExportDocumentBuilder(
         return "$ID_BASE/commit-internal/${urlEncode(commitId)}"
     }
 
+    /**
+     * Builds one Programmer node per distinct committer referenced in the export.
+     *
+     * Both the root committer and child committers are collected so all person references
+     * used in the graph resolve to explicit nodes.
+     */
     private fun buildProgrammerNodes(exportData: BranchExportData): List<Map<String, Any>> {
         val allCommitters = buildSet {
             add(exportData.committerId)

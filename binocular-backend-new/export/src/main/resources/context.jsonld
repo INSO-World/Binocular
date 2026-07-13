@@ -1,21 +1,33 @@
 {
-    "@context": {
-        "@version": 1.1,
-        "binocular": "https://data.inso-world.com/ontology/binocular#",
+  "@context": {
+    "@version": 1.1,
+    "binocular": "https://data.inso-world.com/ontology/binocular#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
 
-        "BranchExport": "binocular:BranchExport",
-        "ChildCommitDetail": "binocular:ChildCommitDetail",
+    "BranchExport": "binocular:BranchExport",
+    "ChildCommitDetail": "binocular:ChildCommitDetail",
+    "FileContent": "binocular:FileContent",
 
-        "branchName": "binocular:hasBranchName",
-        "latestCommitSha": "binocular:hasLatestCommitSha",
-        "parentCommitId": "binocular:referencesParentCommitId",
-        "parentCommitterId": "binocular:hasParentCommitterId",
-        "committerId": "binocular:hasCommitterId",
+    "branchName": "binocular:branch",
 
-        "childrenCommits": {
-          "@id": "binocular:hasChildCommits",
-          "@type": "@id",
-          "@container": "@set"
-        }
+    "commitSha": "binocular:commitSHA",
+    "message": "binocular:commitMessage",
+    "committerId": "binocular:wasAttributedTo",
+    "commitId": "binocular:commitId",
+
+
+    "filePath": "binocular:filePath",
+    "content": "binocular:fileContentData",
+    "id": "binocular:blobId",
+    "childrenCommits": {
+      "@id": "binocular:hasChildCommits",
+      "@type": "@id",
+      "@container": "@set"
+    },
+
+    "fileContents": {
+      "@id": "binocular:fileContents",
+      "@container": "@set"
     }
+  }
 }

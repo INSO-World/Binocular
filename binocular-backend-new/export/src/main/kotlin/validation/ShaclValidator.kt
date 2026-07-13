@@ -17,6 +17,16 @@ import com.inso_world.binocular.core.service.ShaclValidationPort
 import com.inso_world.binocular.model.ShaclReport
 import org.apache.jena.vocabulary.RDF
 
+/**
+ * Validates exported JSON-LD documents against the predefined SHACL shapes.
+ *
+ * The validator expects the exported document to reference the known remote @context URL.
+ * Before RDF parsing, that remote context reference is replaced with a local bundled copy
+ * so JSON-LD expansion works deterministically without depending on remote network access.
+ *
+ * The result is returned as a domain-level ShaclReport containing conformance status,
+ * critical errors, warnings, and the raw RDF validation report.
+ */
 @Service
 class ShaclValidator: ShaclValidationPort {
 
@@ -36,10 +46,8 @@ class ShaclValidator: ShaclValidationPort {
 
             val objectMapper = ObjectMapper()
 
-            // 1. Read the file stream into a JSON node
             val fileNode = objectMapper.readTree(inputStream)
 
-            // 2. Extract the content of the top-level "@context" key
             val innerContext = fileNode.get("@context")
 
             if (innerContext !is ObjectNode) {
@@ -47,7 +55,6 @@ class ShaclValidator: ShaclValidationPort {
                 throw IllegalStateException("Local context file is malformed.")
             }
 
-            // 3. Store the actual inner context object for replacement
             innerContext
         }
 
@@ -81,7 +88,6 @@ class ShaclValidator: ShaclValidationPort {
 
         val objectMapper = ObjectMapper()
 
-        // 1. Parse the incoming JSON-LD string
         val jsonNode = try {
             objectMapper.readTree(jsonLdString)
         } catch (e: Exception) {
@@ -89,7 +95,6 @@ class ShaclValidator: ShaclValidationPort {
             return ShaclReport(false, listOf("Malformed JSON: ${e.message}"))
         }
 
-        // 2. Ensure it's a JSON object and retrieve the @context
         if (jsonNode !is ObjectNode || !jsonNode.has("@context")) {
             logger.error("Input JSON-LD is not a valid object or is missing the @context key.")
             return ShaclReport(false, listOf("Missing @context key in input."))
@@ -97,10 +102,9 @@ class ShaclValidator: ShaclValidationPort {
 
         val contextNode = jsonNode.get("@context")
 
-        // 3. Prepare the local context content (localContextContent is a String)
         val localContextJson = localContextContent
 
-        // 4. Inject the local context content into the data graph's @context
+        // Inject the local context content into the data graph's @context
         if (contextNode.isTextual && contextNode.asText() == CONTEXT_URL) {
             (jsonNode as ObjectNode).replace("@context", localContextJson)
         } else {
@@ -108,11 +112,11 @@ class ShaclValidator: ShaclValidationPort {
             return ShaclReport(false, listOf("Invalid @context URL. Expected: $CONTEXT_URL"))
         }
 
-        // 5. Convert the modified JSON structure back to a string for Jena
+        // Convert the modified JSON structure back to a string for Jena
         val modifiedJsonLdString = objectMapper.writeValueAsString(jsonNode)
         // --- JSON INJECTION LOGIC END ---
 
-        // 1. Load the Data Graph (the MODIFIED JSON-LD output)
+        // Load the Data Graph
         try {
             RDFDataMgr.read(dataModel, StringReader(modifiedJsonLdString), null, Lang.JSONLD)
         } catch (e: Exception) {
@@ -120,10 +124,9 @@ class ShaclValidator: ShaclValidationPort {
             return ShaclReport(false, listOf("RDF Parsing Error: ${e.message}"))
         }
 
-        // 2. Run the validation
+        // Run the validation
         val report = ValidationUtil.validateModel(dataModel, shapes, true)
 
-        // 3. Check the results
         val conforms = report.getProperty(SH.conforms).boolean
 
         val rawRdfWriter = StringWriter()
@@ -148,7 +151,7 @@ class ShaclValidator: ShaclValidationPort {
                     criticalErrors.add(formattedMsg)
                 }
 
-                criticalErrors.add("[$path]: $message")
+//                criticalErrors.add("[$path]: $message")
             }
         } else {
             logger.info("SHACL Validation Successful. Data conforms to the ruleset.")

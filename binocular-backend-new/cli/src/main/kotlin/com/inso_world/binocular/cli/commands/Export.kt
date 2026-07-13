@@ -5,7 +5,6 @@ import com.inso_world.binocular.core.service.SeonExportPort
 import com.inso_world.binocular.core.service.ShaclValidationPort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.shell.command.annotation.Command
 import org.springframework.shell.command.annotation.Option
 
@@ -15,7 +14,7 @@ import org.springframework.shell.command.annotation.Option
     description = "Commands for exporting repository and related data sources",
 )
 open class Export (
-    @Autowired private val branchService: BranchService,
+    private val branchService: BranchService,
     private val expMapper: SeonExportPort,
     private val shaclValidator: ShaclValidationPort
 ) {
@@ -89,4 +88,4 @@ open class Export (
     }
 }
 // The branch to use: branches/15385, has multiple children commits
-// export project -b branches/15385 -p "D:/Binocular" --export-all
+// export project -b branches/15385 -p "D:/Binocular"
