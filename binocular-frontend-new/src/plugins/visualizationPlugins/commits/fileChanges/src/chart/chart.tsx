@@ -45,6 +45,7 @@ function Chart(props: {
    */
   //Redux Global State
   const current_file_total_commits: DataPluginCommit[] = useSelector((state: RootState) => state.plugin.current_file_total_commits);
+  const current_file: string = useSelector((state: RootState) => state.plugin.current_file);
   const dataState = useSelector((state: RootState) => state.plugin.dataState);
   const dateOverallFirstCommit = useSelector((state: RootState) => state.plugin.dateOfOverallFirstCommit);
   const dateOverallLastCommit = useSelector((state: RootState) => state.plugin.dateOfOverallLastCommit);
@@ -107,12 +108,13 @@ function Chart(props: {
       props.authorList,
       props.settings.splitAdditionsDeletions,
       props.parameters,
+      current_file,
     );
     setChartData(commitChartData);
     setChartScale(commitScale);
     setChartPalette(commitPalette);
     resize();
-  }, [current_file_commits, props.authorList, props.parameters, props.settings.splitAdditionsDeletions]);
+  }, [current_file_commits, props.authorList, props.parameters, props.settings.splitAdditionsDeletions, current_file]);
 
   useEffect(() => {
     const { mpc, entropy, maxBurst, maxChangeset, avgChangeset } = convertCommitDataToMetrics(

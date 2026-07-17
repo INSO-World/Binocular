@@ -11,6 +11,7 @@ export function convertCommitDataToChangesChartData(
   authors: AuthorType[],
   splitAdditionsDeletions: boolean,
   parameters: ParametersType,
+  currentFile: string,
 ): {
   commitChartData: CommitChartData[];
   commitScale: number[];
@@ -76,21 +77,19 @@ export function convertCommitDataToChangesChartData(
       }; //Save date of time bucket, create object
       for (; i < sortedCommits.length && Date.parse(sortedCommits[i].date) < nextTimestamp; i++) {
         //Iterate through commits that fall into this time bucket
-        let additions = 0;
         if (sortedCommits[i].files === undefined) continue;
-        for (const f of sortedCommits[i].files!.data) {
-          for (const h of f.hunks) {
-            if (h.newLines) {
-              additions += h.newLines;
-            }
+        // Only count hunks for the currently selected file, other files in the same commit are irrelevant here.
+        const fileEntry = sortedCommits[i].files!.data.find((f) => f.file.path === currentFile);
+        let additions = 0;
+        for (const h of fileEntry?.hunks ?? []) {
+          if (h.newLines) {
+            additions += h.newLines;
           }
         }
         let deletions = 0;
-        for (const f of sortedCommits[i].files!.data) {
-          for (const h of f.hunks) {
-            if (h.oldLines) {
-              deletions += h.oldLines;
-            }
+        for (const h of fileEntry?.hunks ?? []) {
+          if (h.oldLines) {
+            deletions += h.oldLines;
           }
         }
         const changes = additions + deletions;

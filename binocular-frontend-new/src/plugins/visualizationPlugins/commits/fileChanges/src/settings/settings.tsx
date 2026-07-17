@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useSyncExternalStore } from 'react';
 import { setGlobalCurrentFileData } from '../reducer';
 import type { Store } from '@reduxjs/toolkit';
 import type { FileListElementType } from '../../../../../../types/data/fileListType';
+
+const EMPTY_FILES: FileListElementType[] = [];
 
 export interface SettingsType {
   file: string;
@@ -49,16 +51,15 @@ function FileSelector({
 }
 
 function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void; store?: Store }) {
-  const [files, setFiles] = useState([]);
-
-  useEffect(() => {
-    const unsubscribe = props.store?.subscribe(() => {
-      setFiles(props.store?.getState().plugin.files);
-    });
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [props.store]);
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!props.store) return () => {};
+      return props.store.subscribe(callback);
+    },
+    [props.store],
+  );
+  const getSnapshot = useCallback(() => props.store?.getState()?.plugin?.files ?? EMPTY_FILES, [props.store]);
+  const files: FileListElementType[] = useSyncExternalStore(subscribe, getSnapshot);
 
   return (
     <>

@@ -96,7 +96,7 @@ describe('I17 — MockData → 6 data converters', () => {
       parametersGeneral: { granularity: 'weeks', excludeMergeCommits: false },
       parametersDateRange: { from: FROM, to: TO },
     };
-    const result = convertCommitDataToChangesChartData(commits, [], false, params);
+    const result = convertCommitDataToChangesChartData(commits, [], false, params, commits[0].files?.data[0]?.file.path ?? '');
 
     expect(result).toHaveProperty('commitChartData');
     expect(result).toHaveProperty('commitScale');
