@@ -107,7 +107,7 @@ export default abstract class DatabaseLoaders {
     // Clear old data only if updating an existing plugin
     if (existingPlugin) {
       console.log(`Updating PouchDB: preloaded (${metadata.createdAt}) is newer than existing`);
-      await PouchDB.clearRemains();
+      await PouchDB.clearRemains(metadata.namespace);
     } else {
       console.log(`Loading preconfigured PouchDB from ${metadata.namespace} created at ${metadata.createdAt}`);
     }

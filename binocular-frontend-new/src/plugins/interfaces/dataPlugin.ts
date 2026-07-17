@@ -41,7 +41,7 @@ export interface DataPlugin {
     progressUpdateConfig: ProgressUpdateConfig | undefined,
     setUploadInfo: (message: string) => void | undefined,
   ) => Promise<MetadataType | undefined>;
-  clearRemains: () => Promise<void>;
+  clearRemains: (name?: string) => Promise<void>;
   export?: () => Promise<{ [id: string]: JSONObject[] }>;
   initialMerges?: () => Promise<Array<{ child: string; parent: string }>>;
 }
