@@ -66,7 +66,8 @@ export default class Commits implements DataPluginCommits {
   public async getByFile(file: string) {
     console.log(`Getting Commits for file ${file}`);
     if (this.database && this.database.documentStore && this.database.edgeStore) {
-      return findAllCommits(this.database.documentStore, this.database.edgeStore).then((res: { docs: unknown[] }) => {
+      // Get all commits including file data with hunks
+      return findAllCommits(this.database.documentStore, this.database.edgeStore, true).then((res: { docs: unknown[] }) => {
         // Filter commits that have changes to the specified file
         const commits = (res.docs as DataPluginCommit[])
           .filter((commit) => {

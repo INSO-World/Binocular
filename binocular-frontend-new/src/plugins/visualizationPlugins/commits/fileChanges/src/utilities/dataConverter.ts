@@ -78,7 +78,7 @@ export function convertCommitDataToChangesChartData(
         //Iterate through commits that fall into this time bucket
         let additions = 0;
         if (sortedCommits[i].files === undefined) continue;
-        for (const f of sortedCommits[i].files.data) {
+        for (const f of sortedCommits[i].files!.data) {
           for (const h of f.hunks) {
             if (h.newLines) {
               additions += h.newLines;
@@ -86,7 +86,7 @@ export function convertCommitDataToChangesChartData(
           }
         }
         let deletions = 0;
-        for (const f of sortedCommits[i].files.data) {
+        for (const f of sortedCommits[i].files!.data) {
           for (const h of f.hunks) {
             if (h.oldLines) {
               deletions += h.oldLines;
