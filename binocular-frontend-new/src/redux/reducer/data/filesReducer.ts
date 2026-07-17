@@ -7,7 +7,6 @@ export interface FilesInitialState {
   fileTrees: { [id: number]: FileTreeElementType };
   fileLists: { [id: number]: FileListElementType[] };
   fileCounts: { [id: number]: number };
-  fileListPluginNames: { [id: number]: string };
   dataPluginId: number | undefined;
   selectedFileTreeElement?: FileTreeElementType;
   initialized: boolean;
@@ -17,7 +16,6 @@ const initialState: FilesInitialState = {
   fileTrees: {},
   fileLists: {},
   fileCounts: {},
-  fileListPluginNames: {},
   dataPluginId: undefined,
   selectedFileTreeElement: undefined,
   initialized: false,
@@ -34,19 +32,14 @@ export const filesSlice = createSlice({
         state.fileCounts = action.payload.fileCounts;
         state.fileTrees = action.payload.fileTrees;
         state.fileLists = action.payload.fileLists;
-        state.fileListPluginNames = action.payload.fileListPluginNames ?? {};
         state.dataPluginId = action.payload.dataPluginId;
       }
       state.initialized = true;
     },
-    setFileList: (
-      state,
-      action: PayloadAction<{ dataPluginId: number; pluginName: string; fileTree: FileTreeElementType; files: FileListElementType[] }>,
-    ) => {
+    setFileList: (state, action: PayloadAction<{ dataPluginId: number; fileTree: FileTreeElementType; files: FileListElementType[] }>) => {
       state.fileTrees[action.payload.dataPluginId] = action.payload.fileTree;
       state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
       state.fileLists[action.payload.dataPluginId] = action.payload.files;
-      state.fileListPluginNames[action.payload.dataPluginId] = action.payload.pluginName;
 
       const newState = JSON.stringify(state);
       writeFileListToStorage(newState);
@@ -104,7 +97,6 @@ export const filesSlice = createSlice({
       delete state.fileLists[action.payload];
       delete state.fileTrees[action.payload];
       delete state.fileCounts[action.payload];
-      delete state.fileListPluginNames[action.payload];
       const newState = JSON.stringify(state);
       writeFileListToStorage(newState);
     },

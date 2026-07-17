@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { setGlobalCurrentFileData } from '../reducer';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../../../../../redux';
-import type { FileListElementType } from '../../../../../../types/data/fileListType.ts';
+import type { Store } from '@reduxjs/toolkit';
+import type { FileListElementType } from '../../../../../../types/data/fileListType';
 
 export interface SettingsType {
   file: string;
@@ -15,22 +14,13 @@ export interface SettingsType {
 function FileSelector({
   selectedFile,
   onFileChange,
-  dataPluginId,
+  files,
 }: {
   selectedFile: string;
   onFileChange: (file: string) => void;
-  dataPluginId?: number;
+  files: FileListElementType[];
 }) {
-  const rawFiles = useSelector((state: RootState) => state.files.fileLists);
   const [searchTerm, setSearchTerm] = React.useState('');
-
-  if (!rawFiles || Object.keys(rawFiles).length === 0) {
-    return <div className="alert alert-warning">No files found. Load File Tree first.</div>;
-  }
-
-  // Use the specific data plugin's file list when available; fall back to the first entry.
-  const files: FileListElementType[] =
-    (dataPluginId !== undefined ? rawFiles[dataPluginId] : undefined) ?? (Object.values(rawFiles)[0] as FileListElementType[]);
 
   if (!files || files.length === 0) {
     return <div className="alert alert-warning">No files found. Load File Tree first.</div>;
@@ -58,7 +48,18 @@ function FileSelector({
   );
 }
 
-function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void; dataPluginId?: number }) {
+function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void; store?: Store }) {
+  const [files, setFiles] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = props.store?.subscribe(() => {
+      setFiles(props.store?.getState().plugin.files);
+    });
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [props.store]);
+
   return (
     <>
       <div>
@@ -105,7 +106,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
                 file: file,
               });
             }}
-            dataPluginId={props.dataPluginId}
+            files={files}
           />
         </label>
         <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">

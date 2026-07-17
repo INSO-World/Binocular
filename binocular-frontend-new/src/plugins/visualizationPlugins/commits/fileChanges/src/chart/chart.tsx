@@ -8,10 +8,11 @@ import type { SprintType } from '../../../../../../types/data/sprintType.ts';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ParametersType } from '../../../../../../types/parameters/parametersType.ts';
 import type { Store } from '@reduxjs/toolkit';
-import { DataState, setDateRange, setCurrentFile } from '../reducer';
+import { DataState, setDateRange, setCurrentFile, setFiles } from '../reducer';
 import { MetricsChart } from './metricsCharts.tsx';
 import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
+import type { FileListElementType } from '../../../../../../types/data/fileListType.ts';
 
 export interface CommitChartData {
   date: number;
@@ -26,6 +27,7 @@ function Chart(props: {
   settings: SettingsType;
   dataConnection: DataPlugin;
   authorList: AuthorType[];
+  fileList: FileListElementType[];
   sprintList: SprintType[];
   parameters: ParametersType;
   chartContainerRef: RefObject<HTMLDivElement>;
@@ -86,6 +88,10 @@ function Chart(props: {
   useEffect(() => {
     resize();
   }, [props.chartContainerRef]);
+
+  useEffect(() => {
+    dispatch(setFiles(props.fileList));
+  }, [props.fileList]);
 
   useEffect(() => {
     return handlePopoutResizing(props.store, () => resizeFnRef.current());

@@ -155,7 +155,9 @@ export async function findAllCommits(database: PouchDB.Database, relations: Pouc
   });
 
   commits.docs = await Promise.all(
-    commits.docs.map((c) => preprocessCommit(c, allCommits, commitUserConnections, commitCommitConnections, users, commitFiles, files, includeHunks)),
+    commits.docs.map((c) =>
+      preprocessCommit(c, allCommits, commitUserConnections, commitCommitConnections, users, commitFiles, files, includeHunks),
+    ),
   );
 
   return commits;
