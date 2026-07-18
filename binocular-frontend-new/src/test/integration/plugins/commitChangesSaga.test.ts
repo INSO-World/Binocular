@@ -124,15 +124,17 @@ describe('I6 — Visualization saga + reducer + MockData', () => {
     );
   });
 
-  // ── I6.7 — MockData returns exactly 11 commits ────────────────────────────
+  // ── I6.7 — MockData loads all commits into the store ──────────────────────
 
-  it('I6.7 — MockData.commits.getAll() returns exactly 11 commits', async () => {
+  it('I6.7 — MockData.commits.getAll() loads all mock commits into the store', async () => {
     const store = createTestStore(mockData);
     store.dispatch(setDateRange({ from: FROM, to: TO }));
 
     await vi.waitFor(() => expect(store.getState().plugin.dataState).toBe(DataState.COMPLETE), { timeout: 3000 });
 
-    expect(store.getState().plugin.commits).toHaveLength(11);
+    const expected = (await mockData.commits.getAll(FROM, TO)).length;
+    expect(expected).toBeGreaterThan(0);
+    expect(store.getState().plugin.commits).toHaveLength(expected);
   });
 
   // ── I6.8 — rapid REFRESH dispatches are throttled ─────────────────────────

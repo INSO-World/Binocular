@@ -39,9 +39,14 @@ export default class Database {
     return undefined;
   }
 
-  async delete() {
+  async delete(name?: string) {
+    if (!this.documentStore && !this.edgeStore && name) {
+      await this.createDB(name);
+    }
     await this.documentStore?.destroy();
     await this.edgeStore?.destroy();
+    this.documentStore = undefined;
+    this.edgeStore = undefined;
   }
 
   private async createDB(name: string) {

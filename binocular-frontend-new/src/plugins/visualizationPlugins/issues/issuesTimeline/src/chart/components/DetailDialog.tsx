@@ -13,10 +13,12 @@ import type { MappedSprint } from '../../../../../../../components/sprintAreas/S
  * @returns The `time` formatted as `'XXh YYmin'`.
  */
 const formatHours = (time: number) => {
-  const hours = Math.floor(time);
-  const minutes = Math.round((time % 1) * 60);
-
-  return `${hours}h ${minutes}min`;
+  const abs = Math.abs(time);
+  const h = Math.floor(abs);
+  const m = Math.round((abs % 1) * 60);
+  if (h === 0) return `${m}min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}min`;
 };
 
 // TODO refactor when Dialog is extendable
@@ -30,7 +32,9 @@ export const DetailDialogIssue: React.FC<{
 }> = ({ issues, anchor, personColorMap, iid, onClickClose }) => {
   const i = issues.find((i) => i.iid === iid);
 
-  const { aggregatedTimeTrackingData, totalTime } = aggregateTimeTrackingData(extractTimeTrackingDataFromNotes(i?.notes ?? []));
+  const noteTrackingData = extractTimeTrackingDataFromNotes(i?.notes ?? []);
+  const keyToName = new Map(noteTrackingData.map((d) => [d.author.user?.gitSignature ?? d.author.name, d.author.name]));
+  const { aggregatedTimeTrackingData } = aggregateTimeTrackingData(noteTrackingData);
 
   return (
     <BaseDetailDialogLayout invisible={!i} anchor={anchor} onClickClose={onClickClose}>
@@ -64,16 +68,14 @@ export const DetailDialogIssue: React.FC<{
         <>
           <div className={'divider'} />
 
-          <h6>Time Tracking ({i?.assignees.length}):</h6>
-          <ul>
-            {[...aggregatedTimeTrackingData.entries()].map(([key, value]) => (
+          <h6>Time Tracking ({aggregatedTimeTrackingData.size}):</h6>
+          <ul className={'flex flex-col gap-1'}>
+            {Array.from(aggregatedTimeTrackingData.entries()).map(([key, value]) => (
               <li
                 key={key}
-                style={{
-                  width: `${(100 / totalTime) * value}%`,
-                  backgroundColor: personColorMap.get(key)?.main ?? 'lightgrey',
-                }}>
-                {formatHours(value)}
+                className={'px-2 py-1 rounded text-sm'}
+                style={{ borderLeft: `5px solid ${personColorMap.get(key)?.main ?? 'lightgrey'}` }}>
+                {keyToName.get(key) ?? key}: {formatHours(value)}
               </li>
             ))}
           </ul>

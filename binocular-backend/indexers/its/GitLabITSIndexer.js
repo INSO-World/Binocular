@@ -202,21 +202,24 @@ class GitLabITSIndexer extends BaseGitLabIndexer {
               // store the milestone this issue belongs to separately
               const milestoneIid = mergeRequest.milestone?.iid;
 
-              // only keep properties from MergeRequestDto
-              const mergeRequestDto = _.pick(mergeRequest, [
-                'id',
-                'iid',
-                'title',
-                'description',
-                'createdAt',
-                'closedAt',
-                'updatedAt',
-                'labels',
-                'state',
-                'webUrl',
-                'projectId',
-                'mentions',
-              ]);
+              // convert snake_case GitLab API keys to camelCase, then keep only MergeRequestDto properties
+              const mergeRequestDto = _.pick(
+                _.mapKeys(mergeRequest, (v, k) => _.camelCase(k)),
+                [
+                  'id',
+                  'iid',
+                  'title',
+                  'description',
+                  'createdAt',
+                  'closedAt',
+                  'updatedAt',
+                  'labels',
+                  'state',
+                  'webUrl',
+                  'projectId',
+                  'mentions',
+                ],
+              );
               if (!existingMergeRequest) {
                 mrEntry = (await MergeRequest.persist(mergeRequestDto))[0];
               } else {

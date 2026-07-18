@@ -26,6 +26,7 @@ const emptyState: FilesInitialState = {
   fileTrees: {},
   fileLists: {},
   fileCounts: {},
+  fileListPluginNames: {},
   dataPluginId: undefined,
 };
 
@@ -72,14 +73,14 @@ describe('filesReducer – setFileList', () => {
   it('U27.2 stores tree, list, count under dataPluginId', () => {
     const files = [makeFile('src/a.ts'), makeFile('src/b.ts')];
     const tree = makeFileTree(10);
-    const state = reducer(emptyState, setFileList({ dataPluginId: 1, fileTree: tree, files }));
+    const state = reducer(emptyState, setFileList({ dataPluginId: 1, pluginName: 'Test', fileTree: tree, files }));
     expect(state.fileTrees[1]).toBe(tree);
     expect(state.fileLists[1]).toHaveLength(2);
     expect(state.fileCounts[1]).toBe(2);
   });
 
   it('U27.3 calls writeFileListToStorage', () => {
-    reducer(emptyState, setFileList({ dataPluginId: 1, fileTree: makeFileTree(1), files: [] }));
+    reducer(emptyState, setFileList({ dataPluginId: 1, pluginName: 'Test', fileTree: makeFileTree(1), files: [] }));
     expect(writeFileListToStorage).toHaveBeenCalledOnce();
   });
 });
@@ -194,6 +195,7 @@ describe('filesReducer – removeFileList', () => {
       fileTrees: { 1: makeFileTree(1), 2: makeFileTree(2) },
       fileLists: { 1: [], 2: [] },
       fileCounts: { 1: 0, 2: 0 },
+      fileListPluginNames: { 1: 'A', 2: 'B' },
       dataPluginId: 1,
     };
     const state = reducer(stateWith, removeFileList(1));
@@ -282,6 +284,7 @@ describe('filesReducer – removeFileList (extended)', () => {
         2: [{ element: { path: 'b.ts', webUrl: '', maxLength: 0 }, checked: true }],
       },
       fileCounts: { 1: 1, 2: 1 },
+      fileListPluginNames: { 1: 'A', 2: 'B' },
       dataPluginId: 2,
     };
     const state = reducer(stateWith2, removeFileList(1));

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CommitByFileViz } from './commitByFileViz.tsx';
 import type { SettingsType } from '../settings/settings.tsx';
 import type { DataPluginCommitFile } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommitsFiles.ts';
@@ -17,12 +17,16 @@ function Chart(props: Readonly<VisualizationPluginProperties<SettingsType, DataP
   const data = useSelector((state: RootState) => state.plugin.commitFiles);
   const dataState = useSelector((state: RootState) => state.plugin.dataState);
   const commits = useSelector((state: RootState) => state.plugin.commits);
-  const commitOptions = commits.map((commit: DataPluginCommitShort) => ({
-    value: commit.sha,
-    label: `${commit.messageHeader} (${commit.sha.slice(0, 7)})`,
-  }));
-
-  const [selectedCommit, setSelectedCommit] = useState<{ value: string; label: string } | null>(null);
+  const sha = useSelector((state: RootState) => state.plugin.sha);
+  const commitOptions = useMemo(
+    () =>
+      commits.map((commit: DataPluginCommitShort) => ({
+        value: commit.sha,
+        label: `${commit.messageHeader} (${commit.sha.slice(0, 7)})`,
+      })),
+    [commits],
+  );
+  const selectedCommit = useMemo(() => commitOptions.find((o: { value: string }) => o.value === sha) ?? null, [commitOptions, sha]);
 
   useEffect(() => {
     dispatch({
@@ -47,11 +51,14 @@ function Chart(props: Readonly<VisualizationPluginProperties<SettingsType, DataP
     return () => resizeObserver.disconnect();
   }, [chartAreaRef]);
 
-  const handleCommitSelect = (selectedOption: { value: string; label: string } | null) => {
-    if (!selectedOption) {
-      return;
+  useEffect(() => {
+    if (commitOptions.length > 0 && !sha) {
+      dispatch(setSha(commitOptions[0].value));
     }
-    setSelectedCommit(selectedOption);
+  }, [commitOptions]);
+
+  const handleCommitSelect = (selectedOption: { value: string; label: string } | null) => {
+    if (!selectedOption) return;
     dispatch(setSha(selectedOption.value));
   };
 

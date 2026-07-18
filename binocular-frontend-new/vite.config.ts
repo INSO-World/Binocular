@@ -5,10 +5,37 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 import ConditionalCompile from 'vite-plugin-conditional-compiler';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve as pathResolve, dirname } from 'node:path';
+import JSZip from 'jszip';
+
+function jsonZipPlugin() {
+  return {
+    name: 'vite-plugin-json-zip',
+    enforce: 'pre' as const,
+    resolveId(id: string, importer: string | undefined) {
+      if (!id.includes('.json.zip') || !importer) return null;
+      const bare = id.split('?')[0];
+      const query = id.includes('?') ? '?' + id.split('?')[1] : '';
+      if (pathResolve(bare) === bare) return null; // already absolute
+      const resolved = pathResolve(dirname(importer.split('?')[0]), bare);
+      if (existsSync(resolved)) return resolved + query;
+      return null;
+    },
+    async load(id: string) {
+      if (!id.endsWith('.json.zip')) return null;
+      const zip = await JSZip.loadAsync(readFileSync(id));
+      const name = Object.keys(zip.files).find((n) => n.endsWith('.json'))!;
+      const json = await zip.file(name)!.async('string');
+      return `export default ${JSON.stringify(JSON.parse(json))}`;
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 const backendHost = process.env.BACKEND_URL ?? 'localhost';
 export default defineConfig({
+  assetsInclude: ['**/*.json.zip'],
   server: {
     port: 8080,
     proxy: {
@@ -27,7 +54,7 @@ export default defineConfig({
       },
     },
   },
-  plugins: [nodePolyfills(), react(), ConditionalCompile(), viteSingleFile()],
+  plugins: [jsonZipPlugin(), nodePolyfills(), react(), ConditionalCompile(), viteSingleFile()],
   build: {
     emptyOutDir: true,
     outDir: '../dist',

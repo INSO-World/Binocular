@@ -170,6 +170,8 @@ export const {
 } = dashboardSlice.actions;
 export default dashboardSlice.reducer;
 
+export { findNextFreePosition };
+
 function checkIfSpaceIsFree(dashboardState: number[][], item: DashboardItemType) {
   if (item.x !== undefined && item.y !== undefined) {
     for (let y = item.y; y < item.y + item.height; y++) {

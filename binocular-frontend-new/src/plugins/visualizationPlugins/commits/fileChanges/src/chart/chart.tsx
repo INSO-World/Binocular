@@ -8,10 +8,11 @@ import type { SprintType } from '../../../../../../types/data/sprintType.ts';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ParametersType } from '../../../../../../types/parameters/parametersType.ts';
 import type { Store } from '@reduxjs/toolkit';
-import { DataState, setDateRange } from '../reducer';
+import { DataState, setDateRange, setCurrentFile, setFiles } from '../reducer';
 import { MetricsChart } from './metricsCharts.tsx';
 import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
 import { handlePopoutResizing } from '../../../../../utils/resizing.ts';
+import type { FileListElementType } from '../../../../../../types/data/fileListType.ts';
 
 export interface CommitChartData {
   date: number;
@@ -26,6 +27,7 @@ function Chart(props: {
   settings: SettingsType;
   dataConnection: DataPlugin;
   authorList: AuthorType[];
+  fileList: FileListElementType[];
   sprintList: SprintType[];
   parameters: ParametersType;
   chartContainerRef: RefObject<HTMLDivElement>;
@@ -43,6 +45,7 @@ function Chart(props: {
    */
   //Redux Global State
   const current_file_total_commits: DataPluginCommit[] = useSelector((state: RootState) => state.plugin.current_file_total_commits);
+  const current_file: string = useSelector((state: RootState) => state.plugin.current_file);
   const dataState = useSelector((state: RootState) => state.plugin.dataState);
   const dateOverallFirstCommit = useSelector((state: RootState) => state.plugin.dateOfOverallFirstCommit);
   const dateOverallLastCommit = useSelector((state: RootState) => state.plugin.dateOfOverallLastCommit);
@@ -88,6 +91,10 @@ function Chart(props: {
   }, [props.chartContainerRef]);
 
   useEffect(() => {
+    dispatch(setFiles(props.fileList));
+  }, [props.fileList]);
+
+  useEffect(() => {
     return handlePopoutResizing(props.store, () => resizeFnRef.current());
   }, [props.store]);
   /**
@@ -101,12 +108,13 @@ function Chart(props: {
       props.authorList,
       props.settings.splitAdditionsDeletions,
       props.parameters,
+      current_file,
     );
     setChartData(commitChartData);
     setChartScale(commitScale);
     setChartPalette(commitPalette);
     resize();
-  }, [current_file_commits, props.authorList, props.parameters, props.settings.splitAdditionsDeletions]);
+  }, [current_file_commits, props.authorList, props.parameters, props.settings.splitAdditionsDeletions, current_file]);
 
   useEffect(() => {
     const { mpc, entropy, maxBurst, maxChangeset, avgChangeset } = convertCommitDataToMetrics(
@@ -127,12 +135,18 @@ function Chart(props: {
     dispatch(setDateRange(props.parameters.parametersDateRange));
   }, [props.parameters.parametersDateRange]);
 
-  //Trigger Refresh when dataConnection changes
+  //Trigger Refresh when dataConnection changes; also sync settings.file into Redux state
   useEffect(() => {
-    dispatch({
-      type: 'REFRESH',
-    });
+    if (props.settings.file) {
+      dispatch(setCurrentFile(props.settings.file));
+    } else {
+      dispatch({ type: 'REFRESH' });
+    }
   }, [props.dataConnection]);
+
+  useEffect(() => {
+    dispatch(setCurrentFile(props.settings.file));
+  }, [props.settings.file]);
 
   if (props.settings.file == null || props.settings.file === '') {
     return (
