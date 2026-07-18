@@ -44,6 +44,15 @@ scalar Sort
            repoPath: String!
        ): [FileComplexityMinorContributors!]!
 
+       moduleSizeChangeFrequency(
+         repoPath: String!
+         since: Timestamp!
+         until: Timestamp!
+         neededModules: [String!]!
+       ): [ModuleSizeChangeFrequency!]!
+
+
+
   # Single item queries
   commit(sha: String!): Commit
   account(id: ID!): Account
@@ -471,3 +480,8 @@ type FileComplexityMinorContributors {
   nfix: Int!
 }
 
+type ModuleSizeChangeFrequency {
+  module: String!
+  loc: Int!
+  changeFrequency: Int!
+}

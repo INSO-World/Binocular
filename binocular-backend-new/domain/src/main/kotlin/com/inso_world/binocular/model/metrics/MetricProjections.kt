@@ -1,5 +1,7 @@
 package com.inso_world.binocular.model.metrics
 
+import org.hibernate.validator.constraints.Range
+
 /*
  * Small database-agnostic value objects that carry the results of the metric aggregation
  * queries from the persistence layer up to the service. They hold plain numbers only -
@@ -67,5 +69,11 @@ data class CiRatePerModule(
  */
 data class AuthorContribution(
     val gitSignature: String,
-    val percentage: Double,
+    @field:Range(min = 0, max = 1) val percentage: Double,
+)
+
+data class ModuleSizeCount(
+    val module: String,
+    val loc: Long,
+    val changeFrequency: Long,
 )

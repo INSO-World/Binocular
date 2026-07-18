@@ -18,6 +18,7 @@ import com.inso_world.binocular.model.metrics.AuthorPeriodCount
 import com.inso_world.binocular.model.metrics.CiRateBucket
 import com.inso_world.binocular.model.metrics.CiRatePerModule
 import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
+import com.inso_world.binocular.model.metrics.ModuleSizeCount
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
@@ -138,6 +139,15 @@ internal class RepositoryInfrastructurePortImpl : RepositoryInfrastructurePort,
         neededModules: List<String>,
     ): Sequence<CiRatePerModule> {
         return this.moduleDao.findCiErrorRateByModule(since, until, neededModules).asSequence()
+    }
+
+    override fun findSizeAndChangeFrequencyByModule(
+        repository: Repository?,
+        since: Long,
+        until: Long,
+        neededModules: List<String>
+    ): Sequence<ModuleSizeCount> {
+        return this.moduleDao.findSizeAndChangeFrequencyByModule(since, until, neededModules).asSequence()
     }
 
 }

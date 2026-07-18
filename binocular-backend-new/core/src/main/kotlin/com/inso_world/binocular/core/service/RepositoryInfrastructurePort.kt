@@ -10,6 +10,7 @@ import com.inso_world.binocular.model.metrics.AuthorPeriodCount
 import com.inso_world.binocular.model.metrics.CiRateBucket
 import com.inso_world.binocular.model.metrics.CiRatePerModule
 import com.inso_world.binocular.model.metrics.FileComplexityMinorContributors
+import com.inso_world.binocular.model.metrics.ModuleSizeCount
 
 interface RepositoryInfrastructurePort : BinocularInfrastructurePort<Repository, Repository.Id> {
     fun findByName(name: String): Repository?
@@ -95,4 +96,8 @@ interface RepositoryInfrastructurePort : BinocularInfrastructurePort<Repository,
         until: Long,
         neededModules: List<String>
     ): Sequence<CiRatePerModule>
+
+    fun findSizeAndChangeFrequencyByModule(
+        repository: Repository?, since: Long, until: Long, neededModules: List<String>
+    ): Sequence<ModuleSizeCount>
 }
