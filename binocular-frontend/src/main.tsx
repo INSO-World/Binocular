@@ -38,6 +38,7 @@ import timeSpent from './visualizations/VisualizationComponents/timeSpent';
 import codeOwnership from './visualizations/code-ownership';
 import distributionDials from './visualizations/distribution-dials';
 import RootOffline from './components/RootOffline';
+import issueLabels from './visualizations/issue-labels';
 
 const visualizationModules = [
   dashboard,
@@ -53,6 +54,7 @@ const visualizationModules = [
   issueBreakdown,
   changes,
   dataExport,
+  issueLabels,
 ];
 
 Database.checkBackendConnection().then((connection) => {

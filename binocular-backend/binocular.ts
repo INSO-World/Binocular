@@ -44,7 +44,7 @@ import CommitUserConnection from './models/connections/CommitUserConnection.ts';
 import IssueUserConnection from './models/connections/IssueUserConnection.ts';
 import IssueCommitConnection from './models/connections/IssueCommitConnection.ts';
 import MergeRequestCommitConnection from './models/connections/MergeRequestCommitConnection.ts';
-import MergeRequestIssueConnection from './models/connections/MergeRequestIssueConnection.ts';
+import IssueMergeRequestConnection from './models/connections/IssueMergeRequestConnection.ts';
 import CommitCommitConnection from './models/connections/CommitCommitConnection.ts';
 import CommitModuleConnection from './models/connections/CommitModuleConnection.ts';
 import ModuleModuleConnection from './models/connections/ModuleModuleConnection.ts';
@@ -600,7 +600,7 @@ function runBackend() {
           IssueUserConnection.ensureCollection(),
           IssueCommitConnection.ensureCollection(),
           MergeRequestCommitConnection.ensureCollection(),
-          MergeRequestIssueConnection.ensureCollection(),
+          IssueMergeRequestConnection.ensureCollection(),
           IssueNoteConnection.ensureCollection(),
           MergeRequestNoteConnection.ensureCollection(),
           NoteAccountConnection.ensureCollection(),
@@ -688,7 +688,7 @@ function runBackend() {
       }
     }
     //remove the temporary `mentions` attribute since we have the connections now
-    // await Issue.deleteMentionsAttribute();
+    await Issue.deleteMentionsAttribute();
   }
 
   async function connectMergeRequestsAndCommits() {
@@ -708,7 +708,7 @@ function runBackend() {
       }
     }
     //remove the temporary `mentions` attribute since we have the connections now
-    //await MergeRequest.deleteMentionsAttribute();
+    await MergeRequest.deleteMentionsAttribute();
   }
 
   async function connectMergeRequestsAndIssues() {
@@ -723,7 +723,7 @@ function runBackend() {
       for (const closingIssue of mergeRequest.data.closingIssues) {
         const issue = issues.filter((c: any) => c.data.id === closingIssue);
         if (issue && issue[0]) {
-          await MergeRequestIssueConnection.connect({}, { from: mergeRequest, to: issue[0] });
+          await IssueMergeRequestConnection.connect({}, { from: issue[0], to: mergeRequest });
         }
       }
     }
