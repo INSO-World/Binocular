@@ -1,0 +1,10 @@
+@use './variables.scss' as *;
+
+.mainView{
+  width: 100%;
+  height: calc(100% - $statusBarHeight);
+}
+.statusBar{
+  height: $statusBarHeight;
+  width: 100%;
+}

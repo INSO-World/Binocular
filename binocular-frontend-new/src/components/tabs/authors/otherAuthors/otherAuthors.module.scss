@@ -1,0 +1,97 @@
+@use '../../../../variables.scss' as *;
+@reference "../../../../index.scss";
+
+$authorRowHeight :1.5rem;
+
+.authorList{
+  @apply bg-base-100;
+  overflow: hidden;
+  border-radius: $border-radius-default;
+  transition: max-height ease-in-out .2s;
+}
+
+.authorListHorizontal{
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  margin-left: .5rem;
+  height: 3rem;
+  max-width: 30rem;
+  box-shadow: $shadow-default-inset;
+  overflow: hidden;
+}
+
+.authorListVertical{
+  width: 100%;
+  max-height: 30rem;
+  overflow-y: scroll;
+}
+
+.authorContainer{
+  height: $authorRowHeight;
+  width: 100%;
+  margin-top: .5rem;
+}
+
+.authorName{
+  position:relative;
+  height: $authorRowHeight !important;
+  width: calc(100% - $authorRowHeight - 1rem);
+  float: left;
+  @apply btn;
+  overflow: hidden;
+  border: 2px solid;
+}
+
+.authorNameBackground{
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  opacity: .5;
+  pointer-events: none;
+}
+
+.authorContainerHorizontal{
+  flex-shrink: 0;
+  width: 15rem;
+}
+
+.authorDropOther{
+  @apply text-xs;
+  width: 100%;
+  height: $authorRowHeight;
+  border: 2px dashed;
+  @apply border-accent;
+  margin: .5rem 0;
+  @apply btn;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.authorDropOtherHorizontal{
+  font-size: .6rem;
+  flex-shrink: 0;
+  height: 2.5rem;
+  width: 5rem;
+  margin-left: .5rem;
+}
+
+.authorDropOtherVertical{
+}
+
+.authorListHorizontalScrollArea{
+  scrollbar-width: thin;
+  scrollbar-color: oklch(var(--bc) / 0.3) transparent;
+
+  &::-webkit-scrollbar{
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track{
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb{
+    background: oklch(var(--bc) / 0.3);
+    border-radius: 2px;
+  }
+}

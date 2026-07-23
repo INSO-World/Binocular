@@ -1,53 +1,110 @@
-version: "3.8"
+x-binocular-backend-image: &binocular-backend-image ghcr.io/inso-world/binocular-backend:${TAG:-latest} #:${TAG:-latest-dev}
+x-binocular-db-image: &binocular-db-image arangodb:3.12 #ghcr.io/inso-world/binocular-database:6773404196 #:${TAG:-latest-dev}
+x-binocular-frontend-image: &binocular-frontend-image ghcr.io/inso-world/binocular-frontend:${TAG:-latest}
+x-binocular-volumes-backend: &binocular-volumes-backend
+  - "${REPO_PATH:-./}:/app/binocular/${REPO_NAME:-repo}"
+x-binocular-build-args: &binocular-build-args
+  NODE_VERSION: "22.21.1" # check if same as in .nvmrc!
+
+networks:
+  binocular:
 
 services:
   db:
-    # image: ghcr.io/inso-tuwien/binocular-database:latest
-    image: ghcr.io/inso-tuwien/binocular-database:6773404196
+    image: *binocular-db-image
     container_name: binocular_db
     restart: unless-stopped
+    environment:
+      ARANGO_NO_AUTH: 1
     ports:
       - "8529:8529"
+    networks:
+      - binocular
+    volumes:
+      - ./docker/arangodb/data:/var/lib/arangodb3
+    healthcheck:
+      test: ["CMD", "/usr/bin/wget", "-qO", "/dev/null", "http://127.0.0.1:8529/_api/version"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   binocular-init:
-    # image: ghcr.io/inso-tuwien/binocular-backend:latest
-    # image: ghcr.io/inso-tuwien/binocular-backend:latest-local
-    image: ghcr.io/inso-tuwien/binocular-backend:6812925569
+    image: *binocular-backend-image
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     container_name: "binocular_init"
-    # user: "root"
+    working_dir: "/app/binocular/backend"
+    entrypoint: ["/bin/sh"]
+    environment:
+      - DEBUG=idx*,importer*,git*,db*,context*
+      # Override arango host to Docker service name (rc env vars take highest priority)
+      - binocular_arango__host=db
+    # To skip indexers add flags: --no-vcs --no-ci --no-its --no-jobs
+    # To truncate all documents add: --clean
+    command:
+      - "-c"
+      - |
+        git config --global --add safe.directory /app/binocular/${REPO_NAME:-repo}
+        binocular run --no-server /app/binocular/${REPO_NAME:-repo}/
+    volumes: *binocular-volumes-backend
+    networks:
+      - binocular
+    build:
+      context: ./
+      dockerfile: docker/backend.Dockerfile
+      args: *binocular-build-args
+
+  binocular-backend:
+    image: *binocular-backend-image
+    depends_on:
+      db:
+        condition: service_healthy
+      binocular-init:
+        condition: service_completed_successfully
+    container_name: "binocular_backend"
+    working_dir: "/app/binocular/backend"
+    entrypoint: ["/bin/sh"]
     tty: true
     environment:
       - DEBUG=idx*,importer*,git*,db*,context*
+      # Override arango host to Docker service name (rc env vars take highest priority)
+      - binocular_arango__host=db
     command:
-      [
-        "tsx",
-        "binocular.js",
-        "--no-open",
-        "--no-server",
-        # "/app/binocular/repo/test-repo"
-        "/app/binocular/repo/23ws-ase-pr-inso-06"
-      ]
-    volumes:
-      - type: bind
-        source: .binocularrc_sepm_ws23
-        target: /app/binocular/repo/23ws-ase-pr-inso-06/.binocularrc
-        read_only: true
-      - type: bind
-        source: .binocularrc
-        target: /app/binocular/repo/test-repo/.binocularrc
-        read_only: true
-      - ./:/app/binocular/repo/test-repo
-      # - ./binocular-backend/context.js:/app/binocular/binocular-backend/context.js
-      # - ./binocular.js:/app/binocular/binocular.js
-      # - ./binocular-frontend/config/context.json:/app/binocular/binocular-backend/../binocular-frontend/config/context.json
-      # - ./gitlab.json:/app/binocular/binocular-frontend/config/gitlab.json
-      - /Users/rise/Repositories/SEPM_WS23/23ws-ase-pr-inso-06:/app/binocular/repo/23ws-ase-pr-inso-06
-
+      - "-c"
+      - |
+        git config --global --add safe.directory /app/binocular/${REPO_NAME:-repo}
+        binocular run --no-vcs --no-ci --no-its --no-jobs /app/binocular/${REPO_NAME:-repo}/
+    ports:
+      - "8080:8080"
+      - "48763:48763"
+    build:
+      context: ./
+      dockerfile: docker/backend.Dockerfile
+      args: *binocular-build-args
+    volumes: *binocular-volumes-backend
+    networks:
+      - binocular
 
   binocular:
     container_name: binocular_app
-    image: ghcr.io/inso-tuwien/binocular-frontend:latest
+    image: *binocular-frontend-image
     ports:
       - 8088:80
+    networks:
+      - binocular
+    volumes:
+      - "./nginx/nginx.conf://etc/nginx/nginx.conf:ro"
+    # command: [nginx-debug, '-g', 'daemon off;']
+    # entrypoint: [""]
+    depends_on:
+      - binocular-backend
+    environment:
+      - SERVER_NAME=localhost
+      - HOST=127.0.0.1
+      - PORT=80
+    build:
+        context: ./
+        dockerfile: docker/frontend.v2.Dockerfile
+        args: *binocular-build-args

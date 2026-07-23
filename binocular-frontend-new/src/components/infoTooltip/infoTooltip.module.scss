@@ -1,0 +1,47 @@
+@use "../../variables.scss" as *;
+@reference "../../index.scss";
+
+.infoTooltip{
+  background: transparent;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  position: fixed;
+  margin: 0;
+  top:0;
+  left:0;
+  overflow: hidden;
+  display: none;
+  z-index: 9999999999999;
+  pointer-events: none;
+}
+
+.infoTooltip::backdrop{
+  background: transparent;
+}
+
+.infoTooltip>div{
+  position: absolute;
+  top:100px;
+  pointer-events: all;
+}
+
+.infoTooltip>div>div{
+  @apply bg-base-100;
+  @apply rounded;
+  @apply text-base-content;
+  border: 2px solid var(--color-base-300);
+  overflow-y: auto;
+  max-height: 30rem;
+  max-width: 30rem;
+  word-break: break-word;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+
+
+.infoTooltip>div>div>div>div>*{
+  margin-right: 2rem;
+}

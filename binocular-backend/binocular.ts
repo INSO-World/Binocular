@@ -41,7 +41,6 @@ import User from './models/models/User.ts';
 import MergeRequest from './models/models/MergeRequest.ts';
 import Milestone from './models/models/Milestone.ts';
 import CommitUserConnection from './models/connections/CommitUserConnection.ts';
-import IssueUserConnection from './models/connections/IssueUserConnection.ts';
 import IssueCommitConnection from './models/connections/IssueCommitConnection.ts';
 import MergeRequestCommitConnection from './models/connections/MergeRequestCommitConnection.ts';
 import IssueMergeRequestConnection from './models/connections/IssueMergeRequestConnection.ts';
@@ -83,6 +82,9 @@ import Note from './models/models/Note.ts';
 import IssueNoteConnection from './models/connections/IssueNoteConnection.ts';
 import NoteAccountConnection from './models/connections/NoteAccountConnection.ts';
 import MergeRequestNoteConnection from './models/connections/MergeRequestNoteConnection.ts';
+import AccountUserConnection from './models/connections/AccountUserConnection.ts';
+import { findBestUserMatchLeve } from './models/utils.ts';
+import debug from 'debug';
 
 cli.parse(
   (targetPath, options) => {
@@ -92,24 +94,21 @@ cli.parse(
     ctx.setOptions(options);
     ctx.setTargetPath(targetPath);
     config.loadConfig(ctx);
-    if (options.frontend) {
-      runFrontend();
-    }
     if (options.backend) {
       runBackend();
     }
   },
   (options) => {
     if (options.runIndexer) {
-      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
+      projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
       const indexerOptions = {
         backend: true,
-        frontend: false,
-        open: false,
         clean: true,
         vcs: true,
         its: true,
         ci: true,
+        jobs: false,
+        updateJobs: false,
         export: true,
         server: false,
       };
@@ -202,7 +201,8 @@ function runBackend() {
       }
 
       //writeConfigToFrontend
-      projectStructureHelper.writeContextToFrontend(ctx);
+      // TODO provide repo context; uncomment next line to make old frontend working, dont push to production, needs old frontend folder
+      // projectStructureHelper.writeContextToFrontend(ctx);
       // immediately run all indexers
       return (activeIndexingQueue = Promise.all([
         repoUpdateHandler(repository, context, gateway),
@@ -346,15 +346,15 @@ function runBackend() {
       const indexer = await getIndexer(indexers, context, reporter, indexingThread);
       const providers = await Promise.all(indexer);
 
-      /*for (const indexer of providers.filter((exist) => exist)) {
+      /*      for (const indexer of providers.filter((exist) => exist)) {
         if (!indexer) {
           return;
         }
-  
+
         if ('setGateway' in indexer) {
           indexer.setGateway(gateway);
         }
-  
+
         threadLog(indexingThread, `${indexer.constructor.name} fetching data...`);
         await indexer.index();
         threadLog(indexingThread, `${indexer.constructor.name} ${indexer.isStopping() ? 'stopped' : 'finished'}...`);
@@ -362,7 +362,7 @@ function runBackend() {
       // make sure that the services has not been stopped
       const activeProviders = providers.filter((provider) => {
         return !provider || !provider.isStopping();
-      });*/
+      }); */
       // start indexer
       const activeIndexers = await Promise.all(
         providers
@@ -390,15 +390,9 @@ function runBackend() {
 
       if (activeProviders.length < 1) {
         threadLog(indexingThread, 'All indexers stopped!');
-        return;
       }
 
-      await Issue.deduceUsers();
       createManualIssueReferences(config.get('issueReferences'));
-      if (context.argv.export) {
-        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
-        projectStructureHelper.createAndFillDbExportFolder(context.db, __dirname + '/../binocular-frontend');
-      }
 
       //now that the indexers have finished, we have VCS, ITS and CI data and can connect them.
       // for that purpose, references between e.g. issues and commits have been stored in the collections.
@@ -410,11 +404,23 @@ function runBackend() {
       await connectMergeRequestsAndCommits();
       await connectMergeRequestsAndIssues();
       await connectCommitsAndBuilds();
+      await connectAccountsAndUsers();
       const endTime = Moment.now();
       console.log('End Time: ' + Moment(endTime).format());
       const executionTime = Moment(endTime).diff(startTime, 'seconds');
       console.log('Execution Time: ' + Math.floor(executionTime / 60) + ':' + (executionTime % 60));
       threadLog(indexingThread, 'Indexing finished');
+
+      // export db if required
+      if (context.argv.export) {
+        projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend-new/src');
+        projectStructureHelper.createAndFillDbExportFolder(
+          context.db,
+          __dirname + '/../binocular-frontend-new/src',
+          context.vcsUrlProvider.project,
+          context.ciUrlProvider.provider,
+        );
+      }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'Gitlab401Error') {
         threadWarn(indexingThread, 'Unable to access GitLab API. Please configure a valid private access token in the UI.');
@@ -597,7 +603,6 @@ function runBackend() {
           CommitFileConnection.ensureCollection(),
           CommitBuildConnection.ensureCollection(),
           CommitUserConnection.ensureCollection(),
-          IssueUserConnection.ensureCollection(),
           IssueCommitConnection.ensureCollection(),
           MergeRequestCommitConnection.ensureCollection(),
           IssueMergeRequestConnection.ensureCollection(),
@@ -615,6 +620,7 @@ function runBackend() {
           MergeRequestAccountConnection.ensureCollection(),
           IssueMilestoneConnection.ensureCollection(),
           MergeRequestMilestoneConnection.ensureCollection(),
+          AccountUserConnection.ensureCollection(),
         ]);
       });
   }
@@ -747,6 +753,35 @@ function runBackend() {
     await Build.deleteShaRefAttributes();
   }
 
+  // this function is only used for matching one User to each account, not the other way around
+  async function connectAccountsAndUsers() {
+    const log = debug('indexer:account-user-connection');
+    const accounts = await Account.findAll();
+    const accountUserConnections = await AccountUserConnection.findAll();
+    for (const account of accounts) {
+      if (account === null || account._id === undefined) {
+        continue;
+      }
+      let existing = false;
+      accountUserConnections.map((conn) => {
+        if (conn !== null) {
+          if (Number(account._id?.split('/')[1]) === Number(conn._from?.split('/')[1])) {
+            existing = true;
+            return;
+          }
+        }
+      });
+      if (existing) {
+        continue;
+      }
+      const user = await findBestUserMatchLeve(account.data);
+      if (user && account) {
+        log(`Connecting ${account.data.name} to ${user.data.gitSignature}`);
+        await AccountUserConnection.connect({}, { from: account, to: user });
+      }
+    }
+  }
+
   // start services
   return Promise.all(
     [
@@ -773,19 +808,6 @@ function runBackend() {
     if (!ctx.argv.server) {
       stop();
     }
-  });
-}
-
-function runFrontend() {
-  const fronted = spawn('npm run dev:frontend', [], { shell: true, cwd: __dirname + '/..' });
-  fronted.stdout.on('data', (data) => {
-    console.log(chalk.cyan(`${data}`));
-  });
-  fronted.stderr.on('data', (data) => {
-    console.error(chalk.blue(`${data}`));
-  });
-  fronted.on('close', (code) => {
-    console.log(chalk.blueBright(`frontend process exited with code ${code}`));
   });
 }
 

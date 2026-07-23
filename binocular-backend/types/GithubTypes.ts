@@ -6,6 +6,32 @@ export interface GithubUser {
   avatarUrl: string;
 }
 
+// In GitHub, it is called Workflow Run
+export interface GithubRun {
+  // some variables are not implemented, but commented if needed anytime
+  id: number;
+  name: string | null;
+  node_id: string;
+  head_branch: string | null;
+  head_sha: string;
+  // path
+  display_title: string;
+  run_number: number;
+  status: string | null;
+  conclusion: string | null;
+  // workflow_id, check_suite_id, check_suite_node_id, url
+  html_url: string;
+  // pull_requests
+  created_at: string | null;
+  updated_at: string | null;
+  actor: GithubActor;
+  run_attempt: number;
+  // referenced_workflows
+  run_started_at: string | null;
+  // triggering_actor, some urls
+  head_commit: GithubCommit;
+}
+
 export interface GithubJob {
   id: number;
   run_id: number;
@@ -37,8 +63,8 @@ export interface GithubJobStep {
   status: string;
   conclusion: string;
   number: number;
-  started_at: string;
-  completed_at: string;
+  started_at: string | null;
+  completed_at: string | null;
 }
 
 export interface GithubActor {
@@ -65,4 +91,11 @@ export interface GithubMilestone {
   updatedAt: string;
   closedAt: string;
   dueOn: string;
+}
+
+export interface GithubCommit {
+  id: number;
+  message: string;
+  timestamp: string; // probably type: date-time
+  // other variables are not implemented, because they are not used and documented
 }

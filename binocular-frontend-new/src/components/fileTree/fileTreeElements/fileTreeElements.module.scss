@@ -1,0 +1,42 @@
+@reference "../../../index.scss";
+
+.element{
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 0.25rem;
+  cursor: pointer;
+  line-height: 1.25rem;
+  margin-bottom: 2px;
+}
+
+.element:hover{
+  @apply bg-neutral;
+}
+
+.element>img{
+  margin-right: .25rem;
+}
+
+.inset{
+  padding-left: .5rem;
+  border-left: 1px solid;
+  @apply border-base-300;
+}
+
+.searchMark{
+  position: relative;
+  @apply bg-accent/20;
+  border-radius: 2px;
+}
+
+.searchMark::after{
+  content: "";
+  position: absolute;
+  @apply bg-accent;
+  height: 4px;
+  border-radius: 2px;
+  width: 100%;
+  bottom: -2px;
+  left: 0;
+}

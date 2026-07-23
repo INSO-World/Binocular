@@ -37,6 +37,7 @@ import sprints from './visualizations/VisualizationComponents/sprints';
 import timeSpent from './visualizations/VisualizationComponents/timeSpent';
 import codeOwnership from './visualizations/code-ownership';
 import distributionDials from './visualizations/distribution-dials';
+import changeFrequency from './visualizations/change-frequency/index.ts';
 import RootOffline from './components/RootOffline';
 import issueLabels from './visualizations/issue-labels';
 
@@ -54,10 +55,11 @@ const visualizationModules = [
   issueBreakdown,
   changes,
   dataExport,
+  changeFrequency,
   issueLabels,
 ];
 
-Database.checkBackendConnection().then((connection) => {
+Database.checkBackendConnection().then(async (connection) => {
   const visualizations = {};
   _.each(visualizationModules, (viz) => {
     visualizations[viz.id] = viz;
@@ -99,7 +101,7 @@ Database.checkBackendConnection().then((connection) => {
 
     rootContainer.render(<Root store={store} />);
   } else {
-    Database.initDB().then();
+    await Database.initDB();
     const app = makeAppReducer(visualizationModules);
 
     const store = createStore(

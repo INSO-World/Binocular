@@ -40,76 +40,88 @@ class GitLab {
     return this.paginatedRequest(`/projects/${projectId}/issues/${issueId}/notes`);
   }
 
-  getPipelines(projectId) {
+  async getPipelines(projectId) {
     log('getPipelines(%o)', projectId);
-    return this.graphQL
-      .request(
-        gql`
-      {
-        project(fullPath: "${projectId.replaceAll('%2F', '/')}") {
-          name
-          pipelines {
-            edges {
-              node {
-                id
-                iid
-                project {
+    const fullPath = projectId.replaceAll('%2F', '/');
+    const allPipelines = [];
+    let cursor = null;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const afterArg = cursor ? `, after: "${cursor}"` : '';
+      const response = await this.graphQL.request(gql`
+        {
+          project(fullPath: "${fullPath}") {
+            pipelines(first: 100${afterArg}) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              edges {
+                node {
                   id
-                  webUrl
-                }
-                path
-                sha
-                ref
-                status
-                createdAt
-                updatedAt
-                beforeSha
-                user {
-                  id
-                  username
-                  name
-                  state
-                  avatarUrl
-                  webUrl
-                }
-                jobs {
-                  edges {
-                    node {
-                      id
-                      name
-                      createdAt
-                      finishedAt
-                      status
-                      stage {
+                  iid
+                  project {
+                    id
+                    webUrl
+                  }
+                  path
+                  sha
+                  ref
+                  status
+                  createdAt
+                  updatedAt
+                  beforeSha
+                  user {
+                    id
+                    username
+                    name
+                    state
+                    avatarUrl
+                    webUrl
+                  }
+                  jobs {
+                    edges {
+                      node {
+                        id
                         name
+                        createdAt
+                        finishedAt
+                        status
+                        stage {
+                          name
+                        }
                       }
                     }
                   }
-                }
-                startedAt
-                finishedAt
-                duration
-                queuedDuration
-                detailedStatus {
-                  id
-                  icon
-                  text
-                  label
-                  group
-                  tooltip
-                  hasDetails
-                  detailsPath
-                  favicon
+                  startedAt
+                  finishedAt
+                  duration
+                  queuedDuration
+                  detailedStatus {
+                    id
+                    icon
+                    text
+                    label
+                    group
+                    tooltip
+                    hasDetails
+                    detailsPath
+                    favicon
+                  }
                 }
               }
             }
           }
         }
-      }
-    `,
-      )
-      .then((response) => response.project.pipelines.edges.map((pipeline) => pipeline.node));
-    //return this.paginatedRequest(`/projects/${projectId}/pipelines`);
+      `);
+      const pipelines = response.project.pipelines;
+      allPipelines.push(...pipelines.edges.map((e) => e.node));
+      hasNextPage = pipelines.pageInfo.hasNextPage;
+      cursor = pipelines.pageInfo.endCursor;
+    }
+
+    return allPipelines;
   }
 
   getMileStones(projectId) {

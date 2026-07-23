@@ -56,7 +56,10 @@ GitHubITSIndexer.prototype.index = async function () {
       let issueEntry: Entry<IssueDataType | MergeRequestDataType>;
 
       // create GitHub account objects for each relevant user (author, assignee, assignees)
-      const authorEntry: Entry<AccountDataType> = (await Account.ensureGitHubAccount(this.controller.getUser(issue.author.login)))[0];
+      // author can be null for deleted accounts or bot-created issues
+      const authorEntry: Entry<AccountDataType> | undefined = issue.author
+        ? (await Account.ensureGitHubAccount(this.controller.getUser(issue.author.login)))[0]
+        : undefined;
       const assigneeEntries: Entry<AccountDataType>[] = [];
       for (const a of issue.assignees.nodes) {
         assigneeEntries.push((await Account.ensureGitHubAccount(this.controller.getUser(a.login)))[0]);
@@ -134,7 +137,8 @@ GitHubITSIndexer.prototype.index = async function () {
 
   return Promise.resolve(this.repo.getOriginUrl()).then(async (url) => {
     if (url.includes('@')) {
-      url = 'https://github.com/' + url.split('@github.com/')[1];
+      // '@github.com/' for HTTPS '@github.com:' for SSH
+      url = 'https://github.com/' + url.split('@github.com')[1].substring(1);
     }
     const match = url.match(GITHUB_ORIGIN_REGEX);
     if (!match) {
@@ -147,12 +151,12 @@ GitHubITSIndexer.prototype.index = async function () {
 
     log('Getting issues for', `${owner}/${repo}`);
 
-    // Persist Issues and Authors/Assignees
+    // Persist Issues and Users/Assignees
     const issues = await this.controller.getIssuesWithEvents(owner, repo);
     this.reporter.setIssueCount(issues.length);
     await processIssues(issues, 'issue', Issue);
 
-    // Persist Merge Requests and Authors/Assignees
+    // Persist Merge Requests and Users/Assignees
     const mergeRequests = await this.controller.getPullRequestsWithEvents(owner, repo);
     this.reporter.setMergeRequestCount(mergeRequests.length);
     await processIssues(mergeRequests, 'mergeRequest', MergeRequest);
@@ -167,10 +171,12 @@ const connectIssuesToUsers = async (
     AccountDataType
   >,
   issue: Entry<IssueDataType | MergeRequestDataType>,
-  author: Entry<AccountDataType>,
+  author: Entry<AccountDataType> | undefined,
   assignees: Entry<AccountDataType>[],
 ) => {
-  await conn.ensureWithData({ role: 'author' }, { from: issue, to: author });
+  if (author) {
+    await conn.ensureWithData({ role: 'author' }, { from: issue, to: author });
+  }
   if (assignees.length > 0) {
     await conn.ensureWithData({ role: 'assignee' }, { from: issue, to: assignees[0] });
   }

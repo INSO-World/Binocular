@@ -1,0 +1,103 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { CommitByFileViz } from './commitByFileViz.tsx';
+import type { SettingsType } from '../settings/settings.tsx';
+import type { DataPluginCommitFile } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommitsFiles.ts';
+import { DataState, setSha } from '../reducer';
+import { useDispatch, useSelector } from 'react-redux';
+import Select from 'react-select';
+import type { DataPluginCommitShort } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { VisualizationPluginProperties } from '../../../../../interfaces/visualizationPluginInterfaces/visualizationPluginProperties';
+
+function Chart(props: Readonly<VisualizationPluginProperties<SettingsType, DataPluginCommitFile>>) {
+  type RootState = ReturnType<typeof props.store.getState>;
+  type AppDispatch = typeof props.store.dispatch;
+  const useAppDispatch = () => useDispatch<AppDispatch>();
+  const dispatch: AppDispatch = useAppDispatch();
+
+  const data = useSelector((state: RootState) => state.plugin.commitFiles);
+  const dataState = useSelector((state: RootState) => state.plugin.dataState);
+  const commits = useSelector((state: RootState) => state.plugin.commits);
+  const sha = useSelector((state: RootState) => state.plugin.sha);
+  const commitOptions = useMemo(
+    () =>
+      commits.map((commit: DataPluginCommitShort) => ({
+        value: commit.sha,
+        label: `${commit.messageHeader} (${commit.sha.slice(0, 7)})`,
+      })),
+    [commits],
+  );
+  const selectedCommit = useMemo(() => commitOptions.find((o: { value: string }) => o.value === sha) ?? null, [commitOptions, sha]);
+
+  useEffect(() => {
+    dispatch({
+      type: 'REFRESH',
+    });
+  }, [props.dataConnection]);
+
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const chartAreaRef = useRef<HTMLDivElement>(null);
+
+  const [chartWidth, setChartWidth] = useState(100);
+  const [chartHeight, setChartHeight] = useState(100);
+
+  useEffect(() => {
+    if (!chartAreaRef.current) return;
+    const resizeObserver = new ResizeObserver(() => {
+      if (!chartAreaRef.current) return;
+      setChartWidth(chartAreaRef.current.offsetWidth);
+      setChartHeight(chartAreaRef.current.offsetHeight);
+    });
+    resizeObserver.observe(chartAreaRef.current);
+    return () => resizeObserver.disconnect();
+  }, [chartAreaRef]);
+
+  useEffect(() => {
+    if (commitOptions.length > 0 && !sha) {
+      dispatch(setSha(commitOptions[0].value));
+    }
+  }, [commitOptions]);
+
+  const handleCommitSelect = (selectedOption: { value: string; label: string } | null) => {
+    if (!selectedOption) return;
+    dispatch(setSha(selectedOption.value));
+  };
+
+  return (
+    <div className={'relative w-full h-full flex flex-col items-center'} ref={chartContainerRef}>
+      {dataState !== DataState.FETCHING && commits.length > 0 && (
+        <Select
+          className="text-sm w-100 m-2"
+          value={selectedCommit}
+          options={commitOptions}
+          onChange={handleCommitSelect}
+          placeholder="Select a commit..."
+          isSearchable
+          styles={{
+            control: (base) => ({ ...base, background: 'var(--color-base-100)', borderColor: 'var(--color-base-300)' }),
+            menu: (base) => ({ ...base, background: 'var(--color-base-100)', zIndex: 2 }),
+            option: (base, state) => ({
+              ...base,
+              background: state.isFocused ? 'var(--color-base-200)' : 'var(--color-base-100)',
+              color: 'var(--color-base-content)',
+            }),
+            singleValue: (base) => ({ ...base, color: 'var(--color-base-content)' }),
+            input: (base) => ({ ...base, color: 'var(--color-base-content)' }),
+            placeholder: (base) => ({ ...base, color: 'var(--color-base-content)', opacity: 0.5 }),
+          }}
+        />
+      )}
+      {dataState !== DataState.FETCHING && commits.length === 0 && <div>No Commits Found</div>}
+      {dataState === DataState.EMPTY && <div>No Data</div>}
+      {dataState === DataState.FETCHING && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="loading loading-spinner loading-lg text-primary"></span>
+        </div>
+      )}
+      <div ref={chartAreaRef} className={'w-full flex-1'}>
+        {dataState === DataState.COMPLETE && <CommitByFileViz data={data} width={chartWidth} height={chartHeight} />}
+      </div>
+    </div>
+  );
+}
+
+export default Chart;

@@ -13,3 +13,8 @@ pkg
 .grandle
 /.devcontainer
 .DS_Store
+*.tsbuildinfo
+docker/arangodb/data
+!docker/arangodb/data/.gitkeep
+/binocular-frontend-new/playwright-report/*
+/binocular-frontend-new/test-results/*

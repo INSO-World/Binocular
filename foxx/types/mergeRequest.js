@@ -17,7 +17,7 @@ module.exports = new gql.GraphQLObjectType({
   fields() {
     return {
       author: {
-        type: require('./gitHubUser.js'),
+        type: require('./account.js'),
         description: 'The github/gitlab author of this mergeRequest',
         resolve(mr /*, args*/) {
           return db
@@ -35,7 +35,7 @@ module.exports = new gql.GraphQLObjectType({
         },
       },
       assignee: {
-        type: require('./gitHubUser.js'),
+        type: require('./account.js'),
         description: 'The assignee of this mergeRequest',
         resolve(mr /*, args*/) {
           return db
@@ -53,7 +53,7 @@ module.exports = new gql.GraphQLObjectType({
         },
       },
       assignees: {
-        type: new gql.GraphQLList(require('./gitHubUser.js')),
+        type: new gql.GraphQLList(require('./account.js')),
         description: 'All the assignees of this mergeRequest',
         resolve(mr /*, args*/) {
           return db
@@ -103,6 +103,14 @@ module.exports = new gql.GraphQLObjectType({
         description: 'time_stats of the mergeRequest',
       },
       createdAt: {
+        type: Timestamp,
+        description: 'Creation date of the mergeRequest',
+      },
+      closedAt: {
+        type: Timestamp,
+        description: 'Creation date of the mergeRequest',
+      },
+      updatedAt: {
         type: Timestamp,
         description: 'Creation date of the mergeRequest',
       },

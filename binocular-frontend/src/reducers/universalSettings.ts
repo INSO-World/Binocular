@@ -34,14 +34,14 @@ export default handleActions(
       return _.assign({}, state, { chartTimeSpan: action.payload });
     },
     SET_SELECTED_AUTHORS_GLOBAL: (state, action: Action<any>) => {
-      updateUniversalSettingsLocalStorage('selectedAuthorsGlobal', action.payload, defaultConfig);
+      //updateUniversalSettingsLocalStorage('selectedAuthorsGlobal', action.payload, defaultConfig);
       return _.assign({}, state, { selectedAuthorsGlobal: action.payload });
     },
     SET_All_AUTHORS: (state, action: Action<any>) => {
       const mergedAndOtherAuthorsCount = sumMergedAndOtherAuthors(state.mergedAuthors, state.otherAuthors);
       const allAuthorCount = Object.keys(action.payload).length;
       if (mergedAndOtherAuthorsCount > 0 && mergedAndOtherAuthorsCount < allAuthorCount - 1) {
-        console.log('Current localStorage does not align with the Author list loaded from the Database! New Authors will be added.');
+        console.log('Current localStorage does not align with the Author list loaded from the Database! New Users will be added.');
         const missingAuthors = findMissingAuthors(action.payload, state.mergedAuthors, state.otherAuthors);
         state.mergedAuthors.push(...missingAuthors);
         const config: UniversalSettings = updateUniversalSettingsLocalStorage('mergedAuthors', state.mergedAuthors, defaultConfig);
@@ -88,10 +88,10 @@ export default handleActions(
     universalSettingsData: { data: {}, lastFetched: null, isFetching: null },
     chartResolution: getUniversalSettingsLocalStorage(defaultConfig).chartResolution,
     chartTimeSpan: getUniversalSettingsLocalStorage(defaultConfig).chartTimeSpan,
-    selectedAuthorsGlobal: getUniversalSettingsLocalStorage(defaultConfig).selectedAuthorsGlobal,
+    selectedAuthorsGlobal: [],
     allAuthors: [],
-    mergedAuthors: getUniversalSettingsLocalStorage(defaultConfig).mergedAuthors,
-    otherAuthors: getUniversalSettingsLocalStorage(defaultConfig).otherAuthors,
+    mergedAuthors: [],
+    otherAuthors: [],
     excludeMergeCommits: getUniversalSettingsLocalStorage(defaultConfig).excludeMergeCommits,
     excludedCommits: getUniversalSettingsLocalStorage(defaultConfig).excludedCommits,
     excludeCommits: getUniversalSettingsLocalStorage(defaultConfig).excludeCommits,
