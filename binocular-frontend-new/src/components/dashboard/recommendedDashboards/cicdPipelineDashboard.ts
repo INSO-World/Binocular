@@ -22,7 +22,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 10,
       y: 0,
-      settings: undefined,
+      settings: { splitBuildsPerAuthor: true, visualizationStyle: 'stepped', showSprints: false },
     },
     {
       id: 0,

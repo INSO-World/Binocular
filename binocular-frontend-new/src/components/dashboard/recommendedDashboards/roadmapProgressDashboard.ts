@@ -32,7 +32,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 12,
-      settings: undefined,
+      settings: { splitIssuesPerAuthor: true, visualizationStyle: 'curved', showSprints: false, breakdown: true },
     },
     {
       id: 0,

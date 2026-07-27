@@ -42,7 +42,12 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 20,
       y: 12,
-      settings: undefined,
+      settings: {
+        displayMode: 'relative',
+        currentBranch: undefined,
+        visualizationStyle: 'curved',
+        showSprints: false,
+      },
     },
     {
       id: 0,

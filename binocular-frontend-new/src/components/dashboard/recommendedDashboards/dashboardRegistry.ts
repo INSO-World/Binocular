@@ -17,12 +17,12 @@ export const recommendLayouts: DashboardLayout[] = [
   ownershipDashboard,
   issueDashboard,
   codeActivityDashboard,
-  deliveryHealthDashboard,
+  buildQualityDashboard,
   sprintHealthDashboard,
-  // Advanced: more specialized dashboards, used less often
+  // Advanced: more specialized dashboards
   teamCollaborationDashboard,
   roadmapProgressDashboard,
-  buildQualityDashboard,
+  deliveryHealthDashboard,
   cicdPipelineDashboard,
   engineeringHealthDashboard,
 ];

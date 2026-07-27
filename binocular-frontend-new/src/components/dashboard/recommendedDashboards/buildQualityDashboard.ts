@@ -1,7 +1,7 @@
 import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
 
 const dashboard: DashboardLayout = {
-  category: DashboardLayoutCategory.ADVANCED,
+  category: DashboardLayoutCategory.BASIC,
   name: 'Build Quality',
   items: [
     {

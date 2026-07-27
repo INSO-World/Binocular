@@ -62,7 +62,13 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 20,
       y: 24,
-      settings: undefined,
+      settings: {
+        splitTimePerIssue: false,
+        splitSpentRemoved: false,
+        breakdown: true,
+        visualizationStyle: 'curved',
+        showSprints: false,
+      },
     },
   ],
 };

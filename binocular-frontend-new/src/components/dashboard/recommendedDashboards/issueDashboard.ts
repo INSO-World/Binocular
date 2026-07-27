@@ -47,7 +47,7 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 8,
+      height: 12,
       pluginName: 'Issues Timeline',
       dataPluginId: undefined,
       x: 0,
@@ -57,7 +57,7 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 8,
+      height: 12,
       pluginName: 'Burndown',
       dataPluginId: undefined,
       x: 20,

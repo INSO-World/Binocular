@@ -1,7 +1,7 @@
 import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
 
 const dashboard: DashboardLayout = {
-  category: DashboardLayoutCategory.BASIC,
+  category: DashboardLayoutCategory.ADVANCED,
   name: 'Delivery Health',
   items: [
     {
@@ -18,7 +18,7 @@ const dashboard: DashboardLayout = {
       id: 0,
       width: 30,
       height: 12,
-      pluginName: 'Issues',
+      pluginName: 'Builds',
       dataPluginId: undefined,
       x: 10,
       y: 0,
