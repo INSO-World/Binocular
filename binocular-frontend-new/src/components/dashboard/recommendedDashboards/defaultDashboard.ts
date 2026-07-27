@@ -24,6 +24,26 @@ const dashboard: DashboardLayout = {
       y: 0,
       settings: undefined,
     },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Issues',
+      dataPluginId: undefined,
+      x: 0,
+      y: 12,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Merge Requests',
+      dataPluginId: undefined,
+      x: 20,
+      y: 12,
+      settings: undefined,
+    },
   ],
 };
 

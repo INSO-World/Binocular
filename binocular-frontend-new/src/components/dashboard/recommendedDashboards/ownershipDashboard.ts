@@ -34,6 +34,26 @@ const dashboard: DashboardLayout = {
       y: 8,
       settings: undefined,
     },
+    {
+      id: 0,
+      width: 20,
+      height: 8,
+      pluginName: 'Code Expertise',
+      dataPluginId: undefined,
+      x: 0,
+      y: 16,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 8,
+      pluginName: 'Collaboration',
+      dataPluginId: undefined,
+      x: 20,
+      y: 16,
+      settings: undefined,
+    },
   ],
 };
 

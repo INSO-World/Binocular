@@ -9,5 +9,6 @@ export interface DashboardLayout {
 
 export enum DashboardLayoutCategory {
   BASIC = 'Basic',
+  ADVANCED = 'Advanced',
   CUSTOM = 'Custom',
 }
