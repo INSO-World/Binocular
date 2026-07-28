@@ -10,6 +10,10 @@ import roadmapProgressDashboard from './roadmapProgressDashboard';
 import buildQualityDashboard from './buildQualityDashboard';
 import cicdPipelineDashboard from './cicdPipelineDashboard';
 import engineeringHealthDashboard from './engineeringHealthDashboard';
+import allVisualizationsDashboard from './allVisualizationsDashboard';
+
+// Flip to true to surface Debug-category dashboards (e.g. allVisualizationsDashboard) in the layout picker.
+const SHOW_DEBUG_DASHBOARDS = false;
 
 export const recommendLayouts: DashboardLayout[] = [
   // Basic: frequently used, general-purpose dashboards
@@ -25,4 +29,6 @@ export const recommendLayouts: DashboardLayout[] = [
   deliveryHealthDashboard,
   cicdPipelineDashboard,
   engineeringHealthDashboard,
+  // Debug: development-only dashboards, hidden unless SHOW_DEBUG_DASHBOARDS is enabled
+  ...(SHOW_DEBUG_DASHBOARDS ? [allVisualizationsDashboard] : []),
 ];

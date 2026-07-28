@@ -31,8 +31,8 @@ test.describe('E15 — Dashboard layouts', () => {
 
     // The Default layout holds two items: Changes and Builds, both wired to the
     // default data plugin
-    await expect.poll(async () => (await persistedItems(page)).length).toBe(2);
-    expect((await persistedItems(page)).map((item) => item.pluginName).sort()).toEqual(['Builds', 'Changes']);
+    await expect.poll(async () => (await persistedItems(page)).length).toBe(4);
+    expect((await persistedItems(page)).map((item) => item.pluginName).sort()).toEqual(['Builds', 'Changes', 'Issues', 'Merge Requests']);
     await expect(page.getByText('Builds (Mock Data #1)')).toBeVisible();
   });
 

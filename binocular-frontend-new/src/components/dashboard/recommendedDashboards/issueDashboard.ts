@@ -12,7 +12,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 0,
-      settings: undefined,
+      settings: { splitIssuesPerAuthor: true, breakdown: true, visualizationStyle: 'curved', showSprints: true },
     },
     {
       id: 0,
@@ -22,7 +22,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 8,
-      settings: undefined,
+      settings: { commits: false, contributors: true, issues: true, builds: false, mergeRequests: true },
     },
     {
       id: 0,
@@ -32,7 +32,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 10,
       y: 8,
-      settings: undefined,
+      settings: { minEdgeValue: 2, maxEdgeValue: 80, includeCommitMessageRefs: true, visualizationStyle: 'curved', showSprints: false },
     },
     {
       id: 0,
@@ -42,7 +42,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 20,
-      settings: undefined,
+      settings: { splitMergeRequestsPerAuthor: true, breakdown: true, visualizationStyle: 'curved', showSprints: false },
     },
     {
       id: 0,
@@ -52,7 +52,12 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 28,
-      settings: undefined,
+      settings: {
+        showSprints: true,
+        coloringMode: 'time-spent',
+        maxNumberOfDifferencesBetweenLabels: 4,
+        minNumberOfLabelsPerGroup: 2,
+      },
     },
     {
       id: 0,
@@ -62,7 +67,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 20,
       y: 28,
-      settings: undefined,
+      settings: { showSprints: true },
     },
   ],
 };

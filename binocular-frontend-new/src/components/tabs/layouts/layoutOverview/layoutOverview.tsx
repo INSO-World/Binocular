@@ -104,7 +104,6 @@ function LayoutOverview() {
                                 className={'btn btn-primary w-fit'}
                                 disabled={layout.name === selectedLayout}
                                 onClick={(e) => {
-                                  setSelectedLayout(layout.name);
                                   const rect = (e.target as HTMLInputElement).getBoundingClientRect();
                                   const dialogWidth = 350;
                                   const dialogHeight = 90;
@@ -120,6 +119,7 @@ function LayoutOverview() {
                                         label: 'Yes',
                                         icon: null,
                                         function: () => {
+                                          setSelectedLayout(layout.name);
                                           dispatch(clearDashboard());
                                           // set Timeout with 0 delays the execution by one event loop cycle to ensure the dashboard is cleared before setting the new state
                                           setTimeout(() => {

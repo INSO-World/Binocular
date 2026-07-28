@@ -12,7 +12,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 0,
-      settings: undefined,
+      settings: { commits: true, contributors: false, issues: false, builds: true, mergeRequests: true },
     },
     {
       id: 0,
@@ -32,7 +32,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 12,
-      settings: undefined,
+      settings: { splitMergeRequestsPerAuthor: true, breakdown: false, visualizationStyle: 'linear', showSprints: false },
     },
     {
       id: 0,
@@ -42,12 +42,12 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 20,
       y: 12,
-      settings: undefined,
+      settings: { splitIssuesPerAuthor: true, breakdown: false, visualizationStyle: 'stepped', showSprints: false },
     },
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Change Frequency',
       dataPluginId: undefined,
       x: 0,
@@ -57,12 +57,12 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Sum Commits',
       dataPluginId: undefined,
       x: 20,
       y: 24,
-      settings: undefined,
+      settings: { showMean: false, showOther: true, minCommits: 1, topN: 0, visualizationStyle: 'curved', showSprints: false },
     },
   ],
 };

@@ -12,7 +12,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 0,
-      settings: undefined,
+      settings: { showSprints: true },
     },
     {
       id: 0,
@@ -22,7 +22,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 20,
       y: 0,
-      settings: undefined,
+      settings: { showSprints: false, coloringMode: 'time-spent', maxNumberOfDifferencesBetweenLabels: 5, minNumberOfLabelsPerGroup: 2 },
     },
     {
       id: 0,
@@ -37,7 +37,7 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Change Frequency',
       dataPluginId: undefined,
       x: 0,
@@ -47,12 +47,12 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Merge Requests',
       dataPluginId: undefined,
       x: 20,
       y: 24,
-      settings: undefined,
+      settings: { splitMergeRequestsPerAuthor: false, breakdown: true, visualizationStyle: 'linear', showSprints: true },
     },
   ],
 };

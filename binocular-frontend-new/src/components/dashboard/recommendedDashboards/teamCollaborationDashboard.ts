@@ -12,7 +12,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 0,
-      settings: undefined,
+      settings: { commits: true, contributors: true, issues: false, builds: false, mergeRequests: true },
     },
     {
       id: 0,
@@ -22,7 +22,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 10,
       y: 0,
-      settings: undefined,
+      settings: { showMean: true, showOther: true, minCommits: 0, topN: 10, visualizationStyle: 'curved', showSprints: false },
     },
     {
       id: 0,
@@ -32,7 +32,12 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 12,
-      settings: undefined,
+      settings: {
+        displayMode: 'relative',
+        currentBranch: undefined,
+        visualizationStyle: 'curved',
+        showSprints: false,
+      },
     },
     {
       id: 0,
@@ -42,12 +47,12 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 20,
       y: 12,
-      settings: undefined,
+      settings: { minEdgeValue: 0, maxEdgeValue: 50, includeCommitMessageRefs: true },
     },
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Knowledge Radar',
       dataPluginId: undefined,
       x: 0,
@@ -57,7 +62,7 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Time Spent',
       dataPluginId: undefined,
       x: 20,

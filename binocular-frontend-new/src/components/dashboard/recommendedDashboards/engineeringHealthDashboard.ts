@@ -12,7 +12,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 0,
       y: 0,
-      settings: undefined,
+      settings: { commits: true, contributors: true, issues: true, builds: false, mergeRequests: true },
     },
     {
       id: 0,
@@ -22,7 +22,7 @@ const dashboard: DashboardLayout = {
       dataPluginId: undefined,
       x: 10,
       y: 0,
-      settings: undefined,
+      settings: { splitAdditionsDeletions: false, visualizationStyle: 'linear', showSprints: false },
     },
     {
       id: 0,
@@ -52,7 +52,7 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Knowledge Radar',
       dataPluginId: undefined,
       x: 0,
@@ -62,7 +62,7 @@ const dashboard: DashboardLayout = {
     {
       id: 0,
       width: 20,
-      height: 12,
+      height: 16,
       pluginName: 'Repository Activity',
       dataPluginId: undefined,
       x: 20,

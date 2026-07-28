@@ -24,27 +24,16 @@ type DetailDialogState = {
 } & ({ variant: 'merge-request' | 'issue'; iid: number } | ({ variant: 'sprint-area' } & MappedSprint));
 
 const stringToColor = (string: string) => {
-  // Remove all non hex characters from the string.
-  let stringWithInvalidCharsReplaced = string
-    .split('')
-    .map((c) => (/[0-9A-F]/gi.test(c) ? c : 0))
-    .join('');
-
-  // Pad the string with '0', so the length of it is a multiple of 3.
-  while (stringWithInvalidCharsReplaced.length % 3 !== 0) {
-    stringWithInvalidCharsReplaced += '0';
+  // Hash the string down to a hue value, so the color is still deterministic per string.
+  let hash = 0;
+  for (let i = 0; i < string.length; i++) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
   }
+  const hue = Math.abs(hash) % 360;
 
-  const partLength = stringWithInvalidCharsReplaced.length / 3;
-  const subStringLength = partLength === 1 ? 1 : 2;
-
-  // Split up string into the three color channels.
-  // Only take the first two chars of each part.
-  const red = stringWithInvalidCharsReplaced.substring(0, subStringLength);
-  const green = stringWithInvalidCharsReplaced.substring(partLength, partLength + subStringLength);
-  const blue = stringWithInvalidCharsReplaced.substring(partLength * 2, partLength * 2 + subStringLength);
-
-  return `#${red}${green}${blue}`;
+  // Keep saturation/lightness fixed within a mid range, so colors are never so dark or so bright
+  // that they become invisible against either the light or dark theme background.
+  return d3.hsl(hue, 0.55, 0.5).formatHex();
 };
 
 const mapIssue = (groupedLabels: Map<number, string[]>, colorsForLabelGroups: Map<number, string>) => {
