@@ -284,7 +284,24 @@ export default class Database {
     }
   }
 
+  /**
+   * DIRECT VS. TRANSITIVE VULNERABILITY SNAPSHOTS
+   */
+  static async getVulnerabilityDirectTransitiveSnapshots(branch, since, until) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityDirectTransitiveSnapshots(branch, since, until);
+    } else {
+      return [];
+    }
+  }
 
+  static async getVulnerabilityDirectTransitiveBranches() {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityDirectTransitiveBranches();
+    } else {
+      return [];
+    }
+  }
 
   /**
    * DATABASE

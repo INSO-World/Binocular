@@ -25,6 +25,7 @@ const milestones = db._collection('milestones');
 const vulnAgeBuckets = db._collection('vulnerabilityAgeBuckets');
 const vulnRemediationSnapshots = db._collection('vulnerabilityRemediationTimeSnapshots');
 const vulnPatchLagSnapshots = db._collection('vulnerabilityPatchLagSnapshots');
+const vulnDirectTransitiveSnapshots = db._collection('vulnerabilityDirectTransitiveSnapshots');
 
 
 const queryType = new gql.GraphQLObjectType({
@@ -343,7 +344,6 @@ const queryType = new gql.GraphQLObjectType({
           `;
         },
       }),
-
       vulnerabilityPatchLagSnapshots: paginated({
         type: require('./types/vulnerabilityPatchLagSnapshot.js'),
         args: {
@@ -382,6 +382,48 @@ const queryType = new gql.GraphQLObjectType({
     `;
         },
       }),
+      vulnerabilityDirectTransitiveSnapshots: paginated({
+        type: require('./types/vulnerabilityDirectTransitiveSnapshot.js'),
+        args: {
+          branch: {
+            description: 'Branch name (e.g. "main")',
+            type: new gql.GraphQLNonNull(gql.GraphQLString),
+          },
+          since: {
+            description: 'Optional lower bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+          until: {
+            description: 'Optional upper bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+        },
+        query: (root, args, limit) => {
+          return aql`
+            FOR doc IN ${vulnDirectTransitiveSnapshots}
+              FILTER doc.branch == ${args.branch}
+              ${args.since ? queryHelpers.addDateFilterAQL('doc.date', '>=', args.since) : aql``}
+              ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
+              SORT doc.sequence ASC, doc.date ASC
+              ${limit}
+              RETURN doc
+          `;
+        },
+      }),
+      vulnerabilityDirectTransitiveBranches: {
+        type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+        description: 'Branches that have direct/transitive vulnerability snapshots',
+        resolve: () =>
+          db
+            ._query(aql`
+              FOR doc IN ${vulnDirectTransitiveSnapshots}
+                FILTER IS_STRING(doc.branch) && doc.branch != ""
+                COLLECT branch = doc.branch
+                SORT branch ASC
+                RETURN branch
+            `)
+            .toArray(),
+      },
     };
   },
 });

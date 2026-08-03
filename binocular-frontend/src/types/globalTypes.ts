@@ -4,6 +4,7 @@ import { UniversalSettings } from './unversalSettingsTypes';
 import type { VulnerabilityAgeBucketsState } from '../visualizations/vulnerabilityTrends/vulnerabilityAgeBuckets/reducers';
 import type { VulnerabilityRemediationTimesState } from '../visualizations/vulnerabilityTrends/vulnerabilityRemediationTimes/reducers';
 import type { VulnerabilityPatchLagState } from '../visualizations/vulnerabilityTrends/vulnerabilityPatchLag/reducers';
+import type { VulnerabilityDirectTransitiveState } from '../visualizations/vulnerabilityTrends/vulnerabilityDirectTransitive/reducers';
 
 export interface GlobalState {
   activeConfigTab: string;
@@ -23,6 +24,9 @@ export interface GlobalState {
     };
     vulnerabilityPatchLag?: {
       state: VulnerabilityPatchLagState;
+    };
+    vulnerabilityDirectTransitive?: {
+      state: VulnerabilityDirectTransitiveState;
     };
     [key: string]: any; // keep existing visualizations untyped for now
   };

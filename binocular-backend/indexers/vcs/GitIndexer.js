@@ -8,6 +8,7 @@ import _ from 'lodash';
 import Commit from '../../models/Commit.js';
 import Module from '../../models/Module.js';
 import File from '../../models/File.js';
+import Hunk from '../../models/Hunk.js';
 import Branch from '../../models/Branch.js';
 import BranchFileConnection from '../../models/BranchFileConnection.js';
 import CommitFileConnection from '../../models/CommitFileConnection.js';
@@ -130,7 +131,7 @@ class GitIndexer {
       }
 
       log('Deducing file lengths...');
-      await File.deduceMaxLengths();
+      await File.deduceMaxLengths(Hunk.collection);
       log('Done');
     })();
     return this.process;

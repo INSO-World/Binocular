@@ -4,6 +4,8 @@ import _ from 'lodash';
 import Model from './Model.js';
 import IllegalArgumentError from '../errors/IllegalArgumentError.js';
 
+const DEP_TYPES = new Set(['DIRECT', 'TRANSITIVE', 'ABSENT']);
+
 const VersionChangeEvent = Model.define('VersionChangeEvent', {
   attributes: [
     'id',
@@ -11,44 +13,35 @@ const VersionChangeEvent = Model.define('VersionChangeEvent', {
     'branchName',
     'author',
     'timestamp',
+    'sequence',
     'library',
     'oldVersion',
     'newVersion',
-    'direct',
-    'wasDirect',
+
+    // enum-like fields (validated in persist)
+    'dependencyType', // 'DIRECT' | 'TRANSITIVE' | 'ABSENT'
+    'wasDependencyType', // 'DIRECT' | 'TRANSITIVE' | 'ABSENT'
+
     'sourceType', // 'commit' | 'merge' | 'cherry-pick' | 'rebase'
-    /**
-     * Describes how this version change was introduced into the current branch:
-     * - 'commit'       → A direct commit made on this branch
-     * - 'merge'        → Brought in via a merge from another branch
-     * - 'cherry-pick'  → Explicit cherry-pick operation
-     * - 'rebase'       → Rebased from another branch
-     *
-     * Used to distinguish original changes from propagated ones.
-     */
-
-    'sourceMergeCommit', // Hash of the merge commit that brought this in (if applicable) //TODO: check if this makes sense later
-    /**
-     * If sourceType is 'merge', this holds the commit hash of the merge commit
-     * that introduced the change into this branch. Useful for tracking propagation
-     * paths and preventing duplicate counting of version changes across branches.
-     */
-
-    'introducedCommits', // Array of commit hashes from the source branch
-    /**
-     * For merges, this is an array of commit hashes (from the source branch)
-     * that actually performed the version change (e.g., the original commit(s)
-     * updating the package-lock.json). Helps identify true origin of the change.
-     */
+    'sourceMergeCommit',
+    'introducedCommits',
     'vulnerabilities',
   ],
   keyAttribute: 'id',
 });
 
 VersionChangeEvent.keyFromData = (data) => {
-  const safeLibrary = data.library.replace(/[^A-Za-z0-9_]+/g, '_');
+  const safeLibrary = String(data.library || '').replace(/[^A-Za-z0-9_]+/g, '_');
   return `${data.commitHash}_${safeLibrary}`;
 };
+
+function assertDepType(fieldName, value) {
+  if (value === null || value === undefined) return;
+  const v = String(value).toUpperCase();
+  if (!DEP_TYPES.has(v)) {
+    throw new IllegalArgumentError(`${fieldName} must be one of ${[...DEP_TYPES].join(', ')} (got "${value}")`);
+  }
+}
 
 VersionChangeEvent.persist = function (_eventData) {
   const eventData = _.clone(_eventData);
@@ -60,11 +53,28 @@ VersionChangeEvent.persist = function (_eventData) {
   eventData.commitHash = eventData.commitHash.toString();
   eventData.library = eventData.library.toString();
 
+  // normalize + validate enum-like fields
+  if (eventData.dependencyType !== null && eventData.dependencyType !== undefined) {
+    eventData.dependencyType = String(eventData.dependencyType).toUpperCase();
+  }
+  if (eventData.wasDependencyType !== null && eventData.wasDependencyType !== undefined) {
+    eventData.wasDependencyType = String(eventData.wasDependencyType).toUpperCase();
+  }
+
+  assertDepType('dependencyType', eventData.dependencyType);
+  assertDepType('wasDependencyType', eventData.wasDependencyType);
+
   const key = VersionChangeEvent.keyFromData(eventData);
 
   return VersionChangeEvent.ensureById(key, eventData, {
     ignoreUnknownAttributes: true,
   });
 };
+
+VersionChangeEvent.DEPENDENCY_TYPES = Object.freeze({
+  DIRECT: 'DIRECT',
+  TRANSITIVE: 'TRANSITIVE',
+  ABSENT: 'ABSENT',
+});
 
 export default VersionChangeEvent;

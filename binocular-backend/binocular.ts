@@ -78,7 +78,8 @@ import Vulnerability from './models/Vulnerability';
 import VersionChangeEventVulnerabilityConnection from './models/VersionChangeEventVulnerabilityConnection';
 import VulnerabilityAgeBucket from './models/metrics/VulnerabilityAgeBucket';
 import VulnerabilityRemediationTimeSnapshot from './models/metrics/VulnerabilityRemediationTimeSnapshot';
-import VulnerabilityPatchLagSnapshot from "./models/metrics/VulnerabilityPatchLagSnapshot";
+import VulnerabilityPatchLagSnapshot from './models/metrics/VulnerabilityPatchLagSnapshot';
+import VulnerabilityDirectTransitiveSnapshot from './models/metrics/VulnerabilityDirectTransitiveSnapshot';
 
 cli.parse(
   (targetPath, options) => {
@@ -397,7 +398,7 @@ function runBackend() {
         return;
       }
 
-      await (Issue as any).deduceStakeholders();
+      await (Issue as any).deduceStakeholders((IssueStakeholderConnection as any).collection);
       createManualIssueReferences(config.get('issueReferences'));
       if (context.argv.export) {
         projectStructureHelper.deleteDbExport(__dirname + '/../binocular-frontend');
@@ -613,6 +614,7 @@ function runBackend() {
           VulnerabilityAgeBucket.ensureCollection(),
           VulnerabilityRemediationTimeSnapshot.ensureCollection(),
           VulnerabilityPatchLagSnapshot.ensureCollection(),
+          VulnerabilityDirectTransitiveSnapshot.ensureCollection(),
         ]);
       });
   }

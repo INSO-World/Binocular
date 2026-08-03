@@ -8,11 +8,9 @@ import VulnerabilityPatchLagSnapshot from '../../models/metrics/VulnerabilityPat
 import { walkVersionChangeVulnTriples } from '../walkers/walkVersionChangeVulnTriples.js';
 import { preloadNpmTimesForPackages, getNpmPackageTimes } from './npmRegistryTimes.js';
 
-const log = debug('vuln-metrics:patch-lag');
 const logStep = debug('vuln-metrics:patch-lag:detail');
 
 const DAY_MS = 1000 * 60 * 60 * 24;
-
 const SEVERITY_ORDER = ['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'MALICIOUS', 'UNKNOWN'];
 
 function addWeeks(date, weeks) {
@@ -28,26 +26,33 @@ function median(values) {
   return arr.length % 2 === 0 ? (arr[mid - 1] + arr[mid]) / 2 : arr[mid];
 }
 
-/**
- * Infer a "fixed version" from vuln.affectedVersions which (in your normalization)
- * may include strings like "<1.2.3" from OSV SEMVER ranges.
- */
 function inferFixedVersionFromAffectedVersions(vuln) {
-  const aff = Array.isArray(vuln?.affectedVersions) ? vuln.affectedVersions : [];
+  const patched = Array.isArray(vuln?.patchedVersions) ? vuln.patchedVersions : [];
+  const affected = Array.isArray(vuln?.affectedVersions) ? vuln.affectedVersions : [];
   const candidates = [];
 
-  for (const s of aff) {
+  for (const s of patched) {
     const str = String(s || '').trim();
-    // We only treat "<x.y.z" and "<=x.y.z" as fixed-boundary indicators
-    const m = str.match(/^<=?\s*([0-9A-Za-z.+-]+)$/);
+    const m = str.match(/^(?:>=?\s*)?([0-9A-Za-z.+-]+)$/);
     if (!m) continue;
     const v = m[1];
-    if (semver.valid(semver.coerce(v))) candidates.push(semver.coerce(v).version);
+    const coerced = semver.coerce(v);
+    if (coerced && semver.valid(coerced)) candidates.push(coerced.version);
+  }
+
+  // Compatibility with vulnerability documents created before patchedVersions
+  // was populated. Only exclusive upper bounds represent an OSV "fixed" event.
+  if (!candidates.length) {
+    for (const s of affected) {
+      const str = String(s || '').trim();
+      const match = str.match(/(?:^|\s)<\s*([0-9A-Za-z.+-]+)(?:\s|$)/);
+      if (!match) continue;
+      const coerced = semver.coerce(match[1]);
+      if (coerced && semver.valid(coerced)) candidates.push(coerced.version);
+    }
   }
 
   if (!candidates.length) return null;
-
-  // Lowest fixed boundary is the earliest non-vulnerable candidate.
   candidates.sort(semver.compare);
   return candidates[0];
 }
@@ -58,10 +63,10 @@ function normalizeSeverity(vuln) {
   return 'UNKNOWN';
 }
 
-/**
- * Computes weekly patch-lag snapshots for open vuln instances on a given branch.
- * Stores both mean and median lag days grouped by severity.
- */
+function pairKey(library, vulnId) {
+  return `${library}||${vulnId}`;
+}
+
 export async function computeMeanPatchLagOverTime(branch = 'main') {
   console.log(`[PATCHLAG][STEP5] started branch=${branch}`);
 
@@ -77,20 +82,21 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
   const startDate = new Date(Number(events[0].timestamp) * 1000);
   const endDate = new Date(Number(events[events.length - 1].timestamp) * 1000);
 
-  // Track open intervals by (library|vulnId)
-  // key -> { library, vulnId, severity, openedAt: Date, closedAt: Date|null, fixedVersion, fixedReleaseDate: Date|null }
-  const openMap = new Map();
-  const allPairs = new Map(); // store final interval data even after close
+  const openMap = new Map(); // key -> interval (open only)
+  const intervals = []; // all intervals (open + closed)
+
+  let strayFixes = 0;
 
   for await (const { eventDate, conn, vuln, event } of walkVersionChangeVulnTriples(branch, { relations: ['AFFECTS', 'FIXES'] })) {
     const vulnId = vuln?.vulnId;
     const library = event?.library || event?.libraryName || event?.package || null;
     if (!vulnId || !library) continue;
 
-    const key = `${library}||${vulnId}`;
+    const key = pairKey(library, vulnId);
+    const relation = String(conn?.relation || '').toUpperCase();
     const severity = normalizeSeverity(vuln);
 
-    if (conn?.relation === 'AFFECTS') {
+    if (relation === 'AFFECTS') {
       if (!openMap.has(key)) {
         const fixedVersion = inferFixedVersionFromAffectedVersions(vuln);
         const rec = {
@@ -103,43 +109,29 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
           fixedReleaseDate: null,
         };
         openMap.set(key, rec);
-        allPairs.set(key, rec);
+        intervals.push(rec);
       }
+      continue;
     }
 
-    if (conn?.relation === 'FIXES') {
+    if (relation === 'FIXES') {
       const cur = openMap.get(key);
       if (cur) {
         cur.closedAt = eventDate;
         openMap.delete(key);
       } else {
-        // In case we missed an AFFECTS earlier (data oddities), still store close info.
-        const fixedVersion = inferFixedVersionFromAffectedVersions(vuln);
-        const rec = {
-          library,
-          vulnId,
-          severity,
-          openedAt: eventDate,
-          closedAt: eventDate,
-          fixedVersion,
-          fixedReleaseDate: null,
-        };
-        allPairs.set(key, rec);
+        strayFixes++;
       }
     }
   }
 
-  const pairs = [...allPairs.values()];
-  const uniquePkgs = [...new Set(pairs.map((p) => p.library).filter(Boolean))];
-
-  // Preload npm "time" maps once per package to avoid per-snapshot fetches
+  const uniquePkgs = [...new Set(intervals.map((p) => p.library).filter(Boolean))];
   await preloadNpmTimesForPackages(uniquePkgs);
 
-  // Resolve fixedReleaseDate per pair where fixedVersion is known
   let fixedResolved = 0;
   let fixedMissing = 0;
 
-  for (const p of pairs) {
+  for (const p of intervals) {
     if (!p.fixedVersion) {
       fixedMissing++;
       continue;
@@ -162,11 +154,10 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
   for (let snapshotDate = startDate; snapshotDate <= endDate; snapshotDate = addWeeks(snapshotDate, 1)) {
     for (const sev of SEVERITY_ORDER) {
       const lags = [];
-
       let countUnavailableYet = 0;
       let countNoFixInfo = 0;
 
-      for (const p of pairs) {
+      for (const p of intervals) {
         if (p.severity !== sev) continue;
 
         if (p.openedAt > snapshotDate) continue;
@@ -209,12 +200,14 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
   }
 
   console.log(
-    `[PATCHLAG][STEP5][SUMMARY] branch=${branch} snapshots=${Math.ceil(results.length / SEVERITY_ORDER.length)} rows=${results.length} pairs=${pairs.length} pkgs=${uniquePkgs.length} fixedResolved=${fixedResolved} fixedMissing=${fixedMissing}`,
+    `[PATCHLAG][STEP5][SUMMARY] branch=${branch} snapshots=${Math.ceil(results.length / SEVERITY_ORDER.length)} rows=${
+      results.length
+    } intervals=${intervals.length} pkgs=${
+      uniquePkgs.length
+    } fixedResolved=${fixedResolved} fixedMissing=${fixedMissing} strayFixes=${strayFixes}`,
   );
 
-  logStep(
-    `[PATCHLAG][DETAIL] dateRange=${startDate.toISOString()}..${endDate.toISOString()} severities=${SEVERITY_ORDER.join(',')}`,
-  );
+  logStep(`[PATCHLAG][DETAIL] dateRange=${startDate.toISOString()}..${endDate.toISOString()} severities=${SEVERITY_ORDER.join(',')}`);
 
   return results;
 }

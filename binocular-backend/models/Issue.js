@@ -50,15 +50,14 @@ Issue.persist = function (_issueData) {
   return Issue.ensureById(issueData.id, issueData, { ignoreUnknownAttributes: true });
 };
 
-Issue.deduceStakeholders = async function () {
-  const IssueStakeholderConnection = (await import('./IssueStakeholderConnection.js')).default;
+Issue.deduceStakeholders = async function (issueStakeholderCollection) {
   return Promise.resolve(
     Issue.rawDb.query(
       aql`
     FOR issue IN ${Issue.collection}
         LET stakeholders = (FOR stakeholder
                             IN
-                            INBOUND issue ${IssueStakeholderConnection.collection}
+                            INBOUND issue ${issueStakeholderCollection}
                                 RETURN stakeholder)
         FILTER LENGTH(stakeholders) == 0
         COLLECT authorId = issue.author.id INTO issuesPerAuthor = issue

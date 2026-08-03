@@ -13,6 +13,7 @@ import Stakeholders from './serverDB/stakeholders';
 import VulnerabilityAgeBuckets from './serverDB/vulnerabilityAgeBuckets.js';
 import VulnerabilityRemediationTimeSnapshots from './serverDB/vulnerabilityRemediationTimeSnapshots.js';
 import VulnerabilityPatchLagSnapshots from './serverDB/vulnerabilityPatchLagSnapshots.js';
+import VulnerabilityDirectTransitiveSnapshots from './serverDB/vulnerabilityDirectTransitiveSnapshots.js';
 
 export default class ServerDB {
   static getBounds() {
@@ -129,6 +130,14 @@ export default class ServerDB {
 
   static getVulnerabilityPatchLagSnapshots(branch, since, until, severities) {
     return VulnerabilityPatchLagSnapshots.getVulnerabilityPatchLagSnapshots(branch, since, until, severities);
+  }
+
+  static getVulnerabilityDirectTransitiveSnapshots(branch, since, until) {
+    return VulnerabilityDirectTransitiveSnapshots.getVulnerabilityDirectTransitiveSnapshots(branch, since, until);
+  }
+
+  static getVulnerabilityDirectTransitiveBranches() {
+    return VulnerabilityDirectTransitiveSnapshots.getVulnerabilityDirectTransitiveBranches();
   }
 
   static getDatabase() {

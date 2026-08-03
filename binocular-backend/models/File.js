@@ -6,8 +6,7 @@ import path from 'path';
 
 const File = Model.define('File', { attributes: ['path', 'webUrl'] });
 
-File.deduceMaxLengths = async function () {
-  const Hunk = (await import('./Hunk.js')).default;
+File.deduceMaxLengths = async function (hunkCollection) {
   return Promise.resolve(
     File.rawDb.query(
       aql`
@@ -15,7 +14,7 @@ File.deduceMaxLengths = async function () {
       UPDATE file WITH {
         maxLength: MAX(
           FOR commit, edge
-          IN OUTBOUND file ${Hunk.collection}
+          IN OUTBOUND file ${hunkCollection}
           RETURN edge.lineCount
         )
       } IN ${File.collection}
