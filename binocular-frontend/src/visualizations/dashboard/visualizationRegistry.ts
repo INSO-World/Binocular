@@ -14,6 +14,7 @@ import vulnerabilityPatchLagSnapshot from '../vulnerabilityTrends/vulnerabilityP
 import vulnerabilityDirectTransitive from '../vulnerabilityTrends/vulnerabilityDirectTransitive';
 import vulnerabilitySeverityDistribution from '../vulnerabilityTrends/vulnerabilitySeverityDistribution';
 import outdatedDependencyPercentage from '../vulnerabilityTrends/outdatedDependencyPercentage';
+import licenseCompliance from '../vulnerabilityTrends/licenseCompliance';
 
 export default {
   changes,
@@ -30,4 +31,5 @@ export default {
   vulnerabilityDirectTransitive,
   vulnerabilitySeverityDistribution,
   outdatedDependencyPercentage,
+  licenseCompliance,
 };

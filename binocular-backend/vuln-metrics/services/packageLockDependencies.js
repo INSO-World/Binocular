@@ -85,7 +85,11 @@ function finalizeCandidates(candidates) {
   return Object.fromEntries(
     [...candidates.entries()]
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([name, candidate]) => [name, { version: candidate.version, direct: candidate.direct }]),
+      .map(([name, candidate]) => {
+        const dependency = { version: candidate.version, direct: candidate.direct };
+        if (candidate.license !== null && candidate.license !== undefined) dependency.license = candidate.license;
+        return [name, dependency];
+      }),
   );
 }
 
@@ -108,7 +112,13 @@ function dependenciesFromPackages(lock, directNames) {
     const depth = installDepth(packagePath);
     const direct = depth === 1 && directNames.has(installedName);
 
-    chooseCandidate(candidates, name, { version, direct, depth, path: packagePath });
+    chooseCandidate(candidates, name, {
+      version,
+      direct,
+      depth,
+      path: packagePath,
+      license: resolvedInfo?.license ?? packageInfo?.license ?? null,
+    });
   }
 
   return finalizeCandidates(candidates);
@@ -128,6 +138,7 @@ function dependenciesFromLegacyTree(lock, directNames) {
           direct: depth === 0 && directNames.has(name),
           depth: depth + 1,
           path,
+          license: info?.license ?? null,
         });
       }
 

@@ -28,6 +28,7 @@ const vulnPatchLagSnapshots = db._collection('vulnerabilityPatchLagSnapshots');
 const vulnDirectTransitiveSnapshots = db._collection('vulnerabilityDirectTransitiveSnapshots');
 const vulnSeveritySnapshots = db._collection('vulnerabilitySeveritySnapshots');
 const outdatedDependencySnapshots = db._collection('outdatedDependencySnapshots');
+const licenseComplianceSnapshots = db._collection('licenseComplianceSnapshots');
 
 
 const queryType = new gql.GraphQLObjectType({
@@ -499,6 +500,46 @@ const queryType = new gql.GraphQLObjectType({
           db
             ._query(aql`
               FOR doc IN ${outdatedDependencySnapshots}
+                FILTER IS_STRING(doc.branch) && doc.branch != ""
+                COLLECT branch = doc.branch
+                SORT branch ASC
+                RETURN branch
+            `)
+            .toArray(),
+      },
+      licenseComplianceSnapshots: paginated({
+        type: require('./types/licenseComplianceSnapshot.js'),
+        args: {
+          branch: {
+            description: 'Branch name',
+            type: new gql.GraphQLNonNull(gql.GraphQLString),
+          },
+          since: {
+            description: 'Optional lower bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+          until: {
+            description: 'Optional upper bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+        },
+        query: (root, args, limit) => aql`
+          FOR doc IN ${licenseComplianceSnapshots}
+            FILTER doc.branch == ${args.branch}
+            ${args.since ? queryHelpers.addDateFilterAQL('doc.date', '>=', args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
+            SORT doc.date ASC, doc.sequence ASC
+            ${limit}
+            RETURN doc
+        `,
+      }),
+      licenseComplianceBranches: {
+        type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+        description: 'Branches that have license compliance snapshots',
+        resolve: () =>
+          db
+            ._query(aql`
+              FOR doc IN ${licenseComplianceSnapshots}
                 FILTER IS_STRING(doc.branch) && doc.branch != ""
                 COLLECT branch = doc.branch
                 SORT branch ASC

@@ -43,6 +43,7 @@ import vulnerabilityPatchLagSnapshot from './visualizations/vulnerabilityTrends/
 import vulnerabilityDirectTransitive from './visualizations/vulnerabilityTrends/vulnerabilityDirectTransitive';
 import vulnerabilitySeverityDistribution from './visualizations/vulnerabilityTrends/vulnerabilitySeverityDistribution';
 import outdatedDependencyPercentage from './visualizations/vulnerabilityTrends/outdatedDependencyPercentage';
+import licenseCompliance from './visualizations/vulnerabilityTrends/licenseCompliance';
 import RootOffline from './components/RootOffline';
 
 const visualizationModules = [
@@ -65,6 +66,7 @@ const visualizationModules = [
   vulnerabilityDirectTransitive,
   vulnerabilitySeverityDistribution,
   outdatedDependencyPercentage,
+  licenseCompliance,
 ];
 
 Database.checkBackendConnection().then((connection) => {

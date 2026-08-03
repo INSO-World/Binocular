@@ -11,6 +11,12 @@ const MAX_FAIL_LOG = 50;
 const REGISTRY_TIMEOUT_MS = 30000;
 
 const pkgTimesCache = new Map(); // pkg -> Map(version -> Date)
+const pkgLicensesCache = new Map(); // pkg -> Map(version -> SPDX expression or legacy license value)
+
+function cacheMetadata(name, metadata) {
+  pkgTimesCache.set(name, metadata.times);
+  pkgLicensesCache.set(name, metadata.licenses);
+}
 
 export async function getNpmPackageTimes(pkgName) {
   const name = String(pkgName || '').trim();
@@ -18,9 +24,20 @@ export async function getNpmPackageTimes(pkgName) {
 
   if (pkgTimesCache.has(name)) return pkgTimesCache.get(name);
 
-  const times = await fetchTimesFromRegistry(name);
-  pkgTimesCache.set(name, times);
-  return times;
+  const metadata = await fetchMetadataFromRegistry(name);
+  cacheMetadata(name, metadata);
+  return metadata.times;
+}
+
+export async function getNpmPackageLicenses(pkgName) {
+  const name = String(pkgName || '').trim();
+  if (!name) return new Map();
+
+  if (pkgLicensesCache.has(name)) return pkgLicensesCache.get(name);
+
+  const metadata = await fetchMetadataFromRegistry(name);
+  cacheMetadata(name, metadata);
+  return metadata.licenses;
 }
 
 export async function preloadNpmTimesForPackages(pkgs = [], options = {}) {
@@ -50,8 +67,8 @@ export async function preloadNpmTimesForPackages(pkgs = [], options = {}) {
       }
 
       try {
-        const times = await fetchTimesFromRegistry(pkg);
-        pkgTimesCache.set(pkg, times);
+        const metadata = await fetchMetadataFromRegistry(pkg);
+        cacheMetadata(pkg, metadata);
       } catch (err) {
         if (failLogged < MAX_FAIL_LOG) {
           failLogged++;
@@ -60,6 +77,7 @@ export async function preloadNpmTimesForPackages(pkgs = [], options = {}) {
           logDetail(`[NPM][FAIL] pkg=${pkg} worker=${workerId} err=${err?.message || String(err)}`);
         }
         pkgTimesCache.set(pkg, new Map());
+        pkgLicensesCache.set(pkg, new Map());
       } finally {
         reportProgress(pkg);
       }
@@ -72,7 +90,7 @@ export async function preloadNpmTimesForPackages(pkgs = [], options = {}) {
   log(`[NPM][SUMMARY] preloadedPackages=${list.length}`);
 }
 
-async function fetchTimesFromRegistry(pkg) {
+async function fetchMetadataFromRegistry(pkg) {
   // npm registry expects scoped packages URL-encoded
   const url = `https://registry.npmjs.org/${encodeURIComponent(pkg)}`;
 
@@ -91,13 +109,21 @@ async function fetchTimesFromRegistry(pkg) {
     clearTimeout(timeout);
   }
   const timeObj = json?.time || {};
+  const versionsObj = json?.versions || {};
 
-  const map = new Map();
+  const times = new Map();
   for (const [version, iso] of Object.entries(timeObj)) {
     // time has keys like "created", "modified" too; filter by semver-ish versions
     if (!version || version === 'created' || version === 'modified') continue;
     const d = new Date(iso);
-    if (!isNaN(d.getTime())) map.set(version, d);
+    if (!isNaN(d.getTime())) times.set(version, d);
   }
-  return map;
+
+  const licenses = new Map();
+  for (const [version, metadata] of Object.entries(versionsObj)) {
+    const license = metadata?.license ?? metadata?.licenses ?? null;
+    if (license !== null && license !== undefined) licenses.set(version, license);
+  }
+
+  return { times, licenses };
 }

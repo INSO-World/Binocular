@@ -11,6 +11,7 @@ import VulnerabilityPatchLagSnapshot from '../../models/metrics/VulnerabilityPat
 import VulnerabilityDirectTransitiveSnapshot from '../../models/metrics/VulnerabilityDirectTransitiveSnapshot.js';
 import VulnerabilitySeveritySnapshot from '../../models/metrics/VulnerabilitySeveritySnapshot.js';
 import OutdatedDependencySnapshot from '../../models/metrics/OutdatedDependencySnapshot.js';
+import LicenseComplianceSnapshot from '../../models/metrics/LicenseComplianceSnapshot.js';
 
 const log = debug('vuln-metrics:cleanup');
 
@@ -83,6 +84,7 @@ export async function step0CleanupCollections() {
   );
   results.vulnerabilitySeveritySnapshots = await wipe(VulnerabilitySeveritySnapshot, 'VulnerabilitySeveritySnapshot');
   results.outdatedDependencySnapshots = await wipe(OutdatedDependencySnapshot, 'OutdatedDependencySnapshot');
+  results.licenseComplianceSnapshots = await wipe(LicenseComplianceSnapshot, 'LicenseComplianceSnapshot');
 
   log('Cleanup results: %O', results);
 

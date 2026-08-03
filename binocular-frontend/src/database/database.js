@@ -342,6 +342,25 @@ export default class Database {
   }
 
   /**
+   * LICENSE COMPLIANCE SNAPSHOTS
+   */
+  static async getLicenseComplianceSnapshots(branch, since, until) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getLicenseComplianceSnapshots(branch, since, until);
+    } else {
+      return [];
+    }
+  }
+
+  static async getLicenseComplianceBranches() {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getLicenseComplianceBranches();
+    } else {
+      return [];
+    }
+  }
+
+  /**
    * DATABASE
    */
   static async getDatabase() {
