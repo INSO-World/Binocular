@@ -14,6 +14,7 @@ import VulnerabilityAgeBuckets from './serverDB/vulnerabilityAgeBuckets.js';
 import VulnerabilityRemediationTimeSnapshots from './serverDB/vulnerabilityRemediationTimeSnapshots.js';
 import VulnerabilityPatchLagSnapshots from './serverDB/vulnerabilityPatchLagSnapshots.js';
 import VulnerabilityDirectTransitiveSnapshots from './serverDB/vulnerabilityDirectTransitiveSnapshots.js';
+import VulnerabilitySeveritySnapshots from './serverDB/vulnerabilitySeveritySnapshots.js';
 
 export default class ServerDB {
   static getBounds() {
@@ -138,6 +139,14 @@ export default class ServerDB {
 
   static getVulnerabilityDirectTransitiveBranches() {
     return VulnerabilityDirectTransitiveSnapshots.getVulnerabilityDirectTransitiveBranches();
+  }
+
+  static getVulnerabilitySeveritySnapshots(branch, since, until) {
+    return VulnerabilitySeveritySnapshots.getVulnerabilitySeveritySnapshots(branch, since, until);
+  }
+
+  static getVulnerabilitySeverityBranches() {
+    return VulnerabilitySeveritySnapshots.getVulnerabilitySeverityBranches();
   }
 
   static getDatabase() {

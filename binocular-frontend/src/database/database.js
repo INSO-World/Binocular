@@ -304,6 +304,25 @@ export default class Database {
   }
 
   /**
+   * VULNERABILITY SEVERITY SNAPSHOTS
+   */
+  static async getVulnerabilitySeveritySnapshots(branch, since, until) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilitySeveritySnapshots(branch, since, until);
+    } else {
+      return [];
+    }
+  }
+
+  static async getVulnerabilitySeverityBranches() {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilitySeverityBranches();
+    } else {
+      return [];
+    }
+  }
+
+  /**
    * DATABASE
    */
   static async getDatabase() {

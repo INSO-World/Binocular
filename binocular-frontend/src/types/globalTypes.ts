@@ -5,6 +5,8 @@ import type { VulnerabilityAgeBucketsState } from '../visualizations/vulnerabili
 import type { VulnerabilityRemediationTimesState } from '../visualizations/vulnerabilityTrends/vulnerabilityRemediationTimes/reducers';
 import type { VulnerabilityPatchLagState } from '../visualizations/vulnerabilityTrends/vulnerabilityPatchLag/reducers';
 import type { VulnerabilityDirectTransitiveState } from '../visualizations/vulnerabilityTrends/vulnerabilityDirectTransitive/reducers';
+// eslint-disable-next-line max-len
+import type { VulnerabilitySeverityDistributionState } from '../visualizations/vulnerabilityTrends/vulnerabilitySeverityDistribution/reducers';
 
 export interface GlobalState {
   activeConfigTab: string;
@@ -27,6 +29,9 @@ export interface GlobalState {
     };
     vulnerabilityDirectTransitive?: {
       state: VulnerabilityDirectTransitiveState;
+    };
+    vulnerabilitySeverityDistribution?: {
+      state: VulnerabilitySeverityDistributionState;
     };
     [key: string]: any; // keep existing visualizations untyped for now
   };

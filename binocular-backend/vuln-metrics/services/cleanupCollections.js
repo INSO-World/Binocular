@@ -9,6 +9,7 @@ import VulnerabilityAgeBucket from '../../models/metrics/VulnerabilityAgeBucket.
 import VulnerabilityRemediationTimeSnapshot from '../../models/metrics/VulnerabilityRemediationTimeSnapshot.js';
 import VulnerabilityPatchLagSnapshot from '../../models/metrics/VulnerabilityPatchLagSnapshot.js';
 import VulnerabilityDirectTransitiveSnapshot from '../../models/metrics/VulnerabilityDirectTransitiveSnapshot.js';
+import VulnerabilitySeveritySnapshot from '../../models/metrics/VulnerabilitySeveritySnapshot.js';
 
 const log = debug('vuln-metrics:cleanup');
 
@@ -79,6 +80,7 @@ export async function step0CleanupCollections() {
     VulnerabilityDirectTransitiveSnapshot,
     'VulnerabilityDirectTransitiveSnapshot',
   );
+  results.vulnerabilitySeveritySnapshots = await wipe(VulnerabilitySeveritySnapshot, 'VulnerabilitySeveritySnapshot');
 
   log('Cleanup results: %O', results);
 

@@ -12,6 +12,7 @@ import vulnerabilityAgeBuckets from '../vulnerabilityTrends/vulnerabilityAgeBuck
 import vulnerabilityRemediationTimes from '../vulnerabilityTrends/vulnerabilityRemediationTimes';
 import vulnerabilityPatchLagSnapshot from '../vulnerabilityTrends/vulnerabilityPatchLag';
 import vulnerabilityDirectTransitive from '../vulnerabilityTrends/vulnerabilityDirectTransitive';
+import vulnerabilitySeverityDistribution from '../vulnerabilityTrends/vulnerabilitySeverityDistribution';
 
 export default {
   changes,
@@ -26,4 +27,5 @@ export default {
   vulnerabilityRemediationTimes,
   vulnerabilityPatchLagSnapshot,
   vulnerabilityDirectTransitive,
+  vulnerabilitySeverityDistribution,
 };

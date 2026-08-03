@@ -80,6 +80,7 @@ import VulnerabilityAgeBucket from './models/metrics/VulnerabilityAgeBucket';
 import VulnerabilityRemediationTimeSnapshot from './models/metrics/VulnerabilityRemediationTimeSnapshot';
 import VulnerabilityPatchLagSnapshot from './models/metrics/VulnerabilityPatchLagSnapshot';
 import VulnerabilityDirectTransitiveSnapshot from './models/metrics/VulnerabilityDirectTransitiveSnapshot';
+import VulnerabilitySeveritySnapshot from './models/metrics/VulnerabilitySeveritySnapshot';
 
 cli.parse(
   (targetPath, options) => {
@@ -583,9 +584,8 @@ function runBackend() {
           return context.db.truncate();
         }
       })
-      .then(() => {
-        return Promise.all([
-          context.db.ensureService(path.join(__dirname, '../foxx'), '/binocular-ql'),
+      .then(async () => {
+        await Promise.all([
           Commit.ensureCollection(),
           File.ensureCollection(),
           Hunk.ensureCollection(),
@@ -615,7 +615,9 @@ function runBackend() {
           VulnerabilityRemediationTimeSnapshot.ensureCollection(),
           VulnerabilityPatchLagSnapshot.ensureCollection(),
           VulnerabilityDirectTransitiveSnapshot.ensureCollection(),
+          VulnerabilitySeveritySnapshot.ensureCollection(),
         ]);
+        return context.db.ensureService(path.join(__dirname, '../foxx'), '/binocular-ql');
       });
   }
 

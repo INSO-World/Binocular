@@ -41,6 +41,7 @@ import vulnerabilityAgeBuckets from './visualizations/vulnerabilityTrends/vulner
 import vulnerabilityRemediationTimes from './visualizations/vulnerabilityTrends/vulnerabilityRemediationTimes';
 import vulnerabilityPatchLagSnapshot from './visualizations/vulnerabilityTrends/vulnerabilityPatchLag';
 import vulnerabilityDirectTransitive from './visualizations/vulnerabilityTrends/vulnerabilityDirectTransitive';
+import vulnerabilitySeverityDistribution from './visualizations/vulnerabilityTrends/vulnerabilitySeverityDistribution';
 import RootOffline from './components/RootOffline';
 
 const visualizationModules = [
@@ -61,6 +62,7 @@ const visualizationModules = [
   vulnerabilityRemediationTimes,
   vulnerabilityPatchLagSnapshot,
   vulnerabilityDirectTransitive,
+  vulnerabilitySeverityDistribution,
 ];
 
 Database.checkBackendConnection().then((connection) => {
