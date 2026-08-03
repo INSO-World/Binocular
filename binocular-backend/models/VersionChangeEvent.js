@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import Model from './Model.js';
 import IllegalArgumentError from '../errors/IllegalArgumentError.js';
+import { createHash } from 'crypto';
 
 const DEP_TYPES = new Set(['DIRECT', 'TRANSITIVE', 'ABSENT']);
 
@@ -15,6 +16,9 @@ const VersionChangeEvent = Model.define('VersionChangeEvent', {
     'timestamp',
     'sequence',
     'library',
+    'component',
+    'lockfilePath',
+    'manifestPath',
     'oldVersion',
     'newVersion',
 
@@ -31,8 +35,13 @@ const VersionChangeEvent = Model.define('VersionChangeEvent', {
 });
 
 VersionChangeEvent.keyFromData = (data) => {
-  const safeLibrary = String(data.library || '').replace(/[^A-Za-z0-9_]+/g, '_');
-  return `${data.commitHash}_${safeLibrary}`;
+  return createHash('sha1')
+    .update(
+      `${String(data.branchName || '')}\0${String(data.commitHash || '')}\0${String(data.component || 'root')}\0${String(
+        data.library || '',
+      )}`,
+    )
+    .digest('hex');
 };
 
 function assertDepType(fieldName, value) {
@@ -52,6 +61,7 @@ VersionChangeEvent.persist = function (_eventData) {
 
   eventData.commitHash = eventData.commitHash.toString();
   eventData.library = eventData.library.toString();
+  eventData.component = String(eventData.component || 'root');
 
   // normalize + validate enum-like fields
   if (eventData.dependencyType !== null && eventData.dependencyType !== undefined) {

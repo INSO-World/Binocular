@@ -69,7 +69,8 @@ export function calculateLicenseComplianceTimeline({ branchHistories, packageLic
       if (!evaluation) {
         const counts = Object.fromEntries(LICENSE_CATEGORIES.map((category) => [category, 0]));
         const dependencies = Object.entries(commit?.dependencies || {});
-        for (const [name, dependency] of dependencies) {
+        for (const [identity, dependency] of dependencies) {
+          const name = dependency?.name || identity;
           counts[classifyLicense(installedLicense(name, dependency, packageLicensesByName))]++;
         }
         evaluation = {

@@ -53,8 +53,9 @@ export function calculateOutdatedDependencyTimeline({ branchHistories, packageTi
         let outdatedCount = 0;
         let evaluatedCount = 0;
 
-        for (const [name, dependency] of dependencies) {
+        for (const [identity, dependency] of dependencies) {
           dependenciesSeen++;
+          const name = dependency?.name || identity;
           const installedVersion = normalizedVersion(dependency?.version);
           const latestVersion = latestStableVersionAt(releaseTimes.get(name), timestamp);
           if (!installedVersion || !latestVersion) continue;

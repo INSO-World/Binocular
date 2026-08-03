@@ -1,6 +1,7 @@
 'use strict';
 
 import { normalizeSeverity } from './severityTimeline.js';
+import { dependencyIdentity, eventComponent } from './dependencyIdentity.js';
 
 const SEVERITY_RANK = Object.freeze({
   NONE: 0,
@@ -13,7 +14,7 @@ const SEVERITY_RANK = Object.freeze({
 });
 
 function eventKey(event) {
-  return `${String(event?.commitHash || '')}||${String(event?.library || '')}`;
+  return `${String(event?.commitHash || '')}||${dependencyIdentity(event)}`;
 }
 
 function orderedEvents(events) {
@@ -72,8 +73,10 @@ export function calculateDependencyVersionTimeline({ events, triples, branch = '
 
   for (const event of sortedEvents) {
     const library = String(event.library);
-    if (!openByLibrary.has(library)) openByLibrary.set(library, new Map());
-    const open = openByLibrary.get(library);
+    const component = eventComponent(event);
+    const identity = dependencyIdentity(event, library);
+    if (!openByLibrary.has(identity)) openByLibrary.set(identity, new Map());
+    const open = openByLibrary.get(identity);
     const transitions = transitionsByEvent.get(eventKey(event));
 
     for (const vulnerabilityId of transitions?.fixes || []) open.delete(vulnerabilityId);
@@ -86,6 +89,7 @@ export function calculateDependencyVersionTimeline({ events, triples, branch = '
     snapshots.push({
       branch: String(event.branchName || branch),
       library,
+      component,
       commitHash: String(event.commitHash),
       sequence: Number.isFinite(Number(event.sequence)) ? Number(event.sequence) : null,
       date: new Date((Number(event.timestamp) || 0) * 1000).toISOString(),

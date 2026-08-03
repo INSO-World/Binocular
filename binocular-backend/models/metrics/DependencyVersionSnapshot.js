@@ -10,6 +10,7 @@ const DependencyVersionSnapshot = Model.define('DependencyVersionSnapshot', {
     'id',
     'branch',
     'library',
+    'component',
     'commitHash',
     'sequence',
     'date',
@@ -29,7 +30,9 @@ const DependencyVersionSnapshot = Model.define('DependencyVersionSnapshot', {
 
 DependencyVersionSnapshot.keyFromData = (data) =>
   createHash('sha1')
-    .update(`${String(data.branch || '')}\0${String(data.commitHash || '')}\0${String(data.library || '')}`)
+    .update(
+      `${String(data.branch || '')}\0${String(data.commitHash || '')}\0${String(data.component || 'root')}\0${String(data.library || '')}`,
+    )
     .digest('hex');
 
 DependencyVersionSnapshot.persist = function (_doc) {
@@ -41,6 +44,7 @@ DependencyVersionSnapshot.persist = function (_doc) {
   doc.branch = String(doc.branch);
   doc.commitHash = String(doc.commitHash);
   doc.library = String(doc.library);
+  doc.component = String(doc.component || 'root');
   doc.sequence = Number.isFinite(Number(doc.sequence)) ? Number(doc.sequence) : null;
   doc.date = doc.date ? String(doc.date) : new Date().toISOString();
   doc.author = doc.author ? String(doc.author) : null;

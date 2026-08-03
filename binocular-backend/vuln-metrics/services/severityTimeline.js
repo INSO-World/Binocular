@@ -1,5 +1,7 @@
 'use strict';
 
+import { dependencyIdentity } from './dependencyIdentity.js';
+
 export const SEVERITY_KEYS = Object.freeze(['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'MALICIOUS', 'UNKNOWN']);
 
 export function normalizeSeverity(value) {
@@ -10,8 +12,8 @@ export function normalizeSeverity(value) {
   return SEVERITY_KEYS.includes(severity) ? severity : 'UNKNOWN';
 }
 
-function openKey(library, vulnerabilityId) {
-  return `${library}||${vulnerabilityId}`;
+function openKey(identity, vulnerabilityId) {
+  return `${identity}||${vulnerabilityId}`;
 }
 
 function orderedEvents(events) {
@@ -72,11 +74,12 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
     if (!commitHash || !library || !vulnerabilityId) continue;
     if (relation !== 'AFFECTS' && relation !== 'FIXES') continue;
 
+    const identity = dependencyIdentity(triple?.event, library);
     if (!transitionsByCommit.has(commitHash)) transitionsByCommit.set(commitHash, new Map());
     const libraries = transitionsByCommit.get(commitHash);
-    if (!libraries.has(library)) libraries.set(library, { affects: new Map(), fixes: new Set() });
+    if (!libraries.has(identity)) libraries.set(identity, { affects: new Map(), fixes: new Set() });
 
-    const transitions = libraries.get(library);
+    const transitions = libraries.get(identity);
     if (relation === 'AFFECTS') transitions.affects.set(vulnerabilityId, normalizeSeverity(triple?.vuln?.severity));
     else transitions.fixes.add(vulnerabilityId);
   }
@@ -87,8 +90,8 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
   let fixesApplied = 0;
   let severityChanges = 0;
 
-  function openVulnerability(library, vulnerabilityId, severity) {
-    const key = openKey(library, vulnerabilityId);
+  function openVulnerability(identity, vulnerabilityId, severity) {
+    const key = openKey(identity, vulnerabilityId);
     const existingSeverity = openVulnerabilities.get(key);
     if (existingSeverity) {
       if (existingSeverity !== severity) {
@@ -104,8 +107,8 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
     counts[severity]++;
   }
 
-  function closeVulnerability(library, vulnerabilityId) {
-    const key = openKey(library, vulnerabilityId);
+  function closeVulnerability(identity, vulnerabilityId) {
+    const key = openKey(identity, vulnerabilityId);
     const severity = openVulnerabilities.get(key);
     if (!severity) return;
 
@@ -117,13 +120,13 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
 
   for (const commitHash of commitOrder) {
     const libraryTransitions = transitionsByCommit.get(commitHash);
-    for (const [library, transitions] of libraryTransitions || []) {
+    for (const [identity, transitions] of libraryTransitions || []) {
       for (const vulnerabilityId of transitions.fixes) {
-        closeVulnerability(library, vulnerabilityId);
+        closeVulnerability(identity, vulnerabilityId);
         fixesApplied++;
       }
       for (const [vulnerabilityId, severity] of transitions.affects) {
-        openVulnerability(library, vulnerabilityId, severity);
+        openVulnerability(identity, vulnerabilityId, severity);
         affectsApplied++;
       }
     }

@@ -7,6 +7,7 @@ import VersionChangeEvent from '../../models/VersionChangeEvent.js';
 import VulnerabilityPatchLagSnapshot from '../../models/metrics/VulnerabilityPatchLagSnapshot.js';
 import { walkVersionChangeVulnTriples } from '../walkers/walkVersionChangeVulnTriples.js';
 import { preloadNpmTimesForPackages, getNpmPackageTimes } from './npmRegistryTimes.js';
+import { vulnerabilityInstanceKey } from './dependencyIdentity.js';
 
 const logStep = debug('vuln-metrics:patch-lag:detail');
 
@@ -63,10 +64,6 @@ function normalizeSeverity(vuln) {
   return 'UNKNOWN';
 }
 
-function pairKey(library, vulnId) {
-  return `${library}||${vulnId}`;
-}
-
 export async function computeMeanPatchLagOverTime(branch = 'main') {
   console.log(`[PATCHLAG][STEP5] started branch=${branch}`);
 
@@ -92,7 +89,7 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
     const library = event?.library || event?.libraryName || event?.package || null;
     if (!vulnId || !library) continue;
 
-    const key = pairKey(library, vulnId);
+    const key = vulnerabilityInstanceKey(event, vulnId, library);
     const relation = String(conn?.relation || '').toUpperCase();
     const severity = normalizeSeverity(vuln);
 

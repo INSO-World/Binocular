@@ -24,6 +24,7 @@ module.exports = new gql.GraphQLObjectType({
       resolve: (doc) => doc._key || doc.id,
     },
     branch: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+    component: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
     library: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
     commitHash: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
     sequence: { type: gql.GraphQLInt },

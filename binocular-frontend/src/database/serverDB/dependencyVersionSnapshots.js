@@ -28,6 +28,7 @@ export default class DependencyVersionSnapshots {
               data {
                 id
                 branch
+                component
                 library
                 commitHash
                 sequence

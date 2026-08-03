@@ -339,6 +339,40 @@ class Repository {
       .filter((commit) => commit.oid && Number.isFinite(commit.commit.committer.timestamp));
   }
 
+  async getFirstParentFilesCommits(branchName, filepaths) {
+    const paths = [...new Set((filepaths || []).map((filepath) => String(filepath || '').trim()).filter(Boolean))];
+    if (!paths.length) return [];
+    if (paths.length === 1) return this.getFirstParentFileCommits(branchName, paths[0]);
+    if (!branchName || typeof branchName !== 'string') {
+      throw new Error('branchName must be a non-empty string');
+    }
+
+    const cwd = this.currPath || '.';
+    let ref;
+    try {
+      ref = await isomorphicGit.resolveRef({ fs, dir: cwd, ref: branchName });
+    } catch {
+      try {
+        ref = await isomorphicGit.resolveRef({ fs, dir: cwd, ref: `origin/${branchName}` });
+      } catch {
+        throw new Error(`Branch '${branchName}' not found in repo at ${cwd}`);
+      }
+    }
+
+    const gitArgs = ['-C', cwd, 'log', '--first-parent', '--reverse', '--format=%H%x09%ct', ref, '--', ...paths];
+    const { stdout } = await execFile('git', gitArgs, { maxBuffer: 1024 * 10000 });
+
+    return stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [oid, timestamp] = line.split('\t');
+        return { oid, commit: { committer: { timestamp: Number(timestamp) } } };
+      })
+      .filter((commit) => commit.oid && Number.isFinite(commit.commit.committer.timestamp));
+  }
+
   async readFileAtCommit(filepath, commitSha) {
     const { blob } = await isomorphicGit.readBlob({
       fs,

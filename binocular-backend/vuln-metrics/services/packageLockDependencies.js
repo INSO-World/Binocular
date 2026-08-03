@@ -31,10 +31,49 @@ function declaredDependencyNames(source) {
   return names;
 }
 
+function workspacePatterns(rootPackage) {
+  const workspaces = rootPackage?.workspaces;
+  if (Array.isArray(workspaces)) return workspaces;
+  if (Array.isArray(workspaces?.packages)) return workspaces.packages;
+  return [];
+}
+
+function workspacePatternMatches(packagePath, pattern) {
+  const normalized = String(pattern || '')
+    .replace(/^\.\//, '')
+    .replace(/\/$/, '');
+  if (!normalized) return false;
+
+  const globstar = '__GLOBSTAR__';
+  const expression = normalized
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*\*/g, globstar)
+    .replace(/\*/g, '[^/]*')
+    .replace(new RegExp(globstar, 'g'), '.*');
+  return new RegExp(`^${expression}$`).test(packagePath);
+}
+
 function declaredDependencyNamesFromPackages(packages) {
   const names = new Set();
+  const declarationPaths = new Set(['']);
+  const patterns = workspacePatterns(packages?.['']);
+
+  for (const packageInfo of Object.values(packages || {})) {
+    if (packageInfo?.link && packageInfo?.resolved) {
+      declarationPaths.add(
+        String(packageInfo.resolved)
+          .replace(/^file:/, '')
+          .replace(/^\.\//, ''),
+      );
+    }
+  }
+
+  for (const packagePath of Object.keys(packages || {})) {
+    if (patterns.some((pattern) => workspacePatternMatches(packagePath, pattern))) declarationPaths.add(packagePath);
+  }
+
   for (const [packagePath, packageInfo] of Object.entries(packages || {})) {
-    if (packagePath.includes('node_modules/')) continue;
+    if (!declarationPaths.has(packagePath)) continue;
     for (const name of declaredDependencyNames(packageInfo)) names.add(name);
   }
   return names;

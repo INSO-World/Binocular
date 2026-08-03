@@ -1,5 +1,7 @@
 'use strict';
 
+import { dependencyIdentity } from './dependencyIdentity.js';
+
 function dependencyTypeForEvent(event) {
   const value = String(event?.dependencyType || '').toUpperCase();
   if (value === 'DIRECT' || value === 'TRANSITIVE' || value === 'ABSENT') return value;
@@ -7,8 +9,8 @@ function dependencyTypeForEvent(event) {
   return 'TRANSITIVE';
 }
 
-function openKey(library, vulnerabilityId) {
-  return `${library}||${vulnerabilityId}`;
+function openKey(identity, vulnerabilityId) {
+  return `${identity}||${vulnerabilityId}`;
 }
 
 function orderedEvents(events) {
@@ -52,7 +54,7 @@ export function calculateDirectTransitiveTimeline({ events, triples, branch = 'm
     }
 
     if (!commitLibraryTypes.has(commitHash)) commitLibraryTypes.set(commitHash, new Map());
-    commitLibraryTypes.get(commitHash).set(library, dependencyTypeForEvent(event));
+    commitLibraryTypes.get(commitHash).set(dependencyIdentity(event, library), dependencyTypeForEvent(event));
   }
 
   const transitionsByCommit = new Map();
@@ -67,11 +69,12 @@ export function calculateDirectTransitiveTimeline({ events, triples, branch = 'm
     if (!commitHash || !library || !vulnerabilityId) continue;
     if (relation !== 'AFFECTS' && relation !== 'FIXES') continue;
 
+    const identity = dependencyIdentity(triple?.event, library);
     if (!transitionsByCommit.has(commitHash)) transitionsByCommit.set(commitHash, new Map());
     const libraries = transitionsByCommit.get(commitHash);
-    if (!libraries.has(library)) libraries.set(library, { affects: new Set(), fixes: new Set() });
+    if (!libraries.has(identity)) libraries.set(identity, { affects: new Set(), fixes: new Set() });
 
-    const transitions = libraries.get(library);
+    const transitions = libraries.get(identity);
     if (relation === 'AFFECTS') transitions.affects.add(vulnerabilityId);
     else transitions.fixes.add(vulnerabilityId);
   }
@@ -85,8 +88,8 @@ export function calculateDirectTransitiveTimeline({ events, triples, branch = 'm
   let fixesApplied = 0;
   let reclassifications = 0;
 
-  function reclassifyLibrary(library, nextType) {
-    const keys = openKeysByLibrary.get(library);
+  function reclassifyLibrary(identity, nextType) {
+    const keys = openKeysByLibrary.get(identity);
     if (!keys) return;
 
     for (const key of keys) {
@@ -102,19 +105,19 @@ export function calculateDirectTransitiveTimeline({ events, triples, branch = 'm
     }
   }
 
-  function openVulnerability(library, vulnerabilityId, dependencyType) {
-    const key = openKey(library, vulnerabilityId);
+  function openVulnerability(identity, vulnerabilityId, dependencyType) {
+    const key = openKey(identity, vulnerabilityId);
     if (openVulnerabilities.has(key)) return;
 
-    openVulnerabilities.set(key, { library, vulnerabilityId, dependencyType });
-    if (!openKeysByLibrary.has(library)) openKeysByLibrary.set(library, new Set());
-    openKeysByLibrary.get(library).add(key);
+    openVulnerabilities.set(key, { identity, vulnerabilityId, dependencyType });
+    if (!openKeysByLibrary.has(identity)) openKeysByLibrary.set(identity, new Set());
+    openKeysByLibrary.get(identity).add(key);
     if (dependencyType === 'DIRECT') directOpen++;
     if (dependencyType === 'TRANSITIVE') transitiveOpen++;
   }
 
-  function closeVulnerability(library, vulnerabilityId) {
-    const key = openKey(library, vulnerabilityId);
+  function closeVulnerability(identity, vulnerabilityId) {
+    const key = openKey(identity, vulnerabilityId);
     const record = openVulnerabilities.get(key);
     if (!record) return;
 
@@ -122,32 +125,32 @@ export function calculateDirectTransitiveTimeline({ events, triples, branch = 'm
     if (record.dependencyType === 'TRANSITIVE') transitiveOpen--;
     openVulnerabilities.delete(key);
 
-    const keys = openKeysByLibrary.get(library);
+    const keys = openKeysByLibrary.get(identity);
     if (!keys) return;
     keys.delete(key);
-    if (!keys.size) openKeysByLibrary.delete(library);
+    if (!keys.size) openKeysByLibrary.delete(identity);
   }
 
   const snapshots = [];
 
   for (const commitHash of commitOrder) {
     const libraryTypeChanges = commitLibraryTypes.get(commitHash);
-    for (const [library, nextType] of libraryTypeChanges || []) {
-      const previousType = libraryTypes.get(library);
-      libraryTypes.set(library, nextType);
-      if (previousType && previousType !== nextType) reclassifyLibrary(library, nextType);
+    for (const [identity, nextType] of libraryTypeChanges || []) {
+      const previousType = libraryTypes.get(identity);
+      libraryTypes.set(identity, nextType);
+      if (previousType && previousType !== nextType) reclassifyLibrary(identity, nextType);
     }
 
     const libraryTransitions = transitionsByCommit.get(commitHash);
-    for (const [library, transitions] of libraryTransitions || []) {
-      const currentType = libraryTypes.get(library) || 'TRANSITIVE';
+    for (const [identity, transitions] of libraryTransitions || []) {
+      const currentType = libraryTypes.get(identity) || 'TRANSITIVE';
 
       for (const vulnerabilityId of transitions.fixes) {
-        closeVulnerability(library, vulnerabilityId);
+        closeVulnerability(identity, vulnerabilityId);
         fixesApplied++;
       }
       for (const vulnerabilityId of transitions.affects) {
-        openVulnerability(library, vulnerabilityId, currentType);
+        openVulnerability(identity, vulnerabilityId, currentType);
         affectsApplied++;
       }
     }
