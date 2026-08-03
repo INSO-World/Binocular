@@ -190,10 +190,15 @@
 }
 
 .visualizationSelectorText{
-  font-size: 2rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: 1.35rem;
   font-weight: bold;
-  line-height: 2rem;
+  line-height: 1.5rem;
   color: black;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .visualizationSelectorSearch{

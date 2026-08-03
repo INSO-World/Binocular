@@ -76,7 +76,9 @@ export default class Sidebar extends React.Component {
                       <img src={menu} />
                     </span>
                     {!this.state.visualizationSelectorActive ? (
-                      <span className={styles.visualizationSelectorText}>{visualizations[activeVisualization].label}</span>
+                      <span className={styles.visualizationSelectorText} title={visualizations[activeVisualization].label}>
+                        {visualizations[activeVisualization].label}
+                      </span>
                     ) : (
                       <input
                         className={styles.visualizationSelectorSearch}
