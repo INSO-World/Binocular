@@ -17,6 +17,7 @@ import VulnerabilityDirectTransitiveSnapshots from './serverDB/vulnerabilityDire
 import VulnerabilitySeveritySnapshots from './serverDB/vulnerabilitySeveritySnapshots.js';
 import OutdatedDependencySnapshots from './serverDB/outdatedDependencySnapshots.js';
 import LicenseComplianceSnapshots from './serverDB/licenseComplianceSnapshots.js';
+import DependencyVersionSnapshots from './serverDB/dependencyVersionSnapshots.js';
 
 export default class ServerDB {
   static getBounds() {
@@ -165,6 +166,14 @@ export default class ServerDB {
 
   static getLicenseComplianceBranches() {
     return LicenseComplianceSnapshots.getLicenseComplianceBranches();
+  }
+
+  static getDependencyVersionSnapshots(branch) {
+    return DependencyVersionSnapshots.getDependencyVersionSnapshots(branch);
+  }
+
+  static getDependencyVersionBranches() {
+    return DependencyVersionSnapshots.getDependencyVersionBranches();
   }
 
   static getDatabase() {

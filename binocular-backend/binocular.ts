@@ -83,6 +83,7 @@ import VulnerabilityDirectTransitiveSnapshot from './models/metrics/Vulnerabilit
 import VulnerabilitySeveritySnapshot from './models/metrics/VulnerabilitySeveritySnapshot';
 import OutdatedDependencySnapshot from './models/metrics/OutdatedDependencySnapshot';
 import LicenseComplianceSnapshot from './models/metrics/LicenseComplianceSnapshot';
+import DependencyVersionSnapshot from './models/metrics/DependencyVersionSnapshot';
 
 cli.parse(
   (targetPath, options) => {
@@ -620,6 +621,7 @@ function runBackend() {
           VulnerabilitySeveritySnapshot.ensureCollection(),
           OutdatedDependencySnapshot.ensureCollection(),
           LicenseComplianceSnapshot.ensureCollection(),
+          DependencyVersionSnapshot.ensureCollection(),
         ]);
         return context.db.ensureService(path.join(__dirname, '../foxx'), '/binocular-ql');
       });

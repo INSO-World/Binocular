@@ -10,6 +10,7 @@ import type { VulnerabilitySeverityDistributionState } from '../visualizations/v
 // eslint-disable-next-line max-len
 import type { OutdatedDependencyPercentageState } from '../visualizations/vulnerabilityTrends/outdatedDependencyPercentage/reducers';
 import type { LicenseComplianceState } from '../visualizations/vulnerabilityTrends/licenseCompliance/reducers';
+import type { DependencyVersionTimelineState } from '../visualizations/vulnerabilityTrends/dependencyVersionTimeline/reducers';
 
 export interface GlobalState {
   activeConfigTab: string;
@@ -41,6 +42,9 @@ export interface GlobalState {
     };
     licenseCompliance?: {
       state: LicenseComplianceState;
+    };
+    dependencyVersionTimeline?: {
+      state: DependencyVersionTimelineState;
     };
     [key: string]: any; // keep existing visualizations untyped for now
   };

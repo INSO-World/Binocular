@@ -361,6 +361,25 @@ export default class Database {
   }
 
   /**
+   * DEPENDENCY VERSION EVOLUTION SNAPSHOTS
+   */
+  static async getDependencyVersionSnapshots(branch) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getDependencyVersionSnapshots(branch);
+    } else {
+      return [];
+    }
+  }
+
+  static async getDependencyVersionBranches() {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getDependencyVersionBranches();
+    } else {
+      return [];
+    }
+  }
+
+  /**
    * DATABASE
    */
   static async getDatabase() {

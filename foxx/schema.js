@@ -29,6 +29,7 @@ const vulnDirectTransitiveSnapshots = db._collection('vulnerabilityDirectTransit
 const vulnSeveritySnapshots = db._collection('vulnerabilitySeveritySnapshots');
 const outdatedDependencySnapshots = db._collection('outdatedDependencySnapshots');
 const licenseComplianceSnapshots = db._collection('licenseComplianceSnapshots');
+const dependencyVersionSnapshots = db._collection('dependencyVersionSnapshots');
 
 
 const queryType = new gql.GraphQLObjectType({
@@ -540,6 +541,46 @@ const queryType = new gql.GraphQLObjectType({
           db
             ._query(aql`
               FOR doc IN ${licenseComplianceSnapshots}
+                FILTER IS_STRING(doc.branch) && doc.branch != ""
+                COLLECT branch = doc.branch
+                SORT branch ASC
+                RETURN branch
+            `)
+            .toArray(),
+      },
+      dependencyVersionSnapshots: paginated({
+        type: require('./types/dependencyVersionSnapshot.js'),
+        args: {
+          branch: {
+            description: 'Branch name',
+            type: new gql.GraphQLNonNull(gql.GraphQLString),
+          },
+          since: {
+            description: 'Optional lower bound for event date (inclusive)',
+            type: Timestamp,
+          },
+          until: {
+            description: 'Optional upper bound for event date (inclusive)',
+            type: Timestamp,
+          },
+        },
+        query: (root, args, limit) => aql`
+          FOR doc IN ${dependencyVersionSnapshots}
+            FILTER doc.branch == ${args.branch}
+            ${args.since ? queryHelpers.addDateFilterAQL('doc.date', '>=', args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
+            SORT doc.sequence ASC, doc.date ASC, doc.library ASC
+            ${limit}
+            RETURN doc
+        `,
+      }),
+      dependencyVersionBranches: {
+        type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+        description: 'Branches that have dependency version timeline snapshots',
+        resolve: () =>
+          db
+            ._query(aql`
+              FOR doc IN ${dependencyVersionSnapshots}
                 FILTER IS_STRING(doc.branch) && doc.branch != ""
                 COLLECT branch = doc.branch
                 SORT branch ASC
