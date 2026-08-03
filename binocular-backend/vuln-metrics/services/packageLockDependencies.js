@@ -31,6 +31,15 @@ function declaredDependencyNames(source) {
   return names;
 }
 
+function declaredDependencyNamesFromPackages(packages) {
+  const names = new Set();
+  for (const [packagePath, packageInfo] of Object.entries(packages || {})) {
+    if (packagePath.includes('node_modules/')) continue;
+    for (const name of declaredDependencyNames(packageInfo)) names.add(name);
+  }
+  return names;
+}
+
 export function packageNameFromNodeModulesPath(packagePath) {
   const marker = 'node_modules/';
   const path = String(packagePath || '');
@@ -135,8 +144,7 @@ export function extractDependencies(packageLock, packageManifest = null) {
   if (!lock) return {};
 
   const manifest = parseJson(packageManifest);
-  const rootPackage = lock?.packages?.[''];
-  let directNames = declaredDependencyNames(rootPackage);
+  let directNames = declaredDependencyNamesFromPackages(lock?.packages);
 
   if (!directNames.size) directNames = declaredDependencyNames(manifest);
 

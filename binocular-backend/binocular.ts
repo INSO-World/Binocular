@@ -81,6 +81,7 @@ import VulnerabilityRemediationTimeSnapshot from './models/metrics/Vulnerability
 import VulnerabilityPatchLagSnapshot from './models/metrics/VulnerabilityPatchLagSnapshot';
 import VulnerabilityDirectTransitiveSnapshot from './models/metrics/VulnerabilityDirectTransitiveSnapshot';
 import VulnerabilitySeveritySnapshot from './models/metrics/VulnerabilitySeveritySnapshot';
+import OutdatedDependencySnapshot from './models/metrics/OutdatedDependencySnapshot';
 
 cli.parse(
   (targetPath, options) => {
@@ -616,6 +617,7 @@ function runBackend() {
           VulnerabilityPatchLagSnapshot.ensureCollection(),
           VulnerabilityDirectTransitiveSnapshot.ensureCollection(),
           VulnerabilitySeveritySnapshot.ensureCollection(),
+          OutdatedDependencySnapshot.ensureCollection(),
         ]);
         return context.db.ensureService(path.join(__dirname, '../foxx'), '/binocular-ql');
       });

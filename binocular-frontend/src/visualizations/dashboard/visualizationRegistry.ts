@@ -13,6 +13,7 @@ import vulnerabilityRemediationTimes from '../vulnerabilityTrends/vulnerabilityR
 import vulnerabilityPatchLagSnapshot from '../vulnerabilityTrends/vulnerabilityPatchLag';
 import vulnerabilityDirectTransitive from '../vulnerabilityTrends/vulnerabilityDirectTransitive';
 import vulnerabilitySeverityDistribution from '../vulnerabilityTrends/vulnerabilitySeverityDistribution';
+import outdatedDependencyPercentage from '../vulnerabilityTrends/outdatedDependencyPercentage';
 
 export default {
   changes,
@@ -28,4 +29,5 @@ export default {
   vulnerabilityPatchLagSnapshot,
   vulnerabilityDirectTransitive,
   vulnerabilitySeverityDistribution,
+  outdatedDependencyPercentage,
 };

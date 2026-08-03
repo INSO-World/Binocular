@@ -7,6 +7,8 @@ import type { VulnerabilityPatchLagState } from '../visualizations/vulnerability
 import type { VulnerabilityDirectTransitiveState } from '../visualizations/vulnerabilityTrends/vulnerabilityDirectTransitive/reducers';
 // eslint-disable-next-line max-len
 import type { VulnerabilitySeverityDistributionState } from '../visualizations/vulnerabilityTrends/vulnerabilitySeverityDistribution/reducers';
+// eslint-disable-next-line max-len
+import type { OutdatedDependencyPercentageState } from '../visualizations/vulnerabilityTrends/outdatedDependencyPercentage/reducers';
 
 export interface GlobalState {
   activeConfigTab: string;
@@ -32,6 +34,9 @@ export interface GlobalState {
     };
     vulnerabilitySeverityDistribution?: {
       state: VulnerabilitySeverityDistributionState;
+    };
+    outdatedDependencyPercentage?: {
+      state: OutdatedDependencyPercentageState;
     };
     [key: string]: any; // keep existing visualizations untyped for now
   };

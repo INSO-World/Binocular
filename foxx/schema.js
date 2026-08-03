@@ -27,6 +27,7 @@ const vulnRemediationSnapshots = db._collection('vulnerabilityRemediationTimeSna
 const vulnPatchLagSnapshots = db._collection('vulnerabilityPatchLagSnapshots');
 const vulnDirectTransitiveSnapshots = db._collection('vulnerabilityDirectTransitiveSnapshots');
 const vulnSeveritySnapshots = db._collection('vulnerabilitySeveritySnapshots');
+const outdatedDependencySnapshots = db._collection('outdatedDependencySnapshots');
 
 
 const queryType = new gql.GraphQLObjectType({
@@ -458,6 +459,46 @@ const queryType = new gql.GraphQLObjectType({
           db
             ._query(aql`
               FOR doc IN ${vulnSeveritySnapshots}
+                FILTER IS_STRING(doc.branch) && doc.branch != ""
+                COLLECT branch = doc.branch
+                SORT branch ASC
+                RETURN branch
+            `)
+            .toArray(),
+      },
+      outdatedDependencySnapshots: paginated({
+        type: require('./types/outdatedDependencySnapshot.js'),
+        args: {
+          branches: {
+            description: 'Branch names to include',
+            type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+          },
+          since: {
+            description: 'Optional lower bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+          until: {
+            description: 'Optional upper bound for snapshot date (inclusive)',
+            type: Timestamp,
+          },
+        },
+        query: (root, args, limit) => aql`
+          FOR doc IN ${outdatedDependencySnapshots}
+            FILTER doc.branch IN ${args.branches}
+            ${args.since ? queryHelpers.addDateFilterAQL('doc.date', '>=', args.since) : aql``}
+            ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
+            SORT doc.date ASC, doc.branch ASC, doc.sequence ASC
+            ${limit}
+            RETURN doc
+        `,
+      }),
+      outdatedDependencyBranches: {
+        type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+        description: 'Branches that have outdated dependency snapshots',
+        resolve: () =>
+          db
+            ._query(aql`
+              FOR doc IN ${outdatedDependencySnapshots}
                 FILTER IS_STRING(doc.branch) && doc.branch != ""
                 COLLECT branch = doc.branch
                 SORT branch ASC

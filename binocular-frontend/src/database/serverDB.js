@@ -15,6 +15,7 @@ import VulnerabilityRemediationTimeSnapshots from './serverDB/vulnerabilityRemed
 import VulnerabilityPatchLagSnapshots from './serverDB/vulnerabilityPatchLagSnapshots.js';
 import VulnerabilityDirectTransitiveSnapshots from './serverDB/vulnerabilityDirectTransitiveSnapshots.js';
 import VulnerabilitySeveritySnapshots from './serverDB/vulnerabilitySeveritySnapshots.js';
+import OutdatedDependencySnapshots from './serverDB/outdatedDependencySnapshots.js';
 
 export default class ServerDB {
   static getBounds() {
@@ -147,6 +148,14 @@ export default class ServerDB {
 
   static getVulnerabilitySeverityBranches() {
     return VulnerabilitySeveritySnapshots.getVulnerabilitySeverityBranches();
+  }
+
+  static getOutdatedDependencySnapshots(branches, since, until) {
+    return OutdatedDependencySnapshots.getOutdatedDependencySnapshots(branches, since, until);
+  }
+
+  static getOutdatedDependencyBranches() {
+    return OutdatedDependencySnapshots.getOutdatedDependencyBranches();
   }
 
   static getDatabase() {

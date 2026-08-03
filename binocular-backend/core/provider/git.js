@@ -6,9 +6,10 @@ import fs from 'fs';
 import debug from 'debug';
 import util from 'util';
 import * as customUtils from '../../utils/utils.ts';
-import { exec as child_process } from 'child_process';
+import { exec as child_process, execFile as childProcessExecFile } from 'child_process';
 import _ from 'lodash';
 const exec = util.promisify(child_process);
+const execFile = util.promisify(childProcessExecFile);
 
 const log = debug('git.js');
 
@@ -274,7 +275,11 @@ class Repository {
     try {
       ref = await isomorphicGit.resolveRef({ fs, dir: cwd, ref: branchName });
     } catch (err) {
-      throw new Error(`Branch '${branchName}' not found in repo at ${cwd}`);
+      try {
+        ref = await isomorphicGit.resolveRef({ fs, dir: cwd, ref: `origin/${branchName}` });
+      } catch {
+        throw new Error(`Branch '${branchName}' not found in repo at ${cwd}`);
+      }
     }
 
     while (ref && !visited.has(ref)) {
@@ -290,6 +295,48 @@ class Repository {
     }
 
     return commits;
+  }
+
+  /**
+   * Uses native git to return only first-parent commits that changed a file.
+   * This avoids inflating every commit and tree when a metric only depends on
+   * package-lock.json history.
+   */
+  async getFirstParentFileCommits(branchName, filepath) {
+    if (!branchName || typeof branchName !== 'string') {
+      throw new Error('branchName must be a non-empty string');
+    }
+    if (!filepath || typeof filepath !== 'string') {
+      throw new Error('filepath must be a non-empty string');
+    }
+
+    const cwd = this.currPath || '.';
+    let ref;
+    try {
+      ref = await isomorphicGit.resolveRef({ fs, dir: cwd, ref: branchName });
+    } catch {
+      try {
+        ref = await isomorphicGit.resolveRef({ fs, dir: cwd, ref: `origin/${branchName}` });
+      } catch {
+        throw new Error(`Branch '${branchName}' not found in repo at ${cwd}`);
+      }
+    }
+
+    const gitArgs = ['-C', cwd, 'log', '--first-parent', '--reverse', '--format=%H%x09%ct', ref, '--', filepath];
+    const { stdout } = await execFile('git', gitArgs, { maxBuffer: 1024 * 10000 });
+
+    return stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [oid, timestamp] = line.split('\t');
+        return {
+          oid,
+          commit: { committer: { timestamp: Number(timestamp) } },
+        };
+      })
+      .filter((commit) => commit.oid && Number.isFinite(commit.commit.committer.timestamp));
   }
 
   async readFileAtCommit(filepath, commitSha) {

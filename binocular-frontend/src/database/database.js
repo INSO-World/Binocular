@@ -323,6 +323,25 @@ export default class Database {
   }
 
   /**
+   * OUTDATED DEPENDENCY SNAPSHOTS
+   */
+  static async getOutdatedDependencySnapshots(branches, since, until) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getOutdatedDependencySnapshots(branches, since, until);
+    } else {
+      return [];
+    }
+  }
+
+  static async getOutdatedDependencyBranches() {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getOutdatedDependencyBranches();
+    } else {
+      return [];
+    }
+  }
+
+  /**
    * DATABASE
    */
   static async getDatabase() {
