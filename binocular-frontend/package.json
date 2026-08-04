@@ -89,6 +89,7 @@
   },
   "devDependencies": {
     "@babel/preset-react": "^7.23.3",
+    "@babel/register": "7.23.7",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@rollup/plugin-node-resolve": "^15.2.3",
