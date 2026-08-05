@@ -25,7 +25,6 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false, // TODO should be set to true!
     "forceConsistentCasingInFileNames": true,
-    "noImplicitThis": false,
-    "include": ["/"]
+    "noImplicitThis": false
   },
 }

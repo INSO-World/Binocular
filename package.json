@@ -5,15 +5,15 @@
   "scripts": {
     "postinstall": "npm run install:backend && npm run install:frontend",
     "install:backend": "cd binocular-backend && npm install",
-    "install:frontend": "cd binocular-frontend && npm install",
+    "install:frontend": "cd binocular-frontend-new && npm install",
     "dev": "npm run dev:backend & npm run dev:frontend",
     "dev:concurrently": "concurrently --kill-others -P 'npm run dev:frontend' 'npm run dev:backend' --",
     "dev:backend": "cd binocular-backend && npm run dev",
-    "dev:frontend": "cd binocular-frontend && npm run dev",
+    "dev:frontend": "cd binocular-frontend-new && npm run dev",
     "dev:frontend-debug": "cd binocular-frontend && npm run dev:debug",
     "check": "npm run check:backend && npm run check:frontend",
     "check:backend": "cd binocular-backend && npm run check",
-    "check:frontend": "cd binocular-frontend && npm run check",
+    "check:frontend": "cd binocular-frontend-new && npm run check",
     "fix": "npm run fix:backend && npm run fix:frontend",
     "fix:backend": "cd binocular-backend && npm run fix",
     "fix:frontend": "cd binocular-frontend && npm run fix",
@@ -26,7 +26,7 @@
     "collect-coverage": "./scripts/collect-coverage.js",
     "build:dev": "cd binocular-frontend && npm run build:dev",
     "build:prod": "cd binocular-frontend && npm run build:prod",
-    "build:offline": "cd binocular-frontend && npm run build:offline",
+    "build:offline": "cd binocular-frontend-new && npm run build:offline",
     "build:offline-windows": "cd binocular-frontend && npm run build:offline-windows"
   },
   "repository": {
@@ -57,10 +57,25 @@
       "name": "Maximilian Zenz"
     },
     {
+      "name": "Sebastian Watzinger"
+    },
+    {
       "name": "Raphael Lackner"
+    },
+    {
+      "name": "Manuel Stöger"
+    },
+    {
+      "name": "Michael Strasser"
+    },
+    {
+      "name": "Bastian Ferch"
     }
   ],
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "graphql": "^16.10.0"
   }
 }

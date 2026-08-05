@@ -6,8 +6,11 @@ import debug from 'debug';
 import * as inflection from 'inflection';
 
 import IllegalArgumentError from '../errors/IllegalArgumentError.js';
-import ctx from '../utils/context.ts';
-import ModelCursor from './ModelCursor.js';
+import contextModule from '../utils/context.ts';
+import modelCursorModule from './ModelCursor.ts';
+
+const ctx = contextModule.default || contextModule;
+const ModelCursor = modelCursorModule.default || modelCursorModule;
 
 class Model {}
 

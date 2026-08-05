@@ -9,7 +9,6 @@ import Milestones from './serverDB/milestones';
 import Files from './serverDB/files';
 import Branches from './serverDB/branches';
 import Modules from './serverDB/modules';
-import Stakeholders from './serverDB/stakeholders';
 import VulnerabilityAgeBuckets from './serverDB/vulnerabilityAgeBuckets.js';
 import VulnerabilityRemediationTimeSnapshots from './serverDB/vulnerabilityRemediationTimeSnapshots.js';
 import VulnerabilityPatchLagSnapshots from './serverDB/vulnerabilityPatchLagSnapshots.js';
@@ -18,6 +17,7 @@ import VulnerabilitySeveritySnapshots from './serverDB/vulnerabilitySeveritySnap
 import OutdatedDependencySnapshots from './serverDB/outdatedDependencySnapshots.js';
 import LicenseComplianceSnapshots from './serverDB/licenseComplianceSnapshots.js';
 import DependencyVersionSnapshots from './serverDB/dependencyVersionSnapshots.js';
+import Users from './serverDB/users';
 
 export default class ServerDB {
   static getBounds() {
@@ -112,8 +112,8 @@ export default class ServerDB {
     return Modules.getAllModules();
   }
 
-  static getAllStakeholders() {
-    return Stakeholders.getAllStakeholders();
+  static getAllUsers() {
+    return Users.getAllUsers();
   }
 
   static getCodeHotspotsChangeData(file) {

@@ -1,10 +1,13 @@
 'use strict';
 import debug from 'debug';
 
-import ctx from '../utils/context.ts';
+import contextModule from '../utils/context.ts';
 import * as collection from 'arangojs/collection.js';
-import ModelCursor from './ModelCursor.js';
+import modelCursorModule from './ModelCursor.ts';
 import _ from 'lodash';
+
+const ctx = contextModule.default || contextModule;
+const ModelCursor = modelCursorModule.default || modelCursorModule;
 
 class Connection {}
 

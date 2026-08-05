@@ -1,0 +1,8 @@
+@use '../../../variables.scss' as *;
+@reference "../../../index.scss";
+
+.tab{
+  padding: $padding-primary;
+  width: 100%;
+  height: 100%;
+}

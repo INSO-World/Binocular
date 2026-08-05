@@ -5,14 +5,13 @@ on:
     branches:
       - "main"
       - "develop"
-#      - "feature/225" #For testing
+      #- "feature/343" #For testing
   schedule:
     - cron: '30 3 * * 1' # At 03:30 on Monday, https://crontab.guru/#30_3_*_*_1
   workflow_dispatch:
     inputs:
       databaseImage: 
         description: "Base image to build database from"
-        default: "ghcr.io/inso-tuwien/binocular-database"
       databaseTag:
         description: "Base tag to build database from"
         default: "latest"
@@ -20,30 +19,17 @@ on:
 env:
   REGISTRY: ghcr.io
   ARANGO_VERSION: 3.11.3
-  IMAGE_NAMESPACE: "ghcr.io/inso-tuwien"
-  # IMAGE_BASE_NAME: ghcr.io/inso-tuwien/binocular-arangodb_3.11.3
+  IMAGE_NAMESPACE: "ghcr.io/${{github.repository_owner}}"
 
 jobs:
 
   build:
 
     runs-on: ubuntu-latest
-    services:
-
-      arangodb:
-        # image: arangodb:3.11
-        # image: ghcr.io/inso-tuwien/binocular-database:arangodb_3.11.3-no_volumes
-        image: ${{ github.event.inputs.databaseImage || 'ghcr.io/inso-tuwien/binocular-database' }}:${{ github.event.inputs.databaseTag || 'latest' }}"
-        options: --name "arangodb_svc"
-        ports:  
-          - 8529:8529
-        env: 
-          ARANGO_ROOT_PASSWORD: openSesame
-
     steps:
 
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -52,6 +38,21 @@ jobs:
         uses: ./.github/actions/docker-env/
         with:
           image_name: binocular-database
+
+      - name: Set Arango image based on branch
+        id: set_image
+        run: |
+          # Determine which image to use based on the branch
+          if ${{github.event.inputs.databaseImage != ''}} ; then
+            echo "ARANGO_IMAGE=${{github.event.inputs.databaseImage}}:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
+          else
+            echo "ARANGO_IMAGE=ghcr.io/${{github.repository_owner}}/binocular-database:${{ github.event.inputs.databaseTag || 'latest' }}" >> $GITHUB_ENV
+          fi
+
+      - name: Start ArangoDB service container
+        run: |
+          echo "Starting service with image: ${ARANGO_IMAGE,,}"
+          docker run -d -p 8529:8529 --name arangodb_svc ${ARANGO_IMAGE,,}
 
       - name: Debug echo env variables
         run: |
@@ -84,7 +85,7 @@ jobs:
 
       # Source: https://www.voorhoede.nl/en/blog/super-fast-npm-install-on-github-actions/
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ./node_modules
           key: modules-${{ hashFiles('package-lock.json') }}
@@ -97,7 +98,7 @@ jobs:
         run: npm i tsx -g
 
       - name: Run binocular
-        run: DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --no-frontend --export .
+        run: DEBUG=idx*,importer*,git*,db* tsx ./binocular-backend/binocular.ts run --no-server --export .
 
       - name: Build
         env:
@@ -105,7 +106,7 @@ jobs:
         run: npm run build:offline
 
       - name: Publish artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: binocular_ui
           path: |
@@ -155,10 +156,10 @@ jobs:
 
     steps:
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5
 
       - name: Download Artifact from previous job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binocular_ui
           path: artifact/
@@ -170,11 +171,11 @@ jobs:
           ls -l artifact/dist/
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: 'artifact/dist/'
       
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4

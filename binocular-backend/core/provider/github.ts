@@ -4,7 +4,7 @@ import debug from 'debug';
 import { Octokit } from '@octokit/rest';
 import { Octokit as OctokitCore } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
-import { GithubJob, GithubUser } from '../../types/githubTypes.ts';
+import { GithubJob, GithubUser } from '../../types/GithubTypes';
 
 const log = debug('github');
 
@@ -37,9 +37,12 @@ class GitHub {
           name,
           assignableUsers(first: 100, after:$cursor) {
             nodes {
+              id
               login
               email
               name
+              url
+              avatarUrl
             }
             pageInfo {
               hasNextPage
@@ -71,7 +74,7 @@ class GitHub {
     });
   }
 
-  getPipelineJobs(projectId: string, pipelineId: string) {
+  async getPipelineJobs(projectId: string, pipelineId: number) {
     log('getPipelineJobs(%o,%o)', projectId, pipelineId);
     return this.github.rest.actions
       .listJobsForWorkflowRun({
@@ -94,7 +97,7 @@ class GitHub {
       .paginate(
         `query paginate($cursor: String) {
            repository(owner: "${repositoryOwner}", name: "${repositoryName}") {
-              issues(first: 100, after:$cursor) {
+              issues(first: 50, after:$cursor) {
                   totalCount
                   nodes {
                       id
@@ -176,7 +179,7 @@ class GitHub {
       .paginate(
         `query paginate($cursor: String) {
            repository(owner: "${repositoryOwner}", name: "${repositoryName}") {
-              pullRequests(first: 100, after:$cursor) {
+              pullRequests(first: 50, after:$cursor) {
                   totalCount
                   nodes {
                       id

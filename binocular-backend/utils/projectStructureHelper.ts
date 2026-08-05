@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Context from './context';
 import Db from '../core/db/db';
+import { compressJson } from '../../utils/json-utils.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,12 +18,25 @@ export function checkProjectStructureAndFix(context: typeof Context) {
   }
 }
 
-export function createAndFillDbExportFolder(db: Db, targetPath: string) {
-  fs.mkdirSync(targetPath + '/db_export');
+export function createAndFillDbExportFolder(db: Db, targetPath: string, projectNamespace: string, repositoryType: string) {
+  const exportPath = targetPath + '/db_export';
+  fs.mkdirSync(exportPath);
+
+  // metadata for frontend import, baseUrl not included because of possible / missing
+  const metadata = {
+    namespace: projectNamespace,
+    createdAt: new Date().toISOString(),
+    type: repositoryType,
+  };
+  fs.writeFileSync(`${exportPath}/metadata.json`, JSON.stringify(metadata));
+
   utils.getDbExport(db).then((db) => {
     let i = 0;
     for (const collection of Object.keys(db)) {
-      fs.writeFileSync(targetPath + '/db_export/' + collection.replaceAll('_', '-') + '.json', JSON.stringify(db[collection]));
+      const collName = collection.replaceAll('_', '-');
+      // make the json files smaller to help with offline performance
+      const compressedObj = compressJson(collName, db[collection]);
+      fs.writeFileSync(`${exportPath}/${collName}.json`, JSON.stringify(compressedObj));
       i++;
       console.log('Create Db export for offline execution: ' + Math.floor((100 / Object.keys(db).length) * i) + '%');
     }

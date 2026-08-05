@@ -228,10 +228,10 @@ class Repository {
     return commits;
   }
 
-  async getCommitChanges(repo, sha, parentSha, mapFunction) {
+  async getCommitChanges(commitDAO, repo, sha, parentSha, mapFunction) {
     //reset addition/deletion counters
-    this.stats.additions = 0;
-    this.stats.deletions = 0;
+    commitDAO.data.stats.additions = 0;
+    commitDAO.data.stats.deletions = 0;
 
     let files;
     let parentFiles;
@@ -253,6 +253,18 @@ class Repository {
     });
   }
 
+  static fromPath(currPath) {
+    return Promise.resolve(isomorphicGit.init({ fs, dir: currPath || '.' })).then(() => {
+      return Promise.resolve(new Repository(path.resolve(currPath + '/.git'), currPath || '.'));
+    });
+  }
+
+  static fromRepo(repo) {
+    return Promise.resolve(new Repository(repo, repo.path()));
+  }
+}
+
+class VulnerabilityRepositoryHistory {
   /**
    * Returns all commits of a branch by following only the first parent chain.
    * This replicates `git rev-list --first-parent <branch>`, and is useful
@@ -382,16 +394,10 @@ class Repository {
     });
     return new TextDecoder().decode(blob);
   }
-
-  static fromPath(currPath) {
-    return Promise.resolve(isomorphicGit.init({ fs, dir: currPath || '.' })).then(() => {
-      return Promise.resolve(new Repository(path.resolve(currPath + '/.git'), currPath || '.'));
-    });
-  }
-
-  static fromRepo(repo) {
-    return Promise.resolve(new Repository(repo, repo.path()));
-  }
 }
+
+const vulnerabilityHistoryMethods = Object.getOwnPropertyDescriptors(VulnerabilityRepositoryHistory.prototype);
+delete vulnerabilityHistoryMethods.constructor;
+Object.defineProperties(Repository.prototype, vulnerabilityHistoryMethods);
 
 export default Repository;

@@ -1,0 +1,131 @@
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import Config from '../../../config.ts';
+import { type GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
+import type { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../../types/settings/databaseSettingsType.ts';
+import distinctColors from 'distinct-colors';
+import { cloneDeep } from 'lodash';
+
+export interface SettingsInitialState {
+  general: GeneralSettingsType;
+  initialized: boolean;
+  database: DatabaseSettingsType;
+  localDatabaseLoadingState: LocalDatabaseLoadingState;
+  localDatabaseLoadingMessage: string;
+}
+
+export enum LocalDatabaseLoadingState {
+  none,
+  loading,
+}
+
+const initialState: SettingsInitialState = {
+  general: {
+    gridSize: SettingsGeneralGridSize.medium,
+  },
+  initialized: false,
+  database: {
+    currID: 0,
+    dataPlugins: [],
+  },
+  localDatabaseLoadingState: LocalDatabaseLoadingState.none,
+  localDatabaseLoadingMessage: '',
+};
+
+export const settingsSlice = createSlice({
+  name: 'settings',
+  initialState: () => {
+    const storedState = localStorage.getItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`);
+    if (storedState === null) {
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(initialState));
+      return initialState;
+    } else {
+      return JSON.parse(storedState);
+    }
+  },
+  reducers: {
+    setGeneralSettings: (state, action: PayloadAction<GeneralSettingsType>) => {
+      state.general = action.payload;
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
+      const newDataPlugin = cloneDeep(action.payload);
+      if (newDataPlugin.id === undefined) {
+        const colors = distinctColors({ count: 100 });
+        newDataPlugin.isDefault = state.database.dataPlugins.length === 0;
+
+        state.database.currID++;
+        if (newDataPlugin.color === '#000') {
+          newDataPlugin.color = colors[state.database.currID].hex() + '22';
+        }
+        newDataPlugin.id = state.database.currID;
+        if (newDataPlugin.isDefault) {
+          state.database.defaultDataPluginItemId = newDataPlugin.id;
+        }
+        state.database.dataPlugins.push(newDataPlugin);
+        console.log(`Inserted dataPlugin ${newDataPlugin.id}`);
+      } else {
+        let found = false;
+        state.database.dataPlugins = state.database.dataPlugins.map((dp: DatabaseSettingsDataPluginType) => {
+          if (dp.id === newDataPlugin.id) {
+            found = true;
+            return newDataPlugin;
+          }
+          return dp;
+        });
+        if (newDataPlugin.isDefault) {
+          state.database.defaultDataPluginItemId = newDataPlugin.id;
+        }
+        if (!found) {
+          state.database.dataPlugins.push(newDataPlugin);
+          console.log(`Inserted dataPlugin ${newDataPlugin.id}`);
+        } else {
+          console.log(`Updated dataPlugin ${newDataPlugin.id}`);
+        }
+      }
+      state.initialized = true;
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    removeDataPlugin: (state, action: PayloadAction<number>) => {
+      state.database.dataPlugins = state.database.dataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id !== action.payload);
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    setDataPluginAsDefault: (state, action: PayloadAction<number>) => {
+      state.database.dataPlugins = state.database.dataPlugins.map((dP: DatabaseSettingsDataPluginType) => {
+        dP.isDefault = dP.id === action.payload;
+        return dP;
+      });
+      state.database.defaultDataPluginItemId = action.payload;
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    clearSettingsStorage: () => {
+      localStorage.removeItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`);
+    },
+    importSettingsStorage: (state, action: PayloadAction<SettingsInitialState>) => {
+      state = action.payload;
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+    setLocalDatabaseLoadingState: (state, action: PayloadAction<LocalDatabaseLoadingState>) => {
+      state.localDatabaseLoadingState = action.payload;
+    },
+    setLocalDatabaseLoadingMessage: (state, action: PayloadAction<string>) => {
+      state.localDatabaseLoadingMessage = action.payload;
+    },
+    initializeSettingsState: (state) => {
+      state.initialized = true;
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
+  },
+});
+
+export const {
+  setGeneralSettings,
+  addDataPlugin,
+  removeDataPlugin,
+  setDataPluginAsDefault,
+  clearSettingsStorage,
+  importSettingsStorage,
+  setLocalDatabaseLoadingState,
+  setLocalDatabaseLoadingMessage,
+  initializeSettingsState,
+} = settingsSlice.actions;
+export default settingsSlice.reducer;

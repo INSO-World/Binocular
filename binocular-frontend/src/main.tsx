@@ -71,7 +71,7 @@ const visualizationModules = [
   dependencyVersionTimeline,
 ];
 
-Database.checkBackendConnection().then((connection) => {
+Database.checkBackendConnection().then(async (connection) => {
   const visualizations = {};
   _.each(visualizationModules, (viz) => {
     visualizations[viz.id] = viz;
@@ -113,7 +113,7 @@ Database.checkBackendConnection().then((connection) => {
 
     rootContainer.render(<Root store={store} />);
   } else {
-    Database.initDB().then();
+    await Database.initDB();
     const app = makeAppReducer(visualizationModules);
 
     const store = createStore(
