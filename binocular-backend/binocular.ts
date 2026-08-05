@@ -206,6 +206,8 @@ function runBackend() {
             console.error(`A ${error.name} occurred and returns the following message: ${error.message}!`);
             console.log('wait 5 seconds until retry!');
             await new Promise((resolve) => setTimeout(resolve, 5000));
+          } else {
+            throw error;
           }
         }
       }

@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 import { createHash } from 'crypto';
-import Model from '../Model.js';
+import Model from '../LegacyModel.js';
 import IllegalArgumentError from '../../errors/IllegalArgumentError.js';
 
 const OutdatedDependencySnapshot = Model.define('OutdatedDependencySnapshot', {
