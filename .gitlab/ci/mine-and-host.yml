@@ -43,7 +43,6 @@ variables:
   BINOCULAR_MAX_AGE_DAYS: '7'
   BINOCULAR_STORAGE_BRANCH: 'binocular-runs'
   BINOCULAR_ARANGO_VERSION: '3.12'
-  BINOCULAR_NODE_OPTIONS: '--max_old_space_size=4096'
   ARANGO_ROOT_PASSWORD: 'openSesame'
 
 stages:

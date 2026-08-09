@@ -60,9 +60,9 @@ on:
         type: string
         default: "3.12"
       node_options:
-        description: "NODE_OPTIONS for the offline build (raise heap for large repos)"
+        description: "NODE_OPTIONS for the offline build (default: 12288 MB heap; override to raise for large repos or lower for smaller runners)"
         type: string
-        default: "--max_old_space_size=4096"
+        default: ""
   # Allow running standalone inside the Binocular repo for testing (mines Binocular itself).
   workflow_dispatch:
     inputs:
@@ -99,9 +99,9 @@ on:
         type: string
         default: "3.12"
       node_options:
-        description: "NODE_OPTIONS for the offline build"
+        description: "NODE_OPTIONS for the offline build (default: 12288 MB heap; override to raise for large repos or lower for smaller runners)"
         type: string
-        default: "--max_old_space_size=4096"
+        default: ""
 
 jobs:
   build:

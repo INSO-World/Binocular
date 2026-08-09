@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:offline": "cross-env PRE_CONFIGURE_DB=pouchdb NODE_OPTIONS=--max-old-space-size=12288 vite build",
+    "build:offline": "node scripts/build-offline.mjs",
     "lint": "eslint binocular --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "check": "eslint .",

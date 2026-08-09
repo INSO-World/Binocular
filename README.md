@@ -263,7 +263,7 @@ Inputs (all optional):
 | `max_age_days` | `7` | When `retain_runs` is on, prune runs older than this many days |
 | `storage_branch` | `binocular-runs` | Branch used to durably store the run history |
 | `arango_version` | `3.12` | ArangoDB image tag to mine into |
-| `node_options` | `--max_old_space_size=4096` | `NODE_OPTIONS` for the offline build (raise for large repos) |
+| `node_options` | *(empty — 12288 MB heap)* | `NODE_OPTIONS` for the offline build; override to raise for large repos or lower for smaller runners |
 
 Notes:
 
@@ -346,7 +346,7 @@ Other variables (all optional):
 | `BINOCULAR_MAX_AGE_DAYS` | `7` | When retain runs is on, prune runs older than this many days |
 | `BINOCULAR_STORAGE_BRANCH` | `binocular-runs` | Branch used to durably store the run history |
 | `BINOCULAR_ARANGO_VERSION` | `3.12` | ArangoDB image tag to mine into |
-| `BINOCULAR_NODE_OPTIONS` | `--max_old_space_size=4096` | `NODE_OPTIONS` for the offline build (raise for large repos) |
+| `BINOCULAR_NODE_OPTIONS` | *(empty — 12288 MB heap)* | `NODE_OPTIONS` for the offline build; override to raise for large repos or lower for smaller runners |
 
 Notes:
 
