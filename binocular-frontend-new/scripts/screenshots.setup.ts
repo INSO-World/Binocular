@@ -1,6 +1,4 @@
-// Shared setup helpers for the screenshot test suite.
-// All constants, state seeds, builder functions, and page-load helpers live here
-// so screenshots.test.ts contains only test cases.
+// Shared setup helpers for the screenshot test suite — constants, state seeds, builders, and page-load helpers, so screenshots.test.ts is only test cases.
 
 import type { Page } from '@playwright/test';
 import path from 'path';
@@ -29,11 +27,7 @@ const MOCK_DATA_SETTINGS = JSON.stringify({
   localDatabaseLoadingMessage: '',
 });
 
-// All 7 tabs (Parameters, Visualizations, Sprints, Layouts, Authors, File Tree, Help) stored
-// with selected:false. TabController only auto-selects tabs when the stored tabList length
-// differs from the number of Tab children in App.tsx — providing the correct length (7)
-// preserves the stored selection and gives a fully collapsed UI for screenshots.
-// TabAlignment: top=0, right=1. contentID and position follow App.tsx declaration order.
+// All 7 tabs stored with selected:false at the correct length (7) so TabController doesn't auto-select, giving a fully collapsed UI for screenshots.
 const ALL_TABS_CLOSED = JSON.stringify({
   tabList: [
     { displayName: 'Parameters', alignment: 0, selected: false, contentID: 1, position: 0 },
@@ -46,18 +40,35 @@ const ALL_TABS_CLOSED = JSON.stringify({
   ],
 });
 
-// Wide date range so Change Frequency (which actually filters by date) covers the mock data.
-// Most other visualizations ignore the date range in their mock data implementations.
+// Wide date range so Change Frequency (which actually filters by date) covers the mock data; most other visualizations ignore it.
 const MOCK_PARAMETERS_STATE = JSON.stringify({
   parametersGeneral: { granularity: 'days', excludeMergeCommits: false },
   parametersDateRange: { from: '2026-04-25T16:03:21', to: '2026-07-10T03:01:27' },
 });
 
-// DashboardItem renders the visualization only when `authors` is not undefined.
-// `authors` is set from `authorLists[dataPluginId]` in Redux, which is only populated
-// when the Authors component mounts (normally via the Authors tab being open).
-// Pre-seeding an empty authorList for dataPluginId=1 satisfies the truthiness check
-// without needing the Authors tab open.
+// Pre-populated sprints (7×14 days from Apr 1, matching demo-core.test.ts's live-created shape) so "Show Sprints" toggles have something to overlay.
+function buildMockSprintsState(): string {
+  const start = new Date('2026-04-01T00:00:00');
+  const lengthDays = 14;
+  const amount = 7;
+  const sprintList = Array.from({ length: amount }, (_, i) => {
+    const startDate = new Date(start);
+    startDate.setDate(start.getDate() + i * lengthDays);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + lengthDays);
+    return {
+      id: i,
+      name: `S ${i + 1}`,
+      startDate: startDate.toISOString().split('.')[0],
+      endDate: endDate.toISOString().split('.')[0],
+    };
+  });
+  return JSON.stringify({ sprintList, currID: amount, sprintToEdit: null });
+}
+
+export const MOCK_SPRINTS_STATE = buildMockSprintsState();
+
+// DashboardItem only renders once `authors` (authorLists[dataPluginId] in Redux) is defined, so pre-seed an empty list to satisfy that without opening the tab.
 const MOCK_AUTHORS_STATE = JSON.stringify({
   authorLists: { '1': [] },
   dragging: false,
@@ -156,12 +167,20 @@ function stubRoutes(page: Page) {
   page.route('/wsapi/**', (route) => route.abort());
 }
 
-export async function loadVis(page: Page, pluginName: string, itemSettings?: object): Promise<void> {
-  await seedLocalStorage(page, buildDashboard(pluginName, 40, 22, itemSettings));
+// Seeds localStorage, stubs backend routes, and navigates once — exported so demoHelpers.ts's loaders can compose the same pieces instead of re-implementing them.
+export async function gotoSeededDashboard(page: Page, dashboardJson: string, sprintsState?: string): Promise<void> {
+  await seedLocalStorage(page, dashboardJson, sprintsState);
   stubRoutes(page);
   await page.goto('/');
+}
+
+export async function waitForDashboardMounted(page: Page): Promise<void> {
   await page.waitForSelector('#tabBarTop', { state: 'visible' });
   await page.waitForSelector('#dashboardItem1', { state: 'visible' });
+}
+
+// Opens the Authors tab and waits for its author list to populate in Redux, then collapses it again unless keepOpen is set.
+export async function revealAuthorList(page: Page, { keepOpen = false }: { keepOpen?: boolean } = {}): Promise<void> {
   const authorsTabBtn = page.locator('#tab_Authors');
   await authorsTabBtn.click();
   await page.waitForFunction(
@@ -175,12 +194,19 @@ export async function loadVis(page: Page, pluginName: string, itemSettings?: obj
     },
     { timeout: 10_000 },
   );
-  await authorsTabBtn.click();
+  if (!keepOpen) {
+    await authorsTabBtn.click();
+  }
 }
 
-// Loads a page with multiple dashboard items. After authors load, opens the requested tabs
-// by display name (e.g. 'Visualizations', 'File Tree'). Set keepAuthorsOpen=true when the
-// Authors tab should remain open for the screenshot. Pass sprintsState to pre-seed sprints.
+// Loads a single-item dashboard and closes the sidebar again, since screenshots.test.ts's captures assume a full-width chart with nothing occluding it.
+export async function loadVis(page: Page, pluginName: string, itemSettings?: object, sprintsState?: string): Promise<void> {
+  await gotoSeededDashboard(page, buildDashboard(pluginName, 40, 22, itemSettings), sprintsState);
+  await waitForDashboardMounted(page);
+  await revealAuthorList(page);
+}
+
+// Loads a page with multiple dashboard items, then opens the requested tabs by display name (set keepAuthorsOpen for the Authors tab).
 export async function loadDashboard(
   page: Page,
   items: DashItemConfig[],
@@ -188,27 +214,9 @@ export async function loadDashboard(
   keepAuthorsOpen = false,
   sprintsState?: string,
 ): Promise<void> {
-  await seedLocalStorage(page, buildMultiDashboard(items), sprintsState);
-  stubRoutes(page);
-  await page.goto('/');
-  await page.waitForSelector('#tabBarTop', { state: 'visible' });
-  await page.waitForSelector('#dashboardItem1', { state: 'visible' });
-  const authorsTabBtn = page.locator('[id="tab_Authors"]');
-  await authorsTabBtn.click();
-  await page.waitForFunction(
-    () => {
-      try {
-        const s = localStorage.getItem('bino_authorsStateV1');
-        return s ? (JSON.parse(s).authorLists?.['1'] ?? []).length > 0 : false;
-      } catch {
-        return false;
-      }
-    },
-    { timeout: 10_000 },
-  );
-  if (!keepAuthorsOpen) {
-    await authorsTabBtn.click();
-  }
+  await gotoSeededDashboard(page, buildMultiDashboard(items), sprintsState);
+  await waitForDashboardMounted(page);
+  await revealAuthorList(page, { keepOpen: keepAuthorsOpen });
   for (const tabName of extraTabsToOpen) {
     await page.locator(`[id="tab_${tabName}"]`).click();
     await page.waitForTimeout(300);
@@ -217,8 +225,7 @@ export async function loadDashboard(
 
 // ─── Screenshot helpers ───────────────────────────────────────────────────────
 
-// Output goes to docs/assets/screenshots/visualizations/ at the repo root,
-// matching the existing naming convention used by manually captured screenshots.
+// Output goes to docs/assets/screenshots/visualizations/, matching the naming convention of manually captured screenshots.
 export const SCREENSHOTS_DIR = path.resolve(process.cwd(), '..', 'docs', 'assets', 'screenshots', 'visualizations');
 
 export async function takeScreenshot(page: Page, filename: string): Promise<void> {
@@ -235,10 +242,7 @@ export async function takeDashboardScreenshot(page: Page, filename: string): Pro
 
 // ─── Visualization registry ───────────────────────────────────────────────────
 
-// waitFor: CSS selector inside #dashboardItem1 that must be visible before screenshotting.
-// waitForText: plain text inside #dashboardItem1 to wait for (for HTML-only or text-only states).
-// waitForHidden: text that must DISAPPEAR before screenshotting (e.g. loading indicators).
-// Omit all three for visualizations whose final state renders synchronously.
+// waitFor/waitForText wait for a selector/text to appear, waitForHidden waits for text to disappear (e.g. a loading indicator); omit all three if synchronous.
 export const VISUALIZATIONS: Array<{
   pluginName: string;
   filename: string;

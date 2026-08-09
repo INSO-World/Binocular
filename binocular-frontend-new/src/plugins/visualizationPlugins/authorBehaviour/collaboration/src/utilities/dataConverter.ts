@@ -160,12 +160,12 @@ function augmentAccountsWithCommitRefs(
 ): Account[] {
   const issueByIid = new Map<string, DataPluginIssue>();
   for (const a of issueAccounts) {
-    for (const issue of a.issues) issueByIid.set(String(issue.iid), issue);
+    for (const issue of a.issues) if (issue) issueByIid.set(String(issue.iid), issue);
   }
 
   const mrByIid = new Map<string, DataPluginMergeRequest>();
   for (const a of mrAccounts) {
-    for (const mr of a.mergeRequests) mrByIid.set(String(mr.iid), mr);
+    for (const mr of a.mergeRequests) if (mr) mrByIid.set(String(mr.iid), mr);
   }
 
   const accountMap = new Map<string, Account>(

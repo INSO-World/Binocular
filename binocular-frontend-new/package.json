@@ -22,7 +22,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "screenshots": "cross-env SCREENSHOTS=1 playwright test --project=screenshots --reporter=list"
+    "screenshots": "cross-env SCREENSHOTS=1 playwright test --project=screenshots --reporter=list",
+    "demo:record": "cross-env DEMO=1 playwright test --project=demo --workers=1",
+    "demo:render": "node scripts/demo/render-demo-videos.mjs"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
