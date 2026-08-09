@@ -1,5 +1,5 @@
 import visualizationSelectorStyles from '../visualizationSelector.module.scss';
-import { addDashboardItem, placeDashboardItem } from '../../../../../redux/reducer/general/dashboardReducer.ts';
+import { addDashboardItem, findNextFreePosition, placeDashboardItem } from '../../../../../redux/reducer/general/dashboardReducer.ts';
 import { DragDropElementType } from '../../../../../types/general/dragDropElementType.ts';
 import type { VisualizationPlugin } from '../../../../../plugins/interfaces/visualizationPlugin.ts';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../../../redux';
@@ -9,11 +9,14 @@ import { Icon } from '../../../../icon';
 import { showInfoTooltip } from '../../../../infoTooltip/infoTooltipHelper';
 import InfoTooltip from '../../../../infoTooltip/infoTooltip';
 import { useRef } from 'react';
+import { addNotification } from '../../../../../redux/reducer/general/notificationsReducer.ts';
+import { AlertType } from '../../../../../types/general/alertType.ts';
 
 function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<unknown, unknown>; disabled: boolean; showHelp: boolean }) {
   const dispatch: AppDispatch = useAppDispatch();
   const configuredDataPlugins = useSelector((state: RootState) => state.settings.database.dataPlugins);
   const defaultDataPlugin = configuredDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.isDefault)[0];
+  const dashboardState = useSelector((state: RootState) => state.dashboard.dashboardState);
 
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipVisibleFlagRef = useRef(false);
@@ -28,15 +31,32 @@ function VisualizationSelectorDragButton(props: { plugin: VisualizationPlugin<un
         }
         onClick={() => {
           if (!props.disabled) {
-            dispatch(
-              addDashboardItem({
+            const width = props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[0] : 12;
+            const height = props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[1] : 8;
+            const hasSpace =
+              findNextFreePosition(dashboardState, {
                 id: 0,
-                width: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[0] : 12,
-                height: props.plugin.metadata.defaultSize ? props.plugin.metadata.defaultSize[1] : 8,
-                pluginName: props.plugin.name,
+                x: 0,
+                y: 0,
+                width,
+                height,
+                pluginName: '',
                 dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
-              }),
-            );
+              }) !== null;
+            if (hasSpace) {
+              dispatch(
+                addDashboardItem({
+                  id: 0,
+                  width,
+                  height,
+                  pluginName: props.plugin.name,
+                  dataPluginId: defaultDataPlugin ? defaultDataPlugin.id : undefined,
+                }),
+              );
+              dispatch(addNotification({ text: `"${props.plugin.name}" added to dashboard`, type: AlertType.success }));
+            } else {
+              dispatch(addNotification({ text: 'Dashboard is full. Remove a visualization to make space.', type: AlertType.error }));
+            }
           }
         }}
         onDragStart={(event) => {

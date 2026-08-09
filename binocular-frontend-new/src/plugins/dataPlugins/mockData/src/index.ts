@@ -67,6 +67,15 @@ class MockData implements DataPlugin {
   }
 
   public async clearRemains() {}
+
+  public async initialMerges() {
+    return [
+      { child: 'Blame Cliff <blame.cliff@example.com>', parent: 'Cliff Blame <cliff.blame@example.com>' },
+      { child: 'Ching Bran <ching.bran@example.com>', parent: 'Bran Ching <bran.ching@example.com>' },
+      { child: 'Gina Ori <gina.ori@example.com>', parent: 'Ori Gina <ori.gina@example.com>' },
+      { child: 'Myne Cole <myne.cole@example.com>', parent: 'Cole Myne <cole.myne@example.com>' },
+    ];
+  }
 }
 
 export default MockData;

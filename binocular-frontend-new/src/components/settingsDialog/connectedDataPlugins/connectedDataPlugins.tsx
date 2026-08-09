@@ -151,7 +151,7 @@ function ConnectedDataPlugins(props: { interactable: boolean }) {
                               .then((dataPlugin) => {
                                 if (dataPlugin) {
                                   dataPlugin
-                                    .clearRemains()
+                                    .clearRemains(settingsDatabaseDataPlugin.parameters.fileName)
                                     .then(() => {
                                       console.log(`${settingsDatabaseDataPlugin.name} #${settingsDatabaseDataPlugin.id} cleared`);
                                       if (settingsDatabaseDataPlugin.id !== undefined) {

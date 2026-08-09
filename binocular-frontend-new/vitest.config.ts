@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
+import { readFileSync } from 'node:fs';
+import JSZip from 'jszip';
 
 /**
  * Stubs all `src/db_export/*.json` imports during testing.
@@ -31,12 +33,40 @@ function dbExportStubPlugin(): Plugin {
   };
 }
 
+function zipDataPlugin(): Plugin {
+  return {
+    name: 'zip-data',
+    enforce: 'pre',
+    async load(id) {
+      // ?url imports are fetched at runtime (see lazyData.ts) instead of statically bundled.
+      // Vite would normally resolve those to a dev-server-served asset path, but Vitest has no
+      // such server, so `fetch()` on that path fails. Serve the zip's bytes as a data: URL
+      // instead — fetch() supports that scheme in both the browser and Node/undici.
+      if (id.endsWith('.zip?url')) {
+        const filePath = id.slice(0, -'?url'.length);
+        const buffer = readFileSync(filePath);
+        const dataUrl = `data:application/zip;base64,${buffer.toString('base64')}`;
+        return `export default ${JSON.stringify(dataUrl)};`;
+      }
+      if (!id.endsWith('.zip') || id.includes('?')) return;
+      const buffer = readFileSync(id);
+      const zip = await JSZip.loadAsync(buffer);
+      const jsonFileName = Object.keys(zip.files).find((n) => n.endsWith('.json'));
+      if (!jsonFileName) return;
+      const json = await zip.file(jsonFileName)!.async('string');
+      return `export default ${json};`;
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), dbExportStubPlugin()],
+  plugins: [react(), dbExportStubPlugin(), zipDataPlugin()],
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // e2e/ and scripts/ are Playwright tests — importing @playwright/test under Vitest throws
+    exclude: ['src/test/e2e/**', 'scripts/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],

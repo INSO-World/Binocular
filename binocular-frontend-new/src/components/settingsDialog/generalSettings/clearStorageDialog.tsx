@@ -37,7 +37,7 @@ function ClearStorageDialog(props: { onCleared: () => void }) {
             if (plugin.parameters.fileName) {
               return DataPluginStorage.getDataPlugin(plugin)
                 .then((dataPlugin) => {
-                  if (dataPlugin) return dataPlugin.clearRemains();
+                  if (dataPlugin) return dataPlugin.clearRemains(plugin.parameters.fileName);
                 })
                 .finally(() => {
                   if (effectiveClearDashboard) dispatch(removeDataPlugin(plugin.id!));

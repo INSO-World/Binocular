@@ -139,7 +139,7 @@ export function findID(database: PouchDB.Database, id: string) {
 
 // ###################### COMMITS ######################
 
-export async function findAllCommits(database: PouchDB.Database, relations: PouchDB.Database) {
+export async function findAllCommits(database: PouchDB.Database, relations: PouchDB.Database, includeHunks = false) {
   const commits = await findAll(database, 'commits');
   const allCommits = sortByAttributeString(commits.docs, '_id');
   const commitUserConnections = sortByAttributeString((await findCommitUserConnections(relations)).docs, 'from');
@@ -155,7 +155,9 @@ export async function findAllCommits(database: PouchDB.Database, relations: Pouc
   });
 
   commits.docs = await Promise.all(
-    commits.docs.map((c) => preprocessCommit(c, allCommits, commitUserConnections, commitCommitConnections, users, commitFiles, files)),
+    commits.docs.map((c) =>
+      preprocessCommit(c, allCommits, commitUserConnections, commitCommitConnections, users, commitFiles, files, includeHunks),
+    ),
   );
 
   return commits;
@@ -230,6 +232,7 @@ function preprocessCommit(
   users: JSONObject,
   commitFiles: JSONObject[],
   files: JSONObject[],
+  includeHunks = false,
 ) {
   //add messageHeader from message (first line of the commit message) similar to Bino BE
   if (commit.message && !commit.messageHeader) {
@@ -270,7 +273,8 @@ function preprocessCommit(
   }
   commitFileRelation.forEach((cfr) => {
     const file = binarySearch(files, cfr.to, '_id');
-    filesData.push({ file: { path: file!.path }, stats: cfr.stats });
+    if (includeHunks) filesData.push({ file: { path: file!.path }, stats: cfr.stats, hunks: cfr.hunks });
+    else filesData.push({ file: { path: file!.path }, stats: cfr.stats });
   });
   return _.assign(commit, { files: { data: filesData } });
 }

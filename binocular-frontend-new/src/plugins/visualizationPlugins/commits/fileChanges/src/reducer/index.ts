@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { DataPluginFile } from '../../../../../interfaces/dataPluginInterfaces/dataPluginFiles.ts';
 import type { DataPluginCommit } from '../../../../../interfaces/dataPluginInterfaces/dataPluginCommits.ts';
+import type { FileListElementType } from '../../../../../../types/data/fileListType.ts';
 
 export enum DataState {
   EMPTY,
@@ -31,7 +32,7 @@ export interface ChangesState {
   last_current_file: string;
   current_file_commits: DataPluginCommit[];
   current_file_total_commits: DataPluginCommit[];
-  files: DataPluginFile[];
+  files: FileListElementType[];
   dateRange: DateRange;
   dataState: DataState;
   dateOfOverallFirstCommit: string;
@@ -64,7 +65,7 @@ export const changesSlice = createSlice({
       state.last_current_file = state.current_file;
       state.current_file = action.payload;
     },
-    setFiles: (state, action: PayloadAction<DataPluginFile[]>) => {
+    setFiles: (state, action: PayloadAction<FileListElementType[]>) => {
       state.files = action.payload;
     },
     setDateRange: (state, action: PayloadAction<DateRange>) => {

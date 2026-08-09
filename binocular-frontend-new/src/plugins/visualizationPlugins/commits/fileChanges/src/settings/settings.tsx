@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useCallback, useSyncExternalStore } from 'react';
 import { setGlobalCurrentFileData } from '../reducer';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../../../../../redux';
-import type { FileListElementType } from '../../../../../../types/data/fileListType.ts';
+import type { Store } from '@reduxjs/toolkit';
+import type { FileListElementType } from '../../../../../../types/data/fileListType';
+
+const EMPTY_FILES: FileListElementType[] = [];
 
 export interface SettingsType {
   file: string;
@@ -12,36 +13,25 @@ export interface SettingsType {
   showExtraMetrics: boolean;
 }
 
-function FileSelector({ selectedFile, onFileChange }: { selectedFile: string; onFileChange: (file: string) => void }) {
-  // console.log("State:", s);
-  const rawFiles = useSelector((state: RootState) => state.files.fileLists);
+function FileSelector({
+  selectedFile,
+  onFileChange,
+  files,
+}: {
+  selectedFile: string;
+  onFileChange: (file: string) => void;
+  files: FileListElementType[];
+}) {
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  // console.log("Raw files:", rawFiles);
-
-  // Handle null or undefined
-  if (!rawFiles || Object.keys(rawFiles).length === 0) {
+  if (!files || files.length === 0) {
     return <div className="alert alert-warning">No files found. Load File Tree first.</div>;
   }
 
-  // Convert to array safely
-  const files: FileListElementType[] = Object.values(rawFiles)[0] as FileListElementType[];
-
-  if (files.length === 0) {
-    return <div className="alert alert-warning">No files found. Load File Tree first.</div>;
-  }
-
-  const filteredFiles = files.filter((file) => {
-    return file.element.path.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  //const filteredFiles = files.forEach((file) => {
-  //  file.path.toLowerCase().includes(searchTerm.toLowerCase());
-  //});
+  const filteredFiles = files.filter((file) => file.element.path.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="w-full max-w-xs rounded-lg bg-base-200 p-3 shadow mb-1">
-      {/* Search input */}
       <input
         type="text"
         className="input input-sm w-full mb-2"
@@ -49,8 +39,6 @@ function FileSelector({ selectedFile, onFileChange }: { selectedFile: string; on
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-
-      {/* Select dropdown */}
       <select className="select select-sm w-full" value={selectedFile} onChange={(e) => onFileChange(e.target.value)}>
         {filteredFiles.map((file, index) => (
           <option key={index} value={file.element.path}>
@@ -62,7 +50,17 @@ function FileSelector({ selectedFile, onFileChange }: { selectedFile: string; on
   );
 }
 
-function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void }) {
+function Settings(props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void; store?: Store }) {
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!props.store) return () => {};
+      return props.store.subscribe(callback);
+    },
+    [props.store],
+  );
+  const getSnapshot = useCallback(() => props.store?.getState()?.plugin?.files ?? EMPTY_FILES, [props.store]);
+  const files: FileListElementType[] = useSyncExternalStore(subscribe, getSnapshot);
+
   return (
     <>
       <div>
@@ -109,6 +107,7 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
                 file: file,
               });
             }}
+            files={files}
           />
         </label>
         <label className="label cursor-pointer flex w-full justify-between items-center mt-0.5">
@@ -145,25 +144,3 @@ function Settings(props: { settings: SettingsType; setSettings: (newSettings: Se
 }
 
 export default Settings;
-
-// TODO delete?
-//<select
-//
-//  className="select select-bordered select-sm"
-//  defaultValue={props.settings.file}
-//  onChange={(e) => {
-//    setGlobalCurrentFile(e.target.value);
-//    props.setSettings({
-//      file: e.target.value,
-//      splitAdditionsDeletions: props.settings.splitAdditionsDeletions,
-//      visualizationStyle: props.settings.visualizationStyle,
-//      showSprints: props.settings.showSprints,
-//    });
-//  }}
-//>
-//  {files.map((f, index) => (
-//    <option key={index} value={f.path}>
-//      {f.path}
-//    </option>
-//  ))}
-//</select>

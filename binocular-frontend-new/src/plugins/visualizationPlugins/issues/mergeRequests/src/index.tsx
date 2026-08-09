@@ -38,7 +38,7 @@ const MergeRequests: VisualizationPlugin<MergeRequestsSettings, DataPluginMergeR
     category: VisualizationPluginMetadataCategory.Issues,
     recommended: false,
     description: 'A line chart that visualizes the amount of merge requests open and closed.',
-    compatibility: { binocularBackend: true, githubAPI: false, mockData: true, pouchDB: true, github: true, gitlab: false },
+    compatibility: { binocularBackend: true, githubAPI: false, mockData: true, pouchDB: true, github: true, gitlab: true },
   },
   reducer: Reducer,
   saga: Saga,

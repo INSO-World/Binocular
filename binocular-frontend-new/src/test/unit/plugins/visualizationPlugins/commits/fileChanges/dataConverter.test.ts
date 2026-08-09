@@ -147,7 +147,7 @@ describe('convertCommitDataToMetrics', () => {
 
 describe('convertCommitDataToChangesChartData', () => {
   it('U2.12 returns empty result for empty commits array', () => {
-    const result = convertCommitDataToChangesChartData([], [], false, defaultParams);
+    const result = convertCommitDataToChangesChartData([], [], false, defaultParams, 'a.ts');
     expect(result.commitChartData).toEqual([]);
     expect(result.commitPalette).toEqual({});
     expect(result.commitScale).toEqual([]);
@@ -156,7 +156,7 @@ describe('convertCommitDataToChangesChartData', () => {
   it('U2.13 splitAdditionsDeletions=false → palette key is author signature, not (Additions)', () => {
     const author = makeAuthorFC('u1', 'Alice');
     const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 3, 2);
-    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams);
+    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams, 'a.ts');
     expect(Object.keys(result.commitPalette)).toContain('Alice');
     expect(Object.keys(result.commitPalette).some((k) => k.startsWith('(Additions)'))).toBe(false);
   });
@@ -164,7 +164,7 @@ describe('convertCommitDataToChangesChartData', () => {
   it('U2.14 splitAdditionsDeletions=true → palette keys contain "(Additions)" and "(Deletions)"', () => {
     const author = makeAuthorFC('u1', 'Alice');
     const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 3, 2);
-    const result = convertCommitDataToChangesChartData([commit], [author], true, defaultParams);
+    const result = convertCommitDataToChangesChartData([commit], [author], true, defaultParams, 'a.ts');
     expect(Object.keys(result.commitPalette)).toContain('(Additions) Alice');
     expect(Object.keys(result.commitPalette)).toContain('(Deletions) Alice');
   });
@@ -172,14 +172,33 @@ describe('convertCommitDataToChangesChartData', () => {
   it('U2.15 commitScale[1] is positive when commits have additions', () => {
     const author = makeAuthorFC('u1', 'Alice');
     const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 5, 0);
-    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams);
+    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams, 'a.ts');
     expect(result.commitScale[1]).toBeGreaterThan(0);
   });
 
   it('U2.16 commitChartData has one or more time-bucket entries', () => {
     const author = makeAuthorFC('u1', 'Alice');
     const commit = makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 3, 2);
-    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams);
+    const result = convertCommitDataToChangesChartData([commit], [author], false, defaultParams, 'a.ts');
     expect(result.commitChartData.length).toBeGreaterThan(0);
+  });
+
+  it('U2.17 only sums hunks for the selected file, ignoring other files in the same commit', () => {
+    const author = makeAuthorFC('u1', 'Alice');
+    const commit: DataPluginCommit = {
+      ...makeCommitWithChanges('2023-06-15T00:00:00Z', 'u1', 3, 2),
+      files: {
+        data: [
+          { file: { path: 'a.ts', webUrl: '', maxLength: 0 }, hunks: [{ oldStart: 0, oldLines: 2, newStart: 0, newLines: 3 }] },
+          { file: { path: 'b.ts', webUrl: '', maxLength: 0 }, hunks: [{ oldStart: 0, oldLines: 20, newStart: 0, newLines: 30 }] },
+        ],
+      },
+    };
+    const result = convertCommitDataToChangesChartData([commit], [author], true, defaultParams, 'a.ts');
+    // 0.001 is the seed value every bucket starts with (see chart data converter comments), so look for the real one.
+    const bucket = result.commitChartData.find((d) => (d['(Additions) Alice'] ?? 0) > 1);
+    // ~3/-2 (not ~33/-22) confirms only a.ts's hunks were counted, not b.ts's much larger ones.
+    expect(bucket?.['(Additions) Alice']).toBeCloseTo(3, 1);
+    expect(bucket?.['(Deletions) Alice']).toBeCloseTo(-2, 1);
   });
 });

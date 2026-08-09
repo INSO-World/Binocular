@@ -96,8 +96,8 @@ class PouchDb implements DataPlugin {
     return undefined;
   }
 
-  public async clearRemains() {
-    await this.database.delete();
+  public async clearRemains(name?: string) {
+    await this.database.delete(name);
   }
 
   public async export() {

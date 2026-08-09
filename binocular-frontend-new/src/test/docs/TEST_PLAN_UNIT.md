@@ -47,7 +47,7 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U2.10 | Computes `avgChangeset` as mean changeset size | commits with changeset sizes 2 and 4 | `avgChangeset ≈ 3` |
 | U2.11 | Handles custom `burstSize` threshold | 2 commits, `burstSize: 3` | `maxBurst === 0` |
 
-### `convertCommitDataToChangesChartData(commits, authors, splitAdditionsDeletions, parameters)`
+### `convertCommitDataToChangesChartData(commits, authors, splitAdditionsDeletions, parameters, currentFile)`
 
 | # | Description | Input | Expected output |
 |---|---|---|---|
@@ -56,6 +56,7 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U2.14 | `splitAdditionsDeletions=true` → palette keys contain `"(Additions)"` and `"(Deletions)"` | 1 author, 1 commit | `"(Additions) Alice"` and `"(Deletions) Alice"` in palette |
 | U2.15 | `commitScale[1]` is positive when commits have additions | commit with 5 additions | `commitScale[1] > 0` |
 | U2.16 | `commitChartData` has one or more time-bucket entries | 1 commit | `commitChartData.length > 0` |
+| U2.17 | Only sums hunks for `currentFile`, ignoring other files changed in the same commit | 1 commit touching `a.ts` (3/2) and `b.ts` (30/20), `currentFile: 'a.ts'` | additions/deletions reflect only `a.ts`'s hunks (~3/-2), not the sum with `b.ts` |
 
 ---
 
@@ -498,6 +499,8 @@ Tests cover pure functions and utility helpers with no DOM, no Redux, and no net
 | U22.3 | Two non-overlapping sequential issues stay in one track | `tracks.length === 1, tracks[0].length === 2` |
 | U22.4 | Two overlapping issues split into two tracks | `tracks.length === 2` |
 | U22.5 | Issue without `closedAt` uses `maxDate` for overlap check | `tracks.length === 2` |
+| U22.6 | Issues with the same `createdAt` are treated as overlapping | `tracks.length === 2` |
+| U22.7 | Issue that contains another (containment) is treated as overlapping | `tracks.length === 2` |
 
 ---
 

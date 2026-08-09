@@ -128,11 +128,16 @@ const DashboardItem = memo(function DashboardItem(props: {
         const dataPlugin = availableDataPlugins.filter((dP: DatabaseSettingsDataPluginType) => dP.id === props.item.dataPluginId)[0];
         refreshFileList(dataPlugin, dispatch);
       }
+    }
+  }, [availableDataPlugins, fileLists, filesInitialized, props.item.dataPluginId]);
+
+  useEffect(() => {
+    if (props.item.dataPluginId !== undefined) {
       if (JSON.stringify(fileLists[props.item.dataPluginId]) !== JSON.stringify(files)) {
         setFiles(fileLists[props.item.dataPluginId]);
       }
     }
-  }, [availableDataPlugins, fileLists, filesInitialized, props.item.dataPluginId]);
+  }, [fileLists, props.item.dataPluginId]);
   const [settings, setSettingsState] = useState(props.item.settings ?? plugin.defaultSettings);
 
   // Persist settings changes to the dashboard store (and localStorage)
@@ -362,7 +367,7 @@ const DashboardItem = memo(function DashboardItem(props: {
               props.setDragResizeItem(props.item.id, DragResizeMode.drag);
             }}>
             <div className={dashboardItemStyles.dashboardItemInteractionBarLeft}>
-              <span>{props.item.pluginName}</span>
+              <span>{props.item.pluginName}</span>{' '}
               {selectedDataPlugin && (
                 <span>
                   ({selectedDataPlugin.name} #{selectedDataPlugin.id})

@@ -14,7 +14,7 @@ const FileChanges: VisualizationPlugin<SettingsType, null> = {
   settingsComponent: Settings,
   helpComponent: Help,
   defaultSettings: {
-    file: 'README.md',
+    file: '',
     splitAdditionsDeletions: true,
     visualizationStyle: 'curved',
     showExtraMetrics: false,

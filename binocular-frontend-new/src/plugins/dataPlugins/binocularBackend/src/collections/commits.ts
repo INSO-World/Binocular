@@ -230,7 +230,12 @@ export default class Commits implements DataPluginCommits {
     };
 
     await traversePages(getCommitsPage(file), (data: { commit: DataPluginCommit }) => {
-      commitList.push(data.commit);
+      const commit = data.commit;
+      // Keep only the hunks for the queried file so dataConverter doesn't sum all files in the commit.
+      if (commit.files?.data) {
+        commit.files.data = commit.files.data.filter((f) => f.file?.path === file);
+      }
+      commitList.push(commit);
     });
     return commitList.sort((a, b) => new Date(b.date).getMilliseconds() - new Date(a.date).getMilliseconds());
   }

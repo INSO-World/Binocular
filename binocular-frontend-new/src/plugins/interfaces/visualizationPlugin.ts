@@ -9,8 +9,13 @@ import type { VisualizationPluginDependencies } from './visualizationPluginInter
 export interface VisualizationPlugin<SettingsType, DataType> {
   name: string;
   chartComponent?: (props: VisualizationPluginProperties<SettingsType, DataType>) => ReactNode;
-  // settingsComponent can optionally receive the store as a prop, to change settings from the chart if needed, look at repositoryStats settings for an example
-  settingsComponent: (props: { settings: SettingsType; setSettings: (newSettings: SettingsType) => void; store?: Store }) => ReactNode;
+  // settingsComponent can optionally receive the store and dataPluginId as props
+  settingsComponent: (props: {
+    settings: SettingsType;
+    setSettings: (newSettings: SettingsType) => void;
+    store?: Store;
+    dataPluginId?: number;
+  }) => ReactNode;
   helpComponent: () => ReactNode;
   // dataConnectionName and dataConverter only strictly needed when using the simpleVisualizationPlugin class
   dataConnectionName?: string;
