@@ -12,7 +12,7 @@ The project has two main packages (no Lerna/Nx — just npm scripts with `postin
 
 - **`binocular-backend/`** — Node.js/TypeScript CLI and Express server. Indexes VCS/ITS/CI data into ArangoDB, hosts a GraphQL proxy, and serves the frontend.
 - **`binocular-frontend-new/`** — React 19 + Vite + TypeScript frontend. Uses Redux Toolkit + Redux-Saga for state, D3 for visualizations, Tailwind CSS + DaisyUI for styling. This is the active frontend.
-- **`binocular-frontend/`** — Legacy React 18 frontend (is phased out). Some root scripts like `test:frontend` and `fix:frontend` still point here, but are not used.
+- **`binocular-frontend/`** — Legacy React 18 frontend (is phased out). No root scripts point here anymore.
 - **`foxx/`** — ArangoDB Foxx service providing the GraphQL interface. Auto-installed into ArangoDB at startup.
 
 ## Commands
@@ -33,7 +33,7 @@ npm run dev:frontend         # Frontend only (Vite dev server on port 8080)
 ### Lint
 ```sh
 npm run check        # ESLint on backend + frontend-new
-npm run fix          # ESLint auto-fix on backend + frontend (NOTE: fix:frontend points to legacy frontend)
+npm run fix          # ESLint auto-fix on backend + frontend-new
 ```
 
 ### Test

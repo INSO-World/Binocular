@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "check": "eslint .",
     "fix": "eslint --fix .",
-    "test": "vitest run",
+    "test": "vitest run && playwright test",
     "test:unit": "vitest run src/test/unit",
     "test:component": "vitest run src/test/component",
     "test:integration": "vitest run src/test/integration",
