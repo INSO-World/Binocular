@@ -55,5 +55,13 @@ export default defineConfig([
         ...globals.es2020
       }
     }
+  },
+  {
+    files: ['scripts/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node
+      }
+    }
   }
 ]);
