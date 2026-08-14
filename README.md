@@ -215,6 +215,215 @@ all features will be available in the offline build.)
 
 For more information check `binocular -h`
 
+### Use Binocular on your own repository (GitHub Actions)
+
+You can mine **any** GitHub repository and host the resulting offline frontend
+(with that repository's data preloaded) entirely in GitHub Actions — no local
+setup required. Binocular ships a reusable workflow you call from your own repo.
+
+Add `.github/workflows/binocular.yml` to the repository you want to visualize:
+
+``` yaml
+name: Binocular
+on:
+  workflow_dispatch:       # run on demand
+  schedule:
+    - cron: '30 3 * * 1'   # and weekly (Mon 03:30 UTC)
+
+permissions:
+  contents: write          # write is needed for retain_runs; 'read' is enough otherwise
+  pages: write             # required for deploy_target: pages | both
+  id-token: write          # required for deploy_target: pages | both
+
+jobs:
+  binocular:
+    uses: INSO-World/Binocular/.github/workflows/mine-and-host.yml@main
+    with:
+      index_its: true         # index GitHub issues (needs more time / API quota)
+      index_ci: true          # index GitHub Actions runs
+      deploy_target: pages    # pages | artifact | both
+      retain_runs: true       # keep a history of previous runs (see below)
+      max_age_days: 7         # prune runs older than this
+    secrets: inherit          # passes GITHUB_TOKEN for issue/CI indexing
+```
+
+This checks out your repository, spins up ArangoDB, runs the Binocular miner,
+exports the database, builds the offline frontend with that export baked in, and
+publishes it.
+
+Inputs (all optional):
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `binocular_ref` | `main` | Git ref of `INSO-World/Binocular` to use |
+| `index_its` | `true` | Index the Issue Tracking System (GitHub issues) |
+| `index_ci` | `true` | Index the CI system (GitHub Actions runs) |
+| `deploy_target` | `pages` | `pages`, `artifact`, or `both` |
+| `retain_runs` | `false` | Keep a history of previous runs (Pages only — see below) |
+| `max_age_days` | `7` | When `retain_runs` is on, prune runs older than this many days |
+| `storage_branch` | `binocular-runs` | Branch used to durably store the run history |
+| `arango_version` | `3.12` | ArangoDB image tag to mine into |
+| `node_options` | *(empty — 12288 MB heap)* | `NODE_OPTIONS` for the offline build; override to raise for large repos or lower for smaller runners |
+
+Notes:
+
+- For `deploy_target: pages` (or `both`) enable Pages in your repo under
+  **Settings → Pages → Source: _GitHub Actions_**. A repository has only **one**
+  Pages site, so this publishes to your Pages root; use `artifact` if you don't
+  want to occupy it.
+- `deploy_target: artifact` (or `both`) uploads the static `dist/` as a workflow
+  artifact named `binocular_ui` that you can download and host anywhere.
+- The default `GITHUB_TOKEN` (passed via `secrets: inherit`) can read your repo's
+  own issues and Actions runs. Indexing private data from other repositories
+  requires providing your own personal access token in the generated config.
+
+#### Keeping a history of previous runs
+
+By default each Pages deploy replaces the site, so only the latest mine is
+visible. Set `retain_runs: true` to keep previous runs:
+
+- Each run is published under a dated subpath, e.g.
+  `https://<user>.github.io/<repo>/2026-06-25-a1b2c3d/`, named after the build
+  date and the mined commit's short SHA.
+- The Pages **root** becomes a generated landing page listing every kept run
+  (newest first) so you can pick which one to open.
+- Runs older than `max_age_days` (default 7) are pruned automatically on each
+  run.
+- History is stored on the `storage_branch` (default `binocular-runs`), which is
+  why **`contents: write`** is required. The branch is internal storage; you
+  don't browse it directly. Re-running the same commit on the same day overwrites
+  that commit's folder.
+
+### Use Binocular on your own repository (GitLab CI)
+
+The same idea works for GitLab: mine **any** GitLab project (gitlab.com or
+self-managed) and host the resulting offline frontend entirely in GitLab CI —
+no local setup required. Because Binocular itself lives on GitHub, the pipeline
+is pulled in via a remote include rather than a GitLab CI/CD Component.
+
+Add to your project's `.gitlab-ci.yml`:
+
+``` yaml
+include:
+  - remote: 'https://raw.githubusercontent.com/INSO-World/Binocular/main/.gitlab/ci/mine-and-host.yml'
+
+variables:
+  BINOCULAR_INDEX_ITS: "true"       # index GitLab issues/merge requests (needs more time / API quota)
+  BINOCULAR_INDEX_CI: "true"        # index GitLab CI pipelines
+  BINOCULAR_DEPLOY_TARGET: "pages"  # pages | artifact | both
+  BINOCULAR_RETAIN_RUNS: "true"     # keep a history of previous runs (see below)
+  BINOCULAR_MAX_AGE_DAYS: "7"       # prune runs older than this
+```
+
+There are two independent "refs" to be aware of: the `include: remote:` URL
+pins the version of the *pipeline template itself* (edit the URL, e.g. to a
+tag, to change it), while the `BINOCULAR_REF` variable pins which ref of the
+Binocular tooling gets cloned and run at mining time.
+
+This clones your project (full history) alongside the Binocular tooling, spins
+up ArangoDB as a CI service, runs the Binocular miner, exports the database,
+builds the offline frontend with that export baked in, and publishes it.
+
+Required CI/CD variables (set under **Settings → CI/CD → Variables**, masked):
+
+| Variable | Required when | Description |
+| --- | --- | --- |
+| `BINOCULAR_GITLAB_TOKEN` | always | Token used to read issues/merge requests/pipelines (scope: `read_api`) |
+| `BINOCULAR_PUSH_TOKEN` | `BINOCULAR_RETAIN_RUNS: "true"` | Project/personal access token with `write_repository` scope, used to push run history to the storage branch |
+
+Other variables (all optional):
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `BINOCULAR_REF` | `main` | Git ref of `INSO-World/Binocular` to use |
+| `BINOCULAR_TARGET_REPO_URL` | *(empty)* | Mine a different project than the one this pipeline runs in — see below |
+| `BINOCULAR_TARGET_REF` | *(empty)* | Ref to check out in the mined project (only meaningful with `BINOCULAR_TARGET_REPO_URL`) |
+| `BINOCULAR_TARGET_TOKEN` | *(empty)* | Token to clone `BINOCULAR_TARGET_REPO_URL` with, if that project is private |
+| `BINOCULAR_INDEX_ITS` | `true` | Index the Issue Tracking System (GitLab issues/MRs) |
+| `BINOCULAR_INDEX_CI` | `true` | Index the CI system (GitLab pipelines) |
+| `BINOCULAR_DEPLOY_TARGET` | `pages` | `pages`, `artifact`, or `both` |
+| `BINOCULAR_RETAIN_RUNS` | `false` | Keep a history of previous runs (Pages only — see below) |
+| `BINOCULAR_MAX_AGE_DAYS` | `7` | When retain runs is on, prune runs older than this many days |
+| `BINOCULAR_STORAGE_BRANCH` | `binocular-runs` | Branch used to durably store the run history |
+| `BINOCULAR_ARANGO_VERSION` | `3.12` | ArangoDB image tag to mine into |
+| `BINOCULAR_NODE_OPTIONS` | *(empty — 12288 MB heap)* | `NODE_OPTIONS` for the offline build; override to raise for large repos or lower for smaller runners |
+
+Notes:
+
+- For `BINOCULAR_DEPLOY_TARGET: "pages"` (or `"both"`), GitLab Pages must be
+  enabled for your project — and, on self-managed GitLab, Pages must also be
+  enabled at the instance level by an administrator. A project has only **one**
+  Pages site, so this publishes to your Pages root; use `"artifact"` if you
+  don't want to occupy it. If your project already defines its own `pages` job,
+  including this template will conflict with it.
+- `BINOCULAR_DEPLOY_TARGET: "artifact"` (or `"both"`) uploads the static build
+  as a downloadable job artifact from the `binocular:artifact` job.
+- Start a mine by pressing ▶ on the `binocular:build` job in any pipeline —
+  the publish job(s) then run automatically once the build succeeds, no
+  further clicking needed. Alternatively, set up a **CI/CD Schedule**
+  (Settings → CI/CD → Schedules) to run everything unattended on a cron
+  schedule.
+
+#### Keeping a history of previous runs
+
+By default each Pages deploy replaces the site, so only the latest mine is
+visible. Set `BINOCULAR_RETAIN_RUNS: "true"` to keep previous runs:
+
+- Each run is published under a dated subpath, e.g.
+  `https://<group>.gitlab.io/<project>/2026-06-25-a1b2c3d/`, named after the
+  build date and the mined commit's short SHA.
+- The Pages **root** becomes a generated landing page listing every kept run
+  (newest first) so you can pick which one to open.
+- Runs older than `BINOCULAR_MAX_AGE_DAYS` (default 7) are pruned automatically
+  on each run.
+- History is stored on the `BINOCULAR_STORAGE_BRANCH` (default
+  `binocular-runs`), which is why **`BINOCULAR_PUSH_TOKEN`** is required. The
+  branch is internal storage; you don't browse it directly. If that branch is
+  protected, the push token's owner needs a role permitted to push to
+  protected branches. Re-running the same commit on the same day overwrites
+  that commit's folder.
+
+#### Mining a different project than the one hosting the results
+
+By default the pipeline mines the same project it runs in. Setting
+`BINOCULAR_TARGET_REPO_URL` decouples that: the pipeline runs in one project
+but mines a *different* one.
+
+This is useful when the audience for the mined project and the audience for
+the dashboard need to differ — GitLab Pages/artifact visibility follows
+project membership, not role (there's no way to say "block Developers but
+allow Maintainers" within a single project). For example, in a student-project
+setting where students hold Developer access on their own project, running
+this pipeline from a separate staff-only project (which students are never
+members of) means the dashboard is simply never visible to them, without any
+special access-control configuration:
+
+``` yaml
+include:
+  - remote: 'https://raw.githubusercontent.com/INSO-World/Binocular/main/.gitlab/ci/mine-and-host.yml'
+
+variables:
+  BINOCULAR_TARGET_REPO_URL: "https://gitlab.example.com/course/student-project.git"
+  BINOCULAR_DEPLOY_TARGET: "pages"
+```
+
+(add `BINOCULAR_TARGET_TOKEN` under Settings → CI/CD → Variables — masked — only
+if the mined project is private; not needed for a public/internal one)
+
+Notes:
+
+- `BINOCULAR_GITLAB_TOKEN` (used for ITS/CI indexing) must have read access to
+  the *mined* project, not the hosting one — grant it accordingly if they
+  differ.
+- The mined project is assumed to live on the same GitLab instance as the
+  pipeline runs on (`gitlab.url` in the generated config is always
+  `$CI_SERVER_URL`); mining a project on a different instance isn't supported.
+- The run-history landing page's per-run commit link and title reflect the
+  *mined* project, but the page doesn't currently distinguish runs by mined
+  project when it varies — if you mine multiple different projects into one
+  shared history site, use separate hosting projects (or disable
+  `BINOCULAR_RETAIN_RUNS`) to avoid an ambiguous combined history.
+
 ### Running Frontend Only
 
 To install and run only the frontend:

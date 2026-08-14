@@ -1,0 +1,329 @@
+name: Mine & Host Binocular
+
+# Reusable workflow that mines a target repository with the Binocular backend,
+# exports the mined database, builds the offline frontend with that database
+# preloaded, and hosts it on GitHub Pages and/or as a downloadable artifact.
+#
+# With retain_runs enabled it keeps a history of previous runs on a storage
+# branch, each published under a dated subpath, with a generated landing page
+# to pick between them. Runs older than max_age_days are pruned on every run.
+#
+# Any GitHub repository can use this by adding a small caller workflow:
+#
+#   permissions:
+#     contents: write   # only needed when retain_runs: true
+#     pages: write
+#     id-token: write
+#   jobs:
+#     binocular:
+#       uses: INSO-World/Binocular/.github/workflows/mine-and-host.yml@main
+#       with:
+#         deploy_target: pages
+#         retain_runs: true
+#       secrets: inherit
+#
+# See README ("Use Binocular on your own repository") for the full setup.
+
+on:
+  workflow_call:
+    inputs:
+      binocular_ref:
+        description: "Git ref (branch/tag/sha) of INSO-World/Binocular to use"
+        type: string
+        default: "main"
+      index_its:
+        description: "Index the Issue Tracking System (GitHub issues)"
+        type: boolean
+        default: true
+      index_ci:
+        description: "Index the CI system (GitHub Actions runs)"
+        type: boolean
+        default: true
+      deploy_target:
+        description: "Where to publish the built frontend: pages | artifact | both"
+        type: string
+        default: "pages"
+      retain_runs:
+        description: "Keep a history of previous runs on the storage branch (Pages only)"
+        type: boolean
+        default: false
+      max_age_days:
+        description: "When retain_runs is on, prune runs older than this many days"
+        type: number
+        default: 7
+      storage_branch:
+        description: "Branch used to durably store the run history"
+        type: string
+        default: "binocular-runs"
+      arango_version:
+        description: "ArangoDB image tag to mine into"
+        type: string
+        default: "3.12"
+      node_options:
+        description: "NODE_OPTIONS for the offline build (default: 12288 MB heap; override to raise for large repos or lower for smaller runners)"
+        type: string
+        default: ""
+  # Allow running standalone inside the Binocular repo for testing (mines Binocular itself).
+  workflow_dispatch:
+    inputs:
+      binocular_ref:
+        description: "Git ref of INSO-World/Binocular to use"
+        type: string
+        default: "main"
+      index_its:
+        description: "Index the Issue Tracking System (GitHub issues)"
+        type: boolean
+        default: true
+      index_ci:
+        description: "Index the CI system (GitHub Actions runs)"
+        type: boolean
+        default: true
+      deploy_target:
+        description: "Where to publish the built frontend: pages | artifact | both"
+        type: string
+        default: "pages"
+      retain_runs:
+        description: "Keep a history of previous runs (Pages only)"
+        type: boolean
+        default: false
+      max_age_days:
+        description: "Prune runs older than this many days (when retain_runs)"
+        type: number
+        default: 7
+      storage_branch:
+        description: "Branch used to durably store the run history"
+        type: string
+        default: "binocular-runs"
+      arango_version:
+        description: "ArangoDB image tag to mine into"
+        type: string
+        default: "3.12"
+      node_options:
+        description: "NODE_OPTIONS for the offline build (default: 12288 MB heap; override to raise for large repos or lower for smaller runners)"
+        type: string
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Expose the mined commit's short SHA and subject so the deploy job can label the run.
+    outputs:
+      short_sha: ${{ steps.meta.outputs.short_sha }}
+      subject: ${{ steps.meta.outputs.subject }}
+
+    # ArangoDB the miner indexes into. Credentials must match the generated .binocularrc below.
+    # No --health-cmd here: the arangodb image doesn't ship curl (or wget), so a docker-level
+    # healthcheck run *inside* the container always reports unhealthy regardless of actual
+    # readiness. Polled from the job itself instead (see "Wait for ArangoDB" below).
+    services:
+      arangodb:
+        image: arangodb:${{ inputs.arango_version }}
+        ports:
+          - 8529:8529
+        env:
+          ARANGO_ROOT_PASSWORD: openSesame
+
+    steps:
+      - name: Wait for ArangoDB
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf -u root:openSesame http://localhost:8529/_api/version > /dev/null; then
+              exit 0
+            fi
+            echo "  ...not ready yet ($i/30)"
+            sleep 2
+          done
+          echo "ArangoDB did not become ready in time" >&2
+          exit 1
+
+      # The repository to mine. In a workflow_call the github context belongs to the
+      # caller, so the default checkout fetches the *consumer's* repository.
+      # fetch-depth: 0 is required so the VCS indexer sees the full git history.
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: target-repo
+
+      # The Binocular tooling itself (not present in the consumer's checkout).
+      - name: Checkout Binocular
+        uses: actions/checkout@v4
+        with:
+          repository: INSO-World/Binocular
+          ref: ${{ inputs.binocular_ref }}
+          path: binocular
+
+      - name: Capture mined commit metadata
+        id: meta
+        working-directory: target-repo
+        run: |
+          {
+            echo "short_sha=$(git rev-parse --short HEAD)"
+            echo "subject=$(git log -1 --pretty=%s)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: binocular/.nvmrc
+          cache: npm
+          cache-dependency-path: binocular/package-lock.json
+
+      - name: Install dependencies
+        working-directory: binocular
+        run: npm ci
+
+      # The miner reads <targetPath>/.binocularrc. Generate one pointing at the
+      # service ArangoDB, with the caller's GITHUB_TOKEN for ITS/CI indexing.
+      - name: Generate .binocularrc for the target repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INDEX_ITS: ${{ inputs.index_its }}
+          INDEX_CI: ${{ inputs.index_ci }}
+        run: |
+          INDEXERS="{}"
+          if [ "$INDEX_ITS" = "true" ]; then INDEXERS=$(echo "$INDEXERS" | jq '.its = "github"'); fi
+          if [ "$INDEX_CI" = "true" ]; then INDEXERS=$(echo "$INDEXERS" | jq '.ci = "github"'); fi
+          jq -n \
+            --arg token "$GH_TOKEN" \
+            --argjson indexers "$INDEXERS" \
+            '{
+              github: { auth: { token: $token } },
+              arango: { host: "127.0.0.1", port: "8529", user: "root", password: "openSesame" },
+              indexers: $indexers,
+              ignoreFiles: ["package-lock.json", "docs/*", "*.png", "*.svg", "yarn.lock"]
+            }' > target-repo/.binocularrc
+          echo "Generated .binocularrc:"
+          jq 'del(.github.auth.token)' target-repo/.binocularrc
+
+      # Mine the target repo and export the DB into binocular-frontend-new/src/db_export.
+      # --no-its / --no-ci turn the respective indexers OFF (they are ON by default).
+      - name: Mine repository and export database
+        working-directory: binocular
+        env:
+          INDEX_ITS: ${{ inputs.index_its }}
+          INDEX_CI: ${{ inputs.index_ci }}
+          DEBUG: idx*,importer*,git*,db*
+        run: |
+          FLAGS="--no-server --export"
+          if [ "$INDEX_ITS" != "true" ]; then FLAGS="$FLAGS --no-its"; fi
+          if [ "$INDEX_CI" != "true" ]; then FLAGS="$FLAGS --no-ci"; fi
+          echo "Running: npx tsx ./binocular-backend/binocular.ts run <target-repo> $FLAGS"
+          npx tsx ./binocular-backend/binocular.ts run "${{ github.workspace }}/target-repo" $FLAGS
+
+      - name: Build offline frontend
+        working-directory: binocular
+        env:
+          NODE_OPTIONS: ${{ inputs.node_options }}
+        run: npm run build:offline
+
+      # Single artifact used both as the downloadable deliverable (deploy_target:
+      # artifact|both) and as the source the deploy job publishes to Pages.
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binocular_ui
+          path: binocular/dist/
+
+  deploy:
+    needs: build
+    if: ${{ inputs.deploy_target == 'pages' || inputs.deploy_target == 'both' }}
+    runs-on: ubuntu-latest
+    # Serialize deploys so concurrent runs don't race on the storage branch.
+    concurrency:
+      group: binocular-pages-${{ github.repository }}
+      cancel-in-progress: false
+
+    # contents: write is required to push the run-history storage branch (retain_runs).
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # Needed for the landing-page generator script when retain_runs is on.
+      - name: Checkout Binocular
+        if: ${{ inputs.retain_runs }}
+        uses: actions/checkout@v4
+        with:
+          repository: INSO-World/Binocular
+          ref: ${{ inputs.binocular_ref }}
+          path: binocular
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: binocular_ui
+          path: dist
+
+      # --- History mode: accumulate runs on the storage branch -----------------
+      - name: Publish run into history
+        if: ${{ inputs.retain_runs }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          STORAGE_BRANCH: ${{ inputs.storage_branch }}
+          MAX_AGE_DAYS: ${{ inputs.max_age_days }}
+          SHORT_SHA: ${{ needs.build.outputs.short_sha }}
+          SUBJECT: ${{ needs.build.outputs.subject }}
+          FULL_SHA: ${{ github.sha }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          URL="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+
+          # Clone the storage branch, or create it as an orphan if it doesn't exist yet.
+          if ! git clone --depth 1 --branch "$STORAGE_BRANCH" --single-branch "$URL" site 2>/dev/null; then
+            echo "Storage branch '$STORAGE_BRANCH' not found — creating it."
+            rm -rf site
+            git clone --depth 1 "$URL" site
+            ( cd site && git checkout --orphan "$STORAGE_BRANCH" && git rm -rf . >/dev/null 2>&1 || true )
+          fi
+
+          SLUG="$(date -u +%Y-%m-%d)-${SHORT_SHA}"
+          rm -rf "site/$SLUG"
+          mkdir -p "site/$SLUG"
+          cp -r dist/* "site/$SLUG/"
+
+          # Upsert manifest, prune runs older than MAX_AGE_DAYS, regenerate index.html.
+          node binocular/scripts/generate-landing.mjs \
+            --site site \
+            --slug "$SLUG" \
+            --sha "$FULL_SHA" \
+            --run "$RUN_NUMBER" \
+            --subject "$SUBJECT" \
+            --repo "$REPO" \
+            --commit-url "https://github.com/${REPO}/commit/${FULL_SHA}" \
+            --max-age-days "$MAX_AGE_DAYS"
+
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Binocular run $SLUG (#${RUN_NUMBER})" || echo "Nothing to commit."
+          git push origin "$STORAGE_BRANCH"
+
+      - name: Upload Pages artifact (history)
+        if: ${{ inputs.retain_runs }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      # --- Single-snapshot mode: publish just this build ----------------------
+      - name: Upload Pages artifact (single snapshot)
+        if: ${{ !inputs.retain_runs }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
