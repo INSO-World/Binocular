@@ -5,6 +5,7 @@ import MergeRequests from './visualizationPlugins/issues/mergeRequests';
 import TimeSpent from './visualizationPlugins/authorBehaviour/timeSpent';
 import RepositoryStats from './visualizationPlugins/stats/repositoryStats';
 import BusFactorCIError from './visualizationPlugins/busFactor';
+import ModuleHotspots from './visualizationPlugins/locChangeFrequency';
 import CodeOwnership from './visualizationPlugins/ownership/codeOwnership';
 import FileChanges from './visualizationPlugins/commits/fileChanges';
 import CommitByFile from './visualizationPlugins/commits/commitByFile';
@@ -58,6 +59,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   RepositoryStats,
   BusFactorCIError,
   BusFactorQuadrant,
+  ModuleHotspots,
   CodeOwnership,
   FileChanges,
   ExampleStats,
