@@ -1,7 +1,7 @@
 import dashboardItemStyles from './dashboardItem.module.scss';
 import { DragResizeMode } from '../resizeMode.ts';
 import { visualizationPlugins } from '../../../plugins/pluginRegistry.ts';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, type RefObject, useEffect, useRef, useState } from 'react';
 import DashboardItemPopout from '../dashboardItemPopout/dashboardItemPopout.tsx';
 import { increasePopupCount, updateDashboardItem } from '../../../redux/reducer/general/dashboardReducer.ts';
 import { type AppDispatch, type RootState, useAppDispatch } from '../../../redux';
@@ -62,6 +62,7 @@ const DashboardItem = memo(function DashboardItem(props: {
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const helpButtonRef = useRef<HTMLButtonElement>(null);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const helpRef = useRef<HTMLDivElement>(null);
@@ -217,6 +218,36 @@ const DashboardItem = memo(function DashboardItem(props: {
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
     };
+  }, []);
+
+  // Shows/hides a sub-window imperatively — display is the panel's single source of truth (dashboardHelper.ts repositions it by id and both suites assert on it), so it is deliberately not React state.
+  function toggleSubWindow(ref: RefObject<HTMLDivElement | null>) {
+    if (ref.current) {
+      ref.current.style.display = ref.current.style.display === 'block' ? 'none' : 'block';
+    }
+  }
+
+  // The backdrop is pointer-events:none so an open panel doesn't block the chart underneath, which means it can no longer catch
+  // the outside click itself — close here instead. The opening buttons are excluded so their own click toggles rather than
+  // closing and immediately reopening.
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      const target = event.target as Node | null;
+      if (!target) return;
+      for (const [panel, button] of [
+        [settingsRef, settingsButtonRef],
+        [helpRef, helpButtonRef],
+      ] as const) {
+        const background = panel.current;
+        if (!background || background.style.display !== 'block') continue;
+        if (button.current?.contains(target)) continue;
+        if (background.firstElementChild?.contains(target)) continue;
+        background.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    return () => document.removeEventListener('mousedown', closeOnOutsideClick);
   }, []);
 
   return (
@@ -397,11 +428,10 @@ const DashboardItem = memo(function DashboardItem(props: {
                 onMouseDown={(event) => event.stopPropagation()}></button>
               <button
                 className={dashboardItemStyles.helpButton}
+                ref={helpButtonRef}
                 onClick={(event) => {
                   event.stopPropagation();
-                  if (helpRef.current) {
-                    helpRef.current.style.display = 'block';
-                  }
+                  toggleSubWindow(helpRef);
                 }}
                 onMouseDown={(event) => event.stopPropagation()}></button>
               <button
@@ -418,9 +448,7 @@ const DashboardItem = memo(function DashboardItem(props: {
                 ref={settingsButtonRef}
                 onClick={(event) => {
                   event.stopPropagation();
-                  if (settingsRef.current) {
-                    settingsRef.current.style.display = 'block';
-                  }
+                  toggleSubWindow(settingsRef);
                 }}
                 onMouseDown={(event) => event.stopPropagation()}></button>
             </div>
@@ -479,14 +507,8 @@ const DashboardItem = memo(function DashboardItem(props: {
             id={`dashboardItem${props.item.id}_settings`}
             ref={settingsRef}
             className={dashboardItemStyles.subWindowBackground}
-            onClick={() => {
-              if (settingsRef.current) {
-                settingsRef.current.style.display = 'none';
-              }
-            }}
             style={{ display: 'none' }}>
             <div
-              onClick={(event) => event.stopPropagation()}
               className={'text-xs ' + dashboardItemStyles.subWindow}
               style={{
                 top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,
@@ -525,14 +547,8 @@ const DashboardItem = memo(function DashboardItem(props: {
             id={`dashboardItem${props.item.id}_help`}
             ref={helpRef}
             className={dashboardItemStyles.subWindowBackground}
-            onClick={() => {
-              if (helpRef.current) {
-                helpRef.current.style.display = 'none';
-              }
-            }}
             style={{ display: 'none' }}>
             <div
-              onClick={(event) => event.stopPropagation()}
               className={'text-xs ' + dashboardItemStyles.subWindow}
               style={{
                 top: `calc(${(100.0 / props.rowCount) * props.item.y}% + 10px + 1.5rem)`,

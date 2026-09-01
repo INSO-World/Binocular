@@ -175,10 +175,12 @@ $dashboardItemResizeBarThickness: 5px;
   width: 100%;
   height: 100%;
   z-index: +1;
+  pointer-events: none;
 }
 
 .subWindow{
   position: absolute;
+  pointer-events: auto;
   width: 20rem;
   min-height: 5rem;
   border-radius: $border-radius-default;
