@@ -1,7 +1,8 @@
 // Captures screenshots using the in-browser Mock Data plugin — no backend required. Run: npm run screenshots.
 
 import { test } from '@playwright/test';
-import { VISUALIZATIONS, DashItemConfig, loadVis, loadDashboard, takeScreenshot, takeDashboardScreenshot } from './screenshots.setup.ts';
+import { VISUALIZATIONS } from './visualizations.ts';
+import { type DashItemConfig, loadVis, loadDashboard, takeScreenshot, takeDashboardScreenshot } from './screenshots.setup.ts';
 
 // ─── Per-visualization screenshots ───────────────────────────────────────────
 

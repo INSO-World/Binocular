@@ -1,27 +1,31 @@
-// Records a continuous AuthorBehaviour category video (Time Spent, Collaboration, Repository Activity); offline via Mock Data. Run: npm run demo:record; render via render-demo-videos.mjs.
-
 import { test } from '@playwright/test';
+import { installCursorOverlayEverywhere } from './util/demoCursorOverlay.ts';
 import {
-  installCursorOverlayEverywhere,
   humanClickLocator,
   humanHoverLocator,
   humanSelectOption,
   humanFill,
   humanDrag,
   beat,
-  beginTitleCard,
-  endTitleCardWhenReady,
   settingsControl,
-  switchVisualization,
-  loadFirstVis,
   waitForLocatorStable,
-} from './demoHelpers.ts';
-import { MOCK_SPRINTS_STATE } from '../screenshots.setup.ts';
+  closeSubWindow,
+  openItemSettings,
+  dumpBeatLog,
+  resetBeatClock,
+} from './util/demoInteractions.ts';
+import { hoverChartEntry } from './util/demoChartHover.ts';
+import { switchVisualization, loadDemoVis } from './util/demoDashboardSetup.ts';
+import { beginTitleCard, endTitleCardWhenReady } from './util/demoTitleCard.ts';
+import { DEMO_SPRINTS_STATE } from './demoSetup.ts';
+
+const HOVER_STEPS = 10;
 
 test.describe('Demo video — categories', () => {
   test('Category: Author Behaviour', async ({ page }) => {
-    test.setTimeout(4 * 60_000);
+    test.setTimeout(6 * 60_000);
 
+    resetBeatClock();
     await installCursorOverlayEverywhere(page);
 
     // Id-agnostic: switchVisualization() never reuses an item id, so these re-resolving locators stay correct across every segment.
@@ -30,122 +34,136 @@ test.describe('Demo video — categories', () => {
 
     // ─── Time Spent ─────────────────────────────────────────────────────────────────────────
     {
-      await loadFirstVis(
-        page,
-        'Time Spent',
-        'Time Spent',
-        {
-          breakdown: false,
-          visualizationStyle: 'curved',
-          splitTimePerIssue: false,
-          splitSpentRemoved: false,
-          showSprints: false,
-        },
-        MOCK_SPRINTS_STATE,
-      );
-      await endTitleCardWhenReady(page, page.waitForSelector('svg g path'));
+      // Plugin defaults, not a preset: the visualization is added through the overview search on camera, which carries no settings.
+      await loadDemoVis(page, 'Time Spent', { title: 'Time Spent', sprintsState: DEMO_SPRINTS_STATE });
+      await page.waitForSelector('svg g path');
 
-      await humanHoverLocator(page, item.locator('svg').first());
-      await beat(page, 1000);
+      await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
+      await beat(page, 8150); // cue 1
 
-      await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
-      await settingsPanel.waitFor({ state: 'visible' });
-      await beat(page, 500);
+      await openItemSettings(page, item, settingsPanel);
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show Sprints:'));
-      await beat(page, 800);
+      await beat(page, 500); // un-narrated b-roll
+      await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
+      await beat(page, 500); // un-narrated b-roll
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Breakdown (Total Time):'));
-      await beat(page, 1000);
+      await beat(page, 400); // un-narrated b-roll
+      await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
+      await beat(page, 8960); // cue 2
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Split Time per Issue:'));
-      await beat(page, 1000);
+      await beat(page, 400); // un-narrated b-roll
+      await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
+      await beat(page, 8320); // cue 3
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Split Spent and Removed:'));
-      await beat(page, 1000);
+      await beat(page, 400); // un-narrated b-roll
+      await hoverChartEntry(page, item, 'negative', HOVER_STEPS);
+      await beat(page, 6400); // cue 4
 
       await humanSelectOption(page, settingsControl(settingsPanel, 'Visualization Style:'), 'stepped');
-      await beat(page, 900);
-
-      await humanClickLocator(page, settingsPanel);
-      await beat(page, 400);
+      await beat(page, 46400); // cues 5+6
     }
-
     // ─── Collaboration ──────────────────────────────────────────────────────────────────────
-    // No visualizationStyle in this plugin's settings schema, so nothing is lost by not presetting it through switchVisualization().
     {
+      const waitForGraphSettled = () =>
+        page.waitForSelector('text=Simulating graph layout...', { state: 'hidden', timeout: 15_000 }).catch(() => {});
+
       await beginTitleCard(page, 'Collaboration');
-      await switchVisualization(page, 'Collaboration');
+      await switchVisualization(page, 'Collaboration', { fast: true });
       await endTitleCardWhenReady(
         page,
-        page.waitForSelector('text=Simulating graph layout...', { state: 'hidden', timeout: 15_000 }).catch(() => {}),
+        page.waitForSelector('text=Simulating graph layout...', { state: 'visible', timeout: 5_000 }).catch(() => {}),
       );
 
-      const node = item.locator('svg image, svg circle').first();
-      if (await node.count()) {
-        // The force simulation reheats on resize, so wait for the node to stop drifting or the drag below misses it.
-        await waitForLocatorStable(node);
-        const box = await node.boundingBox();
-        if (box) {
-          await humanDrag(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, { x: box.x + 120, y: box.y + 60 });
-          await beat(page, 500);
-        }
+      // With the overlay gone, let the viewer watch the layout actually settle instead of hiding that wait behind the title card.
+      await waitForGraphSettled();
+      await beat(page, 7690); // cue 7
+
+      // Drag a node
+      const firstNode = item.locator('.node-group').first();
+      await waitForLocatorStable(firstNode);
+      const nodeBox = await firstNode.boundingBox();
+      if (nodeBox) {
+        const from = { x: nodeBox.x + nodeBox.width / 2, y: nodeBox.y + nodeBox.height / 2 };
+        await humanDrag(page, from, { x: from.x + 600, y: from.y - 600 });
       }
+      await beat(page, 7220); // cue 10
+
+      const firstEdge = item.locator('.links line').first();
+      await humanHoverLocator(page, firstEdge, HOVER_STEPS);
+      await beat(page, 11010); // cue 9
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
-      await beat(page, 700);
+      await beat(page, 12170); // cue 8
 
       const minInput = settingsPanel.locator('input[type="number"]').first();
       if (await minInput.count()) {
-        await humanFill(page, minInput, '2');
-        await beat(page, 1200);
+        await humanFill(page, minInput, '1');
+        await waitForGraphSettled();
+        await beat(page, 500); // un-narrated b-roll
       }
 
       const maxInput = settingsPanel.locator('input[type="number"]').nth(1);
       if (await maxInput.count()) {
         await humanFill(page, maxInput, '50');
-        await beat(page, 1200);
+        await waitForGraphSettled();
+        await beat(page, 11910); // cue 11
       }
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Include commit message references'));
-      await beat(page, 1000);
+      await waitForGraphSettled();
+      await beat(page, 15330); // cue 12
 
-      await humanClickLocator(page, settingsPanel);
-      await beat(page, 400);
+      await closeSubWindow(page, settingsPanel);
+      await beat(page, 30660); // cues 13+14
     }
 
     // ─── Repository Activity ────────────────────────────────────────────────────────────────
-    // Only setting is Show Activity Timeline.
     {
       await beginTitleCard(page, 'Repository Activity');
-      await switchVisualization(page, 'Repository Activity');
+      await switchVisualization(page, 'Repository Activity', { fast: true });
       await endTitleCardWhenReady(page, page.waitForSelector('svg rect'));
 
-      await humanHoverLocator(page, item.locator('svg').first());
-      await beat(page, 1000);
+      await humanHoverLocator(page, item.locator('svg').first(), HOVER_STEPS);
+      await beat(page, 23400); // cues 15+16
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
-      await beat(page, 500);
+      await beat(page, 500); // un-narrated b-roll
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show Activity Timeline:'));
-      await beat(page, 1400);
+      await beat(page, 11920); // cue 17
 
-      await humanClickLocator(page, settingsPanel);
-      await beat(page, 400);
+      await closeSubWindow(page, settingsPanel);
+      await beat(page, 500); // un-narrated b-roll
 
-      // The week view defaults to the current real-world week, outside the mock dataset's window — land on a May week that has data instead.
       await humanClickLocator(page, item.getByRole('button', { name: 'Select week' }));
-      await beat(page, 500);
+      await beat(page, 500); // un-narrated b-roll
 
       const mayWeek = item.getByRole('button', { name: /^May \d+ - May \d+$/ });
       for (let i = 0; i < 8 && !(await mayWeek.count()); i++) {
         await humanClickLocator(page, item.getByRole('button', { name: 'Previous 3 months' }));
-        await beat(page, 300);
+        await beat(page, 500); // un-narrated b-roll
       }
       await humanClickLocator(page, mayWeek.first());
-      await beat(page, 1400);
+      await beat(page, 500); // un-narrated b-roll
+
+      await humanClickLocator(page, item.getByRole('button', { name: 'Next week' }));
+      await beat(page, 500); // un-narrated b-roll
+
+      const may15Tile = item
+        .locator('svg[width]')
+        .first()
+        .locator('rect')
+        .nth(15 * 7 + 4);
+      await humanHoverLocator(page, may15Tile, HOVER_STEPS);
+      await beat(page, 29060); // cue 18
     }
+
+    dumpBeatLog('demo-category-author-behaviour');
   });
 });
