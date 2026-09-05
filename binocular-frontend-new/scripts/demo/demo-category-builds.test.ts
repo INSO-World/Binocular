@@ -31,26 +31,26 @@ test.describe('Demo video — categories', () => {
     const settingsPanel = page.locator('[id$="_settings"]');
 
     await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-    await beat(page, 21200); // cues 1+2
+    await beat(page, 17480); // cues 1+2
 
     await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
     await settingsPanel.waitFor({ state: 'visible' });
     await beat(page, 600); // un-narrated b-roll
 
     await humanClickLocator(page, settingsControl(settingsPanel, 'Split Builds per Author:'));
-    await beat(page, 8150); // cue 3
+    await beat(page, 6830); // cue 3
 
     await humanClickLocator(page, settingsControl(settingsPanel, 'Show Sprints:'));
-    await beat(page, 6760); // cue 4
+    await beat(page, 5500); // cue 4
 
     await humanSelectOption(page, settingsControl(settingsPanel, 'Visualization Style:'), 'stepped');
-    await beat(page, 5630); // cue 5
+    await beat(page, 4970); // cue 5
 
     await closeSubWindow(page, settingsPanel);
     await beat(page, 600); // un-narrated b-roll
 
     await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-    await beat(page, 52530); // cues 6+7
+    await beat(page, 43540); // cues 6+7
 
     dumpBeatLog('demo-category-builds');
   });

@@ -131,13 +131,6 @@ Grounded in:
 > nothing about how important that file is to the codebase overall, only how much of *this one
 > commit* landed there.
 
-**[cue: hold on the chart, no further action]**
-
-> One thing worth being upfront about: this plugin's own help text states mock commits only exist
-> for SHAs "1" and "2" — so with Mock Data, this segment always shows the same two synthetic
-> commits regardless of what a real repository's commit history looks like. It's a genuine
-> limitation of demoing this plugin offline, not a claim about real data.
-
 ## Change Frequency (~90s)
 
 **[on screen: full-viewport Change Frequency hierarchy view]**

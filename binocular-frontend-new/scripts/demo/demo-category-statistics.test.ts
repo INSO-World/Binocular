@@ -30,39 +30,46 @@ test.describe('Demo video — categories', () => {
     const settingsPanel = page.locator('[id$="_settings"]');
     await item.getByText('Contributors').first().waitFor({ state: 'visible', timeout: 20_000 });
 
-    // Cue 1 reads over this initial hover: "Repository Stats is the plainest visualization ...".
+    // "Builds" isn't in this plugin's defaultSettings (only commits/contributors/issues/mergeRequests
+    // default true), so it's off until toggled — turn it on first so all five tiles the narration
+    // describes are actually visible from the intro onward, not just four.
+    await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
+    await settingsPanel.waitFor({ state: 'visible' });
+    await beat(page, 500);
+    await humanClickLocator(page, settingsControl(settingsPanel, 'Show builds:'));
+    await beat(page, 500);
+    await closeSubWindow(page, settingsPanel);
+    await beat(page, 500);
+
+    // Cue 1: intro.
+    // Beats below are scaled to k=0.5 of pure cue-duration: measured inherent action overhead
+    // (O≈15.4s for this test's ~11 actions) plus narration text already this short means matching
+    // beat=duration exactly would overshoot the video well past the narration total — see the
+    // O/U/N/TPure calculation method in recalc-beats-v2.mjs. 0.5 is a floor, not the raw solve
+    // (which wanted k≈0.33), so holds don't get uncomfortably fast.
     await humanHoverLocator(page, item, HOVER_STEPS);
-    await beat(page, 15830);
+    await beat(page, 4700); // cue 1 (k=0.5)
 
     await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
     await settingsPanel.waitFor({ state: 'visible' });
     await beat(page, 500);
 
-    // Un-narrated b-roll toggles — the .md only calls out Merge requests and Builds individually.
-    await humanClickLocator(page, settingsControl(settingsPanel, 'Show contributors:'));
-    await beat(page, 500);
-
-    await humanClickLocator(page, settingsControl(settingsPanel, 'Show commits:'));
-    await beat(page, 500);
-
-    await humanClickLocator(page, settingsControl(settingsPanel, 'Show issues:'));
-    await beat(page, 500);
-
-    // Reordered ahead of Builds (was after) to match the .md's narrated order — cue 2 is "Show merge requests off".
-    // Cue 3 is "Show builds off"; independent toggles, so swapping them has no effect on the end state.
-    await humanClickLocator(page, settingsControl(settingsPanel, 'Show merge requests:'));
-    await beat(page, 8230);
-
-    await humanClickLocator(page, settingsControl(settingsPanel, 'Show builds:'));
-    await beat(page, 7590); // cue 3
+    // Toggle one tile off, then back on — a single representative example instead of touching every tile.
+    const mergeRequestsToggle = settingsControl(settingsPanel, 'Show merge requests:');
+    await humanClickLocator(page, mergeRequestsToggle);
+    await beat(page, 900); // un-narrated b-roll (mis-scaled by an earlier pass — restored)
+    await humanClickLocator(page, mergeRequestsToggle);
+    await beat(page, 2320); // cue 2 (k=0.5)
 
     await closeSubWindow(page, settingsPanel);
     await beat(page, 500);
 
-    // Fulfills cue 4 ("point at the Contributors tile") and cue 5 ("hold on the panel"), which has no action of its own.
-    // Both cues' narration plays out over this single sustained hover.
+    // Cue 3: point at the Contributors tile.
     await humanHoverLocator(page, item, HOVER_STEPS);
-    await beat(page, 43660);
+    await beat(page, 1710); // cue 3 (k=0.5)
+
+    // Cue 4: the date-range-scoping caveat, held on the panel.
+    await beat(page, 4330); // cue 4 (k=0.5)
 
     dumpBeatLog('demo-category-statistics');
   });

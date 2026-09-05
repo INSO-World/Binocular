@@ -1,7 +1,8 @@
-// Vite lazily pre-bundles each new dependency it discovers, so load every plugin here first — outside any recorded clip — to pre-bundle chart-specific code once.
 import { chromium } from '@playwright/test';
-import { VISUALIZATIONS, loadVis } from '../screenshots.setup.ts';
-import { waitForVisReady } from './demoHelpers.ts';
+import { VISUALIZATIONS } from '../visualizations.ts';
+import { buildDashboard, revealAuthorList, waitForDashboardMounted } from '../seedState.ts';
+import { DEMO_ITEM_HEIGHT_UNITS, gotoDemoDashboard } from './demoSetup.ts';
+import { waitForVisReady } from './util/demoInteractions.ts';
 
 export default async function globalSetup() {
   const browser = await chromium.launch();
@@ -11,7 +12,10 @@ export default async function globalSetup() {
     const item = page.locator('#dashboardItem1');
     for (const entry of VISUALIZATIONS) {
       try {
-        await loadVis(page, entry.pluginName, entry.settings);
+        // Deliberately skips the resize/tab choreography of loadDemoVis() — this only needs each plugin's code to be compiled once.
+        await gotoDemoDashboard(page, buildDashboard(entry.pluginName, 40, DEMO_ITEM_HEIGHT_UNITS, entry.settings));
+        await waitForDashboardMounted(page);
+        await revealAuthorList(page, { keepOpen: true });
         await waitForVisReady(item, entry);
       } catch {
         // Best-effort warmup — a plugin that fails here just pays its own cold-start cost during the real recording instead.

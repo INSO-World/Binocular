@@ -30,7 +30,7 @@ function reg(pluginName: string) {
 
 test.describe('Demo video — categories', () => {
   test('Category: Issues', async ({ page }) => {
-    test.setTimeout(7 * 60_000);
+    test.setTimeout(9 * 60_000);
 
     resetBeatClock();
     await installCursorOverlayEverywhere(page);
@@ -49,7 +49,7 @@ test.describe('Demo video — categories', () => {
       // Issues uses the shared StackedAreaChart (same as Time Spent), so hover a real data point instead of the bare svg.
       // Covers cue 1 (intro, no dedicated action) + cue 2 ("point out the chart") — both play over this one hover.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 20750);
+      await beat(page, 13840);
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
@@ -64,31 +64,31 @@ test.describe('Demo video — categories', () => {
       // Closed issues render as the negative band — hover one now, before Breakdown reshapes this into per-category series.
       // Cue 6's audio ("Closed line climbing") is reassigned to the next matching hover below since this one can't be pushed later.
       await hoverChartEntry(page, item, 'negative', HOVER_STEPS);
-      await beat(page, 800);
+      await beat(page, 3810);
 
       // Cue 3: Breakdown toggle.
       await humanClickLocator(page, settingsControl(settingsPanel, 'Breakdown (Total Open Issues):'));
-      await beat(page, 16060);
+      await beat(page, 11150);
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
       await beat(page, 700);
 
       // Cue 4: Split Issues per Assignee.
       await humanClickLocator(page, settingsControl(settingsPanel, 'Split Issues per Assignee:'));
-      await beat(page, 6950);
+      await beat(page, 4700);
       // Skip the "unassigned" bucket — land on a real author's series instead.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS, undefined, 'unassigned');
       await beat(page, 700);
 
       // Cue 5: Visualization Style.
       await humanSelectOption(page, settingsControl(settingsPanel, 'Visualization Style:'), 'stepped');
-      await beat(page, 10680);
+      await beat(page, 7800);
       // Cue 6 (Closed line climbing) reassigned here — best available hover once the audio track reaches it.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS, undefined, 'unassigned');
-      await beat(page, 6900);
+      await beat(page, 4670);
 
       // Cue 7: reopened-issues caveat — the long closing commentary, held after the panel closes.
       await closeSubWindow(page, settingsPanel);
-      await beat(page, 28600);
+      await beat(page, 19330);
     }
 
     // ─── Merge Requests ─────────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ test.describe('Demo video — categories', () => {
 
       // Cue 8: intro.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 10420);
+      await beat(page, 7160);
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
@@ -123,23 +123,23 @@ test.describe('Demo video — categories', () => {
 
       // Cue 9: Breakdown toggle.
       await humanClickLocator(page, settingsControl(settingsPanel, 'Breakdown (Total Open Merge Requests):'));
-      await beat(page, 10060);
+      await beat(page, 7230);
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
       await beat(page, 700);
 
       // Cue 10: Split per Assignee toggle.
       await humanClickLocator(page, settingsControl(settingsPanel, 'Split Merge Requests per Assignee:'));
-      await beat(page, 4740);
+      await beat(page, 3140);
       // Cue 11: fallback-bucket caveat, held on this hover.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 24310);
+      await beat(page, 16640);
 
       // Visualization Style isn't narrated in this segment — brief b-roll only.
       await humanSelectOption(page, settingsControl(settingsPanel, 'Visualization Style:'), 'stepped');
       await beat(page, 700);
       // Cue 12: account-linking-gap caveat, held on this final hover.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 21990);
+      await beat(page, 15130);
 
       await closeSubWindow(page, settingsPanel);
       await beat(page, 600);
@@ -189,7 +189,7 @@ test.describe('Demo video — categories', () => {
       // Show issue info once, then close it — dashboardItem's outside-click handler closes the settings panel on any outside mousedown.
       // Cue 13: this opening click (settings changes below stay back-to-back with the chart untouched) fills the intro's dead air.
       await clickAnIssueBar();
-      await beat(page, 8800);
+      await beat(page, 6010);
       await closeIssueDialog();
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
@@ -203,20 +203,20 @@ test.describe('Demo video — categories', () => {
       // Cue 14: Coloring Mode — plugin default is already 'author', so re-picking it would be a no-op on camera.
       // 'time-spent' ("Most Spent Time") is a real visible change.
       await humanSelectOption(page, settingsControl(settingsPanel, 'Coloring Mode:'), 'time-spent');
-      await beat(page, 10610);
+      await beat(page, 7110);
 
       await closeSubWindow(page, settingsPanel);
       await beat(page, 700);
 
       // Cue 15: "point out two bars on separate tracks" — plain hold on the now-unobstructed chart (no click needed).
-      await beat(page, 10130);
+      await beat(page, 6960);
 
       // Now safe to click the chart again — the panel is already closed, so the outside-click handler is a no-op.
       // Cue 16: the long track-assignment caveat plays across this demo click plus the trailing hold below.
       await clickAnIssueBar();
-      await beat(page, 3000);
+      await beat(page, 9160);
       await closeIssueDialog();
-      await beat(page, 30470);
+      await beat(page, 13740);
     }
 
     // ─── Burndown ───────────────────────────────────────────────────────────────────────────
@@ -230,7 +230,7 @@ test.describe('Demo video — categories', () => {
       // Cue 17: intro — detail dialog is hover-based (onMouseEnter/onMouseLeave per data-point circle), not click.
       // Target a real point instead of the bare svg center, which has no handler of its own.
       await hoverRankedElement(page, item, 'circle[class*="data-point"]', HOVER_STEPS);
-      await beat(page, 10650);
+      await beat(page, 7320);
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
@@ -238,14 +238,14 @@ test.describe('Demo video — categories', () => {
 
       // Cue 18: Show Sprints.
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show Sprints:'));
-      await beat(page, 9650);
+      await beat(page, 6620);
       // Unnarrated b-roll.
       await hoverRankedElement(page, item, 'circle[class*="data-point"]', HOVER_STEPS);
       await beat(page, 700);
 
       // Cue 19: the long granularity-quirk caveat — the final beat of the video, held here.
       await closeSubWindow(page, settingsPanel);
-      await beat(page, 38950);
+      await beat(page, 26680);
     }
 
     dumpBeatLog('demo-category-issues');

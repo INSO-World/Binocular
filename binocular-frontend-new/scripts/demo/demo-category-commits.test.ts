@@ -50,7 +50,7 @@ test.describe('Demo video — categories', () => {
       // Changes uses the shared StackedAreaChart (same as Time Spent), so hover a real data point instead of the bare svg.
       // Carries cues 1+2 (intro + "point out the stacked area chart") — the intro has no dedicated action of its own.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 17020);
+      await beat(page, 11190);
 
       // Split Additions/Deletions defaults to on, so the negative Deletions bands exist here — hover one before splitting is turned off below.
       // Unnarrated b-roll (no cue covers this hover) — keep brief.
@@ -63,7 +63,7 @@ test.describe('Demo video — categories', () => {
 
       // Cue 3: "toggle Split Additions and Deletions on".
       await humanClickLocator(page, settingsControl(settingsPanel, 'Split Additions and Deletions:'));
-      await beat(page, 13850);
+      await beat(page, 9180);
       // Splitting off merges Additions/Deletions back into one combined series per author — hover it to show the new total.
       // Unnarrated b-roll.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
@@ -71,21 +71,21 @@ test.describe('Demo video — categories', () => {
 
       // Cue 4: "Visualization Style switches the interpolation...".
       await humanSelectOption(page, settingsControl(settingsPanel, 'Visualization Style:'), 'stepped');
-      await beat(page, 10290);
+      await beat(page, 6770);
       // Cue 5: "hover over one author's tall band".
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 5530);
+      await beat(page, 3540);
 
       // Show Sprints isn't called out by its own cue in this segment — unnarrated b-roll, kept brief so cue 6's long
       // caveat (which starts right after cue 5) has room to play across the rest of this segment.
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show Sprints:'));
-      await beat(page, 700);
+      await beat(page, 9050);
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 900);
+      await beat(page, 530);
 
       // Cue 6 ("hold on the chart, no further action") — settles here for the remainder of its 26.85s.
       await closeSubWindow(page, settingsPanel);
-      await beat(page, 25550);
+      await beat(page, 7490);
     }
 
     // ─── Sum Commits ────────────────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ test.describe('Demo video — categories', () => {
       // Bar chart, not StackedAreaChart: the svg center lands in a gap, so target real bars; rank varies below so the cursor visits a different bar each time.
       // Cue 7 intro plays here — no dedicated "point out" cue precedes cue 8 in this segment.
       await hoverRankedElement(page, item, '.bar.main', HOVER_STEPS, 0);
-      await beat(page, 10550);
+      await beat(page, 6940);
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
@@ -106,7 +106,7 @@ test.describe('Demo video — categories', () => {
 
       // Cue 8: "Show Mean draws a dashed line...".
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show Mean:'));
-      await beat(page, 9140);
+      await beat(page, 5990);
       // The dashed mean line is a static reference (no tooltip of its own) — hover a bar to show the chart is still interactive.
       // Unnarrated b-roll.
       await hoverRankedElement(page, item, '.bar.main', HOVER_STEPS, 1);
@@ -114,7 +114,7 @@ test.describe('Demo video — categories', () => {
 
       // Cue 9: "Show other authors folds anyone not on your author list...".
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show other authors:'));
-      await beat(page, 7880);
+      await beat(page, 5140);
       // More bars are on screen now — pick one further down the ranking for variety.
       // Unnarrated b-roll.
       await hoverRankedElement(page, item, '.bar.main', HOVER_STEPS, 3);
@@ -130,15 +130,15 @@ test.describe('Demo video — categories', () => {
 
       // Cue 10: "Top N Authors trims the bar chart down to just the leaders...".
       await humanFill(page, settingsControl(settingsPanel, 'Top N Authors'), '3');
-      await beat(page, 9120);
+      await beat(page, 5970);
       // Only 3 bars remain — hover the middle one, distinct from the lowest bar just shown above.
       // Cue 11: "hover the tallest bar" (closest available match — rank 1 is the middle of the remaining 3).
       await hoverRankedElement(page, item, '.bar.main', HOVER_STEPS, 1);
-      await beat(page, 5270);
+      await beat(page, 3370);
 
       // Cue 12 ("hold on the chart") — the long leaderboard-caveat paragraph settles here.
       await closeSubWindow(page, settingsPanel);
-      await beat(page, 40380);
+      await beat(page, 25930);
     }
 
     // ─── File Changes ───────────────────────────────────────────────────────────────────────
@@ -161,7 +161,7 @@ test.describe('Demo video — categories', () => {
       }
       await waitForVisReady(item, entry);
       // Cue 13 intro plays here — first stable frame once the file loads.
-      await beat(page, 10460);
+      await beat(page, 6920);
       // File Changes uses the shared StackedAreaChart (same as Time Spent), so hover a real data point instead of the bare svg.
       // Unnarrated b-roll.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
@@ -180,7 +180,7 @@ test.describe('Demo video — categories', () => {
 
       // Cue 15: "Visualization Style is the same curved/stepped/linear cosmetic choice...".
       await humanSelectOption(page, settingsControl(settingsPanel, 'Visualization Style:'), 'linear');
-      await beat(page, 6950);
+      await beat(page, 4860);
       // Show the new linear (straight-segment) curve landing on a real data point.
       // Unnarrated b-roll.
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
@@ -202,17 +202,17 @@ test.describe('Demo video — categories', () => {
       // Show extra Metrics swaps in a static, non-interactive readout — no tooltip left to hover, so just hold long enough to read.
       // Cue 14: "Show extra Metrics reveals a row of summary numbers...".
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show extra Metrics'));
-      await beat(page, 10360);
+      await beat(page, 6910);
 
       // Cues 16+17 (entropy/MaxBurst read, then the rename caveat) fold in here — see segment note above.
       await closeSubWindow(page, settingsPanel);
-      await beat(page, 53040);
+      await beat(page, 34040);
     }
 
     // ─── Commit By File ─────────────────────────────────────────────────────────────────────
     // No settings flyout — navigate by clicking a folder box (title starts "Folder "), then back out via the breadcrumb button.
     // NOTE: folder-drilling, breadcrumb-popping, and the second commit's rank-hover loop are unnarrated padding —
-    // cues 19 and 20 each get one full held beat instead of being spread across those loops.
+    // cue 19 gets one full held beat instead of being spread across those loops.
     {
       const entry = reg('Commit By File');
       await beginTitleCard(page, 'Commit By File');
@@ -223,15 +223,15 @@ test.describe('Demo video — categories', () => {
       // Unnarrated setup.
       const commitSelect = item.locator('input').first();
       await humanFill(page, commitSelect, 'registration');
-      await beat(page, 500);
+      await beat(page, 8810);
       await page.keyboard.press('Enter');
       // Cue 18 intro plays here — first stable frame once the "registration" commit loads.
-      await beat(page, 11960);
+      await beat(page, 7900);
 
       // Plain HTML boxes, not an svg chart — its only <svg> is a tiny folder icon, so svg.first() used to hover that corner instead of a real box.
       // Cue 19: "hover the largest segment, then a small one" + the changeRatio explanation.
       await hoverRankedElement(page, item, '[title]', HOVER_STEPS);
-      await beat(page, 19850);
+      await beat(page, 11860);
 
       // Folders (not files) carry a "Folder " title prefix and are clickable; drill down a couple of levels while they exist.
       // Unnarrated — see segment note above.
@@ -264,8 +264,9 @@ test.describe('Demo video — categories', () => {
         await beat(page, 600);
       }
 
-      // Cue 20 ("hold on the chart, no further action") settles here for its full 21.37s.
-      await beat(page, 21670);
+      // Unnarrated hold — no cue attached (the mock-data caveat this used to settle for was removed
+      // from the .md as inaccurate; nearly all mock commits have file data, not just two).
+      await beat(page, 10760);
     }
 
     // ─── Change Frequency ───────────────────────────────────────────────────────────────────
@@ -277,38 +278,38 @@ test.describe('Demo video — categories', () => {
       await endTitleCardWhenReady(page, waitForVisReady(item, entry));
 
       // Scatter plot: the svg center rarely lands on a data point, so target a circle's own center instead.
-      // Cue 21 intro plays here — no dedicated "point out" cue precedes cue 22 in this segment.
+      // Cue 20 intro plays here — no dedicated "point out" cue precedes cue 21 in this segment.
       await hoverRankedElement(page, item, 'circle', HOVER_STEPS);
-      await beat(page, 12720);
+      await beat(page, 8410);
 
       const dirBtn = item.getByRole('button', { name: 'Directory' });
       if (await dirBtn.count()) {
         await humanClickLocator(page, dirBtn);
         await item.locator('[class*="directoryDrawerOpen"]').waitFor({ state: 'visible' });
-        // Cue 22 ("click Directory, then frontend, then src") spans the loop below, which drills 4 levels though the .md calls out 2.
-        // Each iteration's beat is sized to cover cue 22's full length across all 4 clicks.
-        await beat(page, 700);
+        // Cue 21 ("click Directory, then frontend, then src") spans the loop below, which drills 4 levels though the .md calls out 2.
+        // Each iteration's beat is sized to cover cue 21's full length across all 4 clicks.
+        await beat(page, 3760);
 
         for (const folder of ['frontend', 'src', 'app', 'components']) {
           const entryBtn = item.locator('[class*="directoryEntry"]').filter({ hasText: folder }).first();
           if (await entryBtn.count()) {
             await humanClickLocator(page, entryBtn);
             await item.locator('[class*="breadcrumb"]').getByText(folder).first().waitFor({ state: 'visible', timeout: 5_000 });
-            await beat(page, 2700);
+            await beat(page, 920);
           }
         }
 
         // Show the scatter plot now reflects the drilled-down folder before the drawer closes.
-        // Cue 23: "point at a large, brightly colored top-level folder".
+        // Cue 22: "point at a large, brightly colored top-level folder".
         await hoverRankedElement(page, item, 'circle', HOVER_STEPS);
-        await beat(page, 8030);
+        await beat(page, 5230);
 
         await humanClickLocator(page, dirBtn);
         await item.locator('[class*="directoryDrawerOpen"]').waitFor({ state: 'hidden' });
       }
 
-      // Cue 24 ("hold on the chart") — the closing directory-stats caveat settles here for its full 38.18s.
-      await beat(page, 38700);
+      // Cue 23 ("hold on the chart") — the closing directory-stats caveat settles here for its full 38.18s.
+      await beat(page, 25280);
     }
 
     dumpBeatLog('demo-category-commits');

@@ -39,7 +39,7 @@ test.describe('Demo video — categories', () => {
       await page.waitForSelector('svg g path');
 
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 8150); // cue 1
+      await beat(page, 5100); // cue 1
 
       await openItemSettings(page, item, settingsPanel);
 
@@ -51,20 +51,20 @@ test.describe('Demo video — categories', () => {
       await humanClickLocator(page, settingsControl(settingsPanel, 'Breakdown (Total Time):'));
       await beat(page, 400); // un-narrated b-roll
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 8960); // cue 2
+      await beat(page, 6390); // cue 2
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Split Time per Issue:'));
       await beat(page, 400); // un-narrated b-roll
       await hoverChartEntry(page, item, 'positive', HOVER_STEPS);
-      await beat(page, 8320); // cue 3
+      await beat(page, 5940); // cue 3
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Split Spent and Removed:'));
       await beat(page, 400); // un-narrated b-roll
       await hoverChartEntry(page, item, 'negative', HOVER_STEPS);
-      await beat(page, 6400); // cue 4
+      await beat(page, 5000); // cue 4
 
       await humanSelectOption(page, settingsControl(settingsPanel, 'Visualization Style:'), 'stepped');
-      await beat(page, 46400); // cues 5+6
+      await beat(page, 32810); // cues 5+6
     }
     // ─── Collaboration ──────────────────────────────────────────────────────────────────────
     {
@@ -80,7 +80,7 @@ test.describe('Demo video — categories', () => {
 
       // With the overlay gone, let the viewer watch the layout actually settle instead of hiding that wait behind the title card.
       await waitForGraphSettled();
-      await beat(page, 7690); // cue 7
+      await beat(page, 5220); // cue 7
 
       // Drag a node
       const firstNode = item.locator('.node-group').first();
@@ -90,15 +90,15 @@ test.describe('Demo video — categories', () => {
         const from = { x: nodeBox.x + nodeBox.width / 2, y: nodeBox.y + nodeBox.height / 2 };
         await humanDrag(page, from, { x: from.x + 600, y: from.y - 600 });
       }
-      await beat(page, 7220); // cue 10
+      await beat(page, 4880); // cue 10
 
       const firstEdge = item.locator('.links line').first();
       await humanHoverLocator(page, firstEdge, HOVER_STEPS);
-      await beat(page, 11010); // cue 9
+      await beat(page, 7560); // cue 9
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
-      await beat(page, 12170); // cue 8
+      await beat(page, 8380); // cue 8
 
       const minInput = settingsPanel.locator('input[type="number"]').first();
       if (await minInput.count()) {
@@ -111,15 +111,15 @@ test.describe('Demo video — categories', () => {
       if (await maxInput.count()) {
         await humanFill(page, maxInput, '50');
         await waitForGraphSettled();
-        await beat(page, 11910); // cue 11
+        await beat(page, 8540); // cue 11
       }
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Include commit message references'));
       await waitForGraphSettled();
-      await beat(page, 15330); // cue 12
+      await beat(page, 10610); // cue 12
 
       await closeSubWindow(page, settingsPanel);
-      await beat(page, 30660); // cues 13+14
+      await beat(page, 21060); // cues 13+14
     }
 
     // ─── Repository Activity ────────────────────────────────────────────────────────────────
@@ -129,14 +129,14 @@ test.describe('Demo video — categories', () => {
       await endTitleCardWhenReady(page, page.waitForSelector('svg rect'));
 
       await humanHoverLocator(page, item.locator('svg').first(), HOVER_STEPS);
-      await beat(page, 23400); // cues 15+16
+      await beat(page, 16590); // cues 15+16
 
       await humanClickLocator(page, item.locator('[class*="settingsButton"]'));
       await settingsPanel.waitFor({ state: 'visible' });
       await beat(page, 500); // un-narrated b-roll
 
       await humanClickLocator(page, settingsControl(settingsPanel, 'Show Activity Timeline:'));
-      await beat(page, 11920); // cue 17
+      await beat(page, 8200); // cue 17
 
       await closeSubWindow(page, settingsPanel);
       await beat(page, 500); // un-narrated b-roll
@@ -161,7 +161,7 @@ test.describe('Demo video — categories', () => {
         .locator('rect')
         .nth(15 * 7 + 4);
       await humanHoverLocator(page, may15Tile, HOVER_STEPS);
-      await beat(page, 29060); // cue 18
+      await beat(page, 20300); // cue 18
     }
 
     dumpBeatLog('demo-category-author-behaviour');
