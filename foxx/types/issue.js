@@ -4,10 +4,12 @@ const gql = require('graphql-sync');
 const arangodb = require('@arangodb');
 const db = arangodb.db;
 const aql = arangodb.aql;
-const issuesToAccounts = db._collection('issues-accounts')
+const issuesToUsers = db._collection('issues-users');
+const issuesToAccounts = db._collection('issues-accounts');
 const issuesToCommits = db._collection('issues-commits');
 const issuesToMilestones = db._collection('issues-milestones');
 const issuesToNotes = db._collection('issues-notes');
+const issuesToMergeRequests = db._collection('issues-mergeRequests');
 const paginated = require('./paginated.js');
 const Timestamp = require('./Timestamp.js');
 
@@ -54,7 +56,25 @@ module.exports = new gql.GraphQLObjectType({
       },
       labels: {
         type: new gql.GraphQLList(gql.GraphQLString),
-        description: 'The assigned labels of the issue',
+        description: 'Labels attached to the issue',
+        resolve: (issue) => issue.labels || [],
+      },
+      creator: {
+        type: require('./user.js'),
+        description: 'The creator of this issue',
+        resolve(issue /*, args*/) {
+          return db
+            ._query(
+              aql`
+              FOR
+              user
+              IN
+              OUTBOUND ${issue} ${issuesToUsers}
+                RETURN user
+              `
+            )
+            .toArray()[0];
+        },
       },
       author: {
         type: require('./account.js'),
@@ -131,6 +151,30 @@ module.exports = new gql.GraphQLObjectType({
           }
 
           query = aql`${query} ${limit} RETURN commit`;
+          return query;
+        },
+      }),
+      mergeRequests: paginated({
+        type: require('./mergeRequest.js'),
+        description: 'All merge requests mentioning this issue',
+        args: {
+          since: { type: Timestamp, required: false },
+          until: { type: Timestamp, required: false },
+        },
+        query: (issue, args, limit) => {
+          let query = aql`
+            FOR mergeRequest, edge IN
+            OUTBOUND ${issue} ${issuesToMergeRequests}`;
+
+          if (args.since !== undefined) {
+            query = aql`${query} FILTER DATE_TIMESTAMP(mergeRequest.createdAt) >= DATE_TIMESTAMP(${args.since})`;
+          }
+
+          if (args.until !== undefined) {
+            query = aql`${query} FILTER DATE_TIMESTAMP(mergeRequest.createdAt) <= DATE_TIMESTAMP(${args.until})`;
+          }
+
+          query = aql`${query} ${limit} RETURN mergeRequest`;
           return query;
         },
       }),
