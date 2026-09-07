@@ -24,8 +24,6 @@ export default () => {
 
   // Transform data for the chart
   useEffect(() => {
-    console.log('data', JSON.stringify(data));
-    console.log('issueLabelsState', JSON.stringify(issueLabelsState));
     if (data === undefined || data === null) {
       return;
     }
@@ -76,17 +74,11 @@ export default () => {
 
       const coarseResult = [];
 
-      console.log('Data after group', JSON.stringify(transformedData))
-
-      const firstDataPoint = transformedData.sort((a, b) => a.date - b.date)[0];
-      if (firstDataPoint) {
-        coarseResult.push(firstDataPoint);
-      }
-
       for (const [, points] of Object.entries(groupedResult)) {
         const dataPoints = points.sort((a, b) => a.date - b.date);
-        //only consider last element
-        coarseResult.push(dataPoints.slice(-1)[0]);
+        const additions = dataPoints.reduce((sum, p) => sum + p.additions, 0);
+        const deletions = dataPoints.reduce((sum, p) => sum + p.deletions, 0);
+        coarseResult.push({ date: dataPoints.slice(-1)[0].date, additions, deletions });
       }
 
       setChartData(coarseResult);
@@ -96,7 +88,6 @@ export default () => {
   // Set up chart component when data changes
   useEffect(() => {
     if (chartData && chartData.length !== 0) {
-      console.log(chartData)
       setChartComponent(
         <StackedAreaChart
           content={chartData}

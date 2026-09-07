@@ -15,4 +15,5 @@ export default interface MergeRequestDto {
   mentions: Mention[];
   commits: string[];
   closingIssues: string[];
+  mergeCommitSha: string | null;
 }

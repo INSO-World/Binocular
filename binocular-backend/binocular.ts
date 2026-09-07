@@ -704,10 +704,18 @@ function runBackend() {
       if (issue === null) {
         continue;
       }
-      //some issues are not mentioned by any commits
-      if (!issue.data.commits) continue;
-      for (const mention of issue.data.commits) {
-        const commit = commits.filter((c: any) => c.data.sha === mention);
+      let matched = false;
+      if (issue.data.commits) {
+        for (const mention of issue.data.commits) {
+          const commit = commits.filter((c: any) => c.data.sha === mention);
+          if (commit && commit[0]) {
+            await MergeRequestCommitConnection.connect({ closes: false }, { from: issue, to: commit[0] });
+            matched = true;
+          }
+        }
+      }
+      if (!matched && issue.data.mergeCommitSha) {
+        const commit = commits.filter((c: any) => c.data.sha === issue.data.mergeCommitSha);
         if (commit && commit[0]) {
           await MergeRequestCommitConnection.connect({ closes: false }, { from: issue, to: commit[0] });
         }

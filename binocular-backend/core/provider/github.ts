@@ -236,6 +236,9 @@ class GitHub {
                           }
                         }
                       }
+                      mergeCommit {
+                        oid
+                      }
                       timelineItems(first: 200, itemTypes: [CLOSED_EVENT, REFERENCED_EVENT]) {
                           totalCount
                           nodes {

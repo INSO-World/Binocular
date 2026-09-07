@@ -105,6 +105,10 @@ GitHubITSIndexer.prototype.index = async function () {
               });
             }
 
+            if (targetCollection === MergeRequest) {
+              toBePersisted.mergeCommitSha = issue.mergeCommit ? issue.mergeCommit.oid : null;
+            }
+
             return targetCollection.persist(toBePersisted).then(([persistedIssue, wasCreated]) => {
               // save the entry object of the issue so we can connect it to the github users later
               issueEntry = persistedIssue;

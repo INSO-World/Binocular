@@ -20,6 +20,7 @@ export interface MergeRequestDataType {
   mentions: Mention[];
   commits: string[];
   closingIssues: string[];
+  mergeCommitSha: string | null;
 }
 
 class MergeRequest extends Model<MergeRequestDataType> {
