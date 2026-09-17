@@ -86,6 +86,12 @@ class VcsService(
             return
         }
 
+        //logger.info("{}\n {}", commits[0].parents.last(), commits[4].parents.last())
+        
+        val result = gitIndexer.findDiff(vcsRepo, (commits.map { if (it.parents.isEmpty()) null else Pair(it.sha, it.parents.first().sha) }).filterNotNull())
+        
+        logger.info("diffs result {}", result.first())
+
         logCommitStatistics(commits, branch)
         repoService.addCommits(vcsRepo, commits)
 

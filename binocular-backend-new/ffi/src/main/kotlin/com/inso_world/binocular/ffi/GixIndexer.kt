@@ -6,6 +6,8 @@ import com.inso_world.binocular.ffi.extensions.toDomain
 import com.inso_world.binocular.ffi.pojos.toFfi
 import com.inso_world.binocular.ffi.pojos.toModel
 import com.inso_world.binocular.ffi.util.Utils
+import com.inso_world.binocular.ffi.internal.GixDiffInput
+import com.inso_world.binocular.ffi.internal.GixDiffAlgorithm
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
 import com.inso_world.binocular.model.Project
@@ -100,6 +102,24 @@ class GixIndexer : GitIndexer {
                 hash,
                 useMailmap = cfg.vcs.useMailmap,
             ).toDomain(repo)
+
+//    override fun findBlame(repo: Repository, hash: String): GixBlameResult =
+//        com.inso_world.binocular.ffi.internal.blames(repo.toFfi(), [...])
+
+    override fun findDiff(
+        repo: Repository,
+        source: List<Pair<String, String>>
+    ): List<Any> =
+        com.inso_world.binocular.ffi.internal
+            .diffs(
+                repo.toFfi(),
+                source.map { GixDiffInput(it.first, it.second) },
+                4u,
+                GixDiffAlgorithm.HISTOGRAM
+            ).toDomain(repo)
+        
+    
+
 
     override fun traverse(
         repo: Repository,

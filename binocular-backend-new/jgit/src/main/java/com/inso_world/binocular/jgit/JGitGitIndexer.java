@@ -250,6 +250,12 @@ public class JGitGitIndexer implements GitIndexer {
         }
     }
 
+    @NotNull
+    @Override
+    public List<Object> findDiff(@NotNull Repository repo, List<Pair<String, String>> source) {
+        return List.of();
+    }
+
     // ======================== Helper methods ========================
 
     private static org.eclipse.jgit.lib.Repository openRepository(Path path) throws IOException {

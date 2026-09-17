@@ -34,6 +34,8 @@ interface GitIndexer {
     ): Pair<Branch, List<Commit>> = traverseBranch(repo, branch.fullName)
 
     fun findAllBranches(repo: Repository): List<Branch>
+    
+    fun findDiff(repo: Repository, source: List<Pair<String, String>>): List<Any>
 
     /**
      * Finds a commit by hash.
