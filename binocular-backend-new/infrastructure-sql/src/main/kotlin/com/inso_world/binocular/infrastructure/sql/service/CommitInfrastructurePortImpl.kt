@@ -106,6 +106,26 @@ internal class CommitInfrastructurePortImpl
             }
         }
 
+        @Transactional
+        override fun update(value: Commit): Commit {
+            val repositoryEntity =
+                repositoryDao.findByIid(value.repositoryId.value)
+                    ?: throw NotFoundException("Repository ${value.repositoryId} not found")
+
+            val author = resolveDeveloperEntity(value.authorSignature.developerId)
+            val committer = resolveDeveloperEntity(value.committerSignature.developerId)
+
+            val mapped = commitMapper.toEntity(value, repositoryEntity, author, committer)
+            return this.commitDao.update(mapped).let { commitEntity ->
+                commitMapper.refreshDomain(value, commitEntity)
+            }
+        }
+
+        private fun resolveDeveloperEntity(developerId: Developer.Id): DeveloperEntity {
+            return developerDao.findByIid(developerId)
+                ?: throw NotFoundException("Developer $developerId not found")
+        }
+
         override fun saveAll(values: Collection<Commit>): Iterable<Commit> {
             return values.map { create(it) }
         }
@@ -122,6 +142,12 @@ internal class CommitInfrastructurePortImpl
 
         override fun deleteAll() {
             this.commitDao.deleteAll()
+        }
+
+        override fun findAll(pageable: Pageable): Page<Commit> {
+            val page = super.findAllEntities(pageable)
+            val content = page.content.map { commitMapper.toDomain(it) }
+            return Page(content, page.totalElements, pageable)
         }
 
         override fun findAll(

@@ -17,7 +17,7 @@ internal open class ProjectDao(
 ) : SqlDao<ProjectEntity, Long>(projectRepo),
     IProjectDao {
     init {
-        this.setClazz(ProjectEntity::class.java)
+        this.clazz = ProjectEntity::class.java
     }
 
     override fun findByName(name: String): ProjectEntity? = projectRepo.findByName(name)

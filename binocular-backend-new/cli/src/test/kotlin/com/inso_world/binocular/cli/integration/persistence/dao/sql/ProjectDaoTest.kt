@@ -18,7 +18,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.util.ReflectionUtils.setField
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 internal class ProjectDaoTest(
     @Autowired val repositoryInfrastructurePort: RepositoryInfrastructurePort,
     @Autowired val projectInfrastructurePort: ProjectInfrastructurePort,
@@ -45,8 +47,6 @@ internal class ProjectDaoTest(
 
             // Then
             assertAll(
-//                { assertThat(savedProject.id).isNotNull() },
-                { assertThat(savedProject.repo).isNull() },
                 { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
                 { assertThat(repositoryInfrastructurePort.findAll()).isEmpty() },
             )
@@ -57,46 +57,12 @@ internal class ProjectDaoTest(
             // When
             val savedProject =
                 projectInfrastructurePort.create(Project(name = "Project With Repo").apply { description = "Project with repo" })
-            savedProject.repo =
-                repositoryInfrastructurePort.create(Repository(localPath = "test-repo", project = savedProject))
+            repositoryInfrastructurePort.create(Repository(localPath = "test-repo", projectId = savedProject.iid))
 
             // Then
             assertAll(
-//                { assertThat(savedProject.id).isNotNull() },
-//                { assertThat(savedProject.repo?.id).isNotNull() },
-//                { assertThat(savedProject.repo?.project?.id).isEqualTo(savedProject.id) },
                 { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
                 { assertThat(repositoryInfrastructurePort.findAll()).hasSize(1) },
-            )
-        }
-
-        @Test
-        @Disabled
-        fun `project deletion cascades to repository`() {
-            // Given
-            val savedProject =
-                projectInfrastructurePort.create(
-                    Project(
-                        name = "To Be Deleted",
-                    ).apply { description = "Will be deleted with repo" },
-                )
-            savedProject.repo =
-                repositoryInfrastructurePort.create(
-                    Repository(
-                        localPath = "cascading-repo",
-                        project = savedProject,
-                    ),
-                )
-            // updated dependencies, as not managed by JPA
-            projectInfrastructurePort.update(savedProject)
-
-            // When
-            projectInfrastructurePort.delete(savedProject)
-
-            // Then
-            assertAll(
-                { assertThat(projectInfrastructurePort.findAll()).isEmpty() },
-                { assertThat(repositoryInfrastructurePort.findAll()).isEmpty() },
             )
         }
 
@@ -108,15 +74,13 @@ internal class ProjectDaoTest(
                 repositoryInfrastructurePort.create(
                     Repository(
                         localPath = "null-desc-repo",
-                        project = savedProject,
+                        projectId = savedProject.iid,
                     ),
                 )
-            savedProject.repo = savedRepo
 
             // Then
             assertAll(
                 { assertThat(savedProject.description).isNull() },
-//                { assertThat(savedRepo.project.id).isEqualTo(savedProject.id) },
                 { assertThat(projectInfrastructurePort.findAll()).hasSize(1) },
                 { assertThat(repositoryInfrastructurePort.findAll()).hasSize(1) },
             )
@@ -135,7 +99,6 @@ internal class ProjectDaoTest(
             )
 
             // When & Then - This should fail due to validation constraint
-            // Note: This test documents expected behavior for invalid data
             assertThrows<jakarta.validation.ConstraintViolationException> {
                 projectInfrastructurePort.create(project)
             }
@@ -152,17 +115,15 @@ internal class ProjectDaoTest(
                 repositoryInfrastructurePort.create(
                     Repository(
                         localPath = "long-name-repo",
-                        project = savedProject,
+                        projectId = savedProject.iid,
                     ),
                 )
-            savedProject.repo = savedRepo
 
             // Then
             assertAll(
                 "check entities",
                 { assertThat(savedProject.name).isEqualTo(allowedName) },
-                { assertThat(savedRepo.project).isNotNull() },
-                { assertThat(savedRepo.project?.id).isEqualTo(savedProject.id) },
+                { assertThat(savedRepo.projectId).isEqualTo(savedProject.iid) },
             )
             assertAll(
                 "check database numbers",

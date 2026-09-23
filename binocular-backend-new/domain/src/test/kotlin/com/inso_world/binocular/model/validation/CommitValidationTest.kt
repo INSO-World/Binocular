@@ -21,7 +21,7 @@ internal class CommitValidationTest : ValidationTest() {
                 fullName = "refs/heads/branch",
                 name = "branch",
                 repositoryId = repository.iid,
-                headSha = invalidCommit.sha,
+                headSha = invalidCommit.sha.ifBlank { "a".repeat(40) },
                 category = ReferenceCategory.LOCAL_BRANCH,
             ).apply { 
                 this.repository = repository

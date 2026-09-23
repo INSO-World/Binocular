@@ -32,7 +32,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                         id
                         path
                         webUrl
-                        maxLength
                     }
                 }
             }
@@ -77,13 +76,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                             "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.get("webUrl").asText()}",
                         )
                     },
-                    {
-                        assertEquals(
-                            expectedFile.maxLength,
-                            actualFile.get("maxLength").asInt(),
-                            "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.get("maxLength").asInt()}",
-                        )
-                    },
                 )
             }
         }
@@ -101,7 +93,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                     id
                     path
                     webUrl
-                    maxLength
                 }
             }
         """,
@@ -133,13 +124,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                         "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${result.get("webUrl").asText()}",
                     )
                 },
-                {
-                    assertEquals(
-                        expectedFile.maxLength,
-                        result.get("maxLength").asInt(),
-                        "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${result.get("maxLength").asInt()}",
-                    )
-                },
             )
         }
     }
@@ -162,7 +146,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                         id
                         path
                         webUrl
-                        maxLength
                     }
                 }
             }
@@ -205,13 +188,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                         expectedFile.webUrl,
                         actualFile.get("webUrl").asText(),
                         "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.get("webUrl").asText()}",
-                    )
-                },
-                {
-                    assertEquals(
-                        expectedFile.maxLength,
-                        actualFile.get("maxLength").asInt(),
-                        "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.get("maxLength").asInt()}",
                     )
                 },
             )
@@ -268,7 +244,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                         id
                         path
                         webUrl
-                        maxLength
                     }
                 }
             }
@@ -316,13 +291,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                         "File webUrl mismatch: expected ${expectedFile.webUrl}, got ${actualFile.get("webUrl").asText()}",
                     )
                 },
-                {
-                    assertEquals(
-                        expectedFile.maxLength,
-                        actualFile.get("maxLength").asInt(),
-                        "File maxLength mismatch: expected ${expectedFile.maxLength}, got ${actualFile.get("maxLength").asInt()}",
-                    )
-                },
             )
         }
 
@@ -341,7 +309,6 @@ internal class FileControllerWebTest : BaseIntegrationTest() {
                           id
                           path
                           webUrl
-                          maxLength
                       }
                   }
               }

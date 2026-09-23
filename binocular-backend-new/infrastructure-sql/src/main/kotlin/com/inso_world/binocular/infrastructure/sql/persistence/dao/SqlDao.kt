@@ -27,14 +27,6 @@ internal open class SqlDao<T, I : Serializable>(
     @PersistenceContext
     protected lateinit var entityManager: EntityManager
 
-    fun setRepository(repo: JpaRepository<T, I>) {
-        this.repository = repo
-    }
-
-    fun setClazz(clazz: Class<T>) {
-        this.clazz = clazz
-    }
-
     override fun findById(id: I): T? = entityManager.find(clazz, id)
 
     override fun findAllById(ids: Iterable<I>): Iterable<T> = repository?.findAllById(ids) ?: emptyList()
@@ -113,7 +105,7 @@ internal open class SqlDao<T, I : Serializable>(
      * Save multiple entities
      */
     @Transactional
-    override fun saveAll(entities: Collection<T>): Iterable<T> = this.repository.saveAll(entities)
+    override fun saveAll(entities: Collection<T>): Iterable<T> = this.repository?.saveAll(entities) ?: emptyList()
 
     @Transactional
     override fun flush() {
@@ -121,4 +113,7 @@ internal open class SqlDao<T, I : Serializable>(
         entityManager.flush()
         logger.trace("EM flushed")
     }
+
+    override fun count(): Long =
+        entityManager.createQuery("SELECT COUNT(e) FROM ${clazz.name} e", Long::class.java).singleResult
 }

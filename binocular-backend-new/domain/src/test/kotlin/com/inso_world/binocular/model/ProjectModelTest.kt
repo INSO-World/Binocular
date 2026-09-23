@@ -7,14 +7,15 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import kotlin.uuid.ExperimentalUuidApi
 
+@OptIn(ExperimentalUuidApi::class)
 class ProjectModelTest {
     @Test
     fun `create empty project, checks that iid is created automatically`() {
         val project = Project(name = "test-project")
 
         assertThat(project.iid).isNotNull()
-        assertThat(project.repo).isNull()
     }
 
     @Test
@@ -30,7 +31,7 @@ class ProjectModelTest {
 
         assertAll(
             { assertThat(project.uniqueKey).isEqualTo(Project.Key("test-project")) },
-            { assertThat(project.uniqueKey.name).isSameAs(project.name) },
+            { assertThat(project.uniqueKey.name).isEqualTo(project.name) },
         )
     }
 
@@ -55,19 +56,14 @@ class ProjectModelTest {
     }
 
     @Test
-    fun `create project with repository, should link correctly`() {
+    fun `create project with repository, check repository links back to project id`() {
         val project = Project(name = "test-project")
         val repository = Repository(
             localPath = "test",
             projectId = project.iid,
         )
-        project.repo = repository
-        repository.project = project
-
-        // check reference
-        assertThat(project.repo).isNotNull()
-        assertThat(project.repo?.project).isSameAs(project)
-        assertThat(project.repo?.project?.repo).isSameAs(project.repo)
+        
+        assertThat(repository.projectId).isEqualTo(project.iid)
     }
 
     @ParameterizedTest
@@ -90,14 +86,5 @@ class ProjectModelTest {
             }
 
         assertThat(project.description).isEqualTo("test-description")
-    }
-
-    @Test
-    fun `create project with explicit null repo`() {
-        assertThrows<IllegalArgumentException> {
-            Project(name = "test-project").apply {
-                this.repo = null
-            }
-        }
     }
 }

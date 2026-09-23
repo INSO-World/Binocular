@@ -19,8 +19,8 @@ internal class DeveloperDao(
 ) : SqlDao<DeveloperEntity, Long>(),
     IDeveloperDao {
     init {
-        this.setClazz(DeveloperEntity::class.java)
-        this.setRepository(repo)
+        this.clazz = DeveloperEntity::class.java
+        this.repository = repo
     }
 
     override fun findByIid(iid: Any): DeveloperEntity? {
@@ -34,7 +34,7 @@ internal class DeveloperDao(
     }
 
     override fun findByIid(iid: com.inso_world.binocular.model.Developer.Id): DeveloperEntity? =
-        findByIid(iid as Any)
+        this.repo.findByIid(iid.value)
 
     override fun findByIids(iids: Collection<Any>): List<DeveloperEntity> {
         val uIids = iids.map { iid ->
@@ -69,6 +69,6 @@ internal class DeveloperDao(
     override fun findAllAsStream(repository: DomainRepository): Stream<DeveloperEntity> {
         val rid = repository.id
         if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findAllByRepository_Id(rid.toLong())
+        return this.repo.findAllByRepository_Id(rid.toLongOrNull() ?: throw PersistenceException("Invalid repo ID: $rid"))
     }
 }

@@ -154,7 +154,7 @@ class VcsService(
         branch: Branch,
         existingHead: Commit,
     ): Pair<Branch, List<Commit>> {
-        val currentHead = branch.head
+        val currentHead = branch.head ?: return Pair(branch, emptyList())
 
         // Quick check: if HEAD hasn't changed, no new commits
         if (currentHead.sha == existingHead.sha) {
@@ -191,7 +191,7 @@ class VcsService(
      */
     private fun logCommitStatistics(commits: List<Commit>, branchName: String) {
         val shas = commits.map { it.sha }
-        val parentShas = commits.flatMap { it.parents.map { p -> p.sha } }
+        val parentShas = commits.flatMap { it.parentShas }
 
         logger.debug(
             "Commits to process: ${shas.count()}+${parentShas.count()}=${

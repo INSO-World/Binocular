@@ -26,6 +26,7 @@ internal class ProjectMapper : EntityMapper<Project, ProjectEntity> {
             iid = entity.iid,
         ).apply {
             this.id = entity.id?.toString()
+            this.description = entity.description
         }
 
         return domain

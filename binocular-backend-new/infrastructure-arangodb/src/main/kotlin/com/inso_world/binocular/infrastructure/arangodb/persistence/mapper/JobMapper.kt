@@ -23,7 +23,6 @@ import java.util.Date
  */
 @Component
 internal class JobMapper : EntityMapper<Job, JobEntity> {
-    @Autowired
 
     /**
      * Converts a Job value object to JobEntity.

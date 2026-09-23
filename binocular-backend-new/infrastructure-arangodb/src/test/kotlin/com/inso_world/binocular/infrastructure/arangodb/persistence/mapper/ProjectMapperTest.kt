@@ -1,74 +1,75 @@
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
-import com.inso_world.binocular.core.data.MockTestDataProvider
-import com.inso_world.binocular.core.unit.base.BaseUnitTest
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.base.BaseMapperTest
 import com.inso_world.binocular.model.Project
-import com.inso_world.binocular.model.Repository
-import io.mockk.spyk
-import io.mockk.verify
-import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 internal class ProjectMapperTest : BaseMapperTest() {
-    private lateinit var mockTestDataProvider: MockTestDataProvider
 
-    @BeforeEach
-    fun setup() {
-        super.setUp()
-        mockTestDataProvider = MockTestDataProvider()
-    }
-
-    @Test
-    fun `toEntity maps domain object to entity, without repository`() {
-        val domain =
-            Project(
+    @Nested
+    inner class ToEntity {
+        @Test
+        fun `toEntity maps domain object to entity`() {
+            val domain = Project(
                 name = "test-project",
-            ).apply { description = "my super long description" }
+            ).apply {
+                this.id = "p-42"
+            }
 
-        val entity = projectMapper.toEntity(domain)
+            val entity = projectMapper.toEntity(domain)
 
-        assertAll(
-            "check mappings",
-            { assertThat(entity.id).isEqualTo(domain.id) },
-            { assertThat(entity.name).isEqualTo(domain.name) },
-            { assertThat(entity.description).isEqualTo(domain.description) },
-            { assertThat(entity.repository).isNull() }
-        )
-
-        assertThat(ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)).isEqualTo(entity)
-
-        verify(exactly = 1) { ctx.remember(domain, entity) }
-        verify(exactly = 1) { projectMapper.toEntity(domain) }
-        verify(exactly = 0) { repositoryMapper.toEntity(any()) }
+            assertAll(
+                { assertThat(entity.id).isEqualTo("p-42") },
+                { assertThat(entity.name).isEqualTo(domain.name) },
+                { assertThat(entity.iid).isEqualTo(domain.iid.value) }
+            )
+        }
     }
 
-    @Test
-    fun `toEntity maps domain object to entity, with repository`() {
-        val domain = requireNotNull(mockTestDataProvider.projectsByName["proj-pg-0"])
-        val entity = projectMapper.toEntity(domain)
+    @Nested
+    inner class ToDomain {
+        @Test
+        fun `toDomain maps entity to domain object`() {
+            val uuid = Uuid.random()
+            val entity = ProjectEntity(
+                name = "test-project",
+                iid = uuid
+            ).apply {
+                id = "p-42"
+            }
 
-        assertAll(
-            "check mappings",
-            { assertThat(entity.id).isEqualTo(domain.id) },
-            { assertThat(entity.name).isEqualTo(domain.name) },
-            { assertThat(entity.description).isEqualTo(domain.description) },
-            { assertThat(entity.repository).isNull() },
-        )
+            val domain = projectMapper.toDomain(entity)
 
-        assertThat(ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)).isEqualTo(entity)
-        assertThat(ctx.findEntity<Repository.Key, Repository, RepositoryEntity>(requireNotNull(domain.repo))).isEqualTo(
-            entity.repository
-        )
+            assertAll(
+                { assertThat(domain.id).isEqualTo("p-42") },
+                { assertThat(domain.name).isEqualTo(entity.name) },
+                { assertThat(domain.iid.value).isEqualTo(entity.iid) }
+            )
+        }
+    }
 
-        verifyOrder {
-            ctx.findEntity<Project.Key, Project, ProjectEntity>(domain)
-            ctx.remember(domain, entity)
+    @Nested
+    inner class RefreshDomain {
+        @Test
+        fun `refreshDomain updates domain id from entity`() {
+            val domain = Project(name = "test-project")
+            val entity = ProjectEntity(
+                name = "test-project",
+                iid = domain.iid.value
+            ).apply {
+                id = "p-100"
+            }
+
+            projectMapper.refreshDomain(domain, entity)
+
+            assertThat(domain.id).isEqualTo("p-100")
         }
     }
 }

@@ -197,8 +197,11 @@ public class GitDepsTreeAsciiGraphRenderer {
     }
 
     private static String authorPart(Commit c) {
-        if (c == null) return "";
-        // TODO
+        if (c == null || c.getAuthorSignature() == null) return "";
+        Developer dev = c.getAuthorSignature().getDeveloper();
+        if (dev != null && dev.getName() != null && !dev.getName().isBlank()) {
+            return "<" + dev.getName() + ">";
+        }
         return "";
     }
 

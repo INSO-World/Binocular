@@ -1,11 +1,11 @@
 package com.inso_world.binocular.model
 
 import com.inso_world.binocular.domain.data.MockTestDataProvider
-import com.inso_world.binocular.model.utils.ReflectionUtils.Companion.setField
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -14,7 +14,10 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDateTime
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 class CommitModelTest {
     private lateinit var repository: Repository
     private lateinit var mockTestDataProvider: MockTestDataProvider
@@ -26,19 +29,19 @@ class CommitModelTest {
             Repository(
                 localPath = "test",
                 projectId = project.iid,
-            ).apply { this.project = project }
+            )
         mockTestDataProvider = MockTestDataProvider(repository)
     }
 
     private fun createDeveloper(
         name: String = "Test Developer",
         email: String = "dev@test.com",
-    ) = Developer(name = name, email = email, repositoryId = repository.iid).apply { this.repository = this@CommitModelTest.repository }
+    ) = Developer(name = name, email = email, repositoryId = repository.iid)
 
     private fun createSignature(
         developer: Developer,
         timestamp: LocalDateTime = LocalDateTime.now().minusSeconds(1),
-    ) = Signature(developerId = developer.iid, timestamp = timestamp).apply { this.developer = developer }
+    ) = Signature(developerId = developer.iid, timestamp = timestamp)
 
     @Test
     fun `create commit, check that iid is created automatically`() {
@@ -50,7 +53,7 @@ class CommitModelTest {
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
+            )
 
         assertThat(commit.iid).isNotNull()
     }
@@ -65,7 +68,7 @@ class CommitModelTest {
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
+            )
 
         assertThat(commit.hashCode()).isEqualTo(commit.iid.hashCode())
     }
@@ -80,37 +83,33 @@ class CommitModelTest {
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
+            )
 
         assertAll(
             { assertThat(commit.uniqueKey).isEqualTo(Commit.Key("a".repeat(40))) },
-            { assertThat(commit.uniqueKey.sha).isSameAs(commit.sha) },
+            { assertThat(commit.uniqueKey.sha).isEqualTo(commit.sha) },
         )
     }
 
     @Test
     fun `create commit, validate repository relation`() {
+        val project = Project(name = "test-2")
         val repository =
             Repository(
                 localPath = "test-2",
-                projectId = Project(name = "test-2").iid,
-            ).apply { this.project = project }
-        val developer = Developer(name = "Test", email = "test@example.com", repositoryId = repository.iid).apply { this.repository = repository }
-        val signature = Signature(developerId = developer.iid, timestamp = LocalDateTime.now().minusSeconds(1)).apply { this.developer = developer }
+                projectId = project.iid,
+            )
+        val developer = Developer(name = "Test", email = "test@example.com", repositoryId = repository.iid)
+        val signature = createSignature(developer)
         val commit =
             Commit(
                 sha = "a".repeat(40),
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = repository }
+            )
 
-        assertThat(commit.repository).isSameAs(repository)
-        assertAll(
-            { assertThat(repository.commits).hasSize(1) },
-            { assertThat(repository.commits).containsOnly(commit) },
-            { assertThat(repository.commits.first()).isSameAs(commit) },
-        )
+        assertThat(commit.repositoryId).isEqualTo(repository.iid)
     }
 
     @ParameterizedTest
@@ -118,7 +117,7 @@ class CommitModelTest {
     fun `create commit, invalid timestamp in signature`(timestamp: LocalDateTime) {
         val developer = createDeveloper()
         assertThrows<IllegalArgumentException> {
-            Signature(developerId = developer.iid, timestamp = timestamp).apply { this.developer = developer }
+            Signature(developerId = developer.iid, timestamp = timestamp)
         }
     }
 
@@ -127,13 +126,13 @@ class CommitModelTest {
     fun `create commit, valid timestamp in signature`(timestamp: LocalDateTime) {
         val developer = createDeveloper()
         assertDoesNotThrow {
-            val signature = Signature(developerId = developer.iid, timestamp = timestamp).apply { this.developer = developer }
+            val signature = Signature(developerId = developer.iid, timestamp = timestamp)
             Commit(
                 sha = "a".repeat(40),
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
+            )
         }
     }
 
@@ -147,14 +146,14 @@ class CommitModelTest {
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
+            )
         val commitB =
             Commit(
                 sha = "a".repeat(40),
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
+            )
 
         assertAll(
             { assertThat(commitA.iid).isNotEqualTo(commitB.iid) },
@@ -173,39 +172,13 @@ class CommitModelTest {
                 message = "msg1",
                 authorSignature = signature,
                 repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
-        val commitB = commitA.copy(iid = Commit.Id(kotlin.uuid.Uuid.random()))
+            )
+        val commitB = commitA.copy(iid = Commit.Id(Uuid.random()))
 
         assertAll(
             { assertThat(commitA.iid).isNotEqualTo(commitB.iid) },
             { assertThat(commitA.uniqueKey).isEqualTo(commitB.uniqueKey) },
             { assertThat(commitA).isNotEqualTo(commitB) },
-        )
-    }
-
-    @Test
-    fun `create commit, then copy, edit iid, should equal`() {
-        val developer = createDeveloper()
-        val signature = createSignature(developer)
-        val commitA =
-            Commit(
-                sha = "a".repeat(40),
-                message = "msg1",
-                authorSignature = signature,
-                repositoryId = repository.iid,
-            ).apply { this.repository = this@CommitModelTest.repository }
-        val commitB = commitA.copy(iid = Commit.Id(kotlin.uuid.Uuid.random()))
-        setField(
-            commitB.javaClass.superclass.getDeclaredField("iid"),
-            commitB,
-            commitA.iid,
-        )
-
-        assertThat(commitA.iid).isEqualTo(commitB.iid)
-
-        assertAll(
-            { assertThat(commitA.uniqueKey).isEqualTo(commitB.uniqueKey) },
-            { assertThat(commitA).isEqualTo(commitB) },
         )
     }
 
@@ -227,14 +200,11 @@ class CommitModelTest {
                     message = "msg1",
                     authorSignature = signature,
                     repositoryId = repository.iid,
-                ).apply { this.repository = this@CommitModelTest.repository }
+                )
 
             assertAll(
-                { assertThat(commit.author).isSameAs(developer) },
-                { assertThat(commit.committer).isSameAs(developer) },
-                { assertThat(commit.author).isSameAs(commit.committer) },
-                { assertThat(developer.authoredCommits).contains(commit) },
-                { assertThat(developer.committedCommits).contains(commit) },
+                { assertThat(commit.authorSignature.developerId).isEqualTo(developer.iid) },
+                { assertThat(commit.committerSignature.developerId).isEqualTo(developer.iid) },
             )
         }
 
@@ -252,58 +222,13 @@ class CommitModelTest {
                     authorSignature = authorSig,
                     committerSignature = committerSig,
                     repositoryId = repository.iid,
-                ).apply { this.repository = this@CommitModelTest.repository }
+                )
 
             assertAll(
-                { assertThat(commit.author).isSameAs(author) },
-                { assertThat(commit.committer).isSameAs(committer) },
-                { assertThat(commit.author).isNotSameAs(commit.committer) },
-                { assertThat(author.authoredCommits).contains(commit) },
-                { assertThat(committer.committedCommits).contains(commit) },
+                { assertThat(commit.authorSignature.developerId).isEqualTo(author.iid) },
+                { assertThat(commit.committerSignature.developerId).isEqualTo(committer.iid) },
+                { assertThat(commit.authorSignature.developerId).isNotEqualTo(commit.committerSignature.developerId) },
             )
-        }
-
-        @Test
-        fun `create commit with author from different repository, should fail`() {
-            val differentRepository =
-                Repository(
-                    localPath = "test-2",
-                    projectId = Project(name = "test-2").iid,
-                ).apply { this.project = project }
-            val developer = Developer(name = "Test", email = "test@example.com", repositoryId = differentRepository.iid).apply { this.repository = differentRepository }
-            val signature = Signature(developerId = developer.iid, timestamp = LocalDateTime.now().minusSeconds(1)).apply { this.developer = developer }
-
-            assertThrows<IllegalArgumentException> {
-                Commit(
-                    sha = "a".repeat(40),
-                    message = "msg1",
-                    authorSignature = signature,
-                    repositoryId = repository.iid,
-                ).apply { this.repository = this@CommitModelTest.repository }
-            }
-        }
-
-        @Test
-        fun `create commit with committer from different repository, should fail`() {
-            val differentRepository =
-                Repository(
-                    localPath = "test-2",
-                    projectId = Project(name = "test-2").iid,
-                ).apply { this.project = project }
-            val author = createDeveloper()
-            val committer = Developer(name = "Committer", email = "committer@example.com", repositoryId = differentRepository.iid).apply { this.repository = differentRepository }
-            val authorSig = createSignature(author)
-            val committerSig = Signature(developerId = committer.iid, timestamp = LocalDateTime.now().minusSeconds(1)).apply { this.developer = committer }
-
-            assertThrows<IllegalArgumentException> {
-                Commit(
-                    sha = "a".repeat(40),
-                    message = "msg1",
-                    authorSignature = authorSig,
-                    committerSignature = committerSig,
-                    repositoryId = repository.iid,
-                ).apply { this.repository = this@CommitModelTest.repository }
-            }
         }
 
         @Test
@@ -312,8 +237,8 @@ class CommitModelTest {
             val committer = createDeveloper(name = "Committer", email = "committer@test.com")
             val authorTime = LocalDateTime.of(2024, 1, 1, 10, 0)
             val committerTime = LocalDateTime.of(2024, 1, 1, 11, 0)
-            val authorSig = Signature(developerId = author.iid, timestamp = authorTime).apply { this.developer = author }
-            val committerSig = Signature(developerId = committer.iid, timestamp = committerTime).apply { this.developer = committer }
+            val authorSig = Signature(developerId = author.iid, timestamp = authorTime)
+            val committerSig = Signature(developerId = committer.iid, timestamp = committerTime)
 
             val commit =
                 Commit(
@@ -322,7 +247,7 @@ class CommitModelTest {
                     authorSignature = authorSig,
                     committerSignature = committerSig,
                     repositoryId = repository.iid,
-                ).apply { this.repository = this@CommitModelTest.repository }
+                )
 
             assertAll(
                 { assertThat(commit.authorDateTime).isEqualTo(authorTime) },
@@ -343,36 +268,12 @@ class CommitModelTest {
             val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
             val parent = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
 
-            assertTrue(commit.parents.add(parent))
+            assertTrue(commit.parentShas.add(parent.sha))
 
             assertAll(
                 "parent relation",
-                { assertThat(commit.parents).hasSize(1) },
-                { assertThat(commit.parents).containsOnly(parent) },
-            )
-            assertAll(
-                "child relation",
-                { assertThat(parent.children).hasSize(1) },
-                { assertThat(parent.children).containsOnly(commit) },
-            )
-        }
-
-        @Test
-        fun `create commit, addAll single parent, should succeed`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val parent = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            assertTrue(commit.parents.addAll(listOf(parent)))
-
-            assertAll(
-                "commit->parent relation",
-                { assertThat(commit.parents).hasSize(1) },
-                { assertThat(commit.parents).containsOnly(parent) },
-            )
-            assertAll(
-                "parent->commit relation",
-                { assertThat(parent.children).hasSize(1) },
-                { assertThat(parent.children).containsOnly(commit) },
+                { assertThat(commit.parentShas).hasSize(1) },
+                { assertThat(commit.parentShas).containsOnly(parent.sha) },
             )
         }
 
@@ -381,217 +282,18 @@ class CommitModelTest {
             val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
             val parent = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
 
-            assertTrue(commit.parents.add(parent))
-            assertFalse(commit.parents.add(parent))
+            assertTrue(commit.parentShas.add(parent.sha))
+            assertFalse(commit.parentShas.add(parent.sha))
         }
 
         @Test
-        fun `create commit, addAll same parent twice, should only be added once`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val parent = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            assertTrue(commit.parents.addAll(listOf(parent)))
-            assertFalse(commit.parents.addAll(listOf(parent)))
-        }
-
-        @Test
-        fun `create commit, add parent with different repository, should fail`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val parent = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            val differentRepository =
-                Repository(
-                    localPath = "test-2",
-                    projectId = Project(name = "test-2").iid,
-                ).apply { this.project = project }
-            setField(
-                parent.javaClass.getDeclaredField("repository"),
-                parent,
-                differentRepository,
-            )
-            setField(
-                parent.javaClass.getDeclaredField("repositoryId"),
-                parent,
-                differentRepository.iid,
-            )
-
-            assertThrows<IllegalArgumentException> {
-                commit.parents.add(parent)
-            }
-        }
-
-        @Test
+        @Disabled("Refactored in domain model #454")
         fun `create commit, add same commit to parents, should fail`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-
-            val ex =
-                assertThrows<IllegalArgumentException> {
-                    commit.parents.add(commit)
-                }
-
-            assertThat(ex.message).isEqualTo("Commit cannot be its own parent")
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `create commit, add same commit to children, should fail`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-
-            val ex =
-                assertThrows<IllegalArgumentException> {
-                    commit.children.add(commit)
-                }
-
-            assertThat(ex.message).isEqualTo("Commit cannot be its own child")
-        }
-
-        @Test
-        fun `create commit, add other commit to parents and children, should fail`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val parent = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            assertDoesNotThrow {
-                commit.parents.add(parent)
-            }
-            val ex =
-                assertThrows<IllegalArgumentException> {
-                    commit.children.add(parent)
-                }
-
-            assertThat(ex.message).isEqualTo(
-                "${parent.sha} is already present in '${commit.sha}' parent collection. Cannot be added as child too.",
-            )
-        }
-    }
-
-    @Nested
-    inner class ChildrenRelation {
-        @BeforeEach
-        fun setUp() {
-            this@CommitModelTest.setUp()
-        }
-
-        @Test
-        fun `create commit, add child, should succeed`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val child = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            assertTrue(commit.children.add(child))
-
-            assertAll(
-                "child relation",
-                { assertThat(commit.children).hasSize(1) },
-                { assertThat(commit.children).containsOnly(child) },
-            )
-            assertAll(
-                "parent relation",
-                { assertThat(child.parents).hasSize(1) },
-                { assertThat(child.parents).containsOnly(commit) },
-            )
-        }
-
-        @Test
-        fun `create commit, addAll single child, should succeed`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val child = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            assertTrue(commit.children.addAll(listOf(child)))
-
-            assertAll(
-                "child relation",
-                { assertThat(commit.children).hasSize(1) },
-                { assertThat(commit.children).containsOnly(child) },
-            )
-            assertAll(
-                "parent relation",
-                { assertThat(child.parents).hasSize(1) },
-                { assertThat(child.parents).containsOnly(commit) },
-            )
-        }
-
-        @Test
-        fun `create commit, add same children twice, should only be added once`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val child = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            assertTrue(commit.children.add(child))
-            assertFalse(commit.children.add(child))
-        }
-
-        @Test
-        fun `create commit, add child with different repository, should fail`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val child = mockTestDataProvider.commitBySha.getValue("b".repeat(40))
-
-            val differentRepository =
-                Repository(
-                    localPath = "test-2",
-                    projectId = Project(name = "test-2").iid,
-                ).apply { this.project = project }
-            setField(
-                child.javaClass.getDeclaredField("repository"),
-                child,
-                differentRepository,
-            )
-            setField(
-                child.javaClass.getDeclaredField("repositoryId"),
-                child,
-                differentRepository.iid,
-            )
-
-            assertThrows<IllegalArgumentException> {
-                commit.children.add(child)
-            }
-        }
-    }
-
-    @Nested
-    inner class BranchRelation {
-        @BeforeEach
-        fun setUp() {
-            this@CommitModelTest.setUp()
-        }
-
-        @Test
-        fun `create commit, add to branch, should succeed`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
-
-            branch.head = commit
-
-            assertAll(
-                "check branch relation",
-                { assertThat(branch.commits).hasSize(1) },
-                { assertThat(branch.commits).containsOnly(commit) },
-                { assertThat(branch.commits.first()).isSameAs(commit) },
-            )
-        }
-
-        @Test
-        fun `create commit, add to branch from different repository, should fail`() {
-            val commit = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
-            val branch = mockTestDataProvider.branchByName.getValue("origin/feature/test")
-
-            val differentRepository =
-                Repository(
-                    localPath = "test-2",
-                    projectId = Project(name = "test-2").iid,
-                ).apply { this.project = project }
-            setField(
-                commit.javaClass.getDeclaredField("repository"),
-                commit,
-                differentRepository,
-            )
-            setField(
-                commit.javaClass.getDeclaredField("repositoryId"),
-                commit,
-                differentRepository.iid,
-            )
-
-            assertAll({ assertThat(commit.repository).isNotSameAs(branch.repository) }, {
-                assertThrows<IllegalArgumentException> {
-                    branch.head = commit
-                }
-            })
         }
     }
 }

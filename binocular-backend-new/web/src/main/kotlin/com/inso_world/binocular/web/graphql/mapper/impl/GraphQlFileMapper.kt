@@ -10,7 +10,6 @@ class GraphQlFileMapper {
         return FileDto(
             id = file.id,
             path = file.path,
-            maxLength = file.maxLength.toLong(),
             webUrl = file.webUrl
         )
     }

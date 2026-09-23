@@ -194,8 +194,9 @@ internal data class IssueEntity(
         accountIds = this.accounts.map { it.iid }.toSet(),
         commitIds = this.commits.map { it.iid }.toSet(),
         milestoneIds = this.milestones.map { it.iid }.toSet(),
-        noteIds = this.notes.map { Note.Id(Uuid.random()) }.toSet(),
-        developerIds = this.developers.map { it.iid }.toSet()
+        noteIds = this.notes.map { it.iid }.toSet(),
+        developerIds = this.developers.map { it.iid }.toSet(),
+        iid = this.iid,
     ).apply {
         id = this@IssueEntity.id?.toString()
     }

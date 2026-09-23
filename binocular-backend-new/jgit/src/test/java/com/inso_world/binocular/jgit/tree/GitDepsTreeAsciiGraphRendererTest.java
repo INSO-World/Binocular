@@ -36,7 +36,7 @@ class GitDepsTreeAsciiGraphRendererTest extends BaseUnitTest {
     void setUp() {
         renderer = new GitDepsTreeAsciiGraphRenderer();
         project = TestModelFactory.createProject("test-project");
-        repository = TestModelFactory.createRepository("/test/path", project.getIid());
+        repository = TestModelFactory.createRepository("/test/path", project);
         shaCounter = 0;
     }
 
@@ -645,8 +645,8 @@ class GitDepsTreeAsciiGraphRendererTest extends BaseUnitTest {
     // Helper methods to create test commits
 
     private Commit createCommit(String sha, String authorName, String email, LocalDateTime dateTime, String message) {
-        Developer author = ModelFactory.createDeveloper(authorName, email, repository.getIid());
-        Signature authorSig = ModelFactory.createSignature(author.getIid(), dateTime);
-        return ModelFactory.createCommit(sha, authorSig, authorSig, message, repository.getIid());
+        Developer author = TestModelFactory.createDeveloper(authorName, email, repository);
+        Signature authorSig = TestModelFactory.createSignature(author, dateTime);
+        return TestModelFactory.createCommit(sha, authorSig, authorSig, message, repository);
     }
 }

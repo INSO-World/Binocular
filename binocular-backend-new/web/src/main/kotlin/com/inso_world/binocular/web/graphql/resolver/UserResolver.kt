@@ -11,8 +11,9 @@ import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.stereotype.Controller
 
 @Controller
+@Deprecated("Use DeveloperResolver instead")
 class UserResolver(
-    private val userService: UserInfrastructurePort,
+    @Autowired(required = false) private val userService: UserInfrastructurePort?,
     private val accountService: AccountInfrastructurePort,
     @Autowired private val mapper: GraphQlMapper,
 ) {
@@ -52,7 +53,7 @@ class UserResolver(
         val id = user.id ?: return emptyList()
         logger.info("Resolving commits for user: $id")
         // Get all connections for this user and extract the commits
-        return userService.findCommitsByUserId(id).map { mapper.toDto(it) }
+        return userService?.findCommitsByUserId(id)?.map { mapper.toDto(it) } ?: emptyList()
     }
 
     /**
@@ -69,7 +70,7 @@ class UserResolver(
         val id = user.id ?: return emptyList()
         logger.info("Resolving issues for user: $id")
         // Get all connections for this user and extract the issues
-        return userService.findIssuesByUserId(id).map { mapper.toDto(it) }
+        return userService?.findIssuesByUserId(id)?.map { mapper.toDto(it) } ?: emptyList()
     }
 
     /**
@@ -86,7 +87,7 @@ class UserResolver(
         val id = user.id ?: return emptyList()
         logger.info("Resolving files for user: $id")
         // Get all connections for this user and extract the files
-        return userService.findFilesByUserId(id).map { mapper.toDto(it) }
+        return userService?.findFilesByUserId(id)?.map { mapper.toDto(it) } ?: emptyList()
     }
 
     /**

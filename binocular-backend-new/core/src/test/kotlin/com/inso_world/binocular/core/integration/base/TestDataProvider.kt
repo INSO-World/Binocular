@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 )
 object TestDataProvider {
     private val project = Project(name = "proj-pg-0")
-    private val repository = Repository(localPath = "repo-pg-0", project = project)
+    private val repository = Repository(localPath = "repo-pg-0", projectId = project.iid).apply { this.project = project }
 
     private val mockTestDataProvider = MockTestDataProvider(repository)
 
@@ -168,7 +168,6 @@ object TestDataProvider {
                 val file =
                     File(
                         "src/main/kotlin/com/example/Main.kt",
-                        mutableSetOf(),
                     ).apply {
                         this.id = "1"
                         this.webUrl = "https://example.com/files/Main.kt"
@@ -179,7 +178,6 @@ object TestDataProvider {
                 val file =
                     File(
                         "src/main/kotlin/com/example/Utils.kt",
-                        mutableSetOf(),
                     ).apply {
                         this.id = "2"
                         this.webUrl = "https://example.com/files/Utils.kt"
@@ -298,25 +296,32 @@ object TestDataProvider {
 
     val testRepositories =
         listOf(
-            Repository(localPath = "repo-pg-0", project = testProjectsByName.getValue("proj-for-repos")).apply {
+            Repository(localPath = "repo-pg-0", projectId = testProjectsByName.getValue("proj-for-repos").iid).apply {
+                this.project = testProjectsByName.getValue("proj-for-repos")
                 this.id = "r1"
             },
-            Repository(localPath = "repo-pg-1", project = testProjectsByName.getValue("proj-pg-4")).apply {
+            Repository(localPath = "repo-pg-1", projectId = testProjectsByName.getValue("proj-pg-4").iid).apply {
+                this.project = testProjectsByName.getValue("proj-pg-4")
                 this.id = "r2"
             },
-            Repository(localPath = "repo-pg-2", project = testProjectsByName.getValue("proj-pg-3")).apply {
+            Repository(localPath = "repo-pg-2", projectId = testProjectsByName.getValue("proj-pg-3").iid).apply {
+                this.project = testProjectsByName.getValue("proj-pg-3")
                 this.id = "r3"
             },
-            Repository(localPath = "repo-pg-3", project = testProjectsByName.getValue("proj-pg-2")).apply {
+            Repository(localPath = "repo-pg-3", projectId = testProjectsByName.getValue("proj-pg-2").iid).apply {
+                this.project = testProjectsByName.getValue("proj-pg-2")
                 this.id = "r4"
             },
-            Repository(localPath = "repo-pg-4", project = testProjectsByName.getValue("proj-pg-1")).apply {
+            Repository(localPath = "repo-pg-4", projectId = testProjectsByName.getValue("proj-pg-1").iid).apply {
+                this.project = testProjectsByName.getValue("proj-pg-1")
                 this.id = "r5"
             },
-            Repository(localPath = "repo-pg-5", project = testProjectsByName.getValue("proj-pg-0")).apply {
+            Repository(localPath = "repo-pg-5", projectId = testProjectsByName.getValue("proj-pg-0").iid).apply {
+                this.project = testProjectsByName.getValue("proj-pg-0")
                 this.id = "r6"
             },
-            Repository(localPath = "repo-pg-6", project = testProjectsByName.getValue("proj-pg-7")).apply {
+            Repository(localPath = "repo-pg-6", projectId = testProjectsByName.getValue("proj-pg-7").iid).apply {
+                this.project = testProjectsByName.getValue("proj-pg-7")
                 this.id = "r7"
             },
         )
@@ -351,11 +356,13 @@ object TestDataProvider {
 
     val testUsers =
         listOf(
-            User("John Doe", repository = repository).apply {
+            User("John Doe", repositoryId = repository.iid).apply {
+                this.repository = repository
                 this.id = "1"
                 this.email = "john.doe@example.com"
             },
-            User("Jane Smith", repository = repository).apply {
+            User("Jane Smith", repositoryId = repository.iid).apply {
+                this.repository = repository
                 this.id = "2"
                 this.email = "jane.smith@example.com"
             },

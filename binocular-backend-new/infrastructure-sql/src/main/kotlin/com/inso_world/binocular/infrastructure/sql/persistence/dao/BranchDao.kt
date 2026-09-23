@@ -22,8 +22,8 @@ internal class BranchDao(
 ) : SqlDao<BranchEntity, Long>(),
     IBranchDao {
     init {
-        this.setClazz(BranchEntity::class.java)
-        this.setRepository(branchRepo)
+        this.clazz = BranchEntity::class.java
+        this.repository = branchRepo
     }
 
     private object BranchSpecification {

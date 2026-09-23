@@ -96,28 +96,8 @@ internal class ProjectInfrastructurePortImpl(
      * @see self
      * @see findByIidInternal
      */
-    override fun findByIid(iid: Project.Id): Project? {
-        return self.findByIidInternal(iid)
-    }
-
-    /**
-     * Internal implementation of project lookup by iid.
-     *
-     * **Why this method exists**:
-     * This separate method is required because Spring AOP cannot intercept methods with
-     * mangled signatures (caused by Kotlin value class parameters). By extracting
-     * the logic here with a normal method name, Spring AOP can properly intercept the call when
-     *
-     * **Visibility**: Must not be `private` to allow Spring CGLIB to create
-     * a proxy subclass that can override this method for aspect interception.
-     *
-     * @param iid The project's technical identifier
-     * @return The project if found, null otherwise
-     * @see findByIid
-     * @see MappingSession
-     */
     @Transactional(readOnly = true)
-    protected fun findByIidInternal(iid: Project.Id): Project? {
+    override fun findByIid(iid: Project.Id): Project? {
         return this.projectDao.findByIid(iid)?.let {
             projectMapper.toDomain(it)
         }

@@ -2,6 +2,7 @@ package com.inso_world.binocular.jgit;
 
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest;
 import com.inso_world.binocular.jgit.tree.GitDepsTreeBuilder;
+import com.inso_world.binocular.jgit.tree.TestModelFactory;
 import com.inso_world.binocular.model.Branch;
 import com.inso_world.binocular.model.Commit;
 import com.inso_world.binocular.model.Project;

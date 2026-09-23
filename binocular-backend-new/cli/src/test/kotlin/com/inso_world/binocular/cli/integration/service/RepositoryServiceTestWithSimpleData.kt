@@ -57,13 +57,14 @@ internal class RepositoryServiceTestWithSimpleData
                 Developer(
                     name = developerName,
                     email = developerEmail,
-                    repository = repository,
-                )
-            val signature = Signature(developer = developer, timestamp = timestamp)
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
+            val signature = Signature(developerId = developer.iid, developer = developer, timestamp = timestamp)
             return Commit(
                 sha = sha,
                 message = message,
                 authorSignature = signature,
+                repositoryId = repository.iid,
                 repository = repository,
             )
         }
@@ -165,8 +166,8 @@ internal class RepositoryServiceTestWithSimpleData
                             sha = testCommit.sha,
                             message = testCommit.message,
                             repository = repo,
-                            developerName = testCommit.author.name,
-                            developerEmail = testCommit.author.email,
+                            developerName = testCommit.authorSignature.developer?.name ?: "Test User",
+                            developerEmail = testCommit.authorSignature.developer?.email ?: "test@example.com",
                         )
                     child.parents.add(parent)
                     repo.branches.first().head = child

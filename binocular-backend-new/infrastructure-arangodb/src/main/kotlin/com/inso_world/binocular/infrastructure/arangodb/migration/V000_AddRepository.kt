@@ -31,7 +31,7 @@ class V000_AddRepository(
 
     override fun migrate(db: ArangoDatabase) {
         val iid = Uuid.random().toString()
-        val defaultProjectName = infraConfig.arangodb.migration.defaultProjectName
+        val defaultProjectName = runCatching { infraConfig.arangodb.migration.defaultProjectName }.getOrDefault("binocular")
 
         val query =
             """

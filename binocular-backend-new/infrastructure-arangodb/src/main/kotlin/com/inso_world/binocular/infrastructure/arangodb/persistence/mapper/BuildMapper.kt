@@ -27,6 +27,7 @@ import java.util.Date
  * This mapper is typically called by infrastructure ports and assemblers. It eagerly maps
  * jobs but uses lazy loading for commits to optimize performance.
  */
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 @Component
 internal class BuildMapper
     @Autowired
@@ -57,6 +58,7 @@ internal class BuildMapper
         override fun toEntity(domain: Build): BuildEntity =
             BuildEntity(
                 id = domain.id,
+                iid = domain.iid.value,
                 sha = domain.sha,
                 ref = domain.ref,
                 status = domain.status,
@@ -88,6 +90,7 @@ internal class BuildMapper
             val domain =
                 Build(
                     id = entity.id,
+                    iid = Build.Id(entity.iid),
                     sha = entity.sha,
                     ref = entity.ref,
                     status = entity.status,

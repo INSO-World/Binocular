@@ -8,9 +8,8 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.CommitEnti
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.DeveloperEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.RemoteEntity
-import com.inso_world.binocular.infrastructure.sql.persistence.entity.UserEntity
+import com.inso_world.binocular.infrastructure.sql.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.Branch
 import com.inso_world.binocular.model.Commit
@@ -21,9 +20,8 @@ import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.Reference
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.Signature
-import com.inso_world.binocular.model.User
-import com.inso_world.binocular.model.vcs.Remote
 import com.inso_world.binocular.model.vcs.ReferenceCategory
+import com.inso_world.binocular.model.vcs.Remote
 import java.time.LocalDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -259,7 +257,7 @@ internal object TestData {
             webUrl: String? = "https://example.com/issues/1000",
             project: ProjectEntity = testProjectEntity(),
             accounts: MutableSet<AccountEntity> = mutableSetOf(testAccountEntity()),
-            users: MutableList<UserEntity> = mutableListOf(),
+            developers: MutableList<DeveloperEntity> = mutableListOf(),
             author: AccountEntity? = testAccountEntity(),
             id: Long? = null
         ): IssueEntity = IssueEntity(
@@ -274,7 +272,7 @@ internal object TestData {
             webUrl = webUrl,
             project = project,
             accounts = accounts,
-            users = users,
+            developers = developers,
             author = author,
         ).apply {
             this.id = id
@@ -340,14 +338,15 @@ internal object TestData {
             committer: Developer = author,
             id: String? = null,
         ): Commit {
-            val authorSignature = Signature(developer = author, timestamp = authorDateTime)
-            val committerSignature = commitDateTime?.let { Signature(developer = committer, timestamp = it) } ?: authorSignature
+            val authorSignature = Signature(developerId = author.iid, developer = author, timestamp = authorDateTime)
+            val committerSignature = commitDateTime?.let { Signature(developerId = committer.iid, developer = committer, timestamp = it) } ?: authorSignature
 
             return Commit(
                 sha = sha,
                 authorSignature = authorSignature,
                 committerSignature = committerSignature,
                 message = message,
+                repositoryId = repository.iid,
                 repository = repository,
             ).apply {
                 this.id = id
@@ -376,6 +375,7 @@ internal object TestData {
             )
         ): Repository = Repository(
             localPath = localPath,
+            projectId = project.iid,
             project = project
         ).apply {
             this.id = id
@@ -399,6 +399,7 @@ internal object TestData {
             Developer(
                 name = name,
                 email = email,
+                repositoryId = repository.iid,
                 repository = repository
             ).apply {
                 this.id = id
@@ -432,7 +433,9 @@ internal object TestData {
             name = name,
             fullName = fullName,
             category = category,
+            repositoryId = repository.iid,
             repository = repository,
+            headSha = head.sha,
             head = head
         ).apply {
             this.id = id
@@ -460,12 +463,12 @@ internal object TestData {
             url: String? = null,
             platform: Platform = Platform.GitHub,
             id: String? = null,
-            projects: MutableSet<Project> = mutableSetOf(testProject())
+            projectIds: MutableSet<Project.Id> = mutableSetOf(testProject().iid)
         ): Account = Account(
             gid = gid,
             login = login,
             platform = platform,
-            projects = projects
+            projectIds = projectIds
         ).apply {
             this.id = id
             this.name = name
@@ -486,7 +489,7 @@ internal object TestData {
          * @param webUrl The URL to the issue on the platform.
          * @param project The owning ProjectEntity.
          * @param accounts List of AccountEntity assigned to this issue.
-         * @param users List of UserEntity involved in this issue.
+         * @param developers List of Developer involved in this issue.
          * @param author The author (AccountEntity) of the issue.
          * @param id The Long database identifier, or null.
          *
@@ -503,7 +506,7 @@ internal object TestData {
             webUrl: String? = "https://example.com/issues/1000",
             project: Project = testProject(),
             accounts: MutableSet<Account> = mutableSetOf(testAccount()),
-            users: MutableList<User> = mutableListOf(),
+            developers: MutableList<Developer> = mutableListOf(),
             author: Account? = null,
             id: String? = null
         ): Issue = Issue(
@@ -518,9 +521,9 @@ internal object TestData {
             project = project.iid,
         ).apply {
             this.id = id
-            this.accounts.addAll(accounts)
-            this.users = users
-            this.author = author
+            this.accountIds = accounts.map { it.iid }.toSet()
+            this.developerIds = developers.map { it.iid }.toSet()
+            this.authorId = author?.iid
         }
 
         fun testRemote(
@@ -531,8 +534,9 @@ internal object TestData {
         ): Remote = Remote(
             name = name,
             url = url,
-            repository = repository
+            repositoryId = repository.iid
         ).apply {
+            this.repository = repository
             this.id = id
         }
     }

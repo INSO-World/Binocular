@@ -53,9 +53,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
                 { assertThat(created.name).isEqualTo("MinimalProject") },
                 { assertThat(created.id).isNotNull() },
                 { assertThat(created.iid).isNotNull() },
-                { assertThat(created.description).isNull() },
-                { assertThat(created.repo).isNull() },
-                { assertThat(created.issues).isEmpty() }
+                { assertThat(created.description).isNull() }
             )
 
             // And: Project can be retrieved
@@ -204,60 +202,15 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `create project with repository association`() {
-            // Given: A project and a repository
-            val project = Project(name = "ProjectWithRepo")
-            val repository = Repository(
-                localPath = "/path/to/repo",
-                project = project
-            )
-
-            // When: Creating the project (repository is auto-linked in constructor)
-            val created = projectPort.create(project)
-
-            // Then: Project has repository associated
-            assertAll(
-                "Verify project-repository association",
-                { assertThat(created.repo).isNotNull() },
-                { assertThat(created.repo?.localPath).isEqualTo("/path/to/repo") }
-            )
+            // Disabled: Project.repo relation removed in refactoring #454
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `create project with issues`() {
-            // Given: A project with issues
-            val project = Project(name = "ProjectWithIssues")
-            val issue1 = Issue(
-                title = "Bug: Login fails",
-                description = "Users cannot login",
-                state = "open",
-                createdAt = LocalDateTime.of(2024, 1, 1, 10, 0),
-                gid = "1",
-                project = project.iid
-            )
-            val issue2 = Issue(
-                title = "Feature: Dark mode",
-                description = "Add dark mode support",
-                state = "open",
-                createdAt = LocalDateTime.of(2024, 1, 2, 10, 0),
-                gid = "2",
-                project = project.iid
-            )
-            project.issues.add(issue1)
-            project.issues.add(issue2)
-
-            // When: Creating the project
-            val created = projectPort.create(project)
-
-            // Then: Issues are associated with project
-            assertAll(
-                "Verify project with issues",
-                { assertThat(created.issues).hasSize(2) },
-                {
-                    val titles = created.issues.map { it.title }
-                    assertThat(titles).containsExactlyInAnyOrder("Bug: Login fails", "Feature: Dark mode")
-                }
-            )
+            // Disabled: Project.issues relation removed in refactoring #454
         }
 
         @Test
@@ -525,84 +478,23 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `update project with repository association`() {
-            // Given: A project without repository
-            val project = projectPort.create(Project(name = "RepoUpdateTest"))
-            assertThat(project.repo).isNull()
-
-            // When: Creating and associating a repository
-            val repository = Repository(
-                localPath = "/new/repo/path",
-                project = project
-            )
-            repositoryPort.create(repository)
-            val updated = projectPort.update(project)
-
-            // Then: Repository is associated
-            assertAll(
-                "Verify repository association",
-                { assertThat(updated.repo).isNotNull() },
-                { assertThat(updated.repo?.localPath).isEqualTo("/new/repo/path") }
-            )
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `update project fails when repository is replaced`() {
-            val project = projectPort.create(Project(name = "RepoChangeGuard"))
-            repositoryPort.create(
-                Repository(
-                    localPath = "/existing/repo",
-                    project = project
-                )
-            )
-            val loaded = requireNotNull(projectPort.findByIid(project.iid))
-            loaded.forceSetRepo(null)
-            Repository(
-                localPath = "/other/repo",
-                project = loaded
-            )
-
-            val exception = assertThrows<IllegalArgumentException> { projectPort.update(loaded) }
-
-            assertThat(exception).hasMessageContaining("Cannot update project with a different repository.")
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `update project fails when repository is removed`() {
-            val project = projectPort.create(Project(name = "RepoRemovalGuard"))
-            repositoryPort.create(
-                Repository(
-                    localPath = "/existing/repo",
-                    project = project
-                )
-            )
-            val loaded = requireNotNull(projectPort.findByIid(project.iid))
-            loaded.forceSetRepo(null)
-
-            val exception = assertThrows<UnsupportedOperationException> { projectPort.update(loaded) }
-
-            assertThat(exception).hasMessage("Deleting repository from project is not yet allowed")
         }
 
         @Test
         @Disabled("Not implemented yet")
         fun `update project by adding issues`() {
-            // Given: A project without issues
-            val project = projectPort.create(Project(name = "IssueUpdateTest"))
-
-            // When: Adding issues
-            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
-                gid = "1",
-                project = project.iid)
-            val issue2 = Issue(title = "Issue 2", state = "closed", createdAt = LocalDateTime.now(),
-                gid = "1",
-                project = project.iid)
-            project.issues.add(issue1)
-            project.issues.add(issue2)
-            val updated = projectPort.update(project)
-
-            // Then: Issues are added
-            assertThat(updated.issues).hasSize(2)
         }
 
         @Test
@@ -752,8 +644,8 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
             val project = projectPort.create(Project(name = "ProjectWithRepo"))
             val repository = Repository(
                 localPath = "/repo/path",
-                project = project
-            )
+                projectId = project.iid,
+            ).apply { this.project = project }
             repositoryPort.create(repository)
 
             // When: Deleting the project
@@ -764,24 +656,8 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `delete project with issues removes issues`() {
-            // Given: A project with issues
-            val project = projectPort.create(Project(name = "ProjectWithIssues"))
-            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
-                gid = "1",
-                project = project.iid)
-            val issue2 = Issue(title = "Issue 2", state = "closed", createdAt = LocalDateTime.now(),
-                gid = "1",
-                project = project.iid)
-            project.issues.add(issue1)
-            project.issues.add(issue2)
-            projectPort.update(project)
-
-            // When: Deleting the project
-            assertThrows<UnsupportedOperationException> { projectPort.delete(project) }
-
-            // Then: Project and issues are removed
-//            assertThat(projectPort.findAll()).isEmpty()
         }
 
         @Test
@@ -836,42 +712,18 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `project repository is set-once and cannot be changed`() {
-            // Given: A project with repository
-            val project = Project(name = "RepositoryTest")
-            val repo1 = Repository(localPath = "/repo1", project = project)
-
-            // When/Then: Attempting to change repository throws exception
-            val repo2 = Repository(localPath = "/repo2", project = Project(name = "Other"))
-            assertThrows<IllegalArgumentException> {
-                project.repo = repo2
-            }
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `project repository cannot be set to null`() {
-            // Given: A project
-            val project = Project(name = "NullRepoTest")
-
-            // When/Then: Attempting to set repository to null throws exception
-            assertThrows<IllegalArgumentException> {
-                @Suppress("SENSELESS_COMPARISON")
-                project.repo = null
-            }
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `project repository can be set to same instance multiple times (idempotent)`() {
-            // Given: A project with repository
-            val project = Project(name = "IdempotentRepoTest")
-            val repository = Repository(localPath = "/repo", project = project)
-
-            // When: Setting same repository again
-            project.repo = repository
-            project.repo = repository
-
-            // Then: No exception is thrown and repo remains the same
-            assertThat(project.repo).isEqualTo(repository)
         }
 
         @Test
@@ -909,68 +761,21 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `project can exist without repository`() {
-            // Given: A project without repository
             val project = Project(name = "StandaloneProject")
-
-            // When: Creating the project
             val created = projectPort.create(project)
-
-            // Then: Project exists without repository
-            assertAll(
-                "Verify standalone project",
-                { assertThat(created.repo).isNull() },
-                { assertThat(created.name).isEqualTo("StandaloneProject") }
-            )
+            assertThat(created.name).isEqualTo("StandaloneProject")
         }
 
-        /*
-        NOTE:
-        Issue removal is intentionally not implemented yet.
-        Once issue removal is implemented, this test is expected to fail.
-         */
         @Test
+        @Disabled("Refactored in domain model #454")
         fun `removing issue is not supported yet`() {
-            // Given: A project
-            val project = Project(name = "MutableIssuesTest")
-
-            // When: Adding issues
-            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
-                gid = "1",
-                project = project.iid)
-            val issue2 = Issue(title = "Issue 2", state = "open", createdAt = LocalDateTime.now(),
-                gid = "2",
-                project = project.iid)
-            project.issues.add(issue1)
-            project.issues.add(issue2)
-            assertThrows<UnsupportedOperationException> {
-                project.issues.remove(issue1)
-            }
         }
 
         @Disabled("Not implemented yet. Enable when removing issues is implemented.")
         @Test
         fun `project issues collection is mutable`() {
-            // Given: A project
-            val project = Project(name = "MutableIssuesTest")
-
-            // When: Adding issues
-            val issue1 = Issue(title = "Issue 1", state = "open", createdAt = LocalDateTime.now(),
-                gid = "1",
-                project = project.iid)
-            val issue2 = Issue(title = "Issue 2", state = "open", createdAt = LocalDateTime.now(),
-                gid = "2",
-                project = project.iid)
-            project.issues.add(issue1)
-            project.issues.add(issue2)
-
-            // Then: Issues can be added and removed
-            assertAll(
-                "Verify mutable issues collection",
-                { assertThat(project.issues).hasSize(2) },
-                { assertThat(project.issues.remove(issue1)).isTrue() },
-                { assertThat(project.issues).hasSize(1) }
-            )
         }
     }
 
@@ -1099,75 +904,23 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
 
     @Nested
     @DisplayName("Integration with Repository")
+    @Disabled("Refactored in domain model #454")
     inner class IntegrationWithRepository {
         @Test
         fun `project with repository maintains bidirectional relationship`() {
-            // Given: A project and repository
-            val project = Project(name = "BidirectionalTest")
-            val repository = Repository(
-                localPath = "/test/repo",
-                project = project
-            )
-
-            // When: Creating the project
-            val createdProject = projectPort.create(project)
-
-            // Then: Bidirectional relationship exists
-            assertAll(
-                "Verify bidirectional relationship",
-                { assertThat(createdProject.repo).isNotNull() },
-                { assertThat(createdProject.repo).isEqualTo(repository) },
-                { assertThat(repository.project).isEqualTo(createdProject) }
-            )
         }
 
         @Test
         @Disabled("DELETE operations not yet permitted")
         fun `deleting project with repository preserves or cascades based on configuration`() {
-            // Given: A project with repository
-            val project = projectPort.create(Project(name = "CascadeTest"))
-            val repository = repositoryPort.create(
-                Repository(
-                    localPath = "/cascade/repo",
-                    project = project
-                )
-            )
-            val repoId = repository.id!!
-
-            // When: Deleting the project
-            projectPort.delete(project)
-
-            // Then: Project is deleted
-            assertThat(projectPort.findByIid(project.iid)).isNull()
-            // Note: Repository cascade behavior should match configuration
-            // This test documents the expected behavior
         }
 
         @Test
         fun `finding project by iid includes repository data`() {
-            // Given: A project with repository
-            val project = projectPort.create(Project(name = "LoadTest"))
-            repositoryPort.create(
-                Repository(
-                    localPath = "/load/test",
-                    project = project
-                )
-            )
-
-            // When: Finding project by iid
-            val found = projectPort.findByIid(project.iid)
-
-            // Then: Repository data is loaded
-            assertAll(
-                "Verify eager/lazy loading",
-                { assertThat(found).isNotNull() },
-                { assertThat(found?.repo).isNotNull() },
-                { assertThat(found?.repo?.localPath).isEqualTo("/load/test") }
-            )
         }
     }
 }
 
 // Helper that bypasses the domain guard rails so failure scenarios can be exercised explicitly.
-private fun Project.forceSetRepo(repository: Repository?) =
-    Project::class.java.getDeclaredField("repo").apply { isAccessible = true }.also { it.set(this, repository) }
+//private fun Project.forceSetRepo(repository: Repository?) =
+//    Project::class.java.getDeclaredField("repo").apply { isAccessible = true }.also { it.set(this, repository) }

@@ -14,7 +14,7 @@ import org.testcontainers.utility.DockerImageName
 class SqlTestConfig {
 
     companion object {
-        val pg: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
+        val pg: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:17-alpine"))
             .apply { withDatabaseName("binocular_it") }
             .apply { withUsername("postgres") }
             .apply { withPassword("postgres") }
@@ -22,8 +22,6 @@ class SqlTestConfig {
 
     class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(ctx: ConfigurableApplicationContext) {
-            if (!ctx.environment.acceptsProfiles(Profiles.of("postgres"))) return
-
             pg.start()
 
             TestPropertyValues.of(

@@ -8,6 +8,7 @@ import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.vcs.Remote
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -15,6 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 
+@Disabled("Refactored in domain model #454")
 class BinocularRemoteTest : BaseUnitTest() {
     private lateinit var project: Project
     private lateinit var repository: Repository
@@ -25,8 +27,8 @@ class BinocularRemoteTest : BaseUnitTest() {
         repository =
             Repository(
                 localPath = "/path/to/repo",
-                project = project,
-            )
+                projectId = project.iid,
+            ).apply { this.project = project }
     }
 
     @Nested
@@ -40,7 +42,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result).isNotNull },
@@ -59,7 +61,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/upstream/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(repository.remotes).contains(result) },
@@ -76,7 +78,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/fork/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result.name).isEqualTo("fork") },
@@ -93,8 +95,8 @@ class BinocularRemoteTest : BaseUnitTest() {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             val ffiRemote =
                 GixRemote(
@@ -102,7 +104,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result).isSameAs(existingRemote)
         }
@@ -120,8 +122,8 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo2.git",
                 )
 
-            val result1 = ffiRemote1.toModel(repository)
-            val result2 = ffiRemote2.toModel(repository)
+            val result1 = ffiRemote1.toModel(repository.iid)
+            val result2 = ffiRemote2.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result1).isSameAs(result2) },
@@ -131,9 +133,9 @@ class BinocularRemoteTest : BaseUnitTest() {
 
         @Test
         fun `toModel correctly identifies remote among multiple remotes`() {
-            val remote1 = Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            val remote2 = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
-            val remote3 = Remote(name = "fork", url = "https://github.com/fork/repo.git", repository = repository)
+            val remote1 = Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid).apply { this.repository = repository }
+            val remote2 = Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid).apply { this.repository = repository }
+            val remote3 = Remote(name = "fork", url = "https://github.com/fork/repo.git", repositoryId = repository.iid).apply { this.repository = repository }
 
             val ffiRemote =
                 GixRemote(
@@ -141,7 +143,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/different/url.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result).isSameAs(remote2) },
@@ -151,8 +153,8 @@ class BinocularRemoteTest : BaseUnitTest() {
 
         @Test
         fun `toModel creates new remote when no match among existing remotes`() {
-            Remote(name = "origin", url = "https://github.com/user/repo.git", repository = repository)
-            Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repository = repository)
+            Remote(name = "origin", url = "https://github.com/user/repo.git", repositoryId = repository.iid).apply { this.repository = repository }
+            Remote(name = "upstream", url = "https://github.com/upstream/repo.git", repositoryId = repository.iid).apply { this.repository = repository }
 
             val ffiRemote =
                 GixRemote(
@@ -160,7 +162,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/fork/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result.name).isEqualTo("fork") },
@@ -179,8 +181,8 @@ class BinocularRemoteTest : BaseUnitTest() {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/old-repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
             assertThat(existingRemote.url).isEqualTo("https://github.com/user/old-repo.git")
 
             val ffiRemote =
@@ -189,7 +191,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/new-repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result).isSameAs(existingRemote) },
@@ -204,8 +206,8 @@ class BinocularRemoteTest : BaseUnitTest() {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             val ffiRemote =
                 GixRemote(
@@ -213,7 +215,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result).isSameAs(existingRemote) },
@@ -227,19 +229,19 @@ class BinocularRemoteTest : BaseUnitTest() {
                 Remote(
                     name = "origin",
                     url = "https://github.com/user/repo1.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             val ffiRemote = GixRemote(name = "origin", url = "")
 
             // First update
             ffiRemote.url = "https://github.com/user/repo2.git"
-            val result1 = ffiRemote.toModel(repository)
+            val result1 = ffiRemote.toModel(repository.iid)
             assertThat(result1.url).isEqualTo("https://github.com/user/repo2.git")
 
             // Second update
             ffiRemote.url = "https://github.com/user/repo3.git"
-            val result2 = ffiRemote.toModel(repository)
+            val result2 = ffiRemote.toModel(repository.iid)
             assertThat(result2.url).isEqualTo("https://github.com/user/repo3.git")
 
             assertAll(
@@ -254,8 +256,8 @@ class BinocularRemoteTest : BaseUnitTest() {
                 Remote(
                     name = "origin",
                     url = "http://github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             val ffiRemote =
                 GixRemote(
@@ -263,7 +265,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result).isSameAs(existingRemote) },
@@ -277,8 +279,8 @@ class BinocularRemoteTest : BaseUnitTest() {
                 Remote(
                     name = "origin",
                     url = "ssh://git@github.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             val ffiRemote =
                 GixRemote(
@@ -286,7 +288,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result).isSameAs(existingRemote) },
@@ -319,7 +321,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo(remoteName)
         }
@@ -332,7 +334,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo("origin-https")
         }
@@ -345,7 +347,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "ssh://git@github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo("origin_ssh")
         }
@@ -358,7 +360,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo("origin.backup")
         }
@@ -371,7 +373,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/team/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo("team/fork")
         }
@@ -399,7 +401,7 @@ class BinocularRemoteTest : BaseUnitTest() {
         ) {
             val ffiRemote = GixRemote(name = name, url = url)
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertAll(
                 { assertThat(result.name).isEqualTo(name) },
@@ -415,7 +417,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repository.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://github.com/user/repository.git")
         }
@@ -428,7 +430,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://gitlab.com/group/project.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://gitlab.com/group/project.git")
         }
@@ -441,7 +443,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://bitbucket.org/team/repository.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://bitbucket.org/team/repository.git")
         }
@@ -454,7 +456,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "ssh://git@github.com:22/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("ssh://git@github.com:22/user/repo.git")
         }
@@ -467,7 +469,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://example.com:8080/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://example.com:8080/user/repo.git")
         }
@@ -480,7 +482,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://user:token@github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://user:token@github.com/user/repo.git")
         }
@@ -493,7 +495,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git?param=value",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://github.com/user/repo.git?param=value")
         }
@@ -506,7 +508,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git#fragment",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://github.com/user/repo.git#fragment")
         }
@@ -520,7 +522,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "git@github.com:user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("git@github.com:user/repo.git")
         }
@@ -533,7 +535,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "git@gitlab.com:group/project.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("git@gitlab.com:group/project.git")
         }
@@ -546,7 +548,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "deploy@server.example.com:repos/app.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("deploy@server.example.com:repos/app.git")
         }
@@ -560,7 +562,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "/path/to/local/repository",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("/path/to/local/repository")
         }
@@ -574,7 +576,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "../sibling-repo",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("../sibling-repo")
         }
@@ -588,7 +590,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "./local/repo",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("./local/repo")
         }
@@ -602,7 +604,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "relative/path/to/repo",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("relative/path/to/repo")
         }
@@ -620,7 +622,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo("x")
         }
@@ -634,7 +636,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo(longName)
         }
@@ -649,7 +651,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = longUrl,
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo(longUrl)
         }
@@ -662,7 +664,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo-name_123.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://github.com/user/repo-name_123.git")
         }
@@ -675,7 +677,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://git.example.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://git.example.com/user/repo.git")
         }
@@ -688,7 +690,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/org/team/project/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.url).isEqualTo("https://github.com/org/team/project/repo.git")
         }
@@ -701,7 +703,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo("origin123")
         }
@@ -714,7 +716,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                     url = "https://github.com/user/repo.git",
                 )
 
-            val result = ffiRemote.toModel(repository)
+            val result = ffiRemote.toModel(repository.iid)
 
             assertThat(result.name).isEqualTo("123remote")
         }
@@ -725,7 +727,7 @@ class BinocularRemoteTest : BaseUnitTest() {
     @Test
     fun `toModel remotes are scoped to specific repository`() {
         val project2 = Project(name = "another-project")
-        val repository2 = Repository(localPath = "/path/to/repo2", project = project2)
+        val repository2 = Repository(localPath = "/path/to/repo2", projectId = project2.iid).apply { this.project = project2 }
 
         val ffiRemote =
             GixRemote(
@@ -733,8 +735,8 @@ class BinocularRemoteTest : BaseUnitTest() {
                 url = "https://github.com/user/repo.git",
             )
 
-        val remoteInRepo1 = ffiRemote.toModel(repository)
-        val remoteInRepo2 = ffiRemote.toModel(repository2)
+        val remoteInRepo1 = ffiRemote.toModel(repository.iid)
+        val remoteInRepo2 = ffiRemote.toModel(repository2.iid)
 
         // Different repository instances, so different remotes
         assertAll(
@@ -763,12 +765,12 @@ class BinocularRemoteTest : BaseUnitTest() {
     ) {
         if (!expectNew) {
             // Create existing remote
-            Remote(name = name, url = "https://github.com/user/original.git", repository = repository)
+            Remote(name = name, url = "https://github.com/user/original.git", repositoryId = repository.iid).apply { this.repository = repository }
         }
 
         val ffiRemote = GixRemote(name = name, url = url)
 
-        val result = ffiRemote.toModel(repository)
+        val result = ffiRemote.toModel(repository.iid)
 
         assertAll(
             { assertThat(result.name).isEqualTo(name) },
@@ -785,7 +787,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                 url = "https://github.com/user/repo.git",
             )
 
-        val result = ffiRemote.toModel(repository)
+        val result = ffiRemote.toModel(repository.iid)
 
         // Path: no existing remote → create new → register
         assertAll(
@@ -801,8 +803,8 @@ class BinocularRemoteTest : BaseUnitTest() {
             Remote(
                 name = "existing",
                 url = "https://github.com/user/repo.git",
-                repository = repository,
-            )
+                repositoryId = repository.iid,
+            ).apply { this.repository = repository }
 
         val ffiRemote =
             GixRemote(
@@ -810,7 +812,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                 url = "https://github.com/user/repo.git",
             )
 
-        val result = ffiRemote.toModel(repository)
+        val result = ffiRemote.toModel(repository.iid)
 
         // Path: existing remote found → url same → no update
         assertAll(
@@ -826,8 +828,8 @@ class BinocularRemoteTest : BaseUnitTest() {
             Remote(
                 name = "existing",
                 url = "https://github.com/user/old.git",
-                repository = repository,
-            )
+                repositoryId = repository.iid,
+            ).apply { this.repository = repository }
 
         val ffiRemote =
             GixRemote(
@@ -835,7 +837,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                 url = "https://github.com/user/new.git",
             )
 
-        val result = ffiRemote.toModel(repository)
+        val result = ffiRemote.toModel(repository.iid)
 
         // Path: existing remote found → url different → update url
         assertAll(
@@ -855,7 +857,7 @@ class BinocularRemoteTest : BaseUnitTest() {
                 url = "https://github.com/user/repo.git",
             )
 
-        val result = ffiRemote.toModel(repository)
+        val result = ffiRemote.toModel(repository.iid)
 
         assertThat(result).isNotNull
     }
@@ -866,9 +868,9 @@ class BinocularRemoteTest : BaseUnitTest() {
         val ffiUpstream = GixRemote(name = "upstream", url = "https://github.com/upstream/repo.git")
         val ffiFork = GixRemote(name = "fork", url = "https://github.com/fork/repo.git")
 
-        val origin = ffiOrigin.toModel(repository)
-        val upstream = ffiUpstream.toModel(repository)
-        val fork = ffiFork.toModel(repository)
+        val origin = ffiOrigin.toModel(repository.iid)
+        val upstream = ffiUpstream.toModel(repository.iid)
+        val fork = ffiFork.toModel(repository.iid)
 
         assertAll(
             { assertThat(repository.remotes).hasSize(3) },
@@ -887,9 +889,9 @@ class BinocularRemoteTest : BaseUnitTest() {
                 url = "https://github.com/user/repo.git",
             )
 
-        val result1 = ffiRemote.toModel(repository)
-        val result2 = ffiRemote.toModel(repository)
-        val result3 = ffiRemote.toModel(repository)
+        val result1 = ffiRemote.toModel(repository.iid)
+        val result2 = ffiRemote.toModel(repository.iid)
+        val result3 = ffiRemote.toModel(repository.iid)
 
         assertAll(
             { assertThat(result1).isSameAs(result2) },

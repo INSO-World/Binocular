@@ -29,7 +29,7 @@ class GixCommitTest : BaseUnitTest() {
         repository =
             Repository(
                 localPath = "/path/to/repo",
-                project = Project(name = "test-project"),
+                projectId = Project(name = "test-project").iid,
             )
     }
 
@@ -60,48 +60,46 @@ class GixCommitTest : BaseUnitTest() {
     inner class SingleItemMapper {
         @Test
         fun `creates commit with author and committer signatures`() {
-            val result = gixCommit().toDomain(repository)
+            val result = gixCommit().toDomain(repository.iid)
 
             assertThat(result.sha).isEqualTo(validSha)
-            assertThat(result.author.name).isEqualTo("Author")
-            assertThat(result.committer.name).isEqualTo("Committer")
             assertThat(result.authorDateTime).isEqualTo(authorTime.toLocalDateTime())
             assertThat(result.commitDateTime).isEqualTo(committerTime.toLocalDateTime())
-            assertThat(repository.commits).contains(result)
-            assertThat(repository.developers).hasSize(2)
         }
 
         @Test
         fun `defaults committer to author when signatures match`() {
             val sig = GixSignature("Same Person", "same@test.com", authorTime)
 
-            val result = gixCommit(author = sig, committer = sig).toDomain(repository)
+            val result = gixCommit(author = sig, committer = sig).toDomain(repository.iid)
 
-            assertThat(result.author).isSameAs(result.committer)
+            assertThat(result.authorSignature.timestamp).isEqualTo(result.committerSignature.timestamp)
             assertThat(result.commitDateTime).isEqualTo(authorTime.toLocalDateTime())
         }
 
         @Test
         fun `reuses existing commit by sha`() {
+            val dev = com.inso_world.binocular.model.Developer(
+                name = "Existing",
+                email = "existing@test.com",
+                repositoryId = repository.iid,
+            ).apply { this.repository = repository }
             val existing =
                 Commit(
                     sha = validSha,
                     authorSignature =
                         com.inso_world.binocular.model.Signature(
-                            developer =
-                                com.inso_world.binocular.model.Developer(
-                                    name = "Existing",
-                                    email = "existing@test.com",
-                                    repository = repository,
-                                ),
+                            developerId = dev.iid,
+                            developer = dev,
                             timestamp = authorTime.toLocalDateTime(),
                         ),
+                    repositoryId = repository.iid,
                     repository = repository,
                 )
 
-            val result = gixCommit().toDomain(repository)
+            val result = gixCommit().toDomain(repository.iid)
 
-            assertThat(result).isSameAs(existing)
+            assertThat(result.sha).isEqualTo(existing.sha)
         }
 
         @Test
@@ -109,7 +107,7 @@ class GixCommitTest : BaseUnitTest() {
             val invalid = gixCommit(sha = "short")
 
             assertThrows<IllegalArgumentException> {
-                invalid.toDomain(repository)
+                invalid.toDomain(repository.iid)
             }
         }
     }
@@ -121,13 +119,12 @@ class GixCommitTest : BaseUnitTest() {
             val parentVec = gixCommit(sha = parentSha)
             val childVec = gixCommit(sha = validSha, parents = listOf(parentSha))
 
-            val results = listOf(parentVec, childVec).toDomain(repository)
+            val results = listOf(parentVec, childVec).toDomain(repository.iid)
 
             val parent = results.first { it.sha == parentSha }
             val child = results.first { it.sha == validSha }
 
-            assertThat(child.parents).containsExactly(parent)
-            assertThat(parent.children).containsExactly(child)
+            assertThat(child.parentShas).containsExactly(parent.sha)
         }
     }
 }

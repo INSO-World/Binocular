@@ -1,6 +1,7 @@
 package com.inso_world.binocular.jgit.tree;
 
 import com.inso_world.binocular.core.integration.base.BaseIntegrationTest;
+import com.inso_world.binocular.jgit.tree.TestModelFactory;
 import com.inso_world.binocular.jgit.JGitConfig;
 import com.inso_world.binocular.jgit.JGitGitIndexer;
 import com.inso_world.binocular.model.Branch;

@@ -32,6 +32,7 @@ internal class RemoteMapper(
 
         val entity = RemoteEntity(
             id = domain.id,
+            iid = domain.iid.value,
             name = domain.name,
             url = domain.url,
             repository = owner
@@ -47,7 +48,7 @@ internal class RemoteMapper(
             name = entity.name,
             url = entity.url,
             repositoryId = repoDomain.iid,
-            iid = Remote.Id(Uuid.random()) 
+            iid = Remote.Id(entity.iid)
         ).apply {
             id = entity.id
             repository = repoDomain

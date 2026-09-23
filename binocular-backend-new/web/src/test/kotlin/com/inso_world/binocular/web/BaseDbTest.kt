@@ -53,8 +53,8 @@ internal abstract class BaseDbTest : AbstractWebIntegrationTest() {
     @Autowired
     protected lateinit var noteRepository: NoteInfrastructurePort
 
-    @Autowired
-    protected lateinit var userRepository: UserInfrastructurePort
+    @Autowired(required = false)
+    protected var userRepository: UserInfrastructurePort? = null
 
     @Autowired
     protected lateinit var milestoneRepository: MilestoneInfrastructurePort

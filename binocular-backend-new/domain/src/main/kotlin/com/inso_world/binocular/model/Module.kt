@@ -17,15 +17,18 @@ data class Module(
     var files: List<File> = emptyList(),
     var childModules: List<Module> = emptyList(),
     var parentModules: List<Module> = emptyList(),
+    override val iid: Module.Id = Id(Uuid.random()),
 ): AbstractDomainObject<Module.Id, Module.Key>(
-    Id(Uuid.random())
+    iid
 ){
     @JvmInline
     value class Id(override val value: Uuid) : DomainId
 
-    // TODO work in progress, just for compatibility
-    data class Key(val key: String) // value object for lookups
+    data class Key(val path: String)
 
     override val uniqueKey: Key
-        get() = TODO("Not yet implemented")
+        get() = Key(path)
+
+    override fun equals(other: Any?) = super.equals(other)
+    override fun hashCode() = super.hashCode()
 }

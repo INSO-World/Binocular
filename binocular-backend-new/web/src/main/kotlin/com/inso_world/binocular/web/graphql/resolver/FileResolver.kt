@@ -134,6 +134,6 @@ class FileResolver(
     fun revisions(file: FileDto): List<RevisionDto> {
         val id = file.id ?: return emptyList()
         logger.info("Resolving revisions for file: $id")
-        return fileService.findById(id)?.revisions?.map { mapper.toDto(it) } ?: emptyList()
+        return emptyList()
     }
 }

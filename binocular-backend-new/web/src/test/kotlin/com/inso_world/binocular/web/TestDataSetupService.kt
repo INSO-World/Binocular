@@ -39,7 +39,7 @@ internal class TestDataSetupService(
     private val mergeRequestRepository: MergeRequestInfrastructurePort,
     private val moduleRepository: ModuleInfrastructurePort,
     private val noteRepository: NoteInfrastructurePort,
-    private val userRepository: UserInfrastructurePort,
+    @Autowired(required = false) private val userRepository: UserInfrastructurePort? = null,
     private val milestoneRepository: MilestoneInfrastructurePort,
 ) {
     /**
@@ -67,7 +67,7 @@ internal class TestDataSetupService(
         milestoneRepository.saveAll(TestDataProvider.testMilestones)
         moduleRepository.saveAll(TestDataProvider.testModules)
         noteRepository.saveAll(TestDataProvider.testNotes)
-        userRepository.saveAll(TestDataProvider.testUsers)
+        userRepository?.saveAll(TestDataProvider.testUsers)
         infrastructureDataSetup.setup()
     }
 }

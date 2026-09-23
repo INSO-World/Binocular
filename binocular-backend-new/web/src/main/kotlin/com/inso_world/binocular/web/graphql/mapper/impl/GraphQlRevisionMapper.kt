@@ -1,6 +1,8 @@
 package com.inso_world.binocular.web.graphql.mapper.impl
 
 import com.inso_world.binocular.model.Revision
+import com.inso_world.binocular.web.graphql.model.CommitDto
+import com.inso_world.binocular.web.graphql.model.FileDto
 import com.inso_world.binocular.web.graphql.model.RevisionDto
 import org.springframework.stereotype.Component
 
@@ -14,8 +16,8 @@ class GraphQlRevisionMapper(
         return RevisionDto(
             id = revision.iid.toString(),
             content = revision.content,
-            commit = commitMapper.toDto(revision.commit),
-            file = fileMapper.toDto(revision.file)
+            commit = CommitDto(sha = revision.commitSha),
+            file = FileDto(path = revision.filePath)
         )
     }
 }

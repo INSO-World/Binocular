@@ -60,6 +60,8 @@ internal class NoteTestPostgresConfig {
 
         override fun findByIid(iid: Note.Id): Note? = notes.find { it.iid == iid }
 
+        override fun findByIids(iids: Collection<Note.Id>): List<Note> = notes.filter { iids.contains(it.iid) }
+
         override fun findAll(): Iterable<Note> = notes
 
         override fun create(entity: Note): Note = entity

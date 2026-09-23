@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -54,6 +55,7 @@ internal class ModuleMapper
         override fun toEntity(domain: Module): ModuleEntity =
             ModuleEntity(
                 id = domain.id,
+                iid = domain.iid.value,
                 path = domain.path,
             )
 
@@ -73,6 +75,7 @@ internal class ModuleMapper
             return Module(
                 id = entity.id,
                 path = entity.path,
+                iid = Module.Id(entity.iid),
                 commits =
                     proxyFactory.createLazyList {
                         (entity.commits ?: emptyList()).map { commitEntity ->

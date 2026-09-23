@@ -18,8 +18,8 @@ internal class RepositoryDao(
 ) : SqlDao<RepositoryEntity, Long>(),
     IRepositoryDao {
     init {
-        this.setClazz(RepositoryEntity::class.java)
-        this.setRepository(repo)
+        this.clazz = RepositoryEntity::class.java
+        this.repository = repo
     }
 
     override fun findByIdWithAllRelations(id: Long): RepositoryEntity? = repo.findByIdWithAllRelations(id)

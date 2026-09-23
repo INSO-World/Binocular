@@ -11,8 +11,9 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 data class File(
     var path: String,
+    override val iid: File.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<File.Id, File.Key>(
-        Id(Uuid.random()),
+        iid,
     ) {
     @JvmInline
     value class Id(
@@ -35,6 +36,9 @@ data class File(
 
     override val uniqueKey: Key
         get() = Key(this.path)
+
+    override fun equals(other: Any?) = super.equals(other)
+    override fun hashCode(): Int = super.hashCode()
 
     override fun toString(): String = "File(path='$path', id=$id)"
 }

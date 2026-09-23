@@ -27,7 +27,6 @@ import kotlin.uuid.Uuid
  */
 @Component
 internal class MentionMapper : EntityMapper<Mention, MentionEntity> {
-    @Autowired
 
     /**
      * Converts a Mention value object to MentionEntity.

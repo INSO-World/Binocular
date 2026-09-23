@@ -50,4 +50,6 @@ internal interface IDao<T, I : Serializable> {
     fun saveAll(entities: Collection<T>): Iterable<T>
 
     fun flush()
+
+    fun count(): Long
 }

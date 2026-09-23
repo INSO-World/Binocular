@@ -17,8 +17,8 @@ internal class AccountDao(
 ) : SqlDao<AccountEntity, Long>(),
     IAccountDao {
     init {
-        this.setClazz(AccountEntity::class.java)
-        this.setRepository(repo)
+        this.clazz = AccountEntity::class.java
+        this.repository = repo
     }
 
     private object AccountEntitySpecification {

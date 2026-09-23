@@ -13,8 +13,8 @@ internal class NoteDao(
     private val noteRepository: com.inso_world.binocular.infrastructure.sql.persistence.repository.NoteRepository
 ) : SqlDao<NoteEntity, Long>(noteRepository), INoteDao {
     init {
-        this.setClazz(NoteEntity::class.java)
-        this.setRepository(noteRepository)
+        this.clazz = NoteEntity::class.java
+        this.repository = noteRepository
     }
 
     override fun findById(id: Long): NoteEntity? =

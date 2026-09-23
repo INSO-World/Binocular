@@ -19,15 +19,12 @@ class DeveloperModelTest {
     private lateinit var repository: Repository
 
     private fun developer(name: String = "Test", email: String = "test@example.com"): Developer =
-        Developer(name = name, email = email, repositoryId = repository.iid).apply {
-            this.repository = this@DeveloperModelTest.repository
-            this.repository?.developers?.add(this)
-        }
+        Developer(name = name, email = email, repositoryId = repository.iid)
 
     @BeforeEach
     fun setUp() {
         val project = Project(name = "test-project")
-        repository = Repository(localPath = "test-repo", projectId = project.iid).apply { this.project = project }
+        repository = Repository(localPath = "test-repo", projectId = project.iid)
     }
 
     @Nested
@@ -39,30 +36,24 @@ class DeveloperModelTest {
             val email = "john@example.com"
 
             // When
-            val developer = Developer(name = name, email = email, repositoryId = repository.iid).apply { 
-                this.repository = this@DeveloperModelTest.repository 
-                this.repository?.developers?.add(this)
-            }
+            val developer = Developer(name = name, email = email, repositoryId = repository.iid)
 
             // Then
             assertAll(
                 { assertThat(developer.name).isEqualTo(name) },
                 { assertThat(developer.email).isEqualTo(email) },
-                { assertThat(developer.repository).isSameAs(repository) },
+                { assertThat(developer.repositoryId).isEqualTo(repository.iid) },
                 { assertThat(developer.iid).isNotNull() },
             )
         }
 
         @Test
-        fun `given developer creation, when checking repository link, then developer should be in repository developers`() {
+        fun `given developer creation, when checking repository id, then it should match`() {
             // Given & When
-            val developer = Developer(name = "Jane", email = "jane@example.com", repositoryId = repository.iid).apply { 
-                this.repository = this@DeveloperModelTest.repository 
-                this.repository?.developers?.add(this)
-            }
+            val developer = Developer(name = "Jane", email = "jane@example.com", repositoryId = repository.iid)
 
             // Then
-            assertThat(repository.developers).contains(developer)
+            assertThat(developer.repositoryId).isEqualTo(repository.iid)
         }
 
         @ParameterizedTest
@@ -169,54 +160,6 @@ class DeveloperModelTest {
 
             // Then
             assertThat(developer).isInstanceOf(Stakeholder::class.java)
-        }
-    }
-
-    @Nested
-    inner class CommitRelations {
-        @Nested
-        inner class AuthoredCommits {
-            @Test
-            fun `given new developer, when checking authoredCommits, then it should be empty`() {
-                // Given
-                val developer = developer()
-
-                // Then
-                assertThat(developer.authoredCommits).isEmpty()
-            }
-        }
-
-        @Nested
-        inner class CommittedCommits {
-            @Test
-            fun `given new developer, when checking committedCommits, then it should be empty`() {
-                // Given
-                val developer = developer()
-
-                // Then
-                assertThat(developer.committedCommits).isEmpty()
-            }
-        }
-    }
-
-    @Nested
-    inner class FileAndIssueRelations {
-        @Test
-        fun `given new developer, when checking files, then it should be empty`() {
-            // Given
-            val developer = developer()
-
-            // Then
-            assertThat(developer.files).isEmpty()
-        }
-
-        @Test
-        fun `given new developer, when checking issues, then it should be empty`() {
-            // Given
-            val developer = developer()
-
-            // Then
-            assertThat(developer.issues).isEmpty()
         }
     }
 }

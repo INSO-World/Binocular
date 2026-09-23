@@ -9,11 +9,11 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 object TestModelFactory {
-    fun createProject(name: String, iid: Project.Id = Project.Id(Uuid.random())): Project = Project(name, iid = iid)
+    fun createProject(name: String, iid: Project.Id = Project.Id(Uuid.random())): Project = Project(name = name, iid = iid)
 
     fun createProjectWithRepo(name: String, iid: Project.Id = Project.Id(Uuid.random())): Project {
-        val p = Project(name, iid = iid)
-        val r = Repository("test-path", projectId = p.iid)
+        val p = Project(name = name, iid = iid)
+        val r = Repository(localPath = "test-path", projectId = p.iid)
         r.project = p
         return p
     }
@@ -25,10 +25,10 @@ object TestModelFactory {
         Repository(localPath, projectId = project.iid, iid = iid).apply { this.project = project }
 
     fun createDeveloper(name: String, email: String, repositoryId: Repository.Id, iid: Developer.Id = Developer.Id(Uuid.random())): Developer = 
-        Developer(name, email, repositoryId, iid)
+        Developer(name = name, email = email, repositoryId = repositoryId, iid = iid)
 
     fun createDeveloper(name: String, email: String, repository: Repository, iid: Developer.Id = Developer.Id(Uuid.random())): Developer =
-        Developer(name, email, repository.iid, iid).apply { this.repository = repository }
+        Developer(name = name, email = email, repositoryId = repository.iid, iid = iid).apply { this.repository = repository }
 
     fun createSignature(developerId: Developer.Id, timestamp: LocalDateTime): Signature = 
         Signature(developerId = developerId, timestamp = timestamp)

@@ -258,13 +258,6 @@ internal class DbExportControllerTest : RestControllerTest() {
                             actual.get("webUrl").asText()
                         }",
                     )
-                    assertEquals(
-                        expected.maxLength,
-                        actual.get("maxLength").asInt(),
-                        "File $index maxLength mismatch: expected ${expected.maxLength}, got ${
-                            actual.get("maxLength").asInt()
-                        }",
-                    )
                 }
             },
             // issues

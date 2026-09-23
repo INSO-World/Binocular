@@ -141,21 +141,32 @@ class RepositoryService {
             val existing = commitsByKey[key]
             if (existing != null) return@map existing
 
-            // Commit is new - check if developers are canonical
-            val canonicalAuthor = canonicalizeDeveloper(incoming.author)
-            val canonicalCommitter = canonicalizeDeveloper(incoming.committer)
+            val authorDev = incoming.authorSignature.developer
+            val committerDev = incoming.committerSignature.developer
 
-            val finalCommit = if (canonicalAuthor != incoming.author || canonicalCommitter != incoming.committer) {
+            val canonicalAuthor = authorDev?.let { canonicalizeDeveloper(it) }
+            val canonicalCommitter = committerDev?.let { canonicalizeDeveloper(it) }
+
+            val finalCommit = if (canonicalAuthor != authorDev || canonicalCommitter != committerDev) {
                 // Recreate commit with canonical developers because Signature is immutable
                 Commit(
                     sha = incoming.sha,
-                    authorSignature = incoming.authorSignature.copy(developer = canonicalAuthor),
-                    committerSignature = incoming.committerSignature.copy(developer = canonicalCommitter),
+                    authorSignature = incoming.authorSignature.copy(
+                        developer = canonicalAuthor,
+                        developerId = canonicalAuthor?.iid ?: incoming.authorSignature.developerId,
+                    ),
+                    committerSignature = incoming.committerSignature.copy(
+                        developer = canonicalCommitter,
+                        developerId = canonicalCommitter?.iid ?: incoming.committerSignature.developerId,
+                    ),
                     message = incoming.message,
+                    repositoryId = incoming.repositoryId,
                     repository = repo,
                 ).apply {
                     this.id = incoming.id
                     this.webUrl = incoming.webUrl
+                    this.parentShas.addAll(incoming.parentShas)
+                    this.childShas.addAll(incoming.childShas)
                 }
             } else {
                 incoming
@@ -168,31 +179,15 @@ class RepositoryService {
         // --- Pass 2: Canonicalize developers ---
         // (Handled in Pass 1 for new commits)
         commits.forEach { incoming ->
-            canonicalizeDeveloper(incoming.author)
-            canonicalizeDeveloper(incoming.committer)
+            incoming.authorSignature.developer?.let { canonicalizeDeveloper(it) }
+            incoming.committerSignature.developer?.let { canonicalizeDeveloper(it) }
         }
 
         // --- Pass 3: Wire parent-child relationships ---
-        // The domain model handles bidirectional linking automatically
         commits.forEach { incoming ->
             val canonicalCommit = canonicalizeCommit(incoming)
-
-            // Wire parents from incoming commit's parent list
-            incoming.parents.forEach { parentRaw ->
-                val canonicalParent = canonicalizeCommit(parentRaw)
-                // Domain model handles children back-link automatically
-                if (!canonicalCommit.parents.contains(canonicalParent)) {
-                    canonicalCommit.parents.add(canonicalParent)
-                }
-            }
-
-            // Wire children from incoming commit's children list (if any)
-            incoming.children.forEach { childRaw ->
-                val canonicalChild = canonicalizeCommit(childRaw)
-                if (!canonicalCommit.children.contains(canonicalChild)) {
-                    canonicalCommit.children.add(canonicalChild)
-                }
-            }
+            canonicalCommit.parentShas.addAll(incoming.parentShas)
+            canonicalCommit.childShas.addAll(incoming.childShas)
         }
 
         return canonicalInOrder
@@ -225,8 +220,6 @@ class RepositoryService {
      */
     fun create(repository: Repository): Repository {
         require(repository.id == null) { "Repository.id must be null to create repository" }
-        require(repository.project != null) { "Repository.project must not be null to create repository" }
-        require(repository.project.repo == repository) { "Mismatch in Repository and Project configuration" }
 
         return this.repositoryPort.create(repository)
     }
@@ -242,8 +235,8 @@ class RepositoryService {
             logger.info("Repository does not exist, creating new repository")
             return this.repositoryPort.create(
                 Repository(
-                    //id = null,
                     localPath = normalizePath(gitDir),
+                    projectId = p.iid,
                     project = p,
                 ),
             )
@@ -295,7 +288,7 @@ class RepositoryService {
 
         val newRepo = this.repositoryPort.update(repo)
 
-        logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${repo.project.name}")
+        logger.debug("Commits successfully added. New Commit count is ${repo.commits.count()} for project ${repo.projectId}")
         return newRepo
 //        } else {
 //            logger.info("No new commits were found, skipping update")

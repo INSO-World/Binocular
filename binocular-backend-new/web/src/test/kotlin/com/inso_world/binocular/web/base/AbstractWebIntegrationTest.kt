@@ -8,6 +8,10 @@ import org.springframework.test.context.ContextConfiguration
 
 @SpringBootTest(
     classes = [BinocularWebApplication::class],
+    // TODO ????
+    properties = [
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration"
+    ]
 )
 @AutoConfigureGraphQlTester
 @ContextConfiguration(

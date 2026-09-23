@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 internal class StatsMapper : EntityMapper<Stats, StatsEntity> {
-    @Autowired
 
     /**
      * Converts a Stats value object to StatsEntity.

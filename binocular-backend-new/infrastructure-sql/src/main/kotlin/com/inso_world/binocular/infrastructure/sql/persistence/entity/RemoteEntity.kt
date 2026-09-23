@@ -53,7 +53,8 @@ internal data class RemoteEntity(
         Remote(
             name = this.name,
             url = this.url,
-            repositoryId = repository.iid
+            repositoryId = repository.iid,
+            iid = this.iid,
         ).apply {
             this.id = this@RemoteEntity.id?.toString()
         }

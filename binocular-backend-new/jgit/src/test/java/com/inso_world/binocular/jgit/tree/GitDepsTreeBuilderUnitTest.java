@@ -40,7 +40,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
     void setUp() {
         builder = new GitDepsTreeBuilder();
         project = TestModelFactory.createProject("test-project");
-        repository = TestModelFactory.createRepository("/test/path", project.getIid());
+        repository = TestModelFactory.createRepository("/test/path", project);
         shaCounter = 0;
     }
 
@@ -204,7 +204,7 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
         @Test
         void build_includesBranchNamesInNodes() {
             Commit commit = createCommit(LocalDateTime.now().minusDays(1), null);
-            Branch branch = TestModelFactory.createBranch("main", "refs/heads/main", repository.getIid(), commit.getSha());
+            Branch branch = TestModelFactory.createBranch("main", "refs/heads/main", repository, commit.getSha());
 
             List<Commit> commits = List.of(commit);
 
@@ -219,8 +219,8 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
         @Test
         void build_commitOnMultipleBranches_hasAllBranchNames() {
             Commit commit = createCommit(LocalDateTime.now().minusDays(1), null);
-            Branch b1 = TestModelFactory.createBranch("main", "refs/heads/main", repository.getIid(), commit.getSha());
-            Branch b2 = TestModelFactory.createBranch("develop", "refs/heads/develop", repository.getIid(), commit.getSha());
+            Branch b1 = TestModelFactory.createBranch("main", "refs/heads/main", repository, commit.getSha());
+            Branch b2 = TestModelFactory.createBranch("develop", "refs/heads/develop", repository, commit.getSha());
 
             List<Commit> commits = List.of(commit);
 
@@ -421,9 +421,9 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
     }
 
     private Commit createCommit(LocalDateTime dateTime, Commit parent) {
-        Developer dev = ModelFactory.createDeveloper("Test Developer", "test@example.com", repository.getIid());
-        Signature signature = ModelFactory.createSignature(dev.getIid(), dateTime);
-        Commit commit = ModelFactory.createCommit(generateSha(), signature, signature, "Test message", repository.getIid());
+        Developer dev = TestModelFactory.createDeveloper("Test Developer", "test@example.com", repository);
+        Signature signature = TestModelFactory.createSignature(dev, dateTime);
+        Commit commit = TestModelFactory.createCommit(generateSha(), signature, signature, "Test message", repository);
         if (parent != null) {
             commit.getParentShas().add(parent.getSha());
         }
@@ -431,9 +431,9 @@ class GitDepsTreeBuilderUnitTest extends BaseUnitTest {
     }
 
     private Commit createCommitWithParents(LocalDateTime dateTime, List<Commit> parents) {
-        Developer dev = ModelFactory.createDeveloper("Test Developer", "test@example.com", repository.getIid());
-        Signature signature = ModelFactory.createSignature(dev.getIid(), dateTime);
-        Commit commit = ModelFactory.createCommit(generateSha(), signature, signature, "Test message", repository.getIid());
+        Developer dev = TestModelFactory.createDeveloper("Test Developer", "test@example.com", repository);
+        Signature signature = TestModelFactory.createSignature(dev, dateTime);
+        Commit commit = TestModelFactory.createCommit(generateSha(), signature, signature, "Test message", repository);
         commit.getParentShas().addAll(parents.stream().map(Commit::getSha).collect(Collectors.toSet()));
         return commit;
     }

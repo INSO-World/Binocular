@@ -61,11 +61,20 @@ internal class RepositoryMapper : EntityMapper<Repository, RepositoryEntity> {
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
     override fun toEntity(domain: Repository): RepositoryEntity {
         // Find project or create a placeholder if it doesn't exist yet
-        val owner = projectRepository.findByIid(domain.projectId.value)
-            ?: ProjectEntity(
-                iid = domain.projectId.value,
-                name = "Unknown Project"
+        val owner = domain.project?.let {
+            ProjectEntity(
+                id = it.id,
+                name = it.name,
+                iid = it.iid.value
             )
+        } ?: if (::projectRepository.isInitialized) {
+            projectRepository.findByIid(domain.projectId.value)
+        } else {
+            null
+        } ?: ProjectEntity(
+            iid = domain.projectId.value,
+            name = "Unknown Project"
+        )
 
         val entity = domain.toArangoEntity(owner)
 

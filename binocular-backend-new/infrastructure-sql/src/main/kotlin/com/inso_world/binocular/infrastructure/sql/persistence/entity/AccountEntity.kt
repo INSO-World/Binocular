@@ -20,6 +20,7 @@ import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.springframework.data.util.ReflectionUtils.setField
 
 /**
  * SQL-specific Account entity.
@@ -93,6 +94,11 @@ internal data class AccountEntity(
         this.avatarUrl = this@AccountEntity.avatarUrl
         this.url = this@AccountEntity.url
         this.issueIds.addAll(this@AccountEntity.issues.map { it.iid })
+        setField(
+            Account::class.java.superclass.getDeclaredField("iid"),
+            this,
+            this@AccountEntity.iid,
+        )
     }
 
         // Use direct entity relationships and map them to domain objects using the new createLazyMappedList method

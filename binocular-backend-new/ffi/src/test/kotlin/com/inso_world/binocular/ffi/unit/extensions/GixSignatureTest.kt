@@ -25,8 +25,8 @@ class GixSignatureTest : BaseUnitTest() {
         repository =
             Repository(
                 localPath = "/path/to/repo",
-                project = project,
-            )
+                projectId = project.iid,
+            ).apply { this.project = project }
     }
 
     @Test
@@ -38,12 +38,11 @@ class GixSignatureTest : BaseUnitTest() {
                 time = GixTime(seconds = 0L, offset = 0),
             )
 
-        val developer = ffiSig.toDeveloper(repository)
+        val developer = ffiSig.toDeveloper(repository.iid)
 
         assertThat(developer.name).isEqualTo("Jane Dev")
         assertThat(developer.email).isEqualTo("jane@example.com")
-        assertThat(developer.repository).isSameAs(repository)
-        assertThat(repository.developers).contains(developer)
+        assertThat(developer.repositoryId).isEqualTo(repository.iid)
     }
 
     @Test
@@ -55,10 +54,8 @@ class GixSignatureTest : BaseUnitTest() {
                 time = GixTime(seconds = 1704067200L, offset = 0), // 2024-01-01T00:00:00Z
             )
 
-        val signature = ffiSig.toSignature(repository)
+        val signature = ffiSig.toSignature(repository.iid)
 
-        assertThat(signature.developer.name).isEqualTo("John Doe")
-        assertThat(signature.developer.email).isEqualTo("john@example.com")
         assertThat(signature.timestamp.year).isEqualTo(2024)
         assertThat(signature.timestamp.dayOfMonth).isEqualTo(1)
     }
@@ -69,8 +66,8 @@ class GixSignatureTest : BaseUnitTest() {
             com.inso_world.binocular.model.Developer(
                 name = "Existing Dev",
                 email = "existing@example.com",
-                repository = repository,
-            )
+                repositoryId = repository.iid,
+            ).apply { this.repository = repository }
 
         val ffiSig =
             GixSignature(
@@ -79,9 +76,9 @@ class GixSignatureTest : BaseUnitTest() {
                 time = GixTime(seconds = 0L, offset = 0),
             )
 
-        val result = ffiSig.toDeveloper(repository)
+        val result = ffiSig.toDeveloper(repository.iid)
 
-        assertThat(result).isSameAs(existing)
+        assertThat(result.gitSignature).isEqualTo(existing.gitSignature)
     }
 
     @Test
@@ -94,7 +91,7 @@ class GixSignatureTest : BaseUnitTest() {
             )
 
         assertThrows<IllegalArgumentException> {
-            ffiSig.toDeveloper(repository)
+            ffiSig.toDeveloper(repository.iid)
         }
     }
 
@@ -108,7 +105,7 @@ class GixSignatureTest : BaseUnitTest() {
             )
 
         assertThrows<IllegalArgumentException> {
-            ffiSig.toDeveloper(repository)
+            ffiSig.toDeveloper(repository.iid)
         }
     }
 }

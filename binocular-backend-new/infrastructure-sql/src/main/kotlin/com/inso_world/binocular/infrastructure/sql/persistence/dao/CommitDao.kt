@@ -24,8 +24,8 @@ internal class CommitDao(
 ) : SqlDao<CommitEntity, Long>(),
     ICommitDao {
     init {
-        this.setClazz(CommitEntity::class.java)
-        this.setRepository(repo)
+        this.clazz = CommitEntity::class.java
+        this.repository = repo
     }
 
     override fun findByIid(iid: com.inso_world.binocular.model.Commit.Id): CommitEntity? =

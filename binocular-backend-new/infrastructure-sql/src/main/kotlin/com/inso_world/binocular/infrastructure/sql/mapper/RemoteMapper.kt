@@ -26,16 +26,7 @@ internal class RemoteMapper : EntityMapper<Remote, RemoteEntity> {
         return entity
     }
 
-    override fun toDomain(entity: RemoteEntity): Remote {
-        val domain = entity.toDomain()
-        setField(
-            domain.javaClass.superclass.getDeclaredField("iid"),
-            domain,
-            entity.iid
-        )
-
-        return domain
-    }
+    override fun toDomain(entity: RemoteEntity): Remote = entity.toDomain()
 
     /**
      * Refreshes a Remote domain object with data from the corresponding entity.

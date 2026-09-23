@@ -8,7 +8,6 @@ import com.inso_world.binocular.infrastructure.sql.service.BranchInfrastructureP
 import com.inso_world.binocular.infrastructure.sql.service.CommitInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.ProjectInfrastructurePortImpl
 import com.inso_world.binocular.infrastructure.sql.service.RepositoryInfrastructurePortImpl
-import com.inso_world.binocular.infrastructure.sql.service.UserInfrastructurePortImpl
 import jakarta.persistence.EntityManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -20,16 +19,7 @@ internal class SqlInfrastructureDataSetup(
     private val projectInfrastructurePort: ProjectInfrastructurePortImpl,
     private val commitInfrastructurePort: CommitInfrastructurePortImpl,
     private val repositoryInfrastructurePort: RepositoryInfrastructurePortImpl,
-//    private val accountRepository: AccountInfrastructurePort,
     private val branchInfrastructurePort: BranchInfrastructurePortImpl,
-//    private val buildRepository: BuildInfrastructurePort,
-//    private val fileRepository: FileInfrastructurePort,
-//    private val issueRepository: IssueInfrastructurePort,
-//    private val mergeRequestRepository: MergeRequestInfrastructurePort,
-//    private val moduleRepository: ModuleInfrastructurePort,
-//    private val noteRepository: NoteInfrastructurePort,
-    private val userPort: UserInfrastructurePortImpl,
-//    private val milestoneRepository: MilestoneInfrastructurePort,
 ) : InfrastructureDataSetup {
 
     @Autowired

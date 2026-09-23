@@ -30,8 +30,8 @@ class RemoveOperation {
                     val cmt = mockTestDataProvider.commitBySha.getValue("a".repeat(40))
 
                     return@run listOf(
-                        cmt.children,
-                        cmt.parents,
+                        cmt.childShas,
+                        cmt.parentShas,
 //                    cmt.issues,
 //                    cmt.files,
 //                    cmt.builds,

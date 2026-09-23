@@ -24,8 +24,8 @@ internal class IssueDao(
 ) : SqlDao<IssueEntity, Long>(),
     IIssueDao {
     init {
-        this.setClazz(IssueEntity::class.java)
-        this.setRepository(repo)
+        this.clazz = IssueEntity::class.java
+        this.repository = repo
     }
 
     override fun findByIid(iid: Any): IssueEntity? {

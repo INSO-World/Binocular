@@ -48,7 +48,7 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     "MDQ9JXMlcjY5MoB7Nah4",
                     Platform.GitHub,
                     "user1",
-                    projects = mutableSetOf(testProject)
+                    projectIds = mutableSetOf(testProject.iid)
                 ).apply {
                     this.name = "User One"
                     this.avatarUrl = "https://example.com/avatars/user1.png"
@@ -81,7 +81,7 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser",
-                    mutableSetOf(testProject)
+                    projectIds = mutableSetOf(testProject.iid)
                 ).apply {
                     this.name = "User One"
                     this.avatarUrl = "https://example.com/avatars/user1.png"
@@ -91,7 +91,7 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "cba321",
                     platform = Platform.GitHub,
                     login = "testuser2",
-                    mutableSetOf(testProject)
+                    projectIds = mutableSetOf(testProject.iid)
                 ).apply {
                     this.name = "User Two"
                     this.avatarUrl = "https://example.com/avatars/user2.png"
@@ -126,7 +126,7 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser",
-                    mutableSetOf(testProject)
+                    projectIds = mutableSetOf(testProject.iid)
                 ).apply {
                     this.name = "User One"
                     this.avatarUrl = "https://example.com/avatars/user1.png"
@@ -136,7 +136,7 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser2",
-                    mutableSetOf(testProject)
+                    projectIds = mutableSetOf(testProject.iid)
                 ).apply {
                     this.name = "User Two"
                     this.avatarUrl = "https://example.com/avatars/user2.png"
@@ -169,7 +169,7 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "abc123",
                     platform = Platform.GitHub,
                     login = "testuser",
-                    mutableSetOf(testProject)
+                    projectIds = mutableSetOf(testProject.iid)
                 ).apply {
                     this.name = "User One"
                     this.avatarUrl = "https://example.com/avatars/user1.png"
@@ -179,7 +179,7 @@ internal class AccountInfrastructurePortImplTest : BaseServiceTest() {
                     gid = "cba321",
                     platform = Platform.GitHub,
                     login = "testuser2",
-                    mutableSetOf(testProject)
+                    projectIds = mutableSetOf(testProject.iid)
                 ).apply {
                     this.name = "User Two"
                     this.avatarUrl = "https://example.com/avatars/user2.png"

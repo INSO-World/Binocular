@@ -369,7 +369,10 @@ internal class RemoteValidationTest : ValidationTest() {
                     name = "origin",
                     url = "https://example.com/user/repo.git",
                     repositoryId = repository.iid,
-                ).apply { this.repository = repository }
+                ).apply {
+                    this.repository = this@RemoteValidationTest.repository
+                    this@RemoteValidationTest.repository.remotes.add(this)
+                }
 
             // When
             val violations = validator.validate(remote)
@@ -507,8 +510,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = longName,
                     url = "https://example.com/user/repo.git",
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             // When
             val violations = validator.validate(remote)
@@ -534,8 +537,8 @@ internal class RemoteValidationTest : ValidationTest() {
                 Remote(
                     name = "origin",
                     url = longUrl,
-                    repository = repository,
-                )
+                    repositoryId = repository.iid,
+                ).apply { this.repository = repository }
 
             // When
             val violations = validator.validate(remote)

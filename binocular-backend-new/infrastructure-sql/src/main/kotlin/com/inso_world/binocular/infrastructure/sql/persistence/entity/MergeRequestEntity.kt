@@ -12,6 +12,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.util.Objects
@@ -50,22 +52,27 @@ internal data class MergeRequestEntity(
     var project: ProjectEntity? = null,
 //    @OneToMany(mappedBy = "mergeRequest", cascade = [CascadeType.ALL], orphanRemoval = true)
 //    var mentions: MutableList<MentionEntity> = mutableListOf(),
-//    @ManyToMany(mappedBy = "mergeRequests")
-//    var accounts: MutableList<AccountEntity> = mutableListOf(),
-//    @ManyToMany
-//    @JoinTable(
-//        name = "merge_request_milestone_connections",
-//        joinColumns = [JoinColumn(name = "merge_request_id")],
-//        inverseJoinColumns = [JoinColumn(name = "milestone_id")],
-//    )
-//    var milestones: MutableList<MilestoneEntity> = mutableListOf(),
-//    @ManyToMany
-//    @JoinTable(
-//        name = "merge_request_note_connections",
-//        joinColumns = [JoinColumn(name = "merge_request_id")],
-//        inverseJoinColumns = [JoinColumn(name = "note_id")],
-//    )
-//    var notes: MutableList<NoteEntity> = mutableListOf(),
+    @ManyToMany
+    @JoinTable(
+        name = "merge_request_account_connections",
+        joinColumns = [JoinColumn(name = "merge_request_id")],
+        inverseJoinColumns = [JoinColumn(name = "account_id")],
+    )
+    var accounts: MutableList<AccountEntity> = mutableListOf(),
+    @ManyToMany
+    @JoinTable(
+        name = "merge_request_milestone_connections",
+        joinColumns = [JoinColumn(name = "merge_request_id")],
+        inverseJoinColumns = [JoinColumn(name = "milestone_id")],
+    )
+    var milestones: MutableList<MilestoneEntity> = mutableListOf(),
+    @ManyToMany
+    @JoinTable(
+        name = "merge_request_note_connections",
+        joinColumns = [JoinColumn(name = "merge_request_id")],
+        inverseJoinColumns = [JoinColumn(name = "note_id")],
+    )
+    var notes: MutableList<NoteEntity> = mutableListOf(),
 ) {
     /**
      * Gets the mentions as domain model mentions
@@ -134,8 +141,12 @@ internal data class MergeRequestEntity(
         state = this.state,
         webUrl = this.webUrl,
         mentions = emptyList(), // mentions need proper mapping if needed
+        iid = this.iid,
     ).apply {
         this.id = this@MergeRequestEntity.id?.toString()
+        noteIds.addAll(this@MergeRequestEntity.notes.map { it.iid })
+        milestoneIds.addAll(this@MergeRequestEntity.milestones.map { it.iid })
+        accountIds.addAll(this@MergeRequestEntity.accounts.map { it.iid })
     }
 }
 

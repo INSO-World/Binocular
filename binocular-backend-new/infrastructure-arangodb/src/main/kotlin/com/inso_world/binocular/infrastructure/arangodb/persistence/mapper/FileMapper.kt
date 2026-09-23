@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.delegates.logger
@@ -44,6 +45,7 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
         val entity =
             FileEntity(
                 id = domain.id,
+                iid = domain.iid.value,
                 path = domain.path,
                 webUrl = domain.webUrl,
                 maxLength = 0,
@@ -66,7 +68,10 @@ internal class FileMapper : EntityMapper<File, FileEntity> {
         // Fast-path: Check if already mapped
 
         val domain =
-            File(path = entity.path).apply {
+            File(
+                path = entity.path,
+                iid = File.Id(entity.iid),
+            ).apply {
                 id = entity.id
                 webUrl = entity.webUrl
             }

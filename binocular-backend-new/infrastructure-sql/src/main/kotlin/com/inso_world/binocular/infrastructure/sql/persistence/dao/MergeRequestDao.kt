@@ -14,8 +14,8 @@ internal class MergeRequestDao(
     private val projectRepository: com.inso_world.binocular.infrastructure.sql.persistence.repository.ProjectRepository
 ) : SqlDao<MergeRequestEntity, Long>(mrRepository), IMergeRequestDao {
     init {
-        this.setClazz(MergeRequestEntity::class.java)
-        this.setRepository(mrRepository)
+        this.clazz = MergeRequestEntity::class.java
+        this.repository = mrRepository
     }
 
     override fun findById(id: Long): MergeRequestEntity? =

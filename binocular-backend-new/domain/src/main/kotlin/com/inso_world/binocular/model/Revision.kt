@@ -11,8 +11,9 @@ data class Revision(
     val content: String? = null,
     val commitSha: String,
     val filePath: String,
+    override val iid: Revision.Id = Id(Uuid.random()),
 ) : AbstractDomainObject<Revision.Id, String>(
-    Id(Uuid.random())
+    iid
 ) {
     @JvmInline
     value class Id(override val value: Uuid) : DomainId

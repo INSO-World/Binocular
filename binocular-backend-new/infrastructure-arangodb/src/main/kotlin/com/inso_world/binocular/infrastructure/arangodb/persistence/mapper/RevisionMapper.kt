@@ -1,3 +1,4 @@
+@file:OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
@@ -30,7 +31,8 @@ internal class RevisionMapper : EntityMapper<Revision, RevisionEntity> {
         val domain = Revision(
             content = entity.content ?: "",
             commitSha = entity.commit.sha,
-            filePath = entity.file.path
+            filePath = entity.file.path,
+            iid = Revision.Id(entity.iid)
         ).apply {
             id = entity.id
         }

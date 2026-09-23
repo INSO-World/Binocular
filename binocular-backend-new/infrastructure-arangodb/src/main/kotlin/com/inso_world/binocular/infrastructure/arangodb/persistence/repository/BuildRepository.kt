@@ -8,9 +8,9 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @Repository
-interface BuildRepository : ArangoRepository<BuildEntity, String> {
+interface BuildRepository : ArangoRepository<BuildEntity, String>, TechnicalIdentifiableRepository<BuildEntity> {
     @OptIn(ExperimentalUuidApi::class)
-    fun findByIid(iid: Uuid): BuildEntity?
+    override fun findByIid(iid: Uuid): BuildEntity?
 
     @com.arangodb.springframework.annotation.Query(
         """
