@@ -709,7 +709,7 @@ function runBackend() {
         for (const mention of issue.data.commits) {
           const commit = commits.filter((c: any) => c.data.sha === mention);
           if (commit && commit[0]) {
-            await MergeRequestCommitConnection.connect({ closes: false }, { from: issue, to: commit[0] });
+            await MergeRequestCommitConnection.ensure({ closes: false }, { from: issue, to: commit[0] });
             matched = true;
           }
         }
@@ -717,7 +717,7 @@ function runBackend() {
       if (!matched && issue.data.mergeCommitSha) {
         const commit = commits.filter((c: any) => c.data.sha === issue.data.mergeCommitSha);
         if (commit && commit[0]) {
-          await MergeRequestCommitConnection.connect({ closes: false }, { from: issue, to: commit[0] });
+          await MergeRequestCommitConnection.ensure({ closes: false }, { from: issue, to: commit[0] });
         }
       }
     }
@@ -737,7 +737,7 @@ function runBackend() {
       for (const closingIssue of mergeRequest.data.closingIssues) {
         const issue = issues.filter((c: any) => c.data.id === closingIssue);
         if (issue && issue[0]) {
-          await IssueMergeRequestConnection.connect({}, { from: issue[0], to: mergeRequest });
+          await IssueMergeRequestConnection.ensure({}, { from: issue[0], to: mergeRequest });
         }
       }
     }
