@@ -15,7 +15,6 @@ RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
 ###
 FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS builder
 ENV NODE_ENV=production
-ENV NODE_OPTIONS=--max_old_space_size=4096
 ENV GENERATE_SOURCEMAP=false
 
 WORKDIR /app/binocular

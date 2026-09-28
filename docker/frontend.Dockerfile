@@ -12,7 +12,7 @@ RUN --mount=type=bind,src=./package.json,target=./package.json,readonly \
     --mount=type=bind,src=./binocular-frontend/package.json,target=./binocular-frontend/package.json,readonly \
     --mount=type=bind,src=./binocular-frontend-new/package.json,target=./binocular-frontend-new/package.json,readonly \
 #    npm ci --omit=optional --ignore-scripts && \
-# Error: Cannot find module @rollup/rollup-linux-x64-musl.
+# Error: Cannot find module @rollup/rollup-linux-x64-musl. \
     # npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828).
     # Please try `npm i` again after removing both package-lock.json and node_modules directory.
     npm i && \
@@ -24,7 +24,6 @@ FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine AS builder
 ARG NPM_BUILD_CMD="build:prod"
 ENV BUILD_CMD=${NPM_BUILD_CMD} 
 ENV NODE_ENV=production
-ENV NODE_OPTIONS=--max_old_space_size=4096
 ENV GENERATE_SOURCEMAP=false
 
 WORKDIR /app/binocular

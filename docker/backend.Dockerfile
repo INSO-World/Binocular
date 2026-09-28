@@ -30,7 +30,6 @@ FROM --platform=${BUILDPLATFORM} node:${NODE_VERSION}-alpine3.22 AS builder
 
 ENV APP_PATH=${APP_PATH_ARG}
 ENV NODE_ENV=production
-ENV NODE_OPTIONS=--max_old_space_size=4096
 ENV GENERATE_SOURCEMAP=false
 
 RUN apk add git
