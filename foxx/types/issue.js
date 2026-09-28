@@ -4,7 +4,6 @@ const gql = require('graphql-sync');
 const arangodb = require('@arangodb');
 const db = arangodb.db;
 const aql = arangodb.aql;
-const issuesToUsers = db._collection('issues-users');
 const issuesToAccounts = db._collection('issues-accounts');
 const issuesToCommits = db._collection('issues-commits');
 const issuesToMilestones = db._collection('issues-milestones');
@@ -58,23 +57,6 @@ module.exports = new gql.GraphQLObjectType({
         type: new gql.GraphQLList(gql.GraphQLString),
         description: 'Labels attached to the issue',
         resolve: (issue) => issue.labels || [],
-      },
-      creator: {
-        type: require('./user.js'),
-        description: 'The creator of this issue',
-        resolve(issue /*, args*/) {
-          return db
-            ._query(
-              aql`
-              FOR
-              user
-              IN
-              OUTBOUND ${issue} ${issuesToUsers}
-                RETURN user
-              `
-            )
-            .toArray()[0];
-        },
       },
       author: {
         type: require('./account.js'),
