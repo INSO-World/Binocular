@@ -121,6 +121,7 @@ cli.parse(
         updateJobs: false,
         export: true,
         server: false,
+        indexAllVulnerabilityBranches: false,
       };
       const targetPath = path.resolve(options.runIndexer ? __dirname + '/../' : options.runIndexer);
       ctx.setOptions(indexerOptions);

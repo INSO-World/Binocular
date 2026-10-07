@@ -113,7 +113,9 @@ class GitIndexer {
           .catch({ stop: true }, () => null);
       }
 
-      await runVulnerabilityEnrichment(this.repo, currentBranch);
+      await runVulnerabilityEnrichment(this.repo, currentBranch, {
+        indexAllBranches: this.context.argv.indexAllVulnerabilityBranches === true,
+      });
 
       //create branch-file connections
       //in the process, check which files have been renamed and store these in the branch-file-file connection

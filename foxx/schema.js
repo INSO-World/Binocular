@@ -325,6 +325,22 @@ const queryType = new gql.GraphQLObjectType({
           `;
         },
       }),
+      vulnerabilityAgeBucketBranches: {
+        type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+        description: 'Branches that have vulnerability age bucket snapshots',
+        resolve: () =>
+          db
+            ._query(
+              aql`
+                FOR doc IN ${vulnAgeBuckets}
+                  FILTER IS_STRING(doc.branch) && doc.branch != ""
+                  COLLECT branch = doc.branch
+                  SORT branch ASC
+                  RETURN branch
+              `,
+            )
+            .toArray(),
+      },
       vulnerabilityRemediationTimeSnapshots: paginated({
         type: require('./types/vulnerabilityRemediationTimeSnapshot.js'),
         args: {
@@ -358,6 +374,29 @@ const queryType = new gql.GraphQLObjectType({
           `;
         },
       }),
+      vulnerabilityRemediationTimeBranches: {
+        type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+        description: 'Branches that have vulnerability remediation snapshots for a resolution',
+        args: {
+          resolution: {
+            description: 'Bucket resolution ("month" or "week")',
+            type: new gql.GraphQLNonNull(gql.GraphQLString),
+          },
+        },
+        resolve: (root, args) =>
+          db
+            ._query(
+              aql`
+                FOR doc IN ${vulnRemediationSnapshots}
+                  FILTER doc.resolution == ${args.resolution}
+                  FILTER IS_STRING(doc.branch) && doc.branch != ""
+                  COLLECT branch = doc.branch
+                  SORT branch ASC
+                  RETURN branch
+              `,
+            )
+            .toArray(),
+      },
       vulnerabilityPatchLagSnapshots: paginated({
         type: require('./types/vulnerabilityPatchLagSnapshot.js'),
         args: {
@@ -396,6 +435,22 @@ const queryType = new gql.GraphQLObjectType({
     `;
         },
       }),
+      vulnerabilityPatchLagBranches: {
+        type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
+        description: 'Branches that have vulnerability patch lag snapshots',
+        resolve: () =>
+          db
+            ._query(
+              aql`
+                FOR doc IN ${vulnPatchLagSnapshots}
+                  FILTER IS_STRING(doc.branch) && doc.branch != ""
+                  COLLECT branch = doc.branch
+                  SORT branch ASC
+                  RETURN branch
+              `,
+            )
+            .toArray(),
+      },
       vulnerabilityDirectTransitiveSnapshots: paginated({
         type: require('./types/vulnerabilityDirectTransitiveSnapshot.js'),
         args: {

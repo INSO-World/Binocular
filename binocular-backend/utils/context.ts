@@ -43,6 +43,7 @@ function setOptions(options: {
   updateJobs: boolean;
   export: boolean;
   server: boolean;
+  indexAllVulnerabilityBranches: boolean;
 }) {
   this.argv = options;
 }

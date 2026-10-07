@@ -9,11 +9,11 @@ import { collectBranchDirectDependencyHistory } from './dependencySources.js';
 
 const log = debug('vuln-metrics:license-compliance');
 
-export async function computeLicenseComplianceSnapshots(repo, currentBranch) {
+export async function computeLicenseComplianceSnapshots(repo, currentBranch, { branches } = {}) {
   console.log('[LICENSE][START] collecting direct dependency histories');
 
-  const remoteBranches = await repo.getAllBranchesRemote().catch(() => []);
-  const branchNames = [...new Set([currentBranch, ...remoteBranches].map((branch) => String(branch || '').trim()).filter(Boolean))]
+  const requestedBranches = Array.isArray(branches) ? branches : [currentBranch, ...(await repo.getAllBranchesRemote().catch(() => []))];
+  const branchNames = [...new Set(requestedBranches.map((branch) => String(branch || '').trim()).filter(Boolean))]
     .filter((branch) => branch !== 'HEAD')
     .sort();
   const sourceCache = new Map();

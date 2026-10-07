@@ -128,12 +128,24 @@ export default class ServerDB {
     return VulnerabilityAgeBuckets.getVulnerabilityAgeBuckets(branch, since, until);
   }
 
+  static getVulnerabilityAgeBucketBranches() {
+    return VulnerabilityAgeBuckets.getVulnerabilityAgeBucketBranches();
+  }
+
   static getVulnerabilityRemediationTimeSnapshots(branch, resolution, since, until) {
     return VulnerabilityRemediationTimeSnapshots.getVulnerabilityRemediationTimeSnapshots(branch, resolution, since, until);
   }
 
+  static getVulnerabilityRemediationTimeBranches(resolution) {
+    return VulnerabilityRemediationTimeSnapshots.getVulnerabilityRemediationTimeBranches(resolution);
+  }
+
   static getVulnerabilityPatchLagSnapshots(branch, since, until, severities) {
     return VulnerabilityPatchLagSnapshots.getVulnerabilityPatchLagSnapshots(branch, since, until, severities);
+  }
+
+  static getVulnerabilityPatchLagBranches() {
+    return VulnerabilityPatchLagSnapshots.getVulnerabilityPatchLagBranches();
   }
 
   static getVulnerabilityDirectTransitiveSnapshots(branch, since, until) {

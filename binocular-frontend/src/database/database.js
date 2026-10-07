@@ -260,6 +260,14 @@ export default class Database {
     }
   }
 
+  static async getVulnerabilityAgeBucketBranches() {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityAgeBucketBranches();
+    } else {
+      return [];
+    }
+  }
+
   /**
    * VULNERABILITY REMEDIATION TIMES
    */
@@ -272,6 +280,14 @@ export default class Database {
     }
   }
 
+  static async getVulnerabilityRemediationTimeBranches(resolution) {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityRemediationTimeBranches(resolution);
+    } else {
+      return [];
+    }
+  }
+
   /**
    * PATCH LAG SNAPSHOTS
    */
@@ -280,6 +296,14 @@ export default class Database {
       return ServerDB.getVulnerabilityPatchLagSnapshots(branch, since, until, severities);
     } else {
       // PoC: no offline PouchDB version yet
+      return [];
+    }
+  }
+
+  static async getVulnerabilityPatchLagBranches() {
+    if (await this.checkBackendConnection()) {
+      return ServerDB.getVulnerabilityPatchLagBranches();
+    } else {
       return [];
     }
   }

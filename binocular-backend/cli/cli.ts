@@ -19,6 +19,7 @@ interface runOptions {
   updateJobs: boolean;
   export: boolean;
   server: boolean;
+  indexAllVulnerabilityBranches: boolean;
 }
 
 interface buildOptions {
@@ -68,6 +69,7 @@ function parse(run: (targetPath: string, options: runOptions) => void, build: (o
     .addOption(new Option('--update-jobs', 'update details about github jobs').default(false))
     .addOption(new Option('--gql-port <port>', 'port where the graphql service is hosted').default(48763))
     .addOption(new Option('--export', 'export the db to the default folder of binocular').default(false))
+    .addOption(new Option('--index-all-vulnerability-branches', 'index vulnerability metrics for every branch').default(false))
     .addOption(new Option('--no-server', 'disable the backed webserver (when used binocular quits after indexing)').default(true))
     .action((targetPath: string, options: runOptions) => {
       run(path.resolve(targetPath ? targetPath : '.'), options);

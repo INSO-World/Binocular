@@ -9,11 +9,11 @@ import { collectBranchDirectDependencyHistory } from './dependencySources.js';
 
 const log = debug('vuln-metrics:outdated-dependencies');
 
-export async function computeOutdatedDependencyPercentages(repo, currentBranch) {
+export async function computeOutdatedDependencyPercentages(repo, currentBranch, { branches } = {}) {
   console.log('[OUTDATED][START] collecting branch dependency histories');
 
-  const remoteBranches = await repo.getAllBranchesRemote().catch(() => []);
-  const branchNames = [...new Set([currentBranch, ...remoteBranches].map((branch) => String(branch || '').trim()).filter(Boolean))]
+  const requestedBranches = Array.isArray(branches) ? branches : [currentBranch, ...(await repo.getAllBranchesRemote().catch(() => []))];
+  const branchNames = [...new Set(requestedBranches.map((branch) => String(branch || '').trim()).filter(Boolean))]
     .filter((branch) => branch !== 'HEAD')
     .sort();
   const sourceCache = new Map();
