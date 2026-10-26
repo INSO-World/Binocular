@@ -9,7 +9,13 @@ import com.inso_world.binocular.infrastructure.sql.persistence.dao.IssueLinkDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.NoteDao
 import com.inso_world.binocular.infrastructure.sql.persistence.dao.ProjectDao
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.IssueEntity
-import com.inso_world.binocular.model.*
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Commit
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.Project
+import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.enums.IssueAccountRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Profile

@@ -4,7 +4,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.Repository
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import kotlin.uuid.Uuid
 
@@ -24,9 +23,7 @@ internal interface RepositoryRepository :
 //        ]
 //    )
     @Query("select r from RepositoryEntity r where r.id = :id")
-    fun findByIdWithAllRelations(
-        @Param("id") id: Long
-    ): RepositoryEntity?
+    fun findByIdWithAllRelations(id: Long): RepositoryEntity?
 
     fun findByIid(iid: Uuid): RepositoryEntity?
 
