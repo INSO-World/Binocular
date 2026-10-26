@@ -16,7 +16,7 @@ internal interface DeveloperRepository :
     @QueryHints(QueryHint(name = AvailableHints.HINT_FETCH_SIZE, value = "256"))
     fun findAllByEmailIn(emails: Collection<String>): Stream<DeveloperEntity>
 
-    fun findAllByRepository_Id(id: Long): Stream<DeveloperEntity>
+    fun findAllByRepositoryId(id: Long): Stream<DeveloperEntity>
 
     fun findByIid(iid: kotlin.uuid.Uuid): DeveloperEntity?
 

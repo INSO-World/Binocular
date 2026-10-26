@@ -69,6 +69,6 @@ internal class DeveloperDao(
     override fun findAllAsStream(repository: DomainRepository): Stream<DeveloperEntity> {
         val rid = repository.id
         if (rid == null) throw PersistenceException("Cannot search for repo without valid ID")
-        return this.repo.findAllByRepository_Id(rid.toLongOrNull() ?: throw PersistenceException("Invalid repo ID: $rid"))
+        return this.repo.findAllByRepositoryId(rid.toLongOrNull() ?: throw PersistenceException("Invalid repo ID: $rid"))
     }
 }

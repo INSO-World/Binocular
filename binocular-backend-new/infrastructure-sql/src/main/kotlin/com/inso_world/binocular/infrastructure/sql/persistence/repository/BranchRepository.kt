@@ -8,7 +8,7 @@ import kotlin.uuid.Uuid
 internal interface BranchRepository :
     JpaRepository<BranchEntity, Long>,
     JpaSpecificationExecutor<BranchEntity> {
-    fun findByRepository_IdAndName(
+    fun findByRepositoryIdAndName(
         repositoryId: Long,
         name: String,
     ): BranchEntity?
