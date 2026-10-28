@@ -23,8 +23,8 @@ import { randomUUID, createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { exit } from 'node:process';
-import crypto from 'node:crypto';
 import WebSocket from 'ws';
+import { CHROMIUM_MAJOR_VERSION, SEC_MS_GEC_VERSION, TRUSTED_CLIENT_TOKEN, generateSecMsGec, muidCookie } from './edgeTtsDrm.mjs';
 
 const DEFAULT_VOICE = 'en-GB-RyanNeural';
 const GAP_SEC = 0.4;
@@ -99,23 +99,6 @@ function printSectionTotals(manifest) {
 
 // ─── Edge TTS client (same undocumented WebSocket API as edge-tts-trial.mjs) ────────────────────
 
-const TRUSTED_CLIENT_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
-const CHROMIUM_FULL_VERSION = '143.0.3650.75';
-const CHROMIUM_MAJOR_VERSION = '143';
-const SEC_MS_GEC_VERSION = `1-${CHROMIUM_FULL_VERSION}`;
-const WIN_EPOCH = 11644473600;
-
-function generateSecMsGec() {
-  let ticks = Date.now() / 1000 + WIN_EPOCH;
-  ticks -= ticks % 300;
-  ticks *= 1e9 / 100;
-  return crypto
-    .createHash('sha256')
-    .update(`${Math.floor(ticks)}${TRUSTED_CLIENT_TOKEN}`)
-    .digest('hex')
-    .toUpperCase();
-}
-
 const USER_AGENT =
   `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ` +
   `Chrome/${CHROMIUM_MAJOR_VERSION}.0.0.0 Safari/537.36 Edg/${CHROMIUM_MAJOR_VERSION}.0.0.0`;
@@ -152,6 +135,7 @@ const SPEECH_OVERRIDES = [
   [/\bGitLab\b/g, 'Gitlab'],
   [/\bgit\b/g, 'Gitt'],
   [/\bassignee\b/gi, 'assign-E'],
+  [/\bplugin(s?)\b/gi, 'plug-in$1'],
   [/curved\/stepped\/linear/g, 'curved, stepped, or linear'],
   [/success\/fail/g, 'success or fail'],
   [/addition\/deletion/g, 'addition or deletion'],
@@ -256,6 +240,7 @@ async function openEdgeTtsSocket() {
       'User-Agent': USER_AGENT,
       'Accept-Encoding': 'gzip, deflate, br',
       'Accept-Language': 'en-US,en;q=0.9',
+      Cookie: muidCookie(),
     },
   });
 
@@ -303,9 +288,11 @@ function slugify(name) {
 const MANIFEST_VERSION = 1;
 const DASH_GAP_SEC = 0.25;
 
+// Hashes the cleaned (spoken) text too, so editing SPEECH_OVERRIDES or cleanForSpeech invalidates the cache.
 function cuesHash(cues) {
+  const spoken = cues.map((c) => cleanForSpeech(c.text));
   return createHash('sha256')
-    .update(JSON.stringify({ v: MANIFEST_VERSION, cues }))
+    .update(JSON.stringify({ v: MANIFEST_VERSION, cues, spoken }))
     .digest('hex')
     .slice(0, 16);
 }
