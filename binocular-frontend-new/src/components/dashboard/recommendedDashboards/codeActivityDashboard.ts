@@ -1,0 +1,70 @@
+import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
+
+const dashboard: DashboardLayout = {
+  category: DashboardLayoutCategory.BASIC,
+  name: 'Code Activity',
+  items: [
+    {
+      id: 0,
+      width: 10,
+      height: 12,
+      pluginName: 'Repository Stats',
+      dataPluginId: undefined,
+      x: 0,
+      y: 0,
+      settings: { commits: true, contributors: true, issues: true, builds: true, mergeRequests: false },
+    },
+    {
+      id: 0,
+      width: 30,
+      height: 12,
+      pluginName: 'Changes',
+      dataPluginId: undefined,
+      x: 10,
+      y: 0,
+      settings: { splitAdditionsDeletions: true, visualizationStyle: 'stepped', showSprints: true },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Repository Activity',
+      dataPluginId: undefined,
+      x: 0,
+      y: 12,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Change Frequency',
+      dataPluginId: undefined,
+      x: 20,
+      y: 12,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Merge Requests',
+      dataPluginId: undefined,
+      x: 0,
+      y: 24,
+      settings: { splitMergeRequestsPerAuthor: true, breakdown: true, visualizationStyle: 'stepped', showSprints: true },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Knowledge Radar',
+      dataPluginId: undefined,
+      x: 20,
+      y: 24,
+      settings: undefined,
+    },
+  ],
+};
+
+export default dashboard;

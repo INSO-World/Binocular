@@ -15,7 +15,7 @@ export interface DashboardItemType extends DashboardItemDTO {
   dataPluginId: number | undefined;
   // any needed for all the different extended setting types
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
-  settings?: DefaultSettings & { [key: string]: any };
+  settings?: Partial<DefaultSettings> & { [key: string]: any };
   ignoreGlobalParameters?: boolean;
   localParametersGeneral?: ParametersGeneralType;
   localParametersDateRange?: ParametersDateRangeType;

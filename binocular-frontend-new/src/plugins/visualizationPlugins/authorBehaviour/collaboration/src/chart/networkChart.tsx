@@ -407,7 +407,6 @@ export const NetworkChart = ({ width, height, data }: NetworkChartProps) => {
             justifyContent: 'center',
             fontSize: '1.2rem',
             fontWeight: 'bold',
-            zIndex: 1,
           }}>
           Simulating graph layout...
         </div>

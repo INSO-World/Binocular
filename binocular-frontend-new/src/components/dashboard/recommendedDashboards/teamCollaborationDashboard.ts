@@ -1,0 +1,81 @@
+import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
+
+const dashboard: DashboardLayout = {
+  category: DashboardLayoutCategory.ADVANCED,
+  name: 'Team Collaboration',
+  items: [
+    {
+      id: 0,
+      width: 10,
+      height: 12,
+      pluginName: 'Repository Stats',
+      dataPluginId: undefined,
+      x: 0,
+      y: 0,
+      settings: { commits: true, contributors: true, issues: false, builds: false, mergeRequests: true },
+    },
+    {
+      id: 0,
+      width: 30,
+      height: 12,
+      pluginName: 'Sum Commits',
+      dataPluginId: undefined,
+      x: 10,
+      y: 0,
+      settings: { showMean: true, showOther: true, minCommits: 0, topN: 10, visualizationStyle: 'curved', showSprints: false },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Code Ownership',
+      dataPluginId: undefined,
+      x: 0,
+      y: 12,
+      settings: {
+        displayMode: 'relative',
+        currentBranch: undefined,
+        visualizationStyle: 'curved',
+        showSprints: false,
+      },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Collaboration',
+      dataPluginId: undefined,
+      x: 20,
+      y: 12,
+      settings: { minEdgeValue: 0, maxEdgeValue: 50, includeCommitMessageRefs: true },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Knowledge Radar',
+      dataPluginId: undefined,
+      x: 0,
+      y: 24,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Time Spent',
+      dataPluginId: undefined,
+      x: 20,
+      y: 24,
+      settings: {
+        splitTimePerIssue: false,
+        splitSpentRemoved: false,
+        breakdown: true,
+        visualizationStyle: 'curved',
+        showSprints: false,
+      },
+    },
+  ],
+};
+
+export default dashboard;

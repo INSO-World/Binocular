@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from '../../../../../../components/icon';
 import { FolderView } from './folderView.tsx';
 
 export type FolderWithRatio = {
@@ -16,6 +17,10 @@ type FileChange = {
 
 type FileChangeWithRatio = FileChange & { changeRatio: number };
 
+// One row of the hover tooltip: a name plus its own additions/deletions, colored like a diff, and whether it's a folder or a file.
+export type TooltipEntry = { label: string; additions: number; deletions: number; kind: 'folder' | 'file' };
+type TooltipData = { x: number; y: number; main: TooltipEntry; children?: TooltipEntry[] };
+
 type CommitByFileVizProps = {
   width: number;
   height: number;
@@ -24,9 +29,16 @@ type CommitByFileVizProps = {
 
 const MARGIN = { top: 8, right: 8, bottom: 8, left: 8 };
 
+const DiffStat: React.FC<{ additions: number; deletions: number }> = ({ additions, deletions }) => (
+  <>
+    <span style={{ color: 'var(--color-success)' }}>+{additions}</span> <span style={{ color: 'var(--color-error)' }}>-{deletions}</span>
+  </>
+);
+
 export const CommitByFileViz: React.FC<CommitByFileVizProps> = ({ width, height, data }) => {
   const root = buildFolderTree(data);
   const [currentPath, setCurrentPath] = useState<string[]>([]);
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const isVertical = width < height;
   const boundsWidth = width - MARGIN.left - MARGIN.right;
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
@@ -35,6 +47,34 @@ export const CommitByFileViz: React.FC<CommitByFileVizProps> = ({ width, height,
 
   return (
     <div style={{ width: boundsWidth, height: boundsHeight, position: 'relative', marginLeft: MARGIN.left, marginTop: MARGIN.top }}>
+      {tooltip && (
+        <div
+          style={{
+            position: 'fixed',
+            top: tooltip.y + 20,
+            left: tooltip.x,
+            border: '2px solid var(--color-primary)',
+            background: 'var(--color-base-100)',
+            color: 'var(--color-base-content)',
+            padding: '.3rem .5rem',
+            borderRadius: '4px',
+            fontSize: '.75rem',
+            lineHeight: 1.5,
+            pointerEvents: 'none',
+            zIndex: 2,
+          }}>
+          <div>
+            <Icon name={tooltip.main.kind} size="w-3 h-3" colorClass="inherit" className="inline align-middle mr-1" />
+            <strong>{tooltip.main.label}:</strong> <DiffStat additions={tooltip.main.additions} deletions={tooltip.main.deletions} />
+          </div>
+          {tooltip.children?.map((child) => (
+            <div key={child.label} style={{ paddingLeft: '1rem' }}>
+              <Icon name={child.kind} size="w-3 h-3" colorClass="inherit" className="inline align-middle mr-1" />
+              <strong>{child.label}:</strong> <DiffStat additions={child.additions} deletions={child.deletions} />
+            </div>
+          ))}
+        </div>
+      )}
       {currentPath.length > 0 && (
         <>
           <button
@@ -83,6 +123,8 @@ export const CommitByFileViz: React.FC<CommitByFileVizProps> = ({ width, height,
         boundsWidth={boundsWidth}
         boundsHeight={boundsHeight}
         onNavigate={(folderName) => setCurrentPath([...currentPath, folderName])}
+        onHover={(e, main, children) => setTooltip({ x: e.clientX, y: e.clientY, main, children })}
+        onLeaveHover={() => setTooltip(null)}
       />
     </div>
   );

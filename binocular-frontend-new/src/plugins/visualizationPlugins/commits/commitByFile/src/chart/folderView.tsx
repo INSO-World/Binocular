@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from '../../../../../../components/icon';
-import type { FolderWithRatio } from './commitByFileViz.tsx';
+import type { FolderWithRatio, TooltipEntry } from './commitByFileViz.tsx';
 
 type FolderViewProps = {
   folder: FolderWithRatio;
@@ -8,9 +8,35 @@ type FolderViewProps = {
   boundsWidth: number;
   boundsHeight: number;
   onNavigate: (folderName: string) => void;
+  onHover: (e: React.MouseEvent, main: TooltipEntry, children?: TooltipEntry[]) => void;
+  onLeaveHover: () => void;
 };
 
-export const FolderView: React.FC<FolderViewProps> = ({ folder, isVertical, boundsWidth, boundsHeight, onNavigate }) => {
+// A folder's own direct children (subfolders, then files), each reduced to a tooltip row — one level deep only.
+const childEntries = (folder: FolderWithRatio): TooltipEntry[] => [
+  ...Object.entries(folder.subfolders).map(([name, node]) => ({
+    label: name,
+    additions: node.stats.additions,
+    deletions: node.stats.deletions,
+    kind: 'folder' as const,
+  })),
+  ...folder.files.map((file) => ({
+    label: file.file.path.split('/').pop() ?? file.file.path,
+    additions: file.stats.additions,
+    deletions: file.stats.deletions,
+    kind: 'file' as const,
+  })),
+];
+
+export const FolderView: React.FC<FolderViewProps> = ({
+  folder,
+  isVertical,
+  boundsWidth,
+  boundsHeight,
+  onNavigate,
+  onHover,
+  onLeaveHover,
+}) => {
   return (
     <div
       style={{
@@ -25,6 +51,7 @@ export const FolderView: React.FC<FolderViewProps> = ({ folder, isVertical, boun
         folder.files.map((file) => {
           const ratio = file.changeRatio / folder.changeRatio;
           const style = isVertical ? { height: `${ratio * 100}%`, width: '100%' } : { width: `${ratio * 100}%`, height: '100%' };
+          const fileLabel = file.file.path.split('/').pop() ?? file.file.path;
           return (
             <div
               key={file.file.path}
@@ -38,8 +65,15 @@ export const FolderView: React.FC<FolderViewProps> = ({ folder, isVertical, boun
                 fontSize: '0.7rem',
                 borderRadius: '10px',
               }}
-              title={`${file.file.path} — +${file.stats.additions} / -${file.stats.deletions}`}>
-              {file.file.path.split('/').pop()}
+              onMouseEnter={(e) =>
+                onHover(e, { label: fileLabel, additions: file.stats.additions, deletions: file.stats.deletions, kind: 'file' })
+              }
+              onMouseMove={(e) =>
+                onHover(e, { label: fileLabel, additions: file.stats.additions, deletions: file.stats.deletions, kind: 'file' })
+              }
+              onMouseLeave={onLeaveHover}>
+              <Icon name="file" size="w-4 h-4" colorClass="inherit" className="mr-1 shrink-0" />
+              {fileLabel}
             </div>
           );
         })}
@@ -66,8 +100,22 @@ export const FolderView: React.FC<FolderViewProps> = ({ folder, isVertical, boun
                 fontSize: '0.8rem',
                 fontWeight: 'bold',
               }}
-              title={`Folder ${childName}  — +${childNode.stats.additions} / -${childNode.stats.deletions}`}
-              onClick={() => onNavigate(childName)}>
+              onClick={() => onNavigate(childName)}
+              onMouseEnter={(e) =>
+                onHover(
+                  e,
+                  { label: childName, additions: childNode.stats.additions, deletions: childNode.stats.deletions, kind: 'folder' },
+                  childEntries(childNode),
+                )
+              }
+              onMouseMove={(e) =>
+                onHover(
+                  e,
+                  { label: childName, additions: childNode.stats.additions, deletions: childNode.stats.deletions, kind: 'folder' },
+                  childEntries(childNode),
+                )
+              }
+              onMouseLeave={onLeaveHover}>
               <Icon name="folder" size="w-5 h-5" colorClass="primary" className="mr-1 shrink-0" />
               {childName}
             </div>

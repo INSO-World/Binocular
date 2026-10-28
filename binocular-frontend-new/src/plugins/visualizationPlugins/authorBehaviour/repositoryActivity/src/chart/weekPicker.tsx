@@ -152,6 +152,7 @@ export default function WeekPicker({ onChange, onBack, initialWeek }: WeekPicker
 
           <button
             onClick={() => setIsPopupOpen(!isPopupOpen)}
+            aria-label="Select week"
             className="flex-1 text-center hover:bg-base-200 rounded px-2 py-1 transition-colors relative">
             <div className="text-xs font-medium text-base-content flex items-center justify-center gap-1">
               <Icon name="calendar" size="w-4 h-4" />

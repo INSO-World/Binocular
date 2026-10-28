@@ -5,8 +5,12 @@ function Help() {
       <h3>Data</h3>
       <p>
         The commit by file visualization provides an overview of the files changed in a specific commit. It allows users to easily see where
-        the main changes are made and how they are distributed across different files. Hovering over the files will show the full file path
-        the number of addictions and deletions made in that commit.
+        the main changes are made and how they are distributed across different files.
+      </p>
+      <h3>Hover</h3>
+      <p>
+        Hovering over a file shows its name plus how many lines it added and deleted in this commit. Hovering over a folder shows the same
+        totals for everything underneath it, plus a one-level breakdown of the subfolders and files directly inside it.
       </p>
       <h3>Parameters</h3>
       <div>
@@ -16,8 +20,6 @@ function Help() {
           </li>
         </ul>
       </div>
-      <h3>Mock Data</h3>
-      <p>Mock commits have been implemented for the SHAs &quot;1&quot; and &quot;2&quot;.</p>
     </div>
   );
 }

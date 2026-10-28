@@ -1,0 +1,75 @@
+import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
+
+const dashboard: DashboardLayout = {
+  category: DashboardLayoutCategory.ADVANCED,
+  name: 'Engineering Health',
+  items: [
+    {
+      id: 0,
+      width: 10,
+      height: 12,
+      pluginName: 'Repository Stats',
+      dataPluginId: undefined,
+      x: 0,
+      y: 0,
+      settings: { commits: true, contributors: true, issues: true, builds: false, mergeRequests: true },
+    },
+    {
+      id: 0,
+      width: 30,
+      height: 12,
+      pluginName: 'Changes',
+      dataPluginId: undefined,
+      x: 10,
+      y: 0,
+      settings: { splitAdditionsDeletions: false, visualizationStyle: 'linear', showSprints: false },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Code Expertise',
+      dataPluginId: undefined,
+      x: 0,
+      y: 12,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Code Ownership',
+      dataPluginId: undefined,
+      x: 20,
+      y: 12,
+      settings: {
+        displayMode: 'relative',
+        currentBranch: undefined,
+        visualizationStyle: 'curved',
+        showSprints: false,
+      },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Knowledge Radar',
+      dataPluginId: undefined,
+      x: 0,
+      y: 24,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Repository Activity',
+      dataPluginId: undefined,
+      x: 20,
+      y: 24,
+      settings: undefined,
+    },
+  ],
+};
+
+export default dashboard;

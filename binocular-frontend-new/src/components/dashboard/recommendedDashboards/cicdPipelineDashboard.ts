@@ -1,0 +1,70 @@
+import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
+
+const dashboard: DashboardLayout = {
+  category: DashboardLayoutCategory.ADVANCED,
+  name: 'CI/CD Pipeline',
+  items: [
+    {
+      id: 0,
+      width: 10,
+      height: 12,
+      pluginName: 'Repository Stats',
+      dataPluginId: undefined,
+      x: 0,
+      y: 0,
+      settings: { commits: true, contributors: false, issues: false, builds: true, mergeRequests: true },
+    },
+    {
+      id: 0,
+      width: 30,
+      height: 12,
+      pluginName: 'Builds',
+      dataPluginId: undefined,
+      x: 10,
+      y: 0,
+      settings: { splitBuildsPerAuthor: true, visualizationStyle: 'stepped', showSprints: false },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Merge Requests',
+      dataPluginId: undefined,
+      x: 0,
+      y: 12,
+      settings: { splitMergeRequestsPerAuthor: true, breakdown: false, visualizationStyle: 'linear', showSprints: false },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Issues',
+      dataPluginId: undefined,
+      x: 20,
+      y: 12,
+      settings: { splitIssuesPerAuthor: true, breakdown: false, visualizationStyle: 'stepped', showSprints: false },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Change Frequency',
+      dataPluginId: undefined,
+      x: 0,
+      y: 24,
+      settings: undefined,
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Sum Commits',
+      dataPluginId: undefined,
+      x: 20,
+      y: 24,
+      settings: { showMean: false, showOther: true, minCommits: 1, topN: 0, visualizationStyle: 'curved', showSprints: false },
+    },
+  ],
+};
+
+export default dashboard;

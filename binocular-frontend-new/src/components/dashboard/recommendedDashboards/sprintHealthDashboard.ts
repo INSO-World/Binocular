@@ -1,0 +1,76 @@
+import { DashboardLayoutCategory, type DashboardLayout } from '../../../types/general/dashboardLayoutType';
+
+const dashboard: DashboardLayout = {
+  category: DashboardLayoutCategory.BASIC,
+  name: 'Sprint Health',
+  items: [
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Burndown',
+      dataPluginId: undefined,
+      x: 0,
+      y: 0,
+      settings: { showSprints: true },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Issues Timeline',
+      dataPluginId: undefined,
+      x: 20,
+      y: 0,
+      settings: { showSprints: true, coloringMode: 'assignee', maxNumberOfDifferencesBetweenLabels: 3, minNumberOfLabelsPerGroup: 1 },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Time Spent',
+      dataPluginId: undefined,
+      x: 0,
+      y: 12,
+      settings: {
+        splitTimePerIssue: true,
+        splitSpentRemoved: false,
+        breakdown: true,
+        visualizationStyle: 'curved',
+        showSprints: true,
+      },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 12,
+      pluginName: 'Sum Commits',
+      dataPluginId: undefined,
+      x: 20,
+      y: 12,
+      settings: { showMean: true, showOther: false, minCommits: 0, topN: 8 },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Collaboration',
+      dataPluginId: undefined,
+      x: 0,
+      y: 24,
+      settings: { minEdgeValue: 2, maxEdgeValue: 75, includeCommitMessageRefs: true },
+    },
+    {
+      id: 0,
+      width: 20,
+      height: 16,
+      pluginName: 'Repository Activity',
+      dataPluginId: undefined,
+      x: 20,
+      y: 24,
+      settings: undefined,
+    },
+  ],
+};
+
+export default dashboard;
