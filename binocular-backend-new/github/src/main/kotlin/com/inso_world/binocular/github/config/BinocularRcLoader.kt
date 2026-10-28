@@ -19,7 +19,8 @@ import java.io.FileNotFoundException
  */
 @Component
 class BinocularRcLoader(
-    private val configFilePath: String? = null // optional path
+    // optional path
+    private val configFilePath: String? = null,
 ) {
     fun loadConfig(): BinocularRc {
         // take file from path or else find file

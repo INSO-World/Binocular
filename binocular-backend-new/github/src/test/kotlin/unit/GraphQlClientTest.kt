@@ -5,7 +5,9 @@ import com.inso_world.binocular.github.config.BinocularRcLoader
 import com.inso_world.binocular.github.exception.ServiceException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
