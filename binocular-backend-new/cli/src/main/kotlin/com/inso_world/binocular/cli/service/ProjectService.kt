@@ -136,9 +136,8 @@ class ProjectService(
                 if (login in accountCache.keys) {
                     val account = accountCache[login]
                     updatedAccountIds.add(account!!.iid)
-                }
-                // case 2: account exists in new accounts taken from GitHub
-                else if (login in newAccountCache.keys) {
+                } else if (login in newAccountCache.keys) {
+                    // case 2: account exists in new accounts taken from GitHub
                     val newAccount = newAccountCache[login]
                     if (newAccount != null) {
                         // add account to cache for other issues to find
@@ -147,9 +146,8 @@ class ProjectService(
                     } else {
                         logger.warn("Expected account for login '$login', but got null in newAccountCache")
                     }
-                }
-                // case 3: account is neither in db nor in GitHub response ...
-                else {
+                } else {
+                    // case 3: account is neither in db nor in GitHub response ...
                     logger.warn("No account found for login '$login', skipping assignee")
                 }
             }
