@@ -3,11 +3,17 @@ package com.inso_world.binocular.web.graphql.config
 import com.sun.jdi.LongValue
 import graphql.language.IntValue
 import graphql.language.StringValue
-import graphql.schema.*
+import graphql.schema.Coercing
+import graphql.schema.CoercingParseLiteralException
+import graphql.schema.CoercingParseValueException
+import graphql.schema.CoercingSerializeException
+import graphql.schema.GraphQLScalarType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.graphql.execution.RuntimeWiringConfigurer
-import java.time.*
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @Configuration

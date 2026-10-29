@@ -2,7 +2,9 @@ package com.inso_world.binocular.web.graphql.resolver
 
 import com.inso_world.binocular.core.service.MilestoneInfrastructurePort
 import com.inso_world.binocular.web.graphql.mapper.GraphQlMapper
-import com.inso_world.binocular.web.graphql.model.*
+import com.inso_world.binocular.web.graphql.model.IssueDto
+import com.inso_world.binocular.web.graphql.model.MergeRequestDto
+import com.inso_world.binocular.web.graphql.model.MilestoneDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
