@@ -303,10 +303,10 @@ class DomainModelAlignmentTest {
         val extraRelations = entityRelations.map { it.first }.toSet() - modelRelations.map { it.first }.toSet()
         if (extraRelations.isNotEmpty()) {
             for (extraRelation in extraRelations) {
+                val extraRelationType = entityRelations.find { it.first == extraRelation }?.second
                 println(
-                    "⚠️ ${entity.simpleName} has extra relation (edge) through field $extraRelation to entity class : ${entityRelations.find {
-                        it.first == extraRelation
-                    }?.second}."
+                    "⚠️ ${entity.simpleName} has extra relation (edge) through field $extraRelation " +
+                        "to entity class : $extraRelationType."
                 )
             }
         }

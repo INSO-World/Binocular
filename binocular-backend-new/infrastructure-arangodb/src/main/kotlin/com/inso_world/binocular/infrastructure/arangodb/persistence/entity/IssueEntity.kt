@@ -11,7 +11,7 @@ import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueNoteConnectionEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.IssueUserConnectionEntity
 import org.springframework.data.annotation.Id
-import java.util.*
+import java.util.Date
 import kotlin.uuid.Uuid
 
 /**

@@ -4,7 +4,13 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.infrastructure.arangodb.persistence.dao.interfaces.node.IRepositoryDao
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.RepositoryEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.mapper.RepositoryMapper
-import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.*
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.BranchRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.CommitRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.DeveloperRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.FileRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RemoteRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RepositoryRepository
+import com.inso_world.binocular.infrastructure.arangodb.persistence.repository.RevisionRepository
 import com.inso_world.binocular.model.Repository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy

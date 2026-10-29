@@ -13,7 +13,7 @@ interface CommitRepository :
     TechnicalIdentifiableRepository<CommitEntity> {
     override fun findByIid(iid: Uuid): CommitEntity?
 
-    fun findByRepository_IidAndSha(
+    fun findByRepositoryIidAndSha(
         repoIid: Uuid,
         sha: String
     ): CommitEntity?

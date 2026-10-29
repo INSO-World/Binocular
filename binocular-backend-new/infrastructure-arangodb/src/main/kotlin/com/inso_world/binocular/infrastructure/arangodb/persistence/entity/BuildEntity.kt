@@ -6,7 +6,7 @@ import com.arangodb.springframework.annotation.PersistentIndexed
 import com.arangodb.springframework.annotation.Relations
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.edges.CommitBuildConnectionEntity
 import org.springframework.data.annotation.Id
-import java.util.*
+import java.util.Date
 import kotlin.uuid.Uuid
 
 /**

@@ -4,7 +4,11 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.ProjectEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.toArangoEntity
-import com.inso_world.binocular.model.*
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

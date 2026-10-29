@@ -4,7 +4,12 @@ import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.AccountEntity
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.PlatformEntity
-import com.inso_world.binocular.model.*
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.Platform
+import com.inso_world.binocular.model.Project
 import org.springframework.stereotype.Component
 import kotlin.uuid.Uuid
 

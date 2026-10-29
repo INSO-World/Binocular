@@ -3,7 +3,10 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 import com.inso_world.binocular.core.delegates.logger
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MilestoneEntity
-import com.inso_world.binocular.model.*
+import com.inso_world.binocular.model.Issue
+import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Project
 import org.springframework.stereotype.Component
 import kotlin.uuid.Uuid
 

@@ -40,7 +40,7 @@ internal class BranchDao(
             repositoryRepository.findByIid(entity.repositoryId.value)
                 ?: throw IllegalStateException("Repository not found: ${entity.repositoryId.value}")
         val head =
-            commitRepository.findByRepository_IidAndSha(entity.repositoryId.value, entity.headSha)
+            commitRepository.findByRepositoryIidAndSha(entity.repositoryId.value, entity.headSha)
                 ?: throw IllegalStateException("Head commit not found: ${entity.headSha} in repository ${entity.repositoryId.value}")
 
         val mappedEntity = branchMapper.toEntity(entity, owner, head)

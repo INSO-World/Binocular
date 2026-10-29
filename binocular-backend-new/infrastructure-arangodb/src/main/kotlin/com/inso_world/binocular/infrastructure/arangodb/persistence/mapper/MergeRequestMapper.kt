@@ -2,7 +2,11 @@ package com.inso_world.binocular.infrastructure.arangodb.persistence.mapper
 
 import com.inso_world.binocular.core.persistence.mapper.EntityMapper
 import com.inso_world.binocular.infrastructure.arangodb.persistence.entity.MergeRequestEntity
-import com.inso_world.binocular.model.*
+import com.inso_world.binocular.model.Account
+import com.inso_world.binocular.model.MergeRequest
+import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Note
+import com.inso_world.binocular.model.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import kotlin.uuid.Uuid
