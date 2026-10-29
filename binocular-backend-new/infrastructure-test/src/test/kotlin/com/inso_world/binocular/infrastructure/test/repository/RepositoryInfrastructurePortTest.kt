@@ -24,10 +24,10 @@ import org.springframework.data.util.ReflectionUtils.setField
 
 @Disabled("Refactored in domain model #454")
 internal class RepositoryInfrastructurePortTest : BasePortNoDataTest() {
-    @all:Autowired
+    @Autowired
     private lateinit var repositoryPort: RepositoryInfrastructurePort
 
-    @all:Autowired
+    @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
 
     @Nested
@@ -78,7 +78,11 @@ internal class RepositoryInfrastructurePortTest : BasePortNoDataTest() {
                     },
                 )
             val savedRepo =
-                repositoryPort.create(Repository(localPath = "to-be-deleted-repo", projectId = savedProject.iid).apply { this.project = savedProject })
+                repositoryPort.create(
+                    Repository(localPath = "to-be-deleted-repo", projectId = savedProject.iid).apply {
+                        this.project = savedProject
+                    }
+                )
             // updated dependencies, as not managed by JPA
             projectPort.update(savedProject)
 
@@ -135,7 +139,9 @@ internal class RepositoryInfrastructurePortTest : BasePortNoDataTest() {
 
             // When - First repository should be created successfully
             val firstRepo =
-                repositoryPort.create(Repository(localPath = "first-repo", projectId = savedProject.iid).apply { this.project = savedProject })
+                repositoryPort.create(
+                    Repository(localPath = "first-repo", projectId = savedProject.iid).apply { this.project = savedProject }
+                )
 
             // Then - Verify first repository was created
             assertAll(
@@ -146,7 +152,11 @@ internal class RepositoryInfrastructurePortTest : BasePortNoDataTest() {
             // When - Second repository with same project should fail
             val ex =
                 assertThrows<IllegalArgumentException> {
-                    repositoryPort.create(Repository(localPath = "second-repo", projectId = savedProject.iid).apply { this.project = savedProject })
+                    repositoryPort.create(
+                        Repository(localPath = "second-repo", projectId = savedProject.iid).apply {
+                            this.project = savedProject
+                        }
+                    )
                 }
 
             // Then - Verify only one repository still exists
@@ -189,7 +199,9 @@ internal class RepositoryInfrastructurePortTest : BasePortNoDataTest() {
                     },
                 )
             val savedRepo =
-                repositoryPort.create(Repository(localPath = allowedName, projectId = savedProject.iid).apply { this.project = savedProject })
+                repositoryPort.create(
+                    Repository(localPath = allowedName, projectId = savedProject.iid).apply { this.project = savedProject }
+                )
             projectPort.update(savedProject)
 
             // Then
@@ -229,7 +241,11 @@ internal class RepositoryInfrastructurePortTest : BasePortNoDataTest() {
             // Then - This should fail due to unique constraint
             val ex =
                 assertThrows<DataIntegrityViolationException> {
-                    repositoryPort.create(Repository(localPath = "Duplicate Repo", projectId = savedProject2.iid).apply { this.project = savedProject2 })
+                    repositoryPort.create(
+                        Repository(localPath = "Duplicate Repo", projectId = savedProject2.iid).apply {
+                            this.project = savedProject2
+                        }
+                    )
                 }
             assertThat(repositoryPort.findAll()).hasSize(1)
         }

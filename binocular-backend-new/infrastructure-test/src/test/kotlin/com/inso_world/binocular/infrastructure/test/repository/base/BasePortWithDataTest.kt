@@ -29,13 +29,13 @@ import kotlin.io.path.Path
 )
 @ComponentScan(basePackages = ["com.inso_world.binocular.infrastructure.test", "com.inso_world.binocular.core"])
 internal class BasePortWithDataTest : BaseFixturesIntegrationTest() {
-    @all:Autowired
+    @Autowired
     private lateinit var testDataSetupService: InfrastructureDataSetup
 
-    @all:Autowired
+    @Autowired
     private lateinit var indexer: GitIndexer
 
-    @all:Autowired
+    @Autowired
     private lateinit var projectPort: ProjectInfrastructurePort
 
     /**
