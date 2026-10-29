@@ -29,4 +29,32 @@ databaseChangeLog:
                   name: iid
                   type: UUID
             tableName: issues
+  - changeSet:
+      id: 1773770859668-11
+      author: Markus
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: project_id
+                  type: BIGINT
+              - column:
+                  name: platform_iid
+                  type: INT
+            tableName: merge_requests
+  - changeSet:
+      id: 1773770859668-12
+      author: Markus
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropColumn:
+            columnName: iid
+            tableName: merge_requests
+        - addColumn:
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+            tableName: merge_requests
 

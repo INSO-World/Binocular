@@ -1,0 +1,470 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-09-17-01-create-notes
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: notes
+      changes:
+        - createTable:
+            tableName: notes
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_notes
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: body
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: VARCHAR(255)
+              - column:
+                  name: system
+                  type: BOOLEAN
+              - column:
+                  name: resolvable
+                  type: BOOLEAN
+              - column:
+                  name: confidential
+                  type: BOOLEAN
+              - column:
+                  name: internal
+                  type: BOOLEAN
+              - column:
+                  name: imported
+                  type: BOOLEAN
+              - column:
+                  name: imported_from
+                  type: VARCHAR(255)
+        - createSequence:
+            sequenceName: notes_seq
+            startValue: 1
+            incrementBy: 50
+
+  - changeSet:
+      id: 2026-09-17-02-create-milestones
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: milestones
+      changes:
+        - createTable:
+            tableName: milestones
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_milestones
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: platform_iid
+                  type: INT
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: VARCHAR(255)
+              - column:
+                  name: start_date
+                  type: VARCHAR(255)
+              - column:
+                  name: due_date
+                  type: VARCHAR(255)
+              - column:
+                  name: state
+                  type: VARCHAR(255)
+              - column:
+                  name: expired
+                  type: BOOLEAN
+              - column:
+                  name: web_url
+                  type: VARCHAR(255)
+        - createSequence:
+            sequenceName: milestones_seq
+            startValue: 1
+            incrementBy: 50
+
+  - changeSet:
+      id: 2026-09-17-03-create-note-connections
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: note_account_connections
+      changes:
+        - createTable:
+            tableName: note_account_connections
+            columns:
+              - column:
+                  name: note_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: note_account_connections
+            columnNames: note_id, account_id
+            constraintName: pk_note_account_connections
+        - addForeignKeyConstraint:
+            baseTableName: note_account_connections
+            baseColumnNames: note_id
+            referencedTableName: notes
+            referencedColumnNames: id
+            constraintName: fk_note_account_note
+        - addForeignKeyConstraint:
+            baseTableName: note_account_connections
+            baseColumnNames: account_id
+            referencedTableName: accounts
+            referencedColumnNames: id
+            constraintName: fk_note_account_account
+
+  - changeSet:
+      id: 2026-09-17-04-create-issue-note-connections
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: issue_note_connections
+      changes:
+        - createTable:
+            tableName: issue_note_connections
+            columns:
+              - column:
+                  name: note_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issue_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: issue_note_connections
+            columnNames: note_id, issue_id
+            constraintName: pk_issue_note_connections
+        - addForeignKeyConstraint:
+            baseTableName: issue_note_connections
+            baseColumnNames: note_id
+            referencedTableName: notes
+            referencedColumnNames: id
+            constraintName: fk_issue_note_note
+        - addForeignKeyConstraint:
+            baseTableName: issue_note_connections
+            baseColumnNames: issue_id
+            referencedTableName: issues
+            referencedColumnNames: id
+            constraintName: fk_issue_note_issue
+
+  - changeSet:
+      id: 2026-09-17-05-create-mr-note-connections
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: merge_request_note_connections
+      changes:
+        - createTable:
+            tableName: merge_request_note_connections
+            columns:
+              - column:
+                  name: note_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: merge_request_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: merge_request_note_connections
+            columnNames: note_id, merge_request_id
+            constraintName: pk_merge_request_note_connections
+        - addForeignKeyConstraint:
+            baseTableName: merge_request_note_connections
+            baseColumnNames: note_id
+            referencedTableName: notes
+            referencedColumnNames: id
+            constraintName: fk_mr_note_note
+        - addForeignKeyConstraint:
+            baseTableName: merge_request_note_connections
+            baseColumnNames: merge_request_id
+            referencedTableName: merge_requests
+            referencedColumnNames: id
+            constraintName: fk_mr_note_mr
+
+  - changeSet:
+      id: 2026-09-17-06-create-mr-account-connections
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: merge_request_account_connections
+      changes:
+        - createTable:
+            tableName: merge_request_account_connections
+            columns:
+              - column:
+                  name: merge_request_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: merge_request_account_connections
+            columnNames: merge_request_id, account_id
+            constraintName: pk_merge_request_account_connections
+        - addForeignKeyConstraint:
+            baseTableName: merge_request_account_connections
+            baseColumnNames: merge_request_id
+            referencedTableName: merge_requests
+            referencedColumnNames: id
+            constraintName: fk_mr_account_mr
+        - addForeignKeyConstraint:
+            baseTableName: merge_request_account_connections
+            baseColumnNames: account_id
+            referencedTableName: accounts
+            referencedColumnNames: id
+            constraintName: fk_mr_account_account
+
+  - changeSet:
+      id: 2026-09-17-07-create-mr-milestone-connections
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: merge_request_milestone_connections
+      changes:
+        - createTable:
+            tableName: merge_request_milestone_connections
+            columns:
+              - column:
+                  name: merge_request_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: milestone_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: merge_request_milestone_connections
+            columnNames: merge_request_id, milestone_id
+            constraintName: pk_merge_request_milestone_connections
+        - addForeignKeyConstraint:
+            baseTableName: merge_request_milestone_connections
+            baseColumnNames: merge_request_id
+            referencedTableName: merge_requests
+            referencedColumnNames: id
+            constraintName: fk_mr_milestone_mr
+        - addForeignKeyConstraint:
+            baseTableName: merge_request_milestone_connections
+            baseColumnNames: milestone_id
+            referencedTableName: milestones
+            referencedColumnNames: id
+            constraintName: fk_mr_milestone_milestone
+
+  - changeSet:
+      id: 2026-09-17-08-create-issue-milestone-connections
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: issue_milestone_connections
+      changes:
+        - createTable:
+            tableName: issue_milestone_connections
+            columns:
+              - column:
+                  name: issue_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: milestone_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: issue_milestone_connections
+            columnNames: issue_id, milestone_id
+            constraintName: pk_issue_milestone_connections
+        - addForeignKeyConstraint:
+            baseTableName: issue_milestone_connections
+            baseColumnNames: issue_id
+            referencedTableName: issues
+            referencedColumnNames: id
+            constraintName: fk_issue_milestone_issue
+        - addForeignKeyConstraint:
+            baseTableName: issue_milestone_connections
+            baseColumnNames: milestone_id
+            referencedTableName: milestones
+            referencedColumnNames: id
+            constraintName: fk_issue_milestone_milestone
+
+  - changeSet:
+      id: 2026-09-17-09-create-issue-commit-connections
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: issue_commit_connections
+      changes:
+        - createTable:
+            tableName: issue_commit_connections
+            columns:
+              - column:
+                  name: issue_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: commit_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: issue_commit_connections
+            columnNames: issue_id, commit_id
+            constraintName: pk_issue_commit_connections
+        - addForeignKeyConstraint:
+            baseTableName: issue_commit_connections
+            baseColumnNames: issue_id
+            referencedTableName: issues
+            referencedColumnNames: id
+            constraintName: fk_issue_commit_issue
+        - addForeignKeyConstraint:
+            baseTableName: issue_commit_connections
+            baseColumnNames: commit_id
+            referencedTableName: commits
+            referencedColumnNames: id
+            constraintName: fk_issue_commit_commit
+
+  - changeSet:
+      id: 2026-09-17-10-create-labels
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: labels
+      changes:
+        - createTable:
+            tableName: labels
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_labels
+              - column:
+                  name: value
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issue_id
+                  type: BIGINT
+        - createSequence:
+            sequenceName: labels_seq
+            startValue: 1
+            incrementBy: 50
+        - addForeignKeyConstraint:
+            baseTableName: labels
+            baseColumnNames: issue_id
+            referencedTableName: issues
+            referencedColumnNames: id
+            constraintName: fk_labels_issue
+
+  - changeSet:
+      id: 2026-09-17-11-create-mentions
+      author: Markus
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: mentions
+      changes:
+        - createTable:
+            tableName: mentions
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_mentions
+              - column:
+                  name: commit
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: closes
+                  type: BOOLEAN
+              - column:
+                  name: issue_id
+                  type: BIGINT
+        - createSequence:
+            sequenceName: mentions_seq
+            startValue: 1
+            incrementBy: 50
+        - addForeignKeyConstraint:
+            baseTableName: mentions
+            baseColumnNames: issue_id
+            referencedTableName: issues
+            referencedColumnNames: id
+            constraintName: fk_mentions_issue
