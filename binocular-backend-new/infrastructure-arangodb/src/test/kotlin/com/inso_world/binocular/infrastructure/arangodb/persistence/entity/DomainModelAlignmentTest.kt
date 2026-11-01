@@ -12,6 +12,7 @@ import com.inso_world.binocular.model.Job
 import com.inso_world.binocular.model.Mention
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
+import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Platform
 import com.inso_world.binocular.model.Project
