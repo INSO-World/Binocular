@@ -204,13 +204,13 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `create project with repository association`() {
             // Disabled: Project.repo relation removed in refactoring #454
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `create project with issues`() {
             // Disabled: Project.issues relation removed in refactoring #454
         }
@@ -495,17 +495,17 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `update project with repository association`() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `update project fails when repository is replaced`() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `update project fails when repository is removed`() {
         }
 
@@ -687,7 +687,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `delete project with issues removes issues`() {
         }
 
@@ -743,17 +743,17 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `project repository is set-once and cannot be changed`() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `project repository cannot be set to null`() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `project repository can be set to same instance multiple times (idempotent)`() {
         }
 
@@ -792,7 +792,6 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
         fun `project can exist without repository`() {
             val project = Project(name = "StandaloneProject")
             val created = projectPort.create(project)
@@ -800,7 +799,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `removing issue is not supported yet`() {
         }
 
@@ -940,9 +939,9 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
 
     @Nested
     @DisplayName("Integration with Repository")
-    @Disabled("Refactored in domain model #454")
     inner class IntegrationWithRepository {
         @Test
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `project with repository maintains bidirectional relationship`() {
         }
 
@@ -952,6 +951,7 @@ internal class ProjectInfrastructurePortImplTest : BaseServiceTest() {
         }
 
         @Test
+        @Disabled("Project.repo relation removed in #454; rewrite against Repository.projectId")
         fun `finding project by iid includes repository data`() {
         }
     }

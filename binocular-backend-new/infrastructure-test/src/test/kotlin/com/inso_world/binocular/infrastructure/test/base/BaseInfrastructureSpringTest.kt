@@ -5,7 +5,6 @@ import com.inso_world.binocular.infrastructure.test.config.LocalArangodbConfig
 import com.inso_world.binocular.infrastructure.test.config.LocalPostgresConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
@@ -27,7 +26,6 @@ import org.springframework.test.context.ContextConfiguration
     ]
 )
 @ComponentScan(basePackages = ["com.inso_world.binocular.infrastructure.test", "com.inso_world.binocular.core"])
-@Disabled("Refactored in domain model #454")
 abstract class BaseInfrastructureSpringTest {
     @Autowired
     protected lateinit var infrastructureDataSetup: InfrastructureDataSetup

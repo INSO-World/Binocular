@@ -285,12 +285,12 @@ class CommitModelTest {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Commit.parents/children replaced by parentShas/childShas in #454; no duplicate-add validation on the sha sets")
         fun `create commit, add same commit to parents, should fail`() {
         }
 
         @Test
-        @Disabled("Refactored in domain model #454")
+        @Disabled("Commit.parents/children replaced by parentShas/childShas in #454; no duplicate-add validation on the sha sets")
         fun `create commit, add same commit to children, should fail`() {
         }
     }

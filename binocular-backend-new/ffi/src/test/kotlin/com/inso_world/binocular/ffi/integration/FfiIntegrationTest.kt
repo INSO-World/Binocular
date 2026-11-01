@@ -23,7 +23,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.ClassOrderer
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Order
@@ -73,7 +72,6 @@ import java.util.stream.Stream
 )
 @ExtendWith(SpringExtension::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@Disabled("Refactored in domain model #454")
 internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
     @Autowired
     private lateinit var cfg: GixModuleConfig
