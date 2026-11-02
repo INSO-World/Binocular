@@ -16,4 +16,6 @@ export default interface BuildDto {
   sha: string;
   ref: string;
   jobs: Job[];
+  // true when the jobs array comes from the CI API; false/absent means the build was stored without job details
+  jobsFetched?: boolean;
 }

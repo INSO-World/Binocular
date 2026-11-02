@@ -21,6 +21,8 @@ export interface BuildDataType {
   duration: number;
   sha: string;
   jobs: Job[];
+  // true when the jobs array comes from the CI API; false/absent means the build was stored without job details
+  jobsFetched?: boolean;
 }
 
 class Build extends Model<BuildDataType> {
@@ -35,8 +37,9 @@ class Build extends Model<BuildDataType> {
     if (_buildData.id) {
       buildData.id = _buildData.id;
     }
-    // if jobs should be loaded and the force update flag is set, we update existing builds with the new data
-    if (ctx.argv.jobs && ctx.argv.updateJobs) {
+    // if jobs should be loaded, existing builds must be refreshed with the fetched data:
+    // ensureByExample would silently discard the refetched build, so the refetch condition in CIIndexer would never clear
+    if (ctx.argv.jobs || ctx.argv.updateJobs) {
       return this.ensureByExampleForceUpdate({ id: buildData.id }, buildData);
     }
 
@@ -55,15 +58,17 @@ class Build extends Model<BuildDataType> {
     return this.findOneByExample(example).then(
       function (resp: Entry<BuildDataType> | null) {
         if (resp) {
-          const entry = new Entry<BuildDataType>(d, {});
+          // isNew must be false, otherwise save() inserts, hits the duplicate _key, and its error handler
+          // falls back to ensure(), which returns the old document without ever writing the new data
+          const entry = new Entry<BuildDataType>(d, { isNew: false });
           entry._id = resp._id;
           entry._key = resp._key;
-          return this.save(entry).then((i) => [i, true]);
+          return this.save(entry).then((i) => [i, i.justUpdated === true]);
         } else {
           const entry = new Entry<BuildDataType>(d, {
             isNew: true,
           });
-          return this.save(entry).then((i) => [i, true]);
+          return this.save(entry).then((i) => [i, i.justCreated === true]);
         }
       }.bind(this),
     );

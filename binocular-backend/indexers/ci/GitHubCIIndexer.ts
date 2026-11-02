@@ -10,6 +10,7 @@ import debug from 'debug';
 import ProgressReporter from '../../utils/progress-reporter.ts';
 import { GithubJob, GithubRun } from '../../types/GithubTypes.ts';
 import Config from '../../utils/config';
+import ctx from '../../utils/context.ts';
 import Repository from '../../core/provider/git';
 
 const log = debug('importer:github-ci-indexer');
@@ -115,6 +116,8 @@ class GitHubCIIndexer {
           finishedAt: moment(job.completed_at).toISOString(),
           webUrl: job.html_url,
         })),
+        // records that the jobs array was answered by the API, even when it is empty
+        jobsFetched: ctx.argv.jobs,
         webUrl: pipeline.html_url,
       });
     });

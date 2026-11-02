@@ -2,11 +2,66 @@
 
 import debug from 'debug';
 import { Octokit } from '@octokit/rest';
-import { Octokit as OctokitCore } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
+import { retry } from '@octokit/plugin-retry';
+import { throttling } from '@octokit/plugin-throttling';
+import type { OctokitOptions } from '@octokit/core/dist-types/types';
+import type { RequestParameters } from '@octokit/types';
 import { GithubJob, GithubUser } from '../../types/GithubTypes';
 
 const log = debug('github');
+
+// retry plugin types only retry 5xx; shouldRetryMethod additionally retries secondary rate limit responses (403/429 with Retry-After)
+const retryRateLimitedRequests: NonNullable<OctokitOptions['retry']> & { doNotRetry: number[] } = {
+  doNotRetry: [400, 401, 404],
+  shouldRetryMethod: (error: { status: number; response?: { headers?: Record<string, string> } }) =>
+    (error.status === 403 || error.status === 429) && error.response?.headers?.['retry-after'] !== undefined,
+};
+
+// One Octokit per (baseUrl, token) for the whole process. @octokit/plugin-throttling keeps its limiter and its
+// backoff state inside the client, so sharing the client is what makes the rate limit handling global: the ITS
+// indexer and the CI job fetch run concurrently but share one budget and one backoff.
+const sharedClients: { [cacheKey: string]: any } = {};
+// assignable users of a repository, requested at most once per process even when indexers ask in parallel
+const sharedAssignableUsers: { [cacheKey: string]: Promise<GithubUser[]> } = {};
+
+function sharedGitHubClient(options: { baseUrl: string; privateToken: string }) {
+  const cacheKey = `${options.baseUrl}|${options.privateToken ?? ''}`;
+  if (sharedClients[cacheKey] === undefined) {
+    log('Creating the shared GitHub client for %o', options.baseUrl);
+    // cast: @octokit/rest@19 ships its own nested @octokit/types copy, so the plugin types clash structurally
+    const RateLimitedOctokit = (Octokit as any).plugin(retry, throttling, paginateGraphql);
+    sharedClients[cacheKey] = new RateLimitedOctokit({
+      baseUrl: options.baseUrl,
+      auth: options.privateToken,
+      // honor GitHub's secondary rate limits instead of failing on them
+      retry: retryRateLimitedRequests,
+      throttle: {
+        // pause every indexer using this client when the primary limit is hit, then retry once the window resets
+        onRateLimit: (retryAfter: number, requestOptions: RequestParameters, retryCount: number) => {
+          log('Hit primary rate limit for %o %o — pausing every indexer, retry %o', requestOptions.method, requestOptions.url, retryCount);
+          return retryCount < 3;
+        },
+        // back off on the secondary limit, retry once, then give up on this request
+        onSecondaryRateLimit: (retryAfter: number, requestOptions: RequestParameters) => {
+          if ((requestOptions as { __rateLimitRetries?: number }).__rateLimitRetries) {
+            console.error('Secondary rate limit hit again for %o %o — dropping request', requestOptions.method, requestOptions.url);
+            return false;
+          }
+          (requestOptions as { __rateLimitRetries?: number }).__rateLimitRetries = 1;
+          log(
+            'Hit secondary rate limit for %o %o — pausing every indexer, retrying after %o s',
+            requestOptions.method,
+            requestOptions.url,
+            retryAfter,
+          );
+          return true;
+        },
+      },
+    });
+  }
+  return sharedClients[cacheKey];
+}
 
 class GitHub {
   private privateToken: string;
@@ -21,18 +76,32 @@ class GitHub {
     this.requestTimeout = options.requestTimeout;
     this.count = 0;
     this.stopping = false;
-    this.github = new Octokit({
-      baseUrl: options.baseUrl,
-      auth: this.privateToken,
-    });
-    const PaginatedGraphQL = OctokitCore.plugin(paginateGraphql);
-    this.githubGraphQL = new PaginatedGraphQL({ auth: this.privateToken });
+    this.github = sharedGitHubClient(options);
+    // one client for REST and GraphQL, so both share the single rate limit budget
+    this.githubGraphQL = this.github;
     this.users = {};
   }
 
   async loadAssignableUsers(repositoryOwner: string, repositoryName: string) {
-    const { repository } = await this.githubGraphQL.graphql.paginate(
-      `query paginate($cursor: String) {
+    const cacheKey = `${this.privateToken ?? ''}:${repositoryOwner}/${repositoryName}`;
+    if (sharedAssignableUsers[cacheKey] === undefined) {
+      sharedAssignableUsers[cacheKey] = this.loadAssignableUsersFromApi(repositoryOwner, repositoryName).catch((error: unknown) => {
+        // a failed lookup must not stay cached
+        delete sharedAssignableUsers[cacheKey];
+        throw error;
+      });
+    }
+    const nodes = await sharedAssignableUsers[cacheKey];
+    nodes.forEach((user: GithubUser) => {
+      this.users[user.login] = user;
+    });
+  }
+
+  private loadAssignableUsersFromApi(repositoryOwner: string, repositoryName: string): Promise<GithubUser[]> {
+    log('Loading assignable users of %o/%o', repositoryOwner, repositoryName);
+    return this.githubGraphQL.graphql
+      .paginate(
+        `query paginate($cursor: String) {
          repository(owner: "${repositoryOwner}", name: "${repositoryName}") {
           name,
           assignableUsers(first: 100, after:$cursor) {
@@ -52,10 +121,8 @@ class GitHub {
         }
       }
       `,
-    );
-    repository.assignableUsers.nodes.forEach((user: GithubUser) => {
-      this.users[user.login] = user;
-    });
+      )
+      .then((result: any) => result.repository.assignableUsers.nodes as GithubUser[]);
   }
 
   getUser(login: string) {
@@ -68,23 +135,25 @@ class GitHub {
 
   getPipelines(projectId: string) {
     log('getPipelines(%o)', projectId);
+    // per_page 100 keeps the paginated run list at ~1 request per 100 runs instead of 30
     return this.github.paginate(this.github.rest.actions.listWorkflowRunsForRepo, {
       owner: projectId.split('/')[0],
       repo: projectId.split('/')[1],
+      per_page: 100,
     });
   }
 
-  async getPipelineJobs(projectId: string, pipelineId: number) {
+  async getPipelineJobs(projectId: string, pipelineId: number): Promise<GithubJob[]> {
     log('getPipelineJobs(%o,%o)', projectId, pipelineId);
-    return this.github.rest.actions
-      .listJobsForWorkflowRun({
+    // paginate, because a single REST response is capped at one page and would truncate the job list
+    return this.github
+      .paginate(this.github.rest.actions.listJobsForWorkflowRun, {
         owner: projectId.split('/')[0],
         repo: projectId.split('/')[1],
         run_id: pipelineId,
+        per_page: 100,
       })
-      .then((jobs: { data: { jobs: GithubJob[] } }) => {
-        return jobs.data.jobs;
-      });
+      .then((jobs: GithubJob[]) => jobs);
   }
 
   /**

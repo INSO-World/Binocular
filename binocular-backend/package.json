@@ -21,6 +21,8 @@
     "@octokit/core": "^5.0.0",
     "@octokit/graphql": "^7.0.1",
     "@octokit/plugin-paginate-graphql": "^4.0.0",
+    "@octokit/plugin-retry": "^4.1.0",
+    "@octokit/plugin-throttling": "^8.0.0",
     "@octokit/rest": "^19.0.7",
     "@types/lodash": "^4.14.199",
     "adm-zip": "^0.5.10",
