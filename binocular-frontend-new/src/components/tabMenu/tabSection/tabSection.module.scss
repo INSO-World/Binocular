@@ -1,4 +1,5 @@
-@import '../../../variables';
+@use '../../../variables';
+@reference "../../../index.scss";
 
 .tabSectionHorizontal{
   display: inline-block;

@@ -1,0 +1,9 @@
+@use "../../../../../variables.scss" as *;
+@reference "../../../../../index.scss";
+
+.filters > *{
+  margin: .5rem;
+}
+.filters>div>div>label {
+  justify-content: space-between;
+}

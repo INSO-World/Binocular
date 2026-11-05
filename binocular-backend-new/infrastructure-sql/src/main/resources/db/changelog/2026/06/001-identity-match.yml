@@ -1,0 +1,72 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-email-to-accounts
+      author: dokayev
+      changes:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: create-identity-matches-table
+      author: dokayev
+      changes:
+        - createTable:
+            tableName: identity_matches
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: iid
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_identity_match_user
+                    references: users(id)
+              - column:
+                  name: account_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_identity_match_account
+                    references: accounts(id)
+              - column:
+                  name: match_layer
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: confidence
+                  type: double precision
+                  constraints:
+                    nullable: false
+              - column:
+                  name: signals
+                  type: text
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reviewed_by
+                  type: varchar(255)
+              - column:
+                  name: resolved_at
+                  type: timestamp

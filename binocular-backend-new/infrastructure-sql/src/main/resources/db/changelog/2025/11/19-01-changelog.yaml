@@ -1,0 +1,126 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1763550865
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createSequence:
+            incrementBy: 50
+            sequenceName: remotes_seq
+            startValue: 1
+        - createTable:
+            tableName: remotes
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_remotes
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: "name"
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: "url"
+                  type: TEXT
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  constraints:
+                    nullable: false
+                  name: repository_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseColumnNames: repository_id
+            baseTableName: remotes
+            constraintName: FK_REMOTES_ON_REPOSITORY
+            referencedColumnNames: id
+            referencedTableName: repositories
+
+  - changeSet:
+      id: 1763551316
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            tableName: "branches"
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_commit_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseColumnNames: fk_commit_id
+            baseTableName: "branches"
+            constraintName: FK_COMMIT_HEAD_BRANCH
+            referencedColumnNames: id
+            referencedTableName: commits
+
+  - changeSet:
+      id: 1763551471
+      author: manuel
+      changes:
+        - addColumn:
+            tableName: "projects"
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false
+        - addColumn:
+            tableName: "repositories"
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false
+        - addColumn:
+            tableName: "commits"
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false
+        - addColumn:
+            tableName: "users"
+            columns:
+              - column:
+                  name: iid
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false

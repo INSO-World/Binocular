@@ -1,0 +1,149 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-11-04-06-create-issues
+      author: junie
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: issues
+      changes:
+        - createTable:
+            ifNotExists: true
+            tableName: issues
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(512)
+              - column:
+                  name: state
+                  type: varchar(64)
+              - column:
+                  name: created_at
+                  type: varchar(64)
+              - column:
+                  name: updated_at
+                  type: varchar(64)
+  - changeSet:
+      id: 2025-11-04-07-create-issue-links
+      author: junie
+      changes:
+        - createTable:
+            ifNotExists: true
+            tableName: issue_account
+            columns:
+              - column: { name: issue_id, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: account_id, type: varchar(255), constraints: { nullable: false } }
+        - createTable:
+            ifNotExists: true
+            tableName: issue_commit
+            columns:
+              - column: { name: issue_id, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: commit_id, type: varchar(255), constraints: { nullable: false } }
+        - createTable:
+            ifNotExists: true
+            tableName: issue_milestone
+            columns:
+              - column: { name: issue_id, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: milestone_id, type: varchar(255), constraints: { nullable: false } }
+        - createTable:
+            ifNotExists: true
+            tableName: issue_user
+            columns:
+              - column: { name: issue_id, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: user_id, type: varchar(255), constraints: { nullable: false } }
+  - changeSet:
+      id: 2025-11-04-08-create-merge-requests
+      author: junie
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: merge_requests
+      changes:
+        - createTable:
+            ifNotExists: true
+            tableName: merge_requests
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column: { name: title, type: varchar(512) }
+              - column: { name: state, type: varchar(64) }
+              - column: { name: created_at, type: varchar(64) }
+              - column: { name: updated_at, type: varchar(64) }
+  - changeSet:
+      id: 2025-11-04-09-create-mr-links
+      author: junie
+      changes:
+        - createTable:
+            ifNotExists: true
+            tableName: merge_request_account
+            columns:
+              - column: { name: merge_request_id, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: account_id, type: varchar(255), constraints: { nullable: false } }
+        - createTable:
+            ifNotExists: true
+            tableName: merge_request_milestone
+            columns:
+              - column: { name: merge_request_id, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: milestone_id, type: varchar(255), constraints: { nullable: false } }
+  - changeSet:
+      id: 2025-11-04-10-seed-issue-and-mr
+      author: junie
+      changes:
+        - insert:
+            tableName: issues
+            columns:
+              - column: { name: id, value: "1" }
+              - column: { name: title, value: "Fix bug in login flow" }
+              - column: { name: state, value: "open" }
+              - column: { name: created_at, value: "2023-01-01T10:00:00Z" }
+              - column: { name: updated_at, value: "2023-01-01T10:00:00Z" }
+        - insert:
+            tableName: issue_account
+            columns:
+              - column: { name: issue_id, value: "1" }
+              - column: { name: account_id, value: "1" }
+        - insert:
+            tableName: issue_commit
+            columns:
+              - column: { name: issue_id, value: "1" }
+              - column: { name: commit_id, value: "1" }
+        - insert:
+            tableName: issue_milestone
+            columns:
+              - column: { name: issue_id, value: "1" }
+              - column: { name: milestone_id, value: "1" }
+        - insert:
+            tableName: issue_user
+            columns:
+              - column: { name: issue_id, value: "1" }
+              - column: { name: user_id, value: "1" }
+        - insert:
+            tableName: merge_requests
+            columns:
+              - column: { name: id, value: "1" }
+              - column: { name: title, value: "Implement user authentication" }
+              - column: { name: state, value: "open" }
+              - column: { name: created_at, value: "2023-01-01T10:00:00Z" }
+              - column: { name: updated_at, value: "2023-01-01T10:00:00Z" }
+        - insert:
+            tableName: merge_request_account
+            columns:
+              - column: { name: merge_request_id, value: "1" }
+              - column: { name: account_id, value: "1" }
+        - insert:
+            tableName: merge_request_milestone
+            columns:
+              - column: { name: merge_request_id, value: "1" }
+              - column: { name: milestone_id, value: "1" }

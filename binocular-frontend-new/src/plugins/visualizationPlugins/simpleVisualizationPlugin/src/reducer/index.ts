@@ -1,4 +1,4 @@
-import { createSlice, Draft, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type Draft, type PayloadAction } from '@reduxjs/toolkit';
 
 export enum DataState {
   EMPTY,

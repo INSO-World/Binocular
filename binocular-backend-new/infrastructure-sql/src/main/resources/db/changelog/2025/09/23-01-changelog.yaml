@@ -1,0 +1,172 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1758638762-1-psql
+      dbms: "postgresql"
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              BEGIN
+                IF NOT EXISTS (
+                  SELECT 1 FROM pg_type WHERE typname = 'file_diff_change_type'
+                ) THEN
+                  CREATE TYPE file_diff_change_type AS ENUM ('REWRITE', 'ADDITION', 'DELETION', 'MODIFICATION');
+                END IF;
+              END
+              $$;
+      rollback:
+        - sql:
+            sql: DROP TYPE file_diff_change_type
+  - changeSet:
+      id: 1758638762-2-psql
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      dbms: "postgresql"
+      changes:
+        - modifyDataType:
+            tableName: file_diffs
+            columnName: change
+            newDataType: file_diff_change_type
+      rollback:
+        - modifyDataType:
+            tableName: file_diffs
+            columnName: change
+            newDataType: VARCHAR(255) # see 19-02-changelog.yaml#44
+  - changeSet:
+      id: 1758638762-2-h2
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      dbms: "h2"
+      changes:
+        - modifyDataType:
+            tableName: file_diffs
+            columnName: change
+            newDataType: varchar(32)
+      rollback:
+        - modifyDataType:
+            tableName: file_diffs
+            columnName: change
+            newDataType: VARCHAR(255) # see 19-02-changelog.yaml#44
+  - changeSet:
+      id: filediff-check-constraints-split-001-postgres
+      dbms: "postgresql"
+      author: manuel
+      changes:
+        # ADDITION ⇒ old_file_state_id must be NULL
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_addition_old_null
+              CHECK (
+                change <> 'ADDITION'::file_diff_change_type
+                OR old_file_state_id IS NULL
+              );
+
+        # DELETION ⇒ new_file_state_id must be NULL
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_deletion_new_null
+              CHECK (
+                change <> 'DELETION'::file_diff_change_type
+                OR new_file_state_id IS NULL
+              );
+
+        # MODIFICATION ⇒ both states present & paths equal
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_mod_present_paths_equal
+              CHECK (
+                change <> 'MODIFICATION'::file_diff_change_type
+                OR (
+                  old_file_state_id IS NOT NULL
+                  AND new_file_state_id IS NOT NULL
+                  --AND path_before IS NOT DISTINCT FROM path_after
+                )
+              );
+
+        # REWRITE ⇒ both states present & paths different
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_rewrite_present_paths_diff
+              CHECK (
+                change <> 'REWRITE'::file_diff_change_type
+                OR (
+                  old_file_state_id IS NOT NULL
+                  AND new_file_state_id IS NOT NULL
+                  --AND path_before IS DISTINCT FROM path_after
+                )
+              );
+
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_addition_old_null;
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_deletion_new_null;
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_mod_present_paths_equal;
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_rewrite_present_paths_diff;
+  - changeSet:
+      id: filediff-check-constraints-split-001-h2
+      dbms: "h2"
+      author: manuel
+      changes:
+        # ADDITION ⇒ old_file_state_id must be NULL
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_addition_old_null
+              CHECK (
+                change <> 'ADDITION'
+                OR old_file_state_id IS NULL
+              );
+
+        # DELETION ⇒ new_file_state_id must be NULL
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_deletion_new_null
+              CHECK (
+                change <> 'DELETION'
+                OR new_file_state_id IS NULL
+              );
+
+        # MODIFICATION ⇒ both states present & paths equal
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_mod_present_paths_equal
+              CHECK (
+                change <> 'MODIFICATION'
+                OR (
+                  old_file_state_id IS NOT NULL
+                  AND new_file_state_id IS NOT NULL
+                  --AND path_before IS NOT DISTINCT FROM path_after
+                )
+              );
+
+        # REWRITE ⇒ both states present & paths different
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs
+              ADD CONSTRAINT filediff_ck_rewrite_present_paths_diff
+              CHECK (
+                change <> 'REWRITE'
+                OR (
+                  old_file_state_id IS NOT NULL
+                  AND new_file_state_id IS NOT NULL
+                  --AND path_before IS DISTINCT FROM path_after
+                )
+              );
+
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_addition_old_null;
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_deletion_new_null;
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_mod_present_paths_equal;
+              ALTER TABLE file_diffs DROP CONSTRAINT IF EXISTS filediff_ck_rewrite_present_paths_diff;

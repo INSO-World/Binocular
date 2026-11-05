@@ -1,13 +1,16 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import Config from '../../../config.ts';
-import { GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
-import { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../../types/settings/databaseSettingsType.ts';
+import { type GeneralSettingsType, SettingsGeneralGridSize } from '../../../types/settings/generalSettingsType.ts';
+import type { DatabaseSettingsDataPluginType, DatabaseSettingsType } from '../../../types/settings/databaseSettingsType.ts';
 import distinctColors from 'distinct-colors';
+import { cloneDeep } from 'lodash';
 
 export interface SettingsInitialState {
   general: GeneralSettingsType;
+  initialized: boolean;
   database: DatabaseSettingsType;
   localDatabaseLoadingState: LocalDatabaseLoadingState;
+  localDatabaseLoadingMessage: string;
 }
 
 export enum LocalDatabaseLoadingState {
@@ -19,11 +22,13 @@ const initialState: SettingsInitialState = {
   general: {
     gridSize: SettingsGeneralGridSize.medium,
   },
+  initialized: false,
   database: {
     currID: 0,
     dataPlugins: [],
   },
   localDatabaseLoadingState: LocalDatabaseLoadingState.none,
+  localDatabaseLoadingMessage: '',
 };
 
 export const settingsSlice = createSlice({
@@ -43,32 +48,41 @@ export const settingsSlice = createSlice({
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     addDataPlugin: (state, action: PayloadAction<DatabaseSettingsDataPluginType>) => {
-      if (action.payload.id === undefined) {
+      const newDataPlugin = cloneDeep(action.payload);
+      if (newDataPlugin.id === undefined) {
         const colors = distinctColors({ count: 100 });
-        action.payload.isDefault = state.database.dataPlugins.length === 0;
+        newDataPlugin.isDefault = state.database.dataPlugins.length === 0;
+
         state.database.currID++;
-        if (action.payload.color === '#000') {
-          action.payload.color = colors[state.database.currID].hex() + '22';
+        if (newDataPlugin.color === '#000') {
+          newDataPlugin.color = colors[state.database.currID].hex() + '22';
         }
-        action.payload.id = state.database.currID;
-        state.database.dataPlugins.push(action.payload);
-        console.log(`Inserted dataPlugin ${action.payload.id}`);
+        newDataPlugin.id = state.database.currID;
+        if (newDataPlugin.isDefault) {
+          state.database.defaultDataPluginItemId = newDataPlugin.id;
+        }
+        state.database.dataPlugins.push(newDataPlugin);
+        console.log(`Inserted dataPlugin ${newDataPlugin.id}`);
       } else {
         let found = false;
         state.database.dataPlugins = state.database.dataPlugins.map((dp: DatabaseSettingsDataPluginType) => {
-          if (dp.id === action.payload.id) {
+          if (dp.id === newDataPlugin.id) {
             found = true;
-            return action.payload;
+            return newDataPlugin;
           }
           return dp;
         });
+        if (newDataPlugin.isDefault) {
+          state.database.defaultDataPluginItemId = newDataPlugin.id;
+        }
         if (!found) {
-          state.database.dataPlugins.push(action.payload);
-          console.log(`Inserted dataPlugin ${action.payload.id}`);
+          state.database.dataPlugins.push(newDataPlugin);
+          console.log(`Inserted dataPlugin ${newDataPlugin.id}`);
         } else {
-          console.log(`Updated dataPlugin ${action.payload.id}`);
+          console.log(`Updated dataPlugin ${newDataPlugin.id}`);
         }
       }
+      state.initialized = true;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     removeDataPlugin: (state, action: PayloadAction<number>) => {
@@ -80,6 +94,7 @@ export const settingsSlice = createSlice({
         dP.isDefault = dP.id === action.payload;
         return dP;
       });
+      state.database.defaultDataPluginItemId = action.payload;
       localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
     },
     clearSettingsStorage: () => {
@@ -92,6 +107,13 @@ export const settingsSlice = createSlice({
     setLocalDatabaseLoadingState: (state, action: PayloadAction<LocalDatabaseLoadingState>) => {
       state.localDatabaseLoadingState = action.payload;
     },
+    setLocalDatabaseLoadingMessage: (state, action: PayloadAction<string>) => {
+      state.localDatabaseLoadingMessage = action.payload;
+    },
+    initializeSettingsState: (state) => {
+      state.initialized = true;
+      localStorage.setItem(`${settingsSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    },
   },
 });
 
@@ -103,5 +125,7 @@ export const {
   clearSettingsStorage,
   importSettingsStorage,
   setLocalDatabaseLoadingState,
+  setLocalDatabaseLoadingMessage,
+  initializeSettingsState,
 } = settingsSlice.actions;
 export default settingsSlice.reducer;

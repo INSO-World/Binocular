@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1766414416536-8
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_project_account
+                  name: fk_account_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_project_account
+                  name: fk_project_id
+                  type: BIGINT
+            tableName: project_account
+  - changeSet:
+      id: 1766414416536-54
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fk_account_id
+            baseTableName: project_account
+            constraintName: fk_proacc_on_account_entity
+            referencedColumnNames: id
+            referencedTableName: accounts
+  - changeSet:
+      id: 1766414416536-55
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fk_project_id
+            baseTableName: project_account
+            constraintName: fk_proacc_on_project_entity
+            referencedColumnNames: id
+            referencedTableName: projects
+  - changeSet:
+      id: remove-project-from-accounts
+      author: KaiKastenmeier
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: accounts
+            constraintName: fk_accounts_on_project
+        - dropColumn:
+            tableName: accounts
+            columnName: fk_project_id
+
+

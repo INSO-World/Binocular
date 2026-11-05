@@ -1,6 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import Config from '../../../config.ts';
-import { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { FileListElementType, FileTreeElementType } from '../../../types/data/fileListType.ts';
+import { writeFileListToStorage } from '../../../components/tabs/fileTree/utils/fileListUtilities';
+import { invertFileTreeSelection, updateFileTreeRecursive } from '../../../components/fileTree/utils/fileTreeUtilities';
 
 export interface FilesInitialState {
   fileTrees: { [id: number]: FileTreeElementType };
@@ -21,69 +22,95 @@ const initialState: FilesInitialState = {
 export const filesSlice = createSlice({
   name: 'files',
   initialState: () => {
-    const storedState = localStorage.getItem(`${filesSlice.name}StateV${Config.localStorageVersion}`);
-    if (storedState === null) {
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(initialState));
-      return initialState;
-    } else {
-      return JSON.parse(storedState);
-    }
+    return initialState;
   },
   reducers: {
+    loadState: (state, action: PayloadAction<FilesInitialState>) => {
+      state.fileCounts = action.payload.fileCounts;
+      state.fileTrees = action.payload.fileTrees;
+      state.fileLists = action.payload.fileLists;
+      state.dataPluginId = action.payload.dataPluginId;
+    },
     setFileList: (state, action: PayloadAction<{ dataPluginId: number; fileTree: FileTreeElementType; files: FileListElementType[] }>) => {
-      const fileCount: number = state.fileCounts[action.payload.dataPluginId];
-      if (fileCount === undefined || fileCount !== action.payload.files.length) {
-        state.fileTrees[action.payload.dataPluginId] = action.payload.fileTree;
-        state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
-        state.fileLists[action.payload.dataPluginId] = action.payload.files;
-      }
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+      state.fileTrees[action.payload.dataPluginId] = action.payload.fileTree;
+      state.fileCounts[action.payload.dataPluginId] = action.payload.files.length;
+      state.fileLists[action.payload.dataPluginId] = action.payload.files;
+
+      const newState = JSON.stringify(state);
+      writeFileListToStorage(newState);
     },
     setFilesDataPluginId: (state, action: PayloadAction<number>) => {
       state.dataPluginId = action.payload;
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+      const newState = JSON.stringify(state);
+      writeFileListToStorage(newState);
     },
-    updateFileListElement: (state, action: PayloadAction<FileTreeElementType>) => {
-      const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId], action.payload);
-      state.fileLists[state.dataPluginId] = state.fileLists[state.dataPluginId].map((f: FileListElementType) => {
-        if (updatedPaths.includes(f.element.path)) {
-          f.checked = action.payload.checked;
-        }
-        return f;
-      });
-      localStorage.setItem(`${filesSlice.name}StateV${Config.localStorageVersion}`, JSON.stringify(state));
+    updateFileListElement: (state, action: PayloadAction<FileTreeElementType & { update?: boolean }>) => {
+      const updatedPaths: string[] = updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], action.payload);
+      if (action.payload.update) {
+        state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
+          if (updatedPaths.includes(f.element.path)) {
+            f.checked = action.payload.checked;
+          }
+          return f;
+        });
+        const newState = JSON.stringify(state);
+        writeFileListToStorage(newState);
+      }
     },
     showFileTreeElementInfo: (state, action: PayloadAction<FileTreeElementType>) => {
       (document.getElementById('fileTreeElementInfoDialog') as HTMLDialogElement).showModal();
       state.selectedFileTreeElement = action.payload;
     },
+    checkAllFiles: (state) => {
+      state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
+        f.checked = true;
+        return f;
+      });
+      updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], true);
+      const newState = JSON.stringify(state);
+      writeFileListToStorage(newState);
+    },
+    uncheckAllFiles: (state) => {
+      updateFileTreeRecursive(state.fileTrees[state.dataPluginId!], state.fileTrees[state.dataPluginId!], false);
+      state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
+        f.checked = false;
+        return f;
+      });
+      const newState = JSON.stringify(state);
+      writeFileListToStorage(newState);
+    },
+    switchAllFileSelection: (state) => {
+      state.fileLists[state.dataPluginId!] = state.fileLists[state.dataPluginId!].map((f: FileListElementType) => {
+        f.checked = !f.checked;
+        return f;
+      });
+      invertFileTreeSelection(state.fileTrees[state.dataPluginId!]);
+      const newState = JSON.stringify(state);
+      writeFileListToStorage(newState);
+    },
+    removeFileList: (state, action: PayloadAction<number>) => {
+      delete state.fileLists[action.payload];
+      delete state.fileTrees[action.payload];
+      delete state.fileCounts[action.payload];
+      const newState = JSON.stringify(state);
+      writeFileListToStorage(newState);
+    },
+    clearFileStorage: () => {
+      clearFileStorage();
+    },
   },
 });
 
-export const { setFilesDataPluginId, setFileList, updateFileListElement, showFileTreeElementInfo } = filesSlice.actions;
+export const {
+  setFilesDataPluginId,
+  setFileList,
+  updateFileListElement,
+  showFileTreeElementInfo,
+  removeFileList,
+  clearFileStorage,
+  loadState,
+  checkAllFiles,
+  uncheckAllFiles,
+  switchAllFileSelection,
+} = filesSlice.actions;
 export default filesSlice.reducer;
-
-function updateFileTreeRecursive(fileTree: FileTreeElementType, element: FileTreeElementType, checked?: boolean): string[] {
-  const updatedPaths: string[] = [];
-  if (fileTree.children) {
-    fileTree.children = fileTree.children.map((f: FileTreeElementType) => {
-      let elementChecked = checked;
-      if (f.id === element.id) {
-        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
-          updatedPaths.push(f.element.path);
-        }
-        elementChecked = element.checked;
-        f.foldedOut = element.foldedOut;
-      }
-      if (elementChecked !== undefined) {
-        if (f.element?.path && !updatedPaths.includes(f.element.path)) {
-          updatedPaths.push(f.element.path);
-        }
-        f.checked = elementChecked;
-      }
-      updatedPaths.push(...updateFileTreeRecursive(f, element, elementChecked));
-      return f;
-    });
-  }
-  return updatedPaths;
-}

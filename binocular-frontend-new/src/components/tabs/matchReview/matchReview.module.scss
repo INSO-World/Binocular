@@ -1,0 +1,53 @@
+.matchReview {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.toolbar {
+  flex-shrink: 0;
+}
+
+.select,
+.reviewerInput {
+  max-width: 10rem;
+}
+
+.error {
+  color: var(--color-error, #f85149);
+  padding: 0.5rem 0;
+  flex-shrink: 0;
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid var(--color-base-300);
+    white-space: nowrap;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--color-base-100, #fff);
+    z-index: 1;
+  }
+}
+
+.autoLabel {
+  color: var(--color-base-content, #888);
+  font-style: italic;
+}

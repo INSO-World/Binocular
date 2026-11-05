@@ -1,9 +1,12 @@
-@import '../../../../variables.scss';
+@use '../../../../variables.scss' as *;
+@reference "../../../../index.scss";
 
 
 .selector{
   max-width: 100%;
-
+  display: flex;
+  align-items: center;
+  padding-right: .5rem;
 }
 
 .selectorHorizontal{
@@ -13,8 +16,11 @@
 }
 
 .selectorVertical{
-
+  box-shadow: $shadow-default-inset;
+  border-radius: $border-radius-default;
 }
+
+.selectorRow{}
 
 .visualizationButton{
   display: inline-block;
@@ -29,6 +35,18 @@
   @apply bg-base-100;
 }
 
+.disabledVisualizationButton{
+   display: inline-block;
+   float:left;
+   margin: .5rem;
+   height: 2rem;
+   overflow: hidden;
+   box-shadow: $shadow-default;
+   border-radius: $border-radius-small;
+   transition: scale ease-in-out .2s;
+   @apply bg-base-100;
+ }
+
 .visualizationButton:hover{
   scale: 1.1;
 }
@@ -36,14 +54,12 @@
 .visualizationButton>div{
   height: 100%;
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: start;
 }
 
 .visualizationButton>div>img{
-  border: $border-default;
-  border-radius: $border-radius-small;
-  box-shadow: $shadow-default;
+  border-right: $border-default;
   @apply border-base-300;
   height: 2rem;
   width: 3rem;
@@ -51,6 +67,36 @@
 }
 
 .visualizationButton>div>span{
+  margin: 0 .5rem;
+  height: 2rem;
+  line-height: 2rem;
+  font-size: 1rem;
+}
+
+.visualizationButton>div>button{
+  @apply btn;
+  height: 2rem;
+  width: 3rem;
+  background: white;
+}
+
+.disabledVisualizationButton>div{
+  height: 100%;
+  display: flex;
+  align-items: center;
+  background: grey;
+  justify-content: start;
+}
+
+.disabledVisualizationButton>div>img{
+  border-right: $border-default;
+  @apply border-base-300;
+  height: 2rem;
+  width: 3rem;
+  background: white;
+}
+
+.disabledVisualizationButton>div>span{
   margin: 0 .5rem;
   height: 2rem;
   line-height: 2rem;

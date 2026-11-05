@@ -81,10 +81,14 @@ module.exports = new gql.GraphQLObjectType({
       },
       files: paginated({
         type: require('./fileInCommit.js'),
+        args: {
+          path: { type: gql.GraphQLString }
+        },
         description: 'The files touched by this commit',
         query: (commit, args, limit) => aql`
           FOR file, edge
             IN OUTBOUND ${commit} ${commitsToFiles}
+            ${args.path ? aql`FILTER file.path == ${args.path}` : aql``}
             let o = (
               FOR user, conn
                 IN OUTBOUND edge ${commitsToFilesToUsers}

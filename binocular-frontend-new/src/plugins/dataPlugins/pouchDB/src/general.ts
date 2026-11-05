@@ -1,6 +1,6 @@
 import {
-  DataPluginGeneral,
-  DataPluginIndexer,
+  type DataPluginGeneral,
+  type DataPluginIndexer,
   DataPluginIndexerState,
 } from '../../../interfaces/dataPluginInterfaces/dataPluginGeneral.ts';
 //import {GraphQL} from "./database.ts";

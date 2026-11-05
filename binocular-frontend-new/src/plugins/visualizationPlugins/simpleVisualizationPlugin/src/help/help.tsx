@@ -1,18 +1,16 @@
 function Help() {
+  // TODO change if used as a template
   return (
     <>
-      <h2>Builds Help</h2>
+      <h2>Example Help</h2>
       <h3>Data</h3>
-      <p>
-        The builds visualization provides an overview of the build statuses. It allows users to track the outcomes of builds, including
-        successful, failed, and cancelled builds.
-      </p>
+      <p>The builds visualization provides an overview of the build statuses. It allows users to track the outcomes of builds, including</p>
       <h3>Parameters</h3>
       <div>
         <ul className={'list-disc ml-5'}>
           <li>
-            <span className={'font-bold'}>Split Authors per Build:</span> Change the mode of visualization to either show all builds grouped
-            by status or split the builds by authors. Negative builds are all builds, which are not successful.
+            <span className={'font-bold'}>Split X per Y:</span>
+            Change the mode of visualization to show all X grouped by Y.
           </li>
           <li>
             <span className={'font-bold'}>Visualization Style:</span> Change the style of how the lines are calculated into either curved

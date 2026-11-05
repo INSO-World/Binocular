@@ -8,8 +8,15 @@ function ContextMenu() {
       onClick={() => {
         (document.getElementById('contextMenu') as HTMLDialogElement).close();
       }}
+      onMouseLeave={() => {
+        (document.getElementById('contextMenu') as HTMLDialogElement).close();
+      }}
       onContextMenu={(e) => e.preventDefault()}>
-      <div id={'contextMenuPositionController'}>
+      <div
+        id={'contextMenuPositionController'}
+        onMouseLeave={() => {
+          (document.getElementById('contextMenu') as HTMLDialogElement).close();
+        }}>
         <ul id={'contextMenuContent'}></ul>
       </div>
     </dialog>

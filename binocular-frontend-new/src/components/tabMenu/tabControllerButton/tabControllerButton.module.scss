@@ -1,4 +1,5 @@
-@import '../tabControllerVariables.module';
+@use '../tabControllerVariables.module' as *;
+@reference '../../../index.scss';
 
 .tabControllerButton{
   height: calc($tab-bar-thickness - 10px);

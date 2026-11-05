@@ -4,4 +4,5 @@ export default interface ChangeHunk {
   oldLines: number;
   oldStart: number;
   webUrl: string;
+  path: string;
 }

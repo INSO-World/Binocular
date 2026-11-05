@@ -1,15 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ParametersGeneralType } from '../../../types/parameters/parametersGeneralType.ts';
-import { ParametersDateRangeType } from '../../../types/parameters/parametersDateRangeType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { ParametersGeneralType } from '../../../types/parameters/parametersGeneralType.ts';
+import type { ParametersDateRangeType } from '../../../types/parameters/parametersDateRangeType.ts';
 import Config from '../../../config.ts';
-import { ParametersType } from '../../../types/parameters/parametersType.ts';
+import type { ParametersType } from '../../../types/parameters/parametersType.ts';
 
 const currentDate = new Date();
 const currentDateLastYear = new Date();
 currentDateLastYear.setFullYear(currentDate.getFullYear() - 1);
 
 export const parametersInitialState: ParametersType = {
-  parametersGeneral: { granularity: 'months', excludeMergeCommits: false },
+  parametersGeneral: { granularity: 'weeks', excludeMergeCommits: false },
   parametersDateRange: { from: currentDateLastYear.toISOString().split('.')[0], to: currentDate.toISOString().split('.')[0] },
 };
 

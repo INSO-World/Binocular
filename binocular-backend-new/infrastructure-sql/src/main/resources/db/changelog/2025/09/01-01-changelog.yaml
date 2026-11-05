@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1756742959820-6
+      author: KaiKastenmeier
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: gid, platform
+            constraintName: uc_924ef8e6a20f520831ba56d67
+            tableName: accounts
+

@@ -1,0 +1,49 @@
+import fileListElementsStyles from '../fileTreeElements.module.scss';
+import FileIcon from '../../../../assets/file_gray.svg';
+import { formatName } from '../../utils/fileTreeUtilities';
+import type { FileTreeElementType } from '../../../../types/data/fileListType';
+
+function FileTreeFile(props: {
+  file: FileTreeElementType;
+  listOnly?: boolean;
+  showSelect: boolean;
+  onElementClick?: (element: FileTreeElementType, foldOutState?: boolean) => void;
+  onShowContextMenu?: (e: React.MouseEvent<HTMLDivElement>, element: FileTreeElementType) => void;
+  onElementSelectionChange?: (folder: FileTreeElementType, selectionState: boolean) => void;
+}) {
+  return (
+    <>
+      <div className={'flex items-center'}>
+        {props.showSelect && (props.listOnly === undefined || !props.listOnly) && (
+          <input
+            type={'checkbox'}
+            className={'checkbox checkbox-accent checkbox-xs'}
+            checked={props.file.checked}
+            onChange={(e) => {
+              if (props.onElementSelectionChange !== undefined) {
+                props.onElementSelectionChange(props.file, e.target.checked);
+              }
+            }}
+          />
+        )}
+        <div
+          className={fileListElementsStyles.element}
+          onClick={() => {
+            if (props.onElementClick !== undefined) {
+              props.onElementClick(props.file);
+            }
+          }}
+          onContextMenu={(e) => {
+            if (props.onShowContextMenu !== undefined) {
+              props.onShowContextMenu(e, props.file);
+            }
+          }}>
+          <img src={FileIcon} alt={`folder ${props.file.name}`} />
+          <span>{formatName(props.file.searchTerm, props.file.name)}</span>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default FileTreeFile;

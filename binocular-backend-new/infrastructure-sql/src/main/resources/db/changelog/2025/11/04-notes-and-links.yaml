@@ -1,0 +1,147 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-11-04-01-create-notes
+      author: junie
+      changes:
+        - createTable:
+            tableName: notes
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: body
+                  type: text
+              - column:
+                  name: created_at
+                  type: varchar(64)
+              - column:
+                  name: updated_at
+                  type: varchar(64)
+              - column:
+                  name: system
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: resolvable
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: confidential
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: internal
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: imported
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: imported_from
+                  type: varchar(64)
+  - changeSet:
+      id: 2025-11-04-02-create-note-account
+      author: junie
+      changes:
+        - createTable:
+            tableName: note_account
+            columns:
+              - column:
+                  name: note_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: note_account
+            baseColumnNames: note_id
+            referencedTableName: notes
+            referencedColumnNames: id
+            constraintName: fk_note_account_note
+  - changeSet:
+      id: 2025-11-04-03-create-issue-note
+      author: junie
+      changes:
+        - createTable:
+            tableName: issue_note
+            columns:
+              - column:
+                  name: note_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: issue_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: issue_note
+            baseColumnNames: note_id
+            referencedTableName: notes
+            referencedColumnNames: id
+            constraintName: fk_issue_note_note
+  - changeSet:
+      id: 2025-11-04-04-create-merge-request-note
+      author: junie
+      changes:
+        - createTable:
+            tableName: merge_request_note
+            columns:
+              - column:
+                  name: note_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: merge_request_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: merge_request_note
+            baseColumnNames: note_id
+            referencedTableName: notes
+            referencedColumnNames: id
+            constraintName: fk_merge_request_note_note
+  - changeSet:
+      id: 2025-11-04-05-seed-note-and-links
+      author: junie
+      changes:
+        - insert:
+            tableName: notes
+            columns:
+              - column: { name: id, value: "1" }
+              - column: { name: body, value: "This is a comment" }
+              - column: { name: created_at, value: "2023-01-01T10:00:00Z" }
+              - column: { name: updated_at, value: "2023-01-01T10:00:00Z" }
+              - column: { name: system, valueBoolean: false }
+              - column: { name: resolvable, valueBoolean: true }
+              - column: { name: confidential, valueBoolean: false }
+              - column: { name: internal, valueBoolean: false }
+              - column: { name: imported, valueBoolean: false }
+              - column: { name: imported_from, value: "gitlab" }
+        - insert:
+            tableName: note_account
+            columns:
+              - column: { name: note_id, value: "1" }
+              - column: { name: account_id, value: "1" }
+        - insert:
+            tableName: issue_note
+            columns:
+              - column: { name: note_id, value: "1" }
+              - column: { name: issue_id, value: "1" }
+        - insert:
+            tableName: merge_request_note
+            columns:
+              - column: { name: note_id, value: "1" }
+              - column: { name: merge_request_id, value: "1" }

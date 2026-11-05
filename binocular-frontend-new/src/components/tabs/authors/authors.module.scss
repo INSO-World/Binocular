@@ -1,11 +1,14 @@
+@reference "../../../index.scss";
+
+
 $authorRowHeight :1.5rem;
 
 .authorName{
   position:relative;
-  height: $authorRowHeight;
+  height: $authorRowHeight !important;
   width: calc(100% - $authorRowHeight - 1rem);
   float: left;
-  @apply rounded-btn;
+  @apply btn;
   overflow: hidden;
   border: 2px solid;
   cursor: grab;

@@ -1,12 +1,11 @@
 binocular:
-  index:
-    path: "/Users/rise/Repositories/test_repositories/Binocular"
+  cli:
+    index:
+      scm:
+        path: "../../.git"
 spring:
   profiles:
-    active: arangodb
-  main:
-    web-application-type: none
-#    banner-mode: off
+    active: postgres,gix
   application:
     name: binocular-cli
   shell:

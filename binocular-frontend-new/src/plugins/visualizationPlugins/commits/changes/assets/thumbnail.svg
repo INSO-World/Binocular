@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1000 1000" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <rect id="Changes" x="0" y="0" width="1000" height="1000" style="fill:none;"/>
+    <g id="Changes1" serif:id="Changes">
+        <g id="Container">
+            <g>
+                <path d="M165.061855,403.716587l0,-122.499998l455.000004,0l0,-113.750001l244.999996,175l-244.999996,175l0,-113.750001l-455.000004,0Z" style="stroke:#000;stroke-width:62.5px;"/>
+                <path d="M387.670442,736.249999l0,113.750001l-244.999996,-175l244.999996,-175l0,113.750001l455.000004,0l0,122.499998l-455.000004,0Z" style="stroke:#000;stroke-width:62.5px;"/>
+            </g>
+        </g>
+    </g>
+</svg>
