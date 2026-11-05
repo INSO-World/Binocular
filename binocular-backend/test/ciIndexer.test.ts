@@ -55,7 +55,7 @@ describe('ci', function () {
   };
 
   describe('#indexGitLab', function () {
-    const gitLabSetup = async () => {
+    const gitLabSetup = async (buildReporter?: any) => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
       ctx.ciUrlProvider = { provider: 'gitlab' };
@@ -67,7 +67,7 @@ describe('ci', function () {
         return 'git@gitlab.com:Test/Test-Project.git';
       };
       await setupDb();
-      const gitLabCIIndexer = new GitLabCIIndexer(repo, reporter);
+      const gitLabCIIndexer = new GitLabCIIndexer(repo, buildReporter ?? reporter);
       gitLabCIIndexer.gitlab = new GitLabMock();
       await gitLabCIIndexer.configure(config);
       return gitLabCIIndexer;
@@ -84,6 +84,17 @@ describe('ci', function () {
         expect(dbBuildsCollectionData[0].jobs[i].webUrl).to.equal('https://gitlab.com/Test/Test-Project/jobs/' + i);
       }
       expect(dbBuildsCollectionData[0].webUrl).to.equal(dbBuildsCollectionData[0].webUrl);
+    });
+
+    it('counts every GitLab build in one run', async function () {
+      const buildReporter = new ReporterMock(undefined, ['builds']);
+      const gitLabCIIndexer = await gitLabSetup(buildReporter);
+
+      await gitLabCIIndexer.index();
+
+      // the GitLab response carries the jobs already, so no build can be lost on a missing request
+      expect(buildReporter.categories.builds.total).to.equal(3);
+      expect(buildReporter.categories.builds.processed).to.equal(3);
     });
 
     it('should not persist GitLab workflows twice if indexer is called twice', async function () {
