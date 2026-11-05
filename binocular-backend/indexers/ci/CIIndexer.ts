@@ -145,46 +145,55 @@ class CIIndexer {
   async processGitHubBuilds(projectId: string, builds: GithubRun[], fetchJobs: FetchJobs): Promise<boolean[]> {
     let processed = 0;
     const runBuild = async (build: GithubRun): Promise<boolean> => {
+      // a build that never started is not handled, so it must not raise the finished count
       if (this.stopping) {
         return false;
       }
-      const existingBuild = await Build.findOneBy('id', build.id);
-      const isOutdated =
-        build.updated_at !== null &&
-        (existingBuild === null || new Date(existingBuild.data.updatedAt).getTime() < new Date(build.updated_at).getTime());
-      // refetch only if the saved run data is outdated or jobs were requested but never stored;
-      // without ctx.argv.jobs an empty jobs array is intentional, refetching it could never be persisted and would burn requests;
-      // jobsFetched marks a build whose (possibly empty) job list was already answered by the API
-      const needsJobs =
-        ctx.argv.jobs && existingBuild !== null && (existingBuild.data.jobs?.length ?? 0) === 0 && existingBuild.data.jobsFetched !== true;
-      if (this.stopping || (!isOutdated && !needsJobs)) {
-        this.omitCount++;
-        log(
-          `Skipping build #${build.id} [${this.omitCount}] (outdated=%o, needsJobs=%o, storedJobs=%o, jobsFetched=%o)`,
-          isOutdated,
-          needsJobs,
-          existingBuild?.data.jobs?.length,
-          existingBuild?.data.jobsFetched,
-        );
-        return false;
-      }
-      log(`Processing build #${build.id} [${++processed + this.omitCount}]${needsJobs ? ' (missing jobs)' : ''}`);
-      if (!ctx.argv.jobs) {
-        return this.buildMapper(build, [])
-          .then((persistResult) => wasWritten(persistResult))
-          .catch(() => false);
-      }
+      // every path below reaches the finally, so a handled build is counted exactly once:
+      // the stop decision after the database read, the jobs-less persist and a failing job fetch alike
       try {
-        const jobs = await fetchJobs(projectId, build.id);
-        return wasWritten(await this.buildMapper(build, jobs));
-      } catch (error) {
-        // surface API failures (e.g. a rate limit after all retries) instead of swallowing them
-        if (isRateLimitError(error)) {
-          console.error(`Fetching jobs for build #${build.id} aborted by GitHub rate limit — retry later`);
-        } else {
-          log('getPipelineJobs with id %o failed: %o', build.id, error);
+        const existingBuild = await Build.findOneBy('id', build.id);
+        const isOutdated =
+          build.updated_at !== null &&
+          (existingBuild === null || new Date(existingBuild.data.updatedAt).getTime() < new Date(build.updated_at).getTime());
+        // refetch only if the saved run data is outdated or jobs were requested but never stored;
+        // without ctx.argv.jobs an empty jobs array is intentional, refetching it could never be persisted and would burn requests;
+        // jobsFetched marks a build whose (possibly empty) job list was already answered by the API
+        const needsJobs =
+          ctx.argv.jobs &&
+          existingBuild !== null &&
+          (existingBuild.data.jobs?.length ?? 0) === 0 &&
+          existingBuild.data.jobsFetched !== true;
+        if (this.stopping || (!isOutdated && !needsJobs)) {
+          this.omitCount++;
+          log(
+            `Skipping build #${build.id} [${this.omitCount}] (outdated=%o, needsJobs=%o, storedJobs=%o, jobsFetched=%o)`,
+            isOutdated,
+            needsJobs,
+            existingBuild?.data.jobs?.length,
+            existingBuild?.data.jobsFetched,
+          );
+          return false;
         }
-        return false;
+        log(`Processing build #${build.id} [${++processed + this.omitCount}]${needsJobs ? ' (missing jobs)' : ''}`);
+        if (!ctx.argv.jobs) {
+          // awaited, so the build is counted once the persist settled and not once its promise was merely created
+          return await this.buildMapper(build, [])
+            .then((persistResult) => wasWritten(persistResult))
+            .catch(() => false);
+        }
+        try {
+          const jobs = await fetchJobs(projectId, build.id);
+          return wasWritten(await this.buildMapper(build, jobs));
+        } catch (error) {
+          // surface API failures (e.g. a rate limit after all retries) instead of swallowing them
+          if (isRateLimitError(error)) {
+            console.error(`Fetching jobs for build #${build.id} aborted by GitHub rate limit — retry later`);
+          } else {
+            log('getPipelineJobs with id %o failed: %o', build.id, error);
+          }
+          return false;
+        }
       } finally {
         // @ts-expect-error function dynamically loaded, therefore not known by code highlighting
         this.reporter.finishBuild();

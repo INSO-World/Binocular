@@ -58,7 +58,8 @@ class GitLabMock {
   }
 
   getPipelines() {
-    return new Promise((resolve) => {
+    // typed, because the bare form infers Promise<unknown> and GitLab.getPipelines returns Promise<any[]>
+    return new Promise<any[]>((resolve) => {
       resolve(_.cloneDeep(testPipelines));
     });
   }
