@@ -127,3 +127,15 @@ describe('octokit dependencies', function () {
     expect(nestedCopies, `package-lock.json holds ${nestedCopies.join(', ')}`).to.have.lengthOf(1);
   });
 });
+
+describe('shared GitHub client', function () {
+  const source = fs.readFileSync(path.join(BACKEND_ROOT, 'core', 'provider', 'github.ts'), 'utf8');
+
+  it('needs no cast to build the client (AC-0004-1)', function () {
+    expect(source).to.not.contain('as any');
+  });
+
+  it('imports no package build directory (AC-0004-1)', function () {
+    expect(source).to.not.contain('dist-types');
+  });
+});
