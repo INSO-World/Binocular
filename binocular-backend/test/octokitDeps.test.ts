@@ -131,11 +131,37 @@ describe('octokit dependencies', function () {
 describe('shared GitHub client', function () {
   const source = fs.readFileSync(path.join(BACKEND_ROOT, 'core', 'provider', 'github.ts'), 'utf8');
 
+  // AC-0005-1: each option github.ts hands the client, and the installed plugin that must read it
+  const PASSED_OPTIONS: Record<string, string[]> = {
+    '@octokit/plugin-retry': ['retries', 'doNotRetry'],
+    '@octokit/plugin-throttling': ['onRateLimit', 'onSecondaryRateLimit'],
+  };
+
+  function installedSource(packageName: string): string {
+    const manifest = JSON.parse(fs.readFileSync(path.join(BACKEND_ROOT, 'node_modules', packageName, 'package.json'), 'utf8'));
+    return fs.readFileSync(path.join(BACKEND_ROOT, 'node_modules', packageName, manifest.main), 'utf8');
+  }
+
   it('needs no cast to build the client (AC-0004-1)', function () {
     expect(source).to.not.contain('as any');
   });
 
   it('imports no package build directory (AC-0004-1)', function () {
     expect(source).to.not.contain('dist-types');
+  });
+
+  it('passes only options the installed plugins read (AC-0005-1)', function () {
+    for (const [packageName, options] of Object.entries(PASSED_OPTIONS)) {
+      const pluginSource = installedSource(packageName);
+      for (const option of options) {
+        expect(source, `github.ts does not pass ${option}`).to.contain(`${option}:`);
+        expect(pluginSource, `${packageName} does not read ${option}`).to.contain(option);
+      }
+    }
+  });
+
+  it('passes no option the installed plugins dropped (AC-0005-1)', function () {
+    // shouldRetryMethod only looked live because plugin-retry types its options as any, so tsc accepts dead names
+    expect(source).to.not.contain('shouldRetryMethod');
   });
 });
