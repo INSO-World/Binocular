@@ -252,6 +252,31 @@ describe('ci', function () {
       const builds = await getAllInCollection('builds');
       expect(builds.length).to.equal(2);
     });
+
+    it('keeps a stopped GitHub run below its total', async function () {
+      this.timeout(4000); // the stopped run still flushes the batch of builds it stored
+      const buildReporter = new ReporterMock(undefined, ['builds']);
+      const gitHubCIIndexer = await gitHubSetup(2, buildReporter);
+      const controller = (gitHubCIIndexer as any).controller;
+      const requestJobs = controller.getPipelineJobs.bind(controller);
+      let stopped = false;
+      // the stop arrives while the first job request is answered, so the queued builds never start
+      controller.getPipelineJobs = (projectId, pipelineId) => {
+        if (!stopped) {
+          stopped = true;
+          gitHubCIIndexer.stop();
+        }
+        return requestJobs(projectId, pipelineId);
+      };
+      await gitHubCIIndexer.index();
+
+      // a started build requested its jobs, a build stopped before the store decision was skipped; both were handled.
+      // GitHubCIIndexer delegates the run to its CIIndexer, and that one counts the skips
+      const handledBuilds = controller.requestedPipelineIds.length + (gitHubCIIndexer as any).indexer.omitCount;
+      expect(buildReporter.categories.builds.total).to.equal(201);
+      expect(buildReporter.categories.builds.processed).to.equal(handledBuilds);
+      expect(buildReporter.categories.builds.processed).to.be.below(201);
+    });
   });
 
   describe('#configureGitHubIncorrectly', function () {

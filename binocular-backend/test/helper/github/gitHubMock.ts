@@ -17,6 +17,9 @@ class GitHubMock {
   private pipelineVersion: number;
   // id of the run whose job request must reject; -1 keeps every request answered
   private failingPipelineId: number = -1;
+  // ids of the runs the indexer requested jobs for, in request order
+  requestedPipelineIds: number[] = [];
+  private stopping: boolean = false;
 
   constructor(pipelineVersion) {
     this.pipelineId = 0;
@@ -24,6 +27,15 @@ class GitHubMock {
   }
 
   loadAssignableUsers() {}
+
+  // the real provider can be stopped; GitHubCIIndexer.stop() asks it, so the mock answers as well
+  isStopping() {
+    return this.stopping;
+  }
+
+  stop() {
+    this.stopping = true;
+  }
 
   getPipelines() {
     return new Promise((resolve) => {
@@ -61,6 +73,8 @@ class GitHubMock {
   }
 
   getPipelineJobs(projectId, pipelineId) {
+    // a build only reaches a job request once its skip decision passed, so this list counts the started builds
+    this.requestedPipelineIds.push(pipelineId);
     if (pipelineId === this.failingPipelineId) {
       // the real client rejects a job request after the retry and throttle handling gave up
       return Promise.reject(new Error(`job request for run ${pipelineId} failed`));
