@@ -37,6 +37,7 @@ import kotlin.io.path.Path
 @Service
 class VcsService(
     @Autowired private val repoService: RepositoryService,
+    @Autowired private val lizardService: LizardService,
 ) {
     companion object {
         private val logger by logger()
@@ -55,6 +56,9 @@ class VcsService(
      * @param repoPath Path to the Git repository (can be worktree or .git directory)
      * @param branch Name of the branch to index
      * @param project The project this repository belongs to
+     * @param lizardActive Boolean if lizard should be used or not
+     * @param lizardInclude A string that contains which folders are checked by lizard
+     * @param lizardThreads The number of threads used for lizard
      * @throws CliException if repository operations fail
      * @throws IllegalArgumentException if repoPath is null or branch doesn't exist
      */
@@ -62,6 +66,9 @@ class VcsService(
         repoPath: String?,
         branch: String,
         project: Project,
+        lizardActive: Boolean,
+        lizardInclude: String?,
+        lizardThreads: Int,
     ) {
         logger.trace(">>> indexRepository({}, {}, {})", repoPath, branch, project)
 
@@ -89,7 +96,47 @@ class VcsService(
         logCommitStatistics(commits, branch)
         repoService.addCommits(vcsRepo, commits)
 
-        logger.trace("<<< indexRepository({}, {}, {})", repoPath, branch, project)
+        if(lizardActive) {
+            runLizardWithSettings(vcsRepo, repoPath, lizardInclude, lizardThreads)
+        }
+
+        logger.trace("<<< indexRepository({}, {}, {}, {})",vcsRepo, repoPath, branch, project)
+    }
+
+    /**
+     * First removes the paths that do not exist in the folder from the list for lizard
+     * Afterwards runs lizard on the given paths that do exist in the project. Creates
+     * CSV files, which after reading their information and storing it in a list are deleted.
+     * A single list is returned containing all information regarding Lizard output. Which is processed
+     * afterwards and then the information is stored in the database.
+     *
+     * @param repository The repository with information that got saved prior
+     * @param repoPath The path of which is the root for the lizard pathing
+     * @param lizardInclude The actual path for individual folders relative to the root path
+     * @param lizardThreads the amount of threads used to run lizard
+     */
+    private fun runLizardWithSettings(
+        repository: Repository,
+        repoPath: String?,
+        lizardInclude: String?,
+        lizardThreads: Int
+    ) {
+
+        val lizardIncludeCleaned = lizardService.removeNonexistendPaths(repoPath,lizardInclude)
+
+        if (lizardIncludeCleaned.isEmpty()) {
+            logger.debug("No valid path for lizard was given. No given path exists. Return to main function.")
+            return
+        }
+
+        lizardService.runLizard(repoPath,lizardIncludeCleaned,lizardThreads)
+
+        val lizardFileData = lizardService.readLizardFiles(repoPath,lizardIncludeCleaned)
+
+        val lizardProcessedFileData = lizardService.evaluateLizardData(lizardFileData)
+
+        lizardService.saveLizardData(repository, lizardProcessedFileData)
+
     }
 
     /**

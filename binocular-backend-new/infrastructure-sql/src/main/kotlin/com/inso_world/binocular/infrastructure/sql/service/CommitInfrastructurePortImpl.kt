@@ -25,6 +25,8 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.Module
 import com.inso_world.binocular.model.Repository
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.Stats
+import com.inso_world.binocular.model.FileOwnership
 import jakarta.annotation.PostConstruct
 import jakarta.validation.Valid
 import org.slf4j.Logger
@@ -170,6 +172,26 @@ internal class CommitInfrastructurePortImpl
         since: Long?,
         until: Long?,
     ): Page<Commit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findFilesByCommitId(commitId: String, pageable: Pageable): Page<File> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findCommitStatsByCommitId(commitId: String): Stats {
+        TODO("Not yet implemented")
+    }
+
+    override fun findFileStatsByCommitId(commitId: String): Map<String, Stats> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findFileOwnershipByCommitAndFile(commitId: String, fileId: String): List<FileOwnership> {
+        TODO("Not yet implemented")
+    }
+
+    override fun findFileActionsByCommitId(commitId: String): Map<String, String?> {
         TODO("Not yet implemented")
     }
 

@@ -15,6 +15,7 @@ import IssuesTimeline from './visualizationPlugins/issues/issuesTimeline';
 import Burndown from './visualizationPlugins/issues/burndown';
 import CodeHotspots from './visualizationPlugins/expertise/codeHotspots';
 import SumCommits from './visualizationPlugins/commits/sumCommits';
+import LizardStats from './visualizationPlugins/stats/lizardStats';
 import ChangeFrequency from './visualizationPlugins/changeFrequency/index.ts';
 
 import ExampleComplex from './visualizationPlugins/example/exampleComplex';
@@ -56,6 +57,7 @@ export const visualizationPlugins: VisualizationPlugin<any, any>[] = [
   mergeRequest,
   timeSpent,
   IssuesTimeline,
+  LizardStats,
   RepositoryStats,
   CodeOwnership,
   FileChanges,

@@ -48,6 +48,10 @@ internal class BranchInfrastructurePortImpl(
         super.dao = branchDao
     }
 
+    override fun findByName(name: String): Branch? {
+        TODO("Not yet implemented")
+    }
+
     override fun findFilesByBranchId(branchId: String): List<File> {
         TODO("Not yet implemented")
     }
