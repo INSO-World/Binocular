@@ -1,6 +1,11 @@
 name: Test ESLint
 
-on: push
+on:
+  push:
+    paths:
+      - "binocular-frontend/**"
+      - "binocular-frontend-new/**"
+      - "binocular-backend/**"
 
 #env: set env if needed
 

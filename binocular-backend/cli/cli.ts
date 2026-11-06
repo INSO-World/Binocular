@@ -10,24 +10,27 @@ import package_json from '../package.json';
 
 const cli = new Command();
 
-function parse(
-  run: (
-    targetPath: string,
-    options: {
-      backend: boolean;
-      frontend: boolean;
-      open: boolean;
-      clean: boolean;
-      its: boolean;
-      ci: boolean;
-      jobs: boolean;
-      updateJobs: boolean;
-      export: boolean;
-      server: boolean;
-    },
-  ) => void,
-  build: (options: { runIndexer: boolean; buildMode: string }) => void,
-) {
+interface runOptions {
+  backend: boolean;
+  clean: boolean;
+  its: boolean;
+  ci: boolean;
+  jobs: boolean;
+  updateJobs: boolean;
+  export: boolean;
+  server: boolean;
+}
+
+interface buildOptions {
+  runIndexer: boolean;
+  buildMode: string;
+}
+
+interface exportOptions {
+  database: string;
+}
+
+function parse(run: (targetPath: string, options: runOptions) => void, build: (options: buildOptions) => void) {
   console.log(chalk.green(figlet.textSync('Binocular')));
 
   // Add unknown option handler
@@ -55,10 +58,8 @@ function parse(
   cli
     .command('run')
     .addArgument(new Argument('[targetPath]', 'relative path to the repository'))
-    .description('execute the binocular frontend and backend')
+    .description('execute the binocular backend')
     .addOption(new Option('--no-backend', 'disable the backend').default(true))
-    .addOption(new Option('--no-frontend', 'disable the frontend').default(true))
-    .addOption(new Option('--open', 'automatic open frontend on launch').default(false))
     .addOption(new Option('--clean', 'clear db before execution').default(false))
     .addOption(new Option('--no-vcs', 'disable Version Control System indexing').default(true))
     .addOption(new Option('--no-its', 'disable Issue Tracking System indexing').default(true))
@@ -68,7 +69,7 @@ function parse(
     .addOption(new Option('--gql-port <port>', 'port where the graphql service is hosted').default(48763))
     .addOption(new Option('--export', 'export the db to the default folder of binocular').default(false))
     .addOption(new Option('--no-server', 'disable the backed webserver (when used binocular quits after indexing)').default(true))
-    .action((targetPath, options) => {
+    .action((targetPath: string, options: runOptions) => {
       run(path.resolve(targetPath ? targetPath : '.'), options);
     });
 
@@ -77,17 +78,24 @@ function parse(
     .description('build the fronted of binocular')
     .addOption(new Option('-i, --run-indexer [repo]', 'run the indexer and db export before building the backend'))
     .addOption(new Option('-m, --build-mode <mode>', 'define the build mode').choices(['dev', 'prod', 'offline']).default('offline'))
-    .action((options) => {
+    .action((options: buildOptions) => {
+      if (options.buildMode === 'offline' && process.platform === 'win32') {
+        options.buildMode = 'offline-windows';
+      }
       build(options);
     });
 
   cli
     .command('export')
     .addArgument(new Argument('[targetPath]', 'relative path to where the export should be saved'))
+    .addArgument(new Argument('[projectNamespace]', 'name of the project namespace'))
+    .addArgument(new Argument('[repositoryType]', 'type of the repository (github/gitlab)'))
     .description('export the database of binocular')
     .addOption(new Option('-db, --database <repo>', 'export specific database'))
-    .action((targetPath, options) => {
-      exportDB(targetPath, options);
+    .action((targetPath: string, projectNamespace: string, repositoryType: string, options: exportOptions) => {
+      exportDB(targetPath, options, projectNamespace, repositoryType).then((db: string) => {
+        console.log(chalk.green('Export of ' + db + ' to ' + targetPath + '.'));
+      });
     });
 
   cli

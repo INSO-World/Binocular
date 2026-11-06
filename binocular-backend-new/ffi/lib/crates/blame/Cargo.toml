@@ -1,0 +1,24 @@
+[package]
+name = "binocular-blame"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+license.workspace = true
+
+autotests = false
+include = ["src/**/*"]
+
+[lib]
+doctest = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+shared = { path = "../shared" }
+gix = { workspace = true, features = ["max-performance-safe", "revision", "blame"] }
+log = { workspace = true }
+anyhow = { workspace = true }
+commits = {path = "../commits"}
+crossbeam-channel = { version = "0.5.14" }

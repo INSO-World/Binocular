@@ -1,0 +1,8 @@
+@use "../../../variables.scss" as *;
+@reference "../../../index.scss";
+
+.settingsButton{
+  background: url("../../../assets/dots_horizontal_gray.svg");
+  height: 1.5rem;
+  width: 1.5rem;
+}

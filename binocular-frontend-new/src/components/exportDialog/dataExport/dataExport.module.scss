@@ -1,0 +1,30 @@
+.previewTableContainer {
+  height: 50vh;
+  overflow: scroll;
+}
+
+.chartContainer {
+  position: relative;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  h1 {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+    text-decoration: none;
+  }
+
+  h2 {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+}
+
+.mg1 {
+  margin: 1rem;
+}

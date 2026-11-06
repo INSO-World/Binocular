@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { NotificationType } from '../../../types/general/alertType.ts';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { NotificationType } from '../../../types/general/alertType.ts';
+import { cloneDeep } from 'lodash';
 
 export interface NotificationsInitialState {
   notificationList: NotificationType[];
@@ -16,8 +17,9 @@ export const notificationsSlice = createSlice({
   initialState,
   reducers: {
     addNotification: (state, action: PayloadAction<NotificationType>) => {
-      action.payload.id = state.currID;
-      state.notificationList.push(action.payload);
+      const newNotification = cloneDeep(action.payload);
+      newNotification.id = state.currID;
+      state.notificationList.push(newNotification);
       state.currID++;
     },
     removeNotification: (state, action: PayloadAction<number>) => {

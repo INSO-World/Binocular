@@ -1,0 +1,22 @@
+binocular:
+  cli:
+    index:
+      scm:
+        path: "./src/test/resources/fixtures/simple"
+spring:
+  profiles:
+    active: test,gix,sql,postgres
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false
+logging:
+  file:
+    name: logs/test.log
+  level:
+    root: off
+    #    org.hibernate.orm.jdbc.bind: trace
+    com:
+      inso_world:
+        binocular: DEBUG

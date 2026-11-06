@@ -1,0 +1,40 @@
+{
+  "groups": [
+    {
+      "name": "binocular.arangodb",
+      "type": "com.inso_world.binocular.infrastructure.arangodb.InfrastructureConfig",
+      "description": "Configuration for the gix (Rust Git implementation) indexer."
+    }
+  ],
+  "properties": [
+    {
+      "name": "binocular.arangodb.database.name",
+      "type": "java.lang.String",
+      "description": "Name of the database to use",
+      "defaultValue": "Binocular"
+    },
+    {
+      "name": "binocular.arangodb.database.host",
+      "type": "java.lang.String",
+      "description": "Host of where the database is running",
+      "defaultValue": "localhost"
+    },
+    {
+      "name": "binocular.arangodb.database.port",
+      "type": "java.lang.Integer",
+      "description": "Port of where the database is running",
+      "defaultValue": 5432
+    },
+    {
+      "name": "binocular.arangodb.database.user",
+      "type": "java.lang.String",
+      "description": "User to login with into the ArangoDB instance"
+    },
+    {
+      "name": "binocular.arangodb.database.password",
+      "type": "java.lang.String",
+      "description": "Password to login with into the ArangoDB instance"
+    }
+  ],
+  "hints": []
+}

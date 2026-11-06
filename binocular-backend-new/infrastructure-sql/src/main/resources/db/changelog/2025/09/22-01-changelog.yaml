@@ -1,0 +1,307 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1758530611749-4
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropColumn:
+            columns:
+              - column:
+                  name: old_file_content
+              - column:
+                  name: new_file_content
+            tableName: file_diffs
+  - changeSet:
+      id: 1758530611749-5
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            tableName: file_diffs
+            columns:
+              - column:
+                  name: old_file_state_id
+                  type: BIGINT
+              - column:
+                  name: new_file_state_id
+                  type: BIGINT
+  - changeSet:
+      id: 1758530611749-6
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_file_state
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: true
+                  name: content
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: commit_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: file_id
+                  type: BIGINT
+            tableName: file_state
+  - changeSet:
+      id: 1758530611749-7
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_files
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: path
+                  type: VARCHAR(255)
+              - column:
+                  name: web_url
+                  type: VARCHAR(255)
+              - column:
+                  name: max_length
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: repository_id
+                  type: BIGINT
+            tableName: files
+#  - changeSet:
+#      id: 1758530611749-8
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - createTable:
+#            columns:
+#              - column:
+#                  constraints:
+#                    nullable: false
+#                    primaryKey: true
+#                    primaryKeyName: pk_files_states
+#                  name: file_entity_id
+#                  type: BIGINT
+#              - column:
+#                  constraints:
+#                    nullable: false
+#                    primaryKey: true
+#                    primaryKeyName: pk_files_states
+#                  name: states_id
+#                  type: BIGINT
+#            tableName: files_states
+  - changeSet:
+      id: 1758530611749-10
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: commit_diff_entity_id, files_id
+            constraintName: uc_commit_diffs_files_files
+            tableName: commit_diffs_files
+  - changeSet:
+      id: 1758530611749-11
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: path
+            constraintName: uc_files_path
+            tableName: files
+#  - changeSet:
+#      id: 1758530611749-12
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - addUniqueConstraint:
+#            columnNames: states_id
+#            constraintName: uc_files_states_states
+#            tableName: files_states
+  - changeSet:
+      id: 1758530611749-13
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: path
+            indexName: idx_54ff66e535ab6a231a65811ed
+            tableName: files
+  - changeSet:
+      id: 1758530611749-17
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: repository_id
+            baseTableName: files
+            constraintName: FK_FILES_ON_REPOSITORY
+            referencedColumnNames: id
+            referencedTableName: repositories
+#  - changeSet:
+#      id: 1758530611749-18
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - addForeignKeyConstraint:
+#            baseColumnNames: commit_diff_id
+#            baseTableName: file_diffs
+#            constraintName: FK_FILE_DIFFS_ON_COMMIT_DIFF
+#            referencedColumnNames: id
+#            referencedTableName: commit_diffs
+  - changeSet:
+      id: 1758530611749-19
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: new_file_state_id
+            baseTableName: file_diffs
+            constraintName: FK_FILE_DIFFS_ON_NEWFILE
+            referencedColumnNames: id
+            referencedTableName: file_state
+  - changeSet:
+      id: 1758530611749-20
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: old_file_state_id
+            baseTableName: file_diffs
+            constraintName: FK_FILE_DIFFS_ON_OLDFILE
+            referencedColumnNames: id
+            referencedTableName: file_state
+  - changeSet:
+      id: 1758530611749-21
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: commit_id
+            baseTableName: file_state
+            constraintName: FK_FILE_STATE_ON_COMMIT
+            referencedColumnNames: id
+            referencedTableName: commits
+  - changeSet:
+      id: 1758530611749-22
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: file_id
+            baseTableName: file_state
+            constraintName: FK_FILE_STATE_ON_FILE
+            referencedColumnNames: id
+            referencedTableName: files
+#  - changeSet:
+#      id: 1758530611749-23
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - addForeignKeyConstraint:
+#            baseColumnNames: commit_diff_entity_id
+#            baseTableName: commit_diffs_files
+#            constraintName: fk_comdiffil_on_commit_diff_entity
+#            referencedColumnNames: id
+#            referencedTableName: commit_diffs
+#  - changeSet:
+#      id: 1758530611749-24
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - addForeignKeyConstraint:
+#            baseColumnNames: files_id
+#            baseTableName: commit_diffs_files
+#            constraintName: fk_comdiffil_on_file_diff_entity
+#            referencedColumnNames: id
+#            referencedTableName: file_diffs
+#  - changeSet:
+#      id: 1758530611749-25
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - addForeignKeyConstraint:
+#            baseColumnNames: file_entity_id
+#            baseTableName: files_states
+#            constraintName: fk_filsta_on_file_entity
+#            referencedColumnNames: id
+#            referencedTableName: files
+#  - changeSet:
+#      id: 1758530611749-26
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - addForeignKeyConstraint:
+#            baseColumnNames: states_id
+#            baseTableName: files_states
+#            constraintName: fk_filsta_on_file_state_entity
+#            referencedColumnNames: id
+#            referencedTableName: file_state
+  - changeSet:
+      id: 1758530611749-27
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createSequence:
+            incrementBy: 50
+            sequenceName: files_seq
+            startValue: 1
+  - changeSet:
+      id: 1758530611749-28
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createSequence:
+            incrementBy: 50
+            sequenceName: file_state_seq
+            startValue: 1
+  - changeSet:
+      id: 1758530611749-29
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropColumn:
+            tableName: file_diffs
+            columns:
+              - column:
+                  name: path_before
+              - column:
+                  name: path_after
+  - changeSet:
+      id: 1758530611749-30
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            tableName: file_state
+            columnNames: commit_id, file_id
+            constraintName: uc_Y29tbWl0X2lkLCBmaWxlX2lkCg
+#  - changeSet:
+#      id: 1758530611749-31
+#      author: manuel
+#      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+#      changes:
+#        - addCheckConstraint:
+#            tableName: file_diffs
+#            constraintBody: CHECK(change = 'ADDITION' AND old_file_state_id IS NULL)
+#            constraintName: check_addition_old_state_is_NULL
+

@@ -22,7 +22,7 @@ class GitLabCIIndexer extends BaseGitLabIndexer {
       pipeline.jobs = jobs.map((job) => ({
         id: job.id.replace('gid://gitlab/Ci::Build/', ''),
         name: job.name,
-        status: job.status,
+        status: this.convertState(job.status.toLowerCase()),
         stage: job.stage.name,
         createdAt: job.createdAt,
         finishedAt: job.finishedAt,
@@ -54,6 +54,15 @@ class GitLabCIIndexer extends BaseGitLabIndexer {
     }
 
     this.stopping = true;
+  }
+
+  convertState(state) {
+    switch (state) {
+      case 'canceled':
+        return 'cancelled';
+      default:
+        return state;
+    }
   }
 }
 

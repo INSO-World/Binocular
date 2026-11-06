@@ -1,5 +1,6 @@
 export interface DatabaseSettingsType {
   dataPlugins: DatabaseSettingsDataPluginType[];
+  defaultDataPluginItemId?: number;
   currID: number;
 }
 
@@ -13,6 +14,11 @@ export interface DatabaseSettingsDataPluginType {
     endpoint?: string;
     fileName?: string;
     progressUpdate?: ProgressUpdateConfig;
+  };
+  metadata?: {
+    namespace: string;
+    createdAt: string;
+    type: string;
   };
 }
 

@@ -109,7 +109,7 @@ class GitHubCIIndexer {
         jobs: jobs.map((job: GithubJob) => ({
           id: String(job.id),
           name: username,
-          status: job.conclusion,
+          status: convertState(job.conclusion),
           stage: job.conclusion,
           createdAt: moment(job.created_at).toISOString(),
           finishedAt: moment(job.completed_at).toISOString(),

@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1758297893567-4
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_commit_diffs_files
+                  name: commit_diff_entity_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_commit_diffs_files
+                  name: files_id
+                  type: BIGINT
+            tableName: commit_diffs_files
+  - changeSet:
+      id: 1758297893567-12
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: commit_diff_entity_id
+            baseTableName: commit_diffs_files
+            constraintName: fk_comdiffil_on_commit_diff_entity
+            referencedColumnNames: id
+            referencedTableName: commit_diffs
+  - changeSet:
+      id: 1758297893567-13
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: files_id
+            baseTableName: commit_diffs_files
+            constraintName: fk_comdiffil_on_file_diff_entity
+            referencedColumnNames: id
+            referencedTableName: file_diffs
+

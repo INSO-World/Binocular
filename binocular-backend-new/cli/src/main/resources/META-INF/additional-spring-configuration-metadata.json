@@ -1,0 +1,28 @@
+{
+  "groups": [
+    {
+      "name": "binocular.cli",
+      "type": "com.inso_world.binocular.cli.config.BinocularConfiguration",
+      "description": "Configuration for the cli application."
+    },
+    {
+      "name": "binocular.cli.index",
+      "type": "com.inso_world.binocular.cli.config.IndexConfig",
+      "description": "Configuration for the indexer part of the cli application."
+    },
+    {
+      "name": "binocular.cli.index.scm",
+      "type": "com.inso_world.binocular.cli.config.ScmConfig",
+      "description": "Configuration for the Source Code Management tool part of the cli application."
+    }
+  ],
+  "properties": [
+    {
+      "name": "binocular.cli.index.scm.path",
+      "type": "java.lang.String",
+      "description": "Path to the local repository which should be indexed.",
+      "defaultValue": "./"
+    }
+  ],
+  "hints": []
+}

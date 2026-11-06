@@ -45,7 +45,6 @@ RUN --mount=type=bind,src=./.binocularrc_ci,target=./.binocularrc,readonly \
     DEBUG=idx*,importer*,git*,db* \
     binocular \
     run \
-    --no-frontend \
     --no-server \
     ./
 RUN npm run build:offline

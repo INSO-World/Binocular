@@ -4,7 +4,6 @@ const gql = require('graphql-sync');
 const arangodb = require('@arangodb');
 const db = arangodb.db;
 const aql = arangodb.aql;
-const issuesToUsers = db._collection('issues-users');
 const issuesToAccounts = db._collection('issues-accounts')
 const issuesToCommits = db._collection('issues-commits');
 const issuesToMilestones = db._collection('issues-milestones');
@@ -49,25 +48,16 @@ module.exports = new gql.GraphQLObjectType({
         type: Timestamp,
         description: 'Close date of the issue',
       },
-      creator: {
-        type: require('./user.js'),
-        description: 'The creator of this issue',
-        resolve(issue /*, args*/) {
-          return db
-            ._query(
-              aql`
-              FOR
-              user
-              IN
-              OUTBOUND ${issue} ${issuesToUsers}
-                RETURN user
-              `
-            )
-            .toArray()[0];
-        },
+      updatedAt: {
+        type: Timestamp,
+        description: 'Last Updated date of the issue',
+      },
+      labels: {
+        type: new gql.GraphQLList(gql.GraphQLString),
+        description: 'The assigned labels of the issue',
       },
       author: {
-        type: require('./gitHubUser.js'),
+        type: require('./account.js'),
         description: 'The github author of this issue',
         resolve(issue /*, args*/) {
           return db
@@ -85,7 +75,7 @@ module.exports = new gql.GraphQLObjectType({
         },
       },
       assignee: {
-        type: require('./gitHubUser.js'),
+        type: require('./account.js'),
         description: 'The assignee of this issue',
         resolve(issue /*, args*/) {
           return db
@@ -103,7 +93,7 @@ module.exports = new gql.GraphQLObjectType({
         },
       },
       assignees: {
-        type: new gql.GraphQLList(require('./gitHubUser.js')),
+        type: new gql.GraphQLList(require('./account.js')),
         description: 'All the assignees of this issue',
         resolve(issue /*, args*/) {
           return db

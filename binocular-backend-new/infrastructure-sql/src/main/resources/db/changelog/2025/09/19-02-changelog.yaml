@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1758297701834-2
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createSequence:
+            incrementBy: 50
+            sequenceName: file_diffs_seq
+            startValue: 1
+  - changeSet:
+      id: 1758297701834-5
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_file_diffs
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: path_before
+                  type: VARCHAR(255)
+              - column:
+                  name: path_after
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: additions
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deletions
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: change
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: commit_diff_id
+                  type: BIGINT
+            tableName: file_diffs
+  - changeSet:
+      id: 1758297701834-12
+      author: manuel
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: commit_diff_id
+            baseTableName: file_diffs
+            constraintName: FK_FILE_DIFFS_ON_COMMIT_DIFF
+            referencedColumnNames: id
+            referencedTableName: commit_diffs
+

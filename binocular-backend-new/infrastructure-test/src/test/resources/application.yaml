@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: infrastructure-test
+  profiles:
+    # if you add a required profile here, also change the ../.github/workflows/backend-fast.yml!
+#    active: test,gix,postgres
+    active: test,gix,arangodb
+  liquibase:
+    enabled: false
+
+logging:
+  level:
+    root: warn
+    com.inso_world.binocular: info

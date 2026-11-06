@@ -26,11 +26,10 @@ const BuildStatus = new gql.GraphQLEnumType({
 });
 
 // If AQL query fails, a missing job status enum could be the reason. No information found of existing types.
-// difference between the 2 enums is at least 'failure' vs 'failed'
 const JobStatus = new gql.GraphQLEnumType({
   name: 'JobStatus',
   values: {
-    failure: {},
+    failed: {},
     success: {},
     cancelled: {},
     skipped: {},
@@ -102,6 +101,10 @@ module.exports = new gql.GraphQLObjectType({
       webUrl: {
         type: gql.GraphQLString,
         description: 'Web-url of this build',
+      },
+      tag: {
+        type: gql.GraphQLString,
+        description: 'Tag of this build',
       },
       createdAt: {
         type: Timestamp,
