@@ -2,17 +2,17 @@
 
 import debug from 'debug';
 import { Octokit } from '@octokit/rest';
-import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
+import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 import { retry } from '@octokit/plugin-retry';
 import { throttling } from '@octokit/plugin-throttling';
 import type { ThrottlingOptions } from '@octokit/plugin-throttling';
-import type { RequestParameters } from '@octokit/types';
+import type { EndpointDefaults } from '@octokit/types';
 import { GithubJob, GithubUser } from '../../types/GithubTypes';
 
 const log = debug('github');
 
-// @octokit/plugin-retry@4.1.6 declares no options type (its octokitOptions parameter is any), so this names the
-// options below; the plugin reads them at dist-node/index.js:88-91
+// @octokit/plugin-retry@8.1.1 declares no options type (its octokitOptions parameter is any), so this names the
+// options below; the plugin reads both off the client options in its request hook
 type RetryOptions = {
   enabled?: boolean;
   retries?: number;
@@ -27,17 +27,17 @@ const retryRateLimitedRequests: RetryOptions = {
   doNotRetry: [400, 401, 404],
 };
 
-// the plugin calls both handlers as (retryAfter, options, octokit, retryCount) — @octokit/plugin-throttling
-// dist-node/index.js:200-207 and :220-227 — and retries the request only when the handler returns true
+// the plugin calls both handlers as (retryAfter, options, octokit, retryCount) and retries the request only
+// when the handler returns true; options is the resolved request, so it carries the plugin's own retryCount
 const throttleRateLimitedRequests: ThrottlingOptions = {
   // pause every indexer using this client when the primary limit is hit, then retry once the window resets
-  onRateLimit: (retryAfter: number, requestOptions: RequestParameters, _octokit: unknown, retryCount: number) => {
+  onRateLimit: (retryAfter: number, requestOptions: EndpointDefaults, _octokit: unknown, retryCount: number) => {
     log('Hit primary rate limit for %o %o — pausing every indexer, retry %o', requestOptions.method, requestOptions.url, retryCount);
     return retryCount < 3;
   },
   // back off on the secondary limit, retry once, then give up on this request
-  onSecondaryRateLimit: (retryAfter: number, requestOptions: RequestParameters) => {
-    // the plugin stores how often it retried this very request on options.request (dist-node/index.js:197)
+  onSecondaryRateLimit: (retryAfter: number, requestOptions: EndpointDefaults) => {
+    // the plugin stores how often it retried this very request on options.request
     if ((requestOptions.request?.retryCount ?? 0) > 0) {
       console.error('Secondary rate limit hit again for %o %o — dropping request', requestOptions.method, requestOptions.url);
       return false;
@@ -63,7 +63,7 @@ function sharedGitHubClient(options: { baseUrl: string; privateToken: string }) 
   const cacheKey = `${options.baseUrl}|${options.privateToken ?? ''}`;
   if (sharedClients[cacheKey] === undefined) {
     log('Creating the shared GitHub client for %o', options.baseUrl);
-    const RateLimitedOctokit = Octokit.plugin(retry, throttling, paginateGraphql);
+    const RateLimitedOctokit = Octokit.plugin(retry, throttling, paginateGraphQL);
     sharedClients[cacheKey] = new RateLimitedOctokit({
       baseUrl: options.baseUrl,
       auth: options.privateToken,

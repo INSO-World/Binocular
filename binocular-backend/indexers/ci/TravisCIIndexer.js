@@ -62,7 +62,7 @@ class TravisCIIndexer {
         })}`,
       );
       const username = (pipeline.created_by || {}).login;
-      const userFullName = username !== undefined ? (await this.github.users.getByUsername({ username: username })).data.name : '';
+      const userFullName = username !== undefined ? (await this.github.rest.users.getByUsername({ username: username })).data.name : '';
       return Build.persist({
         id: pipeline.id,
         sha: pipeline.commit.sha,
