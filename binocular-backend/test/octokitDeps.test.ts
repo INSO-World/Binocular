@@ -139,7 +139,9 @@ describe('shared GitHub client', function () {
 
   function installedSource(packageName: string): string {
     const manifest = JSON.parse(fs.readFileSync(path.join(BACKEND_ROOT, 'node_modules', packageName, 'package.json'), 'utf8'));
-    return fs.readFileSync(path.join(BACKEND_ROOT, 'node_modules', packageName, manifest.main), 'utf8');
+    // an ESM-only package publishes no main field, so its entry is the import condition of the "." export
+    const entry = manifest.exports['.'].import ?? manifest.exports['.'].default ?? manifest.exports['.'];
+    return fs.readFileSync(path.join(BACKEND_ROOT, 'node_modules', packageName, entry), 'utf8');
   }
 
   it('needs no cast to build the client (AC-0004-1)', function () {
