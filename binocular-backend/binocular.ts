@@ -86,6 +86,9 @@ import AccountUserConnection from './models/connections/AccountUserConnection.ts
 import { findBestUserMatchLeve } from './models/utils.ts';
 import debug from 'debug';
 
+// no __dirname in an ES module; cli.parse runs its callbacks during this module body, so this must sit above it
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 cli.parse(
   (targetPath, options) => {
     console_stamp(console, { format: ':date(yyyy/mm/dd HH:MM:ss)' });
@@ -128,9 +131,6 @@ cli.parse(
 function runBackend() {
   startTime = Moment.now();
   console.log('Start Time: ' + Moment(startTime).format());
-
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
 
   // set up the endpoints
   ctx.app.get('/api/db-export', (req: express.Request, res: express.Response) => getDbExportEndpoint(req, res, ctx));
