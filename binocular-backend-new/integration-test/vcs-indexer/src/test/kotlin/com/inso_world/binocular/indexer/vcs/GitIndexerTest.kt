@@ -30,7 +30,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
 import kotlin.collections.iterator
@@ -101,7 +100,7 @@ internal class GitIndexerTest : BaseFixturesIntegrationTest() {
 
         @Test
         fun `findRepo with non-git directory should throw exception`() {
-            val nonGitPath = Files.createTempDirectory(LocalDateTime.now().toString())
+            val nonGitPath = Files.createTempDirectory("binocular-non-git-")
 
             // FFI throws UniffiException (extends Exception), JGit throws JGitException (extends RuntimeException)
             val e =

@@ -42,7 +42,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.nio.file.Files
-import java.time.LocalDateTime
 import java.util.stream.Stream
 
 /**
@@ -182,7 +181,7 @@ internal class FfiIntegrationTest : BaseFixturesIntegrationTest() {
 
         @Test
         fun `findRepo with non-git directory should throw GixDiscoverException`() {
-            val nonGitPath = Files.createTempDirectory(LocalDateTime.now().toString())
+            val nonGitPath = Files.createTempDirectory("binocular-non-git-")
 
             val exception =
                 assertThrows<UniffiException.GixDiscoverException> {

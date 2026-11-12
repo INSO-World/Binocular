@@ -168,11 +168,40 @@ open class BaseFixturesIntegrationTest : BaseIntegrationTest() {
 
     fun addCommit() {
         val executorService = Executors.newFixedThreadPool(3)
+
         SIMPLE_REPO.let { path ->
             val future =
                 executorService.submit {
-                    execCmd(path = path, "sh", "-c", "./${path}_add_commit.sh $path")
+                    val isWindows =
+                        java.lang.System
+                            .getProperty("os.name")
+                            .lowercase(java.util.Locale.getDefault())
+                            .startsWith("windows")
+
+                    if (isWindows) {
+                        val winPath = java.io.File(FIXTURES_PATH).absolutePath
+                        val wslPath =
+                            "/mnt/" +
+                                winPath[0].lowercase() +
+                                winPath.substring(2).replace("\\", "/")
+
+                        execCmd(
+                            path = path,
+                            "wsl",
+                            "bash",
+                            "-c",
+                            "cd \"$wslPath\" && bash \"./${path}_add_commit.sh\" \"$path\"",
+                        )
+                    } else {
+                        execCmd(
+                            path = path,
+                            "sh",
+                            "-c",
+                            "./${path}_add_commit.sh $path",
+                        )
+                    }
                 }
+
             future.get()
         }
     }
