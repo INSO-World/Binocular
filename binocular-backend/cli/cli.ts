@@ -1,12 +1,15 @@
 import chalk from 'chalk';
 import figlet from 'figlet';
 import { Argument, Command, Option } from 'commander';
+import { readFileSync } from 'fs';
 import path from 'path';
 import * as setup from './setup.js';
 import { exportDB } from './exportDB';
 import { runTests } from './runTests.ts';
 
-import package_json from '../package.json';
+// read instead of importing: tsx 3.x bundles an esbuild that cannot parse an import attribute, and a JSON
+// import needs loader cooperation the CI's unpinned tsx major does not have to give
+const package_json = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 const cli = new Command();
 

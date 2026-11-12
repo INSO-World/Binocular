@@ -16,7 +16,8 @@ import './base.test.ts';
 describe('ci', function () {
   const config = conf.get();
   const db = new Db(config.arango);
-  const reporter = new ReporterMock(undefined, ['build']);
+  // 'builds' as in binocular.ts:172, so finishBuild() from the indexers lands on a real counter
+  const reporter = new ReporterMock(undefined, ['builds']);
 
   config.token = '1234567890';
   config.testSetup = {};
@@ -36,8 +37,25 @@ describe('ci', function () {
 
   const getAllInCollection = async (collection: string) => getAllEntriesInCollection(db, collection);
 
+  // shared by the GitHub suites; truncates the database, so a test that indexes twice must not use it twice
+  const gitHubSetup = async (pipelineVersion?: number, buildReporter?: any) => {
+    const repo = await repositoryFake.repository();
+    ctx.targetPath = repo.path;
+    ctx.ciUrlProvider = { provider: 'github' };
+    //Remap Remote functions to local ones because remote repository doesn't exist anymore.
+    remapRemoteFunctions(repo);
+    repo.getOriginUrl = async function () {
+      return 'git@github.com/Test/Test-Project.git';
+    };
+    await setupDb();
+    const gitHubCIIndexer = new GitHubCIIndexer(repo, buildReporter ?? reporter);
+    config.testSetup.pipelineVersion = pipelineVersion || 0;
+    await gitHubCIIndexer.configure(config);
+    return gitHubCIIndexer;
+  };
+
   describe('#indexGitLab', function () {
-    const gitLabSetup = async () => {
+    const gitLabSetup = async (buildReporter?: any) => {
       const repo = await repositoryFake.repository();
       ctx.targetPath = repo.path;
       ctx.ciUrlProvider = { provider: 'gitlab' };
@@ -49,7 +67,7 @@ describe('ci', function () {
         return 'git@gitlab.com:Test/Test-Project.git';
       };
       await setupDb();
-      const gitLabCIIndexer = new GitLabCIIndexer(repo, reporter);
+      const gitLabCIIndexer = new GitLabCIIndexer(repo, buildReporter ?? reporter);
       gitLabCIIndexer.gitlab = new GitLabMock();
       await gitLabCIIndexer.configure(config);
       return gitLabCIIndexer;
@@ -66,6 +84,17 @@ describe('ci', function () {
         expect(dbBuildsCollectionData[0].jobs[i].webUrl).to.equal('https://gitlab.com/Test/Test-Project/jobs/' + i);
       }
       expect(dbBuildsCollectionData[0].webUrl).to.equal(dbBuildsCollectionData[0].webUrl);
+    });
+
+    it('counts every GitLab build in one run', async function () {
+      const buildReporter = new ReporterMock(undefined, ['builds']);
+      const gitLabCIIndexer = await gitLabSetup(buildReporter);
+
+      await gitLabCIIndexer.index();
+
+      // the GitLab response carries the jobs already, so no build can be lost on a missing request
+      expect(buildReporter.categories.builds.total).to.equal(3);
+      expect(buildReporter.categories.builds.processed).to.equal(3);
     });
 
     it('should not persist GitLab workflows twice if indexer is called twice', async function () {
@@ -93,22 +122,6 @@ describe('ci', function () {
   });
 
   describe('#indexGitHub', function () {
-    const gitHubSetup = async (pipelineVersion?: number) => {
-      const repo = await repositoryFake.repository();
-      ctx.targetPath = repo.path;
-      ctx.ciUrlProvider = { provider: 'github' };
-      //Remap Remote functions to local ones because remote repository doesn't exist anymore.
-      remapRemoteFunctions(repo);
-      repo.getOriginUrl = async function () {
-        return 'git@github.com/Test/Test-Project.git';
-      };
-      await setupDb();
-      const gitHubCIIndexer = new GitHubCIIndexer(repo, reporter);
-      config.testSetup.pipelineVersion = pipelineVersion || 0;
-      await gitHubCIIndexer.configure(config);
-      return gitHubCIIndexer;
-    };
-
     it('should index all GitHub workflows and create all necessary db collections and connections', async function () {
       const gitHubCIIndexer = await gitHubSetup();
       await gitHubCIIndexer.index();
@@ -186,6 +199,94 @@ describe('ci', function () {
       const builds = await getAllInCollection('builds');
 
       expect(builds.length).to.equal(201);
+    });
+  });
+
+  describe('#indexGitHubBuildCounter', function () {
+    // gitHubSetup truncates the database, so a counter test that indexes twice builds its indexer once and remaps the
+    // second run's data instead
+    const reindexWithVersion = (gitHubCIIndexer, pipelineVersion) => {
+      config.testSetup.pipelineVersion = pipelineVersion;
+      gitHubCIIndexer.controller.pipelineVersion = pipelineVersion;
+    };
+
+    it('counts updated and skipped builds in one GitHub run', async function () {
+      const buildReporter = new ReporterMock(undefined, ['builds']);
+      const repo = await repositoryFake.repository();
+      ctx.targetPath = repo.path;
+      ctx.ciUrlProvider = { provider: 'github' };
+      remapRemoteFunctions(repo);
+      repo.getOriginUrl = async function () {
+        return 'git@github.com/Test/Test-Project.git';
+      };
+      await setupDb();
+      config.testSetup.pipelineVersion = 0;
+      const gitHubCIIndexer = new GitHubCIIndexer(repo, buildReporter);
+      await gitHubCIIndexer.configure(config);
+      await gitHubCIIndexer.index();
+
+      reindexWithVersion(gitHubCIIndexer, 1);
+      await gitHubCIIndexer.index();
+
+      // pipelinesVersion1 updates build 0 and leaves builds 1 and 2 up to date
+      expect(buildReporter.categories.builds.total).to.equal(3);
+      expect(buildReporter.categories.builds.processed).to.equal(3);
+    });
+
+    it('counts every GitHub build when the run fetches no jobs', async function () {
+      const buildReporter = new ReporterMock(undefined, ['builds']);
+      const jobs = ctx.argv.jobs;
+      const updateJobs = ctx.argv.updateJobs;
+      ctx.argv.jobs = false;
+      ctx.argv.updateJobs = false;
+      try {
+        const gitHubCIIndexer = await gitHubSetup(0, buildReporter);
+        await gitHubCIIndexer.index();
+      } finally {
+        ctx.argv.jobs = jobs;
+        ctx.argv.updateJobs = updateJobs;
+      }
+
+      expect(buildReporter.categories.builds.total).to.equal(3);
+      expect(buildReporter.categories.builds.processed).to.equal(3);
+    });
+
+    it('counts a GitHub build whose job request rejects', async function () {
+      const buildReporter = new ReporterMock(undefined, ['builds']);
+      const gitHubCIIndexer = await gitHubSetup(0, buildReporter);
+      (gitHubCIIndexer as any).controller.failPipelineJobs(0);
+      await gitHubCIIndexer.index();
+
+      expect(buildReporter.categories.builds.total).to.equal(3);
+      expect(buildReporter.categories.builds.processed).to.equal(3);
+      // the rejected build is the only one that cannot reach the database
+      const builds = await getAllInCollection('builds');
+      expect(builds.length).to.equal(2);
+    });
+
+    it('keeps a stopped GitHub run below its total', async function () {
+      this.timeout(4000); // the stopped run still flushes the batch of builds it stored
+      const buildReporter = new ReporterMock(undefined, ['builds']);
+      const gitHubCIIndexer = await gitHubSetup(2, buildReporter);
+      const controller = (gitHubCIIndexer as any).controller;
+      const requestJobs = controller.getPipelineJobs.bind(controller);
+      let stopped = false;
+      // the stop arrives while the first job request is answered, so the queued builds never start
+      controller.getPipelineJobs = (projectId, pipelineId) => {
+        if (!stopped) {
+          stopped = true;
+          gitHubCIIndexer.stop();
+        }
+        return requestJobs(projectId, pipelineId);
+      };
+      await gitHubCIIndexer.index();
+
+      // a started build requested its jobs, a build stopped before the store decision was skipped; both were handled.
+      // GitHubCIIndexer delegates the run to its CIIndexer, and that one counts the skips
+      const handledBuilds = controller.requestedPipelineIds.length + (gitHubCIIndexer as any).indexer.omitCount;
+      expect(buildReporter.categories.builds.total).to.equal(201);
+      expect(buildReporter.categories.builds.processed).to.equal(handledBuilds);
+      expect(buildReporter.categories.builds.processed).to.be.below(201);
     });
   });
 

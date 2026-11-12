@@ -1,8 +1,13 @@
 import Mocha from 'mocha';
 import chalk from 'chalk';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import logSymbols from 'log-symbols';
 import { table } from 'table';
+
+// no __dirname in an ES module
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function runTests(options: { frontend: string; backend: string }) {
   const mocha = new Mocha();

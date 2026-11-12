@@ -2,7 +2,11 @@
   "name": "binocular-backend",
   "version": "v2.0.0",
   "description": "Time-based visualizations of combined software engineering data",
+  "type": "module",
   "main": "binocular.ts",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "mocha --config=.mocharc.json --exit --reporter spec 'test/*test.ts'",
     "coverage": "nyc mocha --config=.mocharc.json --exit 'test/*test.ts'",
@@ -18,10 +22,11 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.8.12",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
-    "@octokit/core": "^5.0.0",
-    "@octokit/graphql": "^7.0.1",
-    "@octokit/plugin-paginate-graphql": "^4.0.0",
-    "@octokit/rest": "^19.0.7",
+    "@octokit/plugin-paginate-graphql": "^6.0.0",
+    "@octokit/plugin-retry": "^8.1.1",
+    "@octokit/plugin-throttling": "^11.0.5",
+    "@octokit/rest": "^22.0.1",
+    "@octokit/types": "^18.0.0",
     "@types/lodash": "^4.14.199",
     "adm-zip": "^0.5.10",
     "arangojs": "^8.1.0",
