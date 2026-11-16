@@ -83,7 +83,7 @@ internal class NarrativeInfrastructurePortImpl(
                 closedAt: closed,
                 author: FIRST(
                   FOR e IN `issues-accounts` FILTER e._from == i._id AND e.role == "author"
-                    LET a = DOCUMENT(e._to) FILTER a != null RETURN a.name != null ? a.name : a.login
+                    LET a = DOCUMENT(e._to) FILTER a != null RETURN LENGTH(a.name) > 0 ? a.name : a.login
                 ),
                 webUrl: i.webUrl
               }"""
@@ -92,12 +92,13 @@ internal class NarrativeInfrastructurePortImpl(
             FOR b IN builds
               LET ts = DATE_TIMESTAMP(b.createdAt)$PERIOD_FILTER
               SORT ts ASC, b._key ASC
+              LET account = FIRST(FOR a IN accounts FILTER a.login == b.user RETURN a)
               RETURN {
                 id: b._key,
                 status: b.status,
                 timestamp: ts,
                 title: b.tag,
-                actor: b.userFullName != null ? b.userFullName : b.user,
+                actor: LENGTH(account.name) > 0 ? account.name : (b.userFullName != null ? b.userFullName : b.user),
                 commitShas: (
                   FOR e IN `commits-builds` FILTER e._to == b._id
                     LET c = DOCUMENT(e._from) FILTER c != null RETURN c.sha
@@ -133,7 +134,7 @@ internal class NarrativeInfrastructurePortImpl(
      * Finds the issues opened or closed in the period with one query.
      *
      * The author is the account linked with the role `author`; its name is used and, if the account has
-     * no name, its login. Issues without a platform number are skipped.
+     * no name or an empty one, its login. Issues without a platform number are skipped.
      */
     override fun findIssueActivities(
         since: LocalDateTime?,
@@ -153,8 +154,9 @@ internal class NarrativeInfrastructurePortImpl(
     /**
      * Finds the builds created in the period with one query.
      *
-     * The build is identified by its document key, the actor is the full name of the triggering user
-     * and, if that is missing, the user's login.
+     * The build is identified by its document key. The actor is the name of the account whose login
+     * triggered the build, so that a person carries the same name on builds and issues; without such an
+     * account it is the user name reported by the CI platform.
      */
     override fun findBuildActivities(
         since: LocalDateTime?,
