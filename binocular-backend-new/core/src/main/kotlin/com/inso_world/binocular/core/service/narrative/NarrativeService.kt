@@ -31,6 +31,8 @@ import java.time.temporal.TemporalAdjusters
  *   repository root. Issues and builds inherit the modules of their commits.
  * - **Segments.** Segments are consecutive and gap-free from the period of the first event to the period
  *   of the last one; a period without events yields an empty segment.
+ * - **Summaries.** Every segment carries a template-based summary of its events, written by
+ *   [NarrativeSummarizer].
  *
  * ## Trade-offs
  * - The class carries no Spring annotation on purpose. The port is only implemented by the ArangoDB
@@ -74,6 +76,8 @@ class NarrativeService(
         private val SUCCEEDED_STATUSES = setOf("success")
         private val FAILED_STATUSES = setOf("failed", "failure", "startup_failure")
     }
+
+    private val summarizer = NarrativeSummarizer()
 
     /**
      * Composes the narrative of the given period.
@@ -267,7 +271,8 @@ class NarrativeService(
      *
      * @param granularity The time unit of a segment.
      * @param events All events of the narrative in chronological order.
-     * @return One segment per period from the first to the last event, including empty ones in between.
+     * @return One summarised segment per period from the first to the last event, including empty ones
+     *   in between.
      */
     private fun segmentsOf(
         granularity: NarrativeGranularity,
@@ -286,7 +291,7 @@ class NarrativeService(
                     end = endOf(granularity, start),
                     events = segmentEvents,
                     topModule = topModuleOf(segmentEvents),
-                )
+                ).let { it.copy(summary = summarizer.summarize(it)) }
             }.toList()
     }
 

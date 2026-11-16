@@ -384,6 +384,27 @@ internal class NarrativeServiceTest : BaseUnitTest() {
             )
         }
 
+        /** Every segment is summarised from its own events, including the empty one in between. */
+        @Test
+        fun `given segments with and without events, when composing, then each carries its summary`() {
+            // When
+            val segments =
+                compose(
+                    commits =
+                        listOf(
+                            commit("a1", timestamp = LocalDateTime.of(2025, 1, 15, 9, 0), filePaths = listOf("web/A.kt")),
+                            commit("b2", timestamp = LocalDateTime.of(2025, 3, 15, 9, 0), parentCount = 2),
+                        ),
+                )
+
+            // Then
+            assertThat(segments.map { it.summary }).containsExactly(
+                "1 commit by 1 contributor, mostly in web.",
+                NarrativeSummarizer.NO_ACTIVITY,
+                "1 merge by 1 contributor.",
+            )
+        }
+
         /** The same entity delivered twice by the port must not appear twice in the narrative. */
         @Test
         fun `given the same commit twice, when composing, then it yields one event`() {
