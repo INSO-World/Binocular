@@ -47,6 +47,21 @@ import licenseCompliance from './visualizations/vulnerabilityTrends/licenseCompl
 import dependencyVersionTimeline from './visualizations/vulnerabilityTrends/dependencyVersionTimeline';
 import RootOffline from './components/RootOffline';
 
+const dependencyMetrics = [
+  vulnerabilityAgeBuckets,
+  vulnerabilityRemediationTimes,
+  vulnerabilityPatchLagSnapshot,
+  vulnerabilityDirectTransitive,
+  vulnerabilitySeverityDistribution,
+  outdatedDependencyPercentage,
+  licenseCompliance,
+  dependencyVersionTimeline,
+].map((visualization) => ({
+  ...visualization,
+  navigationGroup: 'Dependency Metrics',
+  universalSettingsConfig: { dateRangeOnly: true },
+}));
+
 const visualizationModules = [
   dashboard,
   codeOwnership,
@@ -61,14 +76,7 @@ const visualizationModules = [
   issueBreakdown,
   changes,
   dataExport,
-  vulnerabilityAgeBuckets,
-  vulnerabilityRemediationTimes,
-  vulnerabilityPatchLagSnapshot,
-  vulnerabilityDirectTransitive,
-  vulnerabilitySeverityDistribution,
-  outdatedDependencyPercentage,
-  licenseCompliance,
-  dependencyVersionTimeline,
+  ...dependencyMetrics,
 ];
 
 Database.checkBackendConnection().then(async (connection) => {

@@ -29,7 +29,45 @@ interface Props {
   universalSettingsConfig: UniversalSettingsConfig;
 }
 
-export default (props: Props) => {
+function MetricDateRange() {
+  const { from, to } = useSelector((state: GlobalState) => state.universalSettings.chartTimeSpan);
+  const dispatch = useDispatch();
+
+  return (
+    <div className={styles.metricDateRange}>
+      <h2>Date Range</h2>
+      <label>
+        From
+        <input
+          type="datetime-local"
+          value={from ?? ''}
+          onChange={(event) => dispatch(setTimeSpan({ from: event.currentTarget.value || undefined, to }))}
+        />
+      </label>
+      <label>
+        To
+        <input
+          type="datetime-local"
+          value={to ?? ''}
+          onChange={(event) => dispatch(setTimeSpan({ from, to: event.currentTarget.value || undefined }))}
+        />
+      </label>
+      <button
+        type="button"
+        className="button"
+        disabled={!from && !to}
+        onClick={() => dispatch(setTimeSpan({ from: undefined, to: undefined }))}>
+        Reset
+      </button>
+    </div>
+  );
+}
+
+export default function UniversalSettingsPanel(props: Props) {
+  return props.universalSettingsConfig.dateRangeOnly ? <MetricDateRange /> : <FullUniversalSettings {...props} />;
+}
+
+function FullUniversalSettings(props: Props) {
   //config
   const hideDateSettings = props.universalSettingsConfig.hideDateSettings;
   const hideGranularitySettings = props.universalSettingsConfig.hideGranularitySettings;
@@ -324,4 +362,4 @@ export default (props: Props) => {
       )}
     </div>
   );
-};
+}

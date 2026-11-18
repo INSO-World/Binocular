@@ -162,6 +162,10 @@
   height: auto;
 }
 
+.visualizationSelector:not(:hover):not(.visualizationSelectorExtended) .visualizationSelectorVisualizationsContainer {
+  visibility: hidden;
+}
+
 .visualizationSelectorExtended{
   max-height: 20rem;
   height: auto;
@@ -178,6 +182,22 @@
 
 .visualizationSelectorCurrentVisualization:hover{
   background-color: whitesmoke;
+}
+
+.visualizationSelectorToggle {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.visualizationSelectorExtended .visualizationSelectorToggle {
+  flex: 0 0 auto;
 }
 
 .visualizationSelectorIcon{
@@ -255,6 +275,31 @@
 
 .oddLink{
   background: #FCFCFC;
+}
+
+.groupLink {
+  width: calc(100% - 0.5rem);
+  justify-content: space-between;
+  padding: 0 0.8rem 0 0.2rem;
+  border: 0;
+  border-bottom: 1px solid lightgray;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.groupLink:not(.oddLink) {
+  background: transparent;
+}
+
+.keyboardSelection {
+  outline: 1px solid #3273dc;
+  outline-offset: -1px;
+}
+
+.nestedLink {
+  min-height: 2.5rem;
+  height: auto;
+  padding-left: 1rem;
 }
 
 .pressReturnToSelect{

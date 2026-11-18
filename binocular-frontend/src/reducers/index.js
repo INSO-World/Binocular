@@ -15,6 +15,7 @@ export default (visualizations) => {
     visualizationReducers[vis.id] = combineReducers({
       id: () => vis.id,
       label: () => vis.label,
+      navigationGroup: () => vis.navigationGroup ?? null,
       ConfigComponent: () => vis.ConfigComponent,
       ChartComponent: () => vis.ChartComponent,
       HelpComponent: () => vis.HelpComponent || (() => <div />),

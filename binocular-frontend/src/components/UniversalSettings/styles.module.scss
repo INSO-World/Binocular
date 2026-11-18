@@ -11,6 +11,34 @@
 
 }
 
+.metricDateRange {
+  display: grid;
+  width: 100%;
+  gap: 0.5rem;
+
+  h2 {
+    font-weight: bold;
+  }
+
+  label {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    align-items: center;
+  }
+
+  input {
+    min-width: 0;
+    padding: 0.25rem;
+    border: 1px solid #c8d1da;
+    border-radius: 0.25rem;
+    font: inherit;
+  }
+
+  button {
+    justify-self: start;
+  }
+}
+
 .headline{
   font-weight: bold;
   font-size: 2em;

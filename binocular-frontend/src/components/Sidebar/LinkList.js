@@ -1,41 +1,41 @@
 'use strict';
 
-import _ from 'lodash';
-import styles from './sidebar.module.scss';
-import PanelLink from './PanelLink';
-import menu from './assets/menu.svg';
-import close from './assets/close.svg';
-
 import cx from 'classnames';
 import React from 'react';
+import styles from './sidebar.module.scss';
+import PanelLink from './PanelLink';
 
-export default class LinkList extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    const { visualizations, activeVisualization, search, selectedViz, visualizationSelectorActive } = this.props;
-
-    return (
-      <div>
-        {_.map(
-          _.filter(
-            _.filter(visualizations, (vis) => visualizationSelectorActive || vis.id !== activeVisualization),
-            (vis) =>
-              search === '' ||
-              vis.id.toLowerCase().includes(search.toLowerCase()) ||
-              vis.label.toLowerCase().includes(search.toLowerCase()),
-          ),
-          (vis, i) => (
-            <PanelLink
-              key={vis.id}
-              visualization={vis}
-              odd={i % 2 === 0}
-              pressReturnToSelect={visualizationSelectorActive && i === selectedViz}
-            />
-          ),
-        )}
-      </div>
-    );
-  }
+export default function LinkList({ entries, selectedViz, onToggleGroup, onSelect }) {
+  return (
+    <div>
+      {entries.map(({ group, expanded, visualization, nested }, index) =>
+        group ? (
+          <button
+            key={group}
+            type="button"
+            className={cx(
+              styles.link,
+              styles.groupLink,
+              index % 2 === 0 && styles.oddLink,
+              selectedViz === index && styles.keyboardSelection,
+            )}
+            aria-expanded={expanded}
+            data-keyboard-selected={selectedViz === index ? '' : undefined}
+            onClick={() => onToggleGroup(group)}>
+            <span>{group}</span>
+            <span aria-hidden="true">{expanded ? '▾' : '▸'}</span>
+          </button>
+        ) : (
+          <PanelLink
+            key={visualization.id}
+            visualization={visualization}
+            nested={nested}
+            odd={index % 2 === 0}
+            pressReturnToSelect={index === selectedViz}
+            onSelect={onSelect}
+          />
+        ),
+      )}
+    </div>
+  );
 }

@@ -5,6 +5,7 @@ import { BoundsCommit, BoundsIssue } from './boundsTypes';
 import moment from 'moment/moment';
 
 export interface UniversalSettingsConfig {
+  dateRangeOnly?: boolean;
   hideDateSettings: boolean;
   hideGranularitySettings: boolean;
   hideMergeCommitSettings: boolean;

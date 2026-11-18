@@ -11,8 +11,9 @@ export default class Link extends React.Component {
     return (
       <a
         href="#"
-        className={cx(styles.link, this.props.odd ? styles.oddLink : '')}
-        key={this.props.key}
+        className={cx(styles.link, this.props.odd && styles.oddLink, this.props.nested && styles.nestedLink)}
+        aria-current={this.props.isActive ? 'page' : undefined}
+        data-keyboard-selected={this.props.pressReturnToSelect ? '' : undefined}
         onClick={(e) => {
           e.preventDefault();
           this.props.onClick();
