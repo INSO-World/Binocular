@@ -1,6 +1,7 @@
 'use strict';
 
 import semver from 'semver';
+import { isVersionAffected } from './vulnerabilityRanges.js';
 
 function normalizedVersion(value) {
   return typeof value === 'string' ? semver.valid(value.trim()) : null;
@@ -25,7 +26,12 @@ export function latestStableVersionAt(packageTimes, timestamp) {
   return latest;
 }
 
-export function calculateOutdatedDependencyTimeline({ branchHistories, packageTimesByName, createdAt } = {}) {
+export function calculateOutdatedDependencyTimeline({
+  branchHistories,
+  packageTimesByName,
+  advisoriesByPackage = new Map(),
+  createdAt,
+} = {}) {
   const histories = Array.isArray(branchHistories) ? branchHistories : [];
   const releaseTimes = packageTimesByName instanceof Map ? packageTimesByName : new Map();
   const generatedAt = createdAt || new Date().toISOString();
@@ -45,20 +51,38 @@ export function calculateOutdatedDependencyTimeline({ branchHistories, packageTi
 
       let evaluation = evaluationByCommit.get(commitHash);
       if (!evaluation) {
-        const dependencies = Object.entries(commit?.dependencies || {});
+        const dependencies = [];
         let outdatedCount = 0;
         let evaluatedCount = 0;
 
-        for (const [identity, dependency] of dependencies) {
+        for (const [identity, dependency] of Object.entries(commit?.dependencies || {})) {
           dependenciesSeen++;
           const name = dependency?.name || identity;
           const installedVersion = normalizedVersion(dependency?.version);
           const latestVersion = latestStableVersionAt(releaseTimes.get(name), timestamp);
-          if (!installedVersion || !latestVersion) continue;
-
-          evaluatedCount++;
-          dependenciesEvaluated++;
-          if (semver.lt(installedVersion, latestVersion)) outdatedCount++;
+          let freshness = 'UNKNOWN';
+          if (installedVersion && latestVersion) {
+            evaluatedCount++;
+            dependenciesEvaluated++;
+            freshness = semver.lt(installedVersion, latestVersion) ? 'OUTDATED' : 'CURRENT';
+            if (freshness === 'OUTDATED') outdatedCount++;
+          }
+          const advisories = advisoriesByPackage.get(name) || [];
+          let knownVulnerabilities = null;
+          if (installedVersion) {
+            knownVulnerabilities = advisories
+              .filter((advisory) => Date.parse(advisory.publishedAt) <= timestamp * 1000 && isVersionAffected(installedVersion, advisory))
+              .map((advisory) => advisory.vulnId)
+              .sort();
+          }
+          dependencies.push({
+            library: name,
+            component: dependency?.component || 'root',
+            installedVersion: dependency?.version || null,
+            latestVersion,
+            freshness,
+            knownVulnerabilities,
+          });
         }
 
         const totalCount = dependencies.length;
@@ -68,6 +92,7 @@ export function calculateOutdatedDependencyTimeline({ branchHistories, packageTi
           evaluatedCount,
           totalCount,
           unknownCount: Math.max(0, totalCount - evaluatedCount),
+          dependencies,
         };
         evaluationByCommit.set(commitHash, evaluation);
       }

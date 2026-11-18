@@ -17,6 +17,7 @@ const OutdatedDependencySnapshot = Model.define('OutdatedDependencySnapshot', {
     'evaluatedCount',
     'totalCount',
     'unknownCount',
+    'dependencies',
     'createdAt',
   ],
   keyAttribute: 'id',
@@ -46,9 +47,8 @@ OutdatedDependencySnapshot.persist = function (_doc) {
   doc.evaluatedCount = Math.max(0, Number(doc.evaluatedCount) || 0);
   doc.totalCount = Math.max(0, Number(doc.totalCount) || 0);
   doc.unknownCount = Math.max(0, Number(doc.unknownCount) || 0);
-  doc.outdatedPercentage = Number.isFinite(Number(doc.outdatedPercentage))
-    ? Math.min(100, Math.max(0, Number(doc.outdatedPercentage)))
-    : null;
+  const percentage = Number(doc.outdatedPercentage ?? Number.NaN);
+  doc.outdatedPercentage = doc.evaluatedCount > 0 && Number.isFinite(percentage) ? Math.min(100, Math.max(0, percentage)) : null;
   doc.id = OutdatedDependencySnapshot.keyFromData(doc);
 
   return OutdatedDependencySnapshot.ensureById(doc.id, doc, {

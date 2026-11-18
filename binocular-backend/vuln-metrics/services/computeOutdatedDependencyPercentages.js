@@ -6,6 +6,7 @@ import OutdatedDependencySnapshot from '../../models/metrics/OutdatedDependencyS
 import { getNpmPackageTimes, preloadNpmTimesForPackages } from './npmRegistryTimes.js';
 import { calculateOutdatedDependencyTimeline } from './outdatedDependencyTimeline.js';
 import { collectBranchDirectDependencyHistory } from './dependencySources.js';
+import { walkVersionChangeVulnTriples } from '../walkers/walkVersionChangeVulnTriples.js';
 
 const log = debug('vuln-metrics:outdated-dependencies');
 
@@ -61,9 +62,18 @@ export async function computeOutdatedDependencyPercentages(repo, currentBranch, 
     packageTimesByName.set(packageName, await getNpmPackageTimes(packageName));
   }
 
+  const advisories = new Map();
+  for (const { branch } of branchHistories) {
+    for await (const { event, vuln } of walkVersionChangeVulnTriples(branch, { relations: ['AFFECTS'] })) {
+      if (!packageNames.has(event?.library) || !vuln?.vulnId) continue;
+      if (!advisories.has(event.library)) advisories.set(event.library, new Map());
+      advisories.get(event.library).set(vuln.vulnId, vuln);
+    }
+  }
   const { snapshots, diagnostics } = calculateOutdatedDependencyTimeline({
     branchHistories,
     packageTimesByName,
+    advisoriesByPackage: new Map([...advisories].map(([library, rows]) => [library, [...rows.values()]])),
   });
   console.log(`[OUTDATED][PERSIST] snapshots=${snapshots.length}`);
   for (const branch of branchNames) {

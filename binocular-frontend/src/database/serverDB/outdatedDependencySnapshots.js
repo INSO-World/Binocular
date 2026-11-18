@@ -3,6 +3,26 @@
 import { collectPages, graphQl } from '../../utils';
 
 export default class OutdatedDependencySnapshots {
+  static getDetails(branch, snapshotId) {
+    return graphQl
+      .query(
+        `
+          query ($branch: String!, $snapshotId: String!) {
+            outdatedDependencyDetails(branch: $branch, snapshotId: $snapshotId) {
+              library
+              component
+              installedVersion
+              latestVersion
+              freshness
+              knownVulnerabilities
+            }
+          }
+        `,
+        { branch, snapshotId },
+      )
+      .then((response) => response.outdatedDependencyDetails);
+  }
+
   static getOutdatedDependencyBranches() {
     return graphQl
       .query(
