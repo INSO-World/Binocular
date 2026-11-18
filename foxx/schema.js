@@ -666,9 +666,23 @@ const queryType = new gql.GraphQLObjectType({
             ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
             SORT doc.date ASC, doc.sequence ASC
             ${limit}
-            RETURN doc
+            RETURN UNSET(doc, "dependencies")
         `,
       }),
+      licenseComplianceDetails: {
+        type: new gql.GraphQLList(new gql.GraphQLNonNull(require('./types/licenseComplianceDetail.js'))),
+        args: {
+          branch: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+          snapshotId: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+        },
+        resolve: (root, { branch, snapshotId }) =>
+          db._query(aql`
+            FOR doc IN ${licenseComplianceSnapshots}
+              FILTER doc._key == ${snapshotId} AND doc.branch == ${branch}
+              LIMIT 1
+              RETURN doc.dependencies
+          `).toArray()[0] ?? null,
+      },
       licenseComplianceBranches: {
         type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
         description: 'Branches that have license compliance snapshots',

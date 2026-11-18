@@ -1,6 +1,12 @@
 'use strict';
 
 export const LICENSE_CATEGORIES = Object.freeze(['COMPLIANT', 'PARTIALLY_COMPLIANT', 'NON_COMPLIANT', 'UNKNOWN']);
+const CLASSIFICATION_REASONS = {
+  COMPLIANT: 'The policy accepts a permissive license in this expression.',
+  PARTIALLY_COMPLIANT: 'The selected license alternative requires review under the policy.',
+  NON_COMPLIANT: 'Every available alternative has a license restricted by the policy.',
+  UNKNOWN: 'The policy could not classify the detected license expression.',
+};
 
 function licenseText(value) {
   if (typeof value === 'string') return value.trim();
@@ -68,10 +74,19 @@ export function calculateLicenseComplianceTimeline({ branchHistories, packageLic
       let evaluation = evaluationByCommit.get(commitHash);
       if (!evaluation) {
         const counts = Object.fromEntries(LICENSE_CATEGORIES.map((category) => [category, 0]));
-        const dependencies = Object.entries(commit?.dependencies || {});
-        for (const [identity, dependency] of dependencies) {
+        const dependencies = [];
+        for (const [identity, dependency] of Object.entries(commit?.dependencies || {})) {
           const name = dependency?.name || identity;
-          counts[classifyLicense(installedLicense(name, dependency, packageLicensesByName))]++;
+          const license = licenseText(installedLicense(name, dependency, packageLicensesByName));
+          const category = classifyLicense(license);
+          counts[category]++;
+          dependencies.push({
+            library: name,
+            component: dependency?.component || 'root',
+            license: license || null,
+            category,
+            reason: license ? CLASSIFICATION_REASONS[category] : 'No license identifier was found for this installed version.',
+          });
         }
         evaluation = {
           compliantCount: counts.COMPLIANT,
@@ -79,6 +94,7 @@ export function calculateLicenseComplianceTimeline({ branchHistories, packageLic
           nonCompliantCount: counts.NON_COMPLIANT,
           unknownCount: counts.UNKNOWN,
           totalCount: dependencies.length,
+          dependencies,
         };
         evaluationByCommit.set(commitHash, evaluation);
       }

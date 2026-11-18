@@ -8,7 +8,7 @@ import IllegalArgumentError from '../../errors/IllegalArgumentError.js';
 const COUNT_FIELDS = ['compliantCount', 'partiallyCompliantCount', 'nonCompliantCount', 'unknownCount'];
 
 const LicenseComplianceSnapshot = Model.define('LicenseComplianceSnapshot', {
-  attributes: ['id', 'branch', 'commitHash', 'sequence', 'date', ...COUNT_FIELDS, 'totalCount', 'createdAt'],
+  attributes: ['id', 'branch', 'commitHash', 'sequence', 'date', ...COUNT_FIELDS, 'totalCount', 'dependencies', 'createdAt'],
   keyAttribute: 'id',
 });
 

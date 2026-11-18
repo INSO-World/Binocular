@@ -3,6 +3,25 @@
 import { collectPages, graphQl } from '../../utils';
 
 export default class LicenseComplianceSnapshots {
+  static getDetails(branch, snapshotId) {
+    return graphQl
+      .query(
+        `
+          query ($branch: String!, $snapshotId: String!) {
+            licenseComplianceDetails(branch: $branch, snapshotId: $snapshotId) {
+              library
+              component
+              license
+              category
+              reason
+            }
+          }
+        `,
+        { branch, snapshotId },
+      )
+      .then((response) => response.licenseComplianceDetails);
+  }
+
   static getLicenseComplianceBranches() {
     return graphQl
       .query(
