@@ -3,11 +3,7 @@
 import semver from 'semver';
 
 function normalizedVersion(value) {
-  const exact = semver.valid(String(value || '').trim());
-  if (exact) return exact;
-
-  const coerced = semver.coerce(String(value || '').trim());
-  return coerced && semver.valid(coerced) ? coerced.version : null;
+  return typeof value === 'string' ? semver.valid(value.trim()) : null;
 }
 
 export function latestStableVersionAt(packageTimes, timestamp) {
