@@ -321,10 +321,30 @@ const queryType = new gql.GraphQLObjectType({
               ${args.until ? queryHelpers.addDateFilterAQL('doc.date', '<=', args.until) : aql``}
               SORT doc.date ASC
               ${limit}
-              RETURN doc
+              RETURN UNSET(doc, "instancesByBucket")
           `;
         },
       }),
+      vulnerabilityAgeBucketInstances: {
+        type: new gql.GraphQLList(new gql.GraphQLNonNull(require('./types/vulnerabilityAgeBucketInstance.js'))),
+        description: 'Open vulnerability instances counted in one age bucket at the requested snapshot.',
+        args: {
+          branch: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+          snapshotId: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+          bucket: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+        },
+        resolve: (root, { branch, snapshotId, bucket }) => {
+          if (!['0-30', '31-90', '91-180', '181+'].includes(bucket)) return null;
+          return db
+            ._query(aql`
+              FOR doc IN ${vulnAgeBuckets}
+                FILTER doc._key == ${snapshotId} AND doc.branch == ${branch}
+                LIMIT 1
+                RETURN doc.instancesByBucket[${bucket}]
+            `)
+            .toArray()[0] ?? null;
+        },
+      },
       vulnerabilityAgeBucketBranches: {
         type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
         description: 'Branches that have vulnerability age bucket snapshots',
