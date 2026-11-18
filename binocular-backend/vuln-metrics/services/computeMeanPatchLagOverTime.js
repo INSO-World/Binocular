@@ -7,7 +7,7 @@ import VersionChangeEvent from '../../models/VersionChangeEvent.js';
 import VulnerabilityPatchLagSnapshot from '../../models/metrics/VulnerabilityPatchLagSnapshot.js';
 import { walkVersionChangeVulnTriples } from '../walkers/walkVersionChangeVulnTriples.js';
 import { preloadNpmTimesForPackages, getNpmPackageTimes } from './npmRegistryTimes.js';
-import { vulnerabilityInstanceKey } from './dependencyIdentity.js';
+import { eventComponent, vulnerabilityInstanceKey } from './dependencyIdentity.js';
 
 const logStep = debug('vuln-metrics:patch-lag:detail');
 
@@ -98,6 +98,7 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
         const fixedVersion = inferFixedVersionFromAffectedVersions(vuln);
         const rec = {
           library,
+          component: eventComponent(event),
           vulnId,
           severity,
           openedAt: eventDate,
@@ -150,7 +151,7 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
 
   for (let snapshotDate = startDate; snapshotDate <= endDate; snapshotDate = addWeeks(snapshotDate, 1)) {
     for (const sev of SEVERITY_ORDER) {
-      const lags = [];
+      const observations = [];
       let countUnavailableYet = 0;
       let countNoFixInfo = 0;
 
@@ -171,11 +172,11 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
         }
 
         const lagDays = (snapshotDate - p.fixedReleaseDate) / DAY_MS;
-        if (lagDays >= 0) lags.push(lagDays);
+        if (lagDays >= 0) observations.push({ library: p.library, component: p.component, vulnerabilityId: p.vulnId, lagDays });
       }
 
-      const meanLagDays = lags.length ? lags.reduce((a, b) => a + b, 0) / lags.length : null;
-      const medianLagDays = lags.length ? median(lags) : null;
+      const meanLagDays = observations.length ? observations.reduce((sum, row) => sum + row.lagDays, 0) / observations.length : null;
+      const medianLagDays = median(observations.map(({ lagDays }) => lagDays));
 
       results.push({
         branch,
@@ -183,7 +184,8 @@ export async function computeMeanPatchLagOverTime(branch = 'main') {
         severity: sev,
         meanLagDays,
         medianLagDays,
-        countIncluded: lags.length,
+        countIncluded: observations.length,
+        observations,
         countUnavailableYet,
         countNoFixInfo,
         createdAt,

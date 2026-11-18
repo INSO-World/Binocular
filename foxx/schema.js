@@ -431,10 +431,27 @@ const queryType = new gql.GraphQLObjectType({
         ${sevFilter}
         SORT doc.date ASC, doc.severity ASC
         ${limit}
-        RETURN doc
+        RETURN UNSET(doc, "observations")
     `;
         },
       }),
+      vulnerabilityPatchLagObservations: {
+        type: new gql.GraphQLList(new gql.GraphQLNonNull(require('./types/patchLagObservation.js'))),
+        description: 'Vulnerability instances included in the mean and median for one patch lag snapshot.',
+        args: {
+          branch: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+          snapshotId: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+        },
+        resolve: (root, { branch, snapshotId }) =>
+          db
+            ._query(aql`
+              FOR doc IN ${vulnPatchLagSnapshots}
+                FILTER doc._key == ${snapshotId} AND doc.branch == ${branch}
+                LIMIT 1
+                RETURN doc.observations
+            `)
+            .toArray()[0] ?? null,
+      },
       vulnerabilityPatchLagBranches: {
         type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
         description: 'Branches that have vulnerability patch lag snapshots',
