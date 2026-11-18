@@ -1,8 +1,13 @@
 'use strict';
 
 import { vulnerabilityInstanceKey } from './dependencyIdentity.js';
+import { normalizeSeverity, SEVERITY_KEYS } from './severityTimeline.js';
 
 const DAY_MS = 1000 * 60 * 60 * 24;
+
+function emptyBuckets() {
+  return { '0-30': 0, '31-90': 0, '91-180': 0, '181+': 0 };
+}
 
 function asDate(value) {
   const date = value instanceof Date ? new Date(value) : new Date(value);
@@ -33,6 +38,7 @@ export function buildVulnerabilityAgeIntervals(transitions) {
 
       const interval = {
         key,
+        severity: normalizeSeverity(transition.severity),
         introducedAt: eventDate,
         disclosureAt: asDate(transition.disclosureAt) || eventDate,
         fixedAt: null,
@@ -71,7 +77,8 @@ export function calculateVulnerabilityAgeBucketTimeline({
   const step = Math.max(1, Number(intervalDays) || 7) * DAY_MS;
 
   for (let snapshotTime = startTime; snapshotTime <= endTime; snapshotTime += step) {
-    const buckets = { '0-30': 0, '31-90': 0, '91-180': 0, '181+': 0 };
+    const buckets = emptyBuckets();
+    const bucketsBySeverity = Object.fromEntries(SEVERITY_KEYS.map((severity) => [severity, emptyBuckets()]));
 
     for (const interval of intervals) {
       if (interval.introducedAt.getTime() > snapshotTime) continue;
@@ -80,13 +87,16 @@ export function calculateVulnerabilityAgeBucketTimeline({
       const ageStart = Math.max(interval.introducedAt.getTime(), interval.disclosureAt.getTime());
       const ageDays = (snapshotTime - ageStart) / DAY_MS;
       if (ageDays < 0) continue;
-      buckets[bucketForAge(ageDays)]++;
+      const bucket = bucketForAge(ageDays);
+      buckets[bucket]++;
+      bucketsBySeverity[interval.severity][bucket]++;
     }
 
     snapshots.push({
       branch,
       date: new Date(snapshotTime).toISOString(),
       buckets,
+      bucketsBySeverity,
       createdAt,
     });
   }
