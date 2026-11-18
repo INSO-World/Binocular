@@ -6,10 +6,11 @@ import VersionChangeEvent from '../../models/VersionChangeEvent.js';
 import VulnerabilityDirectTransitiveSnapshot from '../../models/metrics/VulnerabilityDirectTransitiveSnapshot.js';
 import { walkVersionChangeVulnTriples } from '../walkers/walkVersionChangeVulnTriples.js';
 import { calculateDirectTransitiveTimeline } from './directTransitiveTimeline.js';
+import { collectDirectAttribution } from './dependencyAttribution.js';
 
 const log = debug('vuln-metrics:direct-transitive');
 
-export async function computeDirectTransitiveOpenCounts(branch = 'main') {
+export async function computeDirectTransitiveOpenCounts(repo, branch = 'main') {
   console.log(`[DIRTRANS][START] branch=${branch}`);
 
   const events = (await VersionChangeEvent.findAll()).filter((event) => event.branchName === branch);
@@ -23,7 +24,8 @@ export async function computeDirectTransitiveOpenCounts(branch = 'main') {
     triples.push(triple);
   }
 
-  const { snapshots, diagnostics } = calculateDirectTransitiveTimeline({ events, triples, branch });
+  const attribution = await collectDirectAttribution(repo, branch);
+  const { snapshots, diagnostics } = calculateDirectTransitiveTimeline({ events, triples, branch, attribution });
 
   await VulnerabilityDirectTransitiveSnapshot.removeByBranch(branch);
   for (const snapshot of snapshots) await VulnerabilityDirectTransitiveSnapshot.persist(snapshot);
