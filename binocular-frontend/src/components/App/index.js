@@ -22,12 +22,10 @@ class App extends React.PureComponent {
     const collapsedLS = JSON.parse(localStorage.getItem('SidebarCollapsed'));
     if (collapsedLS === null) {
       this.state = {
-        helpPos: 0,
         collapsed: false,
       };
     } else {
       this.state = {
-        helpPos: 0,
         collapsed: collapsedLS.state,
       };
     }
@@ -37,7 +35,7 @@ class App extends React.PureComponent {
     const ChartComponent = this.props.visualization.ChartComponent;
     const HelpComponent = this.props.visualization.HelpComponent;
     const { showHelp } = this.props;
-    const { helpPos, collapsed } = this.state;
+    const { collapsed } = this.state;
 
     return (
       <div className={styles.app}>
@@ -52,16 +50,14 @@ class App extends React.PureComponent {
         <div className={styles.mainPane}>
           <ProgressBar />
           <ChartComponent sidebarOpen={!collapsed} />
-          {showHelp ? (
-            <Help onResize={(e) => this.setState({ helpPos: e.bounds.height })}>
+          {showHelp && (
+            <Help>
               <HelpComponent sidebarOpen={!collapsed} />
             </Help>
-          ) : (
-            ''
           )}
         </div>
         <Notifications />
-        <HelpButton y={showHelp ? helpPos : 0} icon={showHelp ? 'times' : 'question'} />
+        <HelpButton icon={showHelp ? 'times' : 'question'} controls={showHelp ? 'visualization-help-tooltip' : undefined} />
       </div>
     );
   }

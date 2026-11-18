@@ -9,7 +9,18 @@ import styles from './help-button.module.scss';
 const HelpButton = (props) => (
   <div className={cx(styles.helpButton)}>
     <div className={cx({ [styles.spinning]: props.spinning })}>
-      <a href="#" onClick={props.onClick}>
+      <a
+        href="#"
+        aria-label={props.shown ? 'Close visualization help' : 'Show visualization help'}
+        aria-expanded={props.shown}
+        aria-controls={props.controls}
+        onKeyDown={(event) => {
+          if (props.controls && event.key === 'Escape') props.onClick();
+        }}
+        onClick={(event) => {
+          event.preventDefault();
+          props.onClick();
+        }}>
         <Icon name={props.icon} />
       </a>
     </div>

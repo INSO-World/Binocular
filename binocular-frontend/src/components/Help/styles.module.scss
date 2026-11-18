@@ -1,11 +1,47 @@
-@import 'bulma/bulma.sass';;
-
-.help {
-  display: none;
+.helpTooltip {
   position: absolute;
-  width: 100%;
-  height: 50%;
-  bottom: 0;
-  opacity: 0.96;
+  right: 12px;
+  bottom: 52px;
+  z-index: 10;
+  box-sizing: border-box;
+  width: min(360px, calc(100% - 24px));
+  max-height: calc(100% - 64px);
+  overflow: auto;
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: #20242a;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 20%);
+
+  > :first-child {
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    box-shadow: none;
+
+    :is(h1, h2, h3, h4, strong) {
+      color: inherit;
+    }
+
+    :is(h1, h2, h3, h4) {
+      margin: 0.45rem 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 0.45rem 0;
+    }
+  }
+
+  a {
+    color: #bad8ff;
+  }
 }
 
