@@ -1,6 +1,6 @@
 'use strict';
 
-import { vulnerabilityInstanceKey } from './dependencyIdentity.js';
+import { eventComponent, vulnerabilityInstanceKey } from './dependencyIdentity.js';
 
 export const SEVERITY_KEYS = Object.freeze(['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'MALICIOUS', 'UNKNOWN']);
 
@@ -48,16 +48,16 @@ function snapshotCounts(counts) {
 
 function rankOpenDependencies(openVulnerabilities) {
   const dependencies = new Map();
-  for (const { library, severity } of openVulnerabilities.values()) {
+  for (const { library, severity, vulnerabilityId, component } of openVulnerabilities.values()) {
     if (!dependencies.has(library)) {
-      dependencies.set(library, { counts: Object.fromEntries(SEVERITY_KEYS.map((key) => [key, 0])), totalOpen: 0 });
+      dependencies.set(library, { counts: Object.fromEntries(SEVERITY_KEYS.map((key) => [key, 0])), instances: [] });
     }
     const dependency = dependencies.get(library);
     dependency.counts[severity]++;
-    dependency.totalOpen++;
+    dependency.instances.push({ vulnerabilityId, component, severity });
   }
   return [...dependencies.entries()]
-    .map(([library, { counts, totalOpen }]) => ({ library, totalOpen, ...snapshotCounts(counts) }))
+    .map(([library, { counts, instances }]) => ({ library, totalOpen: instances.length, ...snapshotCounts(counts), instances }))
     .sort((left, right) => right.totalOpen - left.totalOpen || left.library.localeCompare(right.library));
 }
 
@@ -106,7 +106,13 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
       transitions.fixes.add(key);
     } else {
       const publishedAt = Date.parse(triple.vuln.publishedAt);
-      transitions.affects.set(key, { library, severity: normalizeSeverity(triple.vuln.severity), publishedAt });
+      transitions.affects.set(key, {
+        library,
+        vulnerabilityId,
+        component: eventComponent(triple.event),
+        severity: normalizeSeverity(triple.vuln.severity),
+        publishedAt,
+      });
       if (publishedAt > commitMetadata.get(commitHash).time && !pendingByTime.has(publishedAt)) {
         pendingByTime.set(publishedAt, new Map());
       }

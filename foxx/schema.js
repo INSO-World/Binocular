@@ -532,7 +532,29 @@ const queryType = new gql.GraphQLObjectType({
               FOR doc IN ${vulnSeveritySnapshots}
                 FILTER doc._key == ${snapshotId} AND doc.branch == ${branch}
                 LIMIT 1
-                RETURN doc.dependencyRanking
+                RETURN IS_ARRAY(doc.dependencyRanking)
+                  ? (FOR row IN TO_ARRAY(doc.dependencyRanking) RETURN UNSET(row, "instances"))
+                  : null
+            `)
+            .toArray()[0] ?? null,
+      },
+      vulnerabilityDependencyInstances: {
+        type: new gql.GraphQLList(new gql.GraphQLNonNull(require('./types/dependencyVulnerabilityInstance.js'))),
+        description: 'Open vulnerability instances for one dependency and severity snapshot.',
+        args: {
+          branch: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+          snapshotId: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+          library: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+        },
+        resolve: (root, { branch, snapshotId, library }) =>
+          db
+            ._query(aql`
+              FOR doc IN ${vulnSeveritySnapshots}
+                FILTER doc._key == ${snapshotId} AND doc.branch == ${branch}
+                FOR row IN TO_ARRAY(doc.dependencyRanking)
+                  FILTER row.library == ${library}
+                  LIMIT 1
+                  RETURN row.instances
             `)
             .toArray()[0] ?? null,
       },
