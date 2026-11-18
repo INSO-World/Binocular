@@ -46,6 +46,21 @@ function snapshotCounts(counts) {
   };
 }
 
+function rankOpenDependencies(openVulnerabilities) {
+  const dependencies = new Map();
+  for (const { library, severity } of openVulnerabilities.values()) {
+    if (!dependencies.has(library)) {
+      dependencies.set(library, { counts: Object.fromEntries(SEVERITY_KEYS.map((key) => [key, 0])), totalOpen: 0 });
+    }
+    const dependency = dependencies.get(library);
+    dependency.counts[severity]++;
+    dependency.totalOpen++;
+  }
+  return [...dependencies.entries()]
+    .map(([library, { counts, totalOpen }]) => ({ library, totalOpen, ...snapshotCounts(counts) }))
+    .sort((left, right) => right.totalOpen - left.totalOpen || left.library.localeCompare(right.library));
+}
+
 export function calculateSeverityTimeline({ events, triples, branch = 'main', createdAt } = {}) {
   const branchEvents = Array.isArray(events) ? events.filter((event) => belongsToBranch(event, branch)) : [];
   const sortedEvents = orderedEvents(branchEvents);
@@ -91,7 +106,7 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
       transitions.fixes.add(key);
     } else {
       const publishedAt = Date.parse(triple.vuln.publishedAt);
-      transitions.affects.set(key, { severity: normalizeSeverity(triple.vuln.severity), publishedAt });
+      transitions.affects.set(key, { library, severity: normalizeSeverity(triple.vuln.severity), publishedAt });
       if (publishedAt > commitMetadata.get(commitHash).time && !pendingByTime.has(publishedAt)) {
         pendingByTime.set(publishedAt, new Map());
       }
@@ -107,24 +122,25 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
   let fixesApplied = 0;
   let severityChanges = 0;
 
-  function openVulnerability(key, severity) {
-    const existingSeverity = openVulnerabilities.get(key);
+  function openVulnerability(key, record) {
+    const { severity } = record;
+    const existingSeverity = openVulnerabilities.get(key)?.severity;
     if (existingSeverity) {
       if (existingSeverity !== severity) {
         counts[existingSeverity]--;
         counts[severity]++;
-        openVulnerabilities.set(key, severity);
+        openVulnerabilities.set(key, record);
         severityChanges++;
       }
       return;
     }
 
-    openVulnerabilities.set(key, severity);
+    openVulnerabilities.set(key, record);
     counts[severity]++;
   }
 
   function closeVulnerability(key) {
-    const severity = openVulnerabilities.get(key);
+    const severity = openVulnerabilities.get(key)?.severity;
     if (!severity) return;
 
     counts[severity]--;
@@ -141,6 +157,7 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
       date: new Date(time).toISOString(),
       ...snapshotCounts(counts),
       totalOpen: openVulnerabilities.size,
+      dependencyRanking: rankOpenDependencies(openVulnerabilities),
       createdAt: generatedAt,
       ...(disclosureSnapshot ? { disclosureSnapshot: true } : {}),
     });
@@ -148,9 +165,9 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
 
   function activateDisclosures(time) {
     const pending = pendingByTime.get(time);
-    for (const [key, severity] of pending) {
+    for (const [key, record] of pending) {
       pendingByKey.delete(key);
-      openVulnerability(key, severity);
+      openVulnerability(key, record);
     }
     nextDisclosure++;
     return pending.size > 0;
@@ -174,13 +191,14 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
       closeVulnerability(key);
       fixesApplied++;
     }
-    for (const [key, { severity, publishedAt }] of transitions?.affects || []) {
+    for (const [key, record] of transitions?.affects || []) {
       cancelPendingDisclosure(key);
+      const { publishedAt } = record;
       if (publishedAt > metadata.time) {
-        pendingByTime.get(publishedAt).set(key, severity);
+        pendingByTime.get(publishedAt).set(key, record);
         pendingByKey.set(key, publishedAt);
       } else {
-        openVulnerability(key, severity);
+        openVulnerability(key, record);
       }
       affectsApplied++;
     }

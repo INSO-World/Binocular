@@ -519,6 +519,23 @@ const queryType = new gql.GraphQLObjectType({
             RETURN doc
         `,
       }),
+      vulnerabilityDependencyRanking: {
+        type: new gql.GraphQLList(new gql.GraphQLNonNull(require('./types/dependencyVulnerabilityCount.js'))),
+        description: 'Open vulnerability counts by dependency for one severity snapshot. Null if ranking data has not been indexed.',
+        args: {
+          branch: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+          snapshotId: { type: new gql.GraphQLNonNull(gql.GraphQLString) },
+        },
+        resolve: (root, { branch, snapshotId }) =>
+          db
+            ._query(aql`
+              FOR doc IN ${vulnSeveritySnapshots}
+                FILTER doc._key == ${snapshotId} AND doc.branch == ${branch}
+                LIMIT 1
+                RETURN doc.dependencyRanking
+            `)
+            .toArray()[0] ?? null,
+      },
       vulnerabilitySeverityBranches: {
         type: new gql.GraphQLNonNull(new gql.GraphQLList(new gql.GraphQLNonNull(gql.GraphQLString))),
         description: 'Branches that have vulnerability severity snapshots',
