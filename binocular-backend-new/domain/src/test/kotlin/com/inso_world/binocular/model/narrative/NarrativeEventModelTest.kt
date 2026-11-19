@@ -56,6 +56,32 @@ class NarrativeEventModelTest {
         )
     }
 
+    /** Everything an event is created with can be read back unchanged. */
+    @Test
+    fun `given all properties, when creating event, then they are kept`() {
+        // When
+        val event =
+            NarrativeEvent(
+                type = NarrativeEventType.COMMIT,
+                entity = commitEntity,
+                timestamp = timestamp,
+                title = "Add resolver",
+                actor = "Jane Doe",
+                modules = listOf("web"),
+                relatedEntities = listOf(issueEntity),
+                webUrl = "https://example.org/commit/a1b2c3d",
+            )
+
+        // Then
+        assertAll(
+            { assertThat(event.title).isEqualTo("Add resolver") },
+            { assertThat(event.actor).isEqualTo("Jane Doe") },
+            { assertThat(event.modules).containsExactly("web") },
+            { assertThat(event.relatedEntities).containsExactly(issueEntity) },
+            { assertThat(event.webUrl).isEqualTo("https://example.org/commit/a1b2c3d") },
+        )
+    }
+
     /** An event type can only describe an entity of its own source, e.g. no commit event about an issue. */
     @ParameterizedTest
     @CsvSource("COMMIT, ITS", "ISSUE_CLOSED, CI", "BUILD_FAILED, VCS")

@@ -179,6 +179,27 @@ internal class NarrativeServiceTest : BaseUnitTest() {
             assertThat(events.map { it.type }).isEqualTo(listOfNotNull(expectedType))
         }
 
+        /** Title, actor and link of the mined activity are handed on to the events unchanged. */
+        @Test
+        fun `given activity with title, actor and web url, when composing, then the events carry them`() {
+            // When
+            val events =
+                events(
+                    commits = listOf(commit("a1").copy(webUrl = "https://example.org/commit/a1")),
+                    issues = listOf(issue(431).copy(webUrl = "https://example.org/issues/431")),
+                    builds = listOf(build("982", timestamp = friday.plusHours(1)).copy(webUrl = "https://example.org/runs/982")),
+                )
+
+            // Then
+            assertAll(
+                { assertThat(events.withId("COMMIT:a1").webUrl).isEqualTo("https://example.org/commit/a1") },
+                { assertThat(events.withId("ISSUE_OPENED:431").webUrl).isEqualTo("https://example.org/issues/431") },
+                { assertThat(events.withId("BUILD_SUCCEEDED:982").title).isEqualTo("build 982") },
+                { assertThat(events.withId("BUILD_SUCCEEDED:982").actor).isEqualTo("janedoe") },
+                { assertThat(events.withId("BUILD_SUCCEEDED:982").webUrl).isEqualTo("https://example.org/runs/982") },
+            )
+        }
+
         /** A build without a title is titled with its id so that every event has a readable title. */
         @Test
         fun `given build without title, when composing, then its title names the build id`() {
@@ -373,7 +394,9 @@ internal class NarrativeServiceTest : BaseUnitTest() {
                             commit("b2", filePaths = listOf("web/B.kt", "core/C.kt")),
                         ),
                 ).single()
-            val tied = compose(commits = listOf(commit("a1", filePaths = listOf("web/A.kt", "core/C.kt")))).single()
+            val tied =
+                compose(commits = listOf(commit("a1", filePaths = listOf("web/A.kt")), commit("b2", filePaths = listOf("core/C.kt"))))
+                    .single()
             val withoutFiles = compose(commits = listOf(commit("a1"))).single()
 
             // Then

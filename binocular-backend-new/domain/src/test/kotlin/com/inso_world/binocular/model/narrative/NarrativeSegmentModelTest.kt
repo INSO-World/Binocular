@@ -52,6 +52,19 @@ class NarrativeSegmentModelTest {
         )
     }
 
+    /** Summary and top module are stored as given; they are not derived from the events. */
+    @Test
+    fun `given summary and top module, when creating segment, then they are kept`() {
+        // When
+        val segment = segment().copy(summary = "1 commit by 1 contributor.", topModule = "web")
+
+        // Then
+        assertAll(
+            { assertThat(segment.summary).isEqualTo("1 commit by 1 contributor.") },
+            { assertThat(segment.topModule).isEqualTo("web") },
+        )
+    }
+
     @Nested
     inner class Period {
         /** An empty period (start equal to end) and a reversed period (start after end) are both rejected. */
@@ -79,13 +92,17 @@ class NarrativeSegmentModelTest {
             assertDoesNotThrow { segment(event(NarrativeEventType.COMMIT, "a1", start)) }
         }
 
-        /** An event one nanosecond before start belongs to the previous segment. */
+        /** An event one nanosecond before start belongs to the previous segment; the error names it. */
         @Test
         fun `given event before start, when creating segment, then it throws IllegalArgumentException`() {
-            // When & Then
-            assertThrows<IllegalArgumentException> {
-                segment(event(NarrativeEventType.COMMIT, "a1", start.minusNanos(1)))
-            }
+            // When
+            val exception =
+                assertThrows<IllegalArgumentException> {
+                    segment(event(NarrativeEventType.COMMIT, "a1", start.minusNanos(1)))
+                }
+
+            // Then
+            assertThat(exception.message).contains("COMMIT:a1", start.minusNanos(1).toString())
         }
 
         /** The end of the period is exclusive: an event exactly at end belongs to the next segment. */
@@ -112,25 +129,31 @@ class NarrativeSegmentModelTest {
             assertThat(segment.events).containsExactly(commit, build)
         }
 
-        /** A later event listed before an earlier one breaks the chronological narrative. */
+        /** A later event listed before an earlier one breaks the chronological narrative; the error names both. */
         @Test
         fun `given events out of chronological order, when creating segment, then it throws IllegalArgumentException`() {
             // Given
             val earlier = event(NarrativeEventType.COMMIT, "a1", start.plusDays(1))
             val later = event(NarrativeEventType.COMMIT, "b2", start.plusDays(2))
 
-            // When & Then
-            assertThrows<IllegalArgumentException> { segment(later, earlier) }
+            // When
+            val exception = assertThrows<IllegalArgumentException> { segment(later, earlier) }
+
+            // Then
+            assertThat(exception.message).contains("COMMIT:b2 is after COMMIT:a1")
         }
 
-        /** The same event listed twice would be counted twice and is rejected. */
+        /** The same event listed twice would be counted twice and is rejected; the error names it. */
         @Test
         fun `given two events with the same id, when creating segment, then it throws IllegalArgumentException`() {
             // Given
             val commit = event(NarrativeEventType.COMMIT, "a1", start.plusDays(1))
 
-            // When & Then
-            assertThrows<IllegalArgumentException> { segment(commit, commit.copy(title = "duplicate")) }
+            // When
+            val exception = assertThrows<IllegalArgumentException> { segment(commit, commit.copy(title = "duplicate")) }
+
+            // Then
+            assertThat(exception.message).contains("COMMIT:a1 occurs 2 times")
         }
 
         /** Each event type is counted on its own; a type without events (here MERGE) counts zero. */
@@ -157,8 +180,8 @@ class NarrativeSegmentModelTest {
         }
 
         /**
-         * Actors are listed once each, most events first and alphabetically on a tie (Bob and Carol
-         * have one event each); the build without an actor is ignored.
+         * Actors are listed once each, most events first (Carol has two) and alphabetically on a tie
+         * (Alice and Bob have one event each); the build without an actor is ignored.
          */
         @Test
         fun `given events of several actors, when reading actors, then they are distinct and most active first`() {
@@ -166,14 +189,14 @@ class NarrativeSegmentModelTest {
             val segment =
                 segment(
                     event(NarrativeEventType.COMMIT, "a1", start.plusDays(1), actor = "Carol"),
-                    event(NarrativeEventType.COMMIT, "b2", start.plusDays(2), actor = "Alice"),
+                    event(NarrativeEventType.ISSUE_OPENED, "431", start.plusDays(2), actor = "Bob"),
                     event(NarrativeEventType.BUILD_FAILED, "981", start.plusDays(2).plusMinutes(5)),
-                    event(NarrativeEventType.ISSUE_OPENED, "431", start.plusDays(3), actor = "Bob"),
-                    event(NarrativeEventType.COMMIT, "c3", start.plusDays(4), actor = "Alice"),
+                    event(NarrativeEventType.COMMIT, "b2", start.plusDays(3), actor = "Alice"),
+                    event(NarrativeEventType.COMMIT, "c3", start.plusDays(4), actor = "Carol"),
                 )
 
             // Then
-            assertThat(segment.actors).containsExactly("Alice", "Bob", "Carol")
+            assertThat(segment.actors).containsExactly("Carol", "Alice", "Bob")
         }
     }
 }
