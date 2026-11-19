@@ -28,7 +28,8 @@ internal class BranchDao(
     @Autowired private val commitRepository: com.inso_world.binocular.infrastructure.arangodb.persistence.repository.CommitRepository,
 ) : MappedArangoDbDao<Branch, BranchEntity, String>(branchRepository, branchMapper),
     IBranchDao {
-    override fun findByName(name: String): Branch? = null
+    override fun findByName(name: String): Branch? =
+        branchRepository.findByName(name)?.let { branchMapper.toDomain(it) }
 
     fun findByRepositoryAndName(
         repoPath: String,

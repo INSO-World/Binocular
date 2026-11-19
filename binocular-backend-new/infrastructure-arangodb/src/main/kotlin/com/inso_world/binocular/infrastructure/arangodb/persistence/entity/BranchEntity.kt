@@ -36,19 +36,19 @@ data class BranchEntity(
     var id: String? = null,
     @Field("iid")
     @PersistentIndexed(unique = true)
-    var iid: Uuid,
-    var name: String,
-    var fullName: String,
-    var category: String,
+    var iid: Uuid = Uuid.random(),
+    var name: String = "",
+    var fullName: String = "",
+    var category: String = ReferenceCategory.LOCAL_BRANCH.name,
     var active: Boolean = false,
     var tracksFileRenames: Boolean = false,
     @Deprecated("Use head.sha instead")
     var latestCommit: String? = null,
     var branch: String? = null,
     @Ref(lazy = false)
-    val repository: RepositoryEntity,
+    var repository: RepositoryEntity? = null,
     @Ref(lazy = false)
-    val head: CommitEntity,
+    var head: CommitEntity? = null,
     @Relations(
         edges = [BranchFileConnectionEntity::class],
         lazy = true,
@@ -64,18 +64,25 @@ data class BranchEntity(
      * @param head The head commit domain object
      * @return Branch domain object
      */
-    fun toDomain(): Branch =
-        Branch(
-            name = this.name,
-            fullName = this.fullName,
-            category = ReferenceCategory.valueOf(this.category),
-            repositoryId = Repository.Id(this.repository.iid),
-            headSha = this.head.sha,
+    fun toDomain(): Branch {
+        val effectiveName = if (this.name.isNotEmpty()) this.name else (this.branch ?: "")
+        val effectiveFullName = if (this.fullName.isNotEmpty()) this.fullName else effectiveName
+        val effectiveCategory = runCatching { ReferenceCategory.valueOf(this.category) }.getOrDefault(ReferenceCategory.LOCAL_BRANCH)
+        val repoIid = this.repository?.iid ?: Uuid.random()
+        val headSha = this.head?.sha ?: this.latestCommit ?: ""
+
+        return Branch(
+            name = effectiveName,
+            fullName = effectiveFullName,
+            category = effectiveCategory,
+            repositoryId = Repository.Id(repoIid),
+            headSha = headSha,
         ).apply {
             this.id = this@BranchEntity.id
             this.active = this@BranchEntity.active
             this.tracksFileRenames = this@BranchEntity.tracksFileRenames
         }
+    }
 }
 
 /**

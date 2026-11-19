@@ -13,6 +13,9 @@ interface BranchRepository :
     TechnicalIdentifiableRepository<BranchEntity> {
     override fun findByIid(iid: Uuid): BranchEntity?
 
+    @Query("FOR b IN branches FILTER b.branch == @name || b.name == @name LIMIT 1 RETURN b")
+    fun findByName(@Param("name") name: String): BranchEntity?
+
     @Query("FOR b IN branches FILTER b.repository.localPath == @repoPath AND b.branch == @name RETURN b")
     fun findByRepositoryAndName(
         @Param("repoPath") repoPath: String,
@@ -41,10 +44,10 @@ interface BranchRepository :
     @Query(
         """
         FOR b IN branches
-          LET br        = b.branch
+          LET br        = b.branch != null ? b.branch : (b.name != null ? b.name : '')
           LET isNum     = REGEX_TEST(br, '^[0-9]+$')
-          LET isFeature = STARTS_WITH(br, 'feature/')
-          LET featRema  = SUBSTRING(br, 8)
+          LET isFeature = LEFT(br, 8) == 'feature/'
+          LET featRema  = isFeature ? SUBSTRING(br, 8) : ''
           LET hasDash   = isFeature && CONTAINS(featRema, '-')
 
           LET rank =
@@ -55,7 +58,7 @@ interface BranchRepository :
 
           LET jiraPri = CONTAINS(LOWER(br), 'jira') ? 0 : 1
 
-          LET parts = REGEX_SPLIT(featRema, '[^0-9]+')
+          LET parts = isFeature ? REGEX_SPLIT(featRema, '[^0-9]+') : []
           LET fNum  =
             LENGTH(parts) > 0 && LENGTH(parts[0]) > 0
               ? TO_NUMBER(parts[0])
@@ -92,10 +95,10 @@ interface BranchRepository :
     @Query(
         """
         FOR b IN branches
-          LET br        = b.branch
+          LET br        = b.branch != null ? b.branch : (b.name != null ? b.name : '')
           LET isNum     = REGEX_TEST(br, '^[0-9]+$')
-          LET isFeature = STARTS_WITH(br, 'feature/')
-          LET featRema  = SUBSTRING(br, 8)
+          LET isFeature = LEFT(br, 8) == 'feature/'
+          LET featRema  = isFeature ? SUBSTRING(br, 8) : ''
           LET hasDash   = isFeature && CONTAINS(featRema, '-')
 
           LET rank =
@@ -106,7 +109,7 @@ interface BranchRepository :
 
           LET jiraPri = CONTAINS(LOWER(br), 'jira') ? 0 : 1
 
-          LET parts = REGEX_SPLIT(featRema, '[^0-9]+')
+          LET parts = isFeature ? REGEX_SPLIT(featRema, '[^0-9]+') : []
           LET fNum  =
             LENGTH(parts) > 0 && LENGTH(parts[0]) > 0
               ? TO_NUMBER(parts[0])

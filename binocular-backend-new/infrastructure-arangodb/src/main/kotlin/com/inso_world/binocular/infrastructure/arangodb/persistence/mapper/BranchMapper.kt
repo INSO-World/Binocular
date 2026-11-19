@@ -61,13 +61,19 @@ internal class BranchMapper : EntityMapper<Branch, BranchEntity> {
     ): BranchEntity = domain.toArangoEntity(owner, head)
 
     override fun toDomain(entity: BranchEntity): Branch {
+        val effectiveName = if (entity.name.isNotEmpty()) entity.name else (entity.branch ?: "")
+        val effectiveFullName = if (entity.fullName.isNotEmpty()) entity.fullName else effectiveName
+        val effectiveCategory = runCatching { ReferenceCategory.valueOf(entity.category) }.getOrDefault(ReferenceCategory.LOCAL_BRANCH)
+        val repoIid = entity.repository?.iid ?: Uuid.random()
+        val headSha = entity.head?.sha ?: entity.latestCommit ?: ""
+
         val domain =
             Branch(
-                name = entity.name,
-                fullName = entity.fullName,
-                category = ReferenceCategory.valueOf(entity.category),
-                repositoryId = Repository.Id(entity.repository.iid),
-                headSha = entity.head.sha,
+                name = effectiveName,
+                fullName = effectiveFullName,
+                category = effectiveCategory,
+                repositoryId = Repository.Id(repoIid),
+                headSha = headSha,
                 iid = Reference.Id(entity.iid)
             ).apply {
                 this.id = entity.id
