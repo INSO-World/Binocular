@@ -13,7 +13,7 @@ export function normalizeSeverity(value) {
 }
 
 function hasSequence(event) {
-  return event?.sequence != null && Number.isFinite(Number(event.sequence));
+  return Number.isFinite(Number(event?.sequence ?? Number.NaN));
 }
 
 function orderedEvents(events) {
@@ -75,8 +75,8 @@ export function calculateSeverityTimeline({ events, triples, branch = 'main', cr
     const commitHash = String(event?.commitHash || '').trim();
     if (!commitHash || commitMetadata.has(commitHash)) continue;
 
-    const timestamp = Number(event?.timestamp) * 1000;
-    const commitTime = event?.timestamp != null && Number.isFinite(timestamp) ? timestamp : generatedTime;
+    const timestamp = Number(event?.timestamp ?? Number.NaN) * 1000;
+    const commitTime = Number.isFinite(timestamp) ? timestamp : generatedTime;
     // A descendant's dependency state cannot become effective before its parent.
     effectiveTime = Math.max(effectiveTime, commitTime);
     commitMetadata.set(commitHash, {
