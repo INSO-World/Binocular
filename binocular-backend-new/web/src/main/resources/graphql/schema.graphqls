@@ -38,6 +38,13 @@ scalar Sort
   note(id: ID!): Note
   user(id: ID!): User
   revision(id: ID!): Revision
+
+  """
+  The software history narrative: the VCS, ITS and CI events of the period [since, until),
+  correlated and cut into consecutive segments of the given granularity, in chronological order.
+  If both bounds are given, since must be before until; otherwise a VALIDATION_ERROR is returned.
+  """
+  narrative(granularity: NarrativeGranularity!, since: Timestamp, until: Timestamp): [NarrativeSegment!]!
 }
 
 """
@@ -448,4 +455,81 @@ type Revision {
   content: String
   commit: Commit
   file: File
+}
+
+"""
+Time unit a narrative is cut into. Weeks start on Monday.
+"""
+enum NarrativeGranularity {
+  MONTH
+  WEEK
+}
+
+"""
+Data source of a narrative event: version control, issue tracking or continuous integration.
+"""
+enum NarrativeSource {
+  VCS
+  ITS
+  CI
+}
+
+"""
+What happened in a narrative event.
+"""
+enum NarrativeEventType {
+  COMMIT
+  MERGE
+  ISSUE_OPENED
+  ISSUE_CLOSED
+  BUILD_SUCCEEDED
+  BUILD_FAILED
+}
+
+"""
+One period of a narrative with its events, key figures and textual summary.
+A period without events is returned as an empty segment.
+"""
+type NarrativeSegment {
+  granularity: NarrativeGranularity!
+  "Start of the period, inclusive"
+  start: Timestamp!
+  "End of the period, exclusive"
+  end: Timestamp!
+  "Template-based micro-summary of the events"
+  summary: String!
+  "Module touched by most commits and merges; null if none touched a file"
+  topModule: String
+  "Everyone who acted in the period, most active first"
+  actors: [String!]!
+  commitCount: Int!
+  mergeCount: Int!
+  issuesOpened: Int!
+  issuesClosed: Int!
+  buildsSucceeded: Int!
+  buildsFailed: Int!
+  "The events of the period in chronological order"
+  events: [NarrativeEvent!]!
+}
+
+"""
+A single thing that happened to a commit, issue or build.
+Entities are identified by a key of the form SOURCE:ref, e.g. VCS:<sha>, ITS:<issue number>, CI:<build id>.
+"""
+type NarrativeEvent {
+  "Unique within a narrative, of the form TYPE:ref"
+  id: ID!
+  type: NarrativeEventType!
+  source: NarrativeSource!
+  "Key of the commit, issue or build the event is about"
+  entityKey: String!
+  timestamp: Timestamp!
+  title: String!
+  "Name of who caused the event; null if unknown"
+  actor: String
+  "Top-level directories the event touched; (root) for files in the repository root"
+  modules: [String!]!
+  "Keys of the entities correlated with this event by a stored link or temporal proximity"
+  relatedEntityKeys: [String!]!
+  webUrl: String
 }

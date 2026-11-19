@@ -15,6 +15,7 @@ import com.inso_world.binocular.model.Note
 import com.inso_world.binocular.model.Revision
 import com.inso_world.binocular.model.Stats
 import com.inso_world.binocular.model.User
+import com.inso_world.binocular.model.narrative.NarrativeSegment
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlAccountMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlBranchMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlBuildMapper
@@ -26,6 +27,7 @@ import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlMentionMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlMergeRequestMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlMilestoneMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlModuleMapper
+import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlNarrativeMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlNoteMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlRevisionMapper
 import com.inso_world.binocular.web.graphql.mapper.impl.GraphQlStatsMapper
@@ -41,6 +43,7 @@ import com.inso_world.binocular.web.graphql.model.MentionDto
 import com.inso_world.binocular.web.graphql.model.MergeRequestDto
 import com.inso_world.binocular.web.graphql.model.MilestoneDto
 import com.inso_world.binocular.web.graphql.model.ModuleDto
+import com.inso_world.binocular.web.graphql.model.NarrativeSegmentDto
 import com.inso_world.binocular.web.graphql.model.NoteDto
 import com.inso_world.binocular.web.graphql.model.RevisionDto
 import com.inso_world.binocular.web.graphql.model.StatsDto
@@ -63,7 +66,8 @@ class GraphQlMapper(
     private val mentionMapper: GraphQlMentionMapper,
     private val jobMapper: GraphQlJobMapper,
     private val revisionMapper: GraphQlRevisionMapper,
-    private val statsMapper: GraphQlStatsMapper
+    private val statsMapper: GraphQlStatsMapper,
+    private val narrativeMapper: GraphQlNarrativeMapper,
 ) {
     fun toDto(account: Account): AccountDto = accountMapper.toDto(account)
 
@@ -94,4 +98,12 @@ class GraphQlMapper(
     fun toDto(revision: Revision): RevisionDto = revisionMapper.toDto(revision)
 
     fun toDto(stats: Stats): StatsDto = statsMapper.toDto(stats)
+
+    /**
+     * Maps a narrative segment together with its events to its GraphQL wire type.
+     *
+     * @param segment The segment to map.
+     * @return The wire type of the segment.
+     */
+    fun toDto(segment: NarrativeSegment): NarrativeSegmentDto = narrativeMapper.toDto(segment)
 }
