@@ -23,7 +23,10 @@ class V015_AddRevisionAndRemoteIid : Migration {
         backfillCollectionIid(db, "remotes")
     }
 
-    private fun backfillCollectionIid(db: ArangoDatabase, collectionName: String) {
+    private fun backfillCollectionIid(
+        db: ArangoDatabase,
+        collectionName: String
+    ) {
         if (!db.collection(collectionName).exists()) {
             return
         }

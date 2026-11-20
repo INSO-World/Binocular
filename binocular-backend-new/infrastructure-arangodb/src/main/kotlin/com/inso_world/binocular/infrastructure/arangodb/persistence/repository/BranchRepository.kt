@@ -14,7 +14,9 @@ interface BranchRepository :
     override fun findByIid(iid: Uuid): BranchEntity?
 
     @Query("FOR b IN branches FILTER b.branch == @name || b.name == @name LIMIT 1 RETURN b")
-    fun findByName(@Param("name") name: String): BranchEntity?
+    fun findByName(
+        @Param("name") name: String
+    ): BranchEntity?
 
     @Query("FOR b IN branches FILTER b.repository.localPath == @repoPath AND b.branch == @name RETURN b")
     fun findByRepositoryAndName(
