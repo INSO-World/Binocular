@@ -11,14 +11,12 @@ import com.inso_world.binocular.model.Issue
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Note
 import jakarta.validation.Valid
-import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.validation.annotation.Validated
 import kotlin.uuid.Uuid
 
 @Service
-@Profile("postgres")
 @Validated
 internal class NoteInfrastructurePortImpl(
     private val noteDao: NoteDao,

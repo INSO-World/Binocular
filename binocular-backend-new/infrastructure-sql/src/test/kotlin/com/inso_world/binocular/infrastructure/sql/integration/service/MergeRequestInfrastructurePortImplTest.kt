@@ -1,6 +1,7 @@
 package com.inso_world.binocular.infrastructure.sql.integration.service
 
 import com.inso_world.binocular.core.service.AccountInfrastructurePort
+import com.inso_world.binocular.core.service.MergeRequestInfrastructurePort
 import com.inso_world.binocular.core.service.ProjectInfrastructurePort
 import com.inso_world.binocular.infrastructure.sql.TestData
 import com.inso_world.binocular.infrastructure.sql.integration.service.base.BaseServiceTest
@@ -8,7 +9,6 @@ import com.inso_world.binocular.infrastructure.sql.persistence.entity.MergeReque
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.MilestoneEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.NoteEntity
 import com.inso_world.binocular.infrastructure.sql.persistence.entity.ProjectEntity
-import com.inso_world.binocular.infrastructure.sql.service.MergeRequestInfrastructurePortImpl
 import com.inso_world.binocular.model.Account
 import com.inso_world.binocular.model.MergeRequest
 import com.inso_world.binocular.model.Milestone
@@ -36,7 +36,7 @@ internal class MergeRequestInfrastructurePortImplTest : BaseServiceTest() {
     private lateinit var accountPort: AccountInfrastructurePort
 
     @Autowired
-    private lateinit var mergeRequestPort: MergeRequestInfrastructurePortImpl
+    private lateinit var mergeRequestPort: MergeRequestInfrastructurePort
 
     @PersistenceContext
     private lateinit var em: EntityManager

@@ -18,7 +18,6 @@ import com.inso_world.binocular.model.Project
 import com.inso_world.binocular.model.User
 import com.inso_world.binocular.model.enums.IssueAccountRole
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,7 +25,6 @@ import org.springframework.validation.annotation.Validated
 import kotlin.uuid.Uuid
 
 @Service
-@Profile("postgres")
 @Validated
 internal class IssueInfrastructurePortImpl
     @Autowired
